@@ -1,4 +1,3 @@
-
 #Tutorial for site creation
 #http://nickstrayer.me/RMarkdown_Sites_tutorial/
 
