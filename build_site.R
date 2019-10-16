@@ -4,6 +4,6 @@
 
 library("rmarkdown")
 
-setwd("/Users/beastatlife/Google Drive/Penn/Research/Website/ramie.github.io")
+setwd("/Users/beastatlife/Google Drive/Penn/Research/Website/")
 
 rmarkdown::render_site()
