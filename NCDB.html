@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -70,9 +70,7 @@ h6 {
 
 <link rel="stylesheet" href="style.css" type="text/css" />
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -86,13 +84,18 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
 }
 </style>
 
@@ -108,7 +111,6 @@ body {
   padding-top: 65px;
   margin-top: -65px;
 }
-
 .section h2 {
   padding-top: 65px;
   margin-top: -65px;
@@ -128,6 +130,43 @@ body {
 .section h6 {
   padding-top: 65px;
   margin-top: -65px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
 }
 </style>
 
@@ -149,19 +188,74 @@ $(document).ready(function () {
 });
 </script>
 
-
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-</script>
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
 
 <!-- code folding -->
 
 
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
 
 
 
@@ -216,8 +310,7 @@ $(document).ready(function () {
 </div>
 
 
-<div id="documentation" class="section level2">
-<h2>Documentation</h2>
+<p>##Documentation</p>
 <p><a href="../PUF_Supplemental_Documentation.pdf">2016 Data Dictionary</a></p>
 <p><a href="../2015_PUF_Data_Dictionary.pdf">2015 Data Dictionary</a></p>
 <p><a href="../2014_PUF_Data_Dictionary.pdf">2014 Data Dictionary</a></p>
@@ -225,71 +318,21 @@ $(document).ready(function () {
 <p><a href="https://cancerstaging.org/cstage/schema/Pages/version0205.aspx">Collaborative Stage 2.05</a></p>
 <p><a href="../ICD-O-3.pdf">ICD-O-3</a></p>
 <p><a href="../icd-o-3-site-text.pdf">ICD-O-3 Site Codes</a></p>
-</div>
-<div id="analysis" class="section level2">
-<h2>Analysis</h2>
-<div id="ncdb" class="section level3">
-<h3>NCDB</h3>
-</div>
-<div id="melanoma" class="section level3">
-<h3>Melanoma</h3>
+<p>##Analysis</p>
+<p>###NCDB</p>
+<p>###Melanoma</p>
 <ol style="list-style-type: decimal">
 <li><a href="../20191014_Melanoma_ACA_nb.nb.html">2019-10-14 Melanoma</a></li>
 <li><a href="../20191024_Melanoma_ACA.nb.html">2019-10-24 Melanoma</a></li>
 </ol>
-</div>
-<div id="extra-mammary-paget-disease" class="section level3">
-<h3>Extra-Mammary Paget Disease</h3>
-<ol style="list-style-type: decimal">
-<li><a href="../20191024_EMPD.nb.html">2019-10-24 EMPD</a></li>
-<li><p><a href="../20191105_EMPD.nb.html">2019-11-05 EMPD</a></p></li>
-<li><a href="../20191218_EMPD.nb.html">2019-12-18 EMPD</a></li>
-<li><p><a href="../20191218_Mammary_Paget_Disease.nb.html">2019-12-18 Mammary Paget Disease</a></p></li>
-</ol>
-</div>
-<div id="mycosis-fungoides" class="section level3">
-<h3>Mycosis Fungoides</h3>
-<ol style="list-style-type: decimal">
-<li><a href="../20191216_Mycosis_Fungoides.nb.html">2019-12-16 Mycosis Fungoides</a></li>
-</ol>
-</div>
-<div id="sezary-syndrome" class="section level3">
-<h3>Sezary Syndrome</h3>
-<ol style="list-style-type: decimal">
-<li><a href="../20191216_Sezary_Syndrome.nb.html">2019-12-16 Sezary Syndrome</a></li>
-</ol>
-</div>
-<div id="cd30-lymphoproliferative-disorders" class="section level3">
-<h3>CD30+ Lymphoproliferative Disorders</h3>
-<ol style="list-style-type: decimal">
-<li><a href="../20191216_CD30.nb.html">2019-12-16 CD30+</a></li>
-</ol>
-</div>
-<div id="primary-cutaneous-gammadelta-t-cell-lymphoma" class="section level3">
-<h3>Primary Cutaneous Gamma/Delta T-cell lymphoma</h3>
-<ol style="list-style-type: decimal">
-<li><a href="../20191216_Primary_Cutaneous_Gamma-Delta_T-cell_Lymphoma.nb.html">2019-12-16 Gamma-Delta</a></li>
-</ol>
-</div>
-<div id="sptcl" class="section level3">
-<h3>SPTCL</h3>
-<ol style="list-style-type: decimal">
-<li><a href="../20191216_SPTCL.nb.html">2019-12-16 SPTCL</a></li>
-</ol>
-</div>
-<div id="overall-cutaneous-t-cell-lymphoma" class="section level3">
-<h3>Overall Cutaneous T Cell Lymphoma</h3>
-<ol style="list-style-type: decimal">
-<li><a href="../20191024_CTCL.nb.html">2019-10-24 CTCL</a></li>
-<li><a href="../20191026_CTCL.nb.html">2019-10-26 CTCL</a></li>
-<li><a href="../20191028_CTCL.nb.html">2019-10-28 CTCL</a></li>
-<li><a href="../20191028_CTCL2.nb.html">2019-10-28 CTCL without NHL sites</a></li>
-</ol>
-</div>
-<div id="langerhans-cell-histiocytosis" class="section level3">
-<h3>Langerhans Cell Histiocytosis</h3>
-</div>
-</div>
+<p>###Extra-Mammary Paget Disease 1. <a href="../20191024_EMPD.nb.html">2019-10-24 EMPD</a> 2. <a href="../20191105_EMPD.nb.html">2019-11-05 EMPD</a> 3a.<a href="../20191218_EMPD.nb.html">2019-12-18 EMPD</a> 3b.<a href="../20191218_Mammary_Paget_Disease.nb.html">2019-12-18 EMPD</a></p>
+<p>###Mycosis Fungoides 1. <a href="../20191216_Mycosis_Fungoides.nb.html">2019-12-16 Mycosis Fungoides</a></p>
+<p>###Sezary Syndrome 1. <a href="../20191216_Sezary_Syndrome.nb.html">2019-12-16 Sezary Syndrome</a></p>
+<p>###CD30+ Lymphoproliferative Disorders 1. <a href="../20191216_CD30.nb.html">2019-12-16 CD30+</a></p>
+<p>###Primary Cutaneous Gamma/Delta T-cell lymphoma 1. <a href="../20191216_Primary_Cutaneous_Gamma-Delta_T-cell_Lymphoma.nb.html">2019-12-16 Gamma-Delta</a></p>
+<p>###SPTCL 1. <a href="../20191216_SPTCL.nb.html">2019-12-16 SPTCL</a></p>
+<p>###Overall Cutaneous T Cell Lymphoma 1. <a href="../20191024_CTCL.nb.html">2019-10-24 CTCL</a> 2. <a href="../20191026_CTCL.nb.html">2019-10-26 CTCL</a> 3. <a href="../20191028_CTCL.nb.html">2019-10-28 CTCL</a> 4. <a href="../20191028_CTCL2.nb.html">2019-10-28 CTCL without NHL sites</a></p>
+<p>###Langerhans Cell Histiocytosis</p>
 
 
 
@@ -308,6 +351,23 @@ $(document).ready(function () {
 
 
 </script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

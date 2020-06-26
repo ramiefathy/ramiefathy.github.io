@@ -1,0 +1,260 @@
+---
+title: "AAD Modules Analysis"
+author: "Ramie Fathy"
+date: "6/25/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+#Reading in the functions I'll be using...
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# for data wrangling
+library(tidyr)
+library(forcats)
+library(knitr)
+library(stringr)
+library(magrittr)
+library(dplyr)
+library(readxl)
+library(ggplot2)
+library(tableone)
+```
+
+```{r p_table}
+p_table <- function(tab_data, ...) {
+  tab_data_2 <- deparse(substitute(tab_data))
+  
+  table_p <- do.call(CreateTableOne, 
+                     list(data = as.name(tab_data_2), includeNA = TRUE, ...))
+  table_p_out <- print(table_p,
+                       showAllLevels = TRUE,
+                       printToggle = FALSE)
+  kable(table_p_out,
+        align = "c")
+}
+```
+
+
+#Read in data from spreadsheet
+
+```{r}
+aad <- read_xls("AAD Modules Combined.xls", sheet = 1)
+
+nrow(aad) #1174 images reviewed
+```
+
+##We reviewed a total of 1174 images, but some duplicates or not clinical images -- let's exclude those
+
+```{r}
+# how many clinical images were of patients w/ indeterminate skin type?
+nrow(aad %>% filter(fitzpatrick == 4)) # answer: 33
+
+# how many  images were excluded
+nrow(aad %>% filter(include == "No" | 
+                      fitzpatrick == "Excluded" |
+                      dx == "Excluded-NoDx")) # answer: 410
+
+# how many clinical images were duplicates?
+nrow(aad %>% filter(duplicate == "Yes")) # answer: 102
+
+
+aad <- aad %>% 
+  filter(fitzpatrick != "Excluded") %>%
+  droplevels() %>%
+  mutate(module = as.factor(module))  %>% 
+  mutate(include = as.factor(include)) %>% 
+  mutate(duplicate = as.factor(duplicate)) %>% 
+  mutate(fitzpatrick = as.factor(fitzpatrick)) %>% 
+  mutate(dx = as.factor(dx)) %>% 
+  mutate(coder = as.factor(coder))
+
+data <- aad %>% 
+  filter(include == "Yes" & 
+           duplicate == "No" & 
+           fitzpatrick != "4" &
+           dx != "Excluded-NoDx") %>%
+  droplevels()
+```
+
+##After excluding images that were duplicates (102), non-clinical (410), indeterminate skin type (33), or didn't have an associated diagnosis (3), we're left with 663 images
+
+# Data Exploration
+
+## Let's start with our primary question: what is the distribution of skin types in the AAD Modules' images?
+
+```{r overall score distribution}
+p_table(data,
+        vars = "fitzpatrick")
+
+ggplot(data = data) +
+  geom_histogram(stat = "count", mapping = aes(x = fitzpatrick, fill = "Red")) +
+  labs(x = "Skin Type Group", 
+       y = "Number of Images with Skin Type", 
+       title = "Number of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI") +
+  theme_minimal()
+```
+
+## Out of curiosity, how do our individual skin type score distributions compare?
+
+```{r individual score distributions}
+# table form
+p_table(data, 
+        vars = "fitzpatrick",
+        strata = "coder")
+
+# histogram form
+ggplot(data = data) +
+  geom_histogram(stat = "count", 
+                 mapping = aes(x = coder, fill = fitzpatrick), 
+                 position = "fill") +
+  labs(x = "Skin Type Group", 
+       y = "Number of Images with Skin Type", 
+       title = "Number of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI") +
+  theme_minimal()
+
+# histogram form, side-by-side
+ggplot(data = data) +
+  geom_histogram(stat = "count", mapping = aes(x = fitzpatrick, fill = coder)) +
+  facet_wrap(~ coder, ncol = 1) +
+  labs(x = "Skin Type Group", 
+       y = "Number of Images with Skin Type", 
+       title = "Number of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI") +
+  theme_minimal()
+```
+##Pretty similar, though RF's lectures seemed to have more 3's than 2's and GO's had fewer 1's than BC/RF 
+
+#By Module
+
+```{r}
+# table form
+p_table(data, 
+        vars = "fitzpatrick",
+        strata = "module")
+
+
+data_byModule <- data %>%
+  group_by(module) %>%
+    summarise(fitz1 = sum(fitzpatrick == "1"), fitz2 = sum(fitzpatrick == "2"), 
+              fitz3 = sum(fitzpatrick == "3"), freq = fitz1/(fitz1+fitz2+fitz3))
+
+order <- data_byModule[order(data_byModule$freq, decreasing = TRUE),]$module
+
+data2 <- data %>% 
+  mutate(module = fct_relevel(module, levels = as.character(order)))
+
+# histogram form
+ggplot(data = data2) +
+  geom_histogram(stat = "count", 
+                 mapping = aes(x = module, fill = fitzpatrick), 
+                 position = "fill") +
+  labs(x = "Skin Type Group", 
+       y = "Number of Images with Skin Type", 
+       title = "Proportion of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+
+
+# histogram form
+ggplot(data = data2) +
+  geom_histogram(stat = "count", 
+                 mapping = aes(x = module, fill = fitzpatrick)) +
+  labs(x = "Skin Type Group", 
+       y = "Number of Images with Skin Type", 
+       title = "Number of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+### still working on figuring out how best to order the above histograms... lmk if you have any ideas
+
+#By Diagnosis
+
+```{r}
+# table form...
+p_table(data, 
+        vars = "dx",
+        strata = "fitzpatrick")
+
+### NOTE: combine duplicates with slightly different names, like acne/acne vulgaris
+### QUESTION: should we combine the melanomas?
+```
+
+## lots of diagnoses... so let's just look at ones with at least five pictures
+```{r}
+names(which(table(data$dx) > 5))
+
+# gives us 29 diagnoses, a lot easier to work with...
+dxs <- names(which(table(data$dx) > 5))
+
+#370 images with those diagnoses
+dxs <- data %>% filter(dx %in% dxs) %>% droplevels()
+
+# table form...
+p_table(dxs, 
+        vars = "dx",
+        strata = "fitzpatrick")
+```
+##The inverse might be more interesting: for each dx, what proportion of images contains patients with each skin type group?
+```{r}
+# table form...
+p_table(dxs, 
+        vars = "fitzpatrick",
+        strata = "dx")
+```
+
+
+##the following have >10% of images being of patients with FP V/VI skin type:
+###acne,
+###psorasis,
+###pityriasis rosacea,
+###rosacea,
+###SJS/TEN,
+###ulcer
+
+##that's SIX diagnoses... out of the top 29... 
+###i.e., 20.7% of the top diagnoses have somewhat decent representation...
+
+##FP III/IV have a few more than that... but not by much: 
+###acne,
+###atopic dermatitis
+###molluscum contagiosum,
+###nevus,
+###pityriasis rosacea,
+###psoriasis,
+###purpura,
+###rhus dermatitis
+###rosacea,
+###scabies,
+###SJS/TEN,
+###squamous cell carcinoma,
+###tinea corporis,
+###tinea versicolor,
+###ulcer
+
+
+##15/29 of the top 29 diagnoses have over 10% of their images including someone of skin type III/IV
+###51.72% -- better, but still not where it should be
+###Question is: what is the proportion of the population with these skin types?
+###In other words: what should our cutoff for reasonable representation be?
+
+```{r}
+#ignore this for now...
+
+
+# data_byModule <- data %>%
+#     count(fitzpatrick, module) %>%
+#     mutate(freq = n / sum(n))
+# 
+# fitz1 <- data_byModule %>% filter(fitzpatrick == "1")
+# order <- fitz1[order(data_byModule$freq, decreasing = TRUE),]$module
+# 
+# data <- merge(x = data, y = data_byModule, by = c("module", "fitzpatrick"))
+# 
+# freq <- unique(data_byModule %>% filter(fitzpatrick == "1"))$freq
+# 
+# data2$module <- factor(data2$module, levels = levels(data2$module)[order(-freq)])
+```
+

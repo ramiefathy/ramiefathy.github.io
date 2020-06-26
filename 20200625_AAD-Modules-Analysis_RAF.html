@@ -1,0 +1,2901 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Ramie Fathy" />
+
+
+<title>AAD Modules Analysis</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Ramie Research</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="NCDB.html">NCDB</a>
+</li>
+<li>
+  <a href="NAMCS.html">NAMCS</a>
+</li>
+<li>
+  <a href="CYOA.html">CYOA</a>
+</li>
+<li>
+  <a href="Reddit.html">Reddit</a>
+</li>
+<li>
+  <a href="Other.html">Other</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">AAD Modules Analysis</h1>
+<h4 class="author">Ramie Fathy</h4>
+<h4 class="date">6/25/2020</h4>
+
+</div>
+
+
+<p>#Reading in the functions I’ll be using…</p>
+<pre class="r"><code>p_table &lt;- function(tab_data, ...) {
+  tab_data_2 &lt;- deparse(substitute(tab_data))
+  
+  table_p &lt;- do.call(CreateTableOne, 
+                     list(data = as.name(tab_data_2), includeNA = TRUE, ...))
+  table_p_out &lt;- print(table_p,
+                       showAllLevels = TRUE,
+                       printToggle = FALSE)
+  kable(table_p_out,
+        align = &quot;c&quot;)
+}</code></pre>
+<p>#Read in data from spreadsheet</p>
+<pre class="r"><code>aad &lt;- read_xls(&quot;AAD Modules Combined.xls&quot;, sheet = 1)
+
+nrow(aad) #1174 images reviewed</code></pre>
+<pre><code>## [1] 1174</code></pre>
+<p>##We reviewed a total of 1174 images, but some duplicates or not clinical images – let’s exclude those</p>
+<pre class="r"><code># how many clinical images were of patients w/ indeterminate skin type?
+nrow(aad %&gt;% filter(fitzpatrick == 4)) # answer: 33</code></pre>
+<pre><code>## [1] 33</code></pre>
+<pre class="r"><code># how many  images were excluded
+nrow(aad %&gt;% filter(include == &quot;No&quot; | 
+                      fitzpatrick == &quot;Excluded&quot; |
+                      dx == &quot;Excluded-NoDx&quot;)) # answer: 410</code></pre>
+<pre><code>## [1] 410</code></pre>
+<pre class="r"><code># how many clinical images were duplicates?
+nrow(aad %&gt;% filter(duplicate == &quot;Yes&quot;)) # answer: 102</code></pre>
+<pre><code>## [1] 102</code></pre>
+<pre class="r"><code>aad &lt;- aad %&gt;% 
+  filter(fitzpatrick != &quot;Excluded&quot;) %&gt;%
+  droplevels() %&gt;%
+  mutate(module = as.factor(module))  %&gt;% 
+  mutate(include = as.factor(include)) %&gt;% 
+  mutate(duplicate = as.factor(duplicate)) %&gt;% 
+  mutate(fitzpatrick = as.factor(fitzpatrick)) %&gt;% 
+  mutate(dx = as.factor(dx)) %&gt;% 
+  mutate(coder = as.factor(coder))
+
+data &lt;- aad %&gt;% 
+  filter(include == &quot;Yes&quot; &amp; 
+           duplicate == &quot;No&quot; &amp; 
+           fitzpatrick != &quot;4&quot; &amp;
+           dx != &quot;Excluded-NoDx&quot;) %&gt;%
+  droplevels()</code></pre>
+<p>##After excluding images that were duplicates (102), non-clinical (410), indeterminate skin type (33), or didn’t have an associated diagnosis (3), we’re left with 663 images</p>
+<div id="data-exploration" class="section level1">
+<h1>Data Exploration</h1>
+<div id="lets-start-with-our-primary-question-what-is-the-distribution-of-skin-types-in-the-aad-modules-images" class="section level2">
+<h2>Let’s start with our primary question: what is the distribution of skin types in the AAD Modules’ images?</h2>
+<pre class="r"><code>p_table(data,
+        vars = &quot;fitzpatrick&quot;)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">level</th>
+<th align="center">Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="center"></td>
+<td align="center">663</td>
+</tr>
+<tr class="even">
+<td>fitzpatrick (%)</td>
+<td align="center">1</td>
+<td align="center">452 (68.2)</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">2</td>
+<td align="center">108 (16.3)</td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">3</td>
+<td align="center">103 (15.5)</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>ggplot(data = data) +
+  geom_histogram(stat = &quot;count&quot;, mapping = aes(x = fitzpatrick, fill = &quot;Red&quot;)) +
+  labs(x = &quot;Skin Type Group&quot;, 
+       y = &quot;Number of Images with Skin Type&quot;, 
+       title = &quot;Number of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI&quot;) +
+  theme_minimal()</code></pre>
+<pre><code>## Warning: Ignoring unknown parameters: binwidth, bins, pad</code></pre>
+<p><img src="20200625_AAD-Modules-Analysis_RAF_files/figure-html/overall%20score%20distribution-1.png" width="672" /></p>
+</div>
+<div id="out-of-curiosity-how-do-our-individual-skin-type-score-distributions-compare" class="section level2">
+<h2>Out of curiosity, how do our individual skin type score distributions compare?</h2>
+<pre class="r"><code># table form
+p_table(data, 
+        vars = &quot;fitzpatrick&quot;,
+        strata = &quot;coder&quot;)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">level</th>
+<th align="center">BC</th>
+<th align="center">GO</th>
+<th align="center">RF</th>
+<th align="center">p</th>
+<th align="center">test</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="center"></td>
+<td align="center">180</td>
+<td align="center">172</td>
+<td align="center">311</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td>fitzpatrick (%)</td>
+<td align="center">1</td>
+<td align="center">124 (68.9)</td>
+<td align="center">100 (58.1)</td>
+<td align="center">228 (73.3)</td>
+<td align="center">0.005</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">2</td>
+<td align="center">34 (18.9)</td>
+<td align="center">37 (21.5)</td>
+<td align="center">37 (11.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">3</td>
+<td align="center">22 (12.2)</td>
+<td align="center">35 (20.3)</td>
+<td align="center">46 (14.8)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># histogram form
+ggplot(data = data) +
+  geom_histogram(stat = &quot;count&quot;, 
+                 mapping = aes(x = coder, fill = fitzpatrick), 
+                 position = &quot;fill&quot;) +
+  labs(x = &quot;Skin Type Group&quot;, 
+       y = &quot;Number of Images with Skin Type&quot;, 
+       title = &quot;Number of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI&quot;) +
+  theme_minimal()</code></pre>
+<pre><code>## Warning: Ignoring unknown parameters: binwidth, bins, pad</code></pre>
+<p><img src="20200625_AAD-Modules-Analysis_RAF_files/figure-html/individual%20score%20distributions-1.png" width="672" /></p>
+<pre class="r"><code># histogram form, side-by-side
+ggplot(data = data) +
+  geom_histogram(stat = &quot;count&quot;, mapping = aes(x = fitzpatrick, fill = coder)) +
+  facet_wrap(~ coder, ncol = 1) +
+  labs(x = &quot;Skin Type Group&quot;, 
+       y = &quot;Number of Images with Skin Type&quot;, 
+       title = &quot;Number of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI&quot;) +
+  theme_minimal()</code></pre>
+<pre><code>## Warning: Ignoring unknown parameters: binwidth, bins, pad</code></pre>
+<p><img src="20200625_AAD-Modules-Analysis_RAF_files/figure-html/individual%20score%20distributions-2.png" width="672" /> ##Pretty similar, though RF’s lectures seemed to have more 3’s than 2’s and GO’s had fewer 1’s than BC/RF</p>
+<p>#By Module</p>
+<pre class="r"><code># table form
+p_table(data, 
+        vars = &quot;fitzpatrick&quot;,
+        strata = &quot;module&quot;)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">level</th>
+<th align="center">Acne_Rosacea</th>
+<th align="center">AD_SDC</th>
+<th align="center">AKs_SCC</th>
+<th align="center">Bacterial</th>
+<th align="center">Basic Science</th>
+<th align="center">BCC</th>
+<th align="center">Benign</th>
+<th align="center">Blisters</th>
+<th align="center">Contact_Dermatitis</th>
+<th align="center">Dark_Blotches</th>
+<th align="center">Dermatophytes</th>
+<th align="center">Drug_Reactions</th>
+<th align="center">Erythroderma</th>
+<th align="center">Hair_Loss</th>
+<th align="center">HIV_Dermatology</th>
+<th align="center">Infestations_Bites</th>
+<th align="center">Leg</th>
+<th align="center">Light_Blotches</th>
+<th align="center">Melanoma</th>
+<th align="center">Molluscum</th>
+<th align="center">Morphology</th>
+<th align="center">Peds_Fungal</th>
+<th align="center">Pigmented</th>
+<th align="center">Pregnancy</th>
+<th align="center">Psoriasis</th>
+<th align="center">Purpuric_Vasculitis</th>
+<th align="center">Red_Face</th>
+<th align="center">Red_Scaly</th>
+<th align="center">Stasis_Ulcers</th>
+<th align="center">Therapies</th>
+<th align="center">Urticaria</th>
+<th align="center">Viral</th>
+<th align="center">Warts</th>
+<th align="center">Yeasts</th>
+<th align="center">p</th>
+<th align="center">test</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="center"></td>
+<td align="center">13</td>
+<td align="center">13</td>
+<td align="center">34</td>
+<td align="center">20</td>
+<td align="center">22</td>
+<td align="center">42</td>
+<td align="center">36</td>
+<td align="center">24</td>
+<td align="center">20</td>
+<td align="center">22</td>
+<td align="center">28</td>
+<td align="center">15</td>
+<td align="center">3</td>
+<td align="center">23</td>
+<td align="center">10</td>
+<td align="center">11</td>
+<td align="center">12</td>
+<td align="center">22</td>
+<td align="center">21</td>
+<td align="center">10</td>
+<td align="center">51</td>
+<td align="center">2</td>
+<td align="center">24</td>
+<td align="center">4</td>
+<td align="center">18</td>
+<td align="center">19</td>
+<td align="center">28</td>
+<td align="center">49</td>
+<td align="center">14</td>
+<td align="center">8</td>
+<td align="center">9</td>
+<td align="center">14</td>
+<td align="center">7</td>
+<td align="center">15</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td>fitzpatrick (%)</td>
+<td align="center">1</td>
+<td align="center">8 (61.5)</td>
+<td align="center">6 (46.2)</td>
+<td align="center">30 (88.2)</td>
+<td align="center">16 (80.0)</td>
+<td align="center">12 (54.5)</td>
+<td align="center">41 (97.6)</td>
+<td align="center">29 (80.6)</td>
+<td align="center">18 (75.0)</td>
+<td align="center">17 (85.0)</td>
+<td align="center">8 (36.4)</td>
+<td align="center">27 (96.4)</td>
+<td align="center">7 (46.7)</td>
+<td align="center">1 (33.3)</td>
+<td align="center">18 (78.3)</td>
+<td align="center">4 (40.0)</td>
+<td align="center">10 (90.9)</td>
+<td align="center">10 (83.3)</td>
+<td align="center">7 (31.8)</td>
+<td align="center">19 (90.5)</td>
+<td align="center">6 (60.0)</td>
+<td align="center">34 (66.7)</td>
+<td align="center">2 (100.0)</td>
+<td align="center">18 (75.0)</td>
+<td align="center">3 (75.0)</td>
+<td align="center">13 (72.2)</td>
+<td align="center">6 (31.6)</td>
+<td align="center">14 (50.0)</td>
+<td align="center">25 (51.0)</td>
+<td align="center">8 (57.1)</td>
+<td align="center">4 (50.0)</td>
+<td align="center">9 (100.0)</td>
+<td align="center">10 (71.4)</td>
+<td align="center">3 (42.9)</td>
+<td align="center">9 (60.0)</td>
+<td align="center">&lt;0.001</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">2</td>
+<td align="center">4 (30.8)</td>
+<td align="center">6 (46.2)</td>
+<td align="center">3 ( 8.8)</td>
+<td align="center">2 (10.0)</td>
+<td align="center">5 (22.7)</td>
+<td align="center">1 ( 2.4)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">2 ( 8.3)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">8 (36.4)</td>
+<td align="center">1 ( 3.6)</td>
+<td align="center">4 (26.7)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">2 ( 8.7)</td>
+<td align="center">3 (30.0)</td>
+<td align="center">1 ( 9.1)</td>
+<td align="center">2 (16.7)</td>
+<td align="center">2 ( 9.1)</td>
+<td align="center">1 ( 4.8)</td>
+<td align="center">3 (30.0)</td>
+<td align="center">9 (17.6)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">6 (25.0)</td>
+<td align="center">1 (25.0)</td>
+<td align="center">3 (16.7)</td>
+<td align="center">9 (47.4)</td>
+<td align="center">9 (32.1)</td>
+<td align="center">6 (12.2)</td>
+<td align="center">4 (28.6)</td>
+<td align="center">4 (50.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">2 (14.3)</td>
+<td align="center">2 (28.6)</td>
+<td align="center">3 (20.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">3</td>
+<td align="center">1 ( 7.7)</td>
+<td align="center">1 ( 7.7)</td>
+<td align="center">1 ( 2.9)</td>
+<td align="center">2 (10.0)</td>
+<td align="center">5 (22.7)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">7 (19.4)</td>
+<td align="center">4 (16.7)</td>
+<td align="center">3 (15.0)</td>
+<td align="center">6 (27.3)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">4 (26.7)</td>
+<td align="center">2 (66.7)</td>
+<td align="center">3 (13.0)</td>
+<td align="center">3 (30.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">13 (59.1)</td>
+<td align="center">1 ( 4.8)</td>
+<td align="center">1 (10.0)</td>
+<td align="center">8 (15.7)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">2 (11.1)</td>
+<td align="center">4 (21.1)</td>
+<td align="center">5 (17.9)</td>
+<td align="center">18 (36.7)</td>
+<td align="center">2 (14.3)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">2 (14.3)</td>
+<td align="center">2 (28.6)</td>
+<td align="center">3 (20.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>data_byModule &lt;- data %&gt;%
+  group_by(module) %&gt;%
+    summarise(fitz1 = sum(fitzpatrick == &quot;1&quot;), fitz2 = sum(fitzpatrick == &quot;2&quot;), 
+              fitz3 = sum(fitzpatrick == &quot;3&quot;), freq = fitz1/(fitz1+fitz2+fitz3))</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>order &lt;- data_byModule[order(data_byModule$freq, decreasing = TRUE),]$module
+
+data2 &lt;- data %&gt;% 
+  mutate(module = fct_relevel(module, levels = as.character(order)))</code></pre>
+<pre><code>## Warning: Outer names are only allowed for unnamed scalar atomic inputs</code></pre>
+<pre class="r"><code># histogram form
+ggplot(data = data2) +
+  geom_histogram(stat = &quot;count&quot;, 
+                 mapping = aes(x = module, fill = fitzpatrick), 
+                 position = &quot;fill&quot;) +
+  labs(x = &quot;Skin Type Group&quot;, 
+       y = &quot;Number of Images with Skin Type&quot;, 
+       title = &quot;Proportion of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI&quot;) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))</code></pre>
+<pre><code>## Warning: Ignoring unknown parameters: binwidth, bins, pad</code></pre>
+<p><img src="20200625_AAD-Modules-Analysis_RAF_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code># histogram form
+ggplot(data = data2) +
+  geom_histogram(stat = &quot;count&quot;, 
+                 mapping = aes(x = module, fill = fitzpatrick)) +
+  labs(x = &quot;Skin Type Group&quot;, 
+       y = &quot;Number of Images with Skin Type&quot;, 
+       title = &quot;Number of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI&quot;) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))</code></pre>
+<pre><code>## Warning: Ignoring unknown parameters: binwidth, bins, pad</code></pre>
+<p><img src="20200625_AAD-Modules-Analysis_RAF_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
+<div id="still-working-on-figuring-out-how-best-to-order-the-above-histograms-lmk-if-you-have-any-ideas" class="section level3">
+<h3>still working on figuring out how best to order the above histograms… lmk if you have any ideas</h3>
+<p>#By Diagnosis</p>
+<pre class="r"><code># table form...
+p_table(data, 
+        vars = &quot;dx&quot;,
+        strata = &quot;fitzpatrick&quot;)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">level</th>
+<th align="center">1</th>
+<th align="center">2</th>
+<th align="center">3</th>
+<th align="center">p</th>
+<th align="center">test</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="center"></td>
+<td align="center">452</td>
+<td align="center">108</td>
+<td align="center">103</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td>dx (%)</td>
+<td align="center">acanthosis nigricans</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center">&lt;0.001</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">acne rosacea</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">acne vulgaris</td>
+<td align="center">7 (1.5)</td>
+<td align="center">9 (8.3)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">acrochordons</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">actinic keratosis</td>
+<td align="center">5 (1.1)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">actinic keratosis SCC</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">actinic purpura</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">allergic contact dermatitis</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">alopecia areata</td>
+<td align="center">2 (0.4)</td>
+<td align="center">2 (1.9)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">angioedema</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">asteatotic dermatitis</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">atopic dermatitis</td>
+<td align="center">7 (1.5)</td>
+<td align="center">8 (7.4)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">atopic eruption of pregnancy</td>
+<td align="center">1 (0.2)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">atrophy</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">basal cell carcinoma</td>
+<td align="center">39 (8.6)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">bedbug bites</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">blistering dacytlitis</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">brown recluse bite</td>
+<td align="center">4 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">bulla</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">bullous impetigo</td>
+<td align="center">4 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">bullous pemphigoid</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">candidal intertrigo</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">cellulitis</td>
+<td align="center">1 (0.2)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">cherry angioma</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">chicken pox</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">chloroquine-induced hyperpigmentation</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">chronic ulcer</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">confluent and reticulated papillomatosis</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">contact dermatitis</td>
+<td align="center">3 (0.7)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">cyst</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">dermatitis</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">dermatofibroma</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">dermatosis papulosa nigra</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">diaper candidiasis</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">DIC</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">DRESS</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">drug eruption</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">drug rash</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">dyspigmentation after cryotherapy</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">ecthyma</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">ehler-danlos</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">epidermal inclusion cyst</td>
+<td align="center">4 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">erosion</td>
+<td align="center">3 (0.7)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">erysipelas</td>
+<td align="center">3 (0.7)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">erythema</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">erythema infectiousum</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">erythema nodosum</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">erythematous nodule</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">erythematous patches</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">erythroderma</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">exanthematous drug eruption</td>
+<td align="center">3 (0.7)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">excoriation</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">female pattern hair loss</td>
+<td align="center">8 (1.8)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">fibrous papule</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">fixed drug eruption</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">folliculitis</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">Fordyce Spots</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">furuncle/carbuncle</td>
+<td align="center">3 (0.7)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">genital herpes</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">genital warts</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">guttate psoriasis</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">hand foot mouth disease</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">herpes simplex</td>
+<td align="center">5 (1.1)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">herpes zoster</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">herpetic whitlow</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">HIV-associated lipoatrophy</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">HIV-associated lipodystrophy</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">hyperpigmentation</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">hypopigmentation</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">impetiginized mycosis fungoides</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">impetigo</td>
+<td align="center">4 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">irritant contact dermatitis</td>
+<td align="center">3 (0.7)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">kaposi sarcoma</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">keloid</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">4 (3.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">keratosis pialris</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">latex allergy</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">leukocytoclastic vasculitis</td>
+<td align="center">1 (0.2)</td>
+<td align="center">3 (2.8)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">lichenification</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">lipodermatosclerosis</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">lipoma</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">macule</td>
+<td align="center">4 (0.9)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">macule/patch</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">malar rash of lupus</td>
+<td align="center">3 (0.7)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">male pattern hair loss</td>
+<td align="center">6 (1.3)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">measles</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">medication allergy</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">melanoma</td>
+<td align="center">10 (2.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">melanoma, acral</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">melanoma, amelanotic</td>
+<td align="center">3 (0.7)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">melanoma, lentigo maligna</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">melanoma, nodular</td>
+<td align="center">3 (0.7)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">melanoma, subungual</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">melanoma, superficial spreading</td>
+<td align="center">3 (0.7)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">melasma</td>
+<td align="center">1 (0.2)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">merkel cell carcinoma</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">milium</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">minocycline-induced hyperpigmentation</td>
+<td align="center">1 (0.2)</td>
+<td align="center">3 (2.8)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">molluscum contagiosum</td>
+<td align="center">7 (1.5)</td>
+<td align="center">4 (3.7)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">morphea</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">necrotizing fasciitis</td>
+<td align="center">1 (0.2)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">nevus</td>
+<td align="center">16 (3.5)</td>
+<td align="center">6 (5.6)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">nickel dermatitis</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">3 (2.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">nodular melanoma</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">nodule</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">nonspecific viral exanthem</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">nummular dermatitis</td>
+<td align="center">8 (1.8)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">Onychomycosis</td>
+<td align="center">7 (1.5)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">papule</td>
+<td align="center">3 (0.7)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">papule/plaque</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">parvovirus B19</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">parvovirus B20</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">patch</td>
+<td align="center">2 (0.4)</td>
+<td align="center">2 (1.9)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">patch testing</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">pemphigoid gestationis</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">pemphigus vulgaris</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">periorificial dermatitis</td>
+<td align="center">1 (0.2)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">petechiae</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">pityriasis alba</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">pityriasis rosacea</td>
+<td align="center">4 (0.9)</td>
+<td align="center">3 (2.8)</td>
+<td align="center">4 (3.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">plaque</td>
+<td align="center">5 (1.1)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">post-inflammatory hyperpigmentation</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">post-inflammatory hypopigmentation</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">post-inflammatory pigment alteration</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">postinflammatory hypopigmentation</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">psoriasis</td>
+<td align="center">20 (4.4)</td>
+<td align="center">7 (6.5)</td>
+<td align="center">10 (9.7)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">psoriatic erythroderma</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">PUPPP</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">purpura</td>
+<td align="center">4 (0.9)</td>
+<td align="center">7 (6.5)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">pustule</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">rhus dermatitis</td>
+<td align="center">8 (1.8)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">ring wart</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">rosacea</td>
+<td align="center">5 (1.1)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">roseola</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">rubella</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">scabies</td>
+<td align="center">6 (1.3)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">scar</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">sebaceous hyperplasia</td>
+<td align="center">3 (0.7)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">seborrheic dermatitis</td>
+<td align="center">12 (2.7)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">8 (7.8)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">seborrheic keratosis</td>
+<td align="center">10 (2.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">secondary syphilis</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">Sezary Syndrome</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">shingles</td>
+<td align="center">2 (0.4)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">side effect</td>
+<td align="center">1 (0.2)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">SJS/TEN</td>
+<td align="center">4 (0.9)</td>
+<td align="center">2 (1.9)</td>
+<td align="center">3 (2.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">solar elastosis</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">Spitz nevus</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">squamous cell carcinoma</td>
+<td align="center">11 (2.4)</td>
+<td align="center">3 (2.8)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">stasis dermatitis</td>
+<td align="center">17 (3.8)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">STI unspecified</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">stucco keratoses</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">sun-damage</td>
+<td align="center">7 (1.5)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">swelling of feet</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">syphilis</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">telogen effluvium</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">tinea capitis</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">tinea corporis</td>
+<td align="center">5 (1.1)</td>
+<td align="center">3 (2.8)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">tinea cruris</td>
+<td align="center">4 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">tinea incognito</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">tinea pedis</td>
+<td align="center">13 (2.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">tinea versicolor</td>
+<td align="center">8 (1.8)</td>
+<td align="center">7 (6.5)</td>
+<td align="center">4 (3.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">traction alopecia</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">traumatized cherry angioma</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">trichotillosis</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">tumor</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (1.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">ulcer</td>
+<td align="center">2 (0.4)</td>
+<td align="center">2 (1.9)</td>
+<td align="center">2 (1.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">urticaria</td>
+<td align="center">8 (1.8)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">urticaria multiforme</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">verapamil-induced hyperpigmentation</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">verruca vulgaris</td>
+<td align="center">0 (0.0)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">verrucae planae</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">vesicle/bulla</td>
+<td align="center">3 (0.7)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">vesicles</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">viral exanthem</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">vitiligo</td>
+<td align="center">1 (0.2)</td>
+<td align="center">1 (0.9)</td>
+<td align="center">3 (2.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">vitiligo - Wood’s lamp</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">3 (2.9)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">wheal</td>
+<td align="center">1 (0.2)</td>
+<td align="center">0 (0.0)</td>
+<td align="center">0 (0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>### NOTE: combine duplicates with slightly different names, like acne/acne vulgaris
+### QUESTION: should we combine the melanomas?</code></pre>
+</div>
+</div>
+<div id="lots-of-diagnoses-so-lets-just-look-at-ones-with-at-least-five-pictures" class="section level2">
+<h2>lots of diagnoses… so let’s just look at ones with at least five pictures</h2>
+<pre class="r"><code>names(which(table(data$dx) &gt; 5))</code></pre>
+<pre><code>##  [1] &quot;acne vulgaris&quot;            &quot;atopic dermatitis&quot;        &quot;basal cell carcinoma&quot;     &quot;female pattern hair loss&quot;
+##  [5] &quot;herpes simplex&quot;           &quot;male pattern hair loss&quot;   &quot;melanoma&quot;                 &quot;molluscum contagiosum&quot;   
+##  [9] &quot;nevus&quot;                    &quot;nummular dermatitis&quot;      &quot;Onychomycosis&quot;            &quot;pityriasis rosacea&quot;      
+## [13] &quot;psoriasis&quot;                &quot;purpura&quot;                  &quot;rhus dermatitis&quot;          &quot;rosacea&quot;                 
+## [17] &quot;scabies&quot;                  &quot;seborrheic dermatitis&quot;    &quot;seborrheic keratosis&quot;     &quot;SJS/TEN&quot;                 
+## [21] &quot;squamous cell carcinoma&quot;  &quot;stasis dermatitis&quot;        &quot;sun-damage&quot;               &quot;tinea corporis&quot;          
+## [25] &quot;tinea pedis&quot;              &quot;tinea versicolor&quot;         &quot;ulcer&quot;                    &quot;urticaria&quot;</code></pre>
+<pre class="r"><code># gives us 29 diagnoses, a lot easier to work with...
+dxs &lt;- names(which(table(data$dx) &gt; 5))
+
+#370 images with those diagnoses
+dxs &lt;- data %&gt;% filter(dx %in% dxs) %&gt;% droplevels()
+
+# table form...
+p_table(dxs, 
+        vars = &quot;dx&quot;,
+        strata = &quot;fitzpatrick&quot;)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">level</th>
+<th align="center">1</th>
+<th align="center">2</th>
+<th align="center">3</th>
+<th align="center">p</th>
+<th align="center">test</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="center"></td>
+<td align="center">264</td>
+<td align="center">66</td>
+<td align="center">42</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td>dx (%)</td>
+<td align="center">acne vulgaris</td>
+<td align="center">7 ( 2.7)</td>
+<td align="center">9 (13.6)</td>
+<td align="center">2 ( 4.8)</td>
+<td align="center">&lt;0.001</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">atopic dermatitis</td>
+<td align="center">7 ( 2.7)</td>
+<td align="center">8 (12.1)</td>
+<td align="center">1 ( 2.4)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">basal cell carcinoma</td>
+<td align="center">39 (14.8)</td>
+<td align="center">1 ( 1.5)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">female pattern hair loss</td>
+<td align="center">8 ( 3.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">herpes simplex</td>
+<td align="center">5 ( 1.9)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">1 ( 2.4)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">male pattern hair loss</td>
+<td align="center">6 ( 2.3)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">melanoma</td>
+<td align="center">10 ( 3.8)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">molluscum contagiosum</td>
+<td align="center">7 ( 2.7)</td>
+<td align="center">4 ( 6.1)</td>
+<td align="center">1 ( 2.4)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">nevus</td>
+<td align="center">16 ( 6.1)</td>
+<td align="center">6 ( 9.1)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">nummular dermatitis</td>
+<td align="center">8 ( 3.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">Onychomycosis</td>
+<td align="center">7 ( 2.7)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">pityriasis rosacea</td>
+<td align="center">4 ( 1.5)</td>
+<td align="center">3 ( 4.5)</td>
+<td align="center">4 ( 9.5)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">psoriasis</td>
+<td align="center">20 ( 7.6)</td>
+<td align="center">7 (10.6)</td>
+<td align="center">10 (23.8)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">purpura</td>
+<td align="center">4 ( 1.5)</td>
+<td align="center">7 (10.6)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">rhus dermatitis</td>
+<td align="center">8 ( 3.0)</td>
+<td align="center">1 ( 1.5)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">rosacea</td>
+<td align="center">5 ( 1.9)</td>
+<td align="center">1 ( 1.5)</td>
+<td align="center">2 ( 4.8)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">scabies</td>
+<td align="center">6 ( 2.3)</td>
+<td align="center">1 ( 1.5)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">seborrheic dermatitis</td>
+<td align="center">12 ( 4.5)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">8 (19.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">seborrheic keratosis</td>
+<td align="center">10 ( 3.8)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">SJS/TEN</td>
+<td align="center">4 ( 1.5)</td>
+<td align="center">2 ( 3.0)</td>
+<td align="center">3 ( 7.1)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">squamous cell carcinoma</td>
+<td align="center">11 ( 4.2)</td>
+<td align="center">3 ( 4.5)</td>
+<td align="center">1 ( 2.4)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">stasis dermatitis</td>
+<td align="center">17 ( 6.4)</td>
+<td align="center">1 ( 1.5)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">sun-damage</td>
+<td align="center">7 ( 2.7)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">tinea corporis</td>
+<td align="center">5 ( 1.9)</td>
+<td align="center">3 ( 4.5)</td>
+<td align="center">2 ( 4.8)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">tinea pedis</td>
+<td align="center">13 ( 4.9)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">1 ( 2.4)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">tinea versicolor</td>
+<td align="center">8 ( 3.0)</td>
+<td align="center">7 (10.6)</td>
+<td align="center">4 ( 9.5)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">ulcer</td>
+<td align="center">2 ( 0.8)</td>
+<td align="center">2 ( 3.0)</td>
+<td align="center">2 ( 4.8)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">urticaria</td>
+<td align="center">8 ( 3.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td>##The inv</td>
+<td align="center">erse might be more interesti</td>
+<td align="center">ng: for each</td>
+<td align="center">dx, what pro</td>
+<td align="center">portion of im</td>
+<td align="center">ages conta</td>
+<td align="center">ins patients with each skin type group?</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># table form...
+p_table(dxs, 
+        vars = &quot;fitzpatrick&quot;,
+        strata = &quot;dx&quot;)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">level</th>
+<th align="center">acne vulgaris</th>
+<th align="center">atopic dermatitis</th>
+<th align="center">basal cell carcinoma</th>
+<th align="center">female pattern hair loss</th>
+<th align="center">herpes simplex</th>
+<th align="center">male pattern hair loss</th>
+<th align="center">melanoma</th>
+<th align="center">molluscum contagiosum</th>
+<th align="center">nevus</th>
+<th align="center">nummular dermatitis</th>
+<th align="center">Onychomycosis</th>
+<th align="center">pityriasis rosacea</th>
+<th align="center">psoriasis</th>
+<th align="center">purpura</th>
+<th align="center">rhus dermatitis</th>
+<th align="center">rosacea</th>
+<th align="center">scabies</th>
+<th align="center">seborrheic dermatitis</th>
+<th align="center">seborrheic keratosis</th>
+<th align="center">SJS/TEN</th>
+<th align="center">squamous cell carcinoma</th>
+<th align="center">stasis dermatitis</th>
+<th align="center">sun-damage</th>
+<th align="center">tinea corporis</th>
+<th align="center">tinea pedis</th>
+<th align="center">tinea versicolor</th>
+<th align="center">ulcer</th>
+<th align="center">urticaria</th>
+<th align="center">p</th>
+<th align="center">test</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>n</td>
+<td align="center"></td>
+<td align="center">18</td>
+<td align="center">16</td>
+<td align="center">40</td>
+<td align="center">8</td>
+<td align="center">6</td>
+<td align="center">6</td>
+<td align="center">10</td>
+<td align="center">12</td>
+<td align="center">22</td>
+<td align="center">8</td>
+<td align="center">7</td>
+<td align="center">11</td>
+<td align="center">37</td>
+<td align="center">11</td>
+<td align="center">9</td>
+<td align="center">8</td>
+<td align="center">7</td>
+<td align="center">20</td>
+<td align="center">10</td>
+<td align="center">9</td>
+<td align="center">15</td>
+<td align="center">18</td>
+<td align="center">7</td>
+<td align="center">10</td>
+<td align="center">14</td>
+<td align="center">19</td>
+<td align="center">6</td>
+<td align="center">8</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td>fitzpatrick (%)</td>
+<td align="center">1</td>
+<td align="center">7 (38.9)</td>
+<td align="center">7 (43.8)</td>
+<td align="center">39 (97.5)</td>
+<td align="center">8 (100.0)</td>
+<td align="center">5 (83.3)</td>
+<td align="center">6 (100.0)</td>
+<td align="center">10 (100.0)</td>
+<td align="center">7 (58.3)</td>
+<td align="center">16 (72.7)</td>
+<td align="center">8 (100.0)</td>
+<td align="center">7 (100.0)</td>
+<td align="center">4 (36.4)</td>
+<td align="center">20 (54.1)</td>
+<td align="center">4 (36.4)</td>
+<td align="center">8 (88.9)</td>
+<td align="center">5 (62.5)</td>
+<td align="center">6 (85.7)</td>
+<td align="center">12 (60.0)</td>
+<td align="center">10 (100.0)</td>
+<td align="center">4 (44.4)</td>
+<td align="center">11 (73.3)</td>
+<td align="center">17 (94.4)</td>
+<td align="center">7 (100.0)</td>
+<td align="center">5 (50.0)</td>
+<td align="center">13 (92.9)</td>
+<td align="center">8 (42.1)</td>
+<td align="center">2 (33.3)</td>
+<td align="center">8 (100.0)</td>
+<td align="center">&lt;0.001</td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td align="center">2</td>
+<td align="center">9 (50.0)</td>
+<td align="center">8 (50.0)</td>
+<td align="center">1 ( 2.5)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">4 (33.3)</td>
+<td align="center">6 (27.3)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">3 (27.3)</td>
+<td align="center">7 (18.9)</td>
+<td align="center">7 (63.6)</td>
+<td align="center">1 (11.1)</td>
+<td align="center">1 (12.5)</td>
+<td align="center">1 (14.3)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">2 (22.2)</td>
+<td align="center">3 (20.0)</td>
+<td align="center">1 ( 5.6)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">3 (30.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">7 (36.8)</td>
+<td align="center">2 (33.3)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td></td>
+<td align="center">3</td>
+<td align="center">2 (11.1)</td>
+<td align="center">1 ( 6.2)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">1 (16.7)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">1 ( 8.3)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">4 (36.4)</td>
+<td align="center">10 (27.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">2 (25.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">8 (40.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">3 (33.3)</td>
+<td align="center">1 ( 6.7)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center">2 (20.0)</td>
+<td align="center">1 ( 7.1)</td>
+<td align="center">4 (21.1)</td>
+<td align="center">2 (33.3)</td>
+<td align="center">0 ( 0.0)</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<p>##the following have &gt;10% of images being of patients with FP V/VI skin type: ###acne, ###psorasis, ###pityriasis rosacea, ###rosacea, ###SJS/TEN, ###ulcer</p>
+<p>##that’s SIX diagnoses… out of the top 29… ###i.e., 20.7% of the top diagnoses have somewhat decent representation…</p>
+<p>##FP III/IV have a few more than that… but not by much: ###acne, ###atopic dermatitis ###molluscum contagiosum, ###nevus, ###pityriasis rosacea, ###psoriasis, ###purpura, ###rhus dermatitis ###rosacea, ###scabies, ###SJS/TEN, ###squamous cell carcinoma, ###tinea corporis, ###tinea versicolor, ###ulcer</p>
+<p>##15/29 of the top 29 diagnoses have over 10% of their images including someone of skin type III/IV ###51.72% – better, but still not where it should be ###Question is: what is the proportion of the population with these skin types? ###In other words: what should our cutoff for reasonable representation be?</p>
+<pre class="r"><code>#ignore this for now...
+
+
+# data_byModule &lt;- data %&gt;%
+#     count(fitzpatrick, module) %&gt;%
+#     mutate(freq = n / sum(n))
+# 
+# fitz1 &lt;- data_byModule %&gt;% filter(fitzpatrick == &quot;1&quot;)
+# order &lt;- fitz1[order(data_byModule$freq, decreasing = TRUE),]$module
+# 
+# data &lt;- merge(x = data, y = data_byModule, by = c(&quot;module&quot;, &quot;fitzpatrick&quot;))
+# 
+# freq &lt;- unique(data_byModule %&gt;% filter(fitzpatrick == &quot;1&quot;))$freq
+# 
+# data2$module &lt;- factor(data2$module, levels = levels(data2$module)[order(-freq)])</code></pre>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
