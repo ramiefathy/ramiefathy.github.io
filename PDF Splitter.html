@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Chapter Splitter (Manual Input)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/downloadjs@1.4.7/download.min.js"></script>
+
+    <style>
+        /* Custom styles for better appearance */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .file-input-label {
+            cursor: pointer;
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.375rem; /* rounded-md */
+            background-color: #f9fafb; /* gray-50 */
+            transition: background-color 0.2s ease-in-out;
+        }
+        .file-input-label:hover {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        #splitButton, #addChapterButton {
+            transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+        }
+        .download-link {
+            display: block;
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #10b981; /* emerald-500 */
+            color: white;
+            border-radius: 0.375rem; /* rounded-md */
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer; /* Indicate it's clickable */
+        }
+        .download-link:hover {
+            background-color: #059669; /* emerald-600 */
+        }
+        .remove-chapter-btn {
+            cursor: pointer;
+            color: #ef4444; /* red-500 */
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+        .remove-chapter-btn:hover {
+            color: #dc2626; /* red-600 */
+        }
+        /* Simple loading spinner */
+        .loader {
+            border: 4px solid #f3f4f6; /* Light grey */
+            border-top: 4px solid #3b82f6; /* Blue */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Input field styling */
+        input[type="text"], input[type="number"] {
+            border: 1px solid #d1d5db; /* gray-300 */
+            padding: 0.5rem;
+            border-radius: 0.375rem; /* rounded-md */
+            width: 100%; /* Make inputs take full width of their container */
+        }
+        input:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            border-color: #3b82f6; /* blue-500 */
+            box-shadow: 0 0 0 2px #bfdbfe; /* blue-200 */
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white p-6 md:p-8 rounded-lg shadow-md w-full max-w-2xl">
+        <h1 class="text-2xl font-semibold mb-6 text-center text-gray-700">PDF Chapter Splitter (Manual Input)</h1>
+
+        <div class="mb-6 border-b pb-6">
+            <label class="block text-lg font-medium text-gray-700 mb-3">1. Select PDF File</label>
+            <label for="pdfFile" class="file-input-label w-full text-center block mb-2">
+                Choose PDF File
+            </label>
+            <input type="file" id="pdfFile" name="pdfFile" accept=".pdf" class="hidden">
+            <p id="fileName" class="text-sm text-gray-600 mt-2 ml-1">No file selected</p>
+            <p id="pageCount" class="text-sm text-gray-600 mt-1 ml-1"></p>
+        </div>
+
+        <div class="mb-6 border-b pb-6">
+            <label class="block text-lg font-medium text-gray-700 mb-3">2. Define Chapters/Sections</label>
+            <p class="text-sm text-gray-600 mb-4">Enter a name and the starting page number for each chapter or section you want to extract. The section will include pages from its start page up to the page before the next section starts (or the end of the document).</p>
+            <div id="chapterInputs" class="space-y-3 mb-4">
+                <div class="flex items-center space-x-2 chapter-input-row">
+                     <div class="flex-1">
+                         <label class="text-xs text-gray-500">Chapter/Section Name</label>
+                         <input type="text" placeholder="e.g., Chapter 1, Introduction" class="chapter-name w-full">
+                     </div>
+                     <div class="w-24">
+                         <label class="text-xs text-gray-500">Start Page</label>
+                         <input type="number" placeholder="Page #" min="1" class="chapter-page w-full">
+                     </div>
+                     <button class="remove-chapter-btn self-end pb-1" onclick="removeChapter(this)" title="Remove Chapter">✖</button>
+                </div>
+            </div>
+            <button id="addChapterButton" class="bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-1 px-3 rounded-md">
+                + Add Another Chapter
+            </button>
+        </div>
+
+        <div class="mb-6 text-center border-b pb-6">
+             <label class="block text-lg font-medium text-gray-700 mb-3">3. Split PDF</label>
+            <button id="splitButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                Split PDF Now
+            </button>
+        </div>
+
+        <div id="loadingIndicator" class="hidden text-center my-4">
+             <div class="loader"></div>
+             <p class="text-sm text-gray-600">Processing PDF... This might take a while for large files.</p>
+        </div>
+
+        <div id="downloadArea" class="mt-6">
+            <h2 class="text-lg font-medium text-gray-700 mb-3">4. Download Chapters</h2>
+            <div id="downloadLinks" class="space-y-2">
+                <p class="text-sm text-gray-500">Split chapters will appear here for download.</p>
+            </div>
+        </div>
+
+        <div id="messageArea" class="mt-4 text-center text-red-600 text-sm font-medium"></div>
+
+    </div>
+
+    <script>
+        // Access pdf-lib functions
+        const { PDFDocument } = PDFLib;
+
+        // DOM Elements
+        const pdfFileInput = document.getElementById('pdfFile');
+        const fileNameDisplay = document.getElementById('fileName');
+        const pageCountDisplay = document.getElementById('pageCount');
+        const chapterInputsContainer = document.getElementById('chapterInputs');
+        const addChapterButton = document.getElementById('addChapterButton');
+        const splitButton = document.getElementById('splitButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const downloadLinksContainer = document.getElementById('downloadLinks');
+        const messageArea = document.getElementById('messageArea');
+
+        let selectedFile = null;
+        let originalPdfDoc = null;
+        let totalPages = 0;
+
+        // --- Event Listeners ---
+
+        pdfFileInput.addEventListener('change', async (event) => {
+            console.log('File input change event fired.');
+            console.log('Event target files:', event.target.files);
+
+            const newlySelectedFile = event.target.files[0]; // Use a temporary variable
+
+            if (newlySelectedFile) {
+                // --- FIX: Call resetState() *after* confirming a new file is selected ---
+                resetState(); // Clear state from previous file (if any)
+                selectedFile = newlySelectedFile; // Assign to the global variable *after* resetting
+
+                console.log('Selected file object:', selectedFile);
+                console.log('Reported file type (selectedFile.type):', selectedFile.type);
+                console.log('File selected:', selectedFile.name, 'Size:', selectedFile.size);
+
+                // Update UI immediately
+                fileNameDisplay.textContent = `Selected: ${selectedFile.name}`;
+                console.log('Updated fileNameDisplay.');
+                splitButton.disabled = true; // Keep disabled until chapters are defined
+                messageArea.textContent = '';
+                loadingIndicator.classList.remove('hidden');
+                pageCountDisplay.textContent = 'Reading page count...';
+                console.log('Set UI to loading state.');
+
+                // Proceed with processing
+                try {
+                    console.log('Attempting to read file as ArrayBuffer...');
+                    const arrayBuffer = await selectedFile.arrayBuffer();
+                    console.log('ArrayBuffer read successfully. Length:', arrayBuffer.byteLength);
+
+                    console.log('Attempting to load PDF with PDFDocument.load()...');
+                    const tempDoc = await PDFDocument.load(arrayBuffer, {
+                        // ignoreEncryption: true // Option if needed
+                    });
+                    console.log('PDF loaded successfully.');
+
+                    totalPages = tempDoc.getPageCount();
+                    console.log('Total pages:', totalPages);
+
+                    pageCountDisplay.textContent = `Total Pages: ${totalPages}`;
+                    console.log('Updated pageCountDisplay.');
+
+                    setChapterInputMaxPage();
+                    checkSplitButtonState(); // Check if chapters are already defined
+
+                } catch (error) {
+                    console.error("Error reading or loading PDF:", error);
+                    if (error.message && error.message.toLowerCase().includes('invalid pdf')) {
+                         messageArea.textContent = `Error: The selected file does not appear to be a valid PDF or is corrupted.`;
+                    } else if (error.message && error.message.toLowerCase().includes('encrypted')) {
+                         messageArea.textContent = `Error: The PDF file is encrypted (password protected) and cannot be processed.`;
+                    } else {
+                         messageArea.textContent = `Error reading PDF: ${error.message}.`;
+                    }
+                    // --- FIX: Ensure resetState is called on error to clear partially set state ---
+                    resetState(); // Reset state fully on error
+                } finally {
+                     console.log('Exiting file processing try...catch...finally block.');
+                     loadingIndicator.classList.add('hidden');
+                     console.log('Hid loading indicator.');
+                     // Check state again in case chapters were pre-filled before error
+                     checkSplitButtonState();
+                }
+
+            } else {
+                 // This case handles deselecting a file or if event.target.files[0] is undefined
+                 console.log('No file selected or file deselected.');
+                 resetState(); // Clear any previous state
+            }
+        });
+
+        addChapterButton.addEventListener('click', () => {
+            console.log('Add Chapter button clicked.'); // DEBUG
+            const newRow = chapterInputsContainer.firstElementChild.cloneNode(true);
+            newRow.querySelector('.chapter-name').value = '';
+            newRow.querySelector('.chapter-page').value = '';
+            setChapterInputMaxPage(newRow.querySelector('.chapter-page')); // Set max page for new input
+            chapterInputsContainer.appendChild(newRow);
+            checkSplitButtonState(); // Check if split button should be enabled
+        });
+
+        splitButton.addEventListener('click', handleSplitPdf);
+
+        // Add event listener to container for dynamic inputs
+        chapterInputsContainer.addEventListener('input', checkSplitButtonState);
+        chapterInputsContainer.addEventListener('change', checkSplitButtonState); // Handles number input changes
+
+        // --- Core Functions ---
+
+        function resetState() {
+            console.log('Resetting state.'); // DEBUG
+            fileNameDisplay.textContent = 'No file selected';
+            pageCountDisplay.textContent = '';
+            selectedFile = null; // Make sure this is cleared
+            originalPdfDoc = null;
+            totalPages = 0; // Make sure this is cleared
+            splitButton.disabled = true;
+            messageArea.textContent = '';
+            loadingIndicator.classList.add('hidden'); // Ensure loader is hidden on reset
+            downloadLinksContainer.innerHTML = '<p class="text-sm text-gray-500">Split chapters will appear here for download.</p>';
+            // Remove all but the first chapter input row
+            while (chapterInputsContainer.children.length > 1) {
+                chapterInputsContainer.removeChild(chapterInputsContainer.lastChild);
+            }
+            // Clear the first row's inputs and remove error styles
+            const firstRow = chapterInputsContainer.firstElementChild;
+            if (firstRow) {
+                const nameInput = firstRow.querySelector('.chapter-name');
+                const pageInput = firstRow.querySelector('.chapter-page');
+                nameInput.value = '';
+                pageInput.value = '';
+                nameInput.classList.remove('border-red-500');
+                pageInput.classList.remove('border-red-500');
+                // Reset max attribute on page input
+                setChapterInputMaxPage(pageInput);
+            }
+        }
+
+        function setChapterInputMaxPage(inputElement) {
+            const elements = inputElement ? [inputElement] : chapterInputsContainer.querySelectorAll('.chapter-page');
+            elements.forEach(input => {
+                if (totalPages > 0) {
+                    input.max = totalPages;
+                } else {
+                    // Keep min="1" but remove max if totalPages is 0 or unknown
+                    input.removeAttribute('max');
+                }
+            });
+             // console.log('Set max page attribute for chapter inputs.'); // Less verbose logging
+        }
+
+        function removeChapter(button) {
+            console.log('Remove Chapter button clicked.'); // DEBUG
+            if (chapterInputsContainer.children.length > 1) {
+                button.closest('.chapter-input-row').remove();
+                checkSplitButtonState();
+            } else {
+                 messageArea.textContent = 'At least one chapter definition is required.';
+            }
+        }
+
+        function checkSplitButtonState() {
+            let chaptersDefined = false;
+            // Only check chapters if file is loaded successfully (totalPages > 0)
+            if (selectedFile && totalPages > 0) {
+                const chapterRows = chapterInputsContainer.querySelectorAll('.chapter-input-row');
+                chapterRows.forEach(row => {
+                    const name = row.querySelector('.chapter-name').value.trim();
+                    const page = parseInt(row.querySelector('.chapter-page').value, 10);
+                    if (name && !isNaN(page) && page > 0 && page <= totalPages) {
+                        chaptersDefined = true;
+                    }
+                });
+            }
+
+             const shouldBeEnabled = selectedFile && totalPages > 0 && chaptersDefined;
+             if (splitButton.disabled !== !shouldBeEnabled) { // Only update if state changes
+                 console.log(`Checking split button state. File selected: ${!!selectedFile}, Total Pages: ${totalPages}, Chapters defined: ${chaptersDefined}. Button should be ${shouldBeEnabled ? 'enabled' : 'disabled'}.`);
+                 splitButton.disabled = !shouldBeEnabled;
+             }
+        }
+
+
+        async function handleSplitPdf() {
+            console.log('Split PDF button clicked.');
+            if (!selectedFile || totalPages <= 0) {
+                messageArea.textContent = 'Please select a valid PDF file and ensure page count is loaded.';
+                console.log('Split aborted: No file selected or page count unknown.');
+                return;
+            }
+
+            // 1. Get Chapter Definitions
+            const chapterDefs = [];
+            const chapterRows = chapterInputsContainer.querySelectorAll('.chapter-input-row');
+            let isValid = true;
+            console.log('Validating chapter definitions...');
+            chapterRows.forEach((row, index) => {
+                const nameInput = row.querySelector('.chapter-name');
+                const pageInput = row.querySelector('.chapter-page');
+                const name = nameInput.value.trim();
+                const page = parseInt(pageInput.value, 10);
+
+                nameInput.classList.remove('border-red-500'); // Clear previous errors
+                pageInput.classList.remove('border-red-500');
+
+                if (!name) {
+                    messageArea.textContent = `Chapter name is missing in row ${index + 1}.`;
+                    nameInput.classList.add('border-red-500');
+                    isValid = false; return;
+                }
+                 if (isNaN(page) || page < 1 || page > totalPages) {
+                    messageArea.textContent = `Invalid page number (${pageInput.value || 'empty'}) in row ${index + 1}. Must be between 1 and ${totalPages}.`;
+                    pageInput.classList.add('border-red-500');
+                    isValid = false; return;
+                }
+                chapterDefs.push({ name, startPage: page });
+            });
+
+            if (!isValid || chapterDefs.length === 0) {
+                 if (isValid && chapterDefs.length === 0) messageArea.textContent = 'Please define at least one chapter.';
+                 console.log('Split aborted: Validation failed or no chapters defined.');
+                return;
+            }
+
+            // Sort and Calculate End Pages
+            chapterDefs.sort((a, b) => a.startPage - b.startPage);
+            console.log('Sorted chapter definitions:', chapterDefs);
+
+            for (let i = 0; i < chapterDefs.length; i++) {
+                if (i + 1 < chapterDefs.length) {
+                    if (chapterDefs[i+1].startPage <= chapterDefs[i].startPage) {
+                         messageArea.textContent = `Error: Chapter "${chapterDefs[i+1].name}" (page ${chapterDefs[i+1].startPage}) starts on or before the previous chapter "${chapterDefs[i].name}" (page ${chapterDefs[i].startPage}).`;
+                         isValid = false; break;
+                    }
+                    chapterDefs[i].endPage = chapterDefs[i + 1].startPage - 1;
+                } else {
+                    chapterDefs[i].endPage = totalPages;
+                }
+                 if (chapterDefs[i].endPage < chapterDefs[i].startPage) { // Should be caught by overlap check now
+                     messageArea.textContent = `Error: Chapter "${chapterDefs[i].name}" ends before it starts (ends ${chapterDefs[i].endPage}, starts ${chapterDefs[i].startPage}). Check page numbers.`;
+                     isValid = false; break;
+                 }
+            }
+
+             if (!isValid) {
+                 console.log('Split aborted: Invalid end page calculated or chapter overlap detected.');
+                 return;
+             }
+             console.log('Calculated end pages:', chapterDefs);
+
+            // 2. Start Processing
+            loadingIndicator.classList.remove('hidden');
+            splitButton.disabled = true;
+            messageArea.textContent = ''; // Clear previous errors before starting
+            downloadLinksContainer.innerHTML = ''; // Clear previous links
+            console.log('Starting PDF processing...');
+
+            try {
+                console.log('Loading full PDF document for splitting...');
+                const arrayBuffer = await selectedFile.arrayBuffer();
+                // Ensure ignoreEncryption is false unless specifically needed and handled
+                originalPdfDoc = await PDFDocument.load(arrayBuffer /*, { ignoreEncryption: true } */);
+                console.log('Full PDF loaded successfully for splitting.');
+
+                // 3. Create and Save New PDFs
+                let chaptersGenerated = 0;
+                for (const chapter of chapterDefs) {
+                     console.log(`Processing chapter: ${chapter.name} (Pages ${chapter.startPage}-${chapter.endPage})`);
+
+                    const chapterPdfDoc = await PDFDocument.create();
+                    const pageIndices = [];
+                    // Copy pages (0-based index)
+                    for (let i = chapter.startPage - 1; i < chapter.endPage; i++) {
+                        if (i >= 0 && i < originalPdfDoc.getPageCount()) {
+                             pageIndices.push(i);
+                        } else {
+                            console.warn(`Page index ${i} out of bounds for chapter ${chapter.name}. Max index: ${originalPdfDoc.getPageCount() - 1}`);
+                        }
+                    }
+                     console.log(`  > Page indices to copy (0-based): ${pageIndices}`);
+
+                    if (pageIndices.length > 0) {
+                         console.log(`  > Copying ${pageIndices.length} pages...`);
+                        const copiedPages = await chapterPdfDoc.copyPages(originalPdfDoc, pageIndices);
+                        copiedPages.forEach((page) => chapterPdfDoc.addPage(page));
+                         console.log(`  > Pages copied. Saving chapter PDF...`);
+
+                        const chapterPdfBytes = await chapterPdfDoc.save();
+                         console.log(`  > Chapter PDF saved to bytes (Length: ${chapterPdfBytes.length}). Adding download link.`);
+                        addDownloadLink(chapter.name, chapterPdfBytes);
+                        chaptersGenerated++;
+                    } else {
+                         console.warn(`Skipping chapter "${chapter.name}" as it resulted in 0 pages to copy (start: ${chapter.startPage}, end: ${chapter.endPage}).`);
+                    }
+                }
+
+                 if (chaptersGenerated === 0 && messageArea.textContent === '') {
+                    messageArea.textContent = 'No chapters were generated. Please check your page number inputs.';
+                    console.log('Processing finished, but no download links were generated.');
+                 } else if (messageArea.textContent === '') {
+                    console.log(`Processing finished. ${chaptersGenerated} chapter(s) generated.`);
+                 }
+
+            } catch (error) {
+                console.error("Error splitting PDF:", error);
+                 if (error.message && error.message.toLowerCase().includes('encrypted')) {
+                     messageArea.textContent = `Error: The PDF file is encrypted (password protected) and cannot be processed.`;
+                 } else {
+                    messageArea.textContent = `Error during splitting: ${error.message}. The PDF might be corrupted or too complex.`;
+                 }
+                 // Clear potentially broken download links if split fails mid-way
+                 downloadLinksContainer.innerHTML = '<p class="text-sm text-gray-500">An error occurred during splitting.</p>';
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                // Re-enable split button *only* if the file is still considered valid and chapters are defined
+                checkSplitButtonState();
+                originalPdfDoc = null; // Release memory
+                console.log('Exiting split process (finally block).');
+            }
+        }
+
+        function addDownloadLink(chapterName, pdfBytes) {
+            const safeFileName = chapterName.replace(/[^a-z0-9_\-\.]+/gi, '_') + '.pdf';
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const downloadButton = document.createElement('button');
+            downloadButton.textContent = `Download ${chapterName} (${(pdfBytes.length / 1024 / 1024).toFixed(2)} MB)`;
+            downloadButton.className = 'download-link';
+            downloadButton.onclick = () => {
+                 console.log(`Download button clicked for: ${safeFileName}`);
+                download(blob, safeFileName, 'application/pdf');
+            };
+
+            // Clear the placeholder if it's the first link
+            const placeholder = downloadLinksContainer.querySelector('p');
+            if (placeholder) {
+                downloadLinksContainer.innerHTML = '';
+            }
+            downloadLinksContainer.appendChild(downloadButton);
+             console.log(`Added download button for ${safeFileName}`);
+        }
+
+        // Initial setup
+        resetState(); // Call reset on initial load to ensure clean state
+        console.log('Initial script setup complete. Waiting for file selection.');
+
+    </script>
+
+</body>
+</html>
