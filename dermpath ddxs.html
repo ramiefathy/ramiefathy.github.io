@@ -3,137 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dermatopathology Differentials</title>
+    <title>Dermatopathology Differentials Viewer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Use Inter font */
+        /* Apply Inter font globally */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f7fafc; /* Light gray background */
+            background-color: #f8fafc; /* Tailwind gray-50 */
         }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* Styling for tabs */
+        .tab {
+            padding: 0.75rem 1.5rem; /* p-3 px-6 */
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+            color: #4b5563; /* Tailwind gray-600 */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* medium */
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+        .tab:hover {
+            color: #1f2937; /* Tailwind gray-800 */
+            border-bottom-color: #d1d5db; /* Tailwind gray-300 */
         }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
+        .tab.active {
+            color: #1d4ed8; /* Tailwind blue-700 */
+            border-bottom-color: #1d4ed8; /* Tailwind blue-700 */
+            font-weight: 600; /* semibold */
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+        /* Styling for the results area */
+        .results-area {
+            min-height: 500px; /* Ensure minimum height */
+            height: 65vh; /* Set height relative to viewport */
+            border: 1px solid #e5e7eb; /* Tailwind gray-200 */
+            background-color: #ffffff; /* White */
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            padding: 1.5rem; /* p-6 */
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); /* Tailwind shadow-sm */
+            position: relative; /* Needed for absolute positioned diagram and placeholder */
+            overflow: hidden; /* Ensure SVG stays within bounds */
+            display: flex; /* Use flexbox for flashcard layout */
+            flex-direction: column; /* Stack elements vertically */
         }
-        /* Ensure container takes full height potentially */
-        html, body {
-            height: 100%;
-            margin: 0;
+        /* Common class for view containers */
+        .view-container {
+             height: 100%; /* Make view fill its container */
+             overflow-y: auto; /* Enable vertical scrolling */
+             flex-grow: 1; /* Allow view containers to grow */
         }
-        #app-container {
+        /* Specific styling for flashcard view container */
+        #flashcard-view {
             display: flex;
             flex-direction: column;
-            height: calc(100% - 2rem); /* Adjust height based on margin/padding */
-            max-height: 95vh; /* Limit height to viewport height */
+            align-items: center; /* Center items horizontally */
+            justify-content: center; /* Center items vertically */
+            height: 100%;
+            padding-top: 1rem; /* Add some padding at the top */
         }
-        #results-area {
-            flex-grow: 1; /* Allow container to grow */
-            overflow-y: auto; /* Enable vertical scrolling */
-            position: relative; /* Needed for absolute positioning of tooltip */
+        /* Styling for list items */
+        .list-item-card {
+            background-color: #f9fafb; /* Tailwind gray-50 */
+            border: 1px solid #e5e7eb; /* Tailwind gray-200 */
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            padding: 1rem; /* p-4 */
+            margin-bottom: 1rem; /* mb-4 */
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* Tailwind shadow-xs */
         }
-        /* Diagram specific styles */
-        #diagram-container {
+        .diagnosis-name {
+            font-weight: 600; /* semibold */
+            color: #111827; /* Tailwind gray-900 */
+            margin-bottom: 0.25rem; /* mb-1 */
+            font-size: 1rem; /* text-base */
+        }
+        .key-features {
+            font-size: 0.875rem; /* Tailwind text-sm */
+            color: #4b5563; /* Tailwind gray-600 */
+        }
+        .source-text {
+            font-style: italic;
+            color: #6b7280; /* Tailwind gray-500 */
+            margin-bottom: 1rem; /* mb-4 */
+            font-size: 0.875rem; /* Tailwind text-sm */
+            width: 100%; /* Ensure source text takes full width */
+            text-align: left; /* Align source text left */
+            padding-left: 1.5rem; /* Align with results area padding */
+            padding-right: 1.5rem;
+            box-sizing: border-box;
+        }
+        /* Styling for D3 diagram */
+        #diagram-view svg {
+            display: block; /* Prevent extra space below SVG */
             width: 100%;
-            height: 100%; /* Ensure diagram fills the container */
-            min-height: 400px; /* Minimum height for the diagram */
+            height: 100%; /* Make SVG fill its container */
         }
         .node circle {
-            stroke: #fff;
+            stroke: #fff; /* White stroke */
             stroke-width: 1.5px;
             cursor: grab;
         }
+        .node circle:active {
+             cursor: grabbing;
+        }
         .node text {
             font-size: 10px;
-            pointer-events: none; /* Text shouldn't interfere with dragging */
+            fill: #374151; /* Tailwind gray-700 */
             text-anchor: middle;
-            fill: #333;
+            dominant-baseline: hanging;
+            pointer-events: none; /* Allow hover on circle behind text */
+        }
+        .node text.finding-label {
+            font-weight: 600; /* semibold */
+            font-size: 11px;
+            fill: #111827; /* Tailwind gray-900 */
         }
         .link {
-            stroke: #999;
+            stroke: #9ca3af; /* Tailwind gray-400 */
             stroke-opacity: 0.6;
         }
-        /* Tooltip styles */
+        /* Styling for tooltip */
         #tooltip {
             position: absolute;
-            text-align: left;
-            padding: 8px;
-            font: 12px sans-serif;
-            background: lightsteelblue;
-            border: 0px;
-            border-radius: 8px;
-            pointer-events: none; /* Prevent tooltip from blocking mouse events */
-            opacity: 0;
-            transition: opacity 0.2s;
-            max-width: 250px;
+            background-color: rgba(0, 0, 0, 0.8); /* Slightly darker tooltip */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.875rem; /* Tailwind text-sm */
+            pointer-events: none; /* Tooltip should not interfere with mouse events */
+            opacity: 0; /* Start hidden */
+            transition: opacity 0.2s ease-in-out;
+            max-width: 300px; /* Limit tooltip width */
             white-space: normal; /* Allow text wrapping */
-            z-index: 10; /* Ensure tooltip is above SVG */
+            z-index: 10; /* Ensure tooltip is above other elements */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add subtle shadow */
         }
-        /* Tab styles */
-        .tab-button {
-            padding: 8px 16px;
+
+        /* Custom Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; /* Tailwind slate-100 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* Tailwind slate-400 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* Tailwind slate-500 */
+        }
+        /* For Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 #f1f5f9;
+        }
+
+        /* Placeholder text styling */
+        .placeholder-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #9ca3af; /* Tailwind gray-400 */
+            font-style: italic;
+            text-align: center;
+            width: 80%; /* Prevent text from being too wide */
+        }
+        /* Table View Specific Styles */
+        #table-view table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #table-view th, #table-view td {
+            border: 1px solid #e5e7eb; /* Tailwind gray-200 */
+            padding: 0.75rem; /* p-3 */
+            text-align: left;
+            font-size: 0.875rem; /* text-sm */
+        }
+        #table-view th {
+            background-color: #f9fafb; /* Tailwind gray-50 */
+            font-weight: 600; /* semibold */
+            color: #374151; /* gray-700 */
+        }
+        #table-view tbody tr:nth-child(even) {
+            background-color: #f9fafb; /* Tailwind gray-50 */
+        }
+         #table-view tbody tr:hover {
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+
+        /* --- Flashcard Specific Styles --- */
+        #flashcard-container {
+            width: 90%; /* Adjust width as needed */
+            max-width: 400px; /* Max width for larger screens */
+            margin-bottom: 1rem; /* Space below the card */
+            flex-grow: 1; /* Allow card container to take available space */
+            display: flex; /* Use flex to center the card */
+            align-items: center;
+            justify-content: center;
+        }
+        .flashcard {
+            background-color: transparent;
+            width: 100%; /* Card takes full width of its container */
+            height: 250px; /* Fixed height for the card */
+            perspective: 1000px; /* For 3D flip effect */
             cursor: pointer;
-            border: 1px solid transparent;
-            border-bottom: none;
-            border-radius: 4px 4px 0 0;
-            background-color: #e2e8f0; /* bg-gray-300 */
-            color: #4a5568; /* text-gray-700 */
+            border-radius: 0.5rem; /* rounded-lg */
         }
-        .tab-button.active {
-            background-color: #f7fafc; /* bg-gray-100 */
-            border-color: #e2e8f0; /* border-gray-300 */
-            border-bottom: 1px solid #f7fafc; /* bg-gray-100 */
-            color: #2d3748; /* text-gray-800 */
-            font-weight: 500;
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.1); /* Add shadow */
+            border-radius: 0.5rem; /* rounded-lg */
         }
+        .flashcard.is-flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden; /* Safari */
+            backface-visibility: hidden;
+            border-radius: 0.5rem; /* rounded-lg */
+            display: flex;
+            flex-direction: column; /* Stack content vertically */
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem; /* p-6 */
+            border: 1px solid #e5e7eb; /* gray-200 */
+            overflow-y: auto; /* Allow scrolling for long content */
+        }
+        .flashcard-front {
+            background-color: #dbeafe; /* Tailwind blue-100 */
+            color: #1e3a8a; /* Tailwind blue-800 */
+        }
+        .flashcard-back {
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            color: #374151; /* Tailwind gray-700 */
+            transform: rotateY(180deg);
+            font-size: 0.875rem; /* text-sm */
+        }
+        .flashcard-name {
+             font-weight: 600; /* semibold */
+             font-size: 1.25rem; /* text-xl */
+        }
+        .flashcard-instruction {
+            font-size: 0.75rem; /* text-xs */
+            color: #6b7280; /* gray-500 */
+            margin-top: 0.5rem;
+        }
+        #flashcard-controls {
+            display: flex; /* Use flexbox for buttons */
+            justify-content: center; /* Center buttons */
+            gap: 1rem; /* Space between buttons */
+            margin-top: 1rem; /* Space above buttons */
+            margin-bottom: 0.5rem; /* Space below buttons */
+            width: 100%; /* Take full width */
+        }
+        #flashcard-controls button {
+            padding: 0.5rem 1.5rem; /* p-2 px-6 */
+            border-radius: 0.375rem; /* rounded-md */
+            font-weight: 500; /* medium */
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        #correct-button {
+            background-color: #16a34a; /* Tailwind green-600 */
+        }
+        #correct-button:hover {
+            background-color: #15803d; /* Tailwind green-700 */
+        }
+        #incorrect-button {
+            background-color: #dc2626; /* Tailwind red-600 */
+        }
+        #incorrect-button:hover {
+            background-color: #b91c1c; /* Tailwind red-700 */
+        }
+         #flashcard-counter {
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280; /* gray-500 */
+            margin-top: 0.5rem; /* Space above counter */
+            text-align: center;
+        }
+        #flashcard-completion {
+            font-size: 1rem; /* text-base */
+            color: #16a34a; /* green-600 */
+            font-weight: 500; /* medium */
+            text-align: center;
+            margin-top: 2rem; /* Add space when shown */
+        }
+
     </style>
 </head>
-<body class="bg-gray-100">
-    <div id="app-container" class="container mx-auto p-4 md:p-6 lg:p-8 max-w-4xl bg-white rounded-lg shadow-md my-4">
-        <header class="mb-6 text-center">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Dermatopathology Differentials Viewer</h1>
-            <p class="text-gray-600 mt-1">Based on Ko, Rapini, Alikhan, Lipoff, and Jackson texts</p>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <header class="mb-6 border-b pb-4 border-gray-200">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1">Dermatopathology Differentials Viewer</h1>
+            <p class="text-sm text-gray-500">Data extracted from Ko, Rapini, Alikhan, Lipoff, Jackson</p>
         </header>
 
         <div class="mb-6">
             <label for="finding-select" class="block text-sm font-medium text-gray-700 mb-2">Select Histologic Finding:</label>
-            <select id="finding-select" name="finding-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
+            <select id="finding-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
                 <option value="">-- Select a Finding --</option>
                 </select>
         </div>
 
-        <div class="mb-1 border-b border-gray-300">
-            <button id="list-view-btn" class="tab-button active">List View</button>
-            <button id="diagram-view-btn" class="tab-button">Diagram View</button>
+        <div class="mb-4 border-b border-gray-200">
+            <nav class="flex -mb-px flex-wrap">
+                <button id="list-tab" class="tab active" data-view="list-view">List View</button>
+                <button id="table-tab" class="tab" data-view="table-view">Table View</button>
+                <button id="flashcard-tab" class="tab" data-view="flashcard-view">Flashcard View</button> <button id="diagram-tab" class="tab" data-view="diagram-view">Diagram View</button>
+            </nav>
         </div>
 
-        <div id="results-area" class="border border-gray-300 rounded-b-lg p-4 bg-gray-50">
-            <div id="list-container">
-                 <p id="placeholder-text" class="text-gray-500 text-center">Select a finding from the dropdown to see the differentials.</p>
+        <div class="results-area">
+            <div id="list-view" class="view-container">
+                 <div class="placeholder-text">Select a finding to view its differential diagnoses list.</div>
+            </div>
+            <div id="table-view" class="view-container hidden">
+                 <div class="placeholder-text">Select a finding to view its differential diagnoses table.</div>
+            </div>
+             <div id="flashcard-view" class="view-container hidden">
+                 <div class="placeholder-text">Select a finding to start the flashcards.</div>
+                 <div id="flashcard-container">
+                     </div>
+                 <div id="flashcard-controls" class="hidden"> <button id="incorrect-button">Incorrect</button>
+                     <button id="correct-button">Correct</button>
                  </div>
-            <div id="diagram-container" class="hidden">
-                 <p id="diagram-placeholder-text" class="text-gray-500 text-center pt-10">Select a finding to view the diagram.</p>
+                 <div id="flashcard-counter" class="hidden"></div> <div id="flashcard-completion" class="hidden">Deck complete!</div> </div>
+            <div id="diagram-view" class="view-container hidden">
+                 <div class="placeholder-text">Select a finding to view its interactive diagram.</div>
                  <svg id="diagram-svg"></svg> </div>
         </div>
-        <div id="tooltip"></div>
     </div>
 
+    <div id="tooltip"></div>
+
     <script>
-        // --- Data Structure ---
+        // --- DATA ---
         // Combined data from Ko, Rapini, Alikhan, Lipoff, and Jackson texts
-        // Key features updated based on provided texts
+        // (Ensure the full 'differentialsData' array from the original file is included here)
         const differentialsData = [
             // --- Ko Data ---
             {
@@ -254,7 +474,7 @@
                     { name: "Pemphigus foliaceus", keyFeatures: "Benign acantholysis in upper stratum spinosum/granular layer, 'cling-ons' (acantholytic cells on roof)." },
                     { name: "Pemphigus vulgaris", keyFeatures: "Benign acantholysis above intact basal layer ('tombstones')." },
                     { name: "Squamous cell carcinoma (acantholytic)", keyFeatures: "Malignant dyskeratotic acantholysis in large, infiltrative tumor, prominent atypical cells and mitoses." },
-                    { name: "Warty dyskeratoma", keyFeatures: "Like Darier disease (corp ronds, grains) but often more cup-shaped or follicular, solitary lesion clinically." }
+                    { name: "Warty dyskeratoma", keyFeatures: "Histologically like Darier disease with corp ronds (long arrow) and grains (short arrow) but may have more prominent cup-shape and/or follicular involvement. Clinically a solitary lesion." }
                 ]
             },
              {
@@ -292,7 +512,7 @@
                     { name: "Cryoglobulinemia (type I)", keyFeatures: "Glassy, smooth pink material within vessels, minimal inflammation." },
                     { name: "Erythema elevatum diutinum (late stage)", keyFeatures: "Pink material (fibrosis) with clefting and interspersed neutrophils." },
                     { name: "Pilomatricoma", keyFeatures: "Pink material ('pilomatrical keratin') with shadow cells, basaloid cells often present, calcification/ossification common." },
-                    { name: "Proliferating pilar tumor", keyFeatures: "Dense pink keratin, stratified squamous epithelium with no granular layer (trichilemmal differentiation)." },
+                    { name: "Proliferating pilar tumor", keyFeatures: "Dense pink keratin, stratified squamous epithelium with no granular layer (tricholemmal differentiation)." },
                     { name: "Sclerotic fibroma", keyFeatures: "Pink material (hyalinized collagen) arranged in fenestrated/clefted fashion, relatively acellular." }
                 ]
             },
@@ -307,7 +527,7 @@
                     { name: "Nutritional deficiency", keyFeatures: "Epidermal necrosis or pallor underlying parakeratosis, basal layer relatively normal, inflammation not prominent." }
                 ]
             },
-            // --- Rapini Data (Updated Features) ---
+            // --- Rapini Data ---
             {
                 finding: "Acantholysis (Rapini)",
                 source: "Rapini p.2 (1.2)",
@@ -489,7 +709,7 @@
                     { name: "Vascular tumors (Kaposi sarcoma, Angiosarcoma)", keyFeatures: "Spindled endothelial cells, vascular spaces, HHV8+ (KS), marked atypia (AS)." }
                 ]
             },
-            // --- Alikhan Data (already added in previous turn, features reviewed/updated) ---
+            // --- Alikhan Data ---
             {
                 finding: "Busy Dermis (Alikhan)",
                 source: "Alikhan Table 7.13",
@@ -618,7 +838,7 @@
                     { name: "Kaposi sarcoma", keyFeatures: "Spindle cell proliferation, slit-like vascular spaces, extravasated RBCs, plasma cells, promontory sign, HHV-8+." }
                 ]
             },
-             // --- Ref Sheet Data (Updated Features) ---
+             // --- Ref Sheet Data ---
              {
                 finding: "Complex Cystic Proliferations ('Rolls and Scrolls') (Ref Sheet - Alikhan T7.18)",
                 source: "Ref Sheet (Alikhan Table 7.18)",
@@ -762,7 +982,7 @@
                     { name: "Staph scalded skin", keyFeatures: "Subcorneal split, minimal inflammation." }
                 ]
             },
-            // --- Lipoff Data (Updated Features) ---
+            // --- Lipoff Data ---
             {
                 finding: "Eosinophilic Spongiosis (Lipoff - HAPPIE FD)",
                 source: "Lipoff p.1-2 (15.4.1.1)",
@@ -883,7 +1103,7 @@
                     { name: "Necrosis (EM, TEN)", keyFeatures: "Extensive keratinocyte death leads to pale/eosinophilic appearance." }
                 ]
             },
-            // --- Jackson Data (Updated Features) ---
+            // --- Jackson Data ---
             {
                 finding: "Acantholysis (Jackson)",
                 source: "Jackson p.245",
@@ -1256,38 +1476,85 @@
                     { name: "Perforating pilomatrixoma / Nevus / Melanoma", keyFeatures: "Rare elimination of tumor components." }
                 ]
             }
-
-
-            // Add more findings and diagnoses here by following the structure
         ];
 
 
         // --- DOM Elements ---
         const findingSelect = document.getElementById('finding-select');
-        const resultsArea = document.getElementById('results-area');
-        const listContainer = document.getElementById('list-container');
-        const diagramContainer = document.getElementById('diagram-container');
-        const placeholderText = document.getElementById('placeholder-text');
-        const diagramPlaceholderText = document.getElementById('diagram-placeholder-text');
-        const listViewBtn = document.getElementById('list-view-btn');
-        const diagramViewBtn = document.getElementById('diagram-view-btn');
-        const tooltip = d3.select("#tooltip"); // Use d3.select for the tooltip
-        const svgElement = document.getElementById('diagram-svg');
+        const listTab = document.getElementById('list-tab');
+        const tableTab = document.getElementById('table-tab');
+        const flashcardTab = document.getElementById('flashcard-tab'); // Added back
+        const diagramTab = document.getElementById('diagram-tab');
+        const listView = document.getElementById('list-view');
+        const tableView = document.getElementById('table-view');
+        const flashcardView = document.getElementById('flashcard-view'); // Added back
+        const diagramView = document.getElementById('diagram-view');
+        const diagramSvgElement = document.getElementById('diagram-svg');
+        const tooltip = document.getElementById('tooltip');
+        const resultsArea = document.querySelector('.results-area');
+        // Flashcard specific elements
+        const flashcardContainer = document.getElementById('flashcard-container');
+        const flashcardControls = document.getElementById('flashcard-controls');
+        const correctButton = document.getElementById('correct-button');
+        const incorrectButton = document.getElementById('incorrect-button');
+        const flashcardCounter = document.getElementById('flashcard-counter');
+        const flashcardCompletion = document.getElementById('flashcard-completion');
+        const flashcardPlaceholder = flashcardView.querySelector('.placeholder-text'); // Get placeholder within flashcard view
 
-        let currentFindingData = null; // Store data for the currently selected finding
-        let currentView = 'list'; // 'list' or 'diagram'
-        let simulation = null; // To hold the D3 simulation
+        // --- State Variables ---
+        let currentView = 'list-view'; // Default view
+        let currentFindingData = null; // Holds the data object for the currently selected finding
+        let simulation = null; // Stores the D3 force simulation instance
+        let svg; // Stores the D3 SVG selection object
+        let width, height; // Stores the dimensions of the SVG container
+        let resizeObserver; // Stores the ResizeObserver instance
+        // Flashcard specific state
+        let flashcardDeck = []; // Array to hold the cards for the current finding
+        let currentCardIndex = 0; // Index of the card currently displayed
+        let totalCardsInDeck = 0; // Initial number of cards for the counter
 
-        // --- Functions ---
+        // --- Utility Functions ---
 
-        // Function to populate the dropdown menu
+        /**
+         * Debounce function to limit the rate at which a function can fire.
+         * @param {Function} func - The function to debounce.
+         * @param {number} wait - The debounce delay in milliseconds.
+         * @returns {Function} - The debounced function.
+         */
+        const debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
+
+        /**
+         * Shuffles array in place using Fisher-Yates algorithm.
+         * @param {Array} array - The array to shuffle.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+        }
+
+
+        // --- Core Functions ---
+
+        /**
+         * Populates the dropdown menu with histologic findings, sorted alphabetically.
+         */
         function populateDropdown() {
-            // Clear existing options except the placeholder
             findingSelect.innerHTML = '<option value="">-- Select a Finding --</option>';
-
             // Sort data alphabetically by finding name
             differentialsData.sort((a, b) => a.finding.localeCompare(b.finding));
-
+            // Create and append option elements for each finding
             differentialsData.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.finding;
@@ -1296,131 +1563,193 @@
             });
         }
 
-        // Function to switch views
-        function switchView(view) {
-            currentView = view;
-            if (view === 'list') {
-                listViewBtn.classList.add('active');
-                diagramViewBtn.classList.remove('active');
-                listContainer.classList.remove('hidden');
-                diagramContainer.classList.add('hidden');
-                displayList(currentFindingData); // Re-display list if data exists
-            } else { // diagram view
-                listViewBtn.classList.remove('active');
-                diagramViewBtn.classList.add('active');
-                listContainer.classList.add('hidden');
-                diagramContainer.classList.remove('hidden');
-                displayDiagram(currentFindingData); // Draw diagram if data exists
-            }
-        }
+        /**
+         * Switches the active view.
+         * @param {string} viewId - The ID of the view to switch to.
+         */
+        function switchView(viewId) {
+            currentView = viewId;
+            // Update tab appearance
+            listTab.classList.toggle('active', viewId === 'list-view');
+            tableTab.classList.toggle('active', viewId === 'table-view');
+            flashcardTab.classList.toggle('active', viewId === 'flashcard-view'); // Added back
+            diagramTab.classList.toggle('active', viewId === 'diagram-view');
 
-        // Function to display the list view
-        function displayList(findingData) {
-            listContainer.innerHTML = ''; // Clear previous list results
+            // Show/hide view containers
+            listView.classList.toggle('hidden', viewId !== 'list-view');
+            tableView.classList.toggle('hidden', viewId !== 'table-view');
+            flashcardView.classList.toggle('hidden', viewId !== 'flashcard-view'); // Added back
+            diagramView.classList.toggle('hidden', viewId !== 'diagram-view');
 
-            if (!findingData) {
-                 const placeholder = document.createElement('p');
-                 placeholder.id = 'placeholder-text';
-                 placeholder.className = 'text-gray-500 text-center';
-                 placeholder.textContent = 'Select a finding from the dropdown to see the differentials.';
-                 listContainer.appendChild(placeholder);
-                return;
-            }
-
-            // Add source information
-            const sourceInfo = document.createElement('p');
-            sourceInfo.textContent = `Source: ${findingData.source}`;
-            sourceInfo.className = 'text-xs text-gray-500 mb-4 italic';
-            listContainer.appendChild(sourceInfo);
-
-            // Create a list for the diagnoses
-            const list = document.createElement('ul');
-            list.className = 'space-y-4';
-
-            findingData.diagnoses.forEach(diagnosis => {
-                const listItem = document.createElement('li');
-                listItem.className = 'p-4 bg-white border border-gray-200 rounded-md shadow-sm';
-
-                const diagnosisName = document.createElement('h3');
-                diagnosisName.textContent = diagnosis.name;
-                diagnosisName.className = 'text-lg font-semibold text-indigo-700 mb-1';
-
-                const keyFeatures = document.createElement('p');
-                // Handle cases where keyFeatures might be missing or empty
-                keyFeatures.textContent = `Key Features: ${diagnosis.keyFeatures || 'Not specified'}`;
-                keyFeatures.className = 'text-sm text-gray-700';
-
-                listItem.appendChild(diagnosisName);
-                listItem.appendChild(keyFeatures);
-                list.appendChild(listItem);
-            });
-            listContainer.appendChild(list);
-        }
-
-        // Function to display the diagram view
-        function displayDiagram(findingData) {
-             // Clear previous diagram
-            const svg = d3.select("#diagram-svg");
-            svg.selectAll("*").remove(); // Clear previous SVG contents
-            if (simulation) simulation.stop(); // Stop previous simulation
-
-            // Ensure diagram placeholder exists if needed
-             let placeholder = document.getElementById('diagram-placeholder-text');
-             if (!placeholder) {
-                 placeholder = document.createElement('p');
-                 placeholder.id = 'diagram-placeholder-text';
-                 placeholder.className = 'text-gray-500 text-center pt-10';
-                 diagramContainer.insertBefore(placeholder, svgElement); // Insert before SVG
-             }
-             placeholder.textContent = 'Select a finding to view the diagram.'; // Reset text
-             placeholder.style.display = findingData ? 'none' : 'block';
-             svgElement.style.display = findingData ? 'block' : 'none';
-
-
-            if (!findingData) {
-                return; // Exit if no finding data
-            }
-
-             // Remove placeholder text if data is present
-            placeholder.style.display = 'none';
-
-
-            // Prepare data for D3: nodes and links
-            const nodes = [{ id: findingData.finding, type: 'finding', source: findingData.source }]; // Central node
-            const links = [];
-
-            findingData.diagnoses.forEach(dx => {
-                // Ensure diagnosis name is not null or empty before adding
-                 if (dx.name && dx.name.trim() !== "") {
-                    nodes.push({ id: dx.name, type: 'diagnosis', keyFeatures: dx.keyFeatures || 'Not specified' });
-                    links.push({ source: findingData.finding, target: dx.name });
+            // Initialize flashcard deck if switching to flashcard view
+            if (viewId === 'flashcard-view') {
+                initializeFlashcardDeck();
+            } else {
+                 // Stop diagram simulation if switching away from diagram view
+                 if (simulation) {
+                     simulation.stop();
                  }
+            }
+
+            // Re-render content in the newly activated view if a finding is selected
+            // (Except for flashcards, which are handled by initializeFlashcardDeck)
+            if (currentFindingData && viewId !== 'flashcard-view') {
+                displayContent();
+            }
+        }
+
+        /**
+         * Displays the content (list, table, or diagram) based on the selected finding and the active view.
+         * Note: Flashcard display is handled separately by initializeFlashcardDeck and displayCurrentFlashcard.
+         */
+        function displayContent() {
+            const selectedValue = findingSelect.value;
+            // Find the data object corresponding to the selected finding
+            currentFindingData = differentialsData.find(item => item.finding === selectedValue);
+
+            // Clear previous results from non-flashcard views
+            listView.innerHTML = '';
+            tableView.innerHTML = '';
+            clearDiagram(); // Clear the D3 diagram
+
+            // Define placeholder text for each view
+            const listPlaceholderText = 'Select a finding to view its differential diagnoses list.';
+            const tablePlaceholderText = 'Select a finding to view its differential diagnoses table.';
+            const diagramPlaceholderText = 'Select a finding to view its interactive diagram.';
+            // Flashcard placeholder is handled in initializeFlashcardDeck
+
+            // If no finding is selected, display placeholders in relevant views
+            if (!currentFindingData) {
+                listView.innerHTML = `<div class="placeholder-text">${listPlaceholderText}</div>`;
+                tableView.innerHTML = `<div class="placeholder-text">${tablePlaceholderText}</div>`;
+                // Add placeholder to diagram view if it doesn't exist
+                if (!diagramView.querySelector('.placeholder-text')) {
+                   diagramView.insertAdjacentHTML('afterbegin', `<div class="placeholder-text">${diagramPlaceholderText}</div>`);
+                }
+                 // Ensure correct placeholder is shown based on current view (excluding flashcard)
+                listView.classList.toggle('hidden', currentView !== 'list-view');
+                tableView.classList.toggle('hidden', currentView !== 'table-view');
+                diagramView.classList.toggle('hidden', currentView !== 'diagram-view');
+
+                // Also reset flashcard view if no finding selected
+                initializeFlashcardDeck();
+                return; // Exit function if no finding is selected
+            }
+
+            // Remove placeholders if data exists (for non-flashcard views)
+            listView.querySelector('.placeholder-text')?.remove();
+            tableView.querySelector('.placeholder-text')?.remove();
+            diagramView.querySelector('.placeholder-text')?.remove();
+
+            // Render the appropriate view based on the currentView state (excluding flashcard)
+            if (currentView === 'list-view') {
+                displayListView();
+            } else if (currentView === 'table-view') {
+                displayTableView();
+            } else if (currentView === 'diagram-view') {
+                displayDiagramView();
+            }
+            // Flashcard view is handled by its own initialization function
+        }
+
+        /**
+         * Renders the list view.
+         */
+        function displayListView() {
+            if (!currentFindingData) return;
+            let html = `<p class="source-text">Source: ${currentFindingData.source}</p>`;
+            html += '<ul class="space-y-4">';
+            currentFindingData.diagnoses.forEach(diagnosis => {
+                html += `
+                    <li class="list-item-card">
+                        <h3 class="diagnosis-name">${diagnosis.name}</h3>
+                        <p class="key-features">${diagnosis.keyFeatures || 'No specific key features listed.'}</p>
+                    </li>
+                `;
             });
+            html += '</ul>';
+            listView.innerHTML = html;
+        }
 
-            // Get container dimensions
-            const containerRect = diagramContainer.getBoundingClientRect();
-             // Ensure width and height are positive and reasonable
-            const width = Math.max(100, containerRect.width);
-            const height = Math.max(400, containerRect.height);
+        /**
+         * Renders the table view.
+         */
+        function displayTableView() {
+            if (!currentFindingData) return;
+            let html = `<p class="source-text">Source: ${currentFindingData.source}</p>`;
+            html += `<table class="min-w-full divide-y divide-gray-200 border border-gray-300">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diagnosis</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key Features</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">`;
+            currentFindingData.diagnoses.forEach(diagnosis => {
+                html += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${diagnosis.name}</td>
+                        <td class="px-6 py-4 whitespace-normal text-sm text-gray-600">${diagnosis.keyFeatures || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+            html += `   </tbody>
+                    </table>`;
+            tableView.innerHTML = html;
+        }
 
-            // Set SVG dimensions
-            svg.attr("width", width)
-               .attr("height", height)
-               .attr("viewBox", [0, 0, width, height])
-               .attr("style", "max-width: 100%; height: auto; display: block;"); // Ensure SVG is displayed
+        /**
+         * Clears the D3 diagram.
+         */
+        function clearDiagram() {
+            if (simulation) {
+                simulation.stop();
+            }
+            if (diagramSvgElement) {
+                d3.select(diagramSvgElement).selectAll("*").remove();
+            }
+            svg = null;
+            simulation = null;
+        }
 
-             // Define node radius based on type
-             const getNodeRadius = d => (d.type === 'finding' ? 25 : 15);
+        /**
+         * Renders the D3 diagram view.
+         */
+        function displayDiagramView() {
+            if (!currentFindingData || !diagramSvgElement) return;
+            clearDiagram();
 
-            // Create simulation
+            const container = diagramView;
+            width = container.clientWidth;
+            height = container.clientHeight;
+
+             if (width <= 0 || height <= 0) {
+                 console.warn("Diagram container dimensions not ready, retrying...");
+                 setTimeout(displayDiagramView, 100);
+                 return;
+             }
+
+            svg = d3.select(diagramSvgElement)
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", [0, 0, width, height])
+                .attr("style", "max-width: 100%; height: 100%; display: block;");
+
+            const nodes = [
+                { id: currentFindingData.finding, type: 'finding', source: currentFindingData.source, radius: 25 },
+                ...currentFindingData.diagnoses.map(d => ({ id: d.name, type: 'diagnosis', keyFeatures: d.keyFeatures, radius: 15 }))
+            ];
+            const links = currentFindingData.diagnoses.map(d => ({
+                source: currentFindingData.finding,
+                target: d.name
+            }));
+
             simulation = d3.forceSimulation(nodes)
-                .force("link", d3.forceLink(links).id(d => d.id).distance(120).strength(0.5)) // Adjusted distance and strength
-                .force("charge", d3.forceManyBody().strength(-400)) // Increased repulsion
+                .force("link", d3.forceLink(links).id(d => d.id).distance(120).strength(0.6))
+                .force("charge", d3.forceManyBody().strength(-500))
                 .force("center", d3.forceCenter(width / 2, height / 2))
-                 .force("collision", d3.forceCollide().radius(d => getNodeRadius(d) + 5).strength(0.7)); // Collision detection
+                .force("collision", d3.forceCollide().radius(d => d.radius + 8));
 
-
-            // Create links (lines)
             const link = svg.append("g")
                 .attr("class", "links")
                 .selectAll("line")
@@ -1428,63 +1757,57 @@
                 .join("line")
                 .attr("class", "link");
 
-            // Create nodes (groups containing circle and text)
             const node = svg.append("g")
                 .attr("class", "nodes")
                 .selectAll("g")
                 .data(nodes)
                 .join("g")
                 .attr("class", "node")
-                .call(drag(simulation)); // Apply drag behavior
+                .call(drag(simulation));
 
-            // Add circles to nodes
             node.append("circle")
-                .attr("r", getNodeRadius)
-                .attr("fill", d => d.type === 'finding' ? '#6366f1' : '#a5b4fc'); // Different colors (indigo shades)
+                .attr("r", d => d.radius)
+                .attr("fill", d => d.type === 'finding' ? '#3b82f6' : '#60a5fa');
 
-            // Add labels to nodes
             node.append("text")
-                .text(d => d.id)
-                .attr("dy", d => getNodeRadius(d) + 12) // Position text below circle based on radius
-                .attr("font-size", d => d.type === 'finding' ? '12px' : '10px')
-                .attr("font-weight", d => d.type === 'finding' ? 'bold' : 'normal');
+                .text(d => d.id.split(" (")[0])
+                 .attr("dy", d => d.radius + 5)
+                 .attr("class", d => d.type === 'finding' ? 'finding-label' : '');
 
-            // Add tooltips
+            const tooltipDiv = d3.select("#tooltip");
+
             node.on("mouseover", (event, d) => {
-                    tooltip.transition()
-                        .duration(200)
-                        .style("opacity", .9);
-                    let tooltipContent = `<strong>${d.id}</strong>`;
-                    if (d.type === 'finding') {
-                        tooltipContent += `<br/>(Source: ${d.source})`;
-                    } else {
-                        tooltipContent += `<br/>Features: ${d.keyFeatures}`;
-                    }
-                    tooltip.html(tooltipContent)
-                        .style("left", (event.pageX + 15) + "px") // Position tooltip relative to mouse
-                        .style("top", (event.pageY - 28) + "px");
-                })
-                .on("mouseout", (event, d) => {
-                    tooltip.transition()
-                        .duration(500)
-                        .style("opacity", 0);
-                });
+                tooltipDiv.style("opacity", 0.9);
+                let content = `<strong>${d.id.split(" (")[0]}</strong>`;
+                if (d.type === 'finding') {
+                     content += `<br><span style="font-size: 0.8em; color: #d1d5db;">Source: ${d.source}</span>`;
+                } else {
+                    content += `<br><span style="font-size: 0.8em; color: #d1d5db;">${d.keyFeatures || 'No features available'}</span>`;
+                }
+                tooltipDiv.html(content);
+            })
+            .on("mousemove", (event) => {
+                tooltipDiv.style("left", (event.pageX + 15) + "px")
+                       .style("top", (event.pageY - 10) + "px");
+            })
+            .on("mouseout", () => {
+                 tooltipDiv.style("opacity", 0);
+            });
 
-
-            // Define simulation tick function
             simulation.on("tick", () => {
                 link
                     .attr("x1", d => d.source.x)
                     .attr("y1", d => d.source.y)
                     .attr("x2", d => d.target.x)
                     .attr("y2", d => d.target.y);
-
                 node
                     .attr("transform", d => `translate(${d.x},${d.y})`);
             });
         }
 
-        // Drag functions for nodes
+        /**
+         * Defines drag behavior for D3 nodes.
+         */
         function drag(simulation) {
             function dragstarted(event, d) {
                 if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -1492,68 +1815,248 @@
                 d.fy = d.y;
                  d3.select(this).select("circle").style("cursor", "grabbing");
             }
-
             function dragged(event, d) {
                 d.fx = event.x;
                 d.fy = event.y;
             }
-
             function dragended(event, d) {
                 if (!event.active) simulation.alphaTarget(0);
-                // Keep node fixed after dragging:
-                // d.fx = event.x;
-                // d.fy = event.y;
-                // Or release the node:
                  d.fx = null;
                  d.fy = null;
                  d3.select(this).select("circle").style("cursor", "grab");
             }
-
             return d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
                 .on("end", dragended);
         }
 
+        // --- Flashcard Specific Functions ---
+
+        /**
+         * Initializes or resets the flashcard deck for the currently selected finding.
+         */
+        function initializeFlashcardDeck() {
+            flashcardContainer.innerHTML = ''; // Clear previous card
+            flashcardView.querySelector('.source-text')?.remove(); // Remove previous source text
+
+            if (currentFindingData && currentFindingData.diagnoses.length > 0) {
+                // Add source text specific to flashcard view
+                flashcardView.insertAdjacentHTML('afterbegin', `<p class="source-text">Source: ${currentFindingData.source}</p>`);
+
+                // Create and shuffle the deck
+                flashcardDeck = [...currentFindingData.diagnoses]; // Create a copy
+                shuffleArray(flashcardDeck);
+                currentCardIndex = 0;
+                totalCardsInDeck = flashcardDeck.length;
+
+                // Show card, controls, counter, hide placeholder and completion message
+                flashcardPlaceholder.classList.add('hidden');
+                flashcardCompletion.classList.add('hidden');
+                flashcardControls.classList.remove('hidden');
+                flashcardCounter.classList.remove('hidden');
+                flashcardContainer.classList.remove('hidden');
+                displayCurrentFlashcard();
+            } else {
+                // No data or empty diagnoses: show placeholder, hide everything else
+                flashcardPlaceholder.classList.remove('hidden');
+                flashcardContainer.classList.add('hidden');
+                flashcardControls.classList.add('hidden');
+                flashcardCounter.classList.add('hidden');
+                flashcardCompletion.classList.add('hidden');
+                flashcardDeck = [];
+                totalCardsInDeck = 0;
+                currentCardIndex = 0;
+            }
+        }
+
+        /**
+         * Displays the current flashcard or the completion message if the deck is empty.
+         */
+        function displayCurrentFlashcard() {
+            if (flashcardDeck.length === 0) {
+                // Deck is empty - show completion message
+                flashcardContainer.innerHTML = ''; // Clear card area
+                flashcardContainer.classList.add('hidden');
+                flashcardControls.classList.add('hidden');
+                flashcardCounter.classList.add('hidden');
+                flashcardCompletion.classList.remove('hidden');
+                return;
+            }
+
+            // Ensure index is valid (loops back if needed, though shouldn't be necessary with current logic)
+             if (currentCardIndex >= flashcardDeck.length) {
+                currentCardIndex = 0;
+             }
+
+            const cardData = flashcardDeck[currentCardIndex];
+
+            // Create the flashcard HTML
+            flashcardContainer.innerHTML = `
+                <div class="flashcard">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <div class="flashcard-name">${cardData.name}</div>
+                            <div class="flashcard-instruction">(Click to flip)</div>
+                        </div>
+                        <div class="flashcard-back">
+                            ${cardData.keyFeatures || 'N/A'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add click listener to the new card for flipping
+            const newCard = flashcardContainer.querySelector('.flashcard');
+            if (newCard) {
+                newCard.addEventListener('click', () => {
+                    newCard.classList.toggle('is-flipped');
+                });
+            }
+
+            // Update the counter
+            flashcardCounter.textContent = `Card ${currentCardIndex + 1} of ${totalCardsInDeck}`;
+
+            // Ensure visibility is correct
+            flashcardContainer.classList.remove('hidden');
+            flashcardControls.classList.remove('hidden');
+            flashcardCounter.classList.remove('hidden');
+            flashcardCompletion.classList.add('hidden');
+            flashcardPlaceholder.classList.add('hidden');
+        }
+
+        /**
+         * Handles the logic when the "Correct" button is clicked.
+         */
+        function handleCorrectAnswer() {
+            if (flashcardDeck.length === 0) return; // Should not happen if button is visible
+
+            // Remove the current card from the deck
+            flashcardDeck.splice(currentCardIndex, 1);
+
+            // No need to increment currentCardIndex, the next card is now at the current index.
+            // However, if we removed the *last* card, the index might be out of bounds.
+            if (currentCardIndex >= flashcardDeck.length && flashcardDeck.length > 0) {
+                currentCardIndex = 0; // Loop back to the beginning if needed (though unlikely with SRS)
+            }
+
+            // Display the next card or completion message
+            displayCurrentFlashcard();
+        }
+
+        /**
+         * Handles the logic when the "Incorrect" button is clicked.
+         */
+        function handleIncorrectAnswer() {
+             if (flashcardDeck.length === 0) return; // Should not happen
+
+            const incorrectCard = flashcardDeck[currentCardIndex]; // Get the card data
+
+            // Remove the card from its current position
+            flashcardDeck.splice(currentCardIndex, 1);
+
+            if (flashcardDeck.length === 0) {
+                // If this was the last card, just put it back and show it again
+                flashcardDeck.push(incorrectCard);
+                currentCardIndex = 0; // Reset index
+            } else {
+                // Calculate insertion point in the second half of the *remaining* deck
+                const deckSize = flashcardDeck.length; // Size *after* removal
+                const halfPoint = Math.ceil(deckSize / 2);
+                // Random index from halfPoint up to deckSize (inclusive index for splice)
+                const insertionIndex = Math.floor(Math.random() * (deckSize - halfPoint + 1)) + halfPoint;
+
+                // Re-insert the card
+                flashcardDeck.splice(insertionIndex, 0, incorrectCard);
+
+                // No need to increment index, the next card is already at currentCardIndex
+                 // Check if index is now out of bounds (if the incorrect card was the last one)
+                 if (currentCardIndex >= flashcardDeck.length) {
+                    currentCardIndex = 0; // Loop back
+                 }
+            }
+
+            // Display the card at the current index (which might be the next card, or the start)
+            displayCurrentFlashcard();
+        }
+
+
+        /**
+         * Handles window resize events (debounced) to update the diagram layout.
+         */
+        const handleResize = debounce(() => {
+            if (currentView === 'diagram-view' && currentFindingData && svg) {
+                 const container = diagramView;
+                 width = container.clientWidth;
+                 height = container.clientHeight;
+                 if (width > 0 && height > 0) {
+                    svg.attr("width", width)
+                       .attr("height", height)
+                       .attr("viewBox", [0, 0, width, height]);
+                    if (simulation) {
+                        simulation.force("center", d3.forceCenter(width / 2, height / 2));
+                        simulation.alpha(0.3).restart();
+                    }
+                }
+            }
+        }, 250);
+
 
         // --- Event Listeners ---
-
-        // Dropdown change listener
-        findingSelect.addEventListener('change', (event) => {
-            const findingName = event.target.value;
-            // Find the data for the selected finding
-            currentFindingData = differentialsData.find(item => item.finding === findingName) || null;
-
-            // Update the currently active view
-            if (currentView === 'list') {
-                displayList(currentFindingData);
-            } else {
-                displayDiagram(currentFindingData);
-            }
+        // Dropdown change
+        findingSelect.addEventListener('change', () => {
+             displayContent(); // Update non-flashcard views
+             if (currentView === 'flashcard-view') {
+                 initializeFlashcardDeck(); // Re-initialize flashcards if it's the active view
+             }
         });
 
-        // Tab button listeners
-        listViewBtn.addEventListener('click', () => switchView('list'));
-        diagramViewBtn.addEventListener('click', () => switchView('diagram'));
+        // Tab clicks
+        listTab.addEventListener('click', () => switchView('list-view'));
+        tableTab.addEventListener('click', () => switchView('table-view'));
+        flashcardTab.addEventListener('click', () => switchView('flashcard-view')); // Added back
+        diagramTab.addEventListener('click', () => switchView('diagram-view'));
+
+        // Flashcard control buttons
+        correctButton.addEventListener('click', handleCorrectAnswer);
+        incorrectButton.addEventListener('click', handleIncorrectAnswer);
+
+        // Resize observer
+        if (diagramView) {
+             resizeObserver = new ResizeObserver(handleResize);
+             resizeObserver.observe(diagramView);
+        } else {
+             console.error("Diagram view container not found for ResizeObserver.");
+        }
+
 
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-             populateDropdown();
-             switchView('list'); // Start in list view
+            populateDropdown(); // Fill dropdown
+            switchView('list-view'); // Set initial view
+
+            // Set initial placeholder text for all views if no finding is selected
+             const listPlaceholderText = 'Select a finding to view its differential diagnoses list.';
+             const tablePlaceholderText = 'Select a finding to view its differential diagnoses table.';
+             const flashcardPlaceholderText = 'Select a finding to start the flashcards.';
+             const diagramPlaceholderText = 'Select a finding to view its interactive diagram.';
+
+            if (!findingSelect.value) {
+                 listView.innerHTML = `<div class="placeholder-text">${listPlaceholderText}</div>`;
+                 tableView.innerHTML = `<div class="placeholder-text">${tablePlaceholderText}</div>`;
+                 flashcardPlaceholder.textContent = flashcardPlaceholderText; // Set text content for flashcard placeholder
+                 flashcardPlaceholder.classList.remove('hidden'); // Ensure it's visible
+                 flashcardContainer.classList.add('hidden'); // Hide card elements
+                 flashcardControls.classList.add('hidden');
+                 flashcardCounter.classList.add('hidden');
+                 flashcardCompletion.classList.add('hidden');
+                 if (!diagramView.querySelector('.placeholder-text')) {
+                    diagramView.insertAdjacentHTML('afterbegin', `<div class="placeholder-text">${diagramPlaceholderText}</div>`);
+                 }
+            }
         });
 
-         // Optional: Redraw diagram on window resize
-         let resizeTimer;
-         window.addEventListener('resize', () => {
-             clearTimeout(resizeTimer);
-             resizeTimer = setTimeout(() => {
-                 if (currentView === 'diagram' && currentFindingData) {
-                     displayDiagram(currentFindingData);
-                 }
-             }, 250); // Debounce resize event
-         });
-
-
     </script>
+
 </body>
 </html>
