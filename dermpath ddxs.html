@@ -8,300 +8,58 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Apply Inter font globally */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* Tailwind gray-50 */
-        }
-        /* Styling for tabs */
-        .tab {
-            padding: 0.75rem 1.5rem; /* p-3 px-6 */
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s ease-in-out;
-            color: #4b5563; /* Tailwind gray-600 */
-            font-size: 0.875rem; /* text-sm */
-            font-weight: 500; /* medium */
-        }
-        .tab:hover {
-            color: #1f2937; /* Tailwind gray-800 */
-            border-bottom-color: #d1d5db; /* Tailwind gray-300 */
-        }
-        .tab.active {
-            color: #1d4ed8; /* Tailwind blue-700 */
-            border-bottom-color: #1d4ed8; /* Tailwind blue-700 */
-            font-weight: 600; /* semibold */
-        }
-        /* Styling for the results area */
-        .results-area {
-            min-height: 500px; /* Ensure minimum height */
-            height: 65vh; /* Set height relative to viewport */
-            border: 1px solid #e5e7eb; /* Tailwind gray-200 */
-            background-color: #ffffff; /* White */
-            border-radius: 0.5rem; /* Tailwind rounded-lg */
-            padding: 1.5rem; /* p-6 */
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); /* Tailwind shadow-sm */
-            position: relative; /* Needed for absolute positioned diagram and placeholder */
-            overflow: hidden; /* Ensure SVG stays within bounds */
-            display: flex; /* Use flexbox for flashcard layout */
-            flex-direction: column; /* Stack elements vertically */
-        }
-        /* Common class for view containers */
-        .view-container {
-             height: 100%; /* Make view fill its container */
-             overflow-y: auto; /* Enable vertical scrolling */
-             flex-grow: 1; /* Allow view containers to grow */
-        }
-        /* Specific styling for flashcard view container */
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .tab { padding: 0.75rem 1.5rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease-in-out; color: #4b5563; font-size: 0.875rem; font-weight: 500; }
+        .tab:hover { color: #1f2937; border-bottom-color: #d1d5db; }
+        .tab.active { color: #1d4ed8; border-bottom-color: #1d4ed8; font-weight: 600; }
+        .results-area { min-height: 500px; height: 65vh; border: 1px solid #e5e7eb; background-color: #ffffff; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .view-container { height: 100%; overflow-y: auto; flex-grow: 1; }
+        
+        /* --- CSS FIX for #flashcard-view visibility --- */
         #flashcard-view {
-            display: flex;
+            /* display: flex; /* REMOVED from always applying directly via ID */
             flex-direction: column;
-            align-items: center; /* Center items horizontally */
-            justify-content: center; /* Center items vertically */
-            height: 100%;
-            padding-top: 1rem; /* Add some padding at the top */
-        }
-        /* Styling for list items */
-        .list-item-card {
-            background-color: #f9fafb; /* Tailwind gray-50 */
-            border: 1px solid #e5e7eb; /* Tailwind gray-200 */
-            border-radius: 0.375rem; /* Tailwind rounded-md */
-            padding: 1rem; /* p-4 */
-            margin-bottom: 1rem; /* mb-4 */
-            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* Tailwind shadow-xs */
-        }
-        .diagnosis-name {
-            font-weight: 600; /* semibold */
-            color: #111827; /* Tailwind gray-900 */
-            margin-bottom: 0.25rem; /* mb-1 */
-            font-size: 1rem; /* text-base */
-        }
-        .key-features {
-            font-size: 0.875rem; /* Tailwind text-sm */
-            color: #4b5563; /* Tailwind gray-600 */
-        }
-        .source-text {
-            font-style: italic;
-            color: #6b7280; /* Tailwind gray-500 */
-            margin-bottom: 1rem; /* mb-4 */
-            font-size: 0.875rem; /* Tailwind text-sm */
-            width: 100%; /* Ensure source text takes full width */
-            text-align: left; /* Align source text left */
-            padding-left: 1.5rem; /* Align with results area padding */
-            padding-right: 1.5rem;
-            box-sizing: border-box;
-        }
-        /* Styling for D3 diagram */
-        #diagram-view svg {
-            display: block; /* Prevent extra space below SVG */
-            width: 100%;
-            height: 100%; /* Make SVG fill its container */
-        }
-        .node circle {
-            stroke: #fff; /* White stroke */
-            stroke-width: 1.5px;
-            cursor: grab;
-        }
-        .node circle:active {
-             cursor: grabbing;
-        }
-        .node text {
-            font-size: 10px;
-            fill: #374151; /* Tailwind gray-700 */
-            text-anchor: middle;
-            dominant-baseline: hanging;
-            pointer-events: none; /* Allow hover on circle behind text */
-        }
-        .node text.finding-label {
-            font-weight: 600; /* semibold */
-            font-size: 11px;
-            fill: #111827; /* Tailwind gray-900 */
-        }
-        .link {
-            stroke: #9ca3af; /* Tailwind gray-400 */
-            stroke-opacity: 0.6;
-        }
-        /* Styling for tooltip */
-        #tooltip {
-            position: absolute;
-            background-color: rgba(0, 0, 0, 0.8); /* Slightly darker tooltip */
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 0.875rem; /* Tailwind text-sm */
-            pointer-events: none; /* Tooltip should not interfere with mouse events */
-            opacity: 0; /* Start hidden */
-            transition: opacity 0.2s ease-in-out;
-            max-width: 300px; /* Limit tooltip width */
-            white-space: normal; /* Allow text wrapping */
-            z-index: 10; /* Ensure tooltip is above other elements */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add subtle shadow */
-        }
-
-        /* Custom Scrollbar Styles */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9; /* Tailwind slate-100 */
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8; /* Tailwind slate-400 */
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b; /* Tailwind slate-500 */
-        }
-        /* For Firefox */
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: #94a3b8 #f1f5f9;
-        }
-
-        /* Placeholder text styling */
-        .placeholder-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #9ca3af; /* Tailwind gray-400 */
-            font-style: italic;
-            text-align: center;
-            width: 80%; /* Prevent text from being too wide */
-        }
-        /* Table View Specific Styles */
-        #table-view table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        #table-view th, #table-view td {
-            border: 1px solid #e5e7eb; /* Tailwind gray-200 */
-            padding: 0.75rem; /* p-3 */
-            text-align: left;
-            font-size: 0.875rem; /* text-sm */
-        }
-        #table-view th {
-            background-color: #f9fafb; /* Tailwind gray-50 */
-            font-weight: 600; /* semibold */
-            color: #374151; /* gray-700 */
-        }
-        #table-view tbody tr:nth-child(even) {
-            background-color: #f9fafb; /* Tailwind gray-50 */
-        }
-         #table-view tbody tr:hover {
-            background-color: #f3f4f6; /* Tailwind gray-100 */
-        }
-
-        /* --- Flashcard Specific Styles --- */
-        #flashcard-container {
-            width: 90%; /* Adjust width as needed */
-            max-width: 400px; /* Max width for larger screens */
-            margin-bottom: 1rem; /* Space below the card */
-            flex-grow: 1; /* Allow card container to take available space */
-            display: flex; /* Use flex to center the card */
             align-items: center;
             justify-content: center;
-        }
-        .flashcard {
-            background-color: transparent;
-            width: 100%; /* Card takes full width of its container */
-            height: 250px; /* Fixed height for the card */
-            perspective: 1000px; /* For 3D flip effect */
-            cursor: pointer;
-            border-radius: 0.5rem; /* rounded-lg */
-        }
-        .flashcard-inner {
-            position: relative;
-            width: 100%;
             height: 100%;
-            text-align: center;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.1); /* Add shadow */
-            border-radius: 0.5rem; /* rounded-lg */
+            padding-top: 1rem;
         }
-        .flashcard.is-flipped .flashcard-inner {
-            transform: rotateY(180deg);
-        }
-        .flashcard-front, .flashcard-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden; /* Safari */
-            backface-visibility: hidden;
-            border-radius: 0.5rem; /* rounded-lg */
+        #flashcard-view:not(.hidden) { /* Apply display:flex only when #flashcard-view is NOT hidden */
             display: flex;
-            flex-direction: column; /* Stack content vertically */
-            justify-content: center;
-            align-items: center;
-            padding: 1.5rem; /* p-6 */
-            border: 1px solid #e5e7eb; /* gray-200 */
-            overflow-y: auto; /* Allow scrolling for long content */
         }
-        .flashcard-front {
-            background-color: #dbeafe; /* Tailwind blue-100 */
-            color: #1e3a8a; /* Tailwind blue-800 */
-        }
-        .flashcard-back {
-            background-color: #f3f4f6; /* Tailwind gray-100 */
-            color: #374151; /* Tailwind gray-700 */
-            transform: rotateY(180deg);
-            font-size: 0.875rem; /* text-sm */
-        }
-        .flashcard-name {
-             font-weight: 600; /* semibold */
-             font-size: 1.25rem; /* text-xl */
-        }
-        .flashcard-instruction {
-            font-size: 0.75rem; /* text-xs */
-            color: #6b7280; /* gray-500 */
-            margin-top: 0.5rem;
-        }
-        #flashcard-controls {
-            display: flex; /* Use flexbox for buttons */
-            justify-content: center; /* Center buttons */
-            gap: 1rem; /* Space between buttons */
-            margin-top: 1rem; /* Space above buttons */
-            margin-bottom: 0.5rem; /* Space below buttons */
-            width: 100%; /* Take full width */
-        }
-        #flashcard-controls button {
-            padding: 0.5rem 1.5rem; /* p-2 px-6 */
-            border-radius: 0.375rem; /* rounded-md */
-            font-weight: 500; /* medium */
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        #correct-button {
-            background-color: #16a34a; /* Tailwind green-600 */
-        }
-        #correct-button:hover {
-            background-color: #15803d; /* Tailwind green-700 */
-        }
-        #incorrect-button {
-            background-color: #dc2626; /* Tailwind red-600 */
-        }
-        #incorrect-button:hover {
-            background-color: #b91c1c; /* Tailwind red-700 */
-        }
-         #flashcard-counter {
-            font-size: 0.875rem; /* text-sm */
-            color: #6b7280; /* gray-500 */
-            margin-top: 0.5rem; /* Space above counter */
-            text-align: center;
-        }
-        #flashcard-completion {
-            font-size: 1rem; /* text-base */
-            color: #16a34a; /* green-600 */
-            font-weight: 500; /* medium */
-            text-align: center;
-            margin-top: 2rem; /* Add space when shown */
-        }
+        /* Ensure Tailwind's .hidden class (display: none !important;) is working correctly.
+           The :not(.hidden) selector above is a robust way to handle it if .hidden is not !important. */
 
+        .list-item-card { background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+        .diagnosis-name { font-weight: 600; color: #111827; margin-bottom: 0.25rem; font-size: 1rem; }
+        .key-features { font-size: 0.875rem; color: #4b5563; }
+        .source-text { font-style: italic; color: #6b7280; margin-bottom: 1rem; font-size: 0.875rem; width: 100%; text-align: left; padding-left: 1.5rem; padding-right: 1.5rem; box-sizing: border-box; }
+        #flashcard-view > .source-text-fc { font-style: italic; color: #6b7280; margin-bottom:1rem; font-size:0.875rem; width:100%; text-align:left; padding-left:0; padding-right:0; box-sizing:border-box; order: -1; /* Places it at the top inside flashcard-view's flex layout */ }
+
+        #diagram-view svg { display: block; width: 100%; height: 100%; }
+        .node circle { stroke: #fff; stroke-width: 1.5px; cursor: grab; }
+        .node circle:active { cursor: grabbing; }
+        .node text { font-size: 10px; fill: #374151; text-anchor: middle; dominant-baseline: hanging; pointer-events: none; }
+        .node text.finding-label { font-weight: 600; font-size: 11px; fill: #111827; }
+        .link { stroke: #9ca3af; stroke-opacity: 0.6; }
+        #tooltip { position: absolute; background-color: rgba(0, 0, 0, 0.8); color: white; padding: 8px 12px; border-radius: 4px; font-size: 0.875rem; pointer-events: none; opacity: 0; transition: opacity 0.2s ease-in-out; max-width: 300px; white-space: normal; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; } ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        * { scrollbar-width: thin; scrollbar-color: #94a3b8 #f1f5f9; }
+        .placeholder-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #9ca3af; font-style: italic; text-align: center; width: 80%; z-index: 1; /* Ensure it's above default flow content */ }
+        #table-view table { width: 100%; border-collapse: collapse; } #table-view th, #table-view td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; font-size: 0.875rem; } #table-view th { background-color: #f9fafb; font-weight: 600; color: #374151; } #table-view tbody tr:nth-child(even) { background-color: #f9fafb; } #table-view tbody tr:hover { background-color: #f3f4f6; }
+        #flashcard-container { width: 90%; max-width: 400px; margin-bottom: 1rem; flex-grow: 1; display: flex; align-items: center; justify-content: center; z-index: 2; /* Above placeholder if both somehow visible */ }
+        .flashcard { background-color: transparent; width: 100%; height: 250px; perspective: 1000px; cursor: pointer; border-radius: 0.5rem; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.1); border-radius: 0.5rem; }
+        .flashcard.is-flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 0.5rem; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; border: 1px solid #e5e7eb; overflow-y: auto; }
+        .flashcard-front { background-color: #dbeafe; color: #1e3a8a; } .flashcard-back { background-color: #f3f4f6; color: #374151; transform: rotateY(180deg); font-size: 0.875rem; }
+        .flashcard-name { font-weight: 600; font-size: 1.25rem; } .flashcard-instruction { font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem; }
+        #flashcard-controls { display: flex; justify-content: center; gap: 1rem; margin-top: 1rem; margin-bottom: 0.5rem; width: 100%; z-index: 2; /* Above placeholder */ }
+        #flashcard-controls button { padding: 0.5rem 1.5rem; border-radius: 0.375rem; font-weight: 500; color: white; border: none; cursor: pointer; transition: background-color 0.2s ease; }
+        #correct-button { background-color: #16a34a; } #correct-button:hover { background-color: #15803d; }
+        #incorrect-button { background-color: #dc2626; } #incorrect-button:hover { background-color: #b91c1c; }
+        #flashcard-counter { font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-align: center; z-index: 2; /* Above placeholder */ }
+        #flashcard-completion { font-size: 1rem; color: #16a34a; font-weight: 500; text-align: center; margin-top: 2rem; z-index: 2; /* Above placeholder */ }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -316,1245 +74,109 @@
             <label for="finding-select" class="block text-sm font-medium text-gray-700 mb-2">Select Histologic Finding:</label>
             <select id="finding-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
                 <option value="">-- Select a Finding --</option>
-                </select>
+            </select>
         </div>
 
         <div class="mb-4 border-b border-gray-200">
             <nav class="flex -mb-px flex-wrap">
                 <button id="list-tab" class="tab active" data-view="list-view">List View</button>
                 <button id="table-tab" class="tab" data-view="table-view">Table View</button>
-                <button id="flashcard-tab" class="tab" data-view="flashcard-view">Flashcard View</button> <button id="diagram-tab" class="tab" data-view="diagram-view">Diagram View</button>
+                <button id="flashcard-tab" class="tab" data-view="flashcard-view">Flashcards</button> <!-- Tab name changed -->
+                <button id="diagram-tab" class="tab" data-view="diagram-view">Diagram View</button>
             </nav>
         </div>
 
         <div class="results-area">
-            <div id="list-view" class="view-container">
+            <div id="list-view" class="view-container"> <!-- Initially not hidden by default, JS will hide others -->
                  <div class="placeholder-text">Select a finding to view its differential diagnoses list.</div>
             </div>
             <div id="table-view" class="view-container hidden">
                  <div class="placeholder-text">Select a finding to view its differential diagnoses table.</div>
             </div>
-             <div id="flashcard-view" class="view-container hidden">
+            <div id="flashcard-view" class="view-container hidden">
                  <div class="placeholder-text">Select a finding to start the flashcards.</div>
-                 <div id="flashcard-container">
-                     </div>
-                 <div id="flashcard-controls" class="hidden"> <button id="incorrect-button">Incorrect</button>
+                 <!-- Flashcard source text will be prepended here by JS if a deck is active -->
+                 <div id="flashcard-container" class="hidden"></div>
+                 <div id="flashcard-controls" class="hidden">
+                     <button id="incorrect-button">Incorrect</button>
                      <button id="correct-button">Correct</button>
                  </div>
-                 <div id="flashcard-counter" class="hidden"></div> <div id="flashcard-completion" class="hidden">Deck complete!</div> </div>
+                 <div id="flashcard-counter" class="hidden"></div>
+                 <div id="flashcard-completion" class="hidden">Deck complete!</div>
+            </div>
             <div id="diagram-view" class="view-container hidden">
                  <div class="placeholder-text">Select a finding to view its interactive diagram.</div>
-                 <svg id="diagram-svg"></svg> </div>
+                 <svg id="diagram-svg"></svg>
+            </div>
         </div>
     </div>
 
     <div id="tooltip"></div>
 
+    <script src="data.js"></script> 
     <script>
-        // --- DATA ---
-        // Combined data from Ko, Rapini, Alikhan, Lipoff, and Jackson texts
-        // (Ensure the full 'differentialsData' array from the original file is included here)
-        const differentialsData = [
-            // --- Ko Data ---
-            {
-                finding: "Regular acanthosis (Ko)",
-                source: "Ko Ch 1, p25-28",
-                diagnoses: [
-                    { name: "Bowen disease", keyFeatures: "Full-thickness epidermal disorder, atypical keratinocytes and mitoses, basal layer may appear focally normal ('eyeliner' sign)." },
-                    { name: "Clear cell acanthoma", keyFeatures: "Sharply demarcated clear/pale keratinocytes, parakeratosis above clear cells, neutrophils in stratum corneum." },
-                    { name: "Psoriasis", keyFeatures: "Neutrophils in stratum corneum (Munro's microabscesses), hypogranulosis, thinned suprapapillary plates, dilated papillary dermal vessels." }
-                ]
-            },
-            {
-                finding: "Lobular proliferation (Ko)",
-                source: "Ko Ch 1, p29-34",
-                diagnoses: [
-                    { name: "Inverted follicular keratosis", keyFeatures: "Normal-appearing keratinocytes arranged in squamous eddies." },
-                    { name: "Molluscum contagiosum", keyFeatures: "Blue-gray hue to some keratinocytes, large pink intracytoplasmic inclusions (Henderson-Paterson bodies)." },
-                    { name: "Poroma", keyFeatures: "Uniform blue cells, interspersed ducts, fibrotic or hyalinized stroma with dilated vessels." },
-                    { name: "Seborrheic keratosis, acanthotic", keyFeatures: "Acanthosis of epidermis, pseudohorn cysts, no ducts." },
-                    { name: "Trichilemmoma", keyFeatures: "Proliferation of pale/clear cells, peripheral palisading, thickened basement membrane." }
-                ]
-            },
-            {
-                finding: "Reticulated proliferation (Ko)",
-                source: "Ko Ch 1, p35-41",
-                diagnoses: [
-                     { name: "Fibroepithelioma of Pinkus", keyFeatures: "Strands of basaloid cells in a fibrovascular stroma, hints of peripheral palisading." },
-                     { name: "Fibrofolliculoma", keyFeatures: "Hair follicle with adjacent fibrotic stroma containing reticulated epithelial strands." },
-                     { name: "Nevus sebaceus", keyFeatures: "Epidermal proliferation connecting to sebaceous glands and basaloid proliferations, apocrine glands deep, absent terminal hairs (mature stage)." },
-                     { name: "Seborrheic keratosis, reticulated", keyFeatures: "Strands of banal keratinocytes (often pigmented), interspersed pseudohorn cysts." },
-                     { name: "Syringofibroadenoma", keyFeatures: "Strands of banal, round cells with interspersed ducts." },
-                     { name: "Tumor of the follicular infundibulum", keyFeatures: "Pale cells in columns with 'windows' of dermis, peripheral palisading." }
-                ]
-            },
-             {
-                finding: "Central pore (Ko)",
-                source: "Ko Ch 1, p42-45",
-                diagnoses: [
-                    { name: "Dilated pore of Winer", keyFeatures: "Central pore with invaginated, acanthotic epidermis." },
-                    { name: "Pilar sheath acanthoma", keyFeatures: "Central pore, invaginated epidermis is acanthotic and resembles outer root sheath (peripheral palisading, pale cells)." },
-                    { name: "Trichofolliculoma", keyFeatures: "Central pore, invaginated epidermis connects to primary hair follicle, multiple secondary follicles radiate away." }
-                ]
-            },
-             {
-                finding: "Epidermal perforation (Ko)",
-                source: "Ko Ch 1, p46-48",
-                diagnoses: [
-                    { name: "Elastosis perforans serpiginosa", keyFeatures: "Epidermal perforation with elongated rete ('claw') gripping thin, eosinophilic elastic fibers and debris." },
-                    { name: "Reactive perforating collagenosis", keyFeatures: "Shallow cup-shaped epidermal perforation with vertically oriented pink collagen fibers extending through epidermis." },
-                ]
-            },
-             {
-                finding: "Circular islands (Ko)",
-                source: "Ko Ch 1, p49-52",
-                diagnoses: [
-                    { name: "Adenoid cystic carcinoma", keyFeatures: "Circular dermal islands of basaloid cells with cribriform pattern of duct-like spaces filled with amorphous material." },
-                    { name: "Cylindroma", keyFeatures: "Circular dermal islands of basaloid cells arranged like 'jigsaw puzzle', surrounded by thick pink basement membrane." },
-                    { name: "Trichoadenoma", keyFeatures: "Circular dermal islands of epithelium with central horn cysts (flaky keratin), interspersed basaloid cords." }
-                ]
-            },
-             {
-                finding: "Cords/tubules and comma shapes (Ko)",
-                source: "Ko Ch 1, p53-58",
-                diagnoses: [
-                    { name: "Desmoplastic trichoepithelioma", keyFeatures: "Cords/tubules in dermis, numerous horn cysts, tubules of two-layered epithelium, fibrotic stroma, often calcification." },
-                    { name: "Metastatic breast carcinoma", keyFeatures: "Cords/tubules in dermis and below, single-layered ('Indian filing') and multi-layered epithelium, some gland-like structures." },
-                    { name: "Microcystic adnexal carcinoma", keyFeatures: "Cords/tubules in dermis, comma shapes with duct-like spaces, deeply infiltrative, perineural involvement." },
-                    { name: "Morpheaform basal cell carcinoma", keyFeatures: "Cords/tubules of basaloid cells with hints of peripheral palisading, new collagen forming around islands, deeply infiltrative." },
-                    { name: "Syringoma", keyFeatures: "Cords/tubules restricted to upper dermis, 'tadpoles' of epithelium with duct-like structures, darker peripheral cells/clear central cells, eosinophilic cuticle lining lumina, no horn cysts." }
-                ]
-            },
-            {
-                finding: "Spongiosis (Ko)",
-                source: "Ko Ch 2, p102-105",
-                diagnoses: [
-                    { name: "Allergic contact dermatitis", keyFeatures: "Spongiosis, prominent vesicles within epidermis." },
-                    { name: "Arthropod assault", keyFeatures: "Eosinophilic spongiosis, wedge-shaped inflammation, prominent vesicles." },
-                    { name: "Pityriasis rosea", keyFeatures: "Mild epidermal spongiosis, mounds of parakeratosis, superficial perivascular lymphocytes, extravasated erythrocytes." }
-                ]
-            },
-            {
-                finding: "Interface (lichenoid) (Ko)",
-                source: "Ko Ch 2, p117-122",
-                diagnoses: [
-                    { name: "Discoid lupus erythematosus", keyFeatures: "Lichenoid infiltrate (sometimes vacuolar), follicular plugging, atrophic epidermis, thickened basement membrane, pigment incontinence, periadnexal/perivascular lymphocytes." },
-                    { name: "Halo nevus", keyFeatures: "Lichenoid infiltrate obscuring nests of melanocytes (junctional and/or dermal)." },
-                    { name: "Lichen planus", keyFeatures: "Lichenoid infiltrate, hyperkeratosis, irregular acanthosis, hypergranulosis, saw-toothing, colloid/Civatte bodies, pigment incontinence, usually no eosinophils." },
-                    { name: "Lichen striatus", keyFeatures: "Patchy lichenoid infiltrate, deep perivascular/periadnexal infiltrate, often peri-eccrine lymphocytes." },
-                    { name: "Pityriasis lichenoides et varioliformis acuta", keyFeatures: "Lichenoid and deep perivascular lymphocytes (wedge-shaped), parakeratosis, epidermal/dermal erythrocytes, epidermal necrosis." }
-                ]
-            },
-            {
-                finding: "Spindle cells (Ko)",
-                source: "Ko Ch 3, p164-177",
-                diagnoses: [
-                    { name: "Blue nevus, cellular", keyFeatures: "Spindled and rounded melanocytes (biphasic), often bulbous deep, scattered melanin." },
-                    { name: "Melanoma, desmoplastic", keyFeatures: "Atypical spindled melanocytes in bundles infiltrating collagen, often overlying melanoma in situ, perivascular lymphocytes." },
-                    { name: "Dermatofibroma", keyFeatures: "Short spindle cells (fibrohistiocytes), 'busy dermis', epidermal acanthosis/pigmentation, collagen entrapment at periphery." },
-                    { name: "Dermatofibrosarcoma protuberans", keyFeatures: "Monomorphous spindle cells (fibrocytes) in storiform pattern, filling dermis, infiltrating fat (honeycomb)." },
-                     { name: "Scar", keyFeatures: "Spindle cells (fibrocytes) arranged parallel to epidermis, vessels perpendicular to surface." },
-                    { name: "Infantile digital fibromatosis", keyFeatures: "Spindle cells (myofibroblasts) with round pink cytoplasmic inclusions, arranged in long fascicles." },
-                    { name: "Nodular fasciitis", keyFeatures: "Spindle cells (myofibroblasts) in myxoid areas ('tissue-culture fibroblasts'), extravasated erythrocytes, mitoses common, radial peripheral vessels, often deep." },
-                    { name: "Leiomyoma", keyFeatures: "Spindle cells (smooth muscle) in intersecting fascicles, cigar-shaped nuclei, perinuclear vacuoles (cross-section)." },
-                    { name: "Neurofibroma", keyFeatures: "Spindle cells (pericytes) with thin, wavy nuclei, light pink stroma, scattered mast cells, not encapsulated." },
-                    { name: "Palisaded encapsulated neuroma", keyFeatures: "Spindle cells (Schwann cells) in fascicles with characteristic clefting, often not truly encapsulated." },
-                    { name: "Schwannoma", keyFeatures: "Spindle cells (Schwann cells), Antoni A (cellular) and Antoni B (myxoid) areas, Verocay bodies, encapsulated, often deep." },
-                    { name: "Kaposi sarcoma, nodular", keyFeatures: "Hyperchromatic spindle cells (endothelial), interspersed erythrocytes, intracytoplasmic pink globules (erythrophagolysosomes)." }
-                ]
-            },
-            {
-                finding: "Acantholysis (Ko)",
-                source: "Ko Ch 4, p238-247",
-                diagnoses: [
-                    { name: "Darier disease", keyFeatures: "Benign acantholytic dyskeratosis (corp ronds, grains), parakeratosis/crust above, villi at base." },
-                    { name: "Grover disease", keyFeatures: "Focal benign acantholytic dyskeratosis, also foci of spongiosis, Hailey-Hailey pattern, pemphigus patterns." },
-                    { name: "Hailey-Hailey disease", keyFeatures: "Benign acantholysis involving full/near-full thickness epidermis ('dilapidated brick wall'), sometimes dyskeratosis." },
-                    { name: "Herpes virus infection", keyFeatures: "Benign non-dyskeratotic acantholysis with ballooning degeneration, multinucleated cells (chromatin rimming), often involves/destroys basal cells." },
-                    { name: "Pemphigus foliaceus", keyFeatures: "Benign acantholysis in upper stratum spinosum/granular layer, 'cling-ons' (acantholytic cells on roof)." },
-                    { name: "Pemphigus vulgaris", keyFeatures: "Benign acantholysis above intact basal layer ('tombstones')." },
-                    { name: "Squamous cell carcinoma (acantholytic)", keyFeatures: "Malignant dyskeratotic acantholysis in large, infiltrative tumor, prominent atypical cells and mitoses." },
-                    { name: "Warty dyskeratoma", keyFeatures: "Histologically like Darier disease with corp ronds (long arrow) and grains (short arrow) but may have more prominent cup-shape and/or follicular involvement. Clinically a solitary lesion." }
-                ]
-            },
-             {
-                finding: "Subepidermal space/cleft (Ko)",
-                source: "Ko Ch 4, p248-254",
-                diagnoses: [
-                    { name: "Angiokeratoma", keyFeatures: "Subepidermal space (can appear intraepidermal) filled with erythrocytes, thin 'grenz zone'." },
-                    { name: "Bullous pemphigoid / Pemphigoid gestationis", keyFeatures: "Subepidermal space, prominent eosinophils at base, may see festooning." },
-                    { name: "Dermatitis herpetiformis", keyFeatures: "Subepidermal space, prominent neutrophils at base, often neutrophil clusters in adjacent papillae, may see reverse festooning." },
-                    { name: "Lymphangioma", keyFeatures: "Subepidermal space with internal papillations, lined by endothelial cells, may contain few erythrocytes, thin 'grenz zone'." },
-                    { name: "Polymorphous light eruption", keyFeatures: "Subepidermal space (edema), superficial and deep perivascular lymphocytes." },
-                    { name: "Porphyria cutanea tarda", keyFeatures: "Subepidermal space, non-inflammatory base, festooning of papillary dermis, thickened vessel walls, caterpillar bodies in epidermis." }
-                ]
-            },
-            {
-                finding: "Blue tumor (Ko)",
-                source: "Ko Ch 5, p281-290",
-                diagnoses: [
-                    { name: "Basal cell carcinoma", keyFeatures: "Peripheral palisading, retraction artifact around islands, often mucinous stroma, mitoses/necrosis within islands." },
-                    { name: "Glomus tumor", keyFeatures: "Monomorphous cells with central round nuclei surrounding vascular spaces." },
-                    { name: "Merkel cell carcinoma", keyFeatures: "Trabecular/nodular pattern, pale nuclei ('salt and pepper'), scant cytoplasm, numerous mitoses/necrotic cells, nuclear molding." },
-                    { name: "Sebaceoma (sebaceous epithelioma)", keyFeatures: "Scattered sebocytes among smaller blue cells, sebaceous ducts present, often localized to upper dermis." },
-                    { name: "Sebaceous carcinoma", keyFeatures: "Sebocytes among atypical blue cells, sebaceous ducts may be evident, necrosis, atypia, infiltrative pattern, often deeper." },
-                    { name: "Spiradenoma", keyFeatures: "'Blue balls' in dermis, islands maybe peppered with lymphocytes/hyaline droplets, peripheral blue cells/central pale cells, occasional ducts." },
-                    { name: "Trichoblastoma", keyFeatures: "Peripheral palisading, usually no epidermal connection, well-circumscribed with cleft around tumor, papillary mesenchymal bodies." },
-                    { name: "Trichoepithelioma", keyFeatures: "Often epidermal connection, grape-like fronds or reticulated islands of basaloid cells with peripheral palisading, fibrotic stroma, clefting around stroma, papillary mesenchymal bodies." },
-                    { name: "Tufted angioma", keyFeatures: "Groups ('cannon balls') of cells forming small vascular spaces with erythrocytes, clefts (lymphatic space) may surround groups." }
-                ]
-            },
-            {
-                finding: "Pink material (Ko)",
-                source: "Ko Ch 6, p308-314",
-                diagnoses: [
-                    { name: "Amyloid", keyFeatures: "Amorphous pink material in upper dermis, often perivascular, plasma cells often present." },
-                    { name: "Cryoglobulinemia (type I)", keyFeatures: "Glassy, smooth pink material within vessels, minimal inflammation." },
-                    { name: "Erythema elevatum diutinum (late stage)", keyFeatures: "Pink material (fibrosis) with clefting and interspersed neutrophils." },
-                    { name: "Pilomatricoma", keyFeatures: "Pink material ('pilomatrical keratin') with shadow cells, basaloid cells often present, calcification/ossification common." },
-                    { name: "Proliferating pilar tumor", keyFeatures: "Dense pink keratin, stratified squamous epithelium with no granular layer (tricholemmal differentiation)." },
-                    { name: "Sclerotic fibroma", keyFeatures: "Pink material (hyalinized collagen) arranged in fenestrated/clefted fashion, relatively acellular." }
-                ]
-            },
-             {
-                finding: "Epidermal necrosis (Ko)",
-                source: "Ko Ch 6, p317-322",
-                diagnoses: [
-                    { name: "Aspergillosis", keyFeatures: "Epidermal and dermal necrosis, necrotic vessels with visible fungal hyphae (septate, branching)." },
-                    { name: "Burn", keyFeatures: "Epidermal necrosis, reversal of epidermal staining (basophilic superficially), sharp demarcation, often non-inflammatory acutely." },
-                    { name: "Erythema multiforme", keyFeatures: "Epidermal necrosis below basket-weave stratum corneum, apoptotic keratinocytes." },
-                    { name: "Herpes simplex infection", keyFeatures: "Epidermal necrosis with acantholytic cells, multinucleated cells (rimmed chromatin), follicular necrosis is a clue." },
-                    { name: "Nutritional deficiency", keyFeatures: "Epidermal necrosis or pallor underlying parakeratosis, basal layer relatively normal, inflammation not prominent." }
-                ]
-            },
-            // --- Rapini Data ---
-            {
-                finding: "Acantholysis (Rapini)",
-                source: "Rapini p.2 (1.2)",
-                diagnoses: [
-                    { name: "Actinic keratosis", keyFeatures: "Acantholytic variant shows suprabasal clefting with atypical keratinocytes." },
-                    { name: "Darier's disease", keyFeatures: "Suprabasal acantholysis with dyskeratosis (corps ronds and grains)." },
-                    { name: "Familial dyskeratotic comedones", keyFeatures: "Follicular plugging with acantholysis and dyskeratosis within the follicle wall." },
-                    { name: "Hailey-Hailey disease", keyFeatures: "Extensive suprabasal acantholysis ('dilapidated brick wall') throughout epidermis." },
-                    { name: "Herpes virus infection", keyFeatures: "Intraepidermal vesicles with acantholysis, multinucleation, nuclear molding, and chromatin margination." },
-                    { name: "Impetigo", keyFeatures: "Subcorneal pustules with acantholysis, neutrophils, and bacteria." },
-                    { name: "Pemphigus (all varieties)", keyFeatures: "Autoimmune acantholysis; location (suprabasal vs. subcorneal) varies by type (vulgaris vs. foliaceus)." },
-                    { name: "Pityriasis rubra pilaris", keyFeatures: "Focal acantholysis may occur, along with checkerboard parakeratosis and follicular plugging." },
-                    { name: "Squamous cell carcinoma", keyFeatures: "Acantholytic SCC shows gland-like spaces due to loss of cohesion between atypical squamous cells." },
-                    { name: "Staphylococcal scalded skin syndrome", keyFeatures: "Subcorneal cleavage with minimal inflammation, caused by exfoliative toxin." },
-                    { name: "Transient acantholytic dermatosis (Grover's disease)", keyFeatures: "Focal acantholysis, may resemble Darier's, Hailey-Hailey, or Pemphigus." },
-                    { name: "Warty dyskeratoma", keyFeatures: "Cup-shaped invagination with suprabasal acantholysis, dyskeratosis, and villi." }
-                ]
-            },
-            {
-                finding: "Basaloid cells (Rapini)",
-                source: "Rapini p.5 (1.11)",
-                diagnoses: [
-                    { name: "Basal cell carcinoma", keyFeatures: "Nests/strands of basaloid cells with peripheral palisading, retraction artifact, mucinous stroma." },
-                    { name: "Seborrheic keratosis", keyFeatures: "Proliferation of basaloid keratinocytes, horn cysts/pseudocysts, often papillated surface." },
-                    { name: "Ameloblastoma", keyFeatures: "Odontogenic tumor with basaloid cells resembling dental lamina (rare in skin)." },
-                    { name: "Cloacogenic carcinoma", keyFeatures: "Anorectal tumor, can metastasize to skin, basaloid/squamoid features." },
-                    { name: "Sebaceous tumors", keyFeatures: "Mixture of basaloid cells and mature sebocytes (e.g., Sebaceoma)." },
-                    { name: "Follicular tumors", keyFeatures: "Basaloid proliferations with follicular differentiation (e.g., Trichoepithelioma - papillary mesenchymal bodies, horn cysts; Pilomatricoma - ghost cells)." },
-                    { name: "Sweat gland tumors", keyFeatures: "Basaloid cells often present, may show ductal differentiation (e.g., Spiradenoma, Cylindroma)." }
-                ]
-            },
-            {
-                finding: "Clear or pale cell neoplasms (Rapini)",
-                source: "Rapini p.7 (1.22)",
-                diagnoses: [
-                    { name: "Adipose tumors", keyFeatures: "Mature adipocytes (Lipoma) or lipoblasts (Liposarcoma)." },
-                    { name: "Balloon cell nevus/melanoma", keyFeatures: "Melanocytes with abundant clear/foamy cytoplasm; look for conventional nevus/melanoma areas." },
-                    { name: "Clear cell acanthoma", keyFeatures: "Sharply demarcated epidermal proliferation of glycogenated keratinocytes." },
-                    { name: "Clear cell basal cell carcinoma", keyFeatures: "BCC with clear cell change (glycogen)." },
-                    { name: "Clear cell hidradenoma", keyFeatures: "Nodular dermal tumor with clear cells and ductal differentiation." },
-                    { name: "Clear cell sarcoma", keyFeatures: "Melanoma variant, often S100+, SOX10+, HMB45 variable; nests of clear/epithelioid cells." },
-                    { name: "Clear cell syringoma", keyFeatures: "Syringoma variant with clear cell change." },
-                    { name: "Eccrine carcinoma", keyFeatures: "Malignant sweat gland tumor, may have clear cell features." },
-                    { name: "Hidroacanthoma simplex", keyFeatures: "Intraepidermal poroma with nests of clear/poroid cells." },
-                    { name: "Metastatic renal cell carcinoma", keyFeatures: "Nests/cords of clear cells, prominent vasculature, hemorrhage." },
-                    { name: "Pagetoid diseases", keyFeatures: "Intraepidermal spread of pale/clear malignant cells (Paget's, Bowen's, Melanoma)." },
-                    { name: "PEComa", keyFeatures: "Perivascular epithelioid cell tumor, clear/eosinophilic cytoplasm, HMB45+, SMA+." },
-                    { name: "Pilomatricoma", keyFeatures: "Ghost cells appear pale/pink centrally." },
-                    { name: "Sebaceous gland tumors", keyFeatures: "Contain sebocytes with clear, bubbly cytoplasm." },
-                    { name: "Squamous cell carcinoma", keyFeatures: "SCC variant with clear cell change (glycogen)." },
-                    { name: "Trichilemmoma", keyFeatures: "Lobules of clear (glycogenated) cells with peripheral palisading, thickened BMZ." }
-                ]
-            },
-            {
-                finding: "Eosinophils in dermis (Rapini)",
-                source: "Rapini p.11 (1.36B)",
-                diagnoses: [
-                    { name: "Angiolymphoid hyperplasia with eosinophilia", keyFeatures: "Epithelioid endothelial cells, lymphoid follicles, eosinophils." },
-                    { name: "Arthropod bites and parasitic infestations", keyFeatures: "Wedge-shaped infiltrate, eosinophils, sometimes spongiosis/blister." },
-                    { name: "Coccidioidomycosis", keyFeatures: "Granulomas with spherules, eosinophils can be present." },
-                    { name: "Contact dermatitis", keyFeatures: "Spongiosis, often eosinophils (especially allergic)." },
-                    { name: "Dermatitis herpetiformis", keyFeatures: "Neutrophilic papillary microabscesses, but eosinophils can be present." },
-                    { name: "Dermatophytosis", keyFeatures: "Fungi in stratum corneum, variable dermal infiltrate, sometimes eosinophils." },
-                    { name: "Drug eruptions", keyFeatures: "Variable patterns (morbilliform, lichenoid, vasculitic), often eosinophils." },
-                    { name: "Eczema (especially atopic)", keyFeatures: "Spongiosis, acanthosis, often eosinophils." },
-                    { name: "Eosinophilic cellulitis (Wells syndrome)", keyFeatures: "Diffuse eosinophilic infiltrate, flame figures." },
-                    { name: "Eosinophilic pustular folliculitis", keyFeatures: "Eosinophilic infiltrate around/in follicles." },
-                    { name: "Erythema multiforme", keyFeatures: "Interface dermatitis, apoptotic keratinocytes, lymphocytes +/- eosinophils." },
-                    { name: "Granuloma annulare", keyFeatures: "Palisading/interstitial granulomas, mucin, often eosinophils." },
-                    { name: "Granuloma faciale", keyFeatures: "Dense mixed infiltrate (neuts, eos, plasma cells, lymphs), Grenz zone, often vasculitis." },
-                    { name: "Hodgkin's lymphoma", keyFeatures: "Reed-Sternberg cells, mixed infiltrate including eosinophils." },
-                    { name: "Hypereosinophilic syndrome", keyFeatures: "Dense eosinophilic infiltrate, systemic involvement." },
-                    { name: "Juvenile xanthogranuloma", keyFeatures: "Histiocytes, Touton giant cells, often eosinophils." },
-                    { name: "Langerhans cell histiocytosis", keyFeatures: "Proliferation of LCH cells (reniform nuclei, CD1a+, S100+), often eosinophils." },
-                    { name: "Mycosis fungoides", keyFeatures: "Atypical T-cell infiltrate, epidermotropism, eosinophils can be present." },
-                    { name: "Pemphigoid gestationis", keyFeatures: "Subepidermal blister, eosinophils at DEJ/in blister." },
-                    { name: "Pemphigus and pemphigoid", keyFeatures: "Acantholysis (Pemphigus) or subepidermal blister (Pemphigoid), often eosinophils." },
-                    { name: "Pruritic urticarial papules and plaques of pregnancy (PUPPP)", keyFeatures: "Superficial perivascular infiltrate, edema, often eosinophils." },
-                    { name: "Urticaria", keyFeatures: "Dermal edema, sparse perivascular infiltrate, sometimes eosinophils." },
-                    { name: "Urticaria pigmentosa", keyFeatures: "Increased mast cells, often eosinophils." },
-                    { name: "Urticarial vasculitis, eosinophilic vasculitis, Churg-Strauss vasculitis", keyFeatures: "Vasculitis features, prominent eosinophils." }
-                ]
-            },
-             {
-                finding: "Epidermotropism and pagetoid cells (Rapini)",
-                source: "Rapini p.12 (1.37)",
-                diagnoses: [
-                    { name: "Paget's disease", keyFeatures: "Intraepidermal adenocarcinoma cells (pale cytoplasm, often mucin+), CK7+, CEA+." },
-                    { name: "Bowen's disease (SCCIS)", keyFeatures: "Full-thickness epidermal atypia, dyskeratotic cells, may have pale cells (glycogen+), pankeratin+." },
-                    { name: "Borst-Jadassohn phenomenon", keyFeatures: "Intraepidermal nests of distinct cells (clonal SK, hidroacanthoma simplex, Bowen's)." },
-                    { name: "Melanoma", keyFeatures: "Atypical melanocytes scattered individually and in nests at all levels of epidermis, S100+, SOX10+, Melan-A/MART-1+." },
-                    { name: "Mycosis fungoides", keyFeatures: "Atypical lymphocytes (often cerebriform) in epidermis, Pautrier's microabscesses, CD3+, CD4+." },
-                    { name: "Lymphomatoid papulosis", keyFeatures: "Wedge-shaped infiltrate with large atypical CD30+ lymphocytes, some epidermotropic." },
-                    { name: "Langerhans cell histiocytosis", keyFeatures: "Epidermal infiltration by LCH cells (reniform nuclei, S100+, CD1a+, Langerin+)." },
-                    { name: "Sebaceous carcinoma", keyFeatures: "Pagetoid spread of atypical sebocytes (vacuolated cytoplasm), often periocular." },
-                    { name: "Merkel cell carcinoma", keyFeatures: "Epidermotropic small round blue cells with neuroendocrine markers (CK20 dot+, synaptophysin+)." },
-                    { name: "Clear cell acanthoma", keyFeatures: "Intraepidermal proliferation of pale glycogenated cells (not pagetoid spread)." },
-                    { name: "Hidroacanthoma simplex", keyFeatures: "Intraepidermal nests of poroid cells with ductal differentiation." },
-                    { name: "Pagetoid dyskeratosis", keyFeatures: "Incidental finding of pale, dyskeratotic cells in upper epidermis." },
-                    { name: "Epidermotropic adnexal carcinoma", keyFeatures: "Rare spread of adnexal carcinoma into epidermis." },
-                    { name: "Epidermotropic metastatic carcinoma/melanoma", keyFeatures: "Very rare infiltration of epidermis by metastatic cells." }
-                ]
-            },
-            {
-                finding: "Granulomas (Rapini)",
-                source: "Rapini p.16 (1.51)",
-                diagnoses: [
-                    { name: "Foreign body granulomas", keyFeatures: "Histiocytes and giant cells surrounding foreign material (suture, keratin, silica, etc.)." },
-                    { name: "Ruptured cysts or follicles", keyFeatures: "Granulomatous inflammation surrounding keratin debris from ruptured structure." },
-                    { name: "Infectious granulomas", keyFeatures: "Variable patterns (tuberculoid, suppurative, palisading) depending on organism (fungi, mycobacteria, etc.); special stains needed." },
-                    { name: "Palisading granulomas", keyFeatures: "Histiocytes surrounding central core: GA (mucin), NL (altered collagen), Rheumatoid nodule (fibrin)." },
-                    { name: "Caseating granulomas", keyFeatures: "Central acellular eosinophilic necrosis (caseation); seen in TB, some fungi, syphilis." },
-                    { name: "Tuberculoid granulomas", keyFeatures: "Well-formed aggregates of epithelioid histiocytes ('naked' in sarcoidosis)." },
-                    { name: "Other granulomas", keyFeatures: "Specific types like actinic granuloma (elastophagocytosis), Crohn's (non-caseating near GI tract)." }
-                ]
-            },
-            {
-                finding: "Interface dermatitis (vacuolar) (Rapini)",
-                source: "Rapini p.19-20 (1.64)",
-                diagnoses: [
-                    // Note: Many listed are syndromes or broad categories. Focusing on distinct histologic patterns.
-                    { name: "Dermatomyositis", keyFeatures: "Minimal vacuolar change, marked dermal mucin, epidermal atrophy." },
-                    { name: "Erythema multiforme", keyFeatures: "Vacuolar alteration, scattered necrotic keratinocytes throughout epidermis, superficial lymphocytes." },
-                    { name: "Graft-versus-host disease", keyFeatures: "Vacuolar alteration, apoptotic keratinocytes (satellite cell necrosis), often involves adnexae, +/- squamous atypia." },
-                    { name: "Lupus erythematosus", keyFeatures: "Vacuolar alteration, thickened BMZ, dermal mucin, superficial and deep perivascular/periadnexal infiltrate." },
-                    { name: "Fixed drug eruption", keyFeatures: "Vacuolar alteration, necrotic keratinocytes, dermal eosinophils and neutrophils, pigment incontinence." },
-                    { name: "PLEVA", keyFeatures: "Vacuolar/lichenoid interface, parakeratosis, RBC extravasation, wedge-shaped lymphocytic infiltrate." }
-                     // Other listed items like Lichen Planus, Lichen Sclerosus are primarily lichenoid or sclerotic.
-                ]
-            },
-            {
-                finding: "Neutrophils in epidermis (Rapini)",
-                source: "Rapini p.26-27 (1.89A)",
-                diagnoses: [
-                    { name: "Impetigo", keyFeatures: "Subcorneal pustules with neutrophils and bacteria." },
-                    { name: "Psoriasis", keyFeatures: "Neutrophilic microabscesses (Munro's in stratum corneum, Kogoj in spinosum)." },
-                    { name: "Superficial fungal infections (Tinea, Candida)", keyFeatures: "Neutrophils in stratum corneum with fungal elements." },
-                    { name: "Acne and folliculitis", keyFeatures: "Neutrophils within or around hair follicle." },
-                    { name: "Acropustulosis of infancy", keyFeatures: "Subcorneal pustules, often with eosinophils." },
-                    { name: "Atypical mycobacterial infections", keyFeatures: "Can have epidermal neutrophils, often with dermal granulomas." },
-                    { name: "Clear cell acanthoma", keyFeatures: "Neutrophils in parakeratotic scale above clear cells." },
-                    { name: "Deep fungal infections", keyFeatures: "Neutrophils in epidermis overlying dermal granulomas/abscesses." },
-                    { name: "Gonococcemia", keyFeatures: "Neutrophilic pustules, often with vasculitis." },
-                    { name: "Halogenodermas", keyFeatures: "PEH with intraepidermal neutrophilic abscesses." },
-                    { name: "Mucha-Habermann disease (PLEVA)", keyFeatures: "Neutrophils can be present with lymphocytes and RBCs in epidermis." },
-                    { name: "Necrolytic migratory erythema", keyFeatures: "Superficial epidermal necrosis/pallor with neutrophils." },
-                    { name: "Neonatal pustular melanosis", keyFeatures: "Transient subcorneal pustules with neutrophils, later hyperpigmented macules." },
-                    { name: "Pemphigus erythematosus/foliaceus", keyFeatures: "Acantholysis with neutrophils sometimes present." },
-                    { name: "Pustular vasculitis", keyFeatures: "Leukocytoclastic vasculitis with overlying pustule formation." },
-                    { name: "Pyoderma gangrenosum", keyFeatures: "Edge of ulcer shows epidermal neutrophils, massive dermal neutrophilic infiltrate." },
-                    { name: "Pyogenic granuloma", keyFeatures: "Surface ulceration often has neutrophils." },
-                    { name: "Scabies", keyFeatures: "Burrow may contain neutrophils along with mites/eggs/scybala." },
-                    { name: "Syphilis", keyFeatures: "Secondary syphilis can show epidermal neutrophils with plasma cells in dermis." }
-                ]
-            },
-            {
-                finding: "Pseudoepitheliomatous hyperplasia (PEH) (Rapini)",
-                source: "Rapini p.35 (1.116)",
-                diagnoses: [
-                    { name: "Infections (Deep Fungal, Mycobacterial, Halogenoderma)", keyFeatures: "PEH overlying specific infectious organisms or granulomas." },
-                    { name: "Ulcer Borders / Healing Wounds", keyFeatures: "Reactive PEH adjacent to ulceration or granulation tissue." },
-                    { name: "Chronic Inflammation (Arthropod bite, Prurigo, LSC)", keyFeatures: "Marked acanthosis/hyperkeratosis due to chronic rubbing/irritation." },
-                    { name: "Neoplasms (Granular cell tumor, KA, Melanoma)", keyFeatures: "PEH overlying an underlying tumor." },
-                    { name: "Pemphigus vegetans", keyFeatures: "PEH with intraepidermal eosinophilic abscesses." },
-                    { name: "Hypertrophic Lichen Planus", keyFeatures: "PEH with underlying lichenoid inflammation." }
-                    // Others listed are specific conditions like Orf, Syringosquamous metaplasia, Verrucous LE.
-                ]
-            },
-            {
-                finding: "Spindle cell neoplasms (Rapini)",
-                source: "Rapini p.38 (1.131)",
-                diagnoses: [
-                    { name: "Fibrous proliferations (DF, DFSP, Scar, Fibromatosis)", keyFeatures: "Varying patterns of fibroblasts/myofibroblasts and collagen." },
-                    { name: "Melanocytic neoplasms (Blue nevus, Spitz, Melanoma)", keyFeatures: "Spindled melanocytes, S100+, SOX10+." },
-                    { name: "Neural neoplasms (Neurofibroma, Schwannoma)", keyFeatures: "Wavy nuclei (NF) or Antoni A/B (Schwannoma), S100+." },
-                    { name: "Smooth muscle neoplasms (Leiomyoma, Leiomyosarcoma)", keyFeatures: "Cigar-shaped nuclei, eosinophilic cytoplasm, SMA+, Desmin+." },
-                    { name: "Spindle cell lipoma", keyFeatures: "Bland spindle cells mixed with mature fat, CD34+." },
-                    { name: "Squamous cell carcinoma (spindle cell)", keyFeatures: "Atypical spindle cells often connected to epidermis, Keratin+, p63+." },
-                    { name: "Vascular tumors (Kaposi sarcoma, Angiosarcoma)", keyFeatures: "Spindled endothelial cells, vascular spaces, HHV8+ (KS), marked atypia (AS)." }
-                ]
-            },
-            // --- Alikhan Data ---
-            {
-                finding: "Busy Dermis (Alikhan)",
-                source: "Alikhan Table 7.13",
-                diagnoses: [
-                    { name: "Blue nevus", keyFeatures: "Paucicellular dendritic melanocytes, sclerotic stroma, melanophages." },
-                    { name: "Dermatofibroma", keyFeatures: "Interstitial spindle cells, collagen trapping, epidermal induction, Factor XIIIa+." },
-                    { name: "Cutaneous metastasis", keyFeatures: "Atypical cells, pattern depends on primary (e.g., single-filing, glands)." },
-                    { name: "Kaposi sarcoma (plaque)", keyFeatures: "Bland spindle cells, promontory sign, slit-like vessels, plasma cells, HHV-8+." },
-                    { name: "GA (interstitial)", keyFeatures: "Interstitial histiocytes, altered collagen, ↑ mucin, +/- eosinophils." },
-                    { name: "Scleromyxedema", keyFeatures: "Increased fibroblasts, ↑ mucin, fine collagen fibers." },
-                    { name: "Neurofibroma", keyFeatures: "Wavy nuclei, myxoid stroma, mast cells, S100+." },
-                    { name: "Leukemia cutis", keyFeatures: "Atypical 'blast' cells, single-filing, mitoses, myeloid markers+." }
-                ]
-            },
-            {
-                finding: "Vacuolar Interface Dermatitis (Alikhan)",
-                source: "Alikhan Table 7.14",
-                diagnoses: [
-                    { name: "Lupus erythematosus (SCLE)", keyFeatures: "Brisk vacuolar interface, superficial > deep infiltrate, BMZ thickening, ↑ mucin." },
-                    { name: "Lupus erythematosus (Discoid)", keyFeatures: "Vacuolar interface (esp. follicular), follicular plugging, epidermal atrophy, deep infiltrate, BMZ thickening, ↑ mucin." },
-                    { name: "Dermatomyositis", keyFeatures: "Minimal vacuolar interface, sparse infiltrate, ↑↑ dermal mucin, epidermal atrophy." },
-                    { name: "Erythema multiforme", keyFeatures: "Basket-weave corneum, full-thickness apoptotic keratinocytes, superficial lymphocytes." },
-                    { name: "Fixed drug eruption", keyFeatures: "EM-like interface, deeper pigment incontinence, papillary dermal fibrosis, eosinophils." },
-                    { name: "Acute GVHD", keyFeatures: "EM-like interface, keratinocyte dysmaturation, satellite cell necrosis, adnexal involvement." },
-                    { name: "PLEVA", keyFeatures: "Parakeratosis, lichenoid-to-vacuolar interface, RBC extravasation, V-shaped infiltrate." }
-                ]
-            },
-             {
-                finding: "Lichenoid Interface Dermatitis (Alikhan)",
-                source: "Alikhan Table 7.15",
-                diagnoses: [
-                    { name: "Lichen planus", keyFeatures: "Hyperkeratosis, V-hypergranulosis, saw-toothed rete, basal apoptotic keratinocytes." },
-                    { name: "Lichen planus-like keratosis (BLK)", keyFeatures: "Like LP, but +/- parakeratosis/eosinophils, often adjacent solar lentigo/SK." },
-                    { name: "Lichenoid drug eruption", keyFeatures: "Like LP, but often parakeratosis and deeper infiltrate w/ eosinophils." },
-                    { name: "Lichenoid GVHD", keyFeatures: "Less dense infiltrate than LP, satellite cell necrosis, epidermal dysmaturation." },
-                    { name: "Melanoma w/ lichenoid regression", keyFeatures: "Atypical melanocytes at periphery, pigment incontinence, plasma cells." },
-                    { name: "Lichen nitidus", keyFeatures: "'Ball and claw' configuration, mixed infiltrate (lymphs, histiocytes, GCs)." },
-                    { name: "Lichen striatus", keyFeatures: "Like LP, but w/ ↑ spongiosis and deep peri-eccrine inflammation." },
-                    { name: "Lichenoid pigmented purpura", keyFeatures: "Lichenoid/PV lymphocytes w/ RBC extravasation, hemosiderin." },
-                    { name: "Lichenoid secondary syphilis", keyFeatures: "'Dirty' infiltrate (neuts, plasma cells), slender rete, swollen endothelium." },
-                    { name: "Hypertrophic lupus erythematosus", keyFeatures: "Hyperplastic follicular epithelium, other lupus features (deep infiltrate, mucin, BMZ thickening)." }
-                ]
-            },
-            {
-                finding: "Paisley Tie ('Tadpole') Pattern (Alikhan)",
-                source: "Alikhan Table 7.17",
-                diagnoses: [
-                    { name: "Desmoplastic trichoepithelioma (DTE)", keyFeatures: "Basaloid strands, horn cysts (often calcified), fibroblast-rich stroma, central dell." },
-                    { name: "Microcystic adnexal carcinoma (MAC)", keyFeatures: "Deeply infiltrative, horn cysts & ducts (superficial) + strands (deep), PNI, lymphoid nodules." },
-                    { name: "Syringoma", keyFeatures: "Superficial basaloid tadpoles/ducts in fibrotic stroma, eosinophilic cuticle." },
-                    { name: "Morpheaform BCC", keyFeatures: "Angulated strands of atypical basaloid cells, morphea-like stroma, mitoses/apoptosis." }
-                ]
-            },
-            {
-                finding: "Pagetoid Scatter Pattern (Alikhan)",
-                source: "Alikhan Table 7.22",
-                diagnoses: [
-                    { name: "Pagetoid Bowen's disease", keyFeatures: "Atypical keratinocytes with clear cytoplasm, involves basal layer, CK5/6+." },
-                    { name: "EMPD/Paget's disease", keyFeatures: "Adenocarcinoma cells with mucin, compress basal layer, CK7+, CEA+." },
-                    { name: "Melanoma in situ", keyFeatures: "Atypical melanocytes scattered singly/nested, pigment, S100+, SOX10+." },
-                    { name: "Mycosis fungoides", keyFeatures: "Atypical lymphocytes (cerebriform nuclei, halo) at DEJ/in epidermis, CD3+, CD4+." },
-                    { name: "Peri-ocular sebaceous carcinoma", keyFeatures: "Atypical sebocytes with vacuolated cytoplasm, scalloped nuclei, Adipophilin+." }
-                ]
-            },
-             {
-                finding: "Square Biopsy Pattern (Alikhan)",
-                source: "Alikhan Table 7.23",
-                diagnoses: [
-                    { name: "Chronic radiation dermatitis", keyFeatures: "Homogenized ('sick') dermis, telangiectasias, stellate fibroblasts, loss of adnexae." },
-                    { name: "Necrobiosis lipoidica", keyFeatures: "Diffuse granulomatous inflammation, 'cake-layered' necrobiosis, plasma cells." },
-                    { name: "Normal skin of the back", keyFeatures: "Thick dermis, normal collagen architecture." },
-                    { name: "Scar", keyFeatures: "'East-West' collagen orientation, increased fibroblasts, vertical vessels." },
-                    { name: "Scleredema", keyFeatures: "Increased space and mucin between normal collagen bundles, no increased cellularity." },
-                    { name: "Scleroderma/Morphea", keyFeatures: "Thick hyalinized collagen, loss of periadnexal fat, deep infiltrate w/ plasma cells." },
-                    { name: "Sclerodermoid GVHD", keyFeatures: "Thick collagen, mild vacuolar interface, pigment incontinence, loss of adnexae." },
-                    { name: "Scleromyxedema/NSF", keyFeatures: "Increased fibroblasts, mild collagen thickening, ↑ mucin." }
-                ]
-            },
-            {
-                finding: "SLAM DDx (Spindle Cell Malignancy) (Alikhan)",
-                source: "Alikhan Table 7.24",
-                diagnoses: [
-                    { name: "SCC (spindle cell type)", keyFeatures: "Atypical spindle cells often connected to epidermis/adnexa, Keratin+, p63/p40+." },
-                    { name: "Leiomyosarcoma", keyFeatures: "Atypical spindle cells, fascicular pattern, cigar nuclei, SMA+, Desmin+." },
-                    { name: "AFX (Atypical Fibroxanthoma)", keyFeatures: "Pleomorphic spindle/epithelioid cells, bizarre mitoses, diagnosis of exclusion (Keratin-, S100-, Desmin-)." },
-                    { name: "Melanoma (desmoplastic/spindle cell)", keyFeatures: "Atypical spindle cells, often neurotropism, lymphoid aggregates, S100+, SOX10+." }
-                ]
-            },
-             {
-                finding: "Acantholytic Disorders (Alikhan)",
-                source: "Alikhan Table 7.26",
-                diagnoses: [
-                    { name: "Pemphigus foliaceus", keyFeatures: "Subcorneal/granular layer acantholysis. DIF: Intercellular." },
-                    { name: "Pemphigus vulgaris", keyFeatures: "Suprabasal acantholysis, tombstoning. DIF: Intercellular." },
-                    { name: "Pemphigus vegetans", keyFeatures: "PEH, eosinophilic abscesses, suprabasal acantholysis. DIF: Intercellular." },
-                    { name: "Pemphigus erythematosus", keyFeatures: "PF pattern + BMZ deposition on DIF." },
-                    { name: "Paraneoplastic pemphigus", keyFeatures: "Suprabasal acantholysis + interface changes. DIF: Intercellular + BMZ." },
-                    { name: "Hailey-Hailey", keyFeatures: "Full-thickness acantholysis ('dilapidated brick wall'). DIF: Negative." },
-                    { name: "Darier's disease", keyFeatures: "Suprabasal acantholysis + dyskeratosis (corps ronds/grains). DIF: Negative." },
-                    { name: "Grover's disease", keyFeatures: "Focal acantholysis (various patterns). DIF: Negative." },
-                    { name: "Warty dyskeratoma", keyFeatures: "Cup-shaped invagination, acantholytic dyskeratosis, villi. DIF: Negative." }
-                ]
-            },
-            {
-                finding: "Granulomatous Disorders (Alikhan)",
-                source: "Alikhan Table 7.28",
-                diagnoses: [
-                    { name: "Sarcoidosis", keyFeatures: "'Naked' epithelioid granulomas (minimal lymphocytes)." },
-                    { name: "Granuloma Annulare (GA)", keyFeatures: "Palisading/interstitial histiocytes, central mucin ('blue' necrobiosis), often eosinophils." },
-                    { name: "Necrobiosis Lipoidica (NL)", keyFeatures: "Tiered palisading/interstitial granulomas, altered collagen ('red' necrobiosis), plasma cells, no eosinophils." },
-                    { name: "Annular Elastolytic Giant Cell Granuloma (AEGCG)", keyFeatures: "Palisading/irregular granulomas, elastophagocytosis, asteroid bodies, no necrobiosis." },
-                    { name: "Cutaneous Crohn's Disease", keyFeatures: "Tuberculoid granulomas with surrounding lymphocytes, often near ulcers/fissures." },
-                    { name: "Rheumatoid Nodule", keyFeatures: "Deep palisading granuloma around central fibrin ('red' necrobiosis)." },
-                    { name: "Interstitial Granulomatous Dermatitis", keyFeatures: "Interstitial histiocytes, small 'rosettes', 'blue' necrobiosis (mucin)." },
-                    { name: "Palisading Neutrophilic & Granulomatous Dermatitis", keyFeatures: "Palisading neutrophils/leukocytoclasia around collagen, 'blue' necrobiosis." }
-                ]
-            },
-             {
-                finding: "Vascular Tumors (Alikhan)",
-                source: "Alikhan Table 7.32",
-                diagnoses: [
-                    { name: "Masson's/IPEH", keyFeatures: "Intravascular papillary endothelial hyperplasia within thrombosed vessel, organized thrombus." },
-                    { name: "Angiosarcoma", keyFeatures: "Infiltrative, anastomosing vascular channels lined by atypical, hyperchromatic endothelial cells." },
-                    { name: "Glomeruloid hemangioma", keyFeatures: "Capillary loops within dilated spaces resembling renal glomeruli; associated with POEMS." },
-                    { name: "Angiolymphoid hyperplasia/Epithelioid hemangioma", keyFeatures: "Plump epithelioid endothelial cells, thick-walled vessels, lymphoid aggregates, eosinophils." },
-                    { name: "Kaposi sarcoma", keyFeatures: "Spindle cell proliferation, slit-like vascular spaces, extravasated RBCs, plasma cells, promontory sign, HHV-8+." }
-                ]
-            },
-             // --- Ref Sheet Data ---
-             {
-                finding: "Complex Cystic Proliferations ('Rolls and Scrolls') (Ref Sheet - Alikhan T7.18)",
-                source: "Ref Sheet (Alikhan Table 7.18)",
-                diagnoses: [
-                    { name: "Proliferating Pilar cyst", keyFeatures: "Lobules of squamous epithelium without granular layer, abrupt ('trichilemmal') keratinization into dense pink keratin, often mitoses/atypia." },
-                    { name: "Pilomatricoma", keyFeatures: "Nodules of basaloid cells transitioning to anucleated 'ghost cells', often calcification/ossification and foreign body reaction." }
-                ]
-            },
-            {
-                finding: "Epidermoid Cyst Mimickers (Ref Sheet - Alikhan T7.19)",
-                source: "Ref Sheet (Alikhan Table 7.19)",
-                diagnoses: [
-                    { name: "Vellus hair cyst", keyFeatures: "Cyst lined by stratified squamous epithelium (like epidermoid cyst) containing multiple small vellus hairs." },
-                    { name: "Dermoid cyst", keyFeatures: "Cyst lined by epidermis-like epithelium with adnexal structures (hair follicles, sebaceous glands) in the cyst wall." },
-                    { name: "Steatocystoma", keyFeatures: "Cyst lined by stratified squamous epithelium without granular layer, characteristic eosinophilic corrugated ('sharktooth') cuticle, sebaceous glands in wall." }
-                ]
-            },
-            {
-                finding: "Smooth Muscle DDx (Ref Sheet - Alikhan T7.34)",
-                source: "Ref Sheet (Alikhan Table 7.34)",
-                diagnoses: [
-                    { name: "Accessory Nipple", keyFeatures: "Papillomatous epidermis, underlying smooth muscle bundles, +/- mammary glands/ducts." },
-                    { name: "Becker's Nevus", keyFeatures: "Epidermal hyperplasia/pigmentation, smooth muscle hamartoma, +/- increased terminal hairs." },
-                    { name: "Piloleiomyoma", keyFeatures: "Haphazard fascicles of smooth muscle (cigar nuclei, perinuclear vacuoles) in dermis, derived from arrector pili." },
-                    { name: "Angioleiomyoma", keyFeatures: "Well-circumscribed deep nodule, smooth muscle surrounding vessels with compressed lumens." },
-                    { name: "Leiomyosarcoma", keyFeatures: "Atypical smooth muscle cells, hyperchromasia, mitoses, infiltrative growth." }
-                ]
-            },
-            {
-                finding: "Panniculitis (Ref Sheet - Alikhan T7.30)",
-                source: "Ref Sheet (Alikhan Table 7.30)",
-                diagnoses: [
-                    { name: "Cold panniculitis (deep perniosis)", keyFeatures: "Lobular necrosis, lymphohistiocytic infiltrate, often at dermal-SQ junction." },
-                    { name: "Erythema induratum/nodular vasculitis", keyFeatures: "Lobular panniculitis with caseous necrosis, vasculitis of septal/lobular vessels." },
-                    { name: "Erythema nodosum", keyFeatures: "Primarily septal thickening/inflammation (neuts early, granulomas late), Miescher's radial granulomas." },
-                    { name: "Lupus panniculitis", keyFeatures: "Lobular lymphocytic panniculitis, hyaline fat necrosis, lymphoid aggregates, plasma cells." },
-                    { name: "Sclerema neonatorum", keyFeatures: "Needle-shaped clefts in adipocytes, minimal inflammation." },
-                    { name: "SQ fat necrosis of newborn/poststeroid", keyFeatures: "Needle-shaped clefts in adipocytes with surrounding granulomatous inflammation." },
-                    { name: "PAN (Polyarteritis Nodosa)", keyFeatures: "Vasculitis of medium-sized artery in deep dermis/septae, fibrinoid necrosis." },
-                    { name: "Pancreatic panniculitis", keyFeatures: "Lobular necrosis with 'ghost cells' (saponified fat), calcification, neutrophils." },
-                    { name: "Lipodermatosclerosis (stasis panniculitis)", keyFeatures: "Lobular panniculitis with lipomembranous change, septal fibrosis, hemosiderin." }
-                ]
-            },
-            {
-                finding: "Endophytic Neoplasms (Ref Sheet - Alikhan T7.16)",
-                source: "Ref Sheet (Alikhan Table 7.16)",
-                diagnoses: [
-                    { name: "Eccrine Poroma", keyFeatures: "Nests/cords of small, uniform cuboidal 'poroid' cells connecting to epidermis, ductal differentiation." },
-                    { name: "Trichilemmoma", keyFeatures: "Lobules of clear glycogenated cells connecting to epidermis/follicle, peripheral palisading, thick BMZ." },
-                    { name: "Clear Cell Acanthoma", keyFeatures: "Sharply demarcated psoriasiform epidermal hyperplasia with pale/clear glycogenated cells." },
-                    { name: "Panfolliculoma", keyFeatures: "Complex follicular neoplasm showing differentiation towards multiple parts of the hair follicle." },
-                    { name: "Pilar Sheath Acanthoma", keyFeatures: "Acanthotic lobules of outer root sheath-like epithelium radiating from a central dilated pore." },
-                    { name: "Tumor of Follicular Infundibulum", keyFeatures: "Plate-like growth of pale keratinocytes connected to epidermis, fenestrated pattern." },
-                    { name: "Trichoepithelioma", keyFeatures: "Nests/cords of basaloid cells, horn cysts, papillary mesenchymal bodies, fibrotic stroma." },
-                    { name: "Eccrine Syringofibroadenoma", keyFeatures: "Anastomosing strands of epithelial cells with ducts, connected to epidermis, fibrovascular stroma." }
-                ]
-            },
-            {
-                finding: "Neural Tumors (High-Yield) (Ref Sheet - Alikhan T7.31)",
-                source: "Ref Sheet (Alikhan Table 7.31)",
-                diagnoses: [
-                    { name: "Neurofibroma (NF)", keyFeatures: "Wavy spindle cells, pink 'bubble gum' stroma, mast cells, S100+." },
-                    { name: "Plexiform neurofibroma", keyFeatures: "Expansion of multiple nerve fascicles by neurofibroma ('bag of worms')." },
-                    { name: "Schwannoma", keyFeatures: "Encapsulated, Antoni A (Verocay bodies) and Antoni B areas, S100+." },
-                    { name: "Palisaded encapsulated neuroma (PEN)", keyFeatures: "Circumscribed dermal nodule, fascicles of spindle cells with clefting, S100+." },
-                    { name: "Traumatic neuroma", keyFeatures: "Disorganized nerve fascicles within scar tissue." },
-                    { name: "Nerve sheath myxoma ('Neurothekeoma')", keyFeatures: "Lobules of spindled/epithelioid cells in myxoid stroma, S100+ (classic type)." } // Note: Cellular neurothekeoma is S100-
-                ]
-            },
-            {
-                finding: "Adipocytic Tumors (High-Yield) (Ref Sheet - Alikhan T7.33)",
-                source: "Ref Sheet (Alikhan Table 7.33)",
-                diagnoses: [
-                    { name: "Lipoma", keyFeatures: "Circumscribed nodule of mature adipocytes." },
-                    { name: "Mobile encapsulated lipoma", keyFeatures: "Encapsulated lipoma, often with fat necrosis." },
-                    { name: "Angiolipoma", keyFeatures: "Mature fat with clusters of capillaries, often containing fibrin thrombi." },
-                    { name: "Pleomorphic lipoma", keyFeatures: "Mature fat, bland spindle cells, 'ropy' collagen, multinucleated floret giant cells, CD34+." },
-                    { name: "Spindle cell lipoma", keyFeatures: "Mature fat, bland spindle cells, 'ropy' collagen, myxoid stroma, CD34+." },
-                    { name: "Hibernoma", keyFeatures: "Lobules of multivacuolated brown fat cells ('mulberry cells')." },
-                    { name: "Nevus lipomatosus superficialis", keyFeatures: "Ectopic mature fat high in the dermis, often around vessels." }
-                ]
-            },
-            {
-                finding: "DF vs DFSP vs Fibromatosis (Ref Sheet - Alikhan T7.35)",
-                source: "Ref Sheet (Alikhan Table 7.35)",
-                diagnoses: [
-                    { name: "DF (Dermatofibroma)", keyFeatures: "Dermal spindle cells, collagen trapping, epidermal induction, Factor XIIIa+." },
-                    { name: "DFSP (Dermatofibrosarcoma Protuberans)", keyFeatures: "Cellular storiform pattern, infiltrates fat ('honeycomb'), CD34+." },
-                    { name: "Fibromatosis", keyFeatures: "Long sweeping fascicles of bland myofibroblasts, infiltrative borders." }
-                ]
-            },
-             {
-                finding: "Normal Skin DDx (Ref Sheet - Alikhan T7.12)",
-                source: "Ref Sheet (Alikhan Table 7.12)",
-                diagnoses: [
-                    { name: "Macular amyloid", keyFeatures: "Pink globules in papillary dermis, pigment incontinence." },
-                    { name: "TMEP", keyFeatures: "Telangiectasias + sparse spindled mast cells (CD117+)." },
-                    { name: "Tinea corporis", keyFeatures: "Hyphae in lower stratum corneum, dermal inflammation +/- pustule." },
-                    { name: "Tinea versicolor", keyFeatures: "Spores and hyphae ('spaghetti & meatballs') in upper stratum corneum, minimal inflammation." },
-                    { name: "Argyria", keyFeatures: "Black granules around sweat glands." },
-                    { name: "Ichthyosis vulgaris", keyFeatures: "Compact orthokeratosis, decreased/absent granular layer." },
-                    { name: "Erythrasma", keyFeatures: "Fine bacterial filaments in stratum corneum." }
-                ]
-            },
-            {
-                finding: "Eosinophilic spongiosis = HAAPPIED (Mnemonic)",
-                source: "Ref Sheet (Box 7-4)",
-                diagnoses: [
-                    { name: "Herpes gestationis", keyFeatures: "Subepidermal blister + eosinophilic spongiosis." },
-                    { name: "Arthropod", keyFeatures: "Wedge infiltrate, eosinophilic spongiosis." },
-                    { name: "Allergic contact", keyFeatures: "Spongiosis, often eosinophils." },
-                    { name: "Pemphigus", keyFeatures: "Acantholysis, can have eosinophilic spongiosis (esp. vegetans)." },
-                    { name: "Pemphigoid", keyFeatures: "Subepidermal blister, often eosinophilic spongiosis in urticarial phase." },
-                    { name: "Incontinentia pigmenti", keyFeatures: "Eosinophilic spongiosis + dyskeratotic cells (1st stage)." },
-                    { name: "Erythema toxicum neonatorum", keyFeatures: "Subcorneal/follicular pustules with eosinophils." },
-                    { name: "Drug reaction", keyFeatures: "Variable pattern, can include eosinophilic spongiosis." }
-                ]
-            },
-            {
-                finding: "Neuts in the horn = PTICSS (Mnemonic)",
-                source: "Ref Sheet (Box 7-2)",
-                diagnoses: [
-                    { name: "Psoriasis", keyFeatures: "Munro's microabscesses." },
-                    { name: "Tinea", keyFeatures: "Neutrophils in stratum corneum with hyphae." },
-                    { name: "Impetigo", keyFeatures: "Subcorneal pustules with bacteria." },
-                    { name: "Candida", keyFeatures: "Neutrophils in stratum corneum with yeast/pseudohyphae." },
-                    { name: "Seborrheic dermatitis", keyFeatures: "Neutrophils in scale crust at follicular ostia." },
-                    { name: "Syphilis", keyFeatures: "Secondary syphilis can have neutrophils in parakeratotic scale." }
-                ]
-            },
-            {
-                finding: "Subcorneal pustules = CAT PISS (Mnemonic)",
-                source: "Ref Sheet (Box 7-3)",
-                diagnoses: [
-                    { name: "Candida", keyFeatures: "Yeast/pseudohyphae present." },
-                    { name: "Acropustulosis of infancy", keyFeatures: "Neutrophilic/eosinophilic pustules on hands/feet." },
-                    { name: "Transient neonatal pustular melanosis", keyFeatures: "Neutrophilic pustules in newborns, rupture easily." },
-                    { name: "Pustular psoriasis", keyFeatures: "Spongiform pustules of Kogoj coalesce subcorneally." },
-                    { name: "Impetigo", keyFeatures: "Bacteria present." },
-                    { name: "Sneddon-Wilkinson (and IgA pemphigus)", keyFeatures: "Neutrophilic pustules, IgA pemphigus has IgA deposits." },
-                    { name: "Staph scalded skin", keyFeatures: "Subcorneal split, minimal inflammation." }
-                ]
-            },
-            // --- Lipoff Data ---
-            {
-                finding: "Eosinophilic Spongiosis (Lipoff - HAPPIE FD)",
-                source: "Lipoff p.1-2 (15.4.1.1)",
-                 diagnoses: [ // Reordered based on mnemonic
-                    { name: "Herpes gestationis (Pemphigoid Gestationis)", keyFeatures: "Subepidermal blister + eosinophilic spongiosis." },
-                    { name: "Arthropod/Allergic contact", keyFeatures: "Spongiosis, often eosinophils, wedge-shaped infiltrate (arthropod)." },
-                    { name: "Pemphigus", keyFeatures: "Acantholysis, can have eosinophilic spongiosis (esp. vegetans)." },
-                    { name: "Pemphigoid", keyFeatures: "Subepidermal blister, often eosinophilic spongiosis in urticarial phase." },
-                    { name: "Incontinentia pigmenti", keyFeatures: "Eosinophilic spongiosis + dyskeratotic cells (1st stage)." },
-                    { name: "Erythema toxicum neonatorum", keyFeatures: "Subcorneal/follicular pustules with eosinophils." },
-                    { name: "Fungal", keyFeatures: "Can occasionally induce eosinophilic spongiosis." },
-                    { name: "Drug", keyFeatures: "Variable pattern, can include eosinophilic spongiosis." }
-                ]
-            },
-            {
-                finding: "Pagetoid Spread (Lipoff)",
-                source: "Lipoff p.2 (15.4.1.1)",
-                diagnoses: [
-                    { name: "Melanoma", keyFeatures: "Atypical melanocytes scattered upward. S100+, SOX10+, Melan-A/MART-1+." },
-                    { name: "SCC / Bowen's disease/SCCIS", keyFeatures: "Atypical keratinocytes scattered upward. Pankeratin+, p63/p40+." },
-                    { name: "Sebaceous carcinoma", keyFeatures: "Atypical sebocytes with vacuolated cytoplasm scattered upward." },
-                    { name: "Paget's disease / Extramammary Paget's", keyFeatures: "Adenocarcinoma cells (pale, mucin+) scattered upward. CK7+, CEA+." }
-                ]
-            },
-            {
-                finding: "Parasitized Histiocytes (Lipoff - His girl Penelope T!)",
-                source: "Lipoff p.2 (15.4.1.1)",
-                diagnoses: [
-                    { name: "Histoplasmosis", keyFeatures: "Small yeasts within histiocytes, pseudocapsule." },
-                    { name: "Granuloma inguinale", keyFeatures: "Donovan bodies (bacteria) within histiocytes." },
-                    { name: "Rhinoscleroma", keyFeatures: "Mikulicz cells (histiocytes with Klebsiella)." },
-                    { name: "Leishmaniasis", keyFeatures: "Leishmania amastigotes (with kinetoplast) within histiocytes." },
-                    { name: "Penicilliosis", keyFeatures: "Small yeasts, often dividing by fission, within histiocytes." },
-                    { name: "Toxoplasmosis", keyFeatures: "Tachyzoites within histiocytes (less common in skin)." }
-                ]
-            },
-            {
-                finding: "Paisley Tie/Tadpole/Comma-shaped (Lipoff)",
-                source: "Lipoff p.2 (15.4.1.1)",
-                 diagnoses: [ // Features added from Alikhan/Ko
-                    { name: "Syringoma", keyFeatures: "Superficial tadpoles/ducts in fibrotic stroma, eosinophilic cuticle." },
-                    { name: "Microcystic adnexal carcinoma (MAC)", keyFeatures: "Infiltrative cords/ducts/cysts, perineural invasion, deeper than syringoma." },
-                    { name: "Morpheaform BCC", keyFeatures: "Infiltrative strands of basaloid cells, sclerotic stroma, minimal duct formation." },
-                    { name: "Desmoplastic trichoepithelioma", keyFeatures: "Narrow cords/islands of basaloid cells, prominent horn cysts, calcification, fibrotic stroma." }
-                ]
-            },
-            {
-                finding: "Pseudoepitheliomatous Hyperplasia (PEH) (Lipoff)",
-                source: "Lipoff p.2-3 (15.4.1.1)",
-                 diagnoses: [ // Features added from other texts
-                    { name: "Mycobacterial infections (e.g., TB verrucosa cutis)", keyFeatures: "PEH overlying tuberculoid granulomas." },
-                    { name: "Deep fungal infections (e.g., Blastomycosis, Chromomycosis)", keyFeatures: "PEH overlying suppurative/granulomatous inflammation with fungal elements." },
-                    { name: "Granular cell tumor", keyFeatures: "PEH overlying dermal tumor of granular cells (S100+)." },
-                    { name: "Pyoderma vegetans / Pyoderma gangrenosum / Borders of ulcers", keyFeatures: "Reactive PEH at edge of neutrophilic processes or ulcers." },
-                    { name: "Prurigo Nodularis / LSC", keyFeatures: "PEH secondary to chronic rubbing." },
-                    { name: "Bromoderma / Halogenoderma", keyFeatures: "PEH with intraepidermal neutrophilic/eosinophilic abscesses." }
-                ]
-            },
-            {
-                finding: "Interface Dermatitis (Lichenoid/Vacuolar) (Lipoff)",
-                source: "Lipoff p.3 (15.4.1.1)",
-                 diagnoses: [ // Grouped and features added
-                    { name: "Lichen Planus/LPLK/Lichenoid Drug/Lichen Striatus", keyFeatures: "Primarily lichenoid infiltrate, variable hyperkeratosis/hypergranulosis/sawtoothing; Eos/parakeratosis suggest drug/LPLK; Deep/perieccrine suggests Striatus." },
-                    { name: "EM/TEN/Fixed Drug/GVHD/PLEVA", keyFeatures: "Primarily vacuolar interface with apoptotic keratinocytes; distribution varies (scattered vs confluent); infiltrate varies (lymphocytes vs mixed w/ eos); RBCs suggest PLEVA." },
-                    { name: "Lupus/Dermatomyositis/Poikiloderma", keyFeatures: "Primarily vacuolar interface, often with atrophy, BMZ thickening, dermal mucin, deeper perivascular/periadnexal infiltrate (esp. Lupus)." },
-                    { name: "Mycosis fungoides", keyFeatures: "Atypical lymphocytes with epidermotropism, can mimic lichenoid/interface patterns." }
-                ]
-            },
-            {
-                finding: "Dermal Pallor (Lipoff)",
-                source: "Lipoff p.3 (15.4.1.1)",
-                diagnoses: [
-                    { name: "PMLE (Polymorphous Light Eruption)", keyFeatures: "Papillary dermal edema, superficial/deep perivascular lymphocytes." },
-                    { name: "Sweet's syndrome", keyFeatures: "Marked papillary dermal edema, diffuse neutrophilic infiltrate." },
-                    { name: "Porphyria cutanea tarda/pseudoporphyria", keyFeatures: "Papillary dermal edema/sclerosis with pauci-inflammatory subepidermal blister." },
-                    { name: "Pernio (on acral skin)", keyFeatures: "Papillary dermal edema, superficial/deep perivascular/perieccrine lymphocytes." },
-                    { name: "Lichen sclerosus (hyalinization)", keyFeatures: "Homogenized/hyalinized papillary dermis, underlying lichenoid infiltrate." }
-                ]
-            },
-             {
-                finding: "Psoriasiform Pattern (Lipoff)",
-                source: "Lipoff p.3 (15.4.1.1)",
-                 diagnoses: [ // Features added from Alikhan/Ko
-                    { name: "Psoriasis", keyFeatures: "Regular acanthosis, confluent parakeratosis with neutrophils, hypogranulosis, thin suprapapillary plates." },
-                    { name: "PRP (Pityriasis Rubra Pilaris)", keyFeatures: "Checkerboard/shoulder parakeratosis, follicular plugging, irregular acanthosis, +/- focal acantholysis." },
-                    { name: "Subacute to chronic spongiotic dermatitis/LSC/prurigo nodularis", keyFeatures: "Irregular acanthosis, variable spongiosis, hyperkeratosis/hypergranulosis (esp. LSC)." }
-                ]
-            },
-            {
-                finding: "Alternating Parakeratosis/Orthokeratosis (Lipoff)",
-                source: "Lipoff p.4 (15.4.1.1)",
-                diagnoses: [
-                    { name: "Actinic keratosis", keyFeatures: "Alternating parakeratosis (over atypia) and orthokeratosis (over spared adnexae)." },
-                    { name: "Pityriasis rubra pilaris", keyFeatures: "'Checkerboard' pattern of alternating ortho/parakeratosis horizontally and vertically." },
-                    { name: "ILVEN", keyFeatures: "Columns of parakeratosis (without granular layer) alternating with orthokeratosis (with granular layer)." }
-                ]
-            },
-            {
-                finding: "Necrotic Keratinocytes (Lipoff)",
-                source: "Lipoff p.4 (15.4.1.1)",
-                diagnoses: [
-                    { name: "Erythema multiforme", keyFeatures: "Scattered apoptotic keratinocytes at all levels." },
-                    { name: "GVHD (Graft vs Host Disease)", keyFeatures: "Apoptotic keratinocytes, often basal or adnexal, 'satellite cell necrosis'." },
-                    { name: "SJS/TEN", keyFeatures: "Confluent full-thickness epidermal necrosis." },
-                    { name: "PLEVA/PLC", keyFeatures: "Apoptotic keratinocytes with interface inflammation, RBC extravasation." },
-                    { name: "Fixed drug eruption", keyFeatures: "Apoptotic keratinocytes with interface inflammation, eosinophils, pigment incontinence." },
-                    { name: "Sunburn", keyFeatures: "'Sunburn cells' (apoptotic keratinocytes) mainly in upper epidermis." },
-                    { name: "Radiation dermatitis", keyFeatures: "Atypical keratinocytes, apoptosis, dermal changes." },
-                    { name: "Incontinentia pigmenti", keyFeatures: "Apoptotic keratinocytes with eosinophilic spongiosis (Stage 1)." }
-                ]
-            },
-             {
-                finding: "Pale Epidermis (Lipoff)",
-                source: "Lipoff p.4 (15.4.1.1)",
-                diagnoses: [
-                    { name: "Nutritional deficiency/Necrolytic erythemas", keyFeatures: "Pallor/necrosis of upper 1/3 epidermis ('moth-eaten'), confluent parakeratosis." },
-                    { name: "Normal mucosa", keyFeatures: "Keratinocytes appear pale due to glycogen content." },
-                    { name: "Necrosis (EM, TEN)", keyFeatures: "Extensive keratinocyte death leads to pale/eosinophilic appearance." }
-                ]
-            },
-            // --- Jackson Data ---
-            {
-                finding: "Acantholysis (Jackson)",
-                source: "Jackson p.245",
-                 diagnoses: [ // Features added from Ko/Rapini/Alikhan
-                    { name: "Acantholytic dyskeratosis of the vulva", keyFeatures: "Similar to Darier's but on vulva." },
-                    { name: "Actinic keratosis", keyFeatures: "Acantholytic variant shows suprabasal clefting with atypical keratinocytes." },
-                    { name: "Darier's disease", keyFeatures: "Suprabasal acantholysis with dyskeratosis (corps ronds and grains)." },
-                    { name: "Galli-Galli disease", keyFeatures: "Variant of Darier's with prominent acanthosis." },
-                    { name: "Grover's disease", keyFeatures: "Focal acantholysis, may resemble Darier's, Hailey-Hailey, or Pemphigus." },
-                    { name: "Hailey-Hailey disease", keyFeatures: "Extensive suprabasal acantholysis ('dilapidated brick wall')." },
-                    { name: "Herpes simplex virus infection", keyFeatures: "Intraepidermal vesicles with acantholysis, multinucleation, nuclear molding." },
-                    { name: "Impetigo", keyFeatures: "Subcorneal pustules with acantholysis, neutrophils, bacteria." },
-                    { name: "Pemphigus", keyFeatures: "Autoimmune acantholysis (suprabasal or subcorneal)." },
-                    { name: "Squamous cell carcinoma", keyFeatures: "Acantholytic SCC shows gland-like spaces." },
-                    { name: "Staphylococcal scalded-skin syndrome", keyFeatures: "Subcorneal cleavage, minimal inflammation." },
-                    { name: "Subcorneal pustular dermatosis", keyFeatures: "Subcorneal pustules, may have minor acantholysis." },
-                    { name: "Warty dyskeratoma", keyFeatures: "Cup-shaped invagination with acantholytic dyskeratosis." }
-                ]
-            },
-            {
-                finding: "Basaloid Cells (Jackson)",
-                source: "Jackson p.246",
-                 diagnoses: [ // Features added from Ko/Rapini
-                    { name: "Basal cell carcinoma", keyFeatures: "Nests/strands, peripheral palisading, retraction." },
-                    { name: "Basaloid follicular hamartoma", keyFeatures: "Organized proliferation resembling basaloid follicles." },
-                    { name: "Eccrine spiradenoma", keyFeatures: "'Blue balls', two cell types (dark/pale), lymphocytes." },
-                    { name: "Lymphadenoma", keyFeatures: "Basaloid islands with prominent lymphoid stroma." },
-                    { name: "Merkel cell carcinoma", keyFeatures: "Small blue cells, 'salt & pepper' chromatin, CK20+ dot." },
-                    { name: "Metastatic lesion", keyFeatures: "Depends on primary, e.g., small cell lung." },
-                    { name: "Microcystic adnexal carcinoma", keyFeatures: "Infiltrative cords/ducts/cysts, basaloid component." },
-                    { name: "Nodular hidradenoma", keyFeatures: "Nodular tumor with basaloid and clear cells, ducts." },
-                    { name: "Poroma", keyFeatures: "Nests/cords of uniform basaloid 'poroid' cells, ducts." },
-                    { name: "Sebaceous carcinoma", keyFeatures: "Atypical basaloid cells mixed with sebocytes." },
-                    { name: "Sebaceous epithelioma (Sebaceoma)", keyFeatures: ">50% basaloid cells mixed with sebocytes." },
-                    { name: "Trichoadenoma", keyFeatures: "Multiple small horn cysts lined by basaloid cells." },
-                    { name: "Trichoblastoma", keyFeatures: "Nodules of basaloid cells resembling follicular germ, papillary mesenchymal bodies." },
-                    { name: "Trichoepithelioma", keyFeatures: "Nests/cords of basaloid cells, horn cysts, papillary mesenchymal bodies, fibrotic stroma." }
-                ]
-            },
-            {
-                finding: "Borst-Jadassohn Phenomenon (Jackson)",
-                source: "Jackson p.246-247",
-                diagnoses: [
-                    { name: "Actinic keratosis", keyFeatures: "Can show intraepidermal nesting of atypical cells." },
-                    { name: "Bowen's disease", keyFeatures: "Intraepidermal nests of atypical keratinocytes within SCCIS." },
-                    { name: "Clonal seborrheic keratosis", keyFeatures: "Intraepidermal nests of benign basaloid cells within an SK." },
-                    { name: "Extramammary Paget's disease", keyFeatures: "Intraepidermal nests of pale Paget cells." },
-                    { name: "Intraepidermal junctional nevus", keyFeatures: "Nests of benign melanocytes confined to epidermis." },
-                    { name: "Melanoma in situ", keyFeatures: "Nests of atypical melanocytes confined to epidermis." },
-                    { name: "Porocarcinoma", keyFeatures: "Intraepidermal nests of atypical poroid cells in porocarcinoma in situ." },
-                    { name: "Poroma (Hidroacanthoma Simplex)", keyFeatures: "Intraepidermal nests of benign poroid cells." }
-                ]
-            },
-            {
-                finding: "Clear Cells (Jackson)",
-                source: "Jackson p.249",
-                 diagnoses: [ // Features added from Rapini/Ko
-                    { name: "Adipose tumors", keyFeatures: "Mature adipocytes (Lipoma) or lipoblasts (Liposarcoma)." },
-                    { name: "Balloon cell tumors", keyFeatures: "Melanocytes with abundant clear/foamy cytoplasm." },
-                    { name: "Clear cell acanthoma", keyFeatures: "Sharply demarcated epidermal proliferation of glycogenated keratinocytes." },
-                    { name: "Clear cell basal cell carcinoma", keyFeatures: "BCC with clear cell change (glycogen)." },
-                    { name: "Clear cell hidradenoma", keyFeatures: "Nodular dermal tumor with clear cells and ductal differentiation." },
-                    { name: "Clear cell sarcoma", keyFeatures: "Melanoma variant, nests of clear/epithelioid cells, S100+." },
-                    { name: "Clear cell squamous cell carcinoma", keyFeatures: "SCC variant with clear cell change (glycogen)." },
-                    { name: "Clear cell syringoma", keyFeatures: "Syringoma variant with clear cell change." },
-                    { name: "Clear cell trichoblastoma", keyFeatures: "Trichoblastoma variant with clear cell change." },
-                    { name: "Metastatic renal cell cancer", keyFeatures: "Nests/cords of clear cells, prominent vasculature." },
-                    { name: "Pilomatrixoma", keyFeatures: "Ghost cells appear pale/pink centrally." },
-                    { name: "Sebaceous carcinoma", keyFeatures: "Contains sebocytes with clear, bubbly cytoplasm, atypia." },
-                    { name: "Squamous cell carcinoma", keyFeatures: "Can have clear cell change." },
-                    { name: "Trichilemmal carcinoma", keyFeatures: "Cytologically atypical clear cells with trichilemmal keratinization." },
-                    { name: "Trichilemmoma", keyFeatures: "Lobules of clear (glycogenated) cells with peripheral palisading." }
-                ]
-            },
-             {
-                finding: "Dyskeratosis (Jackson)",
-                source: "Jackson p.252-253",
-                 diagnoses: [ // Features added from Ko/Rapini
-                     { name: "Acantholytic dyskeratosis of the vulva", keyFeatures: "Darier-like changes on vulva." },
-                     { name: "Acrodermatitis enteropathica", keyFeatures: "Epidermal pallor/necrosis with dyskeratosis." },
-                     { name: "Arthropod bite", keyFeatures: "Can have scattered dyskeratotic cells with eosinophils/spongiosis." },
-                     { name: "Darier's disease", keyFeatures: "Acantholysis with prominent dyskeratosis (corps ronds, grains)." },
-                     { name: "Familial dyskeratotic comedones", keyFeatures: "Follicular plugging with dyskeratosis." },
-                     { name: "Grover's disease", keyFeatures: "Focal acantholysis and dyskeratosis (Darier-like pattern)." },
-                     { name: "Hailey-Hailey disease", keyFeatures: "Acantholysis, less prominent dyskeratosis than Darier's." },
-                     { name: "Herpes simplex virus infection", keyFeatures: "Viral cytopathic effects, including dyskeratotic/necrotic cells." },
-                     { name: "Incontinentia pigmenti", keyFeatures: "Dyskeratotic cells with eosinophilic spongiosis (Stage 1)." },
-                     { name: "Lupus erythematosus", keyFeatures: "Apoptotic/dyskeratotic cells at DEJ with interface changes." },
-                     { name: "Lichen planus", keyFeatures: "Apoptotic/dyskeratotic cells (colloid bodies) at DEJ with lichenoid infiltrate." },
-                     { name: "Lichen sclerosis", keyFeatures: "Apoptotic/dyskeratotic cells at DEJ with papillary dermal sclerosis." },
-                     { name: "Light reactions (e.g., EM)", keyFeatures: "Apoptotic/dyskeratotic cells scattered in epidermis." },
-                     { name: "Orf/milker's nodule", keyFeatures: "Viral inclusions and dyskeratotic/necrotic cells." },
-                     { name: "Porokeratosis", keyFeatures: "Dyskeratotic cells beneath the cornoid lamella." },
-                     { name: "Spitz nevus", keyFeatures: "Kamino bodies (apoptotic melanocytes/BMZ material)." },
-                     { name: "Warts", keyFeatures: "Viral cytopathic effect, can include dyskeratosis." },
-                     { name: "Warty dyskeratoma", keyFeatures: "Prominent dyskeratosis (corps ronds, grains) with acantholysis." }
-                ]
-            },
-            {
-                finding: "Epidermal Pallor (Jackson)",
-                source: "Jackson p.255-256",
-                diagnoses: [
-                    { name: "Acrodermatitis enteropathica", keyFeatures: "Pallor/necrosis of upper epidermis, parakeratosis." },
-                    { name: "Hartnup's disease", keyFeatures: "Pellagra-like dermatitis, can show epidermal pallor." },
-                    { name: "Necrolytic acral erythema", keyFeatures: "Similar to NME but acral distribution." },
-                    { name: "Necrolytic migratory erythema", keyFeatures: "Pallor/necrosis of upper epidermis, parakeratosis, associated with glucagonoma." },
-                    { name: "Pellagra", keyFeatures: "Epidermal pallor/necrosis, similar to nutritional deficiencies." },
-                    { name: "Psoriasis", keyFeatures: "Can show slight pallor of superficial keratinocytes, but main features differ." },
-                    { name: "Radiodermatitis", keyFeatures: "Atypia and pallor/necrosis can occur." },
-                    { name: "Syphilis", keyFeatures: "Secondary syphilis can rarely show epidermal pallor with psoriasiform changes." }
-                ]
-            },
-             {
-                finding: "Epidermotropism (Jackson)",
-                source: "Jackson p.256",
-                 diagnoses: [ // Features added from Rapini/Alikhan
-                     { name: "Epidermotropic CD8+ T cell lymphoma", keyFeatures: "Atypical CD8+ lymphocytes infiltrating epidermis, often aggressive." },
-                     { name: "Langerhans cell histiocytosis", keyFeatures: "LCH cells (S100+, CD1a+) infiltrating epidermis." },
-                     { name: "Metastatic adenocarcinoma", keyFeatures: "Rare infiltration of epidermis by glandular malignant cells." },
-                     { name: "Metastatic melanoma", keyFeatures: "Rare infiltration of epidermis by metastatic melanocytes." },
-                     { name: "Metastatic squamous cell carcinoma", keyFeatures: "Rare infiltration of epidermis by metastatic SCC cells." },
-                     { name: "Mycosis fungoides", keyFeatures: "Atypical T lymphocytes (cerebriform) infiltrating epidermis (Pautrier's)." },
-                     { name: "Pagetoid reticulosis", keyFeatures: "Localized MF variant with marked epidermotropism of large atypical T cells." },
-                     { name: "Xanthoma", keyFeatures: "Rarely, foam cells can infiltrate the epidermis (epidermotropic xanthoma)." }
-                ]
-            },
-             {
-                finding: "Foam Cells (Jackson)",
-                source: "Jackson p.258-259",
-                 diagnoses: [ // Features added from Rapini/Alikhan
-                    { name: "Atypical fibroxanthoma", keyFeatures: "Pleomorphic tumor with foamy histiocyte-like cells." },
-                    { name: "Balloon cell melanoma/nevus", keyFeatures: "Melanocytes with clear/foamy cytoplasm." },
-                    { name: "Dermatofibroma", keyFeatures: "Can have focal foamy cells." },
-                    { name: "Granular cell tumor", keyFeatures: "Cells have granular, not truly foamy, cytoplasm." },
-                    { name: "Hibernoma", keyFeatures: "Brown fat tumor with multivacuolated 'mulberry' cells." },
-                    { name: "Juvenile xanthogranuloma", keyFeatures: "Contains foamy histiocytes and Touton giant cells." },
-                    { name: "Langerhans cell histiocytosis", keyFeatures: "LCH cells are usually not foamy, but reactive histiocytes can be." },
-                    { name: "Lepromatous leprosy", keyFeatures: "Virchow cells (foamy histiocytes containing M. leprae)." },
-                    { name: "Liposarcoma", keyFeatures: "Lipoblasts can appear foamy." },
-                    { name: "Malakoplakia", keyFeatures: "von Hansemann cells (histiocytes with Michaelis-Gutmann bodies)." },
-                    { name: "Necrobiotic xanthogranuloma", keyFeatures: "Contains foamy histiocytes and cholesterol clefts." },
-                    { name: "Pneumocystosis", keyFeatures: "Alveolar spaces filled with foamy exudate containing organisms (lung context)." },
-                    { name: "Rhinoscleroma", keyFeatures: "Mikulicz cells (foamy histiocytes with K. rhinoscleromatis)." },
-                    { name: "Sebaceous gland tumors", keyFeatures: "Sebocytes have foamy cytoplasm." },
-                    { name: "Verruciform xanthoma", keyFeatures: "Foamy histiocytes within papillary dermis under verrucous epidermis." },
-                    { name: "Xanthoma disseminatum", keyFeatures: "Non-LCH histiocytosis with foamy cells." },
-                    { name: "Xanthomas", keyFeatures: "Collections of foamy histiocytes (lipophages)." }
-                ]
-            },
-             {
-                finding: "Grenz Zone (Jackson)",
-                source: "Jackson p.261",
-                diagnoses: [
-                    { name: "B cell lymphoma", keyFeatures: "Dense lymphoid infiltrate separated from epidermis by narrow collagen band." },
-                    { name: "Cutaneous T cell lymphoma", keyFeatures: "Less common than in B-cell lymphoma, but can occur." },
-                    { name: "Granuloma faciale", keyFeatures: "Dense mixed infiltrate (neuts, eos, lymphs, plasma cells) beneath Grenz zone." },
-                    { name: "Lepromatous leprosy", keyFeatures: "Diffuse histiocytic infiltrate (Virchow cells, globi) sparing papillary dermis." },
-                    { name: "Lymphocytoma cutis", keyFeatures: "Dense lymphoid infiltrate (often with germinal centers) separated from epidermis." },
-                    { name: "Multicentric reticulohistiocytosis", keyFeatures: "Dermal infiltrate of large histiocytes (ground glass cytoplasm) often shows Grenz zone." }
-                ]
-            },
-            {
-                finding: "Interstitial Inflammation (Jackson)",
-                source: "Jackson p.261-262",
-                diagnoses: [
-                    { name: "Abscess/cellulitis", keyFeatures: "Diffuse interstitial neutrophils +/- bacteria." },
-                    { name: "Arthropod bite reaction", keyFeatures: "Interstitial eosinophils and lymphocytes, often wedge-shaped." },
-                    { name: "Erythema marginatum", keyFeatures: "Sparse interstitial neutrophils and lymphocytes." },
-                    { name: "Granuloma annulare (interstitial)", keyFeatures: "Interstitial histiocytes dissecting collagen, associated mucin." },
-                    { name: "Granuloma faciale", keyFeatures: "Dense interstitial mixed infiltrate (neuts, eos, lymphs, plasma cells)." },
-                    { name: "Interstitial drug reaction", keyFeatures: "Interstitial lymphocytes and eosinophils." },
-                    { name: "Interstitial granulomatous dermatitis with arthritis", keyFeatures: "Interstitial histiocytes, 'floating collagen', +/- neutrophils/eosinophils." },
-                    { name: "Interstitial mycosis fungoides", keyFeatures: "Atypical lymphocytes interstitially, minimal epidermotropism." },
-                    { name: "Pyoderma gangrenosum", keyFeatures: "Massive interstitial neutrophilic infiltrate at ulcer edge." },
-                    { name: "Sweet's syndrome", keyFeatures: "Dense interstitial neutrophilic infiltrate, marked papillary dermal edema." },
-                    { name: "Urticaria", keyFeatures: "Sparse interstitial neutrophils and eosinophils, dermal edema." },
-                    { name: "Urticarial dermatitis", keyFeatures: "Interstitial eosinophils, variable spongiosis." },
-                    { name: "Wells syndrome", keyFeatures: "Diffuse interstitial eosinophils, flame figures." }
-                ]
-            },
-             {
-                finding: "Lichenoid Reaction Pattern/Band-Like Infiltrate (Cell Rich) (Jackson)",
-                source: "Jackson p.262-263",
-                diagnoses: [ // Combines Cell Rich/Poor from Jackson, features added
-                    { name: "Lichen planus", keyFeatures: "Dense band-like lymphs, sawtoothing, hypergranulosis, colloid bodies." },
-                    { name: "Lichenoid drug eruption", keyFeatures: "LP-like, but often parakeratosis, eosinophils, deeper infiltrate." },
-                    { name: "Lichenoid keratosis (BLK)", keyFeatures: "LP-like, often solitary, may have parakeratosis/eosinophils." },
-                    { name: "Lupus erythematosus (Discoid)", keyFeatures: "Lichenoid/vacuolar, deep/periadnexal infiltrate, mucin, follicular plugging." },
-                    { name: "Secondary syphilis", keyFeatures: "Lichenoid infiltrate with plasma cells, neutrophils, endothelial swelling." },
-                    { name: "Mycosis fungoides", keyFeatures: "Band-like infiltrate of atypical lymphocytes, epidermotropism." },
-                    { name: "Pityriasis lichenoides (PLEVA)", keyFeatures: "Lichenoid/vacuolar infiltrate, parakeratosis, RBC extravasation." },
-                    { name: "Halo nevus", keyFeatures: "Dense lymphocytes obscuring nevus cells." },
-                    { name: "Melanoma with regression", keyFeatures: "Dense lymphocytes beneath regressing melanoma." },
-                    { name: "Lichen nitidus", keyFeatures: "'Ball and claw' - circumscribed lichenoid/granulomatous infiltrate." },
-                    { name: "Lichen striatus", keyFeatures: "Lichenoid infiltrate, often spongiosis, deep perieccrine inflammation." },
-                    { name: "Lichen sclerosus", keyFeatures: "Lichenoid infiltrate beneath sclerotic papillary dermis." },
-                     { name: "Graft-vs-host disease (Chronic)", keyFeatures: "Lichenoid or sclerotic changes." },
-                     { name: "Zoon balanitis", keyFeatures: "Lichenoid infiltrate rich in plasma cells on glans penis." }
-                    // Others are less common or specific syndromes
-                ]
-            },
-            {
-                finding: "Mucin (Primary) (Jackson)",
-                source: "Jackson p.266",
-                diagnoses: [
-                    { name: "Cutaneous focal mucinosis / Digital mucous cyst", keyFeatures: "Localized pool of dermal mucin, +/- fibroblasts." },
-                    { name: "Generalized/Pretibial myxedema", keyFeatures: "Diffuse dermal mucin associated with thyroid disease." },
-                    { name: "Lichen myxedematosus / Scleromyxedema", keyFeatures: "Dermal mucin with fibroblast proliferation and sclerosis." },
-                    { name: "Reticular erythematous mucinosis (REM)", keyFeatures: "Dermal mucin with superficial perivascular lymphocytes." },
-                    { name: "Cutaneous lupus mucinosis (Tumid LE)", keyFeatures: "Abundant dermal mucin with perivascular/periadnexal lymphocytes." },
-                    { name: "Scleredema", keyFeatures: "Dermal mucin separating thickened collagen bundles, minimal cells." },
-                    { name: "Follicular mucinosis", keyFeatures: "Mucin deposition within hair follicle epithelium." }
-                    // Others are rare syndromes or variants
-                ]
-            },
-            {
-                finding: "Neutrophils (Jackson)", // Combining epidermal and dermal lists
-                source: "Jackson p.267-269",
-                diagnoses: [
-                    { name: "Sweet's syndrome", keyFeatures: "Diffuse dermal neutrophils, papillary edema, leukocytoclasis, no true vasculitis." },
-                    { name: "Leukocytoclastic vasculitis", keyFeatures: "Perivascular neutrophils, fibrin deposition, vessel damage, RBC extravasation." },
-                    { name: "Psoriasis", keyFeatures: "Neutrophils in stratum corneum (Munro's) and epidermis (spongiform pustules)." },
-                    { name: "Dermatitis herpetiformis", keyFeatures: "Neutrophilic papillary microabscesses, subepidermal blister." },
-                    { name: "Impetigo", keyFeatures: "Subcorneal pustules with neutrophils and bacteria." },
-                    { name: "Infections (Fungal, Bacterial, Mycobacterial)", keyFeatures: "Neutrophilic infiltrate often associated with organisms." },
-                    { name: "Pyoderma gangrenosum", keyFeatures: "Massive dermal neutrophilic infiltrate at ulcer margin." },
-                    { name: "Behçet's disease", keyFeatures: "Neutrophilic vasculitis or pustular folliculitis." },
-                    { name: "IgA pemphigus / Sneddon-Wilkinson", keyFeatures: "Subcorneal/intraepidermal neutrophilic pustules." },
-                    { name: "Linear IgA bullous dermatosis", keyFeatures: "Subepidermal blister with linear neutrophils at DEJ." },
-                    { name: "Halogenoderma", keyFeatures: "PEH with intraepidermal neutrophilic abscesses." },
-                    { name: "Bullous SLE", keyFeatures: "Subepidermal blister with neutrophils, other lupus features." }
-                    // Others listed are specific conditions or reactions
-                ]
-            },
-            {
-                finding: "Pagetoid Cells (Jackson)",
-                source: "Jackson p.269-270",
-                diagnoses: [ // Features added from Rapini/Alikhan
-                    { name: "Paget's disease / EMPD", keyFeatures: "Intraepidermal adenocarcinoma cells, CK7+, CEA+." },
-                    { name: "Bowen's disease", keyFeatures: "Full-thickness atypia, can have pale/clear cells." },
-                    { name: "Melanoma", keyFeatures: "Atypical melanocytes scattered upward, S100+, SOX10+." },
-                    { name: "Mycosis fungoides", keyFeatures: "Atypical T-cells in epidermis (Pautrier's), CD3+, CD4+." },
-                    { name: "Langerhans' cell histiocytosis", keyFeatures: "LCH cells in epidermis, S100+, CD1a+." },
-                    { name: "Sebaceous carcinoma", keyFeatures: "Pagetoid spread of atypical sebocytes." },
-                    { name: "Merkel cell carcinoma", keyFeatures: "Pagetoid spread of small blue neuroendocrine cells." },
-                    { name: "Borst-Jadassohn phenomenon", keyFeatures: "Sharp intraepidermal nests (clonal SK, hidroacanthoma)." },
-                    { name: "Acral melanocytic nevus", keyFeatures: "Can show some upward scatter, but benign cytology." }
-                     // Others listed are rarer or specific variants
-                ]
-            },
-            {
-                finding: "Papillomatosis, Hyperkeratosis, Acanthosis (Jackson)",
-                source: "Jackson p.270",
-                diagnoses: [
-                    { name: "Acanthosis nigricans", keyFeatures: "Papillomatosis, hyperkeratosis, minimal acanthosis, hyperpigmentation." },
-                    { name: "Acrokeratosis verruciformis", keyFeatures: "'Church spire' papillomatosis, hyperkeratosis." },
-                    { name: "Confluent and reticulated papillomatosis", keyFeatures: "Papillomatosis, hyperkeratosis, acanthosis, reticulated pattern clinically." },
-                    { name: "Epidermal nevus", keyFeatures: "Variable papillomatosis, hyperkeratosis, acanthosis; linear clinically." },
-                    { name: "Seborrheic keratosis", keyFeatures: "Papillomatosis, hyperkeratosis, acanthosis, horn cysts/pseudocysts." },
-                    { name: "Verruca", keyFeatures: "Papillomatosis, hyperkeratosis, acanthosis, koilocytes, hypergranulosis." }
-                ]
-            },
-            {
-                finding: "Parakeratosis (Jackson)",
-                source: "Jackson p.271",
-                diagnoses: [ // Focusing on patterns mentioned in Lipoff/Alikhan
-                    { name: "Psoriasis", keyFeatures: "Confluent parakeratosis with neutrophils." },
-                    { name: "Pityriasis rosea", keyFeatures: "Mounds of parakeratosis, often thin/non-adherent." },
-                    { name: "Actinic keratosis", keyFeatures: "Alternating parakeratosis and orthokeratosis." },
-                    { name: "Pityriasis rubra pilaris", keyFeatures: "Checkerboard/shoulder parakeratosis." },
-                    { name: "Porokeratosis", keyFeatures: "Cornoid lamella (column of parakeratosis)." },
-                    { name: "Seborrheic dermatitis", keyFeatures: "Parakeratosis at follicular ostia ('shoulder')." },
-                    { name: "Eczematous dermatitis", keyFeatures: "Patchy parakeratosis, often with serum ('wet')." },
-                    { name: "Dermatophytosis", keyFeatures: "'Sandwich sign' parakeratosis, neutrophils, hyphae." }
-                    // Others listed are conditions where parakeratosis is a possible feature but not the most defining one.
-                ]
-            },
-             {
-                finding: "Plasma Cells (Jackson)",
-                source: "Jackson p.272-273",
-                diagnoses: [
-                    { name: "Secondary syphilis", keyFeatures: "Often numerous plasma cells in lichenoid/perivascular infiltrate." },
-                    { name: "Rhinoscleroma", keyFeatures: "Dense plasma cell infiltrate with Russell bodies, Mikulicz cells." },
-                    { name: "Granuloma inguinale", keyFeatures: "Plasma cells common in infiltrate around Donovan bodies." },
-                    { name: "Leishmaniasis", keyFeatures: "Plasma cells often seen with granulomas." },
-                    { name: "Plasmacytoma / Multiple Myeloma", keyFeatures: "Sheets of atypical plasma cells." },
-                    { name: "Zoon balanitis / Plasma cell mucositis", keyFeatures: "Dense band-like plasma cell infiltrate beneath atrophic epithelium." },
-                    { name: "Necrobiosis lipoidica", keyFeatures: "Plasma cells common in tiered granulomatous infiltrate." },
-                    { name: "Morphea / Scleroderma", keyFeatures: "Plasma cells often present in deep perivascular infiltrate." },
-                    { name: "Syringocystadenoma papilliferum", keyFeatures: "Plasma cells characteristically numerous in fibrovascular cores." },
-                    { name: "Chronic inflammation / Infections", keyFeatures: "Plasma cells common in chronic inflammation, especially near mucosa or ulceration." }
-                    // Others listed are less specific or less common contexts.
-                ]
-            },
-            {
-                finding: "Pseudoepitheliomatous Hyperplasia (PEH) (Jackson)",
-                source: "Jackson p.273-274",
-                diagnoses: [ // Features added from Lipoff/Rapini
-                    { name: "Deep Fungal Infections (Blastomycosis, Chromo, Sporo)", keyFeatures: "PEH overlying suppurative/granulomatous inflammation containing fungi." },
-                    { name: "Mycobacterial Infections (TB verrucosa cutis)", keyFeatures: "PEH overlying tuberculoid granulomas." },
-                    { name: "Halogenoderma", keyFeatures: "PEH with intraepidermal neutrophilic/eosinophilic abscesses." },
-                    { name: "Granular cell tumor", keyFeatures: "PEH commonly overlies dermal granular cell tumor." },
-                    { name: "Keratoacanthoma", keyFeatures: "Crateriform architecture with PEH at edges." },
-                    { name: "Chronic Ulcer / Stasis / Pyoderma Gangrenosum", keyFeatures: "Reactive PEH at the edge of chronic ulcers/inflammation." },
-                    { name: "Pemphigus vegetans", keyFeatures: "PEH with intraepidermal eosinophilic abscesses." },
-                    { name: "Hypertrophic Lichen Planus", keyFeatures: "PEH with underlying lichenoid inflammation." },
-                    { name: "Melanoma / T cell lymphoma", keyFeatures: "Rarely, PEH can overlie these malignancies." }
-                    // Others listed are specific conditions
-                ]
-            },
-            {
-                finding: "Spindle Cells (Jackson)",
-                source: "Jackson p.274",
-                 diagnoses: [ // Features added from Ko/Rapini/Alikhan
-                    { name: "Dermatofibroma", keyFeatures: "Entraps collagen, Factor XIIIa+." },
-                    { name: "Dermatofibrosarcoma protuberans", keyFeatures: "Storiform pattern, infiltrates fat, CD34+." },
-                    { name: "Atypical fibroxanthoma", keyFeatures: "Pleomorphic spindle cells, bizarre mitoses, sun-damaged skin, diagnosis of exclusion." },
-                    { name: "Leiomyoma / Leiomyosarcoma", keyFeatures: "Smooth muscle differentiation (cigar nuclei), SMA+, Desmin+." },
-                    { name: "Neurofibroma / Schwannoma", keyFeatures: "Neural differentiation (wavy nuclei or Antoni A/B), S100+." },
-                    { name: "Melanoma (Spindle/Desmoplastic)", keyFeatures: "Atypical spindle melanocytes, S100+, SOX10+." },
-                    { name: "Spindle cell squamous cell carcinoma", keyFeatures: "Atypical spindle cells connected to epidermis, Keratin+, p63+." },
-                    { name: "Kaposi's sarcoma", keyFeatures: "Spindle cells forming slit-like vessels, HHV8+." },
-                    { name: "Scar / Fibrous proliferations", keyFeatures: "Bland spindle cells (fibroblasts) with associated collagen." },
-                    { name: "Blue nevus", keyFeatures: "Pigmented dendritic spindle melanocytes, sclerotic stroma." },
-                    { name: "Spitz nevus", keyFeatures: "Spindle and epithelioid melanocytes, often junctional component." }
-                    // Others listed are rarer or specific types
-                ]
-            },
-             {
-                finding: "Spongiosis (Jackson)",
-                source: "Jackson p.275",
-                diagnoses: [ // Features added from Ko/Lipoff
-                     { name: "Eczematous Dermatitis (Atopic, Contact, Nummular, Dyshidrotic)", keyFeatures: "Intercellular edema, lymphocyte exocytosis, variable acanthosis/parakeratosis." },
-                     { name: "Pityriasis rosea", keyFeatures: "Mild spongiosis, mounds of parakeratosis, RBC extravasation." },
-                     { name: "Seborrheic dermatitis", keyFeatures: "Spongiosis often near follicular ostia, shoulder parakeratosis." },
-                     { name: "Id reaction", keyFeatures: "Spongiotic reaction distant from primary inflammatory site." },
-                     { name: "Insect bite reactions", keyFeatures: "Spongiosis often with eosinophils, wedge-shaped dermal infiltrate." },
-                     { name: "Fungal infections (Tinea)", keyFeatures: "Can show spongiosis along with neutrophils in stratum corneum." },
-                     { name: "Miliaria rubra", keyFeatures: "Spongiosis around obstructed eccrine duct." },
-                     { name: "Incontinentia pigmenti", keyFeatures: "Spongiosis with eosinophils and dyskeratosis (Stage 1)." },
-                     { name: "Lichen striatus", keyFeatures: "Spongiosis can occur with lichenoid inflammation." },
-                     { name: "Pemphigoid (Urticarial phase)", keyFeatures: "Spongiosis with eosinophils before blister formation." }
-                     // Others listed are less common or specific contexts
-                ]
-            },
-             {
-                finding: "Square Specimen (Jackson)",
-                source: "Jackson p.276",
-                diagnoses: [ // Features added from Alikhan
-                    { name: "Scleredema", keyFeatures: "Increased space/mucin between normal collagen, no increased cellularity." },
-                    { name: "Morphea / Scleroderma", keyFeatures: "Thickened, hyalinized collagen bundles, loss of adnexal fat." },
-                    { name: "Necrobiosis lipoidica", keyFeatures: "Tiered granulomas, altered collagen, plasma cells." },
-                    { name: "Lichen myxedematosus / Scleromyxedema", keyFeatures: "Increased fibroblasts, mucin, variable sclerosis." },
-                    { name: "Nephrogenic systemic fibrosis", keyFeatures: "Similar to scleromyxedema, increased CD34+ spindle cells, deep involvement." },
-                    { name: "Radiation dermatitis", keyFeatures: "Homogenized 'sick' collagen, atypical fibroblasts, telangiectasias." },
-                    { name: "Keloid", keyFeatures: "Thick, haphazard 'keloidal' collagen bundles." },
-                    { name: "Normal back", keyFeatures: "Thick dermis is normal for this location." }
-                ]
-            },
-            {
-                finding: "Transepidermal Elimination (Jackson)",
-                source: "Jackson p.276",
-                diagnoses: [
-                    { name: "Reactive perforating collagenosis", keyFeatures: "Elimination of altered collagen bundles through epidermis." },
-                    { name: "Elastosis perforans serpiginosa", keyFeatures: "Elimination of abnormal elastic fibers through epidermis." },
-                    { name: "Perforating folliculitis", keyFeatures: "Elimination of follicular contents (keratin, hair) through follicle wall." },
-                    { name: "Kyrle's disease / Acquired perforating dermatosis", keyFeatures: "Elimination of keratin plug through epidermis, often in setting of renal failure/diabetes." },
-                    { name: "Perforating granuloma annulare", keyFeatures: "Elimination of necrobiotic collagen/mucin through epidermis." },
-                    { name: "Calcinosis cutis / Gout / Pseudoxanthoma elasticum", keyFeatures: "Elimination of calcium, urate crystals, or calcified elastic fibers." },
-                    { name: "Perforating pilomatrixoma / Nevus / Melanoma", keyFeatures: "Rare elimination of tumor components." }
-                ]
-            }
-        ];
-
-
         // --- DOM Elements ---
         const findingSelect = document.getElementById('finding-select');
         const listTab = document.getElementById('list-tab');
         const tableTab = document.getElementById('table-tab');
-        const flashcardTab = document.getElementById('flashcard-tab'); // Added back
+        const flashcardTab = document.getElementById('flashcard-tab');
         const diagramTab = document.getElementById('diagram-tab');
+        
         const listView = document.getElementById('list-view');
         const tableView = document.getElementById('table-view');
-        const flashcardView = document.getElementById('flashcard-view'); // Added back
+        const flashcardView = document.getElementById('flashcard-view');
         const diagramView = document.getElementById('diagram-view');
+        
         const diagramSvgElement = document.getElementById('diagram-svg');
         const tooltip = document.getElementById('tooltip');
-        const resultsArea = document.querySelector('.results-area');
-        // Flashcard specific elements
+        
+        const flashcardPlaceholder = flashcardView.querySelector('.placeholder-text');
         const flashcardContainer = document.getElementById('flashcard-container');
         const flashcardControls = document.getElementById('flashcard-controls');
         const correctButton = document.getElementById('correct-button');
         const incorrectButton = document.getElementById('incorrect-button');
         const flashcardCounter = document.getElementById('flashcard-counter');
         const flashcardCompletion = document.getElementById('flashcard-completion');
-        const flashcardPlaceholder = flashcardView.querySelector('.placeholder-text'); // Get placeholder within flashcard view
 
         // --- State Variables ---
-        let currentView = 'list-view'; // Default view
-        let currentFindingData = null; // Holds the data object for the currently selected finding
-        let simulation = null; // Stores the D3 force simulation instance
-        let svg; // Stores the D3 SVG selection object
-        let width, height; // Stores the dimensions of the SVG container
-        let resizeObserver; // Stores the ResizeObserver instance
-        // Flashcard specific state
-        let flashcardDeck = []; // Array to hold the cards for the current finding
-        let currentCardIndex = 0; // Index of the card currently displayed
-        let totalCardsInDeck = 0; // Initial number of cards for the counter
+        let currentView = 'list-view'; 
+        let currentFindingData = null; 
+        let simulation = null; 
+        let svg; 
+        let width, height; 
+        let resizeObserver; 
+        let flashcardDeck = []; 
+        let currentCardIndex = 0; 
+        let totalCardsInDeck = 0; 
+        let turnNumber = 0; 
 
         // --- Utility Functions ---
-
-        /**
-         * Debounce function to limit the rate at which a function can fire.
-         * @param {Function} func - The function to debounce.
-         * @param {number} wait - The debounce delay in milliseconds.
-         * @returns {Function} - The debounced function.
-         */
         const debounce = (func, wait) => {
             let timeout;
             return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
+                const later = () => { clearTimeout(timeout); func(...args); };
                 clearTimeout(timeout);
                 timeout = setTimeout(later, wait);
             };
         };
-
-        /**
-         * Shuffles array in place using Fisher-Yates algorithm.
-         * @param {Array} array - The array to shuffle.
-         */
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+                [array[i], array[j]] = [array[j], array[i]];
             }
         }
 
-
         // --- Core Functions ---
-
-        /**
-         * Populates the dropdown menu with histologic findings, sorted alphabetically.
-         */
         function populateDropdown() {
             findingSelect.innerHTML = '<option value="">-- Select a Finding --</option>';
-            // Sort data alphabetically by finding name
+            if (typeof differentialsData === 'undefined' || !Array.isArray(differentialsData)) {
+                console.error("differentialsData is not loaded. Check data.js script tag and file path.");
+                if (document.querySelector('.results-area')) {
+                     document.querySelector('.results-area').innerHTML = '<div class="placeholder-text" style="color: red; z-index: 10;">Error loading data. Please check console.</div>';   
+                }
+                return;
+            }
             differentialsData.sort((a, b) => a.finding.localeCompare(b.finding));
-            // Create and append option elements for each finding
             differentialsData.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.finding;
@@ -1563,500 +185,278 @@
             });
         }
 
-        /**
-         * Switches the active view.
-         * @param {string} viewId - The ID of the view to switch to.
-         */
+        function resetFlashcardViewInternalUI() {
+            const fcSourceText = flashcardView.querySelector('p.source-text-fc');
+            if (fcSourceText) fcSourceText.remove();
+
+            if(flashcardContainer) { flashcardContainer.innerHTML = ''; flashcardContainer.classList.add('hidden'); }
+            if(flashcardControls) flashcardControls.classList.add('hidden');
+            if(flashcardCounter) { flashcardCounter.textContent = ''; flashcardCounter.classList.add('hidden'); }
+            if(flashcardCompletion) flashcardCompletion.classList.add('hidden');
+            if(flashcardPlaceholder) flashcardPlaceholder.classList.remove('hidden');
+        }
+
         function switchView(viewId) {
             currentView = viewId;
-            // Update tab appearance
-            listTab.classList.toggle('active', viewId === 'list-view');
-            tableTab.classList.toggle('active', viewId === 'table-view');
-            flashcardTab.classList.toggle('active', viewId === 'flashcard-view'); // Added back
-            diagramTab.classList.toggle('active', viewId === 'diagram-view');
+            
+            const tabs = [listTab, tableTab, flashcardTab, diagramTab];
+            const views = [listView, tableView, flashcardView, diagramView];
 
-            // Show/hide view containers
-            listView.classList.toggle('hidden', viewId !== 'list-view');
-            tableView.classList.toggle('hidden', viewId !== 'table-view');
-            flashcardView.classList.toggle('hidden', viewId !== 'flashcard-view'); // Added back
-            diagramView.classList.toggle('hidden', viewId !== 'diagram-view');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            // This is where the main views are hidden. The CSS fix above is crucial for #flashcard-view.
+            views.forEach(view => {
+                if(view) view.classList.add('hidden');
+            });
 
-            // Initialize flashcard deck if switching to flashcard view
+            const activeTabButton = document.getElementById(viewId.replace('-view', '-tab'));
+            if(activeTabButton) activeTabButton.classList.add('active');
+            
+            const activeView = document.getElementById(viewId);
+            if(activeView) activeView.classList.remove('hidden');
+
+
             if (viewId === 'flashcard-view') {
-                initializeFlashcardDeck();
+                if (simulation) simulation.stop();
+                initializeFlashcardDeck(); 
             } else {
-                 // Stop diagram simulation if switching away from diagram view
-                 if (simulation) {
-                     simulation.stop();
-                 }
-            }
-
-            // Re-render content in the newly activated view if a finding is selected
-            // (Except for flashcards, which are handled by initializeFlashcardDeck)
-            if (currentFindingData && viewId !== 'flashcard-view') {
-                displayContent();
-            }
-        }
-
-        /**
-         * Displays the content (list, table, or diagram) based on the selected finding and the active view.
-         * Note: Flashcard display is handled separately by initializeFlashcardDeck and displayCurrentFlashcard.
-         */
-        function displayContent() {
-            const selectedValue = findingSelect.value;
-            // Find the data object corresponding to the selected finding
-            currentFindingData = differentialsData.find(item => item.finding === selectedValue);
-
-            // Clear previous results from non-flashcard views
-            listView.innerHTML = '';
-            tableView.innerHTML = '';
-            clearDiagram(); // Clear the D3 diagram
-
-            // Define placeholder text for each view
-            const listPlaceholderText = 'Select a finding to view its differential diagnoses list.';
-            const tablePlaceholderText = 'Select a finding to view its differential diagnoses table.';
-            const diagramPlaceholderText = 'Select a finding to view its interactive diagram.';
-            // Flashcard placeholder is handled in initializeFlashcardDeck
-
-            // If no finding is selected, display placeholders in relevant views
-            if (!currentFindingData) {
-                listView.innerHTML = `<div class="placeholder-text">${listPlaceholderText}</div>`;
-                tableView.innerHTML = `<div class="placeholder-text">${tablePlaceholderText}</div>`;
-                // Add placeholder to diagram view if it doesn't exist
-                if (!diagramView.querySelector('.placeholder-text')) {
-                   diagramView.insertAdjacentHTML('afterbegin', `<div class="placeholder-text">${diagramPlaceholderText}</div>`);
+                resetFlashcardViewInternalUI(); // Crucial for hiding flashcard-specific elements when not on flashcard tab
+                if (viewId !== 'diagram-view' && simulation) {
+                    simulation.stop();
                 }
-                 // Ensure correct placeholder is shown based on current view (excluding flashcard)
-                listView.classList.toggle('hidden', currentView !== 'list-view');
-                tableView.classList.toggle('hidden', currentView !== 'table-view');
-                diagramView.classList.toggle('hidden', currentView !== 'diagram-view');
-
-                // Also reset flashcard view if no finding selected
-                initializeFlashcardDeck();
-                return; // Exit function if no finding is selected
+                displayContent(); 
             }
+        }
+        
+        function displayContent() { 
+            const selectedValue = findingSelect.value;
+             currentFindingData = (typeof differentialsData !== 'undefined' && selectedValue) ? 
+                                 differentialsData.find(item => item.finding === selectedValue) : null;
 
-            // Remove placeholders if data exists (for non-flashcard views)
-            listView.querySelector('.placeholder-text')?.remove();
-            tableView.querySelector('.placeholder-text')?.remove();
-            diagramView.querySelector('.placeholder-text')?.remove();
-
-            // Render the appropriate view based on the currentView state (excluding flashcard)
             if (currentView === 'list-view') {
-                displayListView();
+                listView.innerHTML = ''; 
+                if (!currentFindingData) listView.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses list.</div>`;
+                else displayListView();
             } else if (currentView === 'table-view') {
-                displayTableView();
+                tableView.innerHTML = ''; 
+                if (!currentFindingData) tableView.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses table.</div>`;
+                else displayTableView();
             } else if (currentView === 'diagram-view') {
-                displayDiagramView();
+                clearDiagram(); 
+                const diagramPlaceholder = diagramView.querySelector('.placeholder-text');
+                if (!currentFindingData) {
+                    if (diagramPlaceholder) diagramPlaceholder.classList.remove('hidden');
+                } else {
+                    if (diagramPlaceholder) diagramPlaceholder.classList.add('hidden');
+                    displayDiagramView();
+                }
             }
-            // Flashcard view is handled by its own initialization function
         }
 
-        /**
-         * Renders the list view.
-         */
-        function displayListView() {
+        function displayListView() { 
             if (!currentFindingData) return;
-            let html = `<p class="source-text">Source: ${currentFindingData.source}</p>`;
-            html += '<ul class="space-y-4">';
-            currentFindingData.diagnoses.forEach(diagnosis => {
-                html += `
-                    <li class="list-item-card">
-                        <h3 class="diagnosis-name">${diagnosis.name}</h3>
-                        <p class="key-features">${diagnosis.keyFeatures || 'No specific key features listed.'}</p>
-                    </li>
-                `;
+            let html = `<p class="source-text">Source: ${currentFindingData.source}</p><ul class="space-y-4">`;
+            currentFindingData.diagnoses.forEach(dx => {
+                html += `<li class="list-item-card"><h3 class="diagnosis-name">${dx.name}</h3><p class="key-features">${dx.keyFeatures || 'N/A'}</p></li>`;
             });
             html += '</ul>';
             listView.innerHTML = html;
         }
-
-        /**
-         * Renders the table view.
-         */
-        function displayTableView() {
+        function displayTableView() { 
             if (!currentFindingData) return;
-            let html = `<p class="source-text">Source: ${currentFindingData.source}</p>`;
-            html += `<table class="min-w-full divide-y divide-gray-200 border border-gray-300">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diagnosis</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key Features</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">`;
-            currentFindingData.diagnoses.forEach(diagnosis => {
-                html += `
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${diagnosis.name}</td>
-                        <td class="px-6 py-4 whitespace-normal text-sm text-gray-600">${diagnosis.keyFeatures || 'N/A'}</td>
-                    </tr>
-                `;
+            let html = `<p class="source-text">Source: ${currentFindingData.source}</p><table class="min-w-full divide-y divide-gray-200 border border-gray-300"><thead class="bg-gray-50"><tr><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diagnosis</th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key Features</th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+            currentFindingData.diagnoses.forEach(dx => {
+                html += `<tr><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${dx.name}</td><td class="px-6 py-4 whitespace-normal text-sm text-gray-600">${dx.keyFeatures || 'N/A'}</td></tr>`;
             });
-            html += `   </tbody>
-                    </table>`;
+            html += `</tbody></table>`;
             tableView.innerHTML = html;
         }
-
-        /**
-         * Clears the D3 diagram.
-         */
         function clearDiagram() {
-            if (simulation) {
-                simulation.stop();
-            }
-            if (diagramSvgElement) {
-                d3.select(diagramSvgElement).selectAll("*").remove();
-            }
-            svg = null;
-            simulation = null;
+            if (simulation) simulation.stop();
+            if (diagramSvgElement) d3.select(diagramSvgElement).selectAll("*").remove();
+            svg = null; simulation = null;
         }
-
-        /**
-         * Renders the D3 diagram view.
-         */
-        function displayDiagramView() {
+        function displayDiagramView() { 
             if (!currentFindingData || !diagramSvgElement) return;
             clearDiagram();
-
-            const container = diagramView;
-            width = container.clientWidth;
-            height = container.clientHeight;
-
-             if (width <= 0 || height <= 0) {
-                 console.warn("Diagram container dimensions not ready, retrying...");
-                 setTimeout(displayDiagramView, 100);
-                 return;
-             }
-
-            svg = d3.select(diagramSvgElement)
-                .attr("width", width)
-                .attr("height", height)
-                .attr("viewBox", [0, 0, width, height])
-                .attr("style", "max-width: 100%; height: 100%; display: block;");
-
-            const nodes = [
-                { id: currentFindingData.finding, type: 'finding', source: currentFindingData.source, radius: 25 },
-                ...currentFindingData.diagnoses.map(d => ({ id: d.name, type: 'diagnosis', keyFeatures: d.keyFeatures, radius: 15 }))
-            ];
-            const links = currentFindingData.diagnoses.map(d => ({
-                source: currentFindingData.finding,
-                target: d.name
-            }));
-
-            simulation = d3.forceSimulation(nodes)
-                .force("link", d3.forceLink(links).id(d => d.id).distance(120).strength(0.6))
-                .force("charge", d3.forceManyBody().strength(-500))
-                .force("center", d3.forceCenter(width / 2, height / 2))
-                .force("collision", d3.forceCollide().radius(d => d.radius + 8));
-
-            const link = svg.append("g")
-                .attr("class", "links")
-                .selectAll("line")
-                .data(links)
-                .join("line")
-                .attr("class", "link");
-
-            const node = svg.append("g")
-                .attr("class", "nodes")
-                .selectAll("g")
-                .data(nodes)
-                .join("g")
-                .attr("class", "node")
-                .call(drag(simulation));
-
-            node.append("circle")
-                .attr("r", d => d.radius)
-                .attr("fill", d => d.type === 'finding' ? '#3b82f6' : '#60a5fa');
-
-            node.append("text")
-                .text(d => d.id.split(" (")[0])
-                 .attr("dy", d => d.radius + 5)
-                 .attr("class", d => d.type === 'finding' ? 'finding-label' : '');
-
+            const container = diagramView; width = container.clientWidth; height = container.clientHeight;
+            if (width <= 0 || height <= 0) { setTimeout(displayDiagramView, 100); return; }
+            svg = d3.select(diagramSvgElement).attr("width", width).attr("height", height).attr("viewBox", [0, 0, width, height]).style("max-width", "100%").style("height", "auto").style("display", "block");
+            const nodes = [{ id: currentFindingData.finding, type: 'finding', source: currentFindingData.source, radius: Math.max(15, width / 40) }, ...currentFindingData.diagnoses.map(d => ({ id: d.name, type: 'diagnosis', keyFeatures: d.keyFeatures, radius: Math.max(10, width / 60) }))];
+            const links = currentFindingData.diagnoses.map(d => ({ source: currentFindingData.finding, target: d.name }));
+            simulation = d3.forceSimulation(nodes).force("link", d3.forceLink(links).id(d => d.id).distance(Math.min(width, height) / 4).strength(0.5)).force("charge", d3.forceManyBody().strength(nodes.length > 10 ? -150 : -300)).force("center", d3.forceCenter(width / 2, height / 2)).force("collision", d3.forceCollide().radius(d => d.radius + 8));
+            const link = svg.append("g").attr("class", "links").selectAll("line").data(links).join("line").attr("class", "link");
+            const node = svg.append("g").attr("class", "nodes").selectAll("g").data(nodes).join("g").attr("class", "node").call(drag(simulation));
+            node.append("circle").attr("r", d => d.radius).attr("fill", d => d.type === 'finding' ? '#3b82f6' : '#60a5fa');
+            node.append("text").text(d => d.id.split(" (")[0]).attr("dy", d => d.radius + 5).attr("class", d => d.type === 'finding' ? 'finding-label' : '');
             const tooltipDiv = d3.select("#tooltip");
-
-            node.on("mouseover", (event, d) => {
-                tooltipDiv.style("opacity", 0.9);
-                let content = `<strong>${d.id.split(" (")[0]}</strong>`;
-                if (d.type === 'finding') {
-                     content += `<br><span style="font-size: 0.8em; color: #d1d5db;">Source: ${d.source}</span>`;
-                } else {
-                    content += `<br><span style="font-size: 0.8em; color: #d1d5db;">${d.keyFeatures || 'No features available'}</span>`;
-                }
-                tooltipDiv.html(content);
-            })
-            .on("mousemove", (event) => {
-                tooltipDiv.style("left", (event.pageX + 15) + "px")
-                       .style("top", (event.pageY - 10) + "px");
-            })
-            .on("mouseout", () => {
-                 tooltipDiv.style("opacity", 0);
-            });
-
-            simulation.on("tick", () => {
-                link
-                    .attr("x1", d => d.source.x)
-                    .attr("y1", d => d.source.y)
-                    .attr("x2", d => d.target.x)
-                    .attr("y2", d => d.target.y);
-                node
-                    .attr("transform", d => `translate(${d.x},${d.y})`);
-            });
+            node.on("mouseover", (event, d) => { tooltipDiv.style("opacity", 0.9); let content = `<strong>${d.id.split(" (")[0]}</strong>`; if (d.type === 'finding') content += `<br><span style="font-size: 0.8em; color: #d1d5db;">Source: ${d.source}</span>`; else content += `<br><span style="font-size: 0.8em; color: #d1d5db;">${d.keyFeatures || 'N/A'}</span>`; tooltipDiv.html(content); }).on("mousemove", (event) => { tooltipDiv.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 10) + "px"); }).on("mouseout", () => tooltipDiv.style("opacity", 0));
+            simulation.on("tick", () => { link.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y); node.attr("transform", d => `translate(${d.x},${d.y})`); });
         }
-
-        /**
-         * Defines drag behavior for D3 nodes.
-         */
         function drag(simulation) {
-            function dragstarted(event, d) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                d.fy = d.y;
-                 d3.select(this).select("circle").style("cursor", "grabbing");
-            }
-            function dragged(event, d) {
-                d.fx = event.x;
-                d.fy = event.y;
-            }
-            function dragended(event, d) {
-                if (!event.active) simulation.alphaTarget(0);
-                 d.fx = null;
-                 d.fy = null;
-                 d3.select(this).select("circle").style("cursor", "grab");
-            }
-            return d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended);
+            function dragstarted(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; d3.select(this).select("circle").style("cursor", "grabbing"); }
+            function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
+            function dragended(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; d3.select(this).select("circle").style("cursor", "grab"); }
+            return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
         }
 
         // --- Flashcard Specific Functions ---
-
-        /**
-         * Initializes or resets the flashcard deck for the currently selected finding.
-         */
         function initializeFlashcardDeck() {
-            flashcardContainer.innerHTML = ''; // Clear previous card
-            flashcardView.querySelector('.source-text')?.remove(); // Remove previous source text
+            resetFlashcardViewInternalUI(); 
 
-            if (currentFindingData && currentFindingData.diagnoses.length > 0) {
-                // Add source text specific to flashcard view
-                flashcardView.insertAdjacentHTML('afterbegin', `<p class="source-text">Source: ${currentFindingData.source}</p>`);
+            if (currentFindingData && currentFindingData.diagnoses && currentFindingData.diagnoses.length > 0) {
+                if(flashcardPlaceholder) flashcardPlaceholder.classList.add('hidden');
 
-                // Create and shuffle the deck
-                flashcardDeck = [...currentFindingData.diagnoses]; // Create a copy
+                const existingSourceText = flashcardView.querySelector('p.source-text-fc');
+                if(existingSourceText) existingSourceText.remove(); 
+                const sourceP = document.createElement('p');
+                sourceP.className = 'source-text-fc'; 
+                sourceP.textContent = `Source: ${currentFindingData.source}`;
+                if (flashcardContainer) {
+                    flashcardView.insertBefore(sourceP, flashcardContainer);
+                } else { 
+                    flashcardView.insertBefore(sourceP, flashcardPlaceholder);
+                }
+
+                flashcardDeck = [...currentFindingData.diagnoses]; 
                 shuffleArray(flashcardDeck);
                 currentCardIndex = 0;
                 totalCardsInDeck = flashcardDeck.length;
+                turnNumber = totalCardsInDeck > 0 ? 1 : 0;
 
-                // Show card, controls, counter, hide placeholder and completion message
-                flashcardPlaceholder.classList.add('hidden');
-                flashcardCompletion.classList.add('hidden');
-                flashcardControls.classList.remove('hidden');
-                flashcardCounter.classList.remove('hidden');
-                flashcardContainer.classList.remove('hidden');
+                if(flashcardContainer) flashcardContainer.classList.remove('hidden');
+                if(flashcardControls) flashcardControls.classList.remove('hidden');
+                if(flashcardCompletion) flashcardCompletion.classList.add('hidden');
                 displayCurrentFlashcard();
             } else {
-                // No data or empty diagnoses: show placeholder, hide everything else
-                flashcardPlaceholder.classList.remove('hidden');
-                flashcardContainer.classList.add('hidden');
-                flashcardControls.classList.add('hidden');
-                flashcardCounter.classList.add('hidden');
-                flashcardCompletion.classList.add('hidden');
-                flashcardDeck = [];
-                totalCardsInDeck = 0;
-                currentCardIndex = 0;
+                flashcardDeck = []; totalCardsInDeck = 0; currentCardIndex = 0; turnNumber = 0;
+                const fcSourceText = flashcardView.querySelector('p.source-text-fc');
+                if (fcSourceText) fcSourceText.remove();
+                 if(flashcardPlaceholder) flashcardPlaceholder.classList.remove('hidden'); // Ensure placeholder shows if no data
             }
         }
 
-        /**
-         * Displays the current flashcard or the completion message if the deck is empty.
-         */
         function displayCurrentFlashcard() {
-            if (flashcardDeck.length === 0) {
-                // Deck is empty - show completion message
-                flashcardContainer.innerHTML = ''; // Clear card area
-                flashcardContainer.classList.add('hidden');
-                flashcardControls.classList.add('hidden');
-                flashcardCounter.classList.add('hidden');
-                flashcardCompletion.classList.remove('hidden');
+            if (flashcardDeck.length === 0) { 
+                if(flashcardContainer) { flashcardContainer.innerHTML = ''; flashcardContainer.classList.add('hidden'); }
+                if(flashcardControls) flashcardControls.classList.add('hidden');
+                if(flashcardCounter) { flashcardCounter.textContent = ''; flashcardCounter.classList.add('hidden'); }
+                
+                const fcSourceText = flashcardView.querySelector('p.source-text-fc');
+
+                if (totalCardsInDeck > 0) { // Only show completion if a deck was started
+                    if(flashcardCompletion) flashcardCompletion.classList.remove('hidden');
+                    if (fcSourceText) fcSourceText.classList.remove('hidden'); // Keep source text visible on completion
+                } else { // No deck was ever loaded for this finding
+                    if(flashcardCompletion) flashcardCompletion.classList.add('hidden');
+                    if (fcSourceText) fcSourceText.remove(); // Remove source text if no deck
+                    if(flashcardPlaceholder) flashcardPlaceholder.classList.remove('hidden');
+                }
                 return;
             }
 
-            // Ensure index is valid (loops back if needed, though shouldn't be necessary with current logic)
-             if (currentCardIndex >= flashcardDeck.length) {
-                currentCardIndex = 0;
-             }
+            const fcSourceText = flashcardView.querySelector('p.source-text-fc');
+            if (fcSourceText) fcSourceText.classList.remove('hidden'); 
 
+            if(flashcardContainer) flashcardContainer.classList.remove('hidden');
+            if(flashcardControls) flashcardControls.classList.remove('hidden');
+            if(flashcardCompletion) flashcardCompletion.classList.add('hidden');
+            if(flashcardPlaceholder) flashcardPlaceholder.classList.add('hidden');
+
+            if (currentCardIndex >= flashcardDeck.length) currentCardIndex = 0;  
             const cardData = flashcardDeck[currentCardIndex];
 
-            // Create the flashcard HTML
             flashcardContainer.innerHTML = `
                 <div class="flashcard">
                     <div class="flashcard-inner">
-                        <div class="flashcard-front">
-                            <div class="flashcard-name">${cardData.name}</div>
-                            <div class="flashcard-instruction">(Click to flip)</div>
-                        </div>
-                        <div class="flashcard-back">
-                            ${cardData.keyFeatures || 'N/A'}
-                        </div>
+                        <div class="flashcard-front"><div class="flashcard-name">${cardData.name}</div><div class="flashcard-instruction">(Click to flip)</div></div>
+                        <div class="flashcard-back">${cardData.keyFeatures || 'N/A'}</div>
                     </div>
-                </div>
-            `;
-
-            // Add click listener to the new card for flipping
+                </div>`;
             const newCard = flashcardContainer.querySelector('.flashcard');
-            if (newCard) {
-                newCard.addEventListener('click', () => {
-                    newCard.classList.toggle('is-flipped');
-                });
-            }
+            if (newCard) newCard.addEventListener('click', () => newCard.classList.toggle('is-flipped'));
 
-            // Update the counter
-            flashcardCounter.textContent = `Card ${currentCardIndex + 1} of ${totalCardsInDeck}`;
-
-            // Ensure visibility is correct
-            flashcardContainer.classList.remove('hidden');
-            flashcardControls.classList.remove('hidden');
-            flashcardCounter.classList.remove('hidden');
-            flashcardCompletion.classList.add('hidden');
-            flashcardPlaceholder.classList.add('hidden');
-        }
-
-        /**
-         * Handles the logic when the "Correct" button is clicked.
-         */
-        function handleCorrectAnswer() {
-            if (flashcardDeck.length === 0) return; // Should not happen if button is visible
-
-            // Remove the current card from the deck
-            flashcardDeck.splice(currentCardIndex, 1);
-
-            // No need to increment currentCardIndex, the next card is now at the current index.
-            // However, if we removed the *last* card, the index might be out of bounds.
-            if (currentCardIndex >= flashcardDeck.length && flashcardDeck.length > 0) {
-                currentCardIndex = 0; // Loop back to the beginning if needed (though unlikely with SRS)
-            }
-
-            // Display the next card or completion message
-            displayCurrentFlashcard();
-        }
-
-        /**
-         * Handles the logic when the "Incorrect" button is clicked.
-         */
-        function handleIncorrectAnswer() {
-             if (flashcardDeck.length === 0) return; // Should not happen
-
-            const incorrectCard = flashcardDeck[currentCardIndex]; // Get the card data
-
-            // Remove the card from its current position
-            flashcardDeck.splice(currentCardIndex, 1);
-
-            if (flashcardDeck.length === 0) {
-                // If this was the last card, just put it back and show it again
-                flashcardDeck.push(incorrectCard);
-                currentCardIndex = 0; // Reset index
+            if (turnNumber > 0 && totalCardsInDeck > 0) {
+                flashcardCounter.textContent = `Card ${turnNumber} of ${totalCardsInDeck}`;
+                flashcardCounter.classList.remove('hidden');
             } else {
-                // Calculate insertion point in the second half of the *remaining* deck
-                const deckSize = flashcardDeck.length; // Size *after* removal
-                const halfPoint = Math.ceil(deckSize / 2);
-                // Random index from halfPoint up to deckSize (inclusive index for splice)
-                const insertionIndex = Math.floor(Math.random() * (deckSize - halfPoint + 1)) + halfPoint;
-
-                // Re-insert the card
-                flashcardDeck.splice(insertionIndex, 0, incorrectCard);
-
-                // No need to increment index, the next card is already at currentCardIndex
-                 // Check if index is now out of bounds (if the incorrect card was the last one)
-                 if (currentCardIndex >= flashcardDeck.length) {
-                    currentCardIndex = 0; // Loop back
-                 }
+                if(flashcardCounter) flashcardCounter.classList.add('hidden');
             }
-
-            // Display the card at the current index (which might be the next card, or the start)
-            displayCurrentFlashcard();
         }
 
-
-        /**
-         * Handles window resize events (debounced) to update the diagram layout.
-         */
+        function handleCorrectAnswer() { 
+            if (flashcardDeck.length === 0) return; 
+            flashcardDeck.splice(currentCardIndex, 1);
+            if (currentCardIndex >= flashcardDeck.length && flashcardDeck.length > 0) currentCardIndex = 0; 
+            if (flashcardDeck.length > 0 && turnNumber < totalCardsInDeck) turnNumber++;
+            else if (flashcardDeck.length === 0 && totalCardsInDeck > 0) { // Last card correctly answered
+                 turnNumber = totalCardsInDeck; // Show Y of Y on completion message
+            }
+            displayCurrentFlashcard();
+        }
+        function handleIncorrectAnswer() { 
+            if (flashcardDeck.length === 0) return; 
+            const incorrectCard = flashcardDeck.splice(currentCardIndex, 1)[0]; 
+            if (flashcardDeck.length === 0) { flashcardDeck.push(incorrectCard); currentCardIndex = 0; } 
+            else {
+                const deckSize = flashcardDeck.length; 
+                const halfPoint = Math.max(0, Math.ceil(deckSize / 2) -1 );
+                const insertionIndex = halfPoint + Math.floor(Math.random() * (deckSize - halfPoint + 1));
+                flashcardDeck.splice(insertionIndex, 0, incorrectCard);
+                if (currentCardIndex >= flashcardDeck.length) currentCardIndex = 0; 
+            }
+            if (flashcardDeck.length > 0 && turnNumber < totalCardsInDeck) turnNumber++;
+            displayCurrentFlashcard();
+        }
+        
         const handleResize = debounce(() => {
             if (currentView === 'diagram-view' && currentFindingData && svg) {
-                 const container = diagramView;
-                 width = container.clientWidth;
-                 height = container.clientHeight;
-                 if (width > 0 && height > 0) {
-                    svg.attr("width", width)
-                       .attr("height", height)
-                       .attr("viewBox", [0, 0, width, height]);
-                    if (simulation) {
-                        simulation.force("center", d3.forceCenter(width / 2, height / 2));
-                        simulation.alpha(0.3).restart();
+                 const container = diagramView; 
+                 const newWidth = container.clientWidth; 
+                 const newHeight = container.clientHeight;
+                 if (newWidth > 0 && newHeight > 0 && (newWidth !== width || newHeight !== height)) {
+                    width = newWidth; height = newHeight;
+                    svg.attr("width", width).attr("height", height).attr("viewBox", [0, 0, width, height]);
+                    if (simulation) { 
+                        simulation.force("center", d3.forceCenter(width / 2, height / 2))
+                                  .force("link").distance(Math.min(width, height) / 4);
+                        simulation.alpha(0.3).restart(); 
                     }
                 }
             }
         }, 250);
 
-
         // --- Event Listeners ---
-        // Dropdown change
         findingSelect.addEventListener('change', () => {
-             displayContent(); // Update non-flashcard views
-             if (currentView === 'flashcard-view') {
-                 initializeFlashcardDeck(); // Re-initialize flashcards if it's the active view
-             }
-        });
-
-        // Tab clicks
-        listTab.addEventListener('click', () => switchView('list-view'));
-        tableTab.addEventListener('click', () => switchView('table-view'));
-        flashcardTab.addEventListener('click', () => switchView('flashcard-view')); // Added back
-        diagramTab.addEventListener('click', () => switchView('diagram-view'));
-
-        // Flashcard control buttons
-        correctButton.addEventListener('click', handleCorrectAnswer);
-        incorrectButton.addEventListener('click', handleIncorrectAnswer);
-
-        // Resize observer
-        if (diagramView) {
-             resizeObserver = new ResizeObserver(handleResize);
-             resizeObserver.observe(diagramView);
-        } else {
-             console.error("Diagram view container not found for ResizeObserver.");
-        }
-
-
-        // --- Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            populateDropdown(); // Fill dropdown
-            switchView('list-view'); // Set initial view
-
-            // Set initial placeholder text for all views if no finding is selected
-             const listPlaceholderText = 'Select a finding to view its differential diagnoses list.';
-             const tablePlaceholderText = 'Select a finding to view its differential diagnoses table.';
-             const flashcardPlaceholderText = 'Select a finding to start the flashcards.';
-             const diagramPlaceholderText = 'Select a finding to view its interactive diagram.';
-
-            if (!findingSelect.value) {
-                 listView.innerHTML = `<div class="placeholder-text">${listPlaceholderText}</div>`;
-                 tableView.innerHTML = `<div class="placeholder-text">${tablePlaceholderText}</div>`;
-                 flashcardPlaceholder.textContent = flashcardPlaceholderText; // Set text content for flashcard placeholder
-                 flashcardPlaceholder.classList.remove('hidden'); // Ensure it's visible
-                 flashcardContainer.classList.add('hidden'); // Hide card elements
-                 flashcardControls.classList.add('hidden');
-                 flashcardCounter.classList.add('hidden');
-                 flashcardCompletion.classList.add('hidden');
-                 if (!diagramView.querySelector('.placeholder-text')) {
-                    diagramView.insertAdjacentHTML('afterbegin', `<div class="placeholder-text">${diagramPlaceholderText}</div>`);
-                 }
+            const selectedValue = findingSelect.value;
+            currentFindingData = (typeof differentialsData !== 'undefined' && selectedValue) ? 
+                                 differentialsData.find(item => item.finding === selectedValue) : null;
+            if (currentView === 'flashcard-view') {
+                initializeFlashcardDeck(); 
+            } else {
+                displayContent(); 
             }
         });
 
-    </script>
+        listTab.addEventListener('click', () => switchView('list-view'));
+        tableTab.addEventListener('click', () => switchView('table-view'));
+        flashcardTab.addEventListener('click', () => switchView('flashcard-view'));
+        diagramTab.addEventListener('click', () => switchView('diagram-view'));
 
+        if(correctButton) correctButton.addEventListener('click', handleCorrectAnswer);
+        if(incorrectButton) incorrectButton.addEventListener('click', handleIncorrectAnswer);
+
+        if (diagramView && typeof ResizeObserver !== 'undefined') {
+             resizeObserver = new ResizeObserver(handleResize);
+             resizeObserver.observe(diagramView);
+        } else if (diagramView) { 
+            window.addEventListener('resize', handleResize);
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateDropdown(); 
+            switchView('list-view'); 
+        });
+    </script>
 </body>
 </html>
