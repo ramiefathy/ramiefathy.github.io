@@ -192,7 +192,7 @@
             </div>
             <div>
                 <label for="modelName" class="font-medium">Model:</label>
-                <input type="text" id="modelName" value="models/gemini-pro-vision" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like gemini-pro-vision for image analysis. For text-only tasks, gemini-2.5-flash or gemini-pro can be used.">
+                <input type="text" id="modelName" value="models/gemini-2.5-flash-preview-04-17" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like Gemini 2.5 Flash for image analysis. For text-only tasks, gemini-2.5-flash or gemini-pro can be used.">
             </div>
         </div>
     </div>
@@ -1219,7 +1219,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 
             } catch (error) {
                 console.error("Error analyzing image:", error);
-                displayError(`Error analyzing image: ${error.message}. Ensure a vision-capable model is selected (e.g., gemini-pro-vision).`, "imageAnalysisResult");
+                displayError(`Error analyzing image: ${error.message}. Ensure a vision-capable model is selected (e.g., models/gemini-2.5-flash-preview-04-17).`, "imageAnalysisResult");
             } finally {
                 analyzeImageBtn.disabled = false;
             }
