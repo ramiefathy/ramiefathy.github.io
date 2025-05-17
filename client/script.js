@@ -1,11 +1,10 @@
 // client/script.js
 
 // --- Configuration ---
-const WEBSOCKET_URL = "wss://dermascribe-backend.onrender.com"; // Ensure this matches your backend WebSocket server
+const WEBSOCKET_URL = "wss://dermascribe-backend.onrender.com"; // Replace with your actual Render backend URL
 
 // --- DOM Elements ---
-// (Most DOM elements are similar to the previous single-file version)
-const modelNameClientInput = document.getElementById('modelNameClient'); // Client-side model preference
+const modelNameClientInput = document.getElementById('modelNameClient');
 const startButton = document.getElementById('startButton');
 const pauseButton = document.getElementById('pauseButton');
 const stopButton = document.getElementById('stopButton');
@@ -44,14 +43,20 @@ let websocket;
 let currentSessionId = null;
 let isRecording = false;
 let isPaused = false;
-let isDiscussing = false; // For the discussion mic specifically
+let isDiscussing = false; 
 let currentImageBase64 = null;
 let currentImageMimeType = null;
 let currentImageDescription = ""; 
 
 let timerInterval;
 let secondsElapsed = 0;
-let transcriptWordCount = 0; // Used by client for simple display, backend might do more complex tracking
+let transcriptWordCount = 0; 
+let aiSuggestionInterval;
+let lastTranscriptLengthForSuggestion = 0;
+const SUGGESTION_WORD_THRESHOLD = 25; 
+const SUGGESTION_NEW_WORDS_INTERVAL = 40; 
+let isFetchingSuggestion = false;
+let shownSuggestionTexts = new Set(); 
 
 // --- Web Speech API ---
 let recognition;
@@ -84,7 +89,7 @@ function connectWebSocket() {
 
     websocket.onopen = () => {
         console.log("WebSocket connection established.");
-        // You could send an initial message if needed, e.g., to join a specific room or send client info
+        if(startButton) startButton.disabled = false; // Enable start button on successful connection
     };
 
     websocket.onmessage = (event) => {
@@ -95,13 +100,9 @@ function connectWebSocket() {
             case "connection_ack":
                 currentSessionId = message.sessionId;
                 console.log("Server Acknowledged Connection. Session ID:", currentSessionId);
-                // Enable start button or other UI elements
-                if(startButton) startButton.disabled = false;
                 break;
             case "status":
-                // Display status messages, e.g., "AI is thinking..."
-                // You might want a dedicated status area or update a specific output
-                let statusAreaId = 'discussionChatOutput'; // Default for general status
+                let statusAreaId = 'discussionChatOutput'; 
                 if (message.area === 'suggestions') statusAreaId = 'realtimeSuggestionsOutput';
                 else if (message.area === 'notes') statusAreaId = 'aiNotesOutput';
                 else if (message.area === 'analysis') statusAreaId = 'aiAnalysisContentOutput';
@@ -111,12 +112,11 @@ function connectWebSocket() {
                     const tempStatus = document.createElement('p');
                     tempStatus.className = 'text-sm text-slate-500 italic my-1 p-2';
                     tempStatus.textContent = message.message;
-                    if (statusArea.firstChild && statusArea.firstChild.textContent && statusArea.firstChild.textContent.includes("will appear here")) {
-                        statusArea.innerHTML = ''; // Clear placeholder
+                    if (statusArea.firstChild && statusArea.firstChild.textContent && (statusArea.firstChild.textContent.includes("will appear here") || statusArea.firstChild.textContent.includes("Ask questions"))) {
+                        statusArea.innerHTML = ''; 
                     }
                     statusArea.appendChild(tempStatus);
                     statusArea.scrollTop = statusArea.scrollHeight;
-                     // Remove after a delay if it's a temporary status
                     if (!message.persistent) {
                         setTimeout(() => { if (tempStatus.parentNode) tempStatus.remove(); }, 3000);
                     }
@@ -131,19 +131,18 @@ function connectWebSocket() {
                 if (message.message) addChatMessage(message.message, "ai", "discussionChatOutput");
                 switchTab('right', 'draftedNote');
                 switchTab('left', 'aiAnalysis');
-                saveButton.disabled = false;
+                if(saveButton) saveButton.disabled = !(message.draftNote && message.draftNote.trim().length > 0);
                 break;
             case "note_updated":
                 displayFormattedNotes(message.draftNote, 'aiNotesOutput');
                  if (message.message) addChatMessage(message.message, "ai", "discussionChatOutput");
                 switchTab('right', 'draftedNote');
-                saveButton.disabled = false;
+                if(saveButton) saveButton.disabled = !(message.draftNote && message.draftNote.trim().length > 0);
                 break;
-            case "analysis_updated": // New case for analysis update
+            case "analysis_updated": 
                 displayFormattedNotes(message.aiAnalysis, 'aiAnalysisContentOutput');
-                if (message.message) addChatMessage(message.message, "ai", "discussionChatOutput"); // Or a dedicated analysis chat
+                if (message.message) addChatMessage(message.message, "ai", "discussionChatOutput"); 
                 switchTab('left', 'aiAnalysis');
-                saveButton.disabled = false; // Assuming save should be enabled if analysis is updated
                 break;
             case "image_analysis_result":
                 imageAnalysisResult.textContent = message.description;
@@ -156,7 +155,6 @@ function connectWebSocket() {
                 break;
             case "error":
                 displayError(message.message, message.area || 'transcriptionOutput');
-                // Potentially reset UI states if it's a critical error
                 if (message.critical) {
                     isRecording = false; isPaused = false; isDiscussing = false;
                     updateUIForRecordingState();
@@ -170,7 +168,7 @@ function connectWebSocket() {
     websocket.onerror = (error) => {
         console.error("WebSocket error:", error);
         displayError("WebSocket connection error. Ensure the backend server is running.", "transcriptionOutput");
-        if(startButton) startButton.disabled = true; // Disable start if WS fails
+        if(startButton) startButton.disabled = true; 
     };
 
     websocket.onclose = () => {
@@ -192,7 +190,7 @@ function sendMessageToServer(type, data = {}) {
     }
 }
 
-// --- UI & Helper Functions --- (Many are similar to previous version)
+// --- UI & Helper Functions ---
 function updateDateTime() {
     const now = new Date();
     dateTimeDisplay.textContent = now.toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -221,15 +219,16 @@ function resetTimer() {
     stopTimer();
     secondsElapsed = 0;
     transcriptWordCount = 0;
+    shownSuggestionTexts.clear();
+    lastTranscriptLengthForSuggestion = 0;
     recordingDuration.textContent = formatTime(0);
 }
 
 function updateUIForRecordingState() {
-    // Simplified: actual state managed by server events or direct user action
     startButton.disabled = (isRecording && !isPaused) || isDiscussing;
     pauseButton.disabled = !isRecording || isDiscussing;
     stopButton.disabled = !isRecording || isDiscussing;
-    saveButton.disabled = isRecording || isDiscussing || !document.getElementById('aiNotesOutput').textContent.trim() || document.getElementById('aiNotesOutput').textContent.includes("will appear here"); // Enable if note exists
+    saveButton.disabled = isRecording || isDiscussing || !aiNotesOutput.textContent.trim() || aiNotesOutput.textContent.includes("will appear here");
     discussMicButton.disabled = isRecording || isDiscussing;
     uploadImageBtn.disabled = isRecording || isDiscussing;
 
@@ -268,7 +267,7 @@ function displayError(message, containerId = 'transcriptionOutput') {
     const errorElement = document.createElement('p');
     errorElement.className = 'error-message';
     errorElement.textContent = message;
-    if (container.firstChild && container.firstChild.textContent && container.firstChild.textContent.includes("will appear here")) {
+    if (container.firstChild && container.firstChild.textContent && (container.firstChild.textContent.includes("will appear here") || container.firstChild.textContent.includes("Ask questions,"))) {
         container.innerHTML = '';
     }
     container.appendChild(errorElement);
@@ -281,7 +280,6 @@ function clearAllPlaceholders() {
         if (area && area.innerHTML.includes("will appear here")) area.innerHTML = '';
         if (area && area.innerHTML.includes("Ask questions, provide case details")) area.innerHTML = '';
         if (area && area.innerHTML.includes("AI generated Case Summary")) area.innerHTML = '';
-
     });
 }
 
@@ -310,7 +308,6 @@ function displayRealtimeSuggestions(suggestionsArray, messageIfEmpty) {
     if (realtimeSuggestionsOutput.innerHTML.includes("will appear here")) {
         realtimeSuggestionsOutput.innerHTML = '';
     }
-    // Clear only old "thinking" or "no suggestions" messages
     const oldStatusMessages = realtimeSuggestionsOutput.querySelectorAll('.italic.text-slate-500, .italic.text-slate-400');
     oldStatusMessages.forEach(msg => msg.remove());
 
@@ -333,26 +330,24 @@ function displayRealtimeSuggestions(suggestionsArray, messageIfEmpty) {
     }
 }
 
-
 // --- Speech Recognition Event Handlers ---
 function setupRecognitionEvents(recInstance, isDiscussionMic = false) {
     if (!recInstance) return;
-    let currentLineElement = null; // Manages the current line being transcribed visually
+    let currentLineElement = null; 
 
     recInstance.onstart = () => {
         console.log(`Speech recognition started (${isDiscussionMic ? 'discussion' : 'main'}).`);
         if (isDiscussionMic) {
             isDiscussing = true;
-            // UI updates for discussion mic
             discussMicButton.classList.add('text-red-500', 'animate-pulse');
             physicianFeedbackInput.disabled = true;
             sendFeedbackButton.disabled = true;
-        } else { // Main recording
+        } else { 
             isRecording = true;
             isPaused = false;
             startTimer();
             clearAllPlaceholders();
-            // Real-time suggestions will be triggered by server based on transcript segments
+            // Real-time suggestions are now triggered by server
         }
         updateUIForRecordingState();
     };
@@ -365,27 +360,24 @@ function setupRecognitionEvents(recInstance, isDiscussionMic = false) {
             const transcriptPart = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
                 finalTranscriptSegment += transcriptPart;
-                sendMessageToServer("transcript_segment", { segment: transcriptPart, is_final: true });
+                sendMessageToServer("transcript_segment", { segment: transcriptPart, is_final: true, is_discussion: isDiscussionMic });
                 if (!isDiscussionMic) transcriptWordCount += transcriptPart.split(' ').filter(Boolean).length;
             } else {
                 interimTranscript += transcriptPart;
-                // Optionally send interim results to server for even faster (but less accurate) processing
-                // sendMessageToServer("transcript_segment", { segment: transcriptPart, is_final: false });
             }
         }
         
         const outputTarget = isDiscussionMic ? discussionChatOutput : transcriptionOutput;
-        // Visual update for live transcription
         if (interimTranscript || finalTranscriptSegment) {
              if (outputTarget.innerHTML.includes("will appear here") || (outputTarget.firstChild && outputTarget.firstChild.classList && outputTarget.firstChild.classList.contains('text-slate-400'))) {
-                outputTarget.innerHTML = ''; // Clear placeholder
+                outputTarget.innerHTML = ''; 
             }
         }
 
         if (interimTranscript) {
             if (!currentLineElement || (currentLineElement && finalTranscriptSegment)) {
                 if (currentLineElement && currentLineElement.querySelector('.blinking-cursor')) {
-                    currentLineElement.querySelector('.blinking-cursor').remove();
+                     currentLineElement.querySelector('.blinking-cursor').remove();
                 }
                 currentLineElement = document.createElement('p');
                 currentLineElement.className = 'mb-1';
@@ -416,7 +408,7 @@ function setupRecognitionEvents(recInstance, isDiscussionMic = false) {
         console.error(`Speech recognition error (${isDiscussionMic ? 'discussion' : 'main'}):`, event.error);
         displayError(`Speech error: ${event.error}.`, isDiscussionMic ? 'discussionChatOutput' : 'transcriptionOutput');
         if (event.error === 'not-allowed' || event.error === 'audio-capture') {
-            if(isRecording && !isDiscussionMic) stopButton.click(); // Simulate stop
+            if(isRecording && !isDiscussionMic) stopButton.click(); 
             if(isDiscussing && isDiscussionMic) { 
                 isDiscussing = false;
                 discussMicButton.classList.remove('text-red-500', 'animate-pulse');
@@ -438,15 +430,15 @@ function setupRecognitionEvents(recInstance, isDiscussionMic = false) {
             physicianFeedbackInput.disabled = false;
             sendFeedbackButton.disabled = false;
             updateUIForRecordingState();
-            // The final segment is sent by onresult, no need to send tempTranscript here
-        } else if (isRecording && !isPaused) { // Main mic ended unexpectedly while it should be recording
-            // This can happen if user stops talking for too long. Try to restart.
+            // Final segment sent by onresult. If there was a `tempTranscript` buffer for discussion,
+            // it would be sent here if not empty. But we send final segments directly.
+        } else if (isRecording && !isPaused) { 
             console.log("Main recognition ended but still in recording state. Attempting restart.");
-            if (recognition && !isPaused) { // Check isPaused again in case it changed
+            if (recognition && !isPaused) { 
                 try { recognition.start(); }
                 catch (e) { console.error("Error restarting main recognition:", e); }
             }
-        } else { // Main mic ended due to pause or stop
+        } else { 
              clearInterval(aiSuggestionInterval);
         }
     };
@@ -624,7 +616,6 @@ approveImageDescriptionBtn.addEventListener('click', () => {
     if (currentImageDescription) {
         sendMessageToServer("integrate_image_description", { description: currentImageDescription });
         imageUploadModal.classList.remove('active');
-        // Reset modal state
         imagePreviewContainer.classList.add('hidden');
         imagePreview.src = "#";
         imageUploadInput.value = ""; 
@@ -643,14 +634,13 @@ startButton.addEventListener('click', () => {
         return;
     }
     if (!isRecording) {
-        // Reset states for a new recording session
         clearAllPlaceholders();
         resetTimer();
-        sendMessageToServer("start_new_session"); // Inform backend to reset session data
+        sendMessageToServer("start_new_session"); 
         
         transcriptionOutput.innerHTML = '<p class="text-slate-400 italic">Initializing microphone...</p>';
         try {
-            recognition.start(); // onstart will set isRecording = true
+            recognition.start(); 
         } catch (e) {
             displayError(`Could not start microphone: ${e.message}.`);
         }
@@ -661,18 +651,18 @@ pauseButton.addEventListener('click', () => {
     if (!SpeechRecognition || !isRecording || isDiscussing) return;
     isPaused = !isPaused;
     if (isPaused) {
-        recognition.stop(); // Will trigger onend, which should not try to restart if paused
+        recognition.stop(); 
         stopTimer();
-        clearInterval(aiSuggestionInterval);
+        clearInterval(aiSuggestionInterval); // Clear AI suggestion interval on pause
         console.log("Recording paused");
     } else {
         try {
-            recognition.start(); // onstart will set isPaused = false
-            // aiSuggestionInterval = setInterval(fetchAndDisplayAiSuggestions, 15000); // Restart suggestions
+            recognition.start(); 
+            // aiSuggestionInterval = setInterval(fetchAndDisplayAiSuggestions, 15000); // Restart on resume
             console.log("Recording resumed");
         } catch (e) {
             displayError(`Could not resume microphone: ${e.message}.`);
-            isPaused = true; // Revert if failed
+            isPaused = true; 
         }
     }
     updateUIForRecordingState();
@@ -685,12 +675,12 @@ stopButton.addEventListener('click', () => {
     isPaused = false;
     recognition.stop();
     stopTimer();
-    clearInterval(aiSuggestionInterval);
+    clearInterval(aiSuggestionInterval); // Clear AI suggestion interval on stop
     updateUIForRecordingState();
     sendMessageToServer("stop_finalize_recording");
 });
 
-sendFeedbackButton.addEventListener('click', () => {
+sendFeedbackButton.addEventListener('click', () => { 
     const feedback = physicianFeedbackInput.value;
     if (feedback.trim()) {
         addChatMessage(feedback, 'physician', 'discussionChatOutput');
@@ -706,16 +696,16 @@ physicianFeedbackInput.addEventListener('keypress', (e) => {
     }
 });
 
-discussMicButton.addEventListener('click', () => {
-    if (!discussionRecognition || isRecording || !websocket || websocket.readyState !== WebSocket.OPEN) return;
-    if (isDiscussing) {
+discussMicButton.addEventListener('click', () => { 
+    if (!discussionRecognition || isRecording || !websocket || websocket.readyState !== WebSocket.OPEN) return; 
+    if (isDiscussing) { 
         discussionRecognition.stop();
-    } else {
-        if (discussionChatOutput.innerHTML.includes("will appear here")) {
+    } else { 
+         if (discussionChatOutput.innerHTML.includes("will appear here")) {
             discussionChatOutput.innerHTML = '';
         }
         try {
-            discussionRecognition.start(); // onstart will set isDiscussing = true
+            discussionRecognition.start(); 
         } catch (e) {
             displayError(`Could not start discussion mic: ${e.message}.`, 'discussionChatOutput');
         }
@@ -723,13 +713,9 @@ discussMicButton.addEventListener('click', () => {
 });
 
 saveButton.addEventListener('click', () => {
-    // Client-side save is a bit redundant if backend handles persistence.
-    // This can be a "download current state" button.
     sendMessageToServer("request_session_data_for_save");
-    // The server would then send back the data, and client can trigger download.
-    // For now, just log a message.
-    console.log("Save button clicked. In a full app, this would trigger a download or server-side save confirmation.");
-    alert("Session data would be saved/downloaded here. For this demo, check server logs if persistence is implemented there.");
+    console.log("Save button clicked. Requesting session data from server.");
+    alert("Session data download will be triggered by the server if implemented. For this demo, check server logs.");
 });
 
 // --- Initialization ---
@@ -740,11 +726,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUIForRecordingState();
     switchTab('left', 'liveTranscription');
     switchTab('right', 'realtimeSuggestions');
-    connectWebSocket(); // Establish WebSocket connection on load
+    connectWebSocket(); 
 
     const adjustMinHeight = () => {
         const headerHeight = document.querySelector('header')?.offsetHeight || 0;
-        // const apiBarHeight = document.querySelector('.bg-slate-200')?.offsetHeight || 0; // API bar removed from client
         const patientBarHeight = document.querySelector('.bg-slate-100')?.offsetHeight || 0;
         const controlsHeight = document.querySelector('.bg-white.py-3.px-4')?.offsetHeight || 0;
         const footerHeight = document.querySelector('footer')?.offsetHeight || 0;
@@ -753,14 +738,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const availableHeight = window.innerHeight - headerHeight - patientBarHeight - controlsHeight - footerHeight - mainPadding - tabNavHeight - 40; 
 
-        document.querySelectorAll('.lg\\:min-h-\\[calc\\(100vh-364px\\)\\]').forEach(el => { // Adjusted class name
+        document.querySelectorAll('.lg\\:min-h-\\[calc\\(100vh-364px\\)\\]').forEach(el => { 
             el.style.minHeight = `${Math.max(250, availableHeight)}px`; 
         });
     };
     adjustMinHeight();
     window.addEventListener('resize', adjustMinHeight);
 });
-
-</script>
-</body>
-</html>
