@@ -99,7 +99,7 @@ async def handler(websocket, path):
             elif message_type == "analyze_image":
                 image_base64 = data.get("imageBase64")
                 image_mime_type = data.get("imageMimeType")
-                model_name = data.get("modelName", "models/gemini-pro-vision") # Default to vision model
+                model_name = data.get("modelName", "models/gemini-2.5-flash-preview-04-17") # Default to vision model
                 
                 if not image_base64 or not image_mime_type:
                     await websocket.send(json.dumps({"type": "error", "message": "Image data missing for analysis."}))
