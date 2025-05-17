@@ -16,7 +16,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 # Default model for text generation, can be overridden by client
 GEMINI_DEFAULT_MODEL = os.getenv("GEMINI_DEFAULT_MODEL", "models/gemini-2.5-flash-preview-04-17") 
 # Specific model for image analysis, should be vision-capable
-GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "models/gemini-pro-vision") 
+GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "models/gemini-2.5-flash-preview-04-17") 
 # Potentially a faster model for real-time suggestions
 GEMINI_SUGGESTION_MODEL = os.getenv("GEMINI_SUGGESTION_MODEL", "models/gemini-2.5-flash-preview-04-17")
 
