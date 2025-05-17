@@ -1,7 +1,7 @@
 // client/script.js
 
 // --- Configuration ---
-const WEBSOCKET_URL = "https://dermascribe-backend.onrender.com"; // Ensure this matches your backend WebSocket server
+const WEBSOCKET_URL = "wss://dermascribe-backend.onrender.com"; // Ensure this matches your backend WebSocket server
 
 // --- DOM Elements ---
 // (Most DOM elements are similar to the previous single-file version)
