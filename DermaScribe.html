@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Dermatology Scribe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .note-item { /* For Real-time suggestions */
+            border-left: 3px solid #2563eb; /* blue-600 */
+            padding-left: 0.75rem;
+            margin-bottom: 0.75rem;
+            background-color: #eff6ff; /* blue-50 */
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .note-item strong { /* For "Suggestion:" text */
+            color: #1d4ed8; /* blue-700 */
+        }
+        .ai-note-section {
+            margin-bottom: 1.75rem; /* Increased space between sections */
+        }
+        .ai-note-section-title {
+            font-weight: 700; /* bold */
+            color: #1e3a8a; /* blue-800 */
+            margin-bottom: 0.6rem; /* Space after title */
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #d1d5db; /* gray-300 */
+            font-size: 1.1em; /* Slightly larger title */
+        }
+         .ai-note-content ul, .ai-note-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.75rem; /* Space after list */
+            list-style-position: outside;
+        }
+        .ai-note-content li {
+            margin-bottom: 0.4rem; /* Space between list items */
+            padding-left: 0.25rem;
+            line-height: 1.6;
+        }
+        .ai-note-content p {
+            margin-bottom: 0.75rem; /* Space between paragraphs within a section */
+            line-height: 1.6;
+        }
+        .empty-section-text {
+            color: #6b7280; /* gray-500 */
+            font-style: italic;
+            margin-left: 0.5rem; /* Indent placeholder text */
+        }
+
+        .blinking-cursor {
+            font-weight: bold;
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            from, to { color: transparent; }
+            50% { color: black; }
+        }
+        .error-message {
+            color: #dc2626; /* red-600 */
+            background-color: #fee2e2; /* red-100 */
+            border-left: 3px solid #b91c1c; /* red-700 */
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            border-radius: 0.375rem;
+        }
+        /* Tab styles */
+        .tab-button {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #4b5563; /* gray-600 */
+            font-size: 0.875rem; /* text-sm */
+        }
+        .tab-button.active {
+            border-bottom-color: #3b82f6; /* blue-500 */
+            color: #3b82f6; /* blue-500 */
+            font-weight: 600;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .chat-bubble {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .chat-bubble-physician {
+            background-color: #dbeafe; /* blue-100 */
+            color: #1e40af; /* blue-800 */
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .chat-bubble-ai {
+            background-color: #e0e7ff; /* indigo-100 */
+            color: #3730a3; /* indigo-800 */
+            align-self: flex-start;
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="bg-slate-800 text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-semibold">AI Dermatology Scribe</h1>
+            <div class="text-sm" id="dateTimeDisplay"></div>
+        </div>
+    </header>
+
+    <div class="bg-slate-200 p-3 shadow-sm sticky top-[72px] z-40"> 
+        <div class="container mx-auto flex flex-wrap gap-x-6 gap-y-2 items-center text-sm text-slate-700">
+            <div>
+                <label for="apiKey" class="font-medium">Gemini API Key:</label>
+                <input type="password" id="apiKey" placeholder="Enter your API Key" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white">
+            </div>
+            <div>
+                <label for="modelName" class="font-medium">Model:</label>
+                <input type="text" id="modelName" value="models/gemini-pro-vision" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like gemini-pro-vision for image analysis. For text-only tasks, gemini-2.5-flash or gemini-pro can be used.">
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-slate-100 p-3 shadow-sm sticky top-[128px] z-40"> 
+        <div class="container mx-auto flex flex-wrap gap-x-4 gap-y-2 items-center text-sm text-slate-700">
+            <div><label for="patientId" class="font-medium">Patient ID:</label><input type="text" id="patientId" value="P00123" class="ml-1 p-1 border border-slate-300 rounded-md w-28 bg-white"></div>
+            <div><label for="visitDate" class="font-medium">Visit Date:</label><input type="date" id="visitDate" class="ml-1 p-1 border border-slate-300 rounded-md bg-white"></div>
+            <div class="flex items-center space-x-2"><span class="material-symbols-outlined text-slate-600">schedule</span><span id="recordingDuration" class="font-mono">00:00:00</span></div>
+            <div class="flex items-center space-x-2"><span class="material-symbols-outlined text-slate-600">mic</span><span id="recordingStatus" class="font-medium text-red-500">Not Recording</span></div>
+            <button id="uploadImageBtn" class="flex items-center bg-teal-500 hover:bg-teal-600 text-white font-medium py-1.5 px-3 rounded-lg shadow text-xs">
+                <span class="material-symbols-outlined mr-1 text-base">upload_file</span>Upload Clinical Image
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white py-3 px-4 shadow-md sticky top-[184px] z-30"> 
+        <div class="container mx-auto flex space-x-2">
+            <button id="startButton" class="flex items-center bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-150 ease-in-out">
+                <span class="material-symbols-outlined mr-2">fiber_manual_record</span>Start Recording
+            </button>
+            <button id="pauseButton" class="flex items-center bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-150 ease-in-out" disabled>
+                <span class="material-symbols-outlined mr-2">pause</span>Pause
+            </button>
+            <button id="stopButton" class="flex items-center bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-150 ease-in-out" disabled>
+                <span class="material-symbols-outlined mr-2">stop</span>Stop & Finalize
+            </button>
+            <button id="saveButton" class="flex items-center bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-150 ease-in-out ml-auto" disabled>
+                <span class="material-symbols-outlined mr-2">save</span>Save Session
+            </button>
+        </div>
+    </div>
+
+    <main class="container mx-auto p-4 flex-grow grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-0 rounded-xl shadow-xl flex flex-col">
+            <div class="border-b border-slate-200">
+                <nav class="flex" aria-label="TabsLeft">
+                    <button id="tabLiveTranscriptionBtn" class="tab-button active" onclick="switchTab('left', 'liveTranscription')">
+                        <span class="material-symbols-outlined mr-1 text-sm align-middle">hearing</span>Live Transcription
+                    </button>
+                     <button id="tabAiAnalysisBtn" class="tab-button" onclick="switchTab('left', 'aiAnalysis')">
+                        <span class="material-symbols-outlined mr-1 text-sm align-middle">science</span>AI Analysis & Workup
+                    </button>
+                    <button id="tabDiscussNoteBtn" class="tab-button" onclick="switchTab('left', 'discussNote')">
+                        <span class="material-symbols-outlined mr-1 text-sm align-middle">question_answer</span>Discuss Case & Refine Note
+                    </button>
+                </nav>
+            </div>
+            <div id="tabContentLiveTranscription" class="tab-content active flex-grow">
+                <div id="transcriptionOutput" class="h-full border-t-0 border-slate-200 rounded-b-lg p-4 overflow-y-auto custom-scrollbar bg-slate-50 min-h-[300px] lg:min-h-[calc(100vh-400px)] text-sm leading-relaxed">
+                    <p class="text-slate-400 italic">Transcription will appear here once you start recording...</p>
+                </div>
+            </div>
+             <div id="tabContentAiAnalysis" class="tab-content flex-grow flex flex-col p-4 bg-slate-50 min-h-[300px] lg:min-h-[calc(100vh-400px)]">
+                <div id="aiAnalysisContentOutput" class="flex-grow overflow-y-auto custom-scrollbar mb-3 p-3 border-slate-200 rounded-lg bg-white ai-note-content"> 
+                    <p class="text-slate-400 italic">AI generated Case Summary, Differential Diagnosis, and Suggested Workup will appear here after finalizing the recording...</p>
+                </div>
+                 </div>
+            <div id="tabContentDiscussNote" class="tab-content flex-grow flex flex-col p-4 bg-slate-50 min-h-[300px] lg:min-h-[calc(100vh-400px)]">
+                <div id="discussionChatOutput" class="flex-grow overflow-y-auto custom-scrollbar mb-3 p-2 border border-slate-200 rounded-lg bg-white">
+                    <p class="text-slate-400 italic">Ask questions, provide case details to update analysis & note, or give feedback on the note draft.</p>
+                </div>
+                <div class="flex items-center gap-2 pt-2 border-t border-slate-200">
+                    <button id="discussMicButton" title="Use Microphone for Feedback" class="p-2 text-slate-600 hover:text-blue-600 transition-colors rounded-full hover:bg-slate-200">
+                        <span class="material-symbols-outlined">mic</span>
+                    </button>
+                    <input type="text" id="physicianFeedbackInput" placeholder="Type here to discuss case, refine note, or update analysis..." class="flex-grow p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <button id="sendFeedbackButton" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-3 rounded-lg shadow transition duration-150 ease-in-out">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-0 rounded-xl shadow-xl flex flex-col">
+            <div class="border-b border-slate-200">
+                <nav class="flex" aria-label="TabsRight">
+                    <button id="tabRealtimeSuggestionsBtn" class="tab-button active" onclick="switchTab('right', 'realtimeSuggestions')">
+                         <span class="material-symbols-outlined mr-1 text-sm align-middle">lightbulb</span>Real-time Suggestions
+                    </button>
+                    <button id="tabDraftedNoteBtn" class="tab-button" onclick="switchTab('right', 'draftedNote')">
+                        <span class="material-symbols-outlined mr-1 text-sm align-middle">edit_document</span>Drafted Clinical Note
+                    </button>
+                </nav>
+            </div>
+            <div id="tabContentRealtimeSuggestions" class="tab-content active flex-grow">
+                 <div id="realtimeSuggestionsOutput" class="h-full border-t-0 border-slate-200 rounded-b-lg p-4 overflow-y-auto custom-scrollbar bg-slate-50 min-h-[300px] lg:min-h-[calc(100vh-400px)] text-sm">
+                    <p class="text-slate-400 italic">Real-time AI suggestions will appear here during recording...</p>
+                </div>
+            </div>
+            <div id="tabContentDraftedNote" class="tab-content flex-grow">
+                <div id="aiNotesOutput" class="h-full border-t-0 border-slate-200 rounded-b-lg p-4 overflow-y-auto custom-scrollbar bg-slate-50 min-h-[300px] lg:min-h-[calc(100vh-400px)] text-sm ai-note-content">
+                    <p class="text-slate-400 italic">Drafted clinical note will generate here after stopping the recording...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="imageUploadModal" class="modal-overlay">
+        <div class="modal-content custom-scrollbar">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-slate-700">Upload & Analyze Clinical Image</h2>
+                <button id="closeImageModalBtn" class="text-slate-500 hover:text-slate-700">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label for="imageUploadInput" class="block text-sm font-medium text-slate-700 mb-1">Select Image:</label>
+                    <input type="file" id="imageUploadInput" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+                <div id="imagePreviewContainer" class="w-full h-64 border border-slate-300 rounded-lg flex items-center justify-center bg-slate-50 overflow-hidden hidden">
+                    <img id="imagePreview" src="#" alt="Image Preview" class="max-w-full max-h-full object-contain">
+                </div>
+                <button id="analyzeImageBtn" class="w-full flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-150 ease-in-out" disabled>
+                    <span class="material-symbols-outlined mr-2">image_search</span>Analyze Image
+                </button>
+                <div id="imageAnalysisResult" class="p-3 border border-slate-200 rounded-lg bg-slate-50 min-h-[100px] text-sm">
+                    <p class="text-slate-400 italic">AI description of image findings will appear here...</p>
+                </div>
+                <div id="imageApprovalControls" class="flex justify-end space-x-3 hidden">
+                    <button id="cancelImageAnalysisBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 px-4 rounded-lg shadow transition">Cancel</button>
+                    <button id="approveImageDescriptionBtn" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg shadow transition">Approve & Integrate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <footer class="bg-slate-800 text-white text-center p-3 text-xs mt-auto">
+        <p>&copy; <span id="currentYear"></span> AI Dermatology Scribe. For demonstration purposes only.</p>
+    </footer>
+
+    <script type="module">
+        import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "https://esm.run/@google/generative-ai";
+
+        // DOM Elements
+        const apiKeyInput = document.getElementById('apiKey');
+        const modelNameInput = document.getElementById('modelName');
+        const startButton = document.getElementById('startButton');
+        const pauseButton = document.getElementById('pauseButton');
+        const stopButton = document.getElementById('stopButton');
+        const saveButton = document.getElementById('saveButton');
+        
+        const transcriptionOutput = document.getElementById('transcriptionOutput');
+        const realtimeSuggestionsOutput = document.getElementById('realtimeSuggestionsOutput');
+        const aiNotesOutput = document.getElementById('aiNotesOutput'); 
+        const aiAnalysisContentOutput = document.getElementById('aiAnalysisContentOutput'); 
+        
+        const recordingStatus = document.getElementById('recordingStatus');
+        const recordingDuration = document.getElementById('recordingDuration');
+        const dateTimeDisplay = document.getElementById('dateTimeDisplay');
+        const visitDateInput = document.getElementById('visitDate');
+        const currentYearSpan = document.getElementById('currentYear');
+
+        const discussionChatOutput = document.getElementById('discussionChatOutput');
+        const discussMicButton = document.getElementById('discussMicButton');
+        const physicianFeedbackInput = document.getElementById('physicianFeedbackInput');
+        const sendFeedbackButton = document.getElementById('sendFeedbackButton');
+
+        // Image Modal Elements
+        const uploadImageBtn = document.getElementById('uploadImageBtn');
+        const imageUploadModal = document.getElementById('imageUploadModal');
+        const closeImageModalBtn = document.getElementById('closeImageModalBtn');
+        const imageUploadInput = document.getElementById('imageUploadInput');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const analyzeImageBtn = document.getElementById('analyzeImageBtn');
+        const imageAnalysisResult = document.getElementById('imageAnalysisResult');
+        const imageApprovalControls = document.getElementById('imageApprovalControls');
+        const cancelImageAnalysisBtn = document.getElementById('cancelImageAnalysisBtn');
+        const approveImageDescriptionBtn = document.getElementById('approveImageDescriptionBtn');
+
+
+        // State variables
+        let isRecording = false;
+        let isPaused = false;
+        let isDiscussing = false; 
+        let fullTranscript = ""; 
+        let currentDraftNote = ""; 
+        let currentAiAnalysis = ""; 
+        let currentImageBase64 = null;
+        let currentImageMimeType = null;
+        let currentImageDescription = ""; 
+        let discussionHistory = []; 
+        let aiSuggestionInterval;
+        let lastTranscriptLengthForSuggestion = 0;
+        const SUGGESTION_WORD_THRESHOLD = 25; // Words before first suggestion attempt
+        const SUGGESTION_NEW_WORDS_INTERVAL = 40; // New words before next suggestion attempt
+        let isFetchingSuggestion = false;
+
+
+        let timerInterval;
+        let secondsElapsed = 0;
+        let shownSuggestionTexts = new Set(); 
+        let transcriptWordCount = 0; 
+
+        // Web Speech API
+        let recognition;
+        let discussionRecognition; 
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        function initializeRecognition(isDiscussion = false) {
+            if (!SpeechRecognition) return null;
+            const rec = new SpeechRecognition();
+            rec.continuous = true; 
+            rec.interimResults = true; 
+            rec.lang = 'en-US';
+            return rec;
+        }
+
+        if (SpeechRecognition) {
+            recognition = initializeRecognition();
+            discussionRecognition = initializeRecognition(true);
+        } else {
+            console.error("Speech Recognition API not supported in this browser.");
+            displayError("Speech Recognition API not supported in this browser. Please try Chrome or Edge.");
+            if(startButton) startButton.disabled = true;
+            if(discussMicButton) discussMicButton.disabled = true;
+        }
+
+        // Utility Functions
+        function updateDateTime() {
+            const now = new Date();
+            dateTimeDisplay.textContent = now.toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            if (!visitDateInput.value) {
+                visitDateInput.valueAsDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            }
+        }
+
+        function formatTime(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (isRecording && !isPaused) {
+                    secondsElapsed++;
+                    recordingDuration.textContent = formatTime(secondsElapsed);
+                }
+            }, 1000);
+        }
+
+        function stopTimer() { clearInterval(timerInterval); }
+        function resetTimer() {
+            stopTimer();
+            secondsElapsed = 0;
+            transcriptWordCount = 0; 
+            shownSuggestionTexts.clear(); 
+            lastTranscriptLengthForSuggestion = 0;
+            recordingDuration.textContent = formatTime(0);
+        }
+
+        function updateUIForRecordingState() {
+            startButton.disabled = (isRecording && !isPaused) || isDiscussing;
+            pauseButton.disabled = !isRecording || isDiscussing;
+            stopButton.disabled = !isRecording || isDiscussing;
+            saveButton.disabled = isRecording || isDiscussing || !fullTranscript || !currentDraftNote;
+            discussMicButton.disabled = isRecording || isDiscussing; 
+            uploadImageBtn.disabled = isRecording || isDiscussing;
+
+
+            if (isDiscussing) {
+                discussMicButton.classList.add('text-red-500');
+                discussMicButton.title = "Stop Discussion Recording";
+            } else {
+                discussMicButton.classList.remove('text-red-500');
+                discussMicButton.title = "Use Microphone for Feedback";
+            }
+
+            if (isRecording && !isPaused) {
+                recordingStatus.textContent = 'Recording...';
+                recordingStatus.classList.remove('text-red-500', 'text-yellow-500');
+                recordingStatus.classList.add('text-green-500');
+                pauseButton.innerHTML = '<span class="material-symbols-outlined mr-2">pause</span>Pause';
+            } else if (isRecording && isPaused) {
+                recordingStatus.textContent = 'Paused';
+                recordingStatus.classList.remove('text-red-500', 'text-green-500');
+                recordingStatus.classList.add('text-yellow-500');
+                pauseButton.innerHTML = '<span class="material-symbols-outlined mr-2">play_arrow</span>Resume';
+                startButton.disabled = true; 
+            } else { 
+                recordingStatus.textContent = 'Not Recording';
+                recordingStatus.classList.remove('text-green-500', 'text-yellow-500');
+                recordingStatus.classList.add('text-red-500');
+                pauseButton.innerHTML = '<span class="material-symbols-outlined mr-2">pause</span>Pause';
+                pauseButton.disabled = true;
+                startButton.disabled = isDiscussing; 
+            }
+        }
+        
+        function displayError(message, containerId = 'transcriptionOutput') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const errorElement = document.createElement('p');
+            errorElement.className = 'error-message';
+            errorElement.textContent = message;
+            if (container.firstChild && container.firstChild.textContent && container.firstChild.textContent.includes("will appear here")) {
+                container.innerHTML = '';
+            }
+            container.appendChild(errorElement);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearAllPlaceholders() {
+            const placeholders = [
+                transcriptionOutput, 
+                realtimeSuggestionsOutput, 
+                aiNotesOutput,
+                aiAnalysisContentOutput,
+                discussionChatOutput
+            ];
+            placeholders.forEach(p => {
+                if (p && p.innerHTML.includes("will appear here")) {
+                    p.innerHTML = '';
+                }
+                 if (p && p.innerHTML.includes("Ask questions, provide case details to update analysis & note, or give feedback on the note draft.")) {
+                    p.innerHTML = '';
+                }
+                 if (p && p.innerHTML.includes("AI generated Case Summary, Differential Diagnosis, and Suggested Workup will appear here after finalizing the recording...")) {
+                    p.innerHTML = '';
+                }
+            });
+        }
+        
+        window.switchTab = (column, tabName) => {
+            let tabButtonsQuery, tabContentsQuery, activeBtnId, activeContentId;
+
+            if (column === 'left') {
+                tabButtonsQuery = '#tabLiveTranscriptionBtn, #tabDiscussNoteBtn, #tabAiAnalysisBtn';
+                tabContentsQuery = '#tabContentLiveTranscription, #tabContentDiscussNote, #tabContentAiAnalysis';
+            } else { 
+                tabButtonsQuery = '#tabRealtimeSuggestionsBtn, #tabDraftedNoteBtn';
+                tabContentsQuery = '#tabContentRealtimeSuggestions, #tabContentDraftedNote';
+            }
+            
+            activeBtnId = `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Btn`;
+            activeContentId = `tabContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+
+            document.querySelectorAll(tabButtonsQuery).forEach(button => button.classList.remove('active'));
+            document.querySelectorAll(tabContentsQuery).forEach(content => content.classList.remove('active'));
+            
+            const activeBtn = document.getElementById(activeBtnId);
+            const activeContent = document.getElementById(activeContentId);
+
+            if(activeBtn) activeBtn.classList.add('active');
+            if(activeContent) activeContent.classList.add('active');
+        }
+        
+        async function fetchAndDisplayAiSuggestions() {
+            if (!isRecording || isPaused || isFetchingSuggestion || !apiKeyInput.value) return;
+
+            const currentTranscriptWordCount = fullTranscript.split(' ').filter(Boolean).length;
+            // Trigger if enough new words OR if it's the first time past the initial threshold
+            if (currentTranscriptWordCount < SUGGESTION_WORD_THRESHOLD || 
+                (currentTranscriptWordCount - lastTranscriptLengthForSuggestion < SUGGESTION_NEW_WORDS_INTERVAL && lastTranscriptLengthForSuggestion > 0) ) {
+                return;
+            }
+            
+            isFetchingSuggestion = true;
+            lastTranscriptLengthForSuggestion = currentTranscriptWordCount;
+            
+            const loadingSuggestion = document.createElement('p');
+            loadingSuggestion.className = 'note-item italic text-slate-500 text-xs';
+            loadingSuggestion.textContent = 'AI thinking of suggestions...';
+            if (realtimeSuggestionsOutput.innerHTML.includes("will appear here")) {
+                realtimeSuggestionsOutput.innerHTML = '';
+            }
+            realtimeSuggestionsOutput.insertBefore(loadingSuggestion, realtimeSuggestionsOutput.firstChild);
+
+
+            try {
+                const transcriptWords = fullTranscript.split(' ');
+                const recentTranscriptSegment = transcriptWords.slice(-200).join(' '); // Last 200 words for context
+
+                const prompt = REALTIME_SUGGESTION_PROMPT_TEMPLATE(recentTranscriptSegment, Array.from(shownSuggestionTexts));
+                const suggestionsText = await callGeminiAPI(prompt);
+                loadingSuggestion.remove(); 
+
+                if (suggestionsText && suggestionsText.trim().toLowerCase() !== "no specific suggestions at this moment.") {
+                    const newSuggestions = suggestionsText.split('\n').map(s => s.replace(/^\s*-\s*/, '').trim()).filter(s => s !== "");
+                    
+                    let addedSuggestion = false;
+                    newSuggestions.forEach(suggestionText => {
+                        if (!shownSuggestionTexts.has(suggestionText)) {
+                            const p = document.createElement('p');
+                            p.className = 'note-item animate-fadeIn';
+                            p.innerHTML = `<strong>Suggestion:</strong> ${suggestionText}`; 
+                            realtimeSuggestionsOutput.insertBefore(p, realtimeSuggestionsOutput.firstChild);
+                            shownSuggestionTexts.add(suggestionText);
+                            addedSuggestion = true;
+                        }
+                    });
+                    if (!addedSuggestion && newSuggestions.length > 0) { // If all suggestions were repeats
+                        console.log("All new suggestions were repeats of previous ones.");
+                    }
+                } else if (suggestionsText.trim().toLowerCase() === "no specific suggestions at this moment.") {
+                    console.log("AI: No specific suggestions at this moment.");
+                     const noSuggestionMsg = document.createElement('p');
+                     noSuggestionMsg.className = 'note-item italic text-slate-400 text-xs';
+                     noSuggestionMsg.textContent = 'No specific suggestions from AI at this moment.';
+                     realtimeSuggestionsOutput.insertBefore(noSuggestionMsg, realtimeSuggestionsOutput.firstChild);
+                     setTimeout(() => { if(noSuggestionMsg.parentNode) noSuggestionMsg.remove(); }, 5000);
+                }
+                 while (realtimeSuggestionsOutput.children.length > 7) { 
+                    realtimeSuggestionsOutput.removeChild(realtimeSuggestionsOutput.lastChild);
+                }
+
+            } catch (error) {
+                console.error("Error fetching AI suggestions:", error);
+                loadingSuggestion.textContent = 'Error fetching suggestions.';
+                setTimeout(() => {if(loadingSuggestion.parentNode) loadingSuggestion.remove();}, 3000);
+            } finally {
+                isFetchingSuggestion = false;
+            }
+        }
+
+
+        function setupRecognitionEvents(recInstance, outputElement, isDiscussionMic = false) {
+            if (!recInstance) return;
+            let currentLineElement = null;
+            let tempTranscript = ""; 
+
+            recInstance.onstart = () => {
+                console.log(`Speech recognition started (${isDiscussionMic ? 'discussion' : 'main'}).`);
+                if (isDiscussionMic) {
+                    isDiscussing = true;
+                    tempTranscript = ""; 
+                    discussMicButton.classList.add('text-red-500', 'animate-pulse');
+                    physicianFeedbackInput.disabled = true;
+                    sendFeedbackButton.disabled = true;
+                } else { // Main recording
+                    isRecording = true;
+                    isPaused = false;
+                    startTimer();
+                    clearAllPlaceholders();
+                    aiSuggestionInterval = setInterval(fetchAndDisplayAiSuggestions, 15000); // Fetch suggestions every 15s
+                }
+                updateUIForRecordingState();
+            };
+
+            recInstance.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscriptSegment = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        const segment = event.results[i][0].transcript;
+                        finalTranscriptSegment += segment;
+                        if (!isDiscussionMic) { 
+                           transcriptWordCount += segment.split(' ').filter(Boolean).length;
+                           // Suggestion fetching is now on an interval, but this check ensures it has enough new content
+                           if (transcriptWordCount > lastTranscriptLengthForSuggestion + SUGGESTION_NEW_WORDS_INTERVAL / 2 || (transcriptWordCount > SUGGESTION_WORD_THRESHOLD && lastTranscriptLengthForSuggestion === 0) ) {
+                               // fetchAndDisplayAiSuggestions(); // This will be called by interval, but good to have a check
+                           }
+                        }
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                if (interimTranscript) {
+                    if (!currentLineElement || (currentLineElement && finalTranscriptSegment)) {
+                        if (currentLineElement && currentLineElement.querySelector('.blinking-cursor')) {
+                             currentLineElement.querySelector('.blinking-cursor').remove();
+                        }
+                        currentLineElement = document.createElement('p');
+                        currentLineElement.className = 'mb-1';
+                        outputElement.appendChild(currentLineElement);
+                         if (outputElement.innerHTML.includes("will appear here")) outputElement.innerHTML = '';
+                    }
+                    currentLineElement.innerHTML = `<span class="text-slate-700">${finalTranscriptSegment || ''}</span><span class="text-slate-500">${interimTranscript}</span><span class="blinking-cursor">|</span>`;
+                }
+
+                if (finalTranscriptSegment) {
+                    if (isDiscussionMic) {
+                        tempTranscript += finalTranscriptSegment + " ";
+                    } else {
+                        fullTranscript += finalTranscriptSegment + " "; 
+                    }
+                    if (currentLineElement && currentLineElement.querySelector('.blinking-cursor')) {
+                        currentLineElement.querySelector('.blinking-cursor').remove();
+                    }
+                    const finalP = document.createElement('p');
+                    finalP.className = 'mb-1 text-slate-700';
+                    finalP.textContent = finalTranscriptSegment;
+                    
+                    if(currentLineElement && currentLineElement.textContent.startsWith(finalTranscriptSegment.trim())) {
+                        currentLineElement.innerHTML = `<span class="text-slate-700">${finalTranscriptSegment}</span>`;
+                    } else { 
+                        outputElement.appendChild(finalP);
+                    }
+                    currentLineElement = null; 
+                }
+                outputElement.scrollTop = outputElement.scrollHeight;
+            };
+
+            recInstance.onerror = (event) => {
+                console.error(`Speech recognition error (${isDiscussionMic ? 'discussion' : 'main'}):`, event.error);
+                displayError(`Speech error: ${event.error}.`, isDiscussionMic ? 'discussionChatOutput' : 'transcriptionOutput');
+                if (event.error === 'not-allowed' || event.error === 'audio-capture') {
+                    if(isRecording && !isDiscussionMic) stopButton.click();
+                    if(isDiscussing && isDiscussionMic) { 
+                        isDiscussing = false;
+                        discussMicButton.classList.remove('text-red-500', 'animate-pulse');
+                        physicianFeedbackInput.disabled = false;
+                        sendFeedbackButton.disabled = false;
+                        updateUIForRecordingState();
+                    }
+                }
+            };
+
+            recInstance.onend = () => {
+                console.log(`Speech recognition ended (${isDiscussionMic ? 'discussion' : 'main'}).`);
+                if (currentLineElement && currentLineElement.querySelector('.blinking-cursor')) {
+                    currentLineElement.querySelector('.blinking-cursor').remove();
+                }
+                if (isDiscussionMic) {
+                    isDiscussing = false;
+                    discussMicButton.classList.remove('text-red-500', 'animate-pulse');
+                    physicianFeedbackInput.disabled = false;
+                    sendFeedbackButton.disabled = false;
+                    updateUIForRecordingState();
+                    if (tempTranscript.trim()) {
+                        addChatMessage(tempTranscript, 'physician', 'discussionChatOutput');
+                        handleDiscussionInput(tempTranscript);
+                    }
+                } else { // Main mic ended
+                    clearInterval(aiSuggestionInterval); 
+                }
+            };
+        }
+
+        if (recognition) setupRecognitionEvents(recognition, transcriptionOutput, false);
+        if (discussionRecognition) setupRecognitionEvents(discussionRecognition, discussionChatOutput, true); 
+
+        // --- PROMPT DEFINITIONS ---
+        const HPI_GUIDELINES = `
+Guidelines for HISTORY OF PRESENT ILLNESS (HPI):
+The HPI should be a concise, chronological narrative detailing the patient's current dermatological complaints, written in paragraph form from the physician's perspective. Focus on information directly relevant to these complaints and include minor relevant social or medical history that provides context.
+I. Opening Statement:
+* Start with the patient's age and sex.
+* Clearly state the primary reason(s) for the visit (chief complaints).
+* If relevant, mention if the patient was referred by another provider and the reason for referral, or if accompanied by someone significant to their care/history.
+II. For Each Dermatological Complaint (Address separately if multiple distinct issues):
+Organize the details for each complaint using a structure similar to "OLD CARTS" (Onset, Location, Duration, Characteristics, Aggravating factors, Relieving factors, Treatments, Severity/Symptoms), plus dermatology-specific elements:
+* A. Onset & Duration: When did it start? How long has it persisted? Constant, intermittent, recurrent?
+* B. Location: Precisely where on the body?
+* C. Characteristics & Morphology: Type (cyst, spot, rash), Appearance (color, size, shape, texture), Symptoms (itching, pain, tenderness, bleeding, discharge).
+* D. Evolution/Progression: How has it changed since onset?
+* E. Aggravating/Alleviating Factors: What makes it worse or better?
+* F. Treatments Tried: What has the patient used? What was the outcome?
+* G. Severity/Impact: How bothersome? Does it interfere with daily activities?
+III. Relevant Associated Information:
+* Pertinent Medical History: Significant conditions impacting skin (e.g., "history of heart transplant," "immunosuppressive medications like tacrolimus, sirolimus").
+* Medications: Relevant medications, especially new ones or those known for dermatologic side effects (e.g., "rash...appeared twice since starting sirolimus").
+* Skincare Routine/Products: Current products if relevant (e.g., "uses Dove soap," "suspects her toothpaste might contribute").
+* Allergies/Irritants: Known/suspected allergies or recent product changes.
+* Previous Dermatological History: Prior similar issues, skin cancer history.
+* Relevant Social History: Hobbies/activities (e.g., "boating").
+* Important Negatives: Absence of key symptoms if it helps refine diagnosis.
+IV. Organization and Style:
+* Address each complaint systematically. Maintain a narrative flow. Be objective and factual. Limit content strictly to what is relevant.
+`;
+
+        const INITIAL_GENERATION_PROMPT_TEMPLATE = (transcript) => `
+You are an expert medical scribe AI for a dermatologist. Your task is to generate a clinical note AND a case analysis from the provided physician-patient consultation transcript.
+The clinical note should be written from the **physician's perspective (first-person)**.
+
+PART 1: CLINICAL NOTE
+Follow this exact structure and use these exact headers for the clinical note (do NOT include "SECTION: " before the headers):
+CHIEF COMPLAINT
+HISTORY OF PRESENT ILLNESS (Write this section in paragraph form, following these HPI guidelines: ${HPI_GUIDELINES})
+PAST MEDICAL HISTORY (If not mentioned, state "None reported by patient." or similar)
+MEDICATIONS (If none, state "Patient reports no current medications." or similar)
+ALLERGIES (If none, state "No known drug allergies." or similar)
+OBJECTIVE FINDINGS (List specific dermatologic findings using proper terminology, in bullet points. Example: "- Erythematous papules on bilateral elbows." If image findings are included in the transcript under a "CLINICAL IMAGE FINDINGS" header, incorporate them here.)
+ASSESSMENT (Your primary assessment or diagnosis based on the encounter.)
+PLAN (Your treatment plan, patient education, and follow-up instructions.)
+
+PART 2: AI ANALYSIS & WORKUP
+After the clinical note, provide your analysis using this exact separator "AI_ANALYSIS_SEPARATOR_V2", followed by these exact headers (do NOT include "SECTION: " before the headers):
+AI_ANALYSIS_SEPARATOR_V2
+CASE SUMMARY (Provide a 2-3 sentence summary of the case and key details from the transcript.)
+DIFFERENTIAL DIAGNOSIS (ORDERED BY LIKELIHOOD)
+(List 2-3 potential differential diagnoses, ordered from most to least likely based on the overall clinical picture.)
+RATIONALE FOR DIFFERENTIALS
+(For each entity on the differential, provide a brief discussion of why it does or does not fit.)
+POTENTIAL "DON'T MISS" DIAGNOSES (IF APPLICABLE)
+(List any critical, serious, or life-threatening conditions that could have a similar presentation, even if less likely. If none are relevant, state "No critical 'don't miss' diagnoses immediately apparent based on current information.")
+SUGGESTED WORKUP (FOR TOP DIFFERENTIALS)
+(Based on the top differential diagnoses, suggest a rational list of tests to consider for each entity.)
+ADDITIONAL WORKUP (FOR "DON'T MISS" DIAGNOSES, IF APPLICABLE AND PERTINENT)
+(Suggest a rational list of tests to consider for each "Don't Miss" diagnosis if they are truly clinically pertinent and indicated. If none, state "N/A".)
+
+Make text bold by wrapping it in double asterisks, like **this**. Use bullet points like "- Point" or numbered lists like "1. Point" where appropriate within sections.
+
+Transcript (may include image findings at the end under a "CLINICAL IMAGE FINDINGS" header, or physician clarifications under "PHYSICIAN ADDITIONAL INFO" or "PHYSICIAN QUERY FOR ANALYSIS REFINEMENT"):
+---
+${transcript}
+---
+`;
+
+        const NOTE_REFINEMENT_PROMPT_TEMPLATE = (transcript, currentNote, feedback) => `
+You are an expert medical scribe AI for a dermatologist. You previously generated a clinical note. The physician has provided feedback or clarifications.
+Refine the **Current Drafted Note** based on the **Physician's Feedback/Clarification**.
+The original consultation transcript (which may include image findings and prior physician inputs) is provided for context.
+The refined note should maintain the first-person physician perspective and the established section structure (do NOT include "SECTION: " before the headers):
+CHIEF COMPLAINT
+HISTORY OF PRESENT ILLNESS (paragraph form, following these HPI guidelines: ${HPI_GUIDELINES})
+PAST MEDICAL HISTORY
+MEDICATIONS
+ALLERGIES
+OBJECTIVE FINDINGS (bullet points, incorporate any image findings from the transcript)
+ASSESSMENT
+PLAN
+
+Original Consultation Transcript (for context):
+---
+${transcript}
+---
+Current Drafted Note:
+---
+${currentNote}
+---
+Physician's Feedback/Clarification:
+---
+${feedback}
+---
+Please provide the **fully updated and refined clinical note only**, incorporating the feedback.
+Strictly use the specified headers. Use bullet points (e.g., "- Point") or numbered lists (e.g., "1. Point") where appropriate. Make text bold with **double asterisks**.
+If a section was previously empty or "None identified", update it if the feedback provides relevant information.
+Do NOT include the "AI_ANALYSIS_SEPARATOR_V2" or any differential diagnosis/workup sections in this refined note output.
+`;
+
+        const AI_ANALYSIS_REFINEMENT_PROMPT_TEMPLATE = (transcript, currentAnalysis, feedback) => `
+You are an expert dermatology AI assistant. You previously provided a "CASE SUMMARY", "DIFFERENTIAL DIAGNOSIS (ORDERED BY LIKELIHOOD)", "RATIONALE FOR DIFFERENTIALS", "POTENTIAL \"DON'T MISS\" DIAGNOSES (IF APPLICABLE)", "SUGGESTED WORKUP (FOR TOP DIFFERENTIALS)", and "ADDITIONAL WORKUP (FOR \"DON'T MISS\" DIAGNOSES, IF APPLICABLE AND PERTINENT)".
+The physician has provided additional context or information.
+Please refine your **Current AI Analysis** based on this new information.
+The original consultation transcript (which may include image findings and prior physician inputs) is provided for context.
+
+Maintain this exact structure for your refined output (do NOT include "SECTION: " before the headers):
+CASE SUMMARY (2-3 sentences)
+DIFFERENTIAL DIAGNOSIS (ORDERED BY LIKELIHOOD)
+RATIONALE FOR DIFFERENTIALS
+POTENTIAL "DON'T MISS" DIAGNOSES (IF APPLICABLE)
+SUGGESTED WORKUP (FOR TOP DIFFERENTIALS)
+ADDITIONAL WORKUP (FOR "DON'T MISS" DIAGNOSES, IF APPLICABLE AND PERTINENT)
+
+Original Consultation Transcript (for context):
+---
+${transcript}
+---
+Current AI Analysis:
+---
+${currentAnalysis}
+---
+Physician's Additional Context/Information:
+---
+${feedback}
+---
+Please provide the **fully updated and refined AI Analysis only**.
+Strictly use the specified headers. Use bullet points or numbered lists where appropriate. Make text bold with **double asterisks**.
+`;
+
+        const IMAGE_ANALYSIS_PROMPT_TEMPLATE = `
+You are a dermatology AI assistant. Analyze the following clinical image.
+Provide a concise dermatological description of the key visual findings.
+Focus on morphology, color, distribution (if discernible from a single image), and any other relevant visual characteristics.
+Example: "Image shows multiple erythematous, annular plaques with central clearing and a raised, scaling border on the forearm. Some lesions exhibit a targetoid appearance."
+Do not provide a diagnosis or treatment plan. Just describe the findings.
+`;
+        const CONVERSATIONAL_CASE_DISCUSSION_PROMPT_TEMPLATE = (transcript, draftNote, aiAnalysis, physicianQuery) => `
+You are a helpful AI assistant for a dermatologist. The dermatologist is currently reviewing a case.
+Provided below is the full consultation transcript, the AI-generated draft clinical note, and the AI-generated case analysis (DDx, workup).
+The physician's current query or statement is: "${physicianQuery}"
+
+Your tasks are:
+1.  If the physician asks a question (e.g., "What are the side effects of X?", "Tell me more about Y disease."), answer it based on the provided transcript, draft note, AI analysis, or your general dermatology knowledge.
+2.  If the physician provides **new clinical information** or a correction that seems to significantly alter the case understanding (e.g., "The patient also mentioned night sweats," "The lab results for X are positive"), acknowledge this information and state that the clinical note and AI analysis will be updated. Your response here should be brief, like "Understood. I will update the note and analysis with this new information." The application will handle the actual re-triggering.
+3.  If the physician provides **direct feedback to change a specific part of the clinical note** (e.g., "Change the assessment to X," "Add Y to the plan"), acknowledge this and state the note will be updated. Your response here should be brief, like "Okay, I will update the clinical note." The application handles re-triggering.
+4.  If the input is general discussion or a question not directly leading to a note/analysis change, provide a helpful conversational response.
+
+Keep your responses concise and professional.
+
+Full Consultation Transcript:
+---
+${transcript}
+---
+Current Drafted Clinical Note:
+---
+${draftNote || "No draft note yet."}
+---
+Current AI Analysis (DDx & Workup):
+---
+${aiAnalysis || "No AI analysis yet."}
+---
+Physician's Query/Statement: "${physicianQuery}"
+
+Your Response:
+`;
+        const REALTIME_SUGGESTION_PROMPT_TEMPLATE = (transcriptSegment, alreadySuggestedTexts) => `
+You are an AI assistant for a dermatologist, providing real-time suggestions during a patient encounter.
+Based on the following recent segment of the consultation transcript, provide 1-2 concise, actionable suggestions for the physician. These could be clarifying questions to ask the patient, specific physical exam maneuvers to consider, or key details to ensure are documented.
+Focus on what would be most helpful *at this moment* in the consultation to build a comprehensive understanding and potential differential diagnosis.
+Avoid suggesting things that have likely already been covered or are too generic.
+Previously suggested: ${alreadySuggestedTexts.length > 0 ? alreadySuggestedTexts.join("; ") : "None yet."}
+Try to provide novel suggestions not in the 'Previously suggested' list. If no new, highly relevant suggestion comes to mind based on the current transcript segment, respond with "No specific suggestions at this moment."
+
+Recent Transcript Segment:
+---
+${transcriptSegment}
+---
+
+Suggestions (1-2 lines max, each suggestion on a new line, or "No specific suggestions at this moment."):
+`;
+
+
+        async function callGeminiAPI(prompt, imageBase64 = null, imageMimeType = null) {
+            const apiKey = apiKeyInput.value;
+            const modelNameFromInput = modelNameInput.value; 
+            if (!apiKey) {
+                throw new Error("API Key is missing.");
+            }
+
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const effectiveModelName = (imageBase64 && imageMimeType && modelNameFromInput.includes("vision")) ? modelNameFromInput : (modelNameFromInput || "models/gemini-pro"); 
+            
+            const model = genAI.getGenerativeModel({ model: effectiveModelName }); 
+            
+            const generationConfig = { temperature: 0.2, topK: 1, topP: 1, maxOutputTokens: 4096 };
+            const safetySettings = [
+                { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+                { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+                { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+                { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            ];
+
+            const parts = [{ text: prompt }];
+            if (imageBase64 && imageMimeType) {
+                 if (!effectiveModelName.includes("vision")) { 
+                    console.warn("Attempting image analysis with a non-vision model. This might not work as expected.");
+                } else {
+                    parts.push({
+                        inlineData: {
+                            mimeType: imageMimeType,
+                            data: imageBase64
+                        }
+                    });
+                }
+            }
+            
+            const result = await model.generateContent({
+                contents: [{ role: "user", parts: parts }],
+                generationConfig, safetySettings
+            });
+            return result.response.text();
+        }
+
+
+        async function generateInitialNoteAndAnalysis(transcriptToProcess) {
+            if (!transcriptToProcess.trim()) {
+                displayError("Transcript is empty. No notes to generate.", 'aiNotesOutput');
+                displayError("Transcript is empty. No analysis to generate.", 'aiAnalysisContentOutput');
+                return;
+            }
+            aiNotesOutput.innerHTML = '<p class="text-slate-500 italic">AI is generating clinical note, please wait...</p>';
+            aiAnalysisContentOutput.innerHTML = '<p class="text-slate-500 italic">AI is generating analysis & workup, please wait...</p>';
+            saveButton.disabled = true;
+
+            try {
+                const prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(transcriptToProcess);
+                const fullResponseText = await callGeminiAPI(prompt);
+
+                const parts = fullResponseText.split("AI_ANALYSIS_SEPARATOR_V2");
+                const notesText = parts[0] || "";
+                const analysisText = parts[1] || "";
+
+                currentDraftNote = notesText.trim();
+                currentAiAnalysis = analysisText.trim();
+
+                displayFormattedNotes(currentDraftNote, 'aiNotesOutput'); 
+                displayFormattedNotes(currentAiAnalysis, 'aiAnalysisContentOutput');
+                
+                switchTab('right', 'draftedNote'); 
+                switchTab('left', 'aiAnalysis'); 
+
+            } catch (error) {
+                console.error("Error with Gemini API (Initial Generation):", error);
+                displayError(`Error: ${error.message}. Check API key, model, or prompt.`, 'aiNotesOutput');
+                displayError(`Error generating AI Analysis: ${error.message}.`, 'aiAnalysisContentOutput');
+            } finally {
+                saveButton.disabled = !fullTranscript || !currentDraftNote;
+            }
+        }
+        
+       async function handleDiscussionInput(physicianInputText) {
+            if (!physicianInputText.trim()) return;
+            addChatMessage(physicianInputText, 'physician', 'discussionChatOutput');
+
+            addChatMessage("AI is thinking...", "ai", 'discussionChatOutput');
+
+            const conversationalPrompt = CONVERSATIONAL_CASE_DISCUSSION_PROMPT_TEMPLATE(
+                fullTranscript,
+                currentDraftNote,
+                currentAiAnalysis,
+                physicianInputText
+            );
+            let aiConversationalResponse = "";
+            try {
+                aiConversationalResponse = await callGeminiAPI(conversationalPrompt);
+                addChatMessage(aiConversationalResponse, "ai", 'discussionChatOutput');
+            } catch (error) {
+                console.error("Error in conversational AI call:", error);
+                addChatMessage(`Sorry, I encountered an error during conversation: ${error.message}`, "ai", 'discussionChatOutput');
+                return; 
+            }
+
+            const lowerInput = physicianInputText.toLowerCase();
+            const lowerAIResponse = aiConversationalResponse.toLowerCase();
+            
+            const newClinicalInfoKeywords = ["patient also reports", "new finding:", "update on symptoms:", "i forgot to mention:", "add to history:", "observed that:", "test result shows", "labs are back", "correction to symptoms", "additional detail is", "the image shows"];
+            const noteRefinementKeywords = ["correct the note:", "change the assessment to", "update the plan to say", "modify hpi regarding", "revise objective findings for", "the diagnosis should be", "in the plan, add", "update the note to reflect"];
+            const analysisRefinementKeywords = ["reconsider differential for", "what if the patient also had", "update workup based on this new info:", "could it also be x disease?", "refine the ddx", "update my analysis", "given this new info, what about the ddx"];
+
+
+            if (newClinicalInfoKeywords.some(keyword => lowerInput.includes(keyword)) || lowerAIResponse.includes("will update the note and analysis with this new information")) {
+                fullTranscript += `\n\n--- PHYSICIAN INPUT (DISCUSSION) ---\n${physicianInputText}\n--- END PHYSICIAN INPUT ---`;
+                addChatMessage("New clinical information detected. Updating note and AI analysis...", "ai", 'discussionChatOutput');
+                await generateInitialNoteAndAnalysis(fullTranscript); 
+            } else if (noteRefinementKeywords.some(keyword => lowerInput.includes(keyword)) || lowerAIResponse.includes("will update the clinical note")) {
+                 if (currentDraftNote) {
+                    addChatMessage("Attempting to refine the clinical note based on your input...", "ai", 'discussionChatOutput');
+                    await refineClinicalNote(fullTranscript, currentDraftNote, physicianInputText);
+                } else {
+                    addChatMessage("No draft note available to refine. Please finalize recording first.", "ai", 'discussionChatOutput');
+                }
+            } else if (analysisRefinementKeywords.some(keyword => lowerInput.includes(keyword)) || lowerAIResponse.includes("will update the ai analysis")) {
+                 if (currentAiAnalysis) {
+                    addChatMessage("Attempting to refine the AI analysis based on your input...", "ai", 'discussionChatOutput');
+                     fullTranscript += `\n\n--- PHYSICIAN QUERY FOR ANALYSIS REFINEMENT ---\n${physicianInputText}\n--- END PHYSICIAN QUERY ---`; 
+                    await refineAiAnalysis(fullTranscript, currentAiAnalysis, physicianInputText);
+                } else {
+                     addChatMessage("No AI analysis available to refine. Please finalize recording first.", "ai", 'discussionChatOutput');
+                }
+            }
+        }
+
+
+        function displayFormattedNotes(notesText, outputElementId) {
+            const outputDiv = document.getElementById(outputElementId);
+            outputDiv.innerHTML = ''; 
+            const lines = notesText.split('\n');
+            let currentSectionDiv = null;
+            let currentList = null; 
+
+            const knownSectionTitles = [
+                "CHIEF COMPLAINT", "HISTORY OF PRESENT ILLNESS", "PAST MEDICAL HISTORY", 
+                "MEDICATIONS", "ALLERGIES", "OBJECTIVE FINDINGS", "ASSESSMENT", "PLAN",
+                "CASE SUMMARY", 
+                "DIFFERENTIAL DIAGNOSIS (ORDERED BY LIKELIHOOD)", "RATIONALE FOR DIFFERENTIALS",
+                "POTENTIAL \"DON'T MISS\" DIAGNOSES (IF APPLICABLE)", 
+                "SUGGESTED WORKUP (FOR TOP DIFFERENTIALS)",
+                "ADDITIONAL WORKUP (FOR \"DON'T MISS\" DIAGNOSES, IF APPLICABLE AND PERTINENT)"
+            ].map(s => s.toUpperCase()); 
+
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                const upperTrimmedLine = trimmedLine.toUpperCase();
+                
+                let isTitle = false;
+                if (knownSectionTitles.includes(upperTrimmedLine)) {
+                    isTitle = true;
+                }
+
+                if (isTitle) {
+                    if (currentSectionDiv && currentSectionDiv.children.length === 1 && currentSectionDiv.firstChild.classList.contains('ai-note-section-title')) { 
+                        const emptyText = document.createElement('p');
+                        emptyText.className = 'empty-section-text pl-4';
+                        const sectionTitleText = currentSectionDiv.firstChild.textContent.toUpperCase();
+                         if (sectionTitleText === 'ALLERGIES' || sectionTitleText === 'MEDICATIONS' || sectionTitleText === 'PAST MEDICAL HISTORY') {
+                             emptyText.textContent = 'None identified from transcript.';
+                         } else if (sectionTitleText.includes("DON'T MISS") && sectionTitleText.includes("IF APPLICABLE")) {
+                             emptyText.textContent = 'No critical "don\'t miss" diagnoses immediately apparent based on current information.';
+                         }  else if (sectionTitleText.includes("ADDITIONAL WORKUP") && sectionTitleText.includes("IF APPLICABLE AND PERTINENT")) {
+                             emptyText.textContent = 'N/A';
+                         }
+                         if(emptyText.textContent) currentSectionDiv.appendChild(emptyText);
+                    }
+
+                    if (currentSectionDiv) outputDiv.appendChild(currentSectionDiv); 
+                    
+                    currentSectionDiv = document.createElement('div');
+                    currentSectionDiv.className = 'ai-note-section';
+
+                    const titleElement = document.createElement('h3');
+                    titleElement.className = 'ai-note-section-title';
+                    titleElement.textContent = trimmedLine; 
+                    currentSectionDiv.appendChild(titleElement);
+                    currentList = null; 
+                } else if (currentSectionDiv) { 
+                    let processedLine = trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    
+                    if (processedLine.startsWith('- ') || processedLine.startsWith('* ')) {
+                        if (!currentList || currentList.tagName !== 'UL') { 
+                            currentList = document.createElement('ul');
+                            currentList.className = 'list-disc'; 
+                            currentSectionDiv.appendChild(currentList);
+                        }
+                        const li = document.createElement('li');
+                        li.innerHTML = processedLine.substring(processedLine.indexOf(' ') + 1);
+                        currentList.appendChild(li);
+                    } else if (processedLine.match(/^\d+\.\s/)) { 
+                         if (!currentList || currentList.tagName !== 'OL') { 
+                            currentList = document.createElement('ol');
+                            currentList.className = 'list-decimal';
+                            currentSectionDiv.appendChild(currentList);
+                        }
+                        const li = document.createElement('li');
+                        li.innerHTML = processedLine.substring(processedLine.indexOf(' ') + 1);
+                        currentList.appendChild(li);
+                    } else if (processedLine) { 
+                        const p = document.createElement('p');
+                        p.innerHTML = processedLine;
+                        currentSectionDiv.appendChild(p);
+                        currentList = null; 
+                    } else if (!trimmedLine && currentSectionDiv.children.length > 1 ) { 
+                        const lastChild = currentSectionDiv.lastChild;
+                        if (!(lastChild.tagName === 'P' && lastChild.innerHTML === '&nbsp;')) {
+                            const p = document.createElement('p');
+                            p.innerHTML = '&nbsp;'; 
+                            currentSectionDiv.appendChild(p);
+                        }
+                        currentList = null; 
+                    }
+                } else if (trimmedLine) { 
+                     const p = document.createElement('p');
+                     p.innerHTML = trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                     outputDiv.appendChild(p);
+                }
+            });
+            if (currentSectionDiv) { 
+                 if (currentSectionDiv.children.length === 1 && currentSectionDiv.firstChild.classList.contains('ai-note-section-title')) { 
+                    const emptyText = document.createElement('p');
+                    emptyText.className = 'empty-section-text pl-4';
+                     const sectionTitleText = currentSectionDiv.firstChild.textContent.toUpperCase();
+                     if (sectionTitleText === 'ALLERGIES' || sectionTitleText === 'MEDICATIONS' || sectionTitleText === 'PAST MEDICAL HISTORY') {
+                         emptyText.textContent = 'None identified from transcript.';
+                     } else if (sectionTitleText.includes("DON'T MISS") && sectionTitleText.includes("IF APPLICABLE")) {
+                         emptyText.textContent = 'None specifically identified as "Don\'t Miss" based on current information.';
+                     } else if (sectionTitleText.includes("ADDITIONAL WORKUP") && sectionTitleText.includes("IF APPLICABLE AND PERTINENT")) {
+                         emptyText.textContent = 'N/A';
+                     }
+                     if(emptyText.textContent) currentSectionDiv.appendChild(emptyText);
+                }
+                outputDiv.appendChild(currentSectionDiv);
+            }
+            
+            if (outputDiv.innerHTML.trim() === '') {
+                 outputDiv.innerHTML = `<p class="empty-section-text">${outputElementId === 'aiNotesOutput' ? 'Clinical note will appear here.' : 'AI Analysis will appear here.'}</p>`;
+            }
+            outputDiv.scrollTop = 0; 
+        }
+
+
+        function addChatMessage(text, sender, outputElementId = 'discussionChatOutput') { 
+            const chatOutputDiv = document.getElementById(outputElementId);
+            if(!chatOutputDiv) return; 
+
+            if (chatOutputDiv.innerHTML.includes("will appear here") || (chatOutputDiv.firstChild && chatOutputDiv.firstChild.nodeName === 'P' && chatOutputDiv.firstChild.classList.contains('text-slate-400'))) {
+                chatOutputDiv.innerHTML = '';
+            }
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${sender === 'physician' ? 'chat-bubble-physician' : 'chat-bubble-ai'}`;
+            bubble.textContent = text;
+            chatOutputDiv.appendChild(bubble);
+            chatOutputDiv.scrollTop = chatOutputDiv.scrollHeight;
+        }
+
+        // Image Modal Logic
+        uploadImageBtn.addEventListener('click', () => imageUploadModal.classList.add('active'));
+        closeImageModalBtn.addEventListener('click', () => imageUploadModal.classList.remove('active'));
+        cancelImageAnalysisBtn.addEventListener('click', () => imageUploadModal.classList.remove('active'));
+
+        imageUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                currentImageMimeType = file.type;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    currentImageBase64 = e.target.result.split(',')[1]; 
+                    imagePreviewContainer.classList.remove('hidden');
+                    analyzeImageBtn.disabled = false;
+                    imageAnalysisResult.innerHTML = '<p class="text-slate-400 italic">AI description of image findings will appear here...</p>';
+                    imageApprovalControls.classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                imagePreviewContainer.classList.add('hidden');
+                imagePreview.src = "#";
+                analyzeImageBtn.disabled = true;
+                currentImageBase64 = null;
+                currentImageMimeType = null;
+            }
+        });
+
+        analyzeImageBtn.addEventListener('click', async () => {
+            if (!currentImageBase64 || !currentImageMimeType) {
+                displayError("Please select an image first.", "imageAnalysisResult");
+                return;
+            }
+            imageAnalysisResult.innerHTML = '<p class="text-slate-500 italic">AI is analyzing the image, please wait...</p>';
+            analyzeImageBtn.disabled = true;
+            try {
+                const prompt = IMAGE_ANALYSIS_PROMPT_TEMPLATE;
+                const description = await callGeminiAPI(prompt, currentImageBase64, currentImageMimeType); 
+                currentImageDescription = description.trim();
+                imageAnalysisResult.textContent = currentImageDescription;
+                imageApprovalControls.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Error analyzing image:", error);
+                displayError(`Error analyzing image: ${error.message}. Ensure a vision-capable model is selected (e.g., gemini-pro-vision).`, "imageAnalysisResult");
+            } finally {
+                analyzeImageBtn.disabled = false;
+            }
+        });
+
+        approveImageDescriptionBtn.addEventListener('click', async () => {
+            if (currentImageDescription) {
+                fullTranscript += `\n\n--- CLINICAL IMAGE FINDINGS ---\n${currentImageDescription}\n--- END CLINICAL IMAGE FINDINGS ---`;
+                imageUploadModal.classList.remove('active');
+                imagePreviewContainer.classList.add('hidden');
+                imagePreview.src = "#";
+                imageUploadInput.value = ""; 
+                analyzeImageBtn.disabled = true;
+                imageAnalysisResult.innerHTML = '<p class="text-slate-400 italic">AI description of image findings will appear here...</p>';
+                imageApprovalControls.classList.add('hidden');
+                currentImageBase64 = null;
+                currentImageMimeType = null;
+                currentImageDescription = "";
+
+                if (fullTranscript.trim()) {
+                    addChatMessage("Image findings integrated. Regenerating note and analysis...", "ai", 'discussionChatOutput'); 
+                    await generateInitialNoteAndAnalysis(fullTranscript);
+                }
+            }
+        });
+
+
+        // Event Listeners
+        startButton.addEventListener('click', () => {
+            if (!SpeechRecognition) return;
+            if (!isRecording) { 
+                fullTranscript = ""; 
+                currentDraftNote = "";
+                currentAiAnalysis = "";
+                transcriptWordCount = 0; 
+                shownSuggestionTexts.clear(); 
+                lastTranscriptLengthForSuggestion = 0;
+                transcriptionOutput.innerHTML = '<p class="text-slate-400 italic">Initializing microphone...</p>';
+                aiNotesOutput.innerHTML = '<p class="text-slate-400 italic">AI insights will generate here after stopping the recording...</p>';
+                aiAnalysisContentOutput.innerHTML = '<p class="text-slate-400 italic">AI Analysis will generate here after stopping the recording...</p>';
+                realtimeSuggestionsOutput.innerHTML = '<p class="text-slate-400 italic">Real-time AI suggestions will appear here during recording...</p>';
+                discussionChatOutput.innerHTML = '<p class="text-slate-400 italic">Discussion about the note will appear here...</p>';
+                resetTimer();
+                try {
+                    recognition.start();
+                } catch (e) {
+                    displayError(`Could not start microphone: ${e.message}.`);
+                    isRecording = false; 
+                    updateUIForRecordingState();
+                }
+            }
+        });
+
+        pauseButton.addEventListener('click', () => {
+            if (!SpeechRecognition || !isRecording || isDiscussing) return;
+            isPaused = !isPaused;
+            if (isPaused) {
+                recognition.stop(); 
+                stopTimer(); 
+                clearInterval(aiSuggestionInterval);
+                console.log("Recording paused");
+            } else { 
+                try {
+                    recognition.start(); 
+                    // aiSuggestionInterval = setInterval(fetchAndDisplayAiSuggestions, 15000); 
+                    console.log("Recording resumed");
+                } catch (e) {
+                    displayError(`Could not resume microphone: ${e.message}.`);
+                    isPaused = true; 
+                }
+            }
+            updateUIForRecordingState();
+        });
+
+        stopButton.addEventListener('click', async () => {
+            if (!SpeechRecognition || !isRecording || isDiscussing) return;
+            
+            isRecording = false;
+            isPaused = false;
+            recognition.stop(); 
+            stopTimer();
+            clearInterval(aiSuggestionInterval);
+            updateUIForRecordingState();
+            console.log("Recording stopped. Final Transcript:", fullTranscript);
+            
+            if (fullTranscript.trim()) {
+                await generateInitialNoteAndAnalysis(fullTranscript); 
+            } else {
+                aiNotesOutput.innerHTML = '<p class="text-slate-400 italic">No transcription data to generate notes from.</p>';
+                aiAnalysisContentOutput.innerHTML = '<p class="text-slate-400 italic">No transcription data for AI Analysis.</p>';
+                saveButton.disabled = true;
+            }
+        });
+        
+        sendFeedbackButton.addEventListener('click', () => { 
+            const feedback = physicianFeedbackInput.value;
+            if (feedback.trim()) {
+                addChatMessage(feedback, 'physician', 'discussionChatOutput');
+                handleDiscussionInput(feedback); 
+                physicianFeedbackInput.value = '';
+            }
+        });
+
+        physicianFeedbackInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendFeedbackButton.click();
+            }
+        });
+        
+        
+        discussMicButton.addEventListener('click', () => { 
+            if (!discussionRecognition || isRecording) return; 
+            if (isDiscussing) { 
+                discussionRecognition.stop();
+            } else { 
+                 if (discussionChatOutput.innerHTML.includes("will appear here")) {
+                    discussionChatOutput.innerHTML = '';
+                }
+                try {
+                    discussionRecognition.start();
+                } catch (e) {
+                    displayError(`Could not start discussion mic: ${e.message}.`, 'discussionChatOutput');
+                }
+            }
+        });
+
+        saveButton.addEventListener('click', () => {
+            if (!isRecording && fullTranscript.trim() && currentDraftNote.trim()) {
+                const sessionData = {
+                    patientId: document.getElementById('patientId').value,
+                    visitDate: document.getElementById('visitDate').value,
+                    duration: formatTime(secondsElapsed),
+                    transcript: fullTranscript,
+                    aiClinicalNote: currentDraftNote, 
+                    aiAnalysis: currentAiAnalysis  
+                };
+                const blob = new Blob([JSON.stringify(sessionData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `session_${sessionData.patientId}_${sessionData.visitDate.replace(/-/g,'')}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert("Session data prepared for download.");
+            } else {
+                alert("No complete data to save or recording is active.");
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDateTime();
+            setInterval(updateDateTime, 60000);
+            currentYearSpan.textContent = new Date().getFullYear();
+            updateUIForRecordingState();
+            switchTab('left', 'liveTranscription');
+            switchTab('right', 'realtimeSuggestions');
+            
+            const adjustMinHeight = () => {
+                const headerHeight = document.querySelector('header')?.offsetHeight || 0;
+                const apiBarHeight = document.querySelector('.bg-slate-200')?.offsetHeight || 0;
+                const patientBarHeight = document.querySelector('.bg-slate-100')?.offsetHeight || 0;
+                const controlsHeight = document.querySelector('.bg-white.py-3.px-4')?.offsetHeight || 0;
+                const footerHeight = document.querySelector('footer')?.offsetHeight || 0;
+                const mainPadding = 32; 
+                const tabNavHeight = document.querySelector('.border-b.border-slate-200 nav')?.offsetHeight || 40; 
+
+                const availableHeight = window.innerHeight - headerHeight - apiBarHeight - patientBarHeight - controlsHeight - footerHeight - mainPadding - tabNavHeight - 40; 
+
+                document.querySelectorAll('.lg\\:min-h-\\[calc\\(100vh-400px\\)\\]').forEach(el => {
+                    el.style.minHeight = `${Math.max(250, availableHeight)}px`; 
+                });
+            };
+            adjustMinHeight();
+            window.addEventListener('resize', adjustMinHeight);
+        });
+
+    </script>
+</body>
+</html>
