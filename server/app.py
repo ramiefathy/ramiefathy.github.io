@@ -7,7 +7,7 @@ import logging
 from dotenv import load_dotenv
 
 # Import local modules
-import config # Ensure this is imported to use config.GEMINI_API_KEY
+import config 
 from session_manager import SessionManager
 from gemini_service import GeminiService
 from prompts import (
@@ -20,7 +20,7 @@ from prompts import (
 )
 
 # Load environment variables from .env file
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env')) # Load .env from root
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env')) 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
@@ -37,31 +37,31 @@ async def process_http_request(path, request_headers):
     Responds to Render's health checks (often GET or HEAD on /)
     to prevent WebSocket handshake errors from these pings.
     """
-    if request_headers.get("Upgrade", "").lower() == "websocket":
-        return None  # Let the WebSocket handshake proceed
+    # If it's a WebSocket upgrade request, let the library handle it
+    if "Upgrade" in request_headers and request_headers["Upgrade"].lower() == "websocket":
+        return None  # Handled by websockets library
 
     # Handle Render health checks (typically GET / or sometimes HEAD /)
-    # Render's default health check is an HTTP GET request to the root path (/).
-    # If it's sending HEAD, we'll respond to that too.
     if path == "/" and (request_headers.get_method() == "GET" or request_headers.get_method() == "HEAD"):
         logger.info(f"Responding to HTTP {request_headers.get_method()} health check on path: {path}")
         # Send a minimal valid HTTP response
-        headers = {
-            "Content-Type": "text/plain",
-            "Content-Length": "2",
-        }
-        return websockets.http.Response(200, "OK", headers), b"OK" # Status, Headers, Body
+        # Headers should be a list of (name, value) tuples
+        response_headers = [
+            ("Content-Type", "text/plain"),
+            ("Content-Length", "2"),
+        ]
+        return 200, response_headers, b"OK" # Status, Headers, Body
     
     logger.warning(f"Received non-WebSocket HTTP {request_headers.get_method()} request on path {path} - returning 404")
-    headers = {
-        "Content-Type": "text/plain",
-        "Content-Length": "9",
-    }
-    return websockets.http.Response(404, "Not Found", headers), b"Not Found"
+    response_headers = [
+        ("Content-Type", "text/plain"),
+        ("Content-Length", "9"),
+    ]
+    return 404, response_headers, b"Not Found"
 
 
 # --- WebSocket Handler ---
-async def handler(websocket, path=None): # path is provided by websockets.serve
+async def handler(websocket, path=None): 
     """
     Handles WebSocket connections and messages from clients.
     """
@@ -75,7 +75,6 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
             message = json.loads(message_str)
             message_type = message.get("type")
             data = message.get("data", {})
-            # Use session_id established at connection, not from client message, for security/consistency
             current_session_id_to_use = session_id 
 
             session = session_manager.get_session(current_session_id_to_use)
@@ -88,20 +87,24 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
 
             if message_type == "start_new_session":
                 logger.info(f"Starting new session explicitly for {current_session_id_to_use}")
-                session.reset_session_data() # Implement this method in Session class
-                await websocket.send(json.dumps({"type": "status", "message": "New session started. Ready to record."}))
+                session.reset_session_data() 
+                await websocket.send(json.dumps({"type": "status", "message": "New session initialized. Ready to record."}))
             
             elif message_type == "transcript_segment":
                 segment = data.get("segment", "")
                 is_final = data.get("is_final", False)
                 
                 session.add_transcript_segment(segment, is_final)
-                if is_final and len(session.full_transcript.split()) > session.last_suggestion_word_count + 20 : # Heuristic
-                    session.last_suggestion_word_count = len(session.full_transcript.split())
+                # Trigger real-time suggestions based on word count progression
+                current_word_count = len(session.full_transcript.split())
+                suggestion_trigger_threshold = 20 # Words to trigger suggestion check
+                if is_final and current_word_count > session.last_suggestion_word_count + suggestion_trigger_threshold:
+                    session.last_suggestion_word_count = current_word_count
                     asyncio.create_task(trigger_realtime_suggestions(websocket, current_session_id_to_use, data.get("modelName")))
 
             elif message_type == "stop_finalize_recording":
                 logger.info(f"Finalizing recording for session {current_session_id_to_use}")
+                session.stop_timer() # Stop the session timer
                 await websocket.send(json.dumps({"type": "status", "message": "Finalizing note and analysis..."}))
                 prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
                 try:
@@ -115,7 +118,7 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                         "aiAnalysis": analysis_text
                     }))
                 except Exception as e:
-                    logger.error(f"Error during final generation for {current_session_id_to_use}: {e}")
+                    logger.error(f"Error during final generation for {current_session_id_to_use}: {e}", exc_info=True)
                     await websocket.send(json.dumps({"type": "error", "message": f"Error generating final note/analysis: {str(e)}"}))
 
             elif message_type == "analyze_image":
@@ -128,15 +131,15 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                     continue
 
                 await websocket.send(json.dumps({"type": "status", "message": "Analyzing image..."}))
-                prompt = IMAGE_ANALYSIS_PROMPT_TEMPLATE
+                prompt_text = IMAGE_ANALYSIS_PROMPT_TEMPLATE # The prompt text
                 try:
-                    description = await gemini_service.call_gemini_api(prompt, model_name=model_name, image_base64=image_base64, image_mime_type=image_mime_type)
+                    description = await gemini_service.call_gemini_api(prompt_text, model_name=model_name, image_base64=image_base64, image_mime_type=image_mime_type)
                     await websocket.send(json.dumps({
                         "type": "image_analysis_result",
                         "description": description
                     }))
                 except Exception as e:
-                    logger.error(f"Error during image analysis for {current_session_id_to_use}: {e}")
+                    logger.error(f"Error during image analysis for {current_session_id_to_use}: {e}", exc_info=True)
                     await websocket.send(json.dumps({"type": "error", "message": f"Error analyzing image: {str(e)}"}))
             
             elif message_type == "integrate_image_description":
@@ -158,7 +161,7 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                             "message": "Note and analysis updated with image findings."
                         }))
                     except Exception as e:
-                        logger.error(f"Error during regeneration after image integration for {current_session_id_to_use}: {e}")
+                        logger.error(f"Error during regeneration after image integration for {current_session_id_to_use}: {e}", exc_info=True)
                         await websocket.send(json.dumps({"type": "error", "message": f"Error regenerating after image: {str(e)}"}))
 
 
@@ -184,23 +187,21 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                     }))
 
                     lower_ai_response = ai_response_text.lower()
-                    new_info_keywords = ["will update the note and analysis", "updating the note and analysis", "regenerating with new information", "i've updated the note and analysis", "i will update both"]
-                    note_update_keywords = ["will update the clinical note", "updating the clinical note", "i've updated the clinical note"]
-                    # Analysis update keywords are less likely to be explicitly stated by AI in conversational response
-                    # We will rely more on physician input keywords for analysis updates.
+                    # Keywords indicating AI *will* update based on the input
+                    new_info_keywords_in_ai_response = ["will update the note and analysis", "updating the note and analysis", "regenerating with new information", "i've updated the note and analysis", "i will update both"]
+                    note_update_keywords_in_ai_response = ["will update the clinical note", "updating the clinical note", "i've updated the clinical note"]
                     
-                    # Check if physician input implies new clinical info for full regeneration
+                    # Keywords in physician input that suggest new clinical information
                     physician_new_info_keywords = ["patient also reports", "new finding:", "update on symptoms:", "i forgot to mention:", "add to history:", "observed that:", "test result shows", "labs are back", "correction to symptoms", "additional detail is", "the image shows"]
                     
-                    should_regenerate_all = any(k in lower_ai_response for k in new_info_keywords) or \
+                    should_regenerate_all = any(k in lower_ai_response for k in new_info_keywords_in_ai_response) or \
                                             any(k in physician_input.lower() for k in physician_new_info_keywords)
 
-                    should_update_note_only = any(k in lower_ai_response for k in note_update_keywords) and not should_regenerate_all
+                    should_update_note_only = any(k in lower_ai_response for k in note_update_keywords_in_ai_response) and not should_regenerate_all
 
 
                     if should_regenerate_all:
                         logger.info(f"Discussion triggered full regeneration for session {current_session_id_to_use}")
-                        # Append physician_input to transcript if it's new clinical info
                         session.add_transcript_segment(f"\n\n--- PHYSICIAN INPUT (DISCUSSION LEADING TO REGEN) ---\n{physician_input}\n--- END PHYSICIAN INPUT ---\n", True)
                         
                         regen_prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
@@ -223,24 +224,23 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                             "type": "note_updated",
                             "draftNote": refined_note
                         }))
-                    # No separate "analysis_only" update from conversation; new clinical info triggers full regen.
+                    # Note: AI Analysis refinement based *only* on discussion input (without new clinical info) is not explicitly handled here.
+                    # It's assumed new clinical info would trigger full regeneration. Specific analysis refinement might need a dedicated trigger.
 
                 except Exception as e:
-                    logger.error(f"Error during discussion processing for {current_session_id_to_use}: {e}")
+                    logger.error(f"Error during discussion processing for {current_session_id_to_use}: {e}", exc_info=True)
                     await websocket.send(json.dumps({"type": "error", "message": f"Error in discussion: {str(e)}"}))
             
             elif message_type == "request_session_data_for_save":
                 logger.info(f"Client {current_session_id_to_use} requested session data for saving.")
-                # In a real app, you might get patientId and visitDate from the session if stored there
-                # For now, using placeholders or data sent from client if available
-                patient_id = session.patient_id if hasattr(session, 'patient_id') else data.get("patientId", "UnknownPatient")
-                visit_date = session.visit_date if hasattr(session, 'visit_date') else data.get("visitDate", "UnknownDate")
+                patient_id = data.get("patientId", "UnknownPatient") # Get from client data
+                visit_date = data.get("visitDate", "UnknownDate")   # Get from client data
                 
                 await websocket.send(json.dumps({
                     "type": "session_data_response",
                     "patientId": patient_id,
                     "visitDate": visit_date, 
-                    "duration": session.get_formatted_duration(), # Add method to session
+                    "duration": session.get_formatted_duration(),
                     "transcript": session.full_transcript,
                     "aiClinicalNote": session.current_draft_note,
                     "aiAnalysis": session.current_ai_analysis
@@ -306,7 +306,7 @@ async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=
                     "message": "No specific suggestions at this moment."
                 }))
     except Exception as e:
-        logger.error(f"Error fetching real-time suggestions for {session_id}: {e}")
+        logger.error(f"Error fetching real-time suggestions for {session_id}: {e}", exc_info=True)
         await websocket.send(json.dumps({"type": "error", "area": "suggestions", "message": "Error fetching suggestions."}))
 
 
@@ -315,9 +315,8 @@ async def main():
     port = int(os.getenv("PORT", 8765)) 
     
     logger.info(f"Starting WebSocket server on {host}:{port}")
-    # Pass process_request to websockets.serve
     async with websockets.serve(handler, host, port, max_size=10*1024*1024, process_request=process_http_request):
-        await asyncio.Future()  # Run forever
+        await asyncio.Future()
 
 if __name__ == "__main__":
     if not config.GEMINI_API_KEY: 
@@ -325,4 +324,3 @@ if __name__ == "__main__":
     else:
         os.environ['PYTHONUNBUFFERED'] = '1' 
         asyncio.run(main())
-
