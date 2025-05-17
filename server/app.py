@@ -28,19 +28,45 @@ logger = logging.getLogger(__name__)
 
 # Initialize services
 session_manager = SessionManager()
-# gemini_api_key is now accessed via config.GEMINI_API_KEY
 gemini_service = GeminiService(api_key=config.GEMINI_API_KEY)
 
+# --- Custom HTTP Request Processing for Health Checks ---
+async def process_http_request(path, request_headers):
+    """
+    Handles initial HTTP requests.
+    Responds to Render's health checks (often GET or HEAD on /)
+    to prevent WebSocket handshake errors from these pings.
+    """
+    if request_headers.get("Upgrade", "").lower() == "websocket":
+        return None  # Let the WebSocket handshake proceed
+
+    # Handle Render health checks (typically GET / or sometimes HEAD /)
+    # Render's default health check is an HTTP GET request to the root path (/).
+    # If it's sending HEAD, we'll respond to that too.
+    if path == "/" and (request_headers.get_method() == "GET" or request_headers.get_method() == "HEAD"):
+        logger.info(f"Responding to HTTP {request_headers.get_method()} health check on path: {path}")
+        # Send a minimal valid HTTP response
+        headers = {
+            "Content-Type": "text/plain",
+            "Content-Length": "2",
+        }
+        return websockets.http.Response(200, "OK", headers), b"OK" # Status, Headers, Body
+    
+    logger.warning(f"Received non-WebSocket HTTP {request_headers.get_method()} request on path {path} - returning 404")
+    headers = {
+        "Content-Type": "text/plain",
+        "Content-Length": "9",
+    }
+    return websockets.http.Response(404, "Not Found", headers), b"Not Found"
+
+
 # --- WebSocket Handler ---
-async def handler(websocket, path=None): # Made 'path' argument optional
+async def handler(websocket, path=None): # path is provided by websockets.serve
     """
     Handles WebSocket connections and messages from clients.
-    The 'path' argument is expected by websockets.serve, but made optional here
-    to handle potential invocation issues on some platforms.
     """
     session_id = None
     try:
-        # Create a new session for this connection
         session_id = session_manager.create_session()
         logger.info(f"Client connected: {websocket.remote_address}, Path: {path}, Session ID: {session_id}")
         await websocket.send(json.dumps({"type": "connection_ack", "sessionId": session_id, "message": "Connected to AI Scribe Server"}))
@@ -49,14 +75,8 @@ async def handler(websocket, path=None): # Made 'path' argument optional
             message = json.loads(message_str)
             message_type = message.get("type")
             data = message.get("data", {})
-            client_session_id = data.get("sessionId", session_id) 
-
-            if client_session_id != session_id and client_session_id is not None:
-                logger.warning(f"Session ID mismatch. Expected {session_id}, got {client_session_id}.")
-                # For simplicity, we'll proceed with the initial session_id.
-                # In a more robust system, you might try to retrieve/validate the client_session_id.
-            
-            current_session_id_to_use = session_id # Use the one created at connection start
+            # Use session_id established at connection, not from client message, for security/consistency
+            current_session_id_to_use = session_id 
 
             session = session_manager.get_session(current_session_id_to_use)
             if not session:
@@ -66,25 +86,19 @@ async def handler(websocket, path=None): # Made 'path' argument optional
 
             logger.info(f"Received message type: {message_type} from {current_session_id_to_use}")
 
-            if message_type == "transcript_segment":
+            if message_type == "start_new_session":
+                logger.info(f"Starting new session explicitly for {current_session_id_to_use}")
+                session.reset_session_data() # Implement this method in Session class
+                await websocket.send(json.dumps({"type": "status", "message": "New session started. Ready to record."}))
+            
+            elif message_type == "transcript_segment":
                 segment = data.get("segment", "")
                 is_final = data.get("is_final", False)
-                is_discussion_segment = data.get("is_discussion", False) # Check if it's from discussion mic
-
-                if is_discussion_segment:
-                    # If it's a discussion segment, we might not add it to the main transcript
-                    # or handle it differently. For now, the client sends discussion input
-                    # via "discussion_input" message type after its own STT.
-                    # This "transcript_segment" with "is_discussion" might be if we decide
-                    # to stream discussion mic audio to backend STT in the future.
-                    # For now, we assume client handles STT for discussion and sends "discussion_input".
-                    logger.info(f"Discussion transcript segment received for {current_session_id_to_use}: {segment}")
-                else:
-                    session.add_transcript_segment(segment, is_final)
-                    if is_final and len(session.full_transcript.split()) > session.last_suggestion_word_count + config.GEMINI_SUGGESTION_MODEL.count("flash")*5 : # Heuristic for suggestion frequency
-                        session.last_suggestion_word_count = len(session.full_transcript.split())
-                        asyncio.create_task(trigger_realtime_suggestions(websocket, current_session_id_to_use, data.get("modelName")))
-
+                
+                session.add_transcript_segment(segment, is_final)
+                if is_final and len(session.full_transcript.split()) > session.last_suggestion_word_count + 20 : # Heuristic
+                    session.last_suggestion_word_count = len(session.full_transcript.split())
+                    asyncio.create_task(trigger_realtime_suggestions(websocket, current_session_id_to_use, data.get("modelName")))
 
             elif message_type == "stop_finalize_recording":
                 logger.info(f"Finalizing recording for session {current_session_id_to_use}")
@@ -107,7 +121,6 @@ async def handler(websocket, path=None): # Made 'path' argument optional
             elif message_type == "analyze_image":
                 image_base64 = data.get("imageBase64")
                 image_mime_type = data.get("imageMimeType")
-                # Use client-preferred model if available, else default vision model
                 model_name = data.get("modelName", config.GEMINI_VISION_MODEL) 
                 
                 if not image_base64 or not image_mime_type:
@@ -171,18 +184,25 @@ async def handler(websocket, path=None): # Made 'path' argument optional
                     }))
 
                     lower_ai_response = ai_response_text.lower()
-                    new_info_keywords = ["will update the note and analysis", "updating the note and analysis", "regenerating with new information"]
-                    note_update_keywords = ["will update the clinical note", "updating the clinical note"]
-                    analysis_update_keywords = ["will update the ai analysis", "updating the ai analysis"]
+                    new_info_keywords = ["will update the note and analysis", "updating the note and analysis", "regenerating with new information", "i've updated the note and analysis", "i will update both"]
+                    note_update_keywords = ["will update the clinical note", "updating the clinical note", "i've updated the clinical note"]
+                    # Analysis update keywords are less likely to be explicitly stated by AI in conversational response
+                    # We will rely more on physician input keywords for analysis updates.
+                    
+                    # Check if physician input implies new clinical info for full regeneration
+                    physician_new_info_keywords = ["patient also reports", "new finding:", "update on symptoms:", "i forgot to mention:", "add to history:", "observed that:", "test result shows", "labs are back", "correction to symptoms", "additional detail is", "the image shows"]
+                    
+                    should_regenerate_all = any(k in lower_ai_response for k in new_info_keywords) or \
+                                            any(k in physician_input.lower() for k in physician_new_info_keywords)
 
-                    should_regenerate_all = any(k in lower_ai_response for k in new_info_keywords)
                     should_update_note_only = any(k in lower_ai_response for k in note_update_keywords) and not should_regenerate_all
-                    should_update_analysis_only = any(k in lower_ai_response for k in analysis_update_keywords) and not should_regenerate_all
 
 
                     if should_regenerate_all:
                         logger.info(f"Discussion triggered full regeneration for session {current_session_id_to_use}")
+                        # Append physician_input to transcript if it's new clinical info
                         session.add_transcript_segment(f"\n\n--- PHYSICIAN INPUT (DISCUSSION LEADING TO REGEN) ---\n{physician_input}\n--- END PHYSICIAN INPUT ---\n", True)
+                        
                         regen_prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
                         regen_response_text = await gemini_service.call_gemini_api(regen_prompt, model_name=model_name_pref)
                         new_note, new_analysis = gemini_service.parse_initial_generation(regen_response_text)
@@ -194,46 +214,37 @@ async def handler(websocket, path=None): # Made 'path' argument optional
                             "aiAnalysis": new_analysis,
                             "updateSource": "discussion_input_regen_all"
                         }))
-                    else:
-                        if should_update_note_only:
-                            logger.info(f"Discussion triggered note refinement for session {current_session_id_to_use}")
-                            ref_prompt = NOTE_REFINEMENT_PROMPT_TEMPLATE(session.full_transcript, session.current_draft_note, physician_input)
-                            refined_note = await gemini_service.call_gemini_api(ref_prompt, model_name=model_name_pref)
-                            session.update_draft_note(refined_note)
-                            await websocket.send(json.dumps({
-                                "type": "note_updated",
-                                "draftNote": refined_note
-                            }))
-                        if should_update_analysis_only: # This might need a more specific trigger
-                            logger.info(f"Discussion triggered AI analysis refinement for session {current_session_id_to_use}")
-                            # Add physician input to transcript for context if it's for analysis refinement
-                            session.add_transcript_segment(f"\n\n--- PHYSICIAN QUERY FOR ANALYSIS REFINEMENT ---\n{physician_input}\n--- END PHYSICIAN QUERY ---\n", True)
-                            analysis_ref_prompt = AI_ANALYSIS_REFINEMENT_PROMPT_TEMPLATE(session.full_transcript, session.current_ai_analysis, physician_input)
-                            refined_analysis = await gemini_service.call_gemini_api(analysis_ref_prompt, model_name=model_name_pref)
-                            session.update_ai_analysis(refined_analysis)
-                            await websocket.send(json.dumps({
-                                "type": "analysis_updated",
-                                "aiAnalysis": refined_analysis
-                            }))
+                    elif should_update_note_only:
+                        logger.info(f"Discussion triggered note refinement for session {current_session_id_to_use}")
+                        ref_prompt = NOTE_REFINEMENT_PROMPT_TEMPLATE(session.full_transcript, session.current_draft_note, physician_input)
+                        refined_note = await gemini_service.call_gemini_api(ref_prompt, model_name=model_name_pref)
+                        session.update_draft_note(refined_note)
+                        await websocket.send(json.dumps({
+                            "type": "note_updated",
+                            "draftNote": refined_note
+                        }))
+                    # No separate "analysis_only" update from conversation; new clinical info triggers full regen.
 
                 except Exception as e:
                     logger.error(f"Error during discussion processing for {current_session_id_to_use}: {e}")
                     await websocket.send(json.dumps({"type": "error", "message": f"Error in discussion: {str(e)}"}))
             
             elif message_type == "request_session_data_for_save":
-                # This is a client request, server can send back data for client to handle download
-                # Or server could save it to a database/file if that functionality is added
                 logger.info(f"Client {current_session_id_to_use} requested session data for saving.")
+                # In a real app, you might get patientId and visitDate from the session if stored there
+                # For now, using placeholders or data sent from client if available
+                patient_id = session.patient_id if hasattr(session, 'patient_id') else data.get("patientId", "UnknownPatient")
+                visit_date = session.visit_date if hasattr(session, 'visit_date') else data.get("visitDate", "UnknownDate")
+                
                 await websocket.send(json.dumps({
                     "type": "session_data_response",
-                    "patientId": "P00123", # Placeholder, get from session if stored
-                    "visitDate": "2024-05-17", # Placeholder
-                    "duration": session.timer_duration_formatted_on_stop if hasattr(session, 'timer_duration_formatted_on_stop') else "00:00:00",
+                    "patientId": patient_id,
+                    "visitDate": visit_date, 
+                    "duration": session.get_formatted_duration(), # Add method to session
                     "transcript": session.full_transcript,
                     "aiClinicalNote": session.current_draft_note,
                     "aiAnalysis": session.current_ai_analysis
                 }))
-
 
             else:
                 logger.warning(f"Unknown message type received: {message_type} from {current_session_id_to_use}")
@@ -245,7 +256,7 @@ async def handler(websocket, path=None): # Made 'path' argument optional
         logger.error(f"Client connection closed with error: {websocket.remote_address}, Session ID: {session_id}, Error: {e}")
     except Exception as e:
         logger.error(f"Unhandled error in WebSocket handler for session {session_id}: {e}", exc_info=True)
-        if websocket.open: # Check if socket is still open before trying to send
+        if websocket.open: 
             try:
                 await websocket.send(json.dumps({"type": "error", "message": "An unexpected server error occurred."}))
             except websockets.exceptions.ConnectionClosed:
@@ -260,7 +271,6 @@ async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=
     if not session or not session.full_transcript.strip() or not config.GEMINI_API_KEY:
         return
 
-    # Use a segment of the transcript for suggestions
     recent_context_chars = 1000 
     transcript_segment = session.full_transcript[-recent_context_chars:]
 
@@ -305,7 +315,8 @@ async def main():
     port = int(os.getenv("PORT", 8765)) 
     
     logger.info(f"Starting WebSocket server on {host}:{port}")
-    async with websockets.serve(handler, host, port, max_size=10*1024*1024): # Increased max_size for image data
+    # Pass process_request to websockets.serve
+    async with websockets.serve(handler, host, port, max_size=10*1024*1024, process_request=process_http_request):
         await asyncio.Future()  # Run forever
 
 if __name__ == "__main__":
@@ -314,3 +325,4 @@ if __name__ == "__main__":
     else:
         os.environ['PYTHONUNBUFFERED'] = '1' 
         asyncio.run(main())
+
