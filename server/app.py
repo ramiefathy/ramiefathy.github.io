@@ -37,31 +37,39 @@ async def process_http_request(path, request_headers):
     Responds to Render's health checks (often GET or HEAD on /)
     to prevent WebSocket handshake errors from these pings.
     """
+    method = request_headers.get_method()
+    logger.debug(f"process_http_request received: Path='{path}', Method='{method}'")
+
     # If it's a WebSocket upgrade request, let the library handle it
     if "Upgrade" in request_headers and request_headers["Upgrade"].lower() == "websocket":
-        return None  # Handled by websockets library
+        logger.debug("Request is a WebSocket upgrade. Passing to WebSocket handler.")
+        return None  # Let the WebSocket handshake proceed
 
-    # Handle Render health checks (typically GET / or sometimes HEAD /)
-    if path == "/" and (request_headers.get_method() == "GET" or request_headers.get_method() == "HEAD"):
-        logger.info(f"Responding to HTTP {request_headers.get_method()} health check on path: {path}")
-        # Send a minimal valid HTTP response
-        # Headers should be a list of (name, value) tuples
-        response_headers = [
+    # Handle Render health checks (typically GET or HEAD, often to root path or no specific path)
+    # Render's default health check path is typically `/` but let's be flexible.
+    # The logs showed client connections sometimes have `Path: None`.
+    # We will respond with 200 OK if it's a GET or HEAD to common health check paths.
+    if (path is None or path == "" or path == "/") and (method == "GET" or method == "HEAD"):
+        logger.info(f"Responding to HTTP {method} health check (path: '{path}').")
+        response_headers_list = [
             ("Content-Type", "text/plain"),
             ("Content-Length", "2"),
+            ("Connection", "close"), 
         ]
-        return 200, response_headers, b"OK" # Status, Headers, Body
+        # The websockets library expects a tuple: (status_code, headers, body_bytes)
+        return (200, response_headers_list, b"OK")
     
-    logger.warning(f"Received non-WebSocket HTTP {request_headers.get_method()} request on path {path} - returning 404")
-    response_headers = [
+    logger.warning(f"Unhandled HTTP {method} request for path: '{path}'. Returning 404.")
+    response_headers_list = [
         ("Content-Type", "text/plain"),
         ("Content-Length", "9"),
+        ("Connection", "close"),
     ]
-    return 404, response_headers, b"Not Found"
+    return (404, response_headers_list, b"Not Found")
 
 
 # --- WebSocket Handler ---
-async def handler(websocket, path=None): 
+async def handler(websocket, path=None): # path is provided by websockets.serve
     """
     Handles WebSocket connections and messages from clients.
     """
@@ -95,16 +103,15 @@ async def handler(websocket, path=None):
                 is_final = data.get("is_final", False)
                 
                 session.add_transcript_segment(segment, is_final)
-                # Trigger real-time suggestions based on word count progression
                 current_word_count = len(session.full_transcript.split())
-                suggestion_trigger_threshold = 20 # Words to trigger suggestion check
+                suggestion_trigger_threshold = 20 
                 if is_final and current_word_count > session.last_suggestion_word_count + suggestion_trigger_threshold:
                     session.last_suggestion_word_count = current_word_count
                     asyncio.create_task(trigger_realtime_suggestions(websocket, current_session_id_to_use, data.get("modelName")))
 
             elif message_type == "stop_finalize_recording":
                 logger.info(f"Finalizing recording for session {current_session_id_to_use}")
-                session.stop_timer() # Stop the session timer
+                session.stop_timer() 
                 await websocket.send(json.dumps({"type": "status", "message": "Finalizing note and analysis..."}))
                 prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
                 try:
@@ -131,7 +138,7 @@ async def handler(websocket, path=None):
                     continue
 
                 await websocket.send(json.dumps({"type": "status", "message": "Analyzing image..."}))
-                prompt_text = IMAGE_ANALYSIS_PROMPT_TEMPLATE # The prompt text
+                prompt_text = IMAGE_ANALYSIS_PROMPT_TEMPLATE 
                 try:
                     description = await gemini_service.call_gemini_api(prompt_text, model_name=model_name, image_base64=image_base64, image_mime_type=image_mime_type)
                     await websocket.send(json.dumps({
@@ -187,11 +194,9 @@ async def handler(websocket, path=None):
                     }))
 
                     lower_ai_response = ai_response_text.lower()
-                    # Keywords indicating AI *will* update based on the input
                     new_info_keywords_in_ai_response = ["will update the note and analysis", "updating the note and analysis", "regenerating with new information", "i've updated the note and analysis", "i will update both"]
                     note_update_keywords_in_ai_response = ["will update the clinical note", "updating the clinical note", "i've updated the clinical note"]
                     
-                    # Keywords in physician input that suggest new clinical information
                     physician_new_info_keywords = ["patient also reports", "new finding:", "update on symptoms:", "i forgot to mention:", "add to history:", "observed that:", "test result shows", "labs are back", "correction to symptoms", "additional detail is", "the image shows"]
                     
                     should_regenerate_all = any(k in lower_ai_response for k in new_info_keywords_in_ai_response) or \
@@ -224,8 +229,6 @@ async def handler(websocket, path=None):
                             "type": "note_updated",
                             "draftNote": refined_note
                         }))
-                    # Note: AI Analysis refinement based *only* on discussion input (without new clinical info) is not explicitly handled here.
-                    # It's assumed new clinical info would trigger full regeneration. Specific analysis refinement might need a dedicated trigger.
 
                 except Exception as e:
                     logger.error(f"Error during discussion processing for {current_session_id_to_use}: {e}", exc_info=True)
@@ -233,8 +236,8 @@ async def handler(websocket, path=None):
             
             elif message_type == "request_session_data_for_save":
                 logger.info(f"Client {current_session_id_to_use} requested session data for saving.")
-                patient_id = data.get("patientId", "UnknownPatient") # Get from client data
-                visit_date = data.get("visitDate", "UnknownDate")   # Get from client data
+                patient_id = data.get("patientId", "UnknownPatient") 
+                visit_date = data.get("visitDate", "UnknownDate")   
                 
                 await websocket.send(json.dumps({
                     "type": "session_data_response",
@@ -315,7 +318,14 @@ async def main():
     port = int(os.getenv("PORT", 8765)) 
     
     logger.info(f"Starting WebSocket server on {host}:{port}")
-    async with websockets.serve(handler, host, port, max_size=10*1024*1024, process_request=process_http_request):
+    # Pass process_request to websockets.serve to handle HTTP health checks
+    async with websockets.serve(
+        handler, 
+        host, 
+        port, 
+        max_size=10*1024*1024, # Increased max_size for image data
+        process_request=process_http_request 
+    ):
         await asyncio.Future()
 
 if __name__ == "__main__":
