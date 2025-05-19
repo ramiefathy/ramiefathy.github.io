@@ -1044,7 +1044,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             }
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const effectiveModelName = (imageBase64 && imageMimeType && (modelNameFromInput.includes("vision") || modelNameFromInput.includes("flash"))) ? modelNameFromInput : (modelNameFromInput || "models/gemini-2.5-flash-preview-04-17"");
+            const effectiveModelName = (imageBase64 && imageMimeType && (modelNameFromInput.includes("vision") || modelNameFromInput.includes("flash"))) ? modelNameFromInput : (modelNameFromInput || "models/gemini-2.5-flash-preview-04-17");
             
             const model = genAI.getGenerativeModel({ model: effectiveModelName }); 
             
