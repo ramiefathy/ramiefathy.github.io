@@ -197,7 +197,7 @@
             </div>
             <div>
                 <label for="modelName" class="font-medium">Model:</label>
-                <input type="text" id="modelName" value="models/gemini-2.5-flash-preview-04-17"" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like Gemini 1.5 Flash for image analysis. For text-only tasks, gemini-pro or similar can be used.">
+                <input type="text" id="modelName" value="models/gemini-2.5-flash-preview-04-17" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like Gemini 2.5 Flash for image analysis. For text-only tasks, gemini-pro or similar can be used.">
             </div>
         </div>
     </div>
@@ -1090,7 +1090,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 
             try {
                 const prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(transcriptToProcess);
-                const fullResponseText = await callGeminiAPI(prompt);
+                const fullResponseText = await callAPI(prompt);
 
                 const parts = fullResponseText.split("AI_ANALYSIS_SEPARATOR_V2");
                 const notesText = parts[0] || "";
@@ -1127,7 +1127,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             );
             let aiConversationalResponse = "";
             try {
-                aiConversationalResponse = await callGeminiAPI(conversationalPrompt);
+                aiConversationalResponse = await callAPI(conversationalPrompt);
                 const thinkingMsg = Array.from(discussionChatOutput.children).find(el => el.textContent === "AI is thinking..." && el.classList.contains('chat-bubble-ai'));
                 if (thinkingMsg) {
                     thinkingMsg.textContent = aiConversationalResponse;
@@ -1416,7 +1416,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 
             try {
                 const prompt = DYNAMIC_IMAGE_ANALYSIS_PROMPT_TEMPLATE(currentSelectedImageType, currentImageLocations);
-                const description = await callGeminiAPI(prompt, currentImageBase64, currentImageMimeType); 
+                const description = await callAPI(prompt, currentImageBase64, currentImageMimeType); 
                 currentImageDescription = description.trim();
                 imageAnalysisResult.textContent = currentImageDescription;
                 imageApprovalControls.classList.remove('hidden');
