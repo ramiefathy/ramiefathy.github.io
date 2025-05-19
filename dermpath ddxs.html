@@ -3,38 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dermatopathology Differentials Viewer</title>
+    <title>Dermatopathology Navigator Pro (Fixed)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .tab { padding: 0.75rem 1.5rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease-in-out; color: #4b5563; font-size: 0.875rem; font-weight: 500; }
+        .tab { padding: 0.75rem 1.25rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease-in-out; color: #4b5563; font-size: 0.875rem; font-weight: 500; white-space: nowrap; }
         .tab:hover { color: #1f2937; border-bottom-color: #d1d5db; }
         .tab.active { color: #1d4ed8; border-bottom-color: #1d4ed8; font-weight: 600; }
-        .results-area { min-height: 500px; height: 65vh; border: 1px solid #e5e7eb; background-color: #ffffff; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .results-area { min-height: 550px; height: 70vh; border: 1px solid #e5e7eb; background-color: #ffffff; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); position: relative; overflow: hidden; display: flex; flex-direction: column; }
         .view-container { height: 100%; overflow-y: auto; flex-grow: 1; }
         
-        /* --- CSS FIX for #flashcard-view visibility --- */
-        #flashcard-view {
-            /* display: flex; /* REMOVED from always applying directly via ID */
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            padding-top: 1rem;
-        }
-        #flashcard-view:not(.hidden) { /* Apply display:flex only when #flashcard-view is NOT hidden */
-            display: flex;
-        }
-        /* Ensure Tailwind's .hidden class (display: none !important;) is working correctly.
-           The :not(.hidden) selector above is a robust way to handle it if .hidden is not !important. */
+        #flashcard-view { flex-direction: column; align-items: center; justify-content: center; height: 100%; padding-top: 1rem; }
+        #flashcard-view:not(.hidden) { display: flex; }
 
-        .list-item-card { background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+        .list-item-card { background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); position: relative; }
         .diagnosis-name { font-weight: 600; color: #111827; margin-bottom: 0.25rem; font-size: 1rem; }
         .key-features { font-size: 0.875rem; color: #4b5563; }
-        .source-text { font-style: italic; color: #6b7280; margin-bottom: 1rem; font-size: 0.875rem; width: 100%; text-align: left; padding-left: 1.5rem; padding-right: 1.5rem; box-sizing: border-box; }
-        #flashcard-view > .source-text-fc { font-style: italic; color: #6b7280; margin-bottom:1rem; font-size:0.875rem; width:100%; text-align:left; padding-left:0; padding-right:0; box-sizing:border-box; order: -1; /* Places it at the top inside flashcard-view's flex layout */ }
+        .diagnosis-sources { font-size: 0.75rem; color: #6b7280; font-style: italic; }
+        .finding-source-text { font-style: italic; color: #6b7280; margin-bottom: 1rem; font-size: 0.875rem; width: 100%; text-align: left; padding-left: 0; padding-right: 0; box-sizing: border-box; }
+        #flashcard-view > .finding-source-text-fc { order: -1; }
 
         #diagram-view svg { display: block; width: 100%; height: 100%; }
         .node circle { stroke: #fff; stroke-width: 1.5px; cursor: grab; }
@@ -42,209 +31,540 @@
         .node text { font-size: 10px; fill: #374151; text-anchor: middle; dominant-baseline: hanging; pointer-events: none; }
         .node text.finding-label { font-weight: 600; font-size: 11px; fill: #111827; }
         .link { stroke: #9ca3af; stroke-opacity: 0.6; }
-        #tooltip { position: absolute; background-color: rgba(0, 0, 0, 0.8); color: white; padding: 8px 12px; border-radius: 4px; font-size: 0.875rem; pointer-events: none; opacity: 0; transition: opacity 0.2s ease-in-out; max-width: 300px; white-space: normal; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        #tooltip { position: absolute; background-color: rgba(0, 0, 0, 0.85); color: white; padding: 8px 12px; border-radius: 4px; font-size: 0.875rem; pointer-events: none; opacity: 0; transition: opacity 0.2s ease-in-out; max-width: 350px; white-space: normal; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; } ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         * { scrollbar-width: thin; scrollbar-color: #94a3b8 #f1f5f9; }
-        .placeholder-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #9ca3af; font-style: italic; text-align: center; width: 80%; z-index: 1; /* Ensure it's above default flow content */ }
-        #table-view table { width: 100%; border-collapse: collapse; } #table-view th, #table-view td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; font-size: 0.875rem; } #table-view th { background-color: #f9fafb; font-weight: 600; color: #374151; } #table-view tbody tr:nth-child(even) { background-color: #f9fafb; } #table-view tbody tr:hover { background-color: #f3f4f6; }
-        #flashcard-container { width: 90%; max-width: 400px; margin-bottom: 1rem; flex-grow: 1; display: flex; align-items: center; justify-content: center; z-index: 2; /* Above placeholder if both somehow visible */ }
-        .flashcard { background-color: transparent; width: 100%; height: 250px; perspective: 1000px; cursor: pointer; border-radius: 0.5rem; }
+        .placeholder-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #9ca3af; font-style: italic; text-align: center; width: 80%; z-index: 1; }
+        #table-view table, #compare-view table { width: 100%; border-collapse: collapse; } #table-view th, #table-view td, #compare-view th, #compare-view td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; font-size: 0.875rem; } #table-view th, #compare-view th { background-color: #f9fafb; font-weight: 600; color: #374151; } #table-view tbody tr:nth-child(even), #compare-view tbody tr:nth-child(even) { background-color: #f9fafb; } #table-view tbody tr:hover, #compare-view tbody tr:hover { background-color: #f3f4f6; }
+        
+        #flashcard-container { width: 90%; max-width: 450px; margin-bottom: 1rem; flex-grow: 1; display: flex; align-items: center; justify-content: center; z-index: 2; }
+        .flashcard { background-color: transparent; width: 100%; height: 280px; perspective: 1000px; cursor: pointer; border-radius: 0.5rem; }
         .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.1); border-radius: 0.5rem; }
         .flashcard.is-flipped .flashcard-inner { transform: rotateY(180deg); }
         .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 0.5rem; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; border: 1px solid #e5e7eb; overflow-y: auto; }
         .flashcard-front { background-color: #dbeafe; color: #1e3a8a; } .flashcard-back { background-color: #f3f4f6; color: #374151; transform: rotateY(180deg); font-size: 0.875rem; }
         .flashcard-name { font-weight: 600; font-size: 1.25rem; } .flashcard-instruction { font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem; }
-        #flashcard-controls { display: flex; justify-content: center; gap: 1rem; margin-top: 1rem; margin-bottom: 0.5rem; width: 100%; z-index: 2; /* Above placeholder */ }
-        #flashcard-controls button { padding: 0.5rem 1.5rem; border-radius: 0.375rem; font-weight: 500; color: white; border: none; cursor: pointer; transition: background-color 0.2s ease; }
-        #correct-button { background-color: #16a34a; } #correct-button:hover { background-color: #15803d; }
-        #incorrect-button { background-color: #dc2626; } #incorrect-button:hover { background-color: #b91c1c; }
-        #flashcard-counter { font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-align: center; z-index: 2; /* Above placeholder */ }
-        #flashcard-completion { font-size: 1rem; color: #16a34a; font-weight: 500; text-align: center; margin-top: 2rem; z-index: 2; /* Above placeholder */ }
+        #flashcard-controls { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; margin-bottom: 0.5rem; width: 100%; z-index: 2; }
+        #flashcard-controls button { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; color: white; border: none; cursor: pointer; transition: background-color 0.2s ease; font-size: 0.8rem; }
+        /* SRS Answer Buttons */
+        #srs-again-button { background-color: #ef4444; } #srs-again-button:hover { background-color: #dc2626; } /* Red */
+        #srs-hard-button { background-color: #f97316; } #srs-hard-button:hover { background-color: #ea580c; }   /* Orange */
+        #srs-good-button { background-color: #22c55e; } #srs-good-button:hover { background-color: #16a34a; }   /* Green */
+        #srs-easy-button { background-color: #3b82f6; } #srs-easy-button:hover { background-color: #2563eb; }   /* Blue */
+
+        #flashcard-counter { font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-align: center; z-index: 2; }
+        #flashcard-deck-stats { font-size: 0.8rem; color: #4b5563; margin-top: 0.5rem; text-align: center; z-index: 2;}
+        #flashcard-completion { font-size: 1rem; color: #16a34a; font-weight: 500; text-align: center; margin-top: 2rem; z-index: 2; }
+        .search-input { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; margin-bottom: 0.75rem; box-sizing: border-box; }
+        .action-icon { cursor: pointer; margin-left: 4px; color: #6b7280; padding: 2px 4px; border-radius: 3px; display: inline-flex; align-items: center; } 
+        .action-icon:hover { background-color: #e5e7eb; color: #1d4ed8; }
+        .favorite-icon.favorited { color: #facc15; } /* Yellow star for favorited */
+        .compare-icon.in-compare { color: #22c55e; } /* Green check for in compare */
+        .compare-icon.compare-full { color: #9ca3af; cursor: not-allowed; }
+
+        #diagram-sidebar { position: absolute; right: 0; top: 0; width: 300px; height: 100%; background-color: #f9fafb; border-left: 1px solid #e5e7eb; padding: 1rem; overflow-y: auto; transform: translateX(100%); transition: transform 0.3s ease-in-out; z-index: 500; box-shadow: -2px 0 5px rgba(0,0,0,0.1); }
+        #diagram-sidebar.open { transform: translateX(0); }
+        #global-search-results { margin-top: 1rem; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal.open { opacity: 1; pointer-events: auto; }
+        .modal-content { background-color: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 300px; max-width: 500px; }
+        /* Print styles */
+        @media print {
+            body { font-family: sans-serif; margin: 20px; background-color: white; color: black !important; }
+            header, nav, #search-finding-input, #finding-select, #search-diagnoses-input, .action-icon, #flashcard-controls, #diagram-sidebar, .modal, #settings-view button, .tab:not(.active), #print-button { display: none !important; }
+            .results-area { border: none; box-shadow: none; height: auto; overflow: visible; }
+            .view-container { overflow: visible; display: block !important; /* Ensure visible for printing */ }
+            .view-container.hidden { display: none !important; } /* Keep hidden views hidden */
+            #list-view:not(.hidden), #table-view:not(.hidden), #my-list-view:not(.hidden), #compare-view:not(.hidden), #references-view:not(.hidden) { display: block !important; } /* Explicitly show active content views */
+            .list-item-card { page-break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+            table { width: 100% !important; page-break-inside: auto; }
+            th, td { border: 1px solid #ccc !important; color: black !important; background-color: white !important; }
+            .placeholder-text { display: none; }
+            h1, h2, h3, p, li, th, td { color: black !important; }
+            .bg-gray-50, .bg-white, .bg-gray-100, .bg-yellow-100 { background-color: white !important; }
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <header class="mb-6 border-b pb-4 border-gray-200">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1">Dermatopathology Differentials Viewer</h1>
-            <p class="text-sm text-gray-500">Data extracted from Ko, Rapini, Alikhan, Lipoff, Jackson</p>
+    <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <header class="mb-6 border-b pb-4 border-gray-200 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1">Dermatopathology Navigator Pro (Fixed)</h1>
+                <p class="text-sm text-gray-500">Enhanced differential diagnosis and learning tool.</p>
+            </div>
+            <button id="print-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">Print View</button>
         </header>
 
-        <div class="mb-6">
-            <label for="finding-select" class="block text-sm font-medium text-gray-700 mb-2">Select Histologic Finding:</label>
-            <select id="finding-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <option value="">-- Select a Finding --</option>
-            </select>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+                <label for="search-finding-input" class="block text-sm font-medium text-gray-700 mb-1">Filter Histologic Findings:</label>
+                <input type="text" id="search-finding-input" class="search-input" placeholder="Type to filter findings...">
+            </div>
+            <div class="md:col-span-2">
+                <label for="finding-select" class="block text-sm font-medium text-gray-700 mb-1">Select Histologic Finding (for List, Table, Flashcards, Diagram):</label>
+                <select id="finding-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+                    <option value="">-- Select a Finding --</option>
+                </select>
+            </div>
         </div>
-
+        
         <div class="mb-4 border-b border-gray-200">
-            <nav class="flex -mb-px flex-wrap">
-                <button id="list-tab" class="tab active" data-view="list-view">List View</button>
-                <button id="table-tab" class="tab" data-view="table-view">Table View</button>
-                <button id="flashcard-tab" class="tab" data-view="flashcard-view">Flashcards</button> <!-- Tab name changed -->
-                <button id="diagram-tab" class="tab" data-view="diagram-view">Diagram View</button>
+            <nav class="flex -mb-px flex-wrap overflow-x-auto">
+                <button id="list-tab" class="tab active" data-view="list-view">List</button>
+                <button id="table-tab" class="tab" data-view="table-view">Table</button>
+                <button id="flashcard-tab" class="tab" data-view="flashcard-view">Flashcards (SRS)</button>
+                <button id="diagram-tab" class="tab" data-view="diagram-view">Diagram</button>
+                <button id="my-list-tab" class="tab" data-view="my-list-view">My List</button>
+                <button id="compare-tab" class="tab" data-view="compare-view">Compare</button>
+                <button id="global-search-tab" class="tab" data-view="global-search-view">Global Search</button>
+                <button id="quiz-mode-tab" class="tab" data-view="quiz-mode-view">Quiz Mode</button>
+                <button id="references-tab" class="tab" data-view="references-view">References</button>
+                <button id="settings-tab" class="tab" data-view="settings-view">Settings</button>
             </nav>
+        </div>
+        
+        <div class="mb-4">
+            <input type="text" id="search-diagnoses-input" class="search-input hidden" placeholder="Search within displayed diagnoses or key features...">
         </div>
 
         <div class="results-area">
-            <div id="list-view" class="view-container"> <!-- Initially not hidden by default, JS will hide others -->
-                 <div class="placeholder-text">Select a finding to view its differential diagnoses list.</div>
-            </div>
-            <div id="table-view" class="view-container hidden">
-                 <div class="placeholder-text">Select a finding to view its differential diagnoses table.</div>
-            </div>
+            <div id="list-view" class="view-container"><div class="placeholder-text">Select a finding to view its differential diagnoses list.</div></div>
+            <div id="table-view" class="view-container hidden"><div class="placeholder-text">Select a finding to view its differential diagnoses table.</div></div>
+            
             <div id="flashcard-view" class="view-container hidden">
-                 <div class="placeholder-text">Select a finding to start the flashcards.</div>
-                 <!-- Flashcard source text will be prepended here by JS if a deck is active -->
+                 <div class="placeholder-text">Select a finding to start SRS flashcards or review due cards.</div>
                  <div id="flashcard-container" class="hidden"></div>
                  <div id="flashcard-controls" class="hidden">
-                     <button id="incorrect-button">Incorrect</button>
-                     <button id="correct-button">Correct</button>
+                     <button id="srs-again-button" data-quality="0">Again (10m)</button>
+                     <button id="srs-hard-button" data-quality="1">Hard</button>
+                     <button id="srs-good-button" data-quality="2">Good</button>
+                     <button id="srs-easy-button" data-quality="3">Easy</button>
                  </div>
                  <div id="flashcard-counter" class="hidden"></div>
-                 <div id="flashcard-completion" class="hidden">Deck complete!</div>
+                 <div id="flashcard-deck-stats" class="text-sm text-gray-600 mt-2 text-center hidden"></div>
+                 <div id="flashcard-completion" class="hidden">Deck complete or no cards due!</div>
             </div>
-            <div id="diagram-view" class="view-container hidden">
+
+            <div id="diagram-view" class="view-container hidden" style="position: relative;">
                  <div class="placeholder-text">Select a finding to view its interactive diagram.</div>
                  <svg id="diagram-svg"></svg>
+                 <div id="diagram-sidebar">
+                     <h3 id="sidebar-title" class="text-lg font-semibold mb-2 border-b pb-2">Node Details</h3>
+                     <div id="sidebar-content" class="text-sm">Select a node to see details.</div>
+                     <button id="close-sidebar-button" class="mt-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-3 rounded text-xs">Close</button>
+                 </div>
+            </div>
+
+            <div id="my-list-view" class="view-container hidden">
+                <h2 class="text-xl font-semibold mb-3">My Favorite Diagnoses</h2>
+                <div id="my-list-content"><div class="placeholder-text">No diagnoses added to your list yet. Star diagnoses to add them.</div></div>
+            </div>
+
+            <div id="compare-view" class="view-container hidden">
+                <h2 class="text-xl font-semibold mb-3">Compare Diagnoses</h2>
+                <div class="mb-3 flex justify-between items-center">
+                    <p class="text-sm text-gray-600">Select up to 3 diagnoses from List/Table views to compare them side-by-side.</p>
+                    <button id="clear-comparison-button" class="text-sm bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded">Clear Comparison</button>
+                </div>
+                <div id="compare-content-area"><div class="placeholder-text">No diagnoses selected for comparison.</div></div>
+            </div>
+
+            <div id="global-search-view" class="view-container hidden">
+                <h2 class="text-xl font-semibold mb-3">Global Search</h2>
+                <div class="flex space-x-2">
+                    <input type="text" id="global-search-input" class="search-input flex-grow" placeholder="Search all findings, diagnoses, and features...">
+                    <button id="global-search-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">Search</button>
+                </div>
+                <div id="global-search-results-area" class="mt-4"><div class="placeholder-text">Enter a term to search globally.</div></div>
+            </div>
+
+            <div id="quiz-mode-view" class="view-container hidden">
+                <h2 class="text-xl font-semibold mb-3">Quiz Mode</h2>
+                <div id="quiz-setup">
+                    <label for="quiz-type-select" class="block text-sm font-medium text-gray-700 mb-1">Select Quiz Type:</label>
+                    <select id="quiz-type-select" class="w-full p-2 border border-gray-300 rounded-md mb-3">
+                        <option value="featuresToDx">Given Key Features, Name Diagnosis</option>
+                        <option value="findingToDx">Given Finding, Name Differential</option>
+                    </select>
+                    <button id="start-quiz-button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Start Quiz</button>
+                </div>
+                <div id="quiz-area" class="hidden mt-4">
+                    <div id="quiz-question" class="mb-2 p-3 bg-gray-100 rounded min-h-[50px]"></div>
+                    <input type="text" id="quiz-answer-input" class="search-input" placeholder="Your answer...">
+                    <button id="submit-quiz-answer-button" class="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded">Submit Answer</button>
+                    <div id="quiz-feedback" class="mt-2 min-h-[20px]"></div>
+                    <div id="quiz-score" class="mt-2 font-semibold"></div>
+                </div>
+                 <div class="placeholder-text" id="quiz-placeholder">Select a quiz type and start.</div>
+            </div>
+
+            <div id="references-view" class="view-container hidden">
+                <h2 class="text-xl font-semibold mb-3">Data Sources & References</h2>
+                <ul id="references-list" class="list-disc pl-5 space-y-1 text-sm">
+                    </ul>
+                 <div class="placeholder-text" id="references-placeholder">Reference information will be displayed here.</div>
+            </div>
+
+            <div id="settings-view" class="view-container hidden p-4">
+                <h2 class="text-xl font-semibold mb-4">Application Settings</h2>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">General</h3>
+                        <label for="setting-font-size" class="block text-sm font-medium text-gray-700 mt-2">Font Size:</label>
+                        <select id="setting-font-size" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option value="text-sm">Small</option>
+                            <option value="text-base" selected>Normal</option>
+                            <option value="text-lg">Large</option>
+                        </select>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Flashcard SRS</h3>
+                        <button id="reset-srs-button" class="mt-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded text-sm">Reset All SRS Progress</button>
+                        <p class="text-xs text-gray-500 mt-1">This will reset learning progress for all flashcards.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">User Data</h3>
+                        <button id="clear-favorites-button" class="mt-2 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm mr-2">Clear All Favorites</button>
+                        <button id="clear-notes-button" class="mt-2 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm">Clear All Notes</button>
+                        <p class="text-xs text-gray-500 mt-1">Warning: This action cannot be undone.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="tooltip"></div>
 
+    <div id="note-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="note-modal-title" class="text-lg font-semibold mb-3">Add/Edit Note</h3>
+            <textarea id="note-modal-textarea" class="w-full p-2 border border-gray-300 rounded-md h-32" placeholder="Enter your note..."></textarea>
+            <div class="mt-4 flex justify-end space-x-2">
+                <button id="note-modal-cancel" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">Cancel</button>
+                <button id="note-modal-save" class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded">Save Note</button>
+            </div>
+        </div>
+    </div>
+    
     <script src="data.js"></script> 
     <script>
         // --- DOM Elements ---
+        const searchFindingInput = document.getElementById('search-finding-input');
         const findingSelect = document.getElementById('finding-select');
-        const listTab = document.getElementById('list-tab');
-        const tableTab = document.getElementById('table-tab');
-        const flashcardTab = document.getElementById('flashcard-tab');
-        const diagramTab = document.getElementById('diagram-tab');
+        const searchDiagnosesInput = document.getElementById('search-diagnoses-input');
+        const printButton = document.getElementById('print-button');
         
-        const listView = document.getElementById('list-view');
-        const tableView = document.getElementById('table-view');
-        const flashcardView = document.getElementById('flashcard-view');
-        const diagramView = document.getElementById('diagram-view');
+        const tabs = [
+            { id: 'list-tab', viewId: 'list-view' },
+            { id: 'table-tab', viewId: 'table-view' },
+            { id: 'flashcard-tab', viewId: 'flashcard-view' },
+            { id: 'diagram-tab', viewId: 'diagram-view' },
+            { id: 'my-list-tab', viewId: 'my-list-view' },
+            { id: 'compare-tab', viewId: 'compare-view' },
+            { id: 'global-search-tab', viewId: 'global-search-view' },
+            { id: 'quiz-mode-tab', viewId: 'quiz-mode-view' },
+            { id: 'references-tab', viewId: 'references-view' },
+            { id: 'settings-tab', viewId: 'settings-view' },
+        ];
+        // No need to get individual view elements here if using a generic approach in switchView
         
         const diagramSvgElement = document.getElementById('diagram-svg');
+        const diagramSidebar = document.getElementById('diagram-sidebar');
+        const sidebarTitle = document.getElementById('sidebar-title');
+        const sidebarContent = document.getElementById('sidebar-content');
+        const closeSidebarButton = document.getElementById('close-sidebar-button');
         const tooltip = document.getElementById('tooltip');
         
+        // Flashcard Elements
+        const flashcardView = document.getElementById('flashcard-view'); // Keep this specific one for its placeholder
         const flashcardPlaceholder = flashcardView.querySelector('.placeholder-text');
         const flashcardContainer = document.getElementById('flashcard-container');
         const flashcardControls = document.getElementById('flashcard-controls');
-        const correctButton = document.getElementById('correct-button');
-        const incorrectButton = document.getElementById('incorrect-button');
+        const srsAgainButton = document.getElementById('srs-again-button');
+        const srsHardButton = document.getElementById('srs-hard-button');
+        const srsGoodButton = document.getElementById('srs-good-button');
+        const srsEasyButton = document.getElementById('srs-easy-button');
         const flashcardCounter = document.getElementById('flashcard-counter');
+        const flashcardDeckStats = document.getElementById('flashcard-deck-stats');
         const flashcardCompletion = document.getElementById('flashcard-completion');
+
+        // My List Elements
+        const myListView = document.getElementById('my-list-view'); // For its content area
+        const myListContent = document.getElementById('my-list-content');
+
+        // Compare Elements
+        const compareView = document.getElementById('compare-view'); // For its content area
+        const compareContentArea = document.getElementById('compare-content-area');
+        const clearComparisonButton = document.getElementById('clear-comparison-button');
+        
+        // Global Search Elements
+        const globalSearchInput = document.getElementById('global-search-input');
+        const globalSearchButton = document.getElementById('global-search-button');
+        const globalSearchResultsArea = document.getElementById('global-search-results-area');
+
+        // Quiz Mode Elements
+        const quizModeView = document.getElementById('quiz-mode-view'); // For its specific children
+        const quizTypeSelect = document.getElementById('quiz-type-select');
+        const startQuizButton = document.getElementById('start-quiz-button');
+        const quizSetup = document.getElementById('quiz-setup');
+        const quizArea = document.getElementById('quiz-area');
+        const quizQuestion = document.getElementById('quiz-question');
+        const quizAnswerInput = document.getElementById('quiz-answer-input');
+        const submitQuizAnswerButton = document.getElementById('submit-quiz-answer-button');
+        const quizFeedback = document.getElementById('quiz-feedback');
+        const quizScore = document.getElementById('quiz-score');
+        const quizPlaceholder = quizModeView.querySelector('#quiz-placeholder');
+
+
+        // References Elements
+        const referencesView = document.getElementById('references-view'); // For its specific children
+        const referencesList = document.getElementById('references-list');
+
+        // Settings Elements
+        // const settingsView = document.getElementById('settings-view'); // No specific children needed beyond what's handled by event listeners
+        const settingFontSize = document.getElementById('setting-font-size');
+        const resetSrsButton = document.getElementById('reset-srs-button');
+        const clearFavoritesButton = document.getElementById('clear-favorites-button');
+        const clearNotesButton = document.getElementById('clear-notes-button');
+
+        // Note Modal Elements
+        const noteModal = document.getElementById('note-modal');
+        const noteModalTitle = document.getElementById('note-modal-title');
+        const noteModalTextarea = document.getElementById('note-modal-textarea');
+        const noteModalCancel = document.getElementById('note-modal-cancel');
+        const noteModalSave = document.getElementById('note-modal-save');
+        let currentEditingDiagnosisId = null;
+
 
         // --- State Variables ---
         let currentView = 'list-view'; 
         let currentFindingData = null; 
         let simulation = null; 
         let svg; 
-        let width, height; 
+        let diagramWidth, diagramHeight; 
         let resizeObserver; 
-        let flashcardDeck = []; 
-        let currentCardIndex = 0; 
-        let totalCardsInDeck = 0; 
-        let turnNumber = 0; 
+        
+        let processedFindingsMap = new Map();
+        let allDiagnosesFlat = []; // For global search and other cross-finding features
+        let allSourcesMasterSet = new Set(); // To populate references tab
 
-        // --- Utility Functions ---
-        const debounce = (func, wait) => {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => { clearTimeout(timeout); func(...args); };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        };
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+        // User Data State (to be loaded from localStorage)
+        let userFavorites = new Set(); // Set of diagnosis unique IDs (e.g., findingName + '|' + diagnosisName)
+        let userNotes = {}; // Object: { 'diagnosisUniqueId': 'note text' }
+        let userSrsData = {}; // Object: { 'cardUniqueId': { interval, easeFactor, dueDate, repetitions, history: [] } }
+        let userSettings = { fontSize: 'text-base' };
+        let comparisonList = []; // Array of diagnosis objects for comparison
+
+        // Flashcard SRS State
+        let srsDeck = []; 
+        let currentSrsCardIndex = 0;
+        const SRS_INITIAL_INTERVAL = 1; // days
+        const SRS_INITIAL_EASE_FACTOR = 2.5;
+        const SRS_MIN_INTERVAL_MINUTES = 10; // for "Again"
+
+        // --- LocalStorage Utility Functions ---
+        const saveDataToLocalStorage = (key, data) => {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error("Error saving to localStorage", e);
             }
-        }
+        };
 
-        // --- Core Functions ---
-        function populateDropdown() {
-            findingSelect.innerHTML = '<option value="">-- Select a Finding --</option>';
+        const loadDataFromLocalStorage = (key, defaultValue) => {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : defaultValue;
+            } catch (e) {
+                console.error("Error loading from localStorage", e);
+                return defaultValue;
+            }
+        };
+        
+        // --- Utility Functions ---
+        const debounce = (func, wait) => { let timeout; return function executedFunction(...args) { const later = () => { clearTimeout(timeout); func(...args); }; clearTimeout(timeout); timeout = setTimeout(later, wait); }; };
+        function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
+        function getShortSourceName(sourceString) { if (!sourceString) return "Unknown"; if (sourceString.toLowerCase().includes("ko")) return "Ko"; if (sourceString.toLowerCase().includes("rapini")) return "Rapini"; if (sourceString.toLowerCase().includes("alikhan")) return "Alikhan"; if (sourceString.toLowerCase().includes("lipoff")) return "Lipoff"; if (sourceString.toLowerCase().includes("jackson")) return "Jackson"; if (sourceString.toLowerCase().includes("ref sheet")) return "Ref Sheet"; const parts = sourceString.split(" p."); if (parts.length > 0 && parts[0].length < 20) return parts[0].trim(); const firstWord = sourceString.split(" ")[0]; if(firstWord.length < 15) return firstWord; return sourceString.substring(0,15).trim(); }
+        const getDiagnosisUniqueId = (findingName, diagnosisName) => `${findingName}|${diagnosisName}`;
+        const getFlashcardUniqueId = (findingName, diagnosisName) => `fc|${findingName}|${diagnosisName}`;
+
+
+        // --- Data Processing ---
+        function processRawData() {
             if (typeof differentialsData === 'undefined' || !Array.isArray(differentialsData)) {
-                console.error("differentialsData is not loaded. Check data.js script tag and file path.");
-                if (document.querySelector('.results-area')) {
-                     document.querySelector('.results-area').innerHTML = '<div class="placeholder-text" style="color: red; z-index: 10;">Error loading data. Please check console.</div>';   
+                console.error("differentialsData is not loaded. Check if data.js is correctly linked and the variable is defined.");
+                const resultsArea = document.querySelector('.results-area');
+                if (resultsArea) {
+                    resultsArea.innerHTML = '<div class="placeholder-text" style="color: red; z-index: 10;">Error: Could not load data from data.js. Please check console.</div>';
                 }
+                [searchFindingInput, findingSelect, searchDiagnosesInput].forEach(el => { if (el) el.disabled = true; });
                 return;
             }
-            differentialsData.sort((a, b) => a.finding.localeCompare(b.finding));
-            differentialsData.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.finding;
-                option.textContent = item.finding;
-                findingSelect.appendChild(option);
+
+            processedFindingsMap.clear();
+            allDiagnosesFlat = [];
+            allSourcesMasterSet.clear();
+
+            differentialsData.forEach(rawFinding => {
+                const rawFindingName = rawFinding.finding;
+                let baseFindingName = rawFindingName.replace(/\s*\([^\)]+\)$/, '').trim();
+                baseFindingName = baseFindingName.replace(/\s*-\s*[A-Z\s!]+$/, '').trim(); 
+                baseFindingName = baseFindingName.replace(/\s*=\s*[A-Z\s!]+$/, '').trim(); 
+                
+                if (!processedFindingsMap.has(baseFindingName)) {
+                    processedFindingsMap.set(baseFindingName, {
+                        displayFindingName: baseFindingName,
+                        diagnoses: new Map(), 
+                        originalSources: new Set() 
+                    });
+                }
+                const findingEntry = processedFindingsMap.get(baseFindingName);
+                findingEntry.originalSources.add(rawFinding.source);
+                allSourcesMasterSet.add(rawFinding.source);
+
+
+                rawFinding.diagnoses.forEach(dx => {
+                    const diagnosisUniqueId = getDiagnosisUniqueId(baseFindingName, dx.name);
+                    const flashcardUniqueId = getFlashcardUniqueId(baseFindingName, dx.name);
+
+                    if (!findingEntry.diagnoses.has(dx.name)) {
+                        findingEntry.diagnoses.set(dx.name, {
+                            name: dx.name,
+                            keyFeatures: dx.keyFeatures,
+                            sources: new Set(),
+                            fullSources: new Set(),
+                            parentFinding: baseFindingName,
+                            uniqueId: diagnosisUniqueId,
+                            flashcardId: flashcardUniqueId
+                        });
+                    }
+                    const diagnosisEntry = findingEntry.diagnoses.get(dx.name);
+                    diagnosisEntry.sources.add(getShortSourceName(rawFinding.source));
+                    diagnosisEntry.fullSources.add(rawFinding.source); 
+
+                    const flatDxEntry = allDiagnosesFlat.find(item => item.uniqueId === diagnosisUniqueId);
+                    if (!flatDxEntry) {
+                        allDiagnosesFlat.push({
+                            ...diagnosisEntry, // a copy
+                            parentFinding: baseFindingName, 
+                            findingOriginalSources: Array.from(findingEntry.originalSources) 
+                        });
+                    } else { // Merge sources if diagnosis appears under multiple raw findings mapping to same base finding
+                        rawFinding.diagnoses.forEach(dxInstance => {
+                            if (dxInstance.name === dx.name) {
+                               flatDxEntry.sources.add(getShortSourceName(rawFinding.source));
+                               flatDxEntry.fullSources.add(rawFinding.source);
+                            }
+                        });
+                    }
+                });
             });
+            populateReferencesTab(); // Call without argument, uses allSourcesMasterSet
         }
 
-        function resetFlashcardViewInternalUI() {
-            const fcSourceText = flashcardView.querySelector('p.source-text-fc');
-            if (fcSourceText) fcSourceText.remove();
+        // --- Core UI Functions ---
+        function populateDropdown() { 
+            if (processedFindingsMap.size === 0 && (typeof differentialsData === 'undefined' || differentialsData.length === 0) ) { return; } 
+            const uniqueFindings = Array.from(processedFindingsMap.keys()).sort((a, b) => a.localeCompare(b)); 
+            findingSelect.innerHTML = '<option value="">-- Select a Finding --</option>'; 
+            uniqueFindings.forEach(findingName => { const option = document.createElement('option'); option.value = findingName; option.textContent = findingName; findingSelect.appendChild(option); });
+        }
 
-            if(flashcardContainer) { flashcardContainer.innerHTML = ''; flashcardContainer.classList.add('hidden'); }
-            if(flashcardControls) flashcardControls.classList.add('hidden');
-            if(flashcardCounter) { flashcardCounter.textContent = ''; flashcardCounter.classList.add('hidden'); }
-            if(flashcardCompletion) flashcardCompletion.classList.add('hidden');
+        function resetFlashcardViewInternalUI() { 
+            const fcSourceText = flashcardView.querySelector('p.finding-source-text-fc'); 
+            if (fcSourceText) fcSourceText.remove(); 
+            if(flashcardContainer) { flashcardContainer.innerHTML = ''; flashcardContainer.classList.add('hidden'); } 
+            if(flashcardControls) flashcardControls.classList.add('hidden'); 
+            if(flashcardCounter) { flashcardCounter.textContent = ''; flashcardCounter.classList.add('hidden'); } 
+            if(flashcardDeckStats) { flashcardDeckStats.textContent = ''; flashcardDeckStats.classList.add('hidden'); } 
+            if(flashcardCompletion) flashcardCompletion.classList.add('hidden'); 
             if(flashcardPlaceholder) flashcardPlaceholder.classList.remove('hidden');
         }
-
+        
         function switchView(viewId) {
             currentView = viewId;
             
-            const tabs = [listTab, tableTab, flashcardTab, diagramTab];
-            const views = [listView, tableView, flashcardView, diagramView];
-
-            tabs.forEach(tab => tab.classList.remove('active'));
-            // This is where the main views are hidden. The CSS fix above is crucial for #flashcard-view.
-            views.forEach(view => {
-                if(view) view.classList.add('hidden');
+            tabs.forEach(tabInfo => {
+                const tabButton = document.getElementById(tabInfo.id);
+                const viewElement = document.getElementById(tabInfo.viewId);
+                if (tabButton) tabButton.classList.toggle('active', tabInfo.viewId === viewId);
+                if (viewElement) viewElement.classList.toggle('hidden', tabInfo.viewId !== viewId);
             });
 
-            const activeTabButton = document.getElementById(viewId.replace('-view', '-tab'));
-            if(activeTabButton) activeTabButton.classList.add('active');
-            
-            const activeView = document.getElementById(viewId);
-            if(activeView) activeView.classList.remove('hidden');
-
-
-            if (viewId === 'flashcard-view') {
-                if (simulation) simulation.stop();
-                initializeFlashcardDeck(); 
+            if (['list-view', 'table-view'].includes(viewId) && currentFindingData) {
+                searchDiagnosesInput.classList.remove('hidden');
             } else {
-                resetFlashcardViewInternalUI(); // Crucial for hiding flashcard-specific elements when not on flashcard tab
-                if (viewId !== 'diagram-view' && simulation) {
-                    simulation.stop();
-                }
-                displayContent(); 
+                searchDiagnosesInput.classList.add('hidden');
+                searchDiagnosesInput.value = ''; 
+            }
+
+            if (viewId !== 'diagram-view' && simulation) {
+                simulation.stop();
+                closeDiagramSidebar(); 
+            }
+            
+            if (viewId === 'flashcard-view') {
+                initializeSrsFlashcardDeck(); 
+            } else if (viewId === 'my-list-view') {
+                displayMyListView();
+            } else if (viewId === 'compare-view') {
+                displayCompareView();
+            } else if (viewId === 'global-search-view') {
+                globalSearchInput.focus();
+            } else if (viewId === 'quiz-mode-view') {
+                quizArea.classList.add('hidden');
+                quizPlaceholder.classList.remove('hidden');
+                quizSetup.classList.remove('hidden');
+            } else if (viewId === 'settings-view') {
+                displaySettingsView();
+            } else if (viewId === 'references-view') {
+                populateReferencesTab(); // Re-populate if needed, though it's static after load
+            }
+             else {
+                resetFlashcardViewInternalUI(); 
+                displayContent(searchDiagnosesInput.value);
             }
         }
         
-        function displayContent() { 
-            const selectedValue = findingSelect.value;
-             currentFindingData = (typeof differentialsData !== 'undefined' && selectedValue) ? 
-                                 differentialsData.find(item => item.finding === selectedValue) : null;
+        function displayContent(diagnosesSearchTerm = '') { 
+            const selectedValue = findingSelect.value; 
+            currentFindingData = selectedValue ? processedFindingsMap.get(selectedValue) : null;
+            const listViewEl = document.getElementById('list-view');
+            const tableViewEl = document.getElementById('table-view');
+            const diagramViewEl = document.getElementById('diagram-view');
 
-            if (currentView === 'list-view') {
-                listView.innerHTML = ''; 
-                if (!currentFindingData) listView.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses list.</div>`;
-                else displayListView();
-            } else if (currentView === 'table-view') {
-                tableView.innerHTML = ''; 
-                if (!currentFindingData) tableView.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses table.</div>`;
-                else displayTableView();
-            } else if (currentView === 'diagram-view') {
+
+            if (!currentFindingData) {
+                searchDiagnosesInput.classList.add('hidden');
+                if (listViewEl) listViewEl.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses list.</div>`;
+                if (tableViewEl) tableViewEl.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses table.</div>`;
+                clearDiagram();
+                if (diagramViewEl) {
+                    const diagramPlaceholder = diagramViewEl.querySelector('.placeholder-text');
+                    if (diagramPlaceholder) diagramPlaceholder.classList.remove('hidden');
+                }
+                closeDiagramSidebar();
+                resetFlashcardViewInternalUI();
+            } else if (['list-view', 'table-view'].includes(currentView)) {
+                 searchDiagnosesInput.classList.remove('hidden');
+            }
+
+
+            if (currentView === 'list-view' && listViewEl) {
+                listViewEl.innerHTML = ''; 
+                if (!currentFindingData) listViewEl.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses list.</div>`;
+                else displayListView(diagnosesSearchTerm);
+            } else if (currentView === 'table-view' && tableViewEl) {
+                tableViewEl.innerHTML = ''; 
+                if (!currentFindingData) tableViewEl.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses table.</div>`;
+                else displayTableView(diagnosesSearchTerm);
+            } else if (currentView === 'diagram-view' && diagramViewEl) {
                 clearDiagram(); 
-                const diagramPlaceholder = diagramView.querySelector('.placeholder-text');
+                const diagramPlaceholder = diagramViewEl.querySelector('.placeholder-text');
                 if (!currentFindingData) {
                     if (diagramPlaceholder) diagramPlaceholder.classList.remove('hidden');
+                    closeDiagramSidebar();
                 } else {
                     if (diagramPlaceholder) diagramPlaceholder.classList.add('hidden');
                     displayDiagramView();
@@ -252,210 +572,730 @@
             }
         }
 
-        function displayListView() { 
+        function createDiagnosisCardActions(dx) {
+            if (!dx || !dx.uniqueId) { console.error("Cannot create actions for diagnosis without uniqueId:", dx); return ''; }
+            const isFavorite = userFavorites.has(dx.uniqueId);
+            const hasNote = !!userNotes[dx.uniqueId];
+            const isInCompareList = comparisonList.some(compareDx => compareDx.uniqueId === dx.uniqueId);
+
+            let compareButtonHtml = '';
+            if (currentView !== 'compare-view') {
+                 if (isInCompareList) {
+                    compareButtonHtml = `<span class="action-icon compare-icon in-compare" title="In Compare List" onclick="event.stopPropagation(); alert('${dx.name} is already in the comparison list.');">✓ Compare</span>`;
+                 } else if (comparisonList.length < 3) {
+                    compareButtonHtml = `<span class="action-icon compare-icon" title="Add to Compare" onclick="addToComparisonList('${dx.uniqueId}', event)">➕ Compare</span>`;
+                 } else {
+                    compareButtonHtml = `<span class="action-icon compare-icon compare-full" title="Compare list full (max 3)" onclick="event.stopPropagation(); alert('Comparison list is full. Please remove an item to add another.');">➕ Compare</span>`;
+                 }
+            }
+
+            return `
+                <div class="absolute top-2 right-2 flex space-x-1 md:space-x-2 text-xs md:text-sm">
+                    <span class="action-icon favorite-icon ${isFavorite ? 'favorited' : ''}" title="${isFavorite ? 'Remove from My List' : 'Add to My List'}" onclick="toggleFavorite('${dx.uniqueId}', event)">⭐</span>
+                    <span class="action-icon note-icon ${hasNote ? 'text-blue-500' : ''}" title="${hasNote ? 'Edit Note' : 'Add Note'}" onclick="openNoteModal('${dx.uniqueId}', event)">📝</span>
+                    ${compareButtonHtml}
+                </div>
+            `;
+        }
+
+        function displayListView(searchTerm = '') { 
             if (!currentFindingData) return;
-            let html = `<p class="source-text">Source: ${currentFindingData.source}</p><ul class="space-y-4">`;
-            currentFindingData.diagnoses.forEach(dx => {
-                html += `<li class="list-item-card"><h3 class="diagnosis-name">${dx.name}</h3><p class="key-features">${dx.keyFeatures || 'N/A'}</p></li>`;
-            });
+            const listViewEl = document.getElementById('list-view');
+            if (!listViewEl) return;
+
+            const sourcesList = Array.from(currentFindingData.originalSources).sort().join('; ');
+            let html = `<p class="finding-source-text">Source(s) for finding "${currentFindingData.displayFindingName}": ${sourcesList}</p><ul class="space-y-4">`;
+            
+            const filteredDiagnoses = Array.from(currentFindingData.diagnoses.values()).filter(dx => {
+                if (!searchTerm) return true;
+                const term = searchTerm.toLowerCase();
+                return dx.name.toLowerCase().includes(term) || (dx.keyFeatures && dx.keyFeatures.toLowerCase().includes(term));
+            }).sort((a,b) => a.name.localeCompare(b.name));
+
+            if (filteredDiagnoses.length === 0) {
+                 html += `<li class="text-gray-500 italic">No diagnoses match your search term "${searchTerm}" for this finding.</li>`;
+            } else {
+                filteredDiagnoses.forEach(dx => {
+                    const dxSources = Array.from(dx.sources).sort().join(', ');
+                    const dxFullSourcesTooltip = Array.from(dx.fullSources).sort().join('; ');
+                    const userNote = userNotes[dx.uniqueId] ? `<p class="text-xs bg-yellow-100 p-1 rounded mt-1"><em>Note:</em> ${userNotes[dx.uniqueId]}</p>` : '';
+                    html += `<li class="list-item-card">
+                                ${createDiagnosisCardActions(dx)}
+                                <h3 class="diagnosis-name">${dx.name}</h3>
+                                <p class="key-features">${dx.keyFeatures || 'N/A'}</p>
+                                <p class="diagnosis-sources" title="Original Source Texts: ${dxFullSourcesTooltip}">From: ${dxSources}</p>
+                                ${userNote}
+                            </li>`;
+                });
+            }
             html += '</ul>';
-            listView.innerHTML = html;
+            listViewEl.innerHTML = html;
         }
-        function displayTableView() { 
+
+        function displayTableView(searchTerm = '') { 
             if (!currentFindingData) return;
-            let html = `<p class="source-text">Source: ${currentFindingData.source}</p><table class="min-w-full divide-y divide-gray-200 border border-gray-300"><thead class="bg-gray-50"><tr><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diagnosis</th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key Features</th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
-            currentFindingData.diagnoses.forEach(dx => {
-                html += `<tr><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${dx.name}</td><td class="px-6 py-4 whitespace-normal text-sm text-gray-600">${dx.keyFeatures || 'N/A'}</td></tr>`;
-            });
+            const tableViewEl = document.getElementById('table-view');
+            if (!tableViewEl) return;
+
+            const sourcesList = Array.from(currentFindingData.originalSources).sort().join('; ');
+            let html = `<p class="finding-source-text">Source(s) for finding "${currentFindingData.displayFindingName}": ${sourcesList}</p>
+                        <table class="min-w-full divide-y divide-gray-200 border border-gray-300">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diagnosis</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key Features</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sources</th>
+                                    <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">`;
+
+            const filteredDiagnoses = Array.from(currentFindingData.diagnoses.values()).filter(dx => {
+                if (!searchTerm) return true;
+                const term = searchTerm.toLowerCase();
+                return dx.name.toLowerCase().includes(term) || (dx.keyFeatures && dx.keyFeatures.toLowerCase().includes(term));
+            }).sort((a,b) => a.name.localeCompare(b.name));
+            
+            if (filteredDiagnoses.length === 0) {
+                html += `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">No diagnoses match your search term "${searchTerm}" for this finding.</td></tr>`;
+            } else {
+                filteredDiagnoses.forEach(dx => {
+                    const dxSources = Array.from(dx.sources).sort().join(', ');
+                    const dxFullSourcesTooltip = Array.from(dx.fullSources).sort().join('; ');
+                    const userNote = userNotes[dx.uniqueId] ? `<p class="text-xs bg-yellow-100 p-1 rounded mt-1 truncate" title="${userNotes[dx.uniqueId]}"><em>Note:</em> ${userNotes[dx.uniqueId].substring(0,30)}...</p>` : '';
+                    html += `<tr>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${dx.name}</td>
+                                <td class="px-4 py-4 whitespace-normal text-sm text-gray-600">${dx.keyFeatures || 'N/A'} ${userNote}</td>
+                                <td class="px-4 py-4 whitespace-normal text-sm text-gray-600" title="Original Source Texts: ${dxFullSourcesTooltip}">${dxSources}</td>
+                                <td class="px-2 py-4 whitespace-nowrap text-sm">${createDiagnosisCardActions(dx).replace(/class="absolute.*?"/, 'class="flex space-x-1"')}</td>
+                            </tr>`;
+                });
+            }
             html += `</tbody></table>`;
-            tableView.innerHTML = html;
+            tableViewEl.innerHTML = html;
         }
-        function clearDiagram() {
-            if (simulation) simulation.stop();
-            if (diagramSvgElement) d3.select(diagramSvgElement).selectAll("*").remove();
-            svg = null; simulation = null;
+
+        function clearDiagram() { if (simulation) simulation.stop(); if (diagramSvgElement) d3.select(diagramSvgElement).selectAll("*").remove(); svg = null; simulation = null; closeDiagramSidebar();}
+        
+        function openDiagramSidebar(nodeData) {
+            sidebarTitle.textContent = nodeData.id;
+            let contentHtml = `<p class="text-sm"><strong>Type:</strong> ${nodeData.type}</p>`;
+            let diagnosisObjectForActions = null;
+
+            if (nodeData.type === 'finding') {
+                contentHtml += `<p class="text-sm mt-1"><strong>Source(s):</strong> ${nodeData.sourceText.replace('Sources for finding: ','')}</p>`;
+            } else { 
+                contentHtml += `<p class="text-sm mt-1"><strong>Key Features:</strong> ${nodeData.keyFeatures || 'N/A'}</p>`;
+                contentHtml += `<p class="text-sm mt-1"><strong>Source(s):</strong> ${nodeData.sourceText.replace('From: ','')}</p>`;
+                if (nodeData.fullSourceText) contentHtml += `<p class="text-xs mt-1 text-gray-500"><em>Original: ${nodeData.fullSourceText.replace('Original Sources: ','')}</em></p>`;
+                
+                if (currentFindingData && currentFindingData.diagnoses.has(nodeData.id)) { // nodeData.id is diagnosis name
+                    diagnosisObjectForActions = currentFindingData.diagnoses.get(nodeData.id);
+                }
+            }
+            sidebarContent.innerHTML = contentHtml; 
+
+            if (diagnosisObjectForActions) {
+                const actionsHtml = createDiagnosisCardActions(diagnosisObjectForActions);
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'mt-3 pt-3 border-t border-gray-200';
+                // Adapt styling for sidebar to ensure buttons are not using 'absolute' positioning from the card.
+                actionsDiv.innerHTML = actionsHtml.replace(/class="absolute.*?flex/, 'class="flex'); 
+                sidebarContent.appendChild(actionsDiv);
+            }
+            diagramSidebar.classList.add('open');
         }
-        function displayDiagramView() { 
+
+        function closeDiagramSidebar() { diagramSidebar.classList.remove('open'); }
+
+        function displayDiagramView() {  
             if (!currentFindingData || !diagramSvgElement) return;
             clearDiagram();
-            const container = diagramView; width = container.clientWidth; height = container.clientHeight;
-            if (width <= 0 || height <= 0) { setTimeout(displayDiagramView, 100); return; }
-            svg = d3.select(diagramSvgElement).attr("width", width).attr("height", height).attr("viewBox", [0, 0, width, height]).style("max-width", "100%").style("height", "auto").style("display", "block");
-            const nodes = [{ id: currentFindingData.finding, type: 'finding', source: currentFindingData.source, radius: Math.max(15, width / 40) }, ...currentFindingData.diagnoses.map(d => ({ id: d.name, type: 'diagnosis', keyFeatures: d.keyFeatures, radius: Math.max(10, width / 60) }))];
-            const links = currentFindingData.diagnoses.map(d => ({ source: currentFindingData.finding, target: d.name }));
-            simulation = d3.forceSimulation(nodes).force("link", d3.forceLink(links).id(d => d.id).distance(Math.min(width, height) / 4).strength(0.5)).force("charge", d3.forceManyBody().strength(nodes.length > 10 ? -150 : -300)).force("center", d3.forceCenter(width / 2, height / 2)).force("collision", d3.forceCollide().radius(d => d.radius + 8));
+            const container = document.getElementById('diagram-view'); 
+            if (!container) return;
+            diagramWidth = container.clientWidth; diagramHeight = container.clientHeight;
+            if (diagramWidth <= 0 || diagramHeight <= 0) { setTimeout(displayDiagramView, 100); return; } 
+            svg = d3.select(diagramSvgElement).attr("width", diagramWidth).attr("height", diagramHeight).attr("viewBox", [0, 0, diagramWidth, diagramHeight]).style("max-width", "100%").style("height", "auto").style("display", "block");
+            
+            const findingDisplayName = currentFindingData.displayFindingName;
+            const findingAllSources = Array.from(currentFindingData.originalSources).sort().join('; ');
+
+            const nodes = [{ id: findingDisplayName, type: 'finding', sourceText: `Sources for finding: ${findingAllSources}`, radius: Math.max(15, diagramWidth / 40) }];
+            const diagnosesArray = Array.from(currentFindingData.diagnoses.values()).sort((a,b) => a.name.localeCompare(b.name));
+            diagnosesArray.forEach(d => {
+                nodes.push({ id: d.name, type: 'diagnosis', keyFeatures: d.keyFeatures, sourceText: `From: ${Array.from(d.sources).sort().join(', ')}`, fullSourceText: `Original Sources: ${Array.from(d.fullSources).sort().join('; ')}`, radius: Math.max(10, diagramWidth / 60) });
+            });
+            const links = diagnosesArray.map(d => ({ source: findingDisplayName, target: d.name }));
+            
+            simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(Math.min(diagramWidth, diagramHeight) / (diagnosesArray.length > 5 ? 3 : 2.5)).strength(0.5))
+                .force("charge", d3.forceManyBody().strength(nodes.length > 10 ? -200 : -350))
+                .force("center", d3.forceCenter(diagramWidth / 2, diagramHeight / 2))
+                .force("collision", d3.forceCollide().radius(d => d.radius + (nodes.length > 20 ? 4 : 8) ));
+
             const link = svg.append("g").attr("class", "links").selectAll("line").data(links).join("line").attr("class", "link");
             const node = svg.append("g").attr("class", "nodes").selectAll("g").data(nodes).join("g").attr("class", "node").call(drag(simulation));
+            
             node.append("circle").attr("r", d => d.radius).attr("fill", d => d.type === 'finding' ? '#3b82f6' : '#60a5fa');
-            node.append("text").text(d => d.id.split(" (")[0]).attr("dy", d => d.radius + 5).attr("class", d => d.type === 'finding' ? 'finding-label' : '');
+            node.append("text").text(d => d.id.split(" (")[0]).attr("dy", d => d.radius + 5).attr("class", d => d.type === 'finding' ? 'finding-label' : '').style("font-size", d => (d.id.length > 25 ? "8px" : "10px"));
+            
             const tooltipDiv = d3.select("#tooltip");
-            node.on("mouseover", (event, d) => { tooltipDiv.style("opacity", 0.9); let content = `<strong>${d.id.split(" (")[0]}</strong>`; if (d.type === 'finding') content += `<br><span style="font-size: 0.8em; color: #d1d5db;">Source: ${d.source}</span>`; else content += `<br><span style="font-size: 0.8em; color: #d1d5db;">${d.keyFeatures || 'N/A'}</span>`; tooltipDiv.html(content); }).on("mousemove", (event) => { tooltipDiv.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 10) + "px"); }).on("mouseout", () => tooltipDiv.style("opacity", 0));
+            node.on("mouseover", (event, d) => { tooltipDiv.style("opacity", 0.95); let content = `<strong>${d.id}</strong>`; if (d.type === 'finding') { content += `<br><span style="font-size: 0.8em; color: #e0e0e0;">${d.sourceText}</span>`; } else { content += `<br><span style="font-size: 0.8em; color: #e0e0e0;">${d.keyFeatures || 'N/A'}</span>`; content += `<br><span style="font-size: 0.75em; color: #cccccc; font-style:italic;">${d.sourceText}</span>`; if(d.fullSourceText) content += `<br><span style="font-size: 0.7em; color: #b0b0b0; font-style:italic;">(${d.fullSourceText})</span>`; } tooltipDiv.html(content);  })
+                .on("mousemove", (event) => { tooltipDiv.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 10) + "px"); })
+                .on("mouseout", () => tooltipDiv.style("opacity", 0))
+                .on("click", (event, d) => { event.stopPropagation(); openDiagramSidebar(d); });
+            
             simulation.on("tick", () => { link.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y); node.attr("transform", d => `translate(${d.x},${d.y})`); });
         }
-        function drag(simulation) {
-            function dragstarted(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; d3.select(this).select("circle").style("cursor", "grabbing"); }
-            function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
-            function dragended(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; d3.select(this).select("circle").style("cursor", "grab"); }
-            return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
-        }
+        function drag(simulation) { function dragstarted(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; d3.select(this).select("circle").style("cursor", "grabbing"); } function dragged(event, d) { d.fx = event.x; d.fy = event.y; } function dragended(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; d3.select(this).select("circle").style("cursor", "grab"); } return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended); }
 
-        // --- Flashcard Specific Functions ---
-        function initializeFlashcardDeck() {
-            resetFlashcardViewInternalUI(); 
-
-            if (currentFindingData && currentFindingData.diagnoses && currentFindingData.diagnoses.length > 0) {
-                if(flashcardPlaceholder) flashcardPlaceholder.classList.add('hidden');
-
-                const existingSourceText = flashcardView.querySelector('p.source-text-fc');
-                if(existingSourceText) existingSourceText.remove(); 
-                const sourceP = document.createElement('p');
-                sourceP.className = 'source-text-fc'; 
-                sourceP.textContent = `Source: ${currentFindingData.source}`;
-                if (flashcardContainer) {
-                    flashcardView.insertBefore(sourceP, flashcardContainer);
-                } else { 
-                    flashcardView.insertBefore(sourceP, flashcardPlaceholder);
-                }
-
-                flashcardDeck = [...currentFindingData.diagnoses]; 
-                shuffleArray(flashcardDeck);
-                currentCardIndex = 0;
-                totalCardsInDeck = flashcardDeck.length;
-                turnNumber = totalCardsInDeck > 0 ? 1 : 0;
-
-                if(flashcardContainer) flashcardContainer.classList.remove('hidden');
-                if(flashcardControls) flashcardControls.classList.remove('hidden');
-                if(flashcardCompletion) flashcardCompletion.classList.add('hidden');
-                displayCurrentFlashcard();
-            } else {
-                flashcardDeck = []; totalCardsInDeck = 0; currentCardIndex = 0; turnNumber = 0;
-                const fcSourceText = flashcardView.querySelector('p.source-text-fc');
-                if (fcSourceText) fcSourceText.remove();
-                 if(flashcardPlaceholder) flashcardPlaceholder.classList.remove('hidden'); // Ensure placeholder shows if no data
+        // --- Flashcard SRS Specific Functions ---
+        function initializeSrsFlashcardDeck() {
+            resetFlashcardViewInternalUI();
+            let allSrsCards = [];
+            if (currentFindingData && currentFindingData.diagnoses && currentFindingData.diagnoses.size > 0) {
+                 allSrsCards = [...currentFindingData.diagnoses.values()].map(dx => ({...dx, cardId: dx.flashcardId}));
+            } else { 
+                processedFindingsMap.forEach(finding => {
+                    finding.diagnoses.forEach(dx => {
+                        allSrsCards.push({...dx, cardId: dx.flashcardId});
+                    });
+                });
             }
-        }
-
-        function displayCurrentFlashcard() {
-            if (flashcardDeck.length === 0) { 
-                if(flashcardContainer) { flashcardContainer.innerHTML = ''; flashcardContainer.classList.add('hidden'); }
-                if(flashcardControls) flashcardControls.classList.add('hidden');
-                if(flashcardCounter) { flashcardCounter.textContent = ''; flashcardCounter.classList.add('hidden'); }
-                
-                const fcSourceText = flashcardView.querySelector('p.source-text-fc');
-
-                if (totalCardsInDeck > 0) { // Only show completion if a deck was started
-                    if(flashcardCompletion) flashcardCompletion.classList.remove('hidden');
-                    if (fcSourceText) fcSourceText.classList.remove('hidden'); // Keep source text visible on completion
-                } else { // No deck was ever loaded for this finding
-                    if(flashcardCompletion) flashcardCompletion.classList.add('hidden');
-                    if (fcSourceText) fcSourceText.remove(); // Remove source text if no deck
-                    if(flashcardPlaceholder) flashcardPlaceholder.classList.remove('hidden');
-                }
+            
+            if (allSrsCards.length === 0) {
+                flashcardPlaceholder.textContent = "No diagnoses available for flashcards.";
+                flashcardPlaceholder.classList.remove('hidden');
                 return;
             }
 
-            const fcSourceText = flashcardView.querySelector('p.source-text-fc');
-            if (fcSourceText) fcSourceText.classList.remove('hidden'); 
+            srsDeck = allSrsCards.map(card => {
+                const srsInfo = userSrsData[card.cardId] || {
+                    interval: 0, easeFactor: SRS_INITIAL_EASE_FACTOR, dueDate: new Date(0).toISOString(), repetitions: 0, history: []
+                };
+                return { ...card, srs: srsInfo };
+            }).filter(card => new Date(card.srs.dueDate) <= new Date()); 
 
-            if(flashcardContainer) flashcardContainer.classList.remove('hidden');
-            if(flashcardControls) flashcardControls.classList.remove('hidden');
-            if(flashcardCompletion) flashcardCompletion.classList.add('hidden');
-            if(flashcardPlaceholder) flashcardPlaceholder.classList.add('hidden');
+            shuffleArray(srsDeck);
+            currentSrsCardIndex = 0;
 
-            if (currentCardIndex >= flashcardDeck.length) currentCardIndex = 0;  
-            const cardData = flashcardDeck[currentCardIndex];
+            if (srsDeck.length > 0) {
+                if (flashcardPlaceholder) flashcardPlaceholder.classList.add('hidden');
+                if (flashcardContainer) flashcardContainer.classList.remove('hidden');
+                if (flashcardControls) flashcardControls.classList.remove('hidden');
+                if (flashcardCompletion) flashcardCompletion.classList.add('hidden');
+                
+                const fcSourceTextParent = flashcardView.querySelector('.placeholder-text').parentNode; // Get parent of placeholder
+                let sourceP = flashcardView.querySelector('p.finding-source-text-fc');
+                if (!sourceP) {
+                    sourceP = document.createElement('p');
+                    sourceP.className = 'finding-source-text finding-source-text-fc';
+                    fcSourceTextParent.insertBefore(sourceP, flashcardContainer); // Insert before container or at a specific position
+                }
+
+                if (currentFindingData) {
+                    const findingAllSources = Array.from(currentFindingData.originalSources).sort().join('; ');
+                    sourceP.textContent = `Finding: "${currentFindingData.displayFindingName}" (Sources: ${findingAllSources})`;
+                } else {
+                    sourceP.textContent = "Reviewing cards from all findings."
+                }
+                displayCurrentSrsFlashcard();
+            } else {
+                resetFlashcardViewInternalUI();
+                flashcardCompletion.textContent = currentFindingData ? "All cards for this finding are learned for now!" : "No cards due for review across all findings!";
+                flashcardCompletion.classList.remove('hidden');
+            }
+            updateFlashcardDeckStats();
+        }
+
+        function updateFlashcardDeckStats() {
+            const totalDue = srsDeck.length;
+            let newCount = 0, learningCount = 0, learnedCount = 0;
+            const allCardIdsInSystem = new Set(allDiagnosesFlat.map(dx => dx.flashcardId));
+
+            allCardIdsInSystem.forEach(cardId => {
+                const srsItem = userSrsData[cardId];
+                if (!srsItem || srsItem.repetitions === 0) newCount++;
+                else if (srsItem.interval < 21) learningCount++; 
+                else learnedCount++;
+            });
+
+            flashcardDeckStats.textContent = `Due Now: ${totalDue} | New: ${newCount} | Learning: ${learningCount} | Learned: ${learnedCount}`;
+            flashcardDeckStats.classList.remove('hidden');
+        }
+        
+        function displayCurrentSrsFlashcard() {
+            if (currentSrsCardIndex >= srsDeck.length || srsDeck.length === 0) {
+                resetFlashcardViewInternalUI();
+                flashcardCompletion.textContent = currentFindingData ? "All cards for this finding are learned for now!" : "No cards due for review across all findings!";
+                flashcardCompletion.classList.remove('hidden');
+                updateFlashcardDeckStats();
+                return;
+            }
+
+            const cardData = srsDeck[currentSrsCardIndex];
+            const cardSources = Array.from(cardData.sources).sort().join(', ');
+            const cardFullSourcesTooltip = Array.from(cardData.fullSources).sort().join('; ');
 
             flashcardContainer.innerHTML = `
                 <div class="flashcard">
                     <div class="flashcard-inner">
-                        <div class="flashcard-front"><div class="flashcard-name">${cardData.name}</div><div class="flashcard-instruction">(Click to flip)</div></div>
-                        <div class="flashcard-back">${cardData.keyFeatures || 'N/A'}</div>
+                        <div class="flashcard-front">
+                            <div class="flashcard-name">${cardData.name}</div>
+                            <div class="text-xs text-gray-500">(Parent Finding: ${cardData.parentFinding})</div>
+                            <div class="flashcard-instruction mt-2">(Click to flip)</div>
+                        </div>
+                        <div class="flashcard-back">
+                            <p>${cardData.keyFeatures || 'N/A'}</p>
+                            <p class="diagnosis-sources mt-2" title="Original Source Texts: ${cardFullSourcesTooltip}">From: ${cardSources}</p>
+                        </div>
                     </div>
                 </div>`;
             const newCard = flashcardContainer.querySelector('.flashcard');
             if (newCard) newCard.addEventListener('click', () => newCard.classList.toggle('is-flipped'));
 
-            if (turnNumber > 0 && totalCardsInDeck > 0) {
-                flashcardCounter.textContent = `Card ${turnNumber} of ${totalCardsInDeck}`;
-                flashcardCounter.classList.remove('hidden');
-            } else {
-                if(flashcardCounter) flashcardCounter.classList.add('hidden');
+            flashcardCounter.textContent = `Card ${currentSrsCardIndex + 1} of ${srsDeck.length} (Due Today)`;
+            flashcardCounter.classList.remove('hidden');
+            if (flashcardCompletion) flashcardCompletion.classList.add('hidden');
+            updateFlashcardDeckStats();
+        }
+
+        function handleSrsAnswer(quality) { 
+            if (srsDeck.length === 0 || currentSrsCardIndex >= srsDeck.length) return;
+            const card = srsDeck[currentSrsCardIndex];
+            let srsInfo = userSrsData[card.cardId] || { 
+                interval: 0, easeFactor: SRS_INITIAL_EASE_FACTOR, dueDate: new Date(0).toISOString(), repetitions: 0, history: []
+            };
+            let nextDueDate;
+
+            if (quality < 2) { 
+                srsInfo.repetitions = 0; 
+                if (quality === 0) { 
+                    srsInfo.interval = 0; // Will be handled by specific "again" logic
+                    nextDueDate = new Date(Date.now() + SRS_MIN_INTERVAL_MINUTES * 60 * 1000);
+                    srsInfo.history.push({ date: new Date().toISOString(), quality, interval: `+${SRS_MIN_INTERVAL_MINUTES}m`, easeFactor: srsInfo.easeFactor });
+                } else { // Hard
+                    srsInfo.interval = Math.max(1, srsInfo.interval * 0.8); 
+                    srsInfo.easeFactor = Math.max(1.3, srsInfo.easeFactor - 0.15);
+                    nextDueDate = new Date(Date.now() + srsInfo.interval * 24 * 60 * 60 * 1000);
+                    srsInfo.history.push({ date: new Date().toISOString(), quality, interval: srsInfo.interval, easeFactor: srsInfo.easeFactor });
+                }
+            } else { 
+                if (srsInfo.repetitions === 0) { srsInfo.interval = SRS_INITIAL_INTERVAL; } 
+                else if (srsInfo.repetitions === 1) { srsInfo.interval = Math.max(SRS_INITIAL_INTERVAL +1, Math.ceil(srsInfo.interval * srsInfo.easeFactor * 0.8));} 
+                else { srsInfo.interval = Math.ceil(srsInfo.interval * srsInfo.easeFactor); }
+                srsInfo.repetitions += 1;
+
+                if (quality === 3) { srsInfo.easeFactor = Math.min(3.5, srsInfo.easeFactor + 0.15); srsInfo.interval = Math.ceil(srsInfo.interval * 1.3); } 
+                nextDueDate = new Date(Date.now() + srsInfo.interval * 24 * 60 * 60 * 1000);
+                srsInfo.history.push({ date: new Date().toISOString(), quality, interval: srsInfo.interval, easeFactor: srsInfo.easeFactor });
+            }
+            
+            srsInfo.dueDate = nextDueDate.toISOString();
+            userSrsData[card.cardId] = srsInfo;
+            saveDataToLocalStorage('userSrsData', userSrsData);
+
+            if (quality === 0) { // "Again": move to end of current deck
+                srsDeck.push(srsDeck.splice(currentSrsCardIndex, 1)[0]);
+                // currentSrsCardIndex remains the same as the next card shifts to this position
+            } else { // Hard, Good, Easy: remove from current due deck
+                srsDeck.splice(currentSrsCardIndex, 1);
+                // currentSrsCardIndex does not need to be incremented here,
+                // as the next card will naturally be at the same index after splice,
+                // or it will be past the end if this was the last card.
+            }
+            displayCurrentSrsFlashcard(); // This will correctly pick the next card or end the session
+        }
+        
+        const handleResize = debounce(() => { if (currentView === 'diagram-view' && currentFindingData && svg) { const container = document.getElementById('diagram-view'); if (!container) return; const newWidth = container.clientWidth; const newHeight = container.clientHeight; if (newWidth > 0 && newHeight > 0 && (newWidth !== diagramWidth || newHeight !== diagramHeight)) { diagramWidth = newWidth; diagramHeight = newHeight; svg.attr("width", diagramWidth).attr("height", diagramHeight).attr("viewBox", [0, 0, diagramWidth, diagramHeight]); if (simulation) { simulation.force("center", d3.forceCenter(diagramWidth / 2, diagramHeight / 2)) .force("link").distance(Math.min(diagramWidth, diagramHeight) / (Array.from(currentFindingData.diagnoses.values()).length > 5 ? 3 : 2.5)); simulation.alpha(0.3).restart(); } } } }, 250);
+
+        // --- My List / Favorites Functions ---
+        function toggleFavorite(diagnosisUniqueId, event) {
+            if (event) event.stopPropagation(); 
+            if (userFavorites.has(diagnosisUniqueId)) { userFavorites.delete(diagnosisUniqueId); } 
+            else { userFavorites.add(diagnosisUniqueId); }
+            saveDataToLocalStorage('userFavorites', Array.from(userFavorites)); 
+            
+            if (['list-view', 'table-view', 'my-list-view', 'diagram-view', 'global-search-view'].includes(currentView)) {
+                if (currentView === 'my-list-view') displayMyListView();
+                else if (currentView === 'diagram-view' && diagramSidebar.classList.contains('open')) {
+                    const dxForSidebar = findDiagnosisByUniqueId(diagnosisUniqueId);
+                    if (dxForSidebar) { // Reconstruct nodeData for openDiagramSidebar
+                        const nodeDataForSidebar = { id: dxForSidebar.name, type: 'diagnosis', keyFeatures: dxForSidebar.keyFeatures, sourceText: `From: ${Array.from(dxForSidebar.sources).sort().join(', ')}`, fullSourceText: `Original Sources: ${Array.from(dxForSidebar.fullSources).sort().join('; ')}`};
+                        openDiagramSidebar(nodeDataForSidebar); // This will re-render actions
+                    }
+                } else if (currentView === 'global-search-view') {
+                    performGlobalSearch(); // Re-render global search to update icons
+                }
+                else displayContent(searchDiagnosesInput.value); // Re-render list/table view
+            }
+             const icon = event ? event.target : document.querySelector(`.favorite-icon[onclick*="'${diagnosisUniqueId}'"]`);
+             if (icon) icon.classList.toggle('favorited', userFavorites.has(diagnosisUniqueId));
+        }
+
+        function displayMyListView() {
+            myListContent.innerHTML = '';
+            if (userFavorites.size === 0) {
+                myListContent.innerHTML = `<div class="placeholder-text">No diagnoses added to your list yet. Star diagnoses to add them.</div>`;
+                return;
+            }
+            let html = '<ul class="space-y-4">';
+            userFavorites.forEach(uniqueId => {
+                const dx = findDiagnosisByUniqueId(uniqueId);
+                if (dx) {
+                    const dxSources = Array.from(dx.sources).sort().join(', ');
+                    const dxFullSourcesTooltip = Array.from(dx.fullSources).sort().join('; ');
+                    const userNote = userNotes[dx.uniqueId] ? `<p class="text-xs bg-yellow-100 p-1 rounded mt-1"><em>Note:</em> ${userNotes[dx.uniqueId]}</p>` : '';
+                    html += `<li class="list-item-card">
+                                ${createDiagnosisCardActions(dx)}
+                                <h3 class="diagnosis-name">${dx.name} <span class="text-sm text-gray-500">(from ${dx.parentFinding})</span></h3>
+                                <p class="key-features">${dx.keyFeatures || 'N/A'}</p>
+                                <p class="diagnosis-sources" title="Original Source Texts: ${dxFullSourcesTooltip}">From: ${dxSources}</p>
+                                ${userNote}
+                            </li>`;
+                }
+            });
+            html += '</ul>';
+            myListContent.innerHTML = html;
+        }
+        
+        function findDiagnosisByUniqueId(uniqueId) {
+            if (!uniqueId) return null;
+            const [findingName, diagnosisName] = uniqueId.split('|');
+            if (!findingName || !diagnosisName) return null;
+            const finding = processedFindingsMap.get(findingName);
+            return finding ? finding.diagnoses.get(diagnosisName) : null;
+        }
+
+        // --- Note Functions ---
+        function openNoteModal(diagnosisUniqueId, event) {
+            if (event) event.stopPropagation();
+            currentEditingDiagnosisId = diagnosisUniqueId;
+            const dx = findDiagnosisByUniqueId(diagnosisUniqueId);
+            noteModalTitle.textContent = `Note for ${dx ? dx.name : 'Diagnosis'}`;
+            noteModalTextarea.value = userNotes[diagnosisUniqueId] || '';
+            noteModal.classList.add('open');
+            noteModalTextarea.focus();
+        }
+        function closeNoteModal() { noteModal.classList.remove('open'); currentEditingDiagnosisId = null; }
+        function saveNote() {
+            if (currentEditingDiagnosisId) {
+                const noteText = noteModalTextarea.value.trim();
+                if (noteText) { userNotes[currentEditingDiagnosisId] = noteText; } 
+                else { delete userNotes[currentEditingDiagnosisId]; }
+                saveDataToLocalStorage('userNotes', userNotes);
+                closeNoteModal();
+                if (['list-view', 'table-view', 'my-list-view', 'diagram-view', 'global-search-view'].includes(currentView)) {
+                     if (currentView === 'my-list-view') displayMyListView();
+                     else if (currentView === 'diagram-view' && diagramSidebar.classList.contains('open')) {
+                         const dxForSidebar = findDiagnosisByUniqueId(currentEditingDiagnosisId);
+                         if (dxForSidebar) {
+                             const nodeDataForSidebar = { id: dxForSidebar.name, type: 'diagnosis', keyFeatures: dxForSidebar.keyFeatures, sourceText: `From: ${Array.from(dxForSidebar.sources).sort().join(', ')}`, fullSourceText: `Original Sources: ${Array.from(dxForSidebar.fullSources).sort().join('; ')}`};
+                             openDiagramSidebar(nodeDataForSidebar);
+                         }
+                     } else if (currentView === 'global-search-view') {
+                        performGlobalSearch();
+                     }
+                     else displayContent(searchDiagnosesInput.value);
+                }
             }
         }
 
-        function handleCorrectAnswer() { 
-            if (flashcardDeck.length === 0) return; 
-            flashcardDeck.splice(currentCardIndex, 1);
-            if (currentCardIndex >= flashcardDeck.length && flashcardDeck.length > 0) currentCardIndex = 0; 
-            if (flashcardDeck.length > 0 && turnNumber < totalCardsInDeck) turnNumber++;
-            else if (flashcardDeck.length === 0 && totalCardsInDeck > 0) { // Last card correctly answered
-                 turnNumber = totalCardsInDeck; // Show Y of Y on completion message
-            }
-            displayCurrentFlashcard();
+        // --- Compare Diagnoses Functions ---
+        function addToComparisonList(diagnosisUniqueId, event) {
+            if (event) event.stopPropagation();
+            if (comparisonList.some(dx => dx.uniqueId === diagnosisUniqueId)) { alert("This diagnosis is already in the comparison list."); return; }
+            if (comparisonList.length >= 3) { alert("You can compare a maximum of 3 diagnoses at a time. Please remove one first."); return; }
+
+            const dx = findDiagnosisByUniqueId(diagnosisUniqueId);
+            if (dx) {
+                comparisonList.push({...dx}); 
+                if (currentView === 'compare-view') { displayCompareView(); } 
+                else {
+                    const clickedIconContainer = event ? event.target.closest('.action-icon') : null;
+                    if (clickedIconContainer) {
+                        clickedIconContainer.innerHTML = '✓ Compare'; 
+                        clickedIconContainer.classList.add('in-compare');
+                        clickedIconContainer.title = 'In Compare List';
+                    }
+                    alert(`${dx.name} added to comparison. Go to the 'Compare' tab to see details or manage the list.`);
+                }
+            } else { console.error("Could not find diagnosis to add to comparison:", diagnosisUniqueId); alert("Error: Could not add selected diagnosis to comparison list."); }
         }
-        function handleIncorrectAnswer() { 
-            if (flashcardDeck.length === 0) return; 
-            const incorrectCard = flashcardDeck.splice(currentCardIndex, 1)[0]; 
-            if (flashcardDeck.length === 0) { flashcardDeck.push(incorrectCard); currentCardIndex = 0; } 
-            else {
-                const deckSize = flashcardDeck.length; 
-                const halfPoint = Math.max(0, Math.ceil(deckSize / 2) -1 );
-                const insertionIndex = halfPoint + Math.floor(Math.random() * (deckSize - halfPoint + 1));
-                flashcardDeck.splice(insertionIndex, 0, incorrectCard);
-                if (currentCardIndex >= flashcardDeck.length) currentCardIndex = 0; 
+        function displayCompareView() {
+            compareContentArea.innerHTML = '';
+            if (comparisonList.length === 0) {
+                compareContentArea.innerHTML = `<div class="placeholder-text">Select diagnoses using the '➕ Compare' icon to compare them.</div>`;
+                return;
             }
-            if (flashcardDeck.length > 0 && turnNumber < totalCardsInDeck) turnNumber++;
-            displayCurrentFlashcard();
+            let html = `<table class="min-w-full divide-y divide-gray-200 border border-gray-300">
+                            <thead><tr><th class="bg-gray-100 p-2">Feature</th>`;
+            comparisonList.forEach(dx => {
+                html += `<th class="bg-gray-100 p-2">${dx.name} <span class="text-xs text-gray-500">(from ${dx.parentFinding})</span> <button class="text-red-500 text-xs font-normal ml-1" onclick="removeFromComparison('${dx.uniqueId}', event)">(Remove)</button></th>`;
+            });
+            html += `</tr></thead><tbody>`;
+            ['keyFeatures', 'sources', 'fullSources', 'userNotes'].forEach(featureKey => {
+                html += `<tr><td class="font-semibold bg-gray-50 p-2 capitalize">${featureKey.replace('userNotes', 'My Notes').replace(/([A-Z])/g, ' $1').trim()}</td>`;
+                comparisonList.forEach(dx => {
+                    let val = '';
+                    if (featureKey === 'userNotes') val = userNotes[dx.uniqueId] || '<em>No note</em>';
+                    else if (featureKey === 'sources' || featureKey === 'fullSources') val = Array.from(dx[featureKey]).sort().join(featureKey === 'sources' ? ', ' : '; ');
+                    else val = dx[featureKey] || 'N/A';
+                    html += `<td class="p-2 align-top text-sm">${val} ${featureKey === 'userNotes' ? `<span class="action-icon text-xs" onclick="openNoteModal('${dx.uniqueId}', event)">📝</span>` : ''}</td>`;
+                });
+                html += `</tr>`;
+            });
+            html += `</tbody></table>`;
+            compareContentArea.innerHTML = html;
+        }
+        function removeFromComparison(diagnosisUniqueId, event) {
+            if(event) event.stopPropagation();
+            comparisonList = comparisonList.filter(dx => dx.uniqueId !== diagnosisUniqueId);
+            displayCompareView(); // Re-render compare view
+            // Also, try to update the icon in other views if they are active and showing this item
+             if (currentView !== 'compare-view' && (['list-view', 'table-view', 'my-list-view', 'diagram-view', 'global-search-view'].includes(currentView))) {
+                if (currentView === 'diagram-view' && diagramSidebar.classList.contains('open')) {
+                     const dxForSidebar = findDiagnosisByUniqueId(diagnosisUniqueId);
+                     if (dxForSidebar) {
+                         const nodeDataForSidebar = { id: dxForSidebar.name, type: 'diagnosis', keyFeatures: dxForSidebar.keyFeatures, sourceText: `From: ${Array.from(dxForSidebar.sources).sort().join(', ')}`, fullSourceText: `Original Sources: ${Array.from(dxForSidebar.fullSources).sort().join('; ')}`};
+                         openDiagramSidebar(nodeDataForSidebar);
+                     }
+                } else if (currentView === 'global-search-view') {
+                    performGlobalSearch();
+                } else if (currentView === 'my-list-view') {
+                    displayMyListView();
+                }
+                else {
+                    displayContent(searchDiagnosesInput.value);
+                }
+            }
         }
         
-        const handleResize = debounce(() => {
-            if (currentView === 'diagram-view' && currentFindingData && svg) {
-                 const container = diagramView; 
-                 const newWidth = container.clientWidth; 
-                 const newHeight = container.clientHeight;
-                 if (newWidth > 0 && newHeight > 0 && (newWidth !== width || newHeight !== height)) {
-                    width = newWidth; height = newHeight;
-                    svg.attr("width", width).attr("height", height).attr("viewBox", [0, 0, width, height]);
-                    if (simulation) { 
-                        simulation.force("center", d3.forceCenter(width / 2, height / 2))
-                                  .force("link").distance(Math.min(width, height) / 4);
-                        simulation.alpha(0.3).restart(); 
+        // --- Global Search Functions ---
+        function performGlobalSearch() {
+            const searchTerm = globalSearchInput.value.toLowerCase().trim();
+            if (!searchTerm) { globalSearchResultsArea.innerHTML = `<div class="placeholder-text">Enter a term to search globally.</div>`; return; }
+            const results = allDiagnosesFlat.filter(dx => 
+                dx.name.toLowerCase().includes(searchTerm) ||
+                (dx.keyFeatures && dx.keyFeatures.toLowerCase().includes(searchTerm)) ||
+                dx.parentFinding.toLowerCase().includes(searchTerm)
+            );
+
+            if (results.length === 0) { globalSearchResultsArea.innerHTML = `<p class="text-gray-600">No results found for "${searchTerm}".</p>`; return; }
+
+            let html = `<h3 class="text-lg font-semibold mb-2">${results.length} result(s) found:</h3><ul class="space-y-3">`;
+            results.forEach(dx => {
+                 const dxSources = Array.from(dx.sources).sort().join(', ');
+                 const userNote = userNotes[dx.uniqueId] ? `<p class="text-xs bg-yellow-100 p-1 rounded mt-1"><em>Note:</em> ${userNotes[dx.uniqueId]}</p>` : '';
+                 html += `<li class="list-item-card">
+                            ${createDiagnosisCardActions(dx)}
+                            <h4 class="diagnosis-name">${dx.name}</h4>
+                            <p class="text-sm text-gray-500">Relevant Finding: <a href="#" class="text-blue-600 hover:underline" onclick="navigateToFinding('${dx.parentFinding}', event)">${dx.parentFinding}</a></p>
+                            <p class="key-features">${dx.keyFeatures || 'N/A'}</p>
+                            <p class="diagnosis-sources">From: ${dxSources}</p>
+                            ${userNote}
+                          </li>`;
+            });
+            html += `</ul>`;
+            globalSearchResultsArea.innerHTML = html;
+        }
+        function navigateToFinding(findingName, event) { if(event) event.preventDefault(); findingSelect.value = findingName; findingSelect.dispatchEvent(new Event('change')); switchView('list-view'); }
+        
+        // --- Quiz Mode Functions (Corrected Versions) ---
+        let currentQuiz = null; 
+        const MAX_QUIZ_QUESTIONS = 5; 
+
+        function generateQuizQuestions(type) {
+            const questions = [];
+            if (allDiagnosesFlat.length === 0) return questions;
+
+            const availableDiagnoses = [...allDiagnosesFlat]; 
+            shuffleArray(availableDiagnoses); 
+
+            for (let i = 0; i < Math.min(availableDiagnoses.length, MAX_QUIZ_QUESTIONS); i++) {
+                const dx = availableDiagnoses[i];
+                if (!dx || !dx.name || !dx.keyFeatures || !dx.parentFinding) continue; 
+
+                if (type === 'featuresToDx') {
+                    questions.push({
+                        questionText: `Key Features: "${dx.keyFeatures}" (Hint: associated with finding "${dx.parentFinding}"). What is the diagnosis?`,
+                        answer: dx.name,
+                        type: 'featuresToDx'
+                    });
+                } else if (type === 'findingToDx') {
+                    const parentFindingEntry = processedFindingsMap.get(dx.parentFinding);
+                    if (parentFindingEntry && parentFindingEntry.diagnoses.size > 0) {
+                        const differentials = Array.from(parentFindingEntry.diagnoses.keys());
+                        questions.push({
+                            questionText: `Name one differential diagnosis for the histologic finding: "${dx.parentFinding}".`,
+                            answer: differentials, 
+                            type: 'findingToDx'
+                        });
                     }
                 }
             }
-        }, 250);
-
-        // --- Event Listeners ---
-        findingSelect.addEventListener('change', () => {
-            const selectedValue = findingSelect.value;
-            currentFindingData = (typeof differentialsData !== 'undefined' && selectedValue) ? 
-                                 differentialsData.find(item => item.finding === selectedValue) : null;
-            if (currentView === 'flashcard-view') {
-                initializeFlashcardDeck(); 
-            } else {
-                displayContent(); 
-            }
-        });
-
-        listTab.addEventListener('click', () => switchView('list-view'));
-        tableTab.addEventListener('click', () => switchView('table-view'));
-        flashcardTab.addEventListener('click', () => switchView('flashcard-view'));
-        diagramTab.addEventListener('click', () => switchView('diagram-view'));
-
-        if(correctButton) correctButton.addEventListener('click', handleCorrectAnswer);
-        if(incorrectButton) incorrectButton.addEventListener('click', handleIncorrectAnswer);
-
-        if (diagramView && typeof ResizeObserver !== 'undefined') {
-             resizeObserver = new ResizeObserver(handleResize);
-             resizeObserver.observe(diagramView);
-        } else if (diagramView) { 
-            window.addEventListener('resize', handleResize);
+            return questions.filter(q => q); 
         }
 
+        function startQuiz() {
+            const type = quizTypeSelect.value;
+            currentQuiz = { type, questions: generateQuizQuestions(type), currentQuestionIndex: 0, score: 0 };
+
+            if (currentQuiz.questions.length === 0) {
+                quizQuestion.textContent = "Not enough data to generate this quiz.";
+                quizArea.classList.remove('hidden');
+                quizSetup.classList.add('hidden');
+                quizPlaceholder.classList.add('hidden');
+                quizAnswerInput.classList.add('hidden');
+                submitQuizAnswerButton.classList.add('hidden');
+                quizFeedback.textContent = "";
+                quizScore.textContent = "";
+                return;
+            }
+            quizSetup.classList.add('hidden');
+            quizPlaceholder.classList.add('hidden');
+            quizArea.classList.remove('hidden');
+            quizAnswerInput.value = ''; 
+            quizAnswerInput.classList.remove('hidden');
+            submitQuizAnswerButton.classList.remove('hidden');
+            displayNextQuizQuestion();
+        }
+
+        function displayNextQuizQuestion() {
+            if (!currentQuiz || currentQuiz.currentQuestionIndex >= currentQuiz.questions.length) {
+                quizQuestion.innerHTML = `Quiz Complete! Final Score: ${currentQuiz ? currentQuiz.score : 0}/${currentQuiz ? currentQuiz.questions.length : 0}`;
+                quizAnswerInput.classList.add('hidden');
+                submitQuizAnswerButton.classList.add('hidden');
+                quizFeedback.innerHTML = ''; // Clear previous feedback and button
+                const backButton = document.createElement('button');
+                backButton.textContent = 'Try Another Quiz';
+                backButton.className = 'mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded';
+                backButton.onclick = () => {
+                    quizArea.classList.add('hidden');
+                    quizSetup.classList.remove('hidden');
+                    quizPlaceholder.classList.remove('hidden');
+                    quizQuestion.innerHTML = ''; 
+                };
+                quizFeedback.appendChild(backButton);
+                return;
+            }
+
+            const q = currentQuiz.questions[currentQuiz.currentQuestionIndex];
+            quizQuestion.innerHTML = q.questionText; 
+            quizAnswerInput.value = '';
+            quizFeedback.textContent = '';
+            quizScore.textContent = `Score: ${currentQuiz.score}/${currentQuiz.questions.length} | Question: ${currentQuiz.currentQuestionIndex + 1}/${currentQuiz.questions.length}`;
+            quizAnswerInput.focus();
+        }
+
+        function submitQuizAnswer() {
+            if (!currentQuiz || currentQuiz.currentQuestionIndex >= currentQuiz.questions.length) return;
+
+            const userAnswer = quizAnswerInput.value.trim().toLowerCase();
+            const currentQuestion = currentQuiz.questions[currentQuiz.currentQuestionIndex];
+            let isCorrect = false;
+
+            if (currentQuestion.type === 'featuresToDx') {
+                const correctAnswer = currentQuestion.answer.toLowerCase();
+                if (userAnswer === correctAnswer) { isCorrect = true; }
+            } else if (currentQuestion.type === 'findingToDx') {
+                const correctAnswersArray = currentQuestion.answer.map(ans => ans.toLowerCase());
+                if (correctAnswersArray.includes(userAnswer)) { isCorrect = true; }
+            }
+
+            if (isCorrect) {
+                currentQuiz.score++;
+                quizFeedback.textContent = "Correct!";
+                quizFeedback.className = "mt-2 text-green-600";
+            } else {
+                let feedbackText = `Incorrect. `;
+                if (currentQuestion.type === 'featuresToDx') {
+                    feedbackText += `The correct answer was: ${currentQuestion.answer}`;
+                } else if (currentQuestion.type === 'findingToDx') {
+                    feedbackText += `Some correct answers for "${currentQuestion.questionText.match(/"([^"]+)"/)[1]}" include: ${currentQuestion.answer.slice(0,3).join(', ')}...`;
+                }
+                quizFeedback.textContent = feedbackText;
+                quizFeedback.className = "mt-2 text-red-600";
+            }
+            currentQuiz.currentQuestionIndex++;
+            quizAnswerInput.disabled = true;
+            submitQuizAnswerButton.disabled = true;
+            setTimeout(() => {
+                quizAnswerInput.disabled = false;
+                submitQuizAnswerButton.disabled = false;
+                displayNextQuizQuestion();
+            }, 2000);
+        }
+        
+        // --- References Tab Functions ---
+        function populateReferencesTab() {
+            referencesList.innerHTML = '';
+            const referencesPlaceholderEl = document.getElementById('references-placeholder');
+            if (allSourcesMasterSet.size === 0) {
+                if(referencesPlaceholderEl) referencesPlaceholderEl.classList.remove('hidden');
+                return;
+            }
+            if(referencesPlaceholderEl) referencesPlaceholderEl.classList.add('hidden');
+            const sortedSources = Array.from(allSourcesMasterSet).sort();
+            sortedSources.forEach(source => {
+                const li = document.createElement('li');
+                li.textContent = source;
+                referencesList.appendChild(li);
+            });
+        }
+        
+        // --- Settings Tab Functions ---
+        function displaySettingsView() { settingFontSize.value = userSettings.fontSize || 'text-base'; }
+        
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            populateDropdown(); 
-            switchView('list-view'); 
+            userFavorites = new Set(loadDataFromLocalStorage('userFavorites', []));
+            userNotes = loadDataFromLocalStorage('userNotes', {});
+            userSrsData = loadDataFromLocalStorage('userSrsData', {});
+            userSettings = loadDataFromLocalStorage('userSettings', { fontSize: 'text-base' });
+            document.body.classList.add(userSettings.fontSize || 'text-base');
+
+            if (typeof differentialsData !== 'undefined' && Array.isArray(differentialsData)) {
+                processRawData();
+                populateDropdown(); 
+                switchView('list-view'); 
+            } else {
+                console.error("differentialsData is undefined or not an array at DOMContentLoaded. Ensure data.js is loaded before this script and defines 'differentialsData' as an array.");
+                const resultsArea = document.querySelector('.results-area');
+                if (resultsArea) resultsArea.innerHTML = '<div class="placeholder-text" style="color: red; z-index: 10;">Critical Error: Data not loaded or invalid. Cannot initialize application. Check console.</div>';
+                [searchFindingInput, findingSelect, searchDiagnosesInput].forEach(el => {if(el) el.disabled = true;});
+            }
+            
+            tabs.forEach(tabInfo => { const tabButton = document.getElementById(tabInfo.id); if (tabButton) tabButton.addEventListener('click', () => switchView(tabInfo.viewId)); });
+            searchFindingInput.addEventListener('input', () => { const searchTerm = searchFindingInput.value.toLowerCase(); Array.from(findingSelect.options).forEach(option => { if (option.value === "") { option.style.display = ""; return; } const optionText = option.textContent.toLowerCase(); option.style.display = optionText.includes(searchTerm) ? "" : "none"; }); });
+            findingSelect.addEventListener('change', () => {
+                const selectedValue = findingSelect.value;
+                currentFindingData = selectedValue ? processedFindingsMap.get(selectedValue) : null;
+                searchDiagnosesInput.value = ''; 
+                if (['list-view', 'table-view', 'diagram-view', 'flashcard-view'].includes(currentView)) {
+                    if (currentView === 'flashcard-view') { initializeSrsFlashcardDeck(); } 
+                    else { displayContent(); }
+                }
+            });
+            searchDiagnosesInput.addEventListener('input', () => { const searchTerm = searchDiagnosesInput.value; if (['list-view', 'table-view'].includes(currentView)) { displayContent(searchTerm); } });
+            [srsAgainButton, srsHardButton, srsGoodButton, srsEasyButton].forEach(button => { button.addEventListener('click', () => handleSrsAnswer(parseInt(button.dataset.quality))); });
+            noteModalSave.addEventListener('click', saveNote);
+            noteModalCancel.addEventListener('click', closeNoteModal);
+            noteModal.addEventListener('click', (e) => { if (e.target === noteModal) closeNoteModal(); });
+            closeSidebarButton.addEventListener('click', closeDiagramSidebar);
+            if (document.getElementById('diagram-view') && typeof ResizeObserver !== 'undefined') { resizeObserver = new ResizeObserver(handleResize); resizeObserver.observe(document.getElementById('diagram-view')); } 
+            else if (document.getElementById('diagram-view')) { window.addEventListener('resize', handleResize); }
+            printButton.addEventListener('click', () => window.print());
+            clearComparisonButton.addEventListener('click', () => { comparisonList = []; displayCompareView(); if (['list-view', 'table-view', 'my-list-view', 'diagram-view', 'global-search-view'].includes(currentView)) { displayContent(searchDiagnosesInput.value); }}); // Re-render to update icons
+            globalSearchButton.addEventListener('click', performGlobalSearch);
+            globalSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performGlobalSearch(); });
+            startQuizButton.addEventListener('click', startQuiz);
+            submitQuizAnswerButton.addEventListener('click', submitQuizAnswer);
+            quizAnswerInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitQuizAnswer(); });
+            settingFontSize.addEventListener('change', (e) => { document.body.className = document.body.className.replace(/text-(sm|base|lg)/g, ''); document.body.classList.add(e.target.value); userSettings.fontSize = e.target.value; saveDataToLocalStorage('userSettings', userSettings); });
+            resetSrsButton.addEventListener('click', () => { if (confirm("Are you sure you want to reset all SRS flashcard progress? This cannot be undone.")) { userSrsData = {}; saveDataToLocalStorage('userSrsData', userSrsData); alert("SRS progress has been reset."); if (currentView === 'flashcard-view') initializeSrsFlashcardDeck(); updateFlashcardDeckStats(); } });
+            clearFavoritesButton.addEventListener('click', () => { if (confirm("Are you sure you want to clear all your favorites? This cannot be undone.")) { userFavorites.clear(); saveDataToLocalStorage('userFavorites', Array.from(userFavorites)); alert("All favorites cleared."); if (currentView === 'my-list-view') displayMyListView(); else if (['list-view', 'table-view', 'global-search-view'].includes(currentView)) displayContent(searchDiagnosesInput.value); } });
+            clearNotesButton.addEventListener('click', () => { if (confirm("Are you sure you want to clear all your notes? This cannot be undone.")) { userNotes = {}; saveDataToLocalStorage('userNotes', userNotes); alert("All notes cleared."); if (['list-view', 'table-view', 'my-list-view', 'global-search-view'].includes(currentView)) { if (currentView === 'my-list-view') displayMyListView(); else displayContent(searchDiagnosesInput.value); } } });
         });
     </script>
 </body>
