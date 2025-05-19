@@ -192,7 +192,7 @@
             </div>
             <div>
                 <label for="modelName" class="font-medium">Model:</label>
-                <input type="text" id="modelName" value="models/gemini-2.5-flash-preview-04-17" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like Gemini 2.5 Flash for image analysis. For text-only tasks, gemini-2.5-flash or gemini-pro can be used.">
+                <input type="text" id="modelName" value=models/gemini-2.5-flash-preview-04-17" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like Gemini 2.5 Flash for image analysis. For text-only tasks, gemini-pro or similar can be used.">
             </div>
         </div>
     </div>
@@ -204,7 +204,7 @@
             <div class="flex items-center space-x-2"><span class="material-symbols-outlined text-slate-600">schedule</span><span id="recordingDuration" class="font-mono">00:00:00</span></div>
             <div class="flex items-center space-x-2"><span class="material-symbols-outlined text-slate-600">mic</span><span id="recordingStatus" class="font-medium text-red-500">Not Recording</span></div>
             <button id="uploadImageBtn" class="flex items-center bg-teal-500 hover:bg-teal-600 text-white font-medium py-1.5 px-3 rounded-lg shadow text-xs">
-                <span class="material-symbols-outlined mr-1 text-base">upload_file</span>Upload Clinical Image
+                <span class="material-symbols-outlined mr-1 text-base">upload_file</span>Upload Image
             </button>
         </div>
     </div>
@@ -237,7 +237,7 @@
                         <span class="material-symbols-outlined mr-1 text-sm align-middle">science</span>AI Analysis & Workup
                     </button>
                     <button id="tabDiscussNoteBtn" class="tab-button" onclick="switchTab('left', 'discussNote')">
-                        <span class="material-symbols-outlined mr-1 text-sm align-middle">question_answer</span>Discuss Case & Refine Note
+                        <span class="material-symbols-outlined mr-1 text-sm align-middle">Youtube</span>Discuss Case & Refine Note
                     </button>
                 </nav>
             </div>
@@ -294,16 +294,39 @@
     <div id="imageUploadModal" class="modal-overlay">
         <div class="modal-content custom-scrollbar">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-slate-700">Upload & Analyze Clinical Image</h2>
+                <h2 class="text-xl font-semibold text-slate-700">Upload & Analyze Image</h2>
                 <button id="closeImageModalBtn" class="text-slate-500 hover:text-slate-700">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             <div class="space-y-4">
                 <div>
-                    <label for="imageUploadInput" class="block text-sm font-medium text-slate-700 mb-1">Select Image:</label>
-                    <input type="file" id="imageUploadInput" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <label for="imageUploadInputModal" class="block text-sm font-medium text-slate-700 mb-1">Select Image:</label>
+                    <input type="file" id="imageUploadInputModal" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                 </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Image Type (Optional):</label>
+                    <div class="space-y-1 sm:space-y-0 sm:flex sm:space-x-4">
+                        <div class="flex items-center">
+                            <input id="imageTypeClinical" name="imageType" type="radio" value="Clinical" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300">
+                            <label for="imageTypeClinical" class="ml-2 block text-sm text-slate-700">Clinical</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="imageTypeDermoscopic" name="imageType" type="radio" value="Dermoscopic" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300">
+                            <label for="imageTypeDermoscopic" class="ml-2 block text-sm text-slate-700">Dermoscopic</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="imageTypeHistologic" name="imageType" type="radio" value="Histologic" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300">
+                            <label for="imageTypeHistologic" class="ml-2 block text-sm text-slate-700">Histologic</label>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label for="imageLocation" class="block text-sm font-medium text-slate-700 mb-1">Image Location(s) (Optional):</label>
+                    <input type="text" id="imageLocation" name="imageLocation" placeholder="e.g., Left forearm, Scalp vertex" class="block w-full text-sm text-slate-700 border border-slate-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
                 <div id="imagePreviewContainer" class="w-full h-64 border border-slate-300 rounded-lg flex items-center justify-center bg-slate-50 overflow-hidden hidden">
                     <img id="imagePreview" src="#" alt="Image Preview" class="max-w-full max-h-full object-contain">
                 </div>
@@ -357,7 +380,7 @@
         const uploadImageBtn = document.getElementById('uploadImageBtn');
         const imageUploadModal = document.getElementById('imageUploadModal');
         const closeImageModalBtn = document.getElementById('closeImageModalBtn');
-        const imageUploadInput = document.getElementById('imageUploadInput');
+        const imageUploadInputModal = document.getElementById('imageUploadInputModal'); // Changed ID
         const imagePreviewContainer = document.getElementById('imagePreviewContainer');
         const imagePreview = document.getElementById('imagePreview');
         const analyzeImageBtn = document.getElementById('analyzeImageBtn');
@@ -365,6 +388,12 @@
         const imageApprovalControls = document.getElementById('imageApprovalControls');
         const cancelImageAnalysisBtn = document.getElementById('cancelImageAnalysisBtn');
         const approveImageDescriptionBtn = document.getElementById('approveImageDescriptionBtn');
+        
+        // New Image Info Elements
+        const imageTypeClinicalRadio = document.getElementById('imageTypeClinical');
+        const imageTypeDermoscopicRadio = document.getElementById('imageTypeDermoscopic');
+        const imageTypeHistologicRadio = document.getElementById('imageTypeHistologic');
+        const imageLocationInput = document.getElementById('imageLocation');
 
 
         // State variables
@@ -377,11 +406,13 @@
         let currentImageBase64 = null;
         let currentImageMimeType = null;
         let currentImageDescription = ""; 
+        let currentSelectedImageType = ""; // New state
+        let currentImageLocations = ""; // New state
         let discussionHistory = []; 
         let aiSuggestionInterval;
         let lastTranscriptLengthForSuggestion = 0;
-        const SUGGESTION_WORD_THRESHOLD = 25; // Words before first suggestion attempt
-        const SUGGESTION_NEW_WORDS_INTERVAL = 40; // New words before next suggestion attempt
+        const SUGGESTION_WORD_THRESHOLD = 25; 
+        const SUGGESTION_NEW_WORDS_INTERVAL = 40; 
         let isFetchingSuggestion = false;
 
 
@@ -549,7 +580,6 @@
             if (!isRecording || isPaused || isFetchingSuggestion || !apiKeyInput.value) return;
 
             const currentTranscriptWordCount = fullTranscript.split(' ').filter(Boolean).length;
-            // Trigger if enough new words OR if it's the first time past the initial threshold
             if (currentTranscriptWordCount < SUGGESTION_WORD_THRESHOLD || 
                 (currentTranscriptWordCount - lastTranscriptLengthForSuggestion < SUGGESTION_NEW_WORDS_INTERVAL && lastTranscriptLengthForSuggestion > 0) ) {
                 return;
@@ -569,7 +599,7 @@
 
             try {
                 const transcriptWords = fullTranscript.split(' ');
-                const recentTranscriptSegment = transcriptWords.slice(-200).join(' '); // Last 200 words for context
+                const recentTranscriptSegment = transcriptWords.slice(-200).join(' '); 
 
                 const prompt = REALTIME_SUGGESTION_PROMPT_TEMPLATE(recentTranscriptSegment, Array.from(shownSuggestionTexts));
                 const suggestionsText = await callGeminiAPI(prompt);
@@ -589,7 +619,7 @@
                             addedSuggestion = true;
                         }
                     });
-                    if (!addedSuggestion && newSuggestions.length > 0) { // If all suggestions were repeats
+                    if (!addedSuggestion && newSuggestions.length > 0) { 
                         console.log("All new suggestions were repeats of previous ones.");
                     }
                 } else if (suggestionsText.trim().toLowerCase() === "no specific suggestions at this moment.") {
@@ -627,12 +657,12 @@
                     discussMicButton.classList.add('text-red-500', 'animate-pulse');
                     physicianFeedbackInput.disabled = true;
                     sendFeedbackButton.disabled = true;
-                } else { // Main recording
+                } else { 
                     isRecording = true;
                     isPaused = false;
                     startTimer();
                     clearAllPlaceholders();
-                    aiSuggestionInterval = setInterval(fetchAndDisplayAiSuggestions, 15000); // Fetch suggestions every 15s
+                    aiSuggestionInterval = setInterval(fetchAndDisplayAiSuggestions, 15000); 
                 }
                 updateUIForRecordingState();
             };
@@ -647,10 +677,6 @@
                         finalTranscriptSegment += segment;
                         if (!isDiscussionMic) { 
                            transcriptWordCount += segment.split(' ').filter(Boolean).length;
-                           // Suggestion fetching is now on an interval, but this check ensures it has enough new content
-                           if (transcriptWordCount > lastTranscriptLengthForSuggestion + SUGGESTION_NEW_WORDS_INTERVAL / 2 || (transcriptWordCount > SUGGESTION_WORD_THRESHOLD && lastTranscriptLengthForSuggestion === 0) ) {
-                               // fetchAndDisplayAiSuggestions(); // This will be called by interval, but good to have a check
-                           }
                         }
                     } else {
                         interimTranscript += event.results[i][0].transcript;
@@ -723,7 +749,7 @@
                         addChatMessage(tempTranscript, 'physician', 'discussionChatOutput');
                         handleDiscussionInput(tempTranscript);
                     }
-                } else { // Main mic ended
+                } else { 
                     clearInterval(aiSuggestionInterval); 
                 }
             };
@@ -743,8 +769,8 @@ I. Opening Statement:
 II. For Each Dermatological Complaint (Address separately if multiple distinct issues):
 Organize the details for each complaint using a structure similar to "OLD CARTS" (Onset, Location, Duration, Characteristics, Aggravating factors, Relieving factors, Treatments, Severity/Symptoms), plus dermatology-specific elements:
 * A. Onset & Duration: When did it start? How long has it persisted? Constant, intermittent, recurrent?
-* B. Location: Precisely where on the body?
-* C. Characteristics & Morphology: Type (cyst, spot, rash), Appearance (color, size, shape, texture), Symptoms (itching, pain, tenderness, bleeding, discharge).
+* B. Location: Precisely where on the body? (This can be informed by "IMAGE DETAILS" if provided in the transcript)
+* C. Characteristics & Morphology: Type (cyst, spot, rash), Appearance (color, size, shape, texture), Symptoms (itching, pain, tenderness, bleeding, discharge). (This can be informed by "CLINICAL IMAGE FINDINGS" if provided)
 * D. Evolution/Progression: How has it changed since onset?
 * E. Aggravating/Alleviating Factors: What makes it worse or better?
 * F. Treatments Tried: What has the patient used? What was the outcome?
@@ -772,7 +798,7 @@ HISTORY OF PRESENT ILLNESS (Write this section in paragraph form, following thes
 PAST MEDICAL HISTORY (If not mentioned, state "None reported by patient." or similar)
 MEDICATIONS (If none, state "Patient reports no current medications." or similar)
 ALLERGIES (If none, state "No known drug allergies." or similar)
-OBJECTIVE FINDINGS (List specific dermatologic findings using proper terminology, in bullet points. Example: "- Erythematous papules on bilateral elbows." If image findings are included in the transcript under a "CLINICAL IMAGE FINDINGS" header, incorporate them here.)
+OBJECTIVE FINDINGS (List specific dermatologic findings using proper terminology, in bullet points. Example: "- Erythematous papules on bilateral elbows." If image details like type/location are in "IMAGE DETAILS" and visual findings are in "CLINICAL IMAGE FINDINGS" in the transcript, incorporate them here or in HPI as appropriate.)
 ASSESSMENT (Your primary assessment or diagnosis based on the encounter.)
 PLAN (Your treatment plan, patient education, and follow-up instructions.)
 
@@ -793,7 +819,7 @@ ADDITIONAL WORKUP (FOR "DON'T MISS" DIAGNOSES, IF APPLICABLE AND PERTINENT)
 
 Make text bold by wrapping it in double asterisks, like **this**. Use bullet points like "- Point" or numbered lists like "1. Point" where appropriate within sections.
 
-Transcript (may include image findings at the end under a "CLINICAL IMAGE FINDINGS" header, or physician clarifications under "PHYSICIAN ADDITIONAL INFO" or "PHYSICIAN QUERY FOR ANALYSIS REFINEMENT"):
+Transcript (may include image context under "IMAGE DETAILS", image findings under "CLINICAL IMAGE FINDINGS", or physician clarifications under "PHYSICIAN ADDITIONAL INFO" or "PHYSICIAN QUERY FOR ANALYSIS REFINEMENT"):
 ---
 ${transcript}
 ---
@@ -802,14 +828,14 @@ ${transcript}
         const NOTE_REFINEMENT_PROMPT_TEMPLATE = (transcript, currentNote, feedback) => `
 You are an expert medical scribe AI for a dermatologist. You previously generated a clinical note. The physician has provided feedback or clarifications.
 Refine the **Current Drafted Note** based on the **Physician's Feedback/Clarification**.
-The original consultation transcript (which may include image findings and prior physician inputs) is provided for context.
+The original consultation transcript (which may include image details, findings and prior physician inputs) is provided for context.
 The refined note should maintain the first-person physician perspective and the established section structure (do NOT include "SECTION: " before the headers):
 CHIEF COMPLAINT
 HISTORY OF PRESENT ILLNESS (paragraph form, following these HPI guidelines: ${HPI_GUIDELINES})
 PAST MEDICAL HISTORY
 MEDICATIONS
 ALLERGIES
-OBJECTIVE FINDINGS (bullet points, incorporate any image findings from the transcript)
+OBJECTIVE FINDINGS (bullet points, incorporate any image details/findings from the transcript)
 ASSESSMENT
 PLAN
 
@@ -835,7 +861,7 @@ Do NOT include the "AI_ANALYSIS_SEPARATOR_V2" or any differential diagnosis/work
 You are an expert dermatology AI assistant. You previously provided a "CASE SUMMARY", "DIFFERENTIAL DIAGNOSIS (ORDERED BY LIKELIHOOD)", "RATIONALE FOR DIFFERENTIALS", "POTENTIAL \"DON'T MISS\" DIAGNOSES (IF APPLICABLE)", "SUGGESTED WORKUP (FOR TOP DIFFERENTIALS)", and "ADDITIONAL WORKUP (FOR \"DON'T MISS\" DIAGNOSES, IF APPLICABLE AND PERTINENT)".
 The physician has provided additional context or information.
 Please refine your **Current AI Analysis** based on this new information.
-The original consultation transcript (which may include image findings and prior physician inputs) is provided for context.
+The original consultation transcript (which may include image details, findings and prior physician inputs) is provided for context.
 
 Maintain this exact structure for your refined output (do NOT include "SECTION: " before the headers):
 CASE SUMMARY (2-3 sentences)
@@ -861,13 +887,21 @@ Please provide the **fully updated and refined AI Analysis only**.
 Strictly use the specified headers. Use bullet points or numbered lists where appropriate. Make text bold with **double asterisks**.
 `;
 
-        const IMAGE_ANALYSIS_PROMPT_TEMPLATE = `
-You are a dermatology AI assistant. Analyze the following clinical image.
+        const DYNAMIC_IMAGE_ANALYSIS_PROMPT_TEMPLATE = (imageType, locations) => {
+            let context = "Analyze the following clinical image.";
+            if (imageType) {
+                context += ` The image is a ${imageType} view.`;
+            }
+            if (locations) {
+                context += ` It depicts or is from the following location(s): ${locations}.`;
+            }
+            return `You are a dermatology AI assistant. ${context}
 Provide a concise dermatological description of the key visual findings.
 Focus on morphology, color, distribution (if discernible from a single image), and any other relevant visual characteristics.
 Example: "Image shows multiple erythematous, annular plaques with central clearing and a raised, scaling border on the forearm. Some lesions exhibit a targetoid appearance."
-Do not provide a diagnosis or treatment plan. Just describe the findings.
-`;
+Do not provide a diagnosis or treatment plan. Just describe the findings.`;
+        };
+
         const CONVERSATIONAL_CASE_DISCUSSION_PROMPT_TEMPLATE = (transcript, draftNote, aiAnalysis, physicianQuery) => `
 You are a helpful AI assistant for a dermatologist. The dermatologist is currently reviewing a case.
 Provided below is the full consultation transcript, the AI-generated draft clinical note, and the AI-generated case analysis (DDx, workup).
@@ -922,11 +956,11 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             }
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const effectiveModelName = (imageBase64 && imageMimeType && modelNameFromInput.includes("vision")) ? modelNameFromInput : (modelNameFromInput || "models/gemini-pro"); 
+            const effectiveModelName = (imageBase64 && imageMimeType && modelNameFromInput.includes("vision") || modelNameFromInput.includes("flash")) ? modelNameFromInput : (modelNameFromInput || "models/gemini-2.5-flash-preview-04-17"); // Updated model logic slightly
             
             const model = genAI.getGenerativeModel({ model: effectiveModelName }); 
             
-            const generationConfig = { temperature: 0.2, topK: 1, topP: 1, maxOutputTokens: 4096 };
+            const generationConfig = { temperature: 0.2, topK: 1, topP: 1, maxOutputTokens: 4096 }; // Consider 8192 for larger notes
             const safetySettings = [
                 { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
                 { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -936,7 +970,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 
             const parts = [{ text: prompt }];
             if (imageBase64 && imageMimeType) {
-                 if (!effectiveModelName.includes("vision")) { 
+                 if (!effectiveModelName.includes("vision") && !effectiveModelName.includes("flash")) { // Flash models can also handle vision
                     console.warn("Attempting image analysis with a non-vision model. This might not work as expected.");
                 } else {
                     parts.push({
@@ -994,7 +1028,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
         
        async function handleDiscussionInput(physicianInputText) {
             if (!physicianInputText.trim()) return;
-            addChatMessage(physicianInputText, 'physician', 'discussionChatOutput');
+            // No need to call addChatMessage for physician here, it's done by the caller (send button or mic end)
 
             addChatMessage("AI is thinking...", "ai", 'discussionChatOutput');
 
@@ -1007,17 +1041,26 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             let aiConversationalResponse = "";
             try {
                 aiConversationalResponse = await callGeminiAPI(conversationalPrompt);
-                addChatMessage(aiConversationalResponse, "ai", 'discussionChatOutput');
+                // Replace the "AI is thinking..." message with the actual response
+                const thinkingMsg = Array.from(discussionChatOutput.children).find(el => el.textContent === "AI is thinking..." && el.classList.contains('chat-bubble-ai'));
+                if (thinkingMsg) {
+                    thinkingMsg.textContent = aiConversationalResponse;
+                } else { // Fallback if "thinking" message not found (should not happen)
+                    addChatMessage(aiConversationalResponse, "ai", 'discussionChatOutput');
+                }
             } catch (error) {
                 console.error("Error in conversational AI call:", error);
-                addChatMessage(`Sorry, I encountered an error during conversation: ${error.message}`, "ai", 'discussionChatOutput');
+                const thinkingMsg = Array.from(discussionChatOutput.children).find(el => el.textContent === "AI is thinking..." && el.classList.contains('chat-bubble-ai'));
+                const errorMsg = `Sorry, I encountered an error: ${error.message}`;
+                if(thinkingMsg) thinkingMsg.textContent = errorMsg;
+                else addChatMessage(errorMsg, "ai", 'discussionChatOutput');
                 return; 
             }
 
             const lowerInput = physicianInputText.toLowerCase();
             const lowerAIResponse = aiConversationalResponse.toLowerCase();
             
-            const newClinicalInfoKeywords = ["patient also reports", "new finding:", "update on symptoms:", "i forgot to mention:", "add to history:", "observed that:", "test result shows", "labs are back", "correction to symptoms", "additional detail is", "the image shows"];
+            const newClinicalInfoKeywords = ["patient also reports", "new finding:", "update on symptoms:", "i forgot to mention:", "add to history:", "observed that:", "test result shows", "labs are back", "correction to symptoms", "additional detail is"];
             const noteRefinementKeywords = ["correct the note:", "change the assessment to", "update the plan to say", "modify hpi regarding", "revise objective findings for", "the diagnosis should be", "in the plan, add", "update the note to reflect"];
             const analysisRefinementKeywords = ["reconsider differential for", "what if the patient also had", "update workup based on this new info:", "could it also be x disease?", "refine the ddx", "update my analysis", "given this new info, what about the ddx"];
 
@@ -1145,7 +1188,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
                      if (sectionTitleText === 'ALLERGIES' || sectionTitleText === 'MEDICATIONS' || sectionTitleText === 'PAST MEDICAL HISTORY') {
                          emptyText.textContent = 'None identified from transcript.';
                      } else if (sectionTitleText.includes("DON'T MISS") && sectionTitleText.includes("IF APPLICABLE")) {
-                         emptyText.textContent = 'None specifically identified as "Don\'t Miss" based on current information.';
+                         emptyText.textContent = 'No critical "don\'t miss" diagnoses immediately apparent based on current information.';
                      } else if (sectionTitleText.includes("ADDITIONAL WORKUP") && sectionTitleText.includes("IF APPLICABLE AND PERTINENT")) {
                          emptyText.textContent = 'N/A';
                      }
@@ -1178,9 +1221,27 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
         // Image Modal Logic
         uploadImageBtn.addEventListener('click', () => imageUploadModal.classList.add('active'));
         closeImageModalBtn.addEventListener('click', () => imageUploadModal.classList.remove('active'));
-        cancelImageAnalysisBtn.addEventListener('click', () => imageUploadModal.classList.remove('active'));
+        cancelImageAnalysisBtn.addEventListener('click', () => {
+            imageUploadModal.classList.remove('active');
+            // Reset image form elements on cancel
+            imagePreviewContainer.classList.add('hidden');
+            imagePreview.src = "#";
+            imageUploadInputModal.value = "";
+            analyzeImageBtn.disabled = true;
+            currentImageBase64 = null;
+            currentImageMimeType = null;
+            currentSelectedImageType = "";
+            currentImageLocations = "";
+            imageTypeClinicalRadio.checked = false;
+            imageTypeDermoscopicRadio.checked = false;
+            imageTypeHistologicRadio.checked = false;
+            imageLocationInput.value = "";
+            imageAnalysisResult.innerHTML = '<p class="text-slate-400 italic">AI description of image findings will appear here...</p>';
+            imageApprovalControls.classList.add('hidden');
+        });
 
-        imageUploadInput.addEventListener('change', (event) => {
+
+        imageUploadInputModal.addEventListener('change', (event) => { // Changed from imageUploadInput
             const file = event.target.files[0];
             if (file) {
                 currentImageMimeType = file.type;
@@ -1210,8 +1271,16 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             }
             imageAnalysisResult.innerHTML = '<p class="text-slate-500 italic">AI is analyzing the image, please wait...</p>';
             analyzeImageBtn.disabled = true;
+
+            // Collect image type and location
+            currentSelectedImageType = "";
+            if (imageTypeClinicalRadio.checked) currentSelectedImageType = imageTypeClinicalRadio.value;
+            else if (imageTypeDermoscopicRadio.checked) currentSelectedImageType = imageTypeDermoscopicRadio.value;
+            else if (imageTypeHistologicRadio.checked) currentSelectedImageType = imageTypeHistologicRadio.value;
+            currentImageLocations = imageLocationInput.value.trim();
+
             try {
-                const prompt = IMAGE_ANALYSIS_PROMPT_TEMPLATE;
+                const prompt = DYNAMIC_IMAGE_ANALYSIS_PROMPT_TEMPLATE(currentSelectedImageType, currentImageLocations);
                 const description = await callGeminiAPI(prompt, currentImageBase64, currentImageMimeType); 
                 currentImageDescription = description.trim();
                 imageAnalysisResult.textContent = currentImageDescription;
@@ -1227,20 +1296,41 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 
         approveImageDescriptionBtn.addEventListener('click', async () => {
             if (currentImageDescription) {
+                let imageMetadataForTranscript = "";
+                if (currentSelectedImageType) {
+                    imageMetadataForTranscript += `Image Type: ${currentSelectedImageType}. `;
+                }
+                if (currentImageLocations) {
+                    imageMetadataForTranscript += `Location(s): ${currentImageLocations}. `;
+                }
+
+                if (imageMetadataForTranscript.trim()) {
+                    fullTranscript += `\n\n--- IMAGE DETAILS ---\n${imageMetadataForTranscript.trim()}\n--- END IMAGE DETAILS ---`;
+                }
                 fullTranscript += `\n\n--- CLINICAL IMAGE FINDINGS ---\n${currentImageDescription}\n--- END CLINICAL IMAGE FINDINGS ---`;
+                
                 imageUploadModal.classList.remove('active');
+                
+                // Reset all image related states and UI elements
                 imagePreviewContainer.classList.add('hidden');
                 imagePreview.src = "#";
-                imageUploadInput.value = ""; 
+                imageUploadInputModal.value = ""; 
                 analyzeImageBtn.disabled = true;
                 imageAnalysisResult.innerHTML = '<p class="text-slate-400 italic">AI description of image findings will appear here...</p>';
                 imageApprovalControls.classList.add('hidden');
                 currentImageBase64 = null;
                 currentImageMimeType = null;
                 currentImageDescription = "";
+                currentSelectedImageType = "";
+                currentImageLocations = "";
+                imageTypeClinicalRadio.checked = false;
+                imageTypeDermoscopicRadio.checked = false;
+                imageTypeHistologicRadio.checked = false;
+                imageLocationInput.value = "";
+
 
                 if (fullTranscript.trim()) {
-                    addChatMessage("Image findings integrated. Regenerating note and analysis...", "ai", 'discussionChatOutput'); 
+                    addChatMessage("Image details and findings integrated. Regenerating note and analysis...", "ai", 'discussionChatOutput'); 
                     await generateInitialNoteAndAnalysis(fullTranscript);
                 }
             }
@@ -1284,7 +1374,6 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             } else { 
                 try {
                     recognition.start(); 
-                    // aiSuggestionInterval = setInterval(fetchAndDisplayAiSuggestions, 15000); 
                     console.log("Recording resumed");
                 } catch (e) {
                     displayError(`Could not resume microphone: ${e.message}.`);
