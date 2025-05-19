@@ -173,6 +173,11 @@
         .modal-overlay.active .modal-content {
             transform: scale(1);
         }
+        .location-checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.5rem;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -192,7 +197,7 @@
             </div>
             <div>
                 <label for="modelName" class="font-medium">Model:</label>
-                <input type="text" id="modelName" value=models/gemini-2.5-flash-preview-04-17" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like Gemini 2.5 Flash for image analysis. For text-only tasks, gemini-pro or similar can be used.">
+                <input type="text" id="modelName" value="models/gemini-2.5-flash-preview-04-17"" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like Gemini 1.5 Flash for image analysis. For text-only tasks, gemini-pro or similar can be used.">
             </div>
         </div>
     </div>
@@ -237,7 +242,7 @@
                         <span class="material-symbols-outlined mr-1 text-sm align-middle">science</span>AI Analysis & Workup
                     </button>
                     <button id="tabDiscussNoteBtn" class="tab-button" onclick="switchTab('left', 'discussNote')">
-                        <span class="material-symbols-outlined mr-1 text-sm align-middle"></span>Discuss Case & Refine Note
+                        <span class="material-symbols-outlined mr-1 text-sm align-middle">Youtube</span>Discuss Case & Refine Note
                     </button>
                 </nav>
             </div>
@@ -322,21 +327,100 @@
                         </div>
                     </div>
                 </div>
-                <div>
-                    <label for="imageLocation" class="block text-sm font-medium text-slate-700 mb-1">Image Location(s) (Optional):</label>
-                    <input type="text" id="imageLocation" name="imageLocation" placeholder="e.g., Left forearm, Scalp vertex" class="block w-full text-sm text-slate-700 border border-slate-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                
+                <div class="border border-slate-300 rounded-md">
+                    <button type="button" id="toggleLocationDetailsBtn" class="w-full flex justify-between items-center p-2 bg-slate-100 hover:bg-slate-200 focus:outline-none rounded-t-md">
+                        <span class="text-sm font-medium text-slate-700">Location Details Entry (Optional)</span>
+                        <span id="locationToggleIcon" class="material-symbols-outlined">expand_more</span>
+                    </button>
+                    <div id="locationDetailsContent" class="hidden p-3 space-y-3 border-t border-slate-300 rounded-b-md">
+                        <div class="mb-2">
+                            <p class="text-xs font-medium text-slate-600 mb-1">Aspect (Medial/Lateral):</p>
+                            <div class="flex flex-wrap gap-x-4 gap-y-1">
+                                <div class="flex items-center"><input id="locMedial" name="medialLateral" type="radio" value="Medial" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locMedial" class="ml-2 text-sm text-slate-700">Medial</label></div>
+                                <div class="flex items-center"><input id="locLateral" name="medialLateral" type="radio" value="Lateral" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locLateral" class="ml-2 text-sm text-slate-700">Lateral</label></div>
+                                <div class="flex items-center"><input id="locMedialLateralNone" name="medialLateral" type="radio" value="" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" checked><label for="locMedialLateralNone" class="ml-2 text-sm text-slate-700">N/A</label></div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <p class="text-xs font-medium text-slate-600 mb-1">Aspect (Surface):</p>
+                            <div class="flex flex-wrap gap-x-4 gap-y-1">
+                                <div class="flex items-center"><input id="locAnterior" name="surfaceAspect" type="radio" value="Anterior" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locAnterior" class="ml-2 text-sm text-slate-700">Anterior</label></div>
+                                <div class="flex items-center"><input id="locPosterior" name="surfaceAspect" type="radio" value="Posterior" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locPosterior" class="ml-2 text-sm text-slate-700">Posterior</label></div>
+                                <div class="flex items-center"><input id="locDorsal" name="surfaceAspect" type="radio" value="Dorsal" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locDorsal" class="ml-2 text-sm text-slate-700">Dorsal</label></div>
+                                <div class="flex items-center"><input id="locVentral" name="surfaceAspect" type="radio" value="Ventral/Palmar/Plantar" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locVentral" class="ml-2 text-sm text-slate-700">Ventral/Palmar/Plantar</label></div>
+                                <div class="flex items-center"><input id="locSurfaceAspectNone" name="surfaceAspect" type="radio" value="" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" checked><label for="locSurfaceAspectNone" class="ml-2 text-sm text-slate-700">N/A</label></div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <p class="text-xs font-medium text-slate-600 mb-1">Laterality:</p>
+                            <div class="flex flex-wrap gap-x-4 gap-y-1">
+                                <div class="flex items-center"><input id="locLeft" name="laterality" type="radio" value="Left" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locLeft" class="ml-2 text-sm text-slate-700">Left</label></div>
+                                <div class="flex items-center"><input id="locRight" name="laterality" type="radio" value="Right" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locRight" class="ml-2 text-sm text-slate-700">Right</label></div>
+                                <div class="flex items-center"><input id="locBilateral" name="laterality" type="radio" value="Bilateral" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locBilateral" class="ml-2 text-sm text-slate-700">Bilateral</label></div>
+                                <div class="flex items-center"><input id="locMidline" name="laterality" type="radio" value="Midline" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locMidline" class="ml-2 text-sm text-slate-700">Midline</label></div>
+                                <div class="flex items-center"><input id="locLateralityNone" name="laterality" type="radio" value="" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" checked><label for="locLateralityNone" class="ml-2 text-sm text-slate-700">N/A</label></div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <p class="text-xs font-medium text-slate-600 mb-1">Aspect (Proximal/Distal - for extremities):</p>
+                            <div class="flex flex-wrap gap-x-4 gap-y-1">
+                                <div class="flex items-center"><input id="locProximal" name="proximalDistal" type="radio" value="Proximal" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locProximal" class="ml-2 text-sm text-slate-700">Proximal</label></div>
+                                <div class="flex items-center"><input id="locDistal" name="proximalDistal" type="radio" value="Distal" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locDistal" class="ml-2 text-sm text-slate-700">Distal</label></div>
+                                <div class="flex items-center"><input id="locProximalDistalNone" name="proximalDistal" type="radio" value="" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" checked><label for="locProximalDistalNone" class="ml-2 text-sm text-slate-700">N/A</label></div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <p class="text-xs font-medium text-slate-600 mb-1">Anatomic Body Part(s):</p>
+                            <div class="location-checkbox-group">
+                                <div class="flex items-center"><input id="bpScalp" name="anatomicPart" type="checkbox" value="Scalp" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpScalp" class="ml-2 text-sm text-slate-700">Scalp</label></div>
+                                <div class="flex items-center"><input id="bpForehead" name="anatomicPart" type="checkbox" value="Forehead" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpForehead" class="ml-2 text-sm text-slate-700">Forehead</label></div>
+                                <div class="flex items-center"><input id="bpFace" name="anatomicPart" type="checkbox" value="Face (General)" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpFace" class="ml-2 text-sm text-slate-700">Face (General)</label></div>
+                                <div class="flex items-center"><input id="bpCheek" name="anatomicPart" type="checkbox" value="Cheek" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpCheek" class="ml-2 text-sm text-slate-700">Cheek</label></div>
+                                <div class="flex items-center"><input id="bpNose" name="anatomicPart" type="checkbox" value="Nose" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpNose" class="ml-2 text-sm text-slate-700">Nose</label></div>
+                                <div class="flex items-center"><input id="bpLip" name="anatomicPart" type="checkbox" value="Lip" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpLip" class="ml-2 text-sm text-slate-700">Lip</label></div>
+                                <div class="flex items-center"><input id="bpChin" name="anatomicPart" type="checkbox" value="Chin" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpChin" class="ml-2 text-sm text-slate-700">Chin</label></div>
+                                <div class="flex items-center"><input id="bpEar" name="anatomicPart" type="checkbox" value="Ear" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpEar" class="ml-2 text-sm text-slate-700">Ear</label></div>
+                                <div class="flex items-center"><input id="bpNeck" name="anatomicPart" type="checkbox" value="Neck" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpNeck" class="ml-2 text-sm text-slate-700">Neck</label></div>
+                                <div class="flex items-center"><input id="bpChest" name="anatomicPart" type="checkbox" value="Chest" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpChest" class="ml-2 text-sm text-slate-700">Chest</label></div>
+                                <div class="flex items-center"><input id="bpAbdomen" name="anatomicPart" type="checkbox" value="Abdomen" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpAbdomen" class="ml-2 text-sm text-slate-700">Abdomen</label></div>
+                                <div class="flex items-center"><input id="bpBack" name="anatomicPart" type="checkbox" value="Back" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpBack" class="ml-2 text-sm text-slate-700">Back</label></div>
+                                <div class="flex items-center"><input id="bpShoulder" name="anatomicPart" type="checkbox" value="Shoulder" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpShoulder" class="ml-2 text-sm text-slate-700">Shoulder</label></div>
+                                <div class="flex items-center"><input id="bpArm" name="anatomicPart" type="checkbox" value="Arm (Upper)" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpArm" class="ml-2 text-sm text-slate-700">Arm (Upper)</label></div>
+                                <div class="flex items-center"><input id="bpElbow" name="anatomicPart" type="checkbox" value="Elbow" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpElbow" class="ml-2 text-sm text-slate-700">Elbow</label></div>
+                                <div class="flex items-center"><input id="bpForearm" name="anatomicPart" type="checkbox" value="Forearm" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpForearm" class="ml-2 text-sm text-slate-700">Forearm</label></div>
+                                <div class="flex items-center"><input id="bpWrist" name="anatomicPart" type="checkbox" value="Wrist" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpWrist" class="ml-2 text-sm text-slate-700">Wrist</label></div>
+                                <div class="flex items-center"><input id="bpHand" name="anatomicPart" type="checkbox" value="Hand" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpHand" class="ml-2 text-sm text-slate-700">Hand</label></div>
+                                <div class="flex items-center"><input id="bpFingers" name="anatomicPart" type="checkbox" value="Fingers" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpFingers" class="ml-2 text-sm text-slate-700">Fingers</label></div>
+                                <div class="flex items-center"><input id="bpGroin" name="anatomicPart" type="checkbox" value="Groin/Genital" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpGroin" class="ml-2 text-sm text-slate-700">Groin/Genital</label></div>
+                                <div class="flex items-center"><input id="bpButtock" name="anatomicPart" type="checkbox" value="Buttock" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpButtock" class="ml-2 text-sm text-slate-700">Buttock</label></div>
+                                <div class="flex items-center"><input id="bpHip" name="anatomicPart" type="checkbox" value="Hip" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpHip" class="ml-2 text-sm text-slate-700">Hip</label></div>
+                                <div class="flex items-center"><input id="bpThigh" name="anatomicPart" type="checkbox" value="Thigh" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpThigh" class="ml-2 text-sm text-slate-700">Thigh</label></div>
+                                <div class="flex items-center"><input id="bpKnee" name="anatomicPart" type="checkbox" value="Knee" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpKnee" class="ml-2 text-sm text-slate-700">Knee</label></div>
+                                <div class="flex items-center"><input id="bpLeg" name="anatomicPart" type="checkbox" value="Leg (Lower)" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpLeg" class="ml-2 text-sm text-slate-700">Leg (Lower)</label></div>
+                                <div class="flex items-center"><input id="bpAnkle" name="anatomicPart" type="checkbox" value="Ankle" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpAnkle" class="ml-2 text-sm text-slate-700">Ankle</label></div>
+                                <div class="flex items-center"><input id="bpFoot" name="anatomicPart" type="checkbox" value="Foot" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpFoot" class="ml-2 text-sm text-slate-700">Foot</label></div>
+                                <div class="flex items-center"><input id="bpToes" name="anatomicPart" type="checkbox" value="Toes" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpToes" class="ml-2 text-sm text-slate-700">Toes</label></div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="imageLocationFreeText" class="block text-sm font-medium text-slate-700 mb-1">Or, describe location directly / add details:</label>
+                            <input type="text" id="imageLocationFreeText" name="imageLocationFreeText" placeholder="e.g., Junction of left upper and lower back" class="block w-full text-sm text-slate-700 border border-slate-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
                 </div>
 
-                <div id="imagePreviewContainer" class="w-full h-64 border border-slate-300 rounded-lg flex items-center justify-center bg-slate-50 overflow-hidden hidden">
+
+                <div id="imagePreviewContainer" class="w-full h-64 border border-slate-300 rounded-lg flex items-center justify-center bg-slate-50 overflow-hidden hidden mt-4">
                     <img id="imagePreview" src="#" alt="Image Preview" class="max-w-full max-h-full object-contain">
                 </div>
-                <button id="analyzeImageBtn" class="w-full flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-150 ease-in-out" disabled>
+                <button id="analyzeImageBtn" class="w-full flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-150 ease-in-out mt-4" disabled>
                     <span class="material-symbols-outlined mr-2">image_search</span>Analyze Image
                 </button>
-                <div id="imageAnalysisResult" class="p-3 border border-slate-200 rounded-lg bg-slate-50 min-h-[100px] text-sm">
+                <div id="imageAnalysisResult" class="p-3 border border-slate-200 rounded-lg bg-slate-50 min-h-[100px] text-sm mt-4">
                     <p class="text-slate-400 italic">AI description of image findings will appear here...</p>
                 </div>
-                <div id="imageApprovalControls" class="flex justify-end space-x-3 hidden">
+                <div id="imageApprovalControls" class="flex justify-end space-x-3 hidden mt-4">
                     <button id="cancelImageAnalysisBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 px-4 rounded-lg shadow transition">Cancel</button>
                     <button id="approveImageDescriptionBtn" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg shadow transition">Approve & Integrate</button>
                 </div>
@@ -380,7 +464,7 @@
         const uploadImageBtn = document.getElementById('uploadImageBtn');
         const imageUploadModal = document.getElementById('imageUploadModal');
         const closeImageModalBtn = document.getElementById('closeImageModalBtn');
-        const imageUploadInputModal = document.getElementById('imageUploadInputModal'); // Changed ID
+        const imageUploadInputModal = document.getElementById('imageUploadInputModal');
         const imagePreviewContainer = document.getElementById('imagePreviewContainer');
         const imagePreview = document.getElementById('imagePreview');
         const analyzeImageBtn = document.getElementById('analyzeImageBtn');
@@ -389,11 +473,15 @@
         const cancelImageAnalysisBtn = document.getElementById('cancelImageAnalysisBtn');
         const approveImageDescriptionBtn = document.getElementById('approveImageDescriptionBtn');
         
-        // New Image Info Elements
         const imageTypeClinicalRadio = document.getElementById('imageTypeClinical');
         const imageTypeDermoscopicRadio = document.getElementById('imageTypeDermoscopic');
         const imageTypeHistologicRadio = document.getElementById('imageTypeHistologic');
-        const imageLocationInput = document.getElementById('imageLocation');
+
+        // New Location Detail Elements
+        const toggleLocationDetailsBtn = document.getElementById('toggleLocationDetailsBtn');
+        const locationDetailsContent = document.getElementById('locationDetailsContent');
+        const locationToggleIcon = document.getElementById('locationToggleIcon');
+        const imageLocationFreeText = document.getElementById('imageLocationFreeText');
 
 
         // State variables
@@ -406,8 +494,8 @@
         let currentImageBase64 = null;
         let currentImageMimeType = null;
         let currentImageDescription = ""; 
-        let currentSelectedImageType = ""; // New state
-        let currentImageLocations = ""; // New state
+        let currentSelectedImageType = "";
+        let currentImageLocations = ""; 
         let discussionHistory = []; 
         let aiSuggestionInterval;
         let lastTranscriptLengthForSuggestion = 0;
@@ -602,7 +690,7 @@
                 const recentTranscriptSegment = transcriptWords.slice(-200).join(' '); 
 
                 const prompt = REALTIME_SUGGESTION_PROMPT_TEMPLATE(recentTranscriptSegment, Array.from(shownSuggestionTexts));
-                const suggestionsText = await callGeminiAPI(prompt);
+                const suggestionsText = await callAPI(prompt);
                 loadingSuggestion.remove(); 
 
                 if (suggestionsText && suggestionsText.trim().toLowerCase() !== "no specific suggestions at this moment.") {
@@ -948,7 +1036,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 `;
 
 
-        async function callGeminiAPI(prompt, imageBase64 = null, imageMimeType = null) {
+        async function callAPI(prompt, imageBase64 = null, imageMimeType = null) {
             const apiKey = apiKeyInput.value;
             const modelNameFromInput = modelNameInput.value; 
             if (!apiKey) {
@@ -956,11 +1044,11 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             }
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const effectiveModelName = (imageBase64 && imageMimeType && modelNameFromInput.includes("vision") || modelNameFromInput.includes("flash")) ? modelNameFromInput : (modelNameFromInput || "models/gemini-2.5-flash-preview-04-17"); // Updated model logic slightly
+            const effectiveModelName = (imageBase64 && imageMimeType && (modelNameFromInput.includes("vision") || modelNameFromInput.includes("flash"))) ? modelNameFromInput : (modelNameFromInput || "models/gemini-2.5-flash-preview-04-17"");
             
             const model = genAI.getGenerativeModel({ model: effectiveModelName }); 
             
-            const generationConfig = { temperature: 0.2, topK: 1, topP: 1, maxOutputTokens: 4096 }; // Consider 8192 for larger notes
+            const generationConfig = { temperature: 0.2, topK: 1, topP: 1, maxOutputTokens: 8192 };
             const safetySettings = [
                 { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
                 { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -970,7 +1058,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 
             const parts = [{ text: prompt }];
             if (imageBase64 && imageMimeType) {
-                 if (!effectiveModelName.includes("vision") && !effectiveModelName.includes("flash")) { // Flash models can also handle vision
+                 if (!effectiveModelName.includes("vision") && !effectiveModelName.includes("flash")) { 
                     console.warn("Attempting image analysis with a non-vision model. This might not work as expected.");
                 } else {
                     parts.push({
@@ -1028,7 +1116,6 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
         
        async function handleDiscussionInput(physicianInputText) {
             if (!physicianInputText.trim()) return;
-            // No need to call addChatMessage for physician here, it's done by the caller (send button or mic end)
 
             addChatMessage("AI is thinking...", "ai", 'discussionChatOutput');
 
@@ -1041,11 +1128,10 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             let aiConversationalResponse = "";
             try {
                 aiConversationalResponse = await callGeminiAPI(conversationalPrompt);
-                // Replace the "AI is thinking..." message with the actual response
                 const thinkingMsg = Array.from(discussionChatOutput.children).find(el => el.textContent === "AI is thinking..." && el.classList.contains('chat-bubble-ai'));
                 if (thinkingMsg) {
                     thinkingMsg.textContent = aiConversationalResponse;
-                } else { // Fallback if "thinking" message not found (should not happen)
+                } else { 
                     addChatMessage(aiConversationalResponse, "ai", 'discussionChatOutput');
                 }
             } catch (error) {
@@ -1217,13 +1303,27 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             chatOutputDiv.appendChild(bubble);
             chatOutputDiv.scrollTop = chatOutputDiv.scrollHeight;
         }
+        
+        function resetLocationDetailsForm() {
+            document.querySelectorAll('input[name="medialLateral"]').forEach(radio => radio.checked = (radio.id === 'locMedialLateralNone'));
+            document.querySelectorAll('input[name="surfaceAspect"]').forEach(radio => radio.checked = (radio.id === 'locSurfaceAspectNone'));
+            document.querySelectorAll('input[name="laterality"]').forEach(radio => radio.checked = (radio.id === 'locLateralityNone'));
+            document.querySelectorAll('input[name="proximalDistal"]').forEach(radio => radio.checked = (radio.id === 'locProximalDistalNone'));
+            document.querySelectorAll('input[name="anatomicPart"]').forEach(checkbox => checkbox.checked = false);
+            imageLocationFreeText.value = "";
+            if (!locationDetailsContent.classList.contains('hidden')) {
+                locationDetailsContent.classList.add('hidden');
+                locationToggleIcon.textContent = 'expand_more';
+            }
+        }
+
 
         // Image Modal Logic
         uploadImageBtn.addEventListener('click', () => imageUploadModal.classList.add('active'));
         closeImageModalBtn.addEventListener('click', () => imageUploadModal.classList.remove('active'));
+        
         cancelImageAnalysisBtn.addEventListener('click', () => {
             imageUploadModal.classList.remove('active');
-            // Reset image form elements on cancel
             imagePreviewContainer.classList.add('hidden');
             imagePreview.src = "#";
             imageUploadInputModal.value = "";
@@ -1235,13 +1335,18 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             imageTypeClinicalRadio.checked = false;
             imageTypeDermoscopicRadio.checked = false;
             imageTypeHistologicRadio.checked = false;
-            imageLocationInput.value = "";
+            resetLocationDetailsForm();
             imageAnalysisResult.innerHTML = '<p class="text-slate-400 italic">AI description of image findings will appear here...</p>';
             imageApprovalControls.classList.add('hidden');
         });
 
+        toggleLocationDetailsBtn.addEventListener('click', () => {
+            const isHidden = locationDetailsContent.classList.toggle('hidden');
+            locationToggleIcon.textContent = isHidden ? 'expand_more' : 'expand_less';
+        });
 
-        imageUploadInputModal.addEventListener('change', (event) => { // Changed from imageUploadInput
+
+        imageUploadInputModal.addEventListener('change', (event) => { 
             const file = event.target.files[0];
             if (file) {
                 currentImageMimeType = file.type;
@@ -1272,12 +1377,42 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             imageAnalysisResult.innerHTML = '<p class="text-slate-500 italic">AI is analyzing the image, please wait...</p>';
             analyzeImageBtn.disabled = true;
 
-            // Collect image type and location
             currentSelectedImageType = "";
             if (imageTypeClinicalRadio.checked) currentSelectedImageType = imageTypeClinicalRadio.value;
             else if (imageTypeDermoscopicRadio.checked) currentSelectedImageType = imageTypeDermoscopicRadio.value;
             else if (imageTypeHistologicRadio.checked) currentSelectedImageType = imageTypeHistologicRadio.value;
-            currentImageLocations = imageLocationInput.value.trim();
+
+            let locationParts = [];
+            const medialLateralRadio = document.querySelector('input[name="medialLateral"]:checked');
+            if (medialLateralRadio && medialLateralRadio.value) locationParts.push(medialLateralRadio.value);
+
+            const surfaceAspectRadio = document.querySelector('input[name="surfaceAspect"]:checked');
+            if (surfaceAspectRadio && surfaceAspectRadio.value) locationParts.push(surfaceAspectRadio.value);
+            
+            const lateralityRadio = document.querySelector('input[name="laterality"]:checked');
+            if (lateralityRadio && lateralityRadio.value) locationParts.push(lateralityRadio.value);
+
+            const proximalDistalRadio = document.querySelector('input[name="proximalDistal"]:checked');
+            if (proximalDistalRadio && proximalDistalRadio.value) locationParts.push(proximalDistalRadio.value);
+
+            let selectedBodyParts = [];
+            document.querySelectorAll('input[name="anatomicPart"]:checked').forEach(checkbox => {
+                selectedBodyParts.push(checkbox.value);
+            });
+            if (selectedBodyParts.length > 0) {
+                locationParts.push(selectedBodyParts.join(', '));
+            }
+
+            const freeTextLoc = imageLocationFreeText.value.trim();
+            if (freeTextLoc) {
+                if (locationParts.length > 0) {
+                     locationParts.push(`(Details: ${freeTextLoc})`);
+                } else {
+                    locationParts.push(freeTextLoc);
+                }
+            }
+            currentImageLocations = locationParts.join('; ').trim();
+            if (currentImageLocations.startsWith('; ')) currentImageLocations = currentImageLocations.substring(2); // Clean leading separator if N/A options were "checked" (empty value)
 
             try {
                 const prompt = DYNAMIC_IMAGE_ANALYSIS_PROMPT_TEMPLATE(currentSelectedImageType, currentImageLocations);
@@ -1288,7 +1423,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 
             } catch (error) {
                 console.error("Error analyzing image:", error);
-                displayError(`Error analyzing image: ${error.message}. Ensure a vision-capable model is selected (e.g., models/gemini-2.5-flash-preview-04-17).`, "imageAnalysisResult");
+                displayError(`Error analyzing image: ${error.message}. Ensure a vision-capable model is selected (e.g., models/gemini-2.5-flash-preview-04-17").`, "imageAnalysisResult");
             } finally {
                 analyzeImageBtn.disabled = false;
             }
@@ -1300,9 +1435,11 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
                 if (currentSelectedImageType) {
                     imageMetadataForTranscript += `Image Type: ${currentSelectedImageType}. `;
                 }
-                if (currentImageLocations) {
+                // currentImageLocations is already assembled and cleaned in analyzeImageBtn
+                if (currentImageLocations) { 
                     imageMetadataForTranscript += `Location(s): ${currentImageLocations}. `;
                 }
+
 
                 if (imageMetadataForTranscript.trim()) {
                     fullTranscript += `\n\n--- IMAGE DETAILS ---\n${imageMetadataForTranscript.trim()}\n--- END IMAGE DETAILS ---`;
@@ -1311,7 +1448,6 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
                 
                 imageUploadModal.classList.remove('active');
                 
-                // Reset all image related states and UI elements
                 imagePreviewContainer.classList.add('hidden');
                 imagePreview.src = "#";
                 imageUploadInputModal.value = ""; 
@@ -1322,11 +1458,11 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
                 currentImageMimeType = null;
                 currentImageDescription = "";
                 currentSelectedImageType = "";
-                currentImageLocations = "";
+                currentImageLocations = ""; // Reset combined string
                 imageTypeClinicalRadio.checked = false;
                 imageTypeDermoscopicRadio.checked = false;
                 imageTypeHistologicRadio.checked = false;
-                imageLocationInput.value = "";
+                resetLocationDetailsForm();
 
 
                 if (fullTranscript.trim()) {
@@ -1468,6 +1604,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             updateUIForRecordingState();
             switchTab('left', 'liveTranscription');
             switchTab('right', 'realtimeSuggestions');
+            resetLocationDetailsForm(); // Ensure it's initially reset
             
             const adjustMinHeight = () => {
                 const headerHeight = document.querySelector('header')?.offsetHeight || 0;
