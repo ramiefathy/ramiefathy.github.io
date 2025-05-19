@@ -8,90 +8,96 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* Apply Inter font globally */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            color: #1f2937;
+            background-color: #f9fafb; /* Tailwind gray-50, slightly different shade for subtlety */
+            color: #1f2937; /* Tailwind gray-800 */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         /* Active Tab Styling - Desktop */
         .tab-active {
-            font-weight: 600;
-            color: #2563eb; /* blue-600 */
-            border-bottom: 3px solid #2563eb;
-            padding-bottom: 0.75rem; /* 12px */
-            margin-bottom: -3px; /* Offset border thickness */
+            font-weight: 700; /* Bolder for active tab */
+            color: #1d4ed8; /* Tailwind blue-700 */
+            border-bottom: 3px solid #1d4ed8;
+            padding-bottom: calc(0.75rem - 3px); /* Adjust padding to account for border */
         }
          /* Styling for the dropdown parent when active */
-        .dropdown-active > span { /* Target the span inside the active dropdown */
-             font-weight: 600;
-             color: #2563eb; /* blue-600 */
-             border-bottom: 3px solid #2563eb;
-             padding-bottom: 0.75rem;
-             margin-bottom: -3px;
+        .dropdown-active > span {
+             font-weight: 700;
+             color: #1d4ed8; /* blue-700 */
+             border-bottom: 3px solid #1d4ed8;
+             padding-bottom: calc(0.75rem - 3px);
         }
         /* Hover Tab Styling - Desktop */
         .nav-tab:not(.tab-active):not(.dropdown-active > span):hover {
-             color: #3b82f6; /* blue-500 */
-             border-bottom: 3px solid #93c5fd; /* blue-300 */
-             padding-bottom: 0.75rem;
-             margin-bottom: -3px;
+             color: #2563eb; /* blue-600 */
+             border-bottom: 3px solid #60a5fa; /* blue-400 for hover */
+             padding-bottom: calc(0.75rem - 3px);
         }
         /* Mobile Active Tab Styling */
         .mobile-tab-active {
-             background-color: #eff6ff; /* blue-50 */
-             color: #1d4ed8; /* blue-700 */
+             background-color: #dbeafe; /* blue-100 */
+             color: #1e40af; /* blue-800 */
              font-weight: 600;
         }
          /* Mobile Dropdown Styling */
         .mobile-dropdown-item {
-            padding-left: 2.5rem; /* Indent dropdown items */
+            padding-left: 2.5rem;
             font-size: 0.9rem;
-            color: #4b5563; /* gray-600 */
+            color: #374151; /* gray-700 */
         }
         .mobile-dropdown-item.mobile-tab-active {
-             background-color: #e0e7ff; /* indigo-100 */
-             color: #3730a3; /* indigo-700 */
+             background-color: #bfdbfe; /* blue-200 */
+             color: #1e3a8a; /* blue-900 */
         }
         /* Style for content cards */
         .content-card {
             background-color: #ffffff;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0,0,0,0.03); /* Softer, more spread shadow */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
             height: 100%;
             border: 1px solid #e5e7eb; /* gray-200 */
+            overflow: hidden; /* To ensure rounded corners clip content */
         }
         .content-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.07), 0 6px 12px rgba(0,0,0,0.05);
         }
-        .content-card-content { flex-grow: 1; }
+        .content-card-content { flex-grow: 1; padding: 1.5rem; } /* Added padding to content */
+        .content-card-header { /* For cards with icons */
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f3f4f6; /* gray-100 */
+        }
         /* Section padding */
-        .tab-content section { padding-top: 4rem; padding-bottom: 4rem; border: none; box-shadow: none; border-radius: 0; }
+        .tab-content section { padding-top: 4rem; padding-bottom: 4rem; }
         /* Section title styling */
-        .section-title { color: #111827; /* gray-900 */ margin-bottom: 3rem; padding-bottom: 0; border-bottom: none; }
+        .section-title { color: #111827; /* gray-900 */ margin-bottom: 3.5rem; /* Increased margin */ font-weight: 800; /* Extra bold */ }
         /* Sub-section title styling */
-         .subsection-title { color: #1d4ed8; /* blue-700 */ font-size: 1.25rem; /* text-xl */ font-weight: 600; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #d1d5db; /* gray-300 */ }
+         .subsection-title { color: #1e3a8a; /* blue-800 */ font-size: 1.375rem; /* Between text-xl and text-2xl */ font-weight: 700; margin-bottom: 1.75rem; padding-bottom: 0.75rem; border-bottom: 2px solid #93c5fd; /* blue-300 */ }
         /* Card title styling */
-        .card-title { color: #1d4ed8; /* blue-700 */ }
+        .card-title { color: #1e40af; /* blue-800 */ font-weight: 700; }
         /* List styling inside cards/sections */
-        .data-list { font-size: 0.875rem; /* text-sm */ color: #4b5563; /* gray-600 */ line-height: 1.6; }
+        .data-list { font-size: 0.9rem; /* Slightly larger */ color: #374151; /* gray-700 */ line-height: 1.7; }
+        .data-list strong { color: #1f2937; /* gray-800 */ }
          /* Publication Item Styling */
-        .publication-item { background-color: #ffffff; padding: 1rem 1.5rem; margin-bottom: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03); }
-        .publication-title { font-weight: 600; color: #111827; margin-bottom: 0.25rem; }
-        .publication-authors { font-style: italic; color: #4b5563; margin-bottom: 0.25rem; font-size: 0.875rem; }
-        .publication-details { color: #6b7280; /* gray-500 */ font-size: 0.875rem; margin-bottom: 0.5rem; }
-        .publication-link { color: #2563eb; font-weight: 500; font-size: 0.875rem; text-decoration: none; transition: color 0.2s; }
+        .publication-item { background-color: #f9fafb; /* gray-50 */ padding: 1.25rem 1.75rem; margin-bottom: 1.25rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03); transition: box-shadow 0.3s ease; }
+        .publication-item:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .publication-title { font-weight: 700; color: #1e3a8a; /* blue-800 */ margin-bottom: 0.375rem; font-size: 1rem; }
+        .publication-authors { font-style: italic; color: #4b5563; margin-bottom: 0.375rem; font-size: 0.875rem; }
+        .publication-details { color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem; }
+        .publication-link { color: #2563eb; font-weight: 600; font-size: 0.875rem; text-decoration: none; transition: color 0.2s; }
         .publication-link:hover { color: #1d4ed8; text-decoration: underline; }
         /* Header styling */
-        header { border-bottom: 1px solid #e5e7eb; /* gray-200 */ background-color: #ffffff; }
+        header { border-bottom: 1px solid #e5e7eb; background-color: #ffffff; }
         /* Footer styling */
-        footer { background-color: #1f2937; /* gray-800 */ color: #d1d5db; /* gray-300 */ }
+        footer { background-color: #111827; /* gray-900 */ color: #9ca3af; /* gray-400 */ }
         /* Basic responsive adjustments for navigation */
         @media (max-width: 768px) {
             #mobile-menu { display: none; }
@@ -101,65 +107,104 @@
         }
         .hidden { display: none; }
         /* Dropdown specific styles */
-        .dropdown {
-             position: relative;
-        }
+        .dropdown { position: relative; }
         .dropdown .dropdown-menu {
             display: none;
             position: absolute;
-            top: 100%;
-            left: 0;
+            top: calc(100% + 0.25rem); /* Ensure it's below the parent */
+            left: 50%;
+            transform: translateX(-50%); /* Center the dropdown */
             background-color: white;
-            min-width: 160px; /* Adjusted min-width for better fit */
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+            min-width: 200px; /* Wider dropdown */
+            box-shadow: 0px 10px 25px 0px rgba(0,0,0,0.1); /* More pronounced shadow */
             z-index: 50;
-            border-radius: 0.375rem;
+            border-radius: 0.5rem; /* rounded-lg */
             border: 1px solid #e5e7eb;
-            margin-top: 0;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
         }
-        .dropdown:hover .dropdown-menu {
-            display: block;
-        }
+        .dropdown:hover .dropdown-menu { display: block; }
         .dropdown-menu a {
             color: #374151;
-            padding: 0.75rem 1rem;
+            padding: 0.625rem 1.25rem; /* Adjusted padding */
             text-decoration: none;
             display: block;
             font-size: 0.9rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
         .dropdown-menu a:hover {
-            background-color: #f3f4f6;
-            color: #111827;
+            background-color: #eff6ff; /* blue-50 */
+            color: #1d4ed8; /* blue-700 */
         }
          /* Mobile Dropdown Toggle */
-        .mobile-dropdown-toggle + .mobile-dropdown-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        .mobile-dropdown-toggle.open + .mobile-dropdown-content {
-             max-height: 500px; /* Adjust as needed for more items */
-             transition: max-height 0.5s ease-in;
-        }
+        .mobile-dropdown-toggle + .mobile-dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .mobile-dropdown-toggle.open + .mobile-dropdown-content { max-height: 500px; transition: max-height 0.5s ease-in; }
         /* Styling for Applications list items */
         .application-item {
-            background-color: #fff;
-            padding: 0.75rem 1rem;
+            background-color: #f9fafb; /* gray-50 */
+            padding: 1rem 1.25rem;
             border: 1px solid #e5e7eb;
-            border-radius: 0.375rem;
-            margin-bottom: 0.5rem;
-            transition: box-shadow 0.2s ease-in-out;
+            border-radius: 0.5rem; /* rounded-lg */
+            margin-bottom: 0.75rem;
+            transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
         }
         .application-item:hover {
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            border-color: #93c5fd; /* blue-300 */
         }
-        .application-item a {
-            color: #1d4ed8;
-            font-weight: 500;
+        .application-item a { color: #1e40af; /* blue-800 */ font-weight: 600; }
+        .application-item a:hover { text-decoration: underline; color: #1d4ed8; }
+        /* About section specific styling */
+        .about-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
+        .about-card {
+            background-color: #fff;
+            padding: 2rem; /* Increased padding */
+            border-radius: 0.75rem; /* rounded-xl */
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
-        .application-item a:hover {
-            text-decoration: underline;
+        .about-card h3 { font-size: 1.25rem; font-weight: 700; color: #1e3a8a; /* blue-800 */ margin-bottom: 1rem; }
+        .about-card p, .about-card li { font-size: 0.9rem; color: #374151; /* gray-700 */ line-height: 1.7; }
+        .about-card ul { list-style-type: disc; padding-left: 1.25rem; margin-top: 0.75rem; }
+        .about-card ul ul { margin-top: 0.25rem; } /* Nested list margin */
+        /* Skills section specific styling */
+        .skill-category-title {
+            font-weight: 700; /* Bold */
+            color: #1e40af; /* blue-800 */
+            margin-top: 1rem; /* Space above category title */
+            margin-bottom: 0.5rem;
+            font-size: 1rem; /* text-base */
         }
+        .skill-category-title:first-child {
+            margin-top: 0; /* No top margin for the first category */
+        }
+        .skills-list {
+            list-style-type: disc;
+            padding-left: 1.5rem; /* Indent bullets */
+            color: #374151; /* gray-700 */
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        /* Awards section styling */
+        .awards-section {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            margin-top: 2rem; /* Space above the awards section */
+        }
+        .awards-category-title {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 700;
+            color: #1e3a8a; /* blue-800 */
+            margin-bottom: 0.75rem;
+            margin-top: 1.5rem;
+        }
+        .awards-category-title:first-child {
+            margin-top: 0;
+        }
+
 
     </style>
 </head>
@@ -169,10 +214,11 @@
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <div class="text-2xl font-bold text-blue-700">Ramie Fathy, MD</div>
             <div class="hidden md:flex space-x-8 items-center h-full">
-                <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="home">Home</a>
-                <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="clinical">Clinical</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="home">Home</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="about">About</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="clinical">Clinical</a>
                 <div class="dropdown h-full flex items-center" data-dropdown-parent="research,ongoing-projects,publications">
-                    <span class="text-gray-600 hover:text-blue-600 cursor-pointer h-full flex items-center transition duration-200 ease-in-out nav-tab">
+                    <span class="text-gray-700 hover:text-blue-600 cursor-pointer h-full flex items-center transition duration-200 ease-in-out nav-tab">
                         Research <i class="fas fa-chevron-down fa-xs ml-1"></i>
                     </span>
                     <div class="dropdown-menu">
@@ -181,10 +227,10 @@
                         <a href="#" class="nav-tab" data-target="publications">Publications</a>
                     </div>
                 </div>
-                <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="leadership">Leadership & Writing</a>
-                <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="applications">Tools & Applications</a>
-                <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="skills">Skills & Interests</a>
-                <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="contact">Contact</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="leadership">Leadership & Writing</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="applications">Tools & Applications</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="skills">Skills & Interests</a>
+                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="contact">Contact</a>
             </div>
             <div class="md:hidden">
                 <button id="mobile-menu-button" class="text-gray-500 hover:text-blue-600 focus:outline-none">
@@ -194,6 +240,7 @@
         </nav>
         <div id="mobile-menu" class="md:hidden bg-white shadow-lg absolute top-full left-0 w-full border-t border-gray-200">
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="home">Home</a>
+            <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="about">About</a>
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="clinical">Clinical</a>
             <div>
                  <button class="mobile-dropdown-toggle w-full text-left flex justify-between items-center px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out" data-dropdown-parent="research,ongoing-projects,publications">
@@ -216,26 +263,71 @@
     <main class="container mx-auto px-6 py-10">
 
         <div id="content-home" class="tab-content">
-            <section class="py-12 md:py-24 bg-gradient-to-br from-blue-50 via-white to-indigo-50 rounded-xl shadow-sm border border-gray-200">
+            <section class="py-16 md:py-28 bg-gradient-to-br from-blue-100 via-indigo-50 to-purple-100 rounded-xl shadow-lg border border-gray-200">
                 <div class="text-center px-4">
-                    <img src="https://placehold.co/160x160/EBF4FF/3B82F6?text=RF" alt="Ramie Fathy, MD" class="w-36 h-36 md:w-44 md:h-44 rounded-full mx-auto mb-8 border-4 border-white shadow-lg" onerror="this.onerror=null; this.src='https://placehold.co/160x160/cccccc/ffffff?text=Image+Error';">
-                    <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Ramie Fathy, MD</h1>
-                    <p class="text-xl md:text-2xl text-blue-600 font-medium mb-8">Dermatology Resident | Researcher | Writer</p>
-                    <p class="text-lg text-gray-700 max-w-3xl mx-auto mb-12 leading-relaxed">
-                        Welcome! I am currently a PGY-3 Dermatology Resident Physician at Johns Hopkins University. Originally from Knoxville, TN, I graduated Summa Cum Laude from Princeton University (Molecular Biology) and earned my MD from the Perelman School of Medicine at the University of Pennsylvania, where I was inducted into AOA. This site highlights my clinical work, research, leadership, writing, and other interests.
+                    <img src="https://placehold.co/160x160/E0E7FF/1E3A8A?text=RF" alt="Ramie Fathy, MD" class="w-40 h-40 md:w-48 md:h-48 rounded-full mx-auto mb-8 border-4 border-white shadow-2xl" onerror="this.onerror=null; this.src='https://placehold.co/160x160/cccccc/ffffff?text=Image+Error';">
+                    <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-5 tracking-tight">Ramie Fathy, MD</h1>
+                    <p class="text-2xl md:text-3xl text-blue-700 font-semibold mb-10">Dermatology Resident | Researcher | Writer</p>
+                    <p class="text-xl text-gray-700 max-w-3xl mx-auto mb-12 leading-relaxed">
+                        Welcome to my personal website. Explore the sections to learn more about my work and interests.
                     </p>
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg text-lg transition duration-300 inline-block shadow hover:shadow-md transform hover:-translate-y-0.5 nav-tab" data-target="contact">Get In Touch</button>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-10 rounded-lg text-lg transition duration-300 ease-in-out inline-block shadow-md hover:shadow-lg transform hover:-translate-y-1 nav-tab" data-target="about">Learn More About Me</button>
                 </div>
             </section>
         </div>
 
+        <div id="content-about" class="tab-content hidden">
+            <section class="bg-white rounded-xl shadow-lg border border-gray-200">
+                <div class="container mx-auto px-6 md:px-10 py-10">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">About Me</h2>
+                    <div class="flex flex-col lg:flex-row items-center lg:items-start gap-12 mb-16">
+                        <div class="lg:w-1/3 text-center flex-shrink-0">
+                             <img src="https://placehold.co/220x220/DBEAFE/1D4ED8?text=RF" alt="Ramie Fathy, MD" class="w-52 h-52 rounded-full mx-auto mb-6 border-4 border-blue-300 shadow-xl" onerror="this.onerror=null; this.src='https://placehold.co/220x220/cccccc/ffffff?text=Image+Error';">
+                        </div>
+                        <div class="lg:w-2/3">
+                            <p class="text-lg text-gray-700 leading-relaxed mb-6">
+                                I am currently a PGY-3 Dermatology Resident Physician at Johns Hopkins University, with a strong foundation in molecular biology from Princeton University (Summa Cum Laude, Phi Beta Kappa) and medicine from the Perelman School of Medicine at the University of Pennsylvania (Alpha Omega Alpha). Originally from Knoxville, Tennessee, I am passionate about integrating clinical care with research and innovation in dermatology.
+                            </p>
+                            <p class="text-lg text-gray-700 leading-relaxed">
+                                My professional journey includes a preliminary year internship at Pennsylvania Hospital, a research fellowship in dermatology at Harvard Medical School, and clinical research at the UCSF Breast Care Center. These experiences have shaped my interests in AI applications in medicine, teledermatology, health equity, and environmental impacts on skin health.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="about-grid mb-12"> <div class="about-card">
+                            <h3>Education</h3>
+                            <ul id="education-list"></ul>
+                        </div>
+                        <div class="about-card">
+                            <h3>Professional Appointments</h3>
+                             <ul id="appointments-list"></ul>
+                        </div>
+                         <div class="about-card">
+                            <h3>Licensure & Certifications</h3>
+                            <ul id="licensure-list"></ul>
+                        </div>
+                        <div class="about-card">
+                            <h3>Key Affiliations & Memberships</h3>
+                            <ul id="affiliations-list"></ul>
+                        </div>
+                    </div>
+                    <div class="awards-section">
+                        <h2 class="text-3xl md:text-4xl font-bold text-center section-title mb-10">Honors & Awards</h2>
+                        <div id="awards-categorized-list" class="max-w-3xl mx-auto">
+                            </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+
         <div id="content-clinical" class="tab-content hidden">
-             <section class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="container mx-auto px-6 md:px-10">
-                    <h2 class="text-3xl md:text-4xl font-bold text-center section-title">Clinical Experience & Interests</h2>
+             <section class="bg-white rounded-xl shadow-lg border border-gray-200">
+                <div class="container mx-auto px-6 md:px-10 py-10">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Clinical Experience & Interests</h2>
                     <div class="flex flex-col md:flex-row items-center gap-12">
                         <div class="md:w-1/2">
-                            <img src="https://placehold.co/600x450/E0F2FE/38BDF8?text=Johns+Hopkins+Dermatology" alt="Johns Hopkins Dermatology" class="rounded-lg shadow-md w-full h-auto object-cover" onerror="this.onerror=null; this.src='https://placehold.co/600x450/cccccc/ffffff?text=Image+Error';">
+                            <img src="https://placehold.co/600x450/E0F2FE/1E3A8A?text=Clinical+Focus" alt="Johns Hopkins Dermatology" class="rounded-xl shadow-xl w-full h-auto object-cover" onerror="this.onerror=null; this.src='https://placehold.co/600x450/cccccc/ffffff?text=Image+Error';">
                         </div>
                         <div class="md:w-1/2">
                             <h3 class="text-2xl font-semibold text-blue-700 mb-4">Dermatology Residency (PGY-3)</h3>
@@ -246,7 +338,7 @@
                             <p class="text-gray-700 mb-6 leading-relaxed">
                                 My interests within dermatology include medical dermatology, epidemiology, the impact of environmental factors like climate change on skin health, teledermatology, applications of AI in clinical practice, and exploring integrative approaches to patient care. I am an active member of the Rheumatology-Dermatology Society, Medical Dermatology Society, and Society of Dermatology Hospitalists.
                             </p>
-                             <a href="https://www.hopkinsmedicine.org/dermatology/" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center transition duration-300 group">
+                             <a href="https://www.hopkinsmedicine.org/dermatology/" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group">
                                 Learn More About Johns Hopkins Dermatology <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform duration-200"></i>
                             </a>
                         </div>
@@ -256,19 +348,19 @@
         </div>
 
         <div id="content-research" class="tab-content hidden">
-            <section class="bg-gray-50 rounded-xl shadow-sm border border-gray-200">
-                <div class="container mx-auto px-6 md:px-10">
-                    <h2 class="text-3xl md:text-4xl font-bold text-center section-title">Research Overview & Experience</h2>
+            <section class="bg-gray-50 rounded-xl shadow-lg border border-gray-200">
+                <div class="container mx-auto px-6 md:px-10 py-10">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Research Overview & Experience</h2>
                     <div class="max-w-4xl mx-auto">
-                         <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200 mb-8">
-                            <h4 class="text-xl font-semibold card-title mb-4">Past Research Fellowships & Projects</h4>
+                         <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200 mb-10">
+                            <h4 class="text-2xl font-semibold card-title mb-5">Past Research Fellowships & Projects</h4>
                              <div id="research-past-list"></div>
                         </div>
-                         <div class="text-center mt-10 space-x-6">
-                             <a href="#" class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center transition duration-300 group nav-tab" data-target="ongoing-projects">
+                         <div class="text-center mt-12 space-x-6">
+                             <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group nav-tab text-lg" data-target="ongoing-projects">
                                 View Ongoing Projects <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform duration-200"></i>
                             </a>
-                             <a href="#" class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center transition duration-300 group nav-tab" data-target="publications">
+                             <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group nav-tab text-lg" data-target="publications">
                                 View Detailed Publications List <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform duration-200"></i>
                             </a>
                          </div>
@@ -278,16 +370,16 @@
         </div>
 
         <div id="content-ongoing-projects" class="tab-content hidden">
-            <section class="bg-gray-50 rounded-xl shadow-sm border border-gray-200">
-                <div class="container mx-auto px-6 md:px-10">
-                    <h2 class="text-3xl md:text-4xl font-bold text-center section-title">Ongoing Projects</h2>
+            <section class="bg-gray-50 rounded-xl shadow-lg border border-gray-200">
+                <div class="container mx-auto px-6 md:px-10 py-10">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Ongoing Projects</h2>
                     <div class="max-w-4xl mx-auto">
-                         <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200 mb-8">
-                            <h4 class="text-xl font-semibold card-title mb-4">Current Research (Johns Hopkins / Glass Health)</h4>
+                         <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200 mb-10">
+                            <h4 class="text-2xl font-semibold card-title mb-5">Current Research (Johns Hopkins / Glass Health)</h4>
                             <div id="research-ongoing-list"></div>
                         </div>
-                         <div class="text-center mt-10">
-                             <a href="#" class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center transition duration-300 group nav-tab" data-target="publications">
+                         <div class="text-center mt-12">
+                             <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group nav-tab text-lg" data-target="publications">
                                 View Detailed Publications List <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform duration-200"></i>
                             </a>
                          </div>
@@ -297,16 +389,16 @@
         </div>
 
         <div id="content-publications" class="tab-content hidden">
-            <section class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="container mx-auto px-6 md:px-10">
-                    <h2 class="text-3xl md:text-4xl font-bold text-center section-title">Publications</h2>
+            <section class="bg-white rounded-xl shadow-lg border border-gray-200">
+                <div class="container mx-auto px-6 md:px-10 py-10">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Publications</h2>
                     <p class="text-lg text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
                         Selected publications organized by topic. For a complete list, please visit Google Scholar.
                     </p>
-                    <div id="publications-by-topic" class="max-w-4xl mx-auto space-y-10"></div>
-                    <div class="text-center mt-12">
-                         <a href="https://scholar.google.com/citations?user=Pb_Ht9cAAAAJ&hl=en" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center transition duration-300 group">
-                            View Full List on Google Scholar <i class="fas fa-external-link-alt ml-2 transform group-hover:scale-110 transition-transform duration-200"></i>
+                    <div id="publications-by-topic" class="max-w-4xl mx-auto space-y-12"></div>
+                    <div class="text-center mt-16">
+                         <a href="https://scholar.google.com/citations?user=Pb_Ht9cAAAAJ&hl=en" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg text-md transition duration-300 ease-in-out inline-flex items-center shadow hover:shadow-md transform hover:-translate-y-0.5">
+                            View Full List on Google Scholar <i class="fas fa-external-link-alt ml-2"></i>
                         </a>
                      </div>
                 </div>
@@ -314,27 +406,33 @@
         </div>
 
         <div id="content-leadership" class="tab-content hidden">
-            <section class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="container mx-auto px-6 md:px-10">
-                    <h2 class="text-3xl md:text-4xl font-bold text-center section-title">Leadership, Writing & Media</h2>
-                    <p class="text-lg text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
+            <section class="bg-white rounded-xl shadow-lg border border-gray-200">
+                <div class="container mx-auto px-6 md:px-10 py-10">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Leadership, Writing & Media</h2>
+                    <p class="text-lg text-gray-700 text-center max-w-3xl mx-auto mb-16 leading-relaxed">
                         I am passionate about leadership, education, advocacy, and communicating medical information effectively through various platforms.
                     </p>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="lg:col-span-1 bg-gray-50 p-6 rounded-lg border border-gray-200">
-                             <div class="text-center mb-4"><i class="fas fa-users text-4xl text-purple-600"></i></div>
-                            <h4 class="text-xl font-semibold card-title mb-4 text-center">Leadership & Service</h4>
-                            <div id="leadership-list"></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                        <div class="content-card">
+                             <div class="content-card-header text-center"><i class="fas fa-users text-5xl text-purple-600 mb-3"></i></div>
+                            <div class="content-card-content">
+                                <h4 class="text-2xl font-semibold card-title mb-4 text-center">Leadership & Service</h4>
+                                <div id="leadership-list"></div>
+                            </div>
                         </div>
-                         <div class="lg:col-span-1 bg-gray-50 p-6 rounded-lg border border-gray-200">
-                             <div class="text-center mb-4"><i class="fas fa-pencil-alt text-4xl text-green-600"></i></div>
-                            <h4 class="text-xl font-semibold card-title mb-4 text-center">Writing & Contributions</h4>
-                            <div id="writing-list"></div>
+                         <div class="content-card">
+                             <div class="content-card-header text-center"><i class="fas fa-pencil-alt text-5xl text-green-600 mb-3"></i></div>
+                            <div class="content-card-content">
+                                <h4 class="text-2xl font-semibold card-title mb-4 text-center">Writing & Contributions</h4>
+                                <div id="writing-list"></div>
+                            </div>
                         </div>
-                        <div class="lg:col-span-1 bg-gray-50 p-6 rounded-lg border border-gray-200">
-                             <div class="text-center mb-4"><i class="fas fa-podcast text-4xl text-red-600"></i></div>
-                            <h4 class="text-xl font-semibold card-title mb-4 text-center">Podcasting & Radio</h4>
-                             <div id="media-list"></div>
+                        <div class="content-card">
+                             <div class="content-card-header text-center"><i class="fas fa-podcast text-5xl text-red-600 mb-3"></i></div>
+                            <div class="content-card-content">
+                                <h4 class="text-2xl font-semibold card-title mb-4 text-center">Podcasting & Radio</h4>
+                                 <div id="media-list"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -342,64 +440,48 @@
         </div>
 
         <div id="content-applications" class="tab-content hidden">
-            <section class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="container mx-auto px-6 md:px-10">
-                    <h2 class="text-3xl md:text-4xl font-bold text-center section-title">Tools & Applications</h2>
-                    <p class="text-lg text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
+            <section class="bg-white rounded-xl shadow-lg border border-gray-200">
+                <div class="container mx-auto px-6 md:px-10 py-10">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Tools & Applications</h2>
+                    <p class="text-lg text-gray-700 text-center max-w-3xl mx-auto mb-16 leading-relaxed">
                         A collection of tools and applications I have developed or contributed to.
                     </p>
-                    <div id="applications-categorized-list" class="max-w-3xl mx-auto space-y-10"></div>
+                    <div id="applications-categorized-list" class="max-w-3xl mx-auto space-y-12"></div>
                 </div>
             </section>
         </div>
 
         <div id="content-skills" class="tab-content hidden">
-            <section class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl shadow-sm border border-gray-200">
-                <div class="container mx-auto px-6 md:px-10">
-                    <h2 class="text-3xl md:text-4xl font-bold text-center section-title">Skills & Personal Interests</h2>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto mb-10">
-                         <div class="p-6 content-card">
-                            <div class="text-center mb-4"><i class="fas fa-laptop-code text-4xl text-blue-600"></i></div>
-                            <h4 class="text-xl font-semibold text-gray-800 mb-4 text-center">Skills</h4>
-                             <div class="content-card-content">
-                                <ul class="list-disc list-inside space-y-2 card-list text-left">
-                                    <li>**Languages:** English (Native), Arabic (Conversational), Spanish (Advanced)</li>
-                                    <li>**Technical:** Python (Intermediate), R (Proficient)</li>
-                                    <li>**Media:** Podcasting (Drafting, interviewing, recording, editing - Intermediate)</li>
-                                </ul>
+            <section class="bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 rounded-xl shadow-lg border border-gray-200">
+                <div class="container mx-auto px-6 md:px-10 py-10">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Skills & Personal Interests</h2>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto mb-12">
+                         <div class="content-card">
+                            <div class="content-card-header text-center"><i class="fas fa-laptop-code text-5xl text-blue-600 mb-3"></i></div>
+                            <div class="content-card-content">
+                                <h4 class="text-2xl font-semibold text-gray-800 mb-4 text-center">Skills</h4>
+                                 <div id="skills-categorized-list"></div>
                              </div>
                          </div>
-                         <div class="p-6 content-card">
-                            <div class="text-center mb-4"><i class="fas fa-guitar text-4xl text-orange-600"></i></div>
-                            <h4 class="text-xl font-semibold text-gray-800 mb-4 text-center">Hobbies</h4>
-                             <div class="content-card-content">
-                                <ul class="list-disc list-inside space-y-2 card-list text-left">
-                                    <li>Writing</li>
-                                    <li>Photography</li>
-                                    <li>Guitar</li>
-                                    <li>Live Music / Concerts</li>
-                                    <li>Board Games</li>
-                                    <li>Exploring Egyptian Heritage</li>
-                                </ul>
-                             </div>
+                         <div class="content-card">
+                            <div class="content-card-header text-center"><i class="fas fa-palette text-5xl text-orange-500 mb-3"></i></div> <div class="content-card-content">
+                                <h4 class="text-2xl font-semibold text-gray-800 mb-4 text-center">Hobbies</h4>
+                                 <div id="hobbies-list"></div> </div>
                          </div>
                      </div>
-                     <p class="text-lg text-gray-700 text-center max-w-3xl mx-auto leading-relaxed">
-                        Maintaining a balance between professional pursuits and personal interests is important to me.
-                    </p>
                 </div>
             </section>
         </div>
 
         <div id="content-contact" class="tab-content hidden">
-            <section class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="container mx-auto px-6 md:px-10 max-w-3xl">
-                    <h2 class="text-3xl md:text-4xl font-bold text-center section-title">Connect</h2>
+            <section class="bg-white rounded-xl shadow-lg border border-gray-200">
+                <div class="container mx-auto px-6 md:px-10 py-10 max-w-3xl">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Connect</h2>
                     <p class="text-lg text-gray-700 text-center mb-12 leading-relaxed">
                         You can view my professional profiles and publications via the links below. Please note that medical advice cannot be provided through these channels.
                     </p>
-                    <div class="bg-gray-50 p-10 rounded-lg border border-gray-200 text-center">
-                         <div class="flex justify-center space-x-8">
+                    <div class="bg-gray-100 p-10 rounded-xl border border-gray-200 text-center">
+                         <div class="flex justify-center space-x-10">
                             <a href="https://scholar.google.com/citations?user=Pb_Ht9cAAAAJ&hl=en" target="_blank" title="Google Scholar" class="text-gray-500 hover:text-blue-600 transition duration-300 transform hover:scale-110">
                                 <i class="fas fa-graduation-cap fa-3x"></i>
                             </a>
@@ -414,9 +496,8 @@
 
     </main>
 
-    <footer class="bg-gray-800 text-gray-400 py-8 mt-16">
-        <div class="container mx-auto px-6 text-center">
-            <p>&copy; <span id="current-year"></span> Ramie Fathy. All Rights Reserved.</p>
+    <footer class="bg-gray-900 text-gray-400 py-10 mt-16"> <div class="container mx-auto px-6 text-center">
+            <p>&copy; <span id="current-year"></span> Ramie Fathy, MD. All Rights Reserved.</p>
             <p class="text-sm mt-2 text-gray-500">Website design enhanced.</p>
         </div>
     </footer>
@@ -437,6 +518,7 @@
              { title: "Naguru Teenage Information and Health Centre, Uganda (2018)", description: "Conducted hearing screens for adolescents." }
         ];
         const leadershipItems = [
+            { description: "Vice President of Resident Affairs, Johns Hopkins House Staff Council" },
             { description: "Member, Council of Science and Research, AAD (2025-2027)" },
             { description: "Founder/Director, Philadelphia Organization of Health Professions Students (COVID-19 response, 2020-21)" },
             { description: "Curriculum Representative, Penn Medicine (Class of 2017)" },
@@ -454,6 +536,100 @@
             { description: "Producer, Antiviral: COVID-19 Podcast for Medical Students" },
             { description: "Radio Show Producer/Host, Apocalypse Dreams (WPRB Princeton)" }
         ];
+
+        // Data for About Tab
+        const educationItems = [
+            {
+                degree: "MD",
+                institution: "Perelman School of Medicine, University of Pennsylvania (2017–2022)",
+                honors: [
+                    "Twenty-First Century Gamble Endowed Scholar (Full-tuition)",
+                    "Walter Lewis Croll Scholarship",
+                    "Alpha Omega Alpha Honors Society"
+                ]
+            },
+            {
+                degree: "BA, Molecular Biology",
+                institution: "Princeton University (2012–2016)",
+                honors: [
+                    "Summa Cum Laude",
+                    "Phi Beta Kappa Academic Honor Society",
+                    "Sigma Xi Scientific Research Honor Society",
+                    "Henrietta S. Treen Scholarship Awardee"
+                ]
+            },
+            {
+                degree: "High School",
+                institution: "Farragut High School, TN (2008–2012)",
+                honors: ["Valedictorian", "Class President"]
+            }
+        ];
+
+        const appointmentItems = [
+            { role: "Dermatology Resident Physician", institution: "Johns Hopkins Hospital (2023–Present)" },
+            { role: "AI Clinical Fellow and Project Lead", institution: "Glass Health (2023-2025)" },
+            { role: "Preliminary Year Intern", institution: "Pennsylvania Hospital (2022–2023)" },
+            { role: "Research Fellow in Dermatology", institution: "Harvard Medical School (2021–2022)" },
+            { role: "Clinical Researcher and Patient Advocate", institution: "UCSF Breast Care Center (2016–2017)" }
+        ];
+
+        const licensureItems = [
+            { item: "Medical License: Pennsylvania, Maryland" },
+            { item: "Basic Life Support (BLS)" },
+            { item: "Advance Cardiovascular Life Support (ACLS)" }
+        ];
+
+        const affiliationItems = [
+            { item: "Council of Science and Research, American Academy of Dermatology (2025-2027)" },
+            { item: "Rheumatology-Dermatology Society" },
+            { item: "Medical Dermatology Society" },
+            { item: "American Academy of Dermatology" },
+            { item: "Society of Dermatology Hospitalists" }
+        ];
+
+        const awardsData = [ // Updated structure for categorization
+            { category: "Residency", description: "Maryland Dermatologic Society Resident Research Grant (to support a study investigating whether the Apple Vision Pro can be used for 3D remote dermatologic assessment)" },
+            { category: "Residency", description: "Kenvue and L’Oreal Resident Scholarship to attend the 2024 Science of Skincare Summit" },
+            { category: "Residency", description: "Best Lecture Award: Dermatopharmacology: Systemic Immunomodulators, Johns Hopkins Department of Dermatology (2024)"},
+            { category: "Residency", description: "Best Lecture Award: NF1/TSC Lecture, Johns Hopkins Department of Dermatology (2025)"}, // New Award
+            { category: "Medical School", description: "Best Abstract Award: American Healthcare Social Media Conference (2020)"},
+            { category: "Medical School", description: "First Place, Clinical Vignette Poster, American College of Physicians (2019)"},
+            { category: "Medical School", description: "FOCUS Women's Health Research Grant: Awarded for COVID-19- and COVID-Vaccine Related Research (2021-2022)"},
+            { category: "Undergraduate", description: "Stanford Undergraduate Research Conference Stipend Recipient (2016)"},
+            { category: "Other", description: "United States Senate Youth Program Scholar (2011)"} // Assuming 'Other' or 'Pre-College'
+        ];
+
+
+        // Data for Skills Tab
+        const skillsData = [
+            {
+                category: "Languages",
+                items: ["English (Native)", "Arabic (Conversational)", "Spanish (Advanced)"]
+            },
+            {
+                category: "Technical",
+                items: ["Python (Intermediate)", "R (Proficient)"]
+            },
+            {
+                category: "Media",
+                items: ["Podcasting (Drafting, interviewing, recording, editing - Intermediate)"]
+            }
+        ];
+        // Data for Hobbies
+        const hobbiesData = [
+            { name: "Writing" },
+            { name: "Photography", link: "photography.html" }, // Link for photography
+            { name: "Guitar" },
+            { name: "Live Music / Concerts" },
+            { name: "Board Games" },
+            { name: "Cooking" },
+            { name: "Travel" },
+            { name: "Pickleball" },
+            { name: "Tennis" },
+            { name: "Hiking" }
+        ];
+
+
         const publicationsData = [
             // --- AI / Social Media / Teledermatology ---
             { topic: "AI / Social Media / Teledermatology", title: "Comparative Assessment of GPT-4 Vision in Dermoscopic Image Analysis", authors: "Tadros, A., Zhuo, W., Fathy, R., et al.", details: "In Preparation.", link: null },
@@ -500,8 +676,11 @@
             // --- Book Chapters ---
             { topic: "Book Chapters", title: "Making the Most of your Hidradenitis Suppurativa", authors: "Fathy, R. & Micheletti, R.", details: "In V. Shi, J. Hsiao (Ed.), A Comprehensive Guide to Hidradenitis Suppurativa for Patients and Caregivers, 1e, Philadelphia: Springer. (2021)", link: null },
             // --- Other Articles ---
+            { topic: "Other Articles", title: "From wildfires to disease, here are the top 5 ways climate change is already hurting your health", authors: "Fathy, R.", details: "ABC News. (November 25, 2020)", link: "https://abcnews.go.com/Health/wildfires-disease-top-ways-climate-change-hurting-health/story?id=74307157" },
             { topic: "Other Articles", title: "COVID and Med Ed: Resident and Student Describe 'New Normal'", authors: "Fathy, C. & Fathy, R.", details: "Medscape. (2020)", link: "https://www.medscape.com/viewarticle/928359" },
-            { topic: "Other Articles", title: "The Problem with Paid Mentorship in Medicine", authors: "Fathy, R. & Benson, T.", details: "Medscape. (2020)", link: null }
+            { topic: "Other Articles", title: "The Problem with Paid Mentorship in Medicine", authors: "Fathy, R. & Benson, T.", details: "Medscape. (2020)", link: "https://www.medscape.com/viewarticle/938506" },
+            { topic: "Other Articles", title: "Why Mindfulness in Medical School Is Not Just Hokey Self-care", authors: "Fathy, R.", details: "Medscape. (February 11, 2022)", link: "https://www.medscape.com/viewarticle/968087"},
+            { topic: "Other Articles", title: "From Unmatched to Top Pick: The Highs and Lows of a Year in Limbo", authors: "Fathy, R.", details: "Medscape. (April 20, 2022)", link: "https://www.medscape.com/viewarticle/972199"}
         ];
 
         const applicationItems = [
@@ -536,6 +715,118 @@
             });
             container.appendChild(ul);
         }
+
+        // --- Function to Populate About Section Lists ---
+        function populateAboutList(items, containerId, itemFormatter) {
+            const container = document.getElementById(containerId);
+            if (!container) { console.error(`Container with ID '${containerId}' not found for About section.`); return; }
+            container.innerHTML = ''; // Clear previous content
+            items.forEach(itemData => {
+                const li = document.createElement('li');
+                li.innerHTML = itemFormatter(itemData); // Use a formatter function for complex list items
+                container.appendChild(li);
+            });
+        }
+
+        // Formatters for About section lists
+        const educationFormatter = (item) => {
+            let honorsHTML = '';
+            if (item.honors && item.honors.length > 0) {
+                honorsHTML = `<ul class="list-disc pl-5 mt-1">` + item.honors.map(h => `<li>${h}</li>`).join('') + `</ul>`;
+            }
+            return `<strong>${item.degree}:</strong> ${item.institution}${honorsHTML}`;
+        };
+        const appointmentFormatter = (item) => `<strong>${item.role}:</strong> ${item.institution}`;
+        const licensureFormatter = (item) => item.item;
+        const affiliationFormatter = (item) => item.item;
+
+        // --- Function to Populate Categorized Awards ---
+        function populateAwardsCategorized(awards, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) { console.error(`Awards container with ID '${containerId}' not found.`); return; }
+            container.innerHTML = ''; // Clear previous content
+
+            const groupedAwards = awards.reduce((acc, award) => {
+                const category = award.category || "Other Awards";
+                if (!acc[category]) {
+                    acc[category] = [];
+                }
+                acc[category].push(award.description);
+                return acc;
+            }, {});
+
+            const categoryOrder = ["Residency", "Medical School", "Undergraduate", "Other"]; // Define order
+
+            categoryOrder.forEach(category => {
+                if (groupedAwards[category]) {
+                    const categoryTitle = document.createElement('h4');
+                    categoryTitle.className = 'awards-category-title';
+                    categoryTitle.textContent = category;
+                    container.appendChild(categoryTitle);
+
+                    const ul = document.createElement('ul');
+                    ul.className = 'list-disc list-inside space-y-2 data-list';
+                    groupedAwards[category].forEach(awardText => {
+                        const li = document.createElement('li');
+                        li.textContent = awardText;
+                        ul.appendChild(li);
+                    });
+                    container.appendChild(ul);
+                }
+            });
+        }
+
+
+        // --- Function to Populate Skills List (Categorized) ---
+        function populateSkillsCategorized(skillsData, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) { console.error(`Skills container with ID '${containerId}' not found.`); return; }
+            container.innerHTML = ''; // Clear previous content
+
+            skillsData.forEach(skillCategory => {
+                const categoryTitle = document.createElement('h5');
+                categoryTitle.className = 'skill-category-title';
+                categoryTitle.textContent = skillCategory.category;
+                container.appendChild(categoryTitle);
+
+                const ul = document.createElement('ul');
+                ul.className = 'skills-list'; // Use the new class for styling
+                skillCategory.items.forEach(skill => {
+                    const li = document.createElement('li');
+                    li.textContent = skill;
+                    ul.appendChild(li);
+                });
+                container.appendChild(ul);
+            });
+        }
+
+        // --- Function to Populate Hobbies List ---
+        function populateHobbiesList(hobbies, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) { console.error(`Hobbies container with ID '${containerId}' not found.`); return; }
+            container.innerHTML = ''; // Clear previous content
+
+            const ul = document.createElement('ul');
+            ul.className = 'list-disc list-inside space-y-2 card-list text-left'; // Same styling as skills list for consistency
+
+            hobbies.forEach(hobby => {
+                const li = document.createElement('li');
+                if (hobby.link) {
+                    const a = document.createElement('a');
+                    a.href = hobby.link;
+                    a.textContent = hobby.name;
+                    a.className = "text-blue-600 hover:underline";
+                    // a.target = "_blank"; // Optional: Open in new tab
+                    // a.rel = "noopener noreferrer";
+                    li.appendChild(a);
+                } else {
+                    li.textContent = hobby.name;
+                }
+                ul.appendChild(li);
+            });
+            container.appendChild(ul);
+        }
+
 
         // --- Function to Populate Applications List (Categorized) ---
         function populateApplicationsCategorized(items, containerId) {
@@ -624,9 +915,9 @@
                         if (pub.authors) content += `<div class="publication-authors">${pub.authors}</div>`;
                         if (pub.details) content += `<div class="publication-details">${pub.details}</div>`;
                         let googleScholarLink = `https://scholar.google.com/scholar?q=${encodeURIComponent(pub.title + ' ' + (pub.authors ? pub.authors.split(',')[0] : ''))}`;
-                        if (pub.link) {
-                             content += `<a href="${pub.link}" target="_blank" rel="noopener noreferrer" class="publication-link">Find on Google Scholar <i class="fas fa-external-link-alt fa-xs ml-1"></i></a>`;
-                        } else if (pub.topic !== "Book Chapters" && pub.topic !== "Other Articles") {
+                        if (pub.link) { // If a direct link is provided, use it
+                             content += `<a href="${pub.link}" target="_blank" rel="noopener noreferrer" class="publication-link">View Article <i class="fas fa-external-link-alt fa-xs ml-1"></i></a>`;
+                        } else if (pub.topic !== "Book Chapters" && pub.details !== "In Preparation.") { // For others, generate a Google Scholar search link
                              content += `<a href="${googleScholarLink}" target="_blank" rel="noopener noreferrer" class="publication-link">Find on Google Scholar <i class="fas fa-external-link-alt fa-xs ml-1"></i></a>`;
                         }
                         itemDiv.innerHTML = content;
@@ -737,13 +1028,24 @@
 
         // --- Initial State & Data Population ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Populate About Tab lists
+            populateAboutList(educationItems, 'education-list', educationFormatter);
+            populateAboutList(appointmentItems, 'appointments-list', appointmentFormatter);
+            populateAboutList(licensureItems, 'licensure-list', licensureFormatter);
+            populateAboutList(affiliationItems, 'affiliations-list', affiliationFormatter);
+            populateAwardsCategorized(awardsData, 'awards-categorized-list'); // Populate categorized awards
+
+            // Populate other dynamic lists
             populateList(ongoingProjectItems, 'research-ongoing-list');
             populateList(pastResearchItems, 'research-past-list', false, true);
             populateList(leadershipItems, 'leadership-list');
             populateList(writingItems, 'writing-list');
             populateList(mediaItems, 'media-list');
             populatePublicationsByTopic(publicationsData, 'publications-by-topic');
-            populateApplicationsCategorized(applicationItems, 'applications-categorized-list'); // Updated function call
+            populateApplicationsCategorized(applicationItems, 'applications-categorized-list');
+            populateSkillsCategorized(skillsData, 'skills-categorized-list');
+            populateHobbiesList(hobbiesData, 'hobbies-list'); // Populate new hobbies list
+
 
              if (!document.querySelector('.tab-active') && !document.querySelector('.mobile-tab-active') && !document.querySelector('.dropdown-active')) {
                  activateTab('home');
