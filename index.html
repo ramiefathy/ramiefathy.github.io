@@ -141,8 +141,8 @@
              max-height: 500px; /* Adjust as needed for more items */
              transition: max-height 0.5s ease-in;
         }
-        /* Styling for Applications list */
-        #applications-list li {
+        /* Styling for Applications list items */
+        .application-item {
             background-color: #fff;
             padding: 0.75rem 1rem;
             border: 1px solid #e5e7eb;
@@ -150,14 +150,14 @@
             margin-bottom: 0.5rem;
             transition: box-shadow 0.2s ease-in-out;
         }
-        #applications-list li:hover {
+        .application-item:hover {
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        #applications-list a {
+        .application-item a {
             color: #1d4ed8;
             font-weight: 500;
         }
-        #applications-list a:hover {
+        .application-item a:hover {
             text-decoration: underline;
         }
 
@@ -182,7 +182,8 @@
                     </div>
                 </div>
                 <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="leadership">Leadership & Writing</a>
-                <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="applications">Tools & Applications</a> <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="skills">Skills & Interests</a>
+                <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="applications">Tools & Applications</a>
+                <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="skills">Skills & Interests</a>
                 <a href="#" class="text-gray-600 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="contact">Contact</a>
             </div>
             <div class="md:hidden">
@@ -206,7 +207,8 @@
                  </div>
             </div>
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="leadership">Leadership & Writing</a>
-            <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="applications">Tools & Applications</a> <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="skills">Skills & Interests</a>
+            <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="applications">Tools & Applications</a>
+            <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="skills">Skills & Interests</a>
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="contact">Contact</a>
         </div>
     </header>
@@ -346,10 +348,7 @@
                     <p class="text-lg text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
                         A collection of tools and applications I have developed or contributed to.
                     </p>
-                    <div class="max-w-2xl mx-auto">
-                        <ul id="applications-list" class="space-y-3">
-                            </ul>
-                    </div>
+                    <div id="applications-categorized-list" class="max-w-3xl mx-auto space-y-10"></div>
                 </div>
             </section>
         </div>
@@ -506,14 +505,16 @@
         ];
 
         const applicationItems = [
-            { name: "Dermatopathology Differentials", href: "dermpath ddxs.html"},
-            { name: "PDF Text Extractor", href: "textExtractor.html"},
-            { name: "PDF Splitter", href: "PDF Splitter.html"},
-            { name: "PDF Merger", href: "PDF Merger.html"},
-            { name: "Dermatology Scoring and Screening Calculators", href: "dermascore.html"},
-            { name: "AI Scribe with Real-Time Feedback and Iterative Note Refinement", href: "DermaScribe.html"},
-            { name: "Advanced AI Scribe", href: "client/index.html"}, // Assuming this is a different/advanced version
-            { name: "Automated Clinic Scheduler", href: "Scheduler.html"}
+            // Clinical Applications
+            { name: "Dermatopathology Differentials", href: "dermpath ddxs.html", category: "Clinical Applications"},
+            { name: "Dermatology Scoring and Screening Calculators", href: "dermascore.html", category: "Clinical Applications"},
+            { name: "AI Scribe with Real-Time Feedback and Iterative Note Refinement", href: "DermaScribe.html", category: "Clinical Applications"},
+            { name: "Advanced AI Scribe", href: "client/index.html", category: "Clinical Applications"},
+            { name: "Automated Clinic Scheduler", href: "Scheduler.html", category: "Clinical Applications"},
+            // File Management Tools
+            { name: "PDF Text Extractor", href: "textExtractor.html", category: "File Management Tools"},
+            { name: "PDF Splitter", href: "PDF Splitter.html", category: "File Management Tools"},
+            { name: "PDF Merger", href: "PDF Merger.html", category: "File Management Tools"}
         ];
 
 
@@ -536,22 +537,51 @@
             container.appendChild(ul);
         }
 
-        // --- Function to Populate Applications List ---
-        function populateApplications(items, containerId) {
+        // --- Function to Populate Applications List (Categorized) ---
+        function populateApplicationsCategorized(items, containerId) {
             const container = document.getElementById(containerId);
             if (!container) { console.error(`Container with ID '${containerId}' not found.`); return; }
             container.innerHTML = ''; // Clear previous content
-            // No 'list-disc' for this one, direct li styling will apply
-            items.forEach(item => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = item.href;
-                a.textContent = item.name;
-                // If these are external links or you want them to open in a new tab:
-                // a.target = "_blank";
-                // a.rel = "noopener noreferrer";
-                li.appendChild(a);
-                container.appendChild(li);
+
+            const groupedApplications = items.reduce((acc, app) => {
+                const category = app.category || "Other Tools";
+                if (!acc[category]) {
+                    acc[category] = [];
+                }
+                acc[category].push(app);
+                return acc;
+            }, {});
+
+            // Define order of categories
+            const categoryOrder = ["Clinical Applications", "File Management Tools", "Other Tools"];
+
+            categoryOrder.forEach(category => {
+                if (groupedApplications[category]) {
+                    const categorySection = document.createElement('div');
+                    categorySection.className = 'mb-8'; // Space between categories
+
+                    const title = document.createElement('h3');
+                    title.className = 'text-xl font-semibold subsection-title'; // Use subsection-title style
+                    title.textContent = category;
+                    categorySection.appendChild(title);
+
+                    const ul = document.createElement('ul');
+                    ul.className = 'space-y-3'; // Remove list-disc, apply custom styling via .application-item
+
+                    groupedApplications[category].forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'application-item'; // Apply specific styling for these items
+                        const a = document.createElement('a');
+                        a.href = item.href;
+                        a.textContent = item.name;
+                        // a.target = "_blank"; // Uncomment if you want links to open in a new tab
+                        // a.rel = "noopener noreferrer"; // For security with target="_blank"
+                        li.appendChild(a);
+                        ul.appendChild(li);
+                    });
+                    categorySection.appendChild(ul);
+                    container.appendChild(categorySection);
+                }
             });
         }
 
@@ -713,7 +743,7 @@
             populateList(writingItems, 'writing-list');
             populateList(mediaItems, 'media-list');
             populatePublicationsByTopic(publicationsData, 'publications-by-topic');
-            populateApplications(applicationItems, 'applications-list'); // Populate applications
+            populateApplicationsCategorized(applicationItems, 'applications-categorized-list'); // Updated function call
 
              if (!document.querySelector('.tab-active') && !document.querySelector('.mobile-tab-active') && !document.querySelector('.dropdown-active')) {
                  activateTab('home');
@@ -724,4 +754,3 @@
 
 </body>
 </html>
-
