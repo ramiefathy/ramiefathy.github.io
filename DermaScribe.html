@@ -173,11 +173,6 @@
         .modal-overlay.active .modal-content {
             transform: scale(1);
         }
-        .location-checkbox-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 0.5rem;
-        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -192,12 +187,8 @@
     <div class="bg-slate-200 p-3 shadow-sm sticky top-[72px] z-40"> 
         <div class="container mx-auto flex flex-wrap gap-x-6 gap-y-2 items-center text-sm text-slate-700">
             <div>
-                <label for="apiKey" class="font-medium">Gemini API Key:</label>
-                <input type="password" id="apiKey" placeholder="Enter your API Key" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white">
-            </div>
-            <div>
                 <label for="modelName" class="font-medium">Model:</label>
-                <input type="text" id="modelName" value="models/gemini-2.5-flash-preview-04-17" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like Gemini 2.5 Flash for image analysis. For text-only tasks, gemini-pro or similar can be used.">
+                <input type="text" id="modelName" value="models/gemini-2.5-flash-preview-05-20" class="ml-1 p-1 border border-slate-400 rounded-md w-64 bg-white" title="Use a vision-capable model like gmodels/gemini-2.5-flash-preview-05-20 for image analysis. For text-only tasks, gemini-2.5-flash can also be used.">
             </div>
         </div>
     </div>
@@ -209,7 +200,7 @@
             <div class="flex items-center space-x-2"><span class="material-symbols-outlined text-slate-600">schedule</span><span id="recordingDuration" class="font-mono">00:00:00</span></div>
             <div class="flex items-center space-x-2"><span class="material-symbols-outlined text-slate-600">mic</span><span id="recordingStatus" class="font-medium text-red-500">Not Recording</span></div>
             <button id="uploadImageBtn" class="flex items-center bg-teal-500 hover:bg-teal-600 text-white font-medium py-1.5 px-3 rounded-lg shadow text-xs">
-                <span class="material-symbols-outlined mr-1 text-base">upload_file</span>Upload Image
+                <span class="material-symbols-outlined mr-1 text-base">upload_file</span>Upload Clinical Image
             </button>
         </div>
     </div>
@@ -242,7 +233,7 @@
                         <span class="material-symbols-outlined mr-1 text-sm align-middle">science</span>AI Analysis & Workup
                     </button>
                     <button id="tabDiscussNoteBtn" class="tab-button" onclick="switchTab('left', 'discussNote')">
-                        <span class="material-symbols-outlined mr-1 text-sm align-middle"></span>Discuss Case & Refine Note
+                        <span class="material-symbols-outlined mr-1 text-sm align-middle">Youtube</span>Discuss Case & Refine Note
                     </button>
                 </nav>
             </div>
@@ -299,128 +290,26 @@
     <div id="imageUploadModal" class="modal-overlay">
         <div class="modal-content custom-scrollbar">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-slate-700">Upload & Analyze Image</h2>
+                <h2 class="text-xl font-semibold text-slate-700">Upload & Analyze Clinical Image</h2>
                 <button id="closeImageModalBtn" class="text-slate-500 hover:text-slate-700">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             <div class="space-y-4">
                 <div>
-                    <label for="imageUploadInputModal" class="block text-sm font-medium text-slate-700 mb-1">Select Image:</label>
-                    <input type="file" id="imageUploadInputModal" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <label for="imageUploadInput" class="block text-sm font-medium text-slate-700 mb-1">Select Image:</label>
+                    <input type="file" id="imageUploadInput" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Image Type (Optional):</label>
-                    <div class="space-y-1 sm:space-y-0 sm:flex sm:space-x-4">
-                        <div class="flex items-center">
-                            <input id="imageTypeClinical" name="imageType" type="radio" value="Clinical" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300">
-                            <label for="imageTypeClinical" class="ml-2 block text-sm text-slate-700">Clinical</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input id="imageTypeDermoscopic" name="imageType" type="radio" value="Dermoscopic" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300">
-                            <label for="imageTypeDermoscopic" class="ml-2 block text-sm text-slate-700">Dermoscopic</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input id="imageTypeHistologic" name="imageType" type="radio" value="Histologic" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300">
-                            <label for="imageTypeHistologic" class="ml-2 block text-sm text-slate-700">Histologic</label>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="border border-slate-300 rounded-md">
-                    <button type="button" id="toggleLocationDetailsBtn" class="w-full flex justify-between items-center p-2 bg-slate-100 hover:bg-slate-200 focus:outline-none rounded-t-md">
-                        <span class="text-sm font-medium text-slate-700">Location Details Entry (Optional)</span>
-                        <span id="locationToggleIcon" class="material-symbols-outlined">expand_more</span>
-                    </button>
-                    <div id="locationDetailsContent" class="hidden p-3 space-y-3 border-t border-slate-300 rounded-b-md">
-                        <div class="mb-2">
-                            <p class="text-xs font-medium text-slate-600 mb-1">Aspect (Medial/Lateral):</p>
-                            <div class="flex flex-wrap gap-x-4 gap-y-1">
-                                <div class="flex items-center"><input id="locMedial" name="medialLateral" type="radio" value="Medial" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locMedial" class="ml-2 text-sm text-slate-700">Medial</label></div>
-                                <div class="flex items-center"><input id="locLateral" name="medialLateral" type="radio" value="Lateral" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locLateral" class="ml-2 text-sm text-slate-700">Lateral</label></div>
-                                <div class="flex items-center"><input id="locMedialLateralNone" name="medialLateral" type="radio" value="" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" checked><label for="locMedialLateralNone" class="ml-2 text-sm text-slate-700">N/A</label></div>
-                            </div>
-                        </div>
-                        <div class="mb-2">
-                            <p class="text-xs font-medium text-slate-600 mb-1">Aspect (Surface):</p>
-                            <div class="flex flex-wrap gap-x-4 gap-y-1">
-                                <div class="flex items-center"><input id="locAnterior" name="surfaceAspect" type="radio" value="Anterior" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locAnterior" class="ml-2 text-sm text-slate-700">Anterior</label></div>
-                                <div class="flex items-center"><input id="locPosterior" name="surfaceAspect" type="radio" value="Posterior" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locPosterior" class="ml-2 text-sm text-slate-700">Posterior</label></div>
-                                <div class="flex items-center"><input id="locDorsal" name="surfaceAspect" type="radio" value="Dorsal" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locDorsal" class="ml-2 text-sm text-slate-700">Dorsal</label></div>
-                                <div class="flex items-center"><input id="locVentral" name="surfaceAspect" type="radio" value="Ventral/Palmar/Plantar" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locVentral" class="ml-2 text-sm text-slate-700">Ventral/Palmar/Plantar</label></div>
-                                <div class="flex items-center"><input id="locSurfaceAspectNone" name="surfaceAspect" type="radio" value="" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" checked><label for="locSurfaceAspectNone" class="ml-2 text-sm text-slate-700">N/A</label></div>
-                            </div>
-                        </div>
-                        <div class="mb-2">
-                            <p class="text-xs font-medium text-slate-600 mb-1">Laterality:</p>
-                            <div class="flex flex-wrap gap-x-4 gap-y-1">
-                                <div class="flex items-center"><input id="locLeft" name="laterality" type="radio" value="Left" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locLeft" class="ml-2 text-sm text-slate-700">Left</label></div>
-                                <div class="flex items-center"><input id="locRight" name="laterality" type="radio" value="Right" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locRight" class="ml-2 text-sm text-slate-700">Right</label></div>
-                                <div class="flex items-center"><input id="locBilateral" name="laterality" type="radio" value="Bilateral" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locBilateral" class="ml-2 text-sm text-slate-700">Bilateral</label></div>
-                                <div class="flex items-center"><input id="locMidline" name="laterality" type="radio" value="Midline" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locMidline" class="ml-2 text-sm text-slate-700">Midline</label></div>
-                                <div class="flex items-center"><input id="locLateralityNone" name="laterality" type="radio" value="" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" checked><label for="locLateralityNone" class="ml-2 text-sm text-slate-700">N/A</label></div>
-                            </div>
-                        </div>
-                        <div class="mb-2">
-                            <p class="text-xs font-medium text-slate-600 mb-1">Aspect (Proximal/Distal - for extremities):</p>
-                            <div class="flex flex-wrap gap-x-4 gap-y-1">
-                                <div class="flex items-center"><input id="locProximal" name="proximalDistal" type="radio" value="Proximal" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locProximal" class="ml-2 text-sm text-slate-700">Proximal</label></div>
-                                <div class="flex items-center"><input id="locDistal" name="proximalDistal" type="radio" value="Distal" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300"><label for="locDistal" class="ml-2 text-sm text-slate-700">Distal</label></div>
-                                <div class="flex items-center"><input id="locProximalDistalNone" name="proximalDistal" type="radio" value="" class="loc-radio focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" checked><label for="locProximalDistalNone" class="ml-2 text-sm text-slate-700">N/A</label></div>
-                            </div>
-                        </div>
-                        <div class="mb-2">
-                            <p class="text-xs font-medium text-slate-600 mb-1">Anatomic Body Part(s):</p>
-                            <div class="location-checkbox-group">
-                                <div class="flex items-center"><input id="bpScalp" name="anatomicPart" type="checkbox" value="Scalp" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpScalp" class="ml-2 text-sm text-slate-700">Scalp</label></div>
-                                <div class="flex items-center"><input id="bpForehead" name="anatomicPart" type="checkbox" value="Forehead" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpForehead" class="ml-2 text-sm text-slate-700">Forehead</label></div>
-                                <div class="flex items-center"><input id="bpFace" name="anatomicPart" type="checkbox" value="Face (General)" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpFace" class="ml-2 text-sm text-slate-700">Face (General)</label></div>
-                                <div class="flex items-center"><input id="bpCheek" name="anatomicPart" type="checkbox" value="Cheek" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpCheek" class="ml-2 text-sm text-slate-700">Cheek</label></div>
-                                <div class="flex items-center"><input id="bpNose" name="anatomicPart" type="checkbox" value="Nose" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpNose" class="ml-2 text-sm text-slate-700">Nose</label></div>
-                                <div class="flex items-center"><input id="bpLip" name="anatomicPart" type="checkbox" value="Lip" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpLip" class="ml-2 text-sm text-slate-700">Lip</label></div>
-                                <div class="flex items-center"><input id="bpChin" name="anatomicPart" type="checkbox" value="Chin" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpChin" class="ml-2 text-sm text-slate-700">Chin</label></div>
-                                <div class="flex items-center"><input id="bpEar" name="anatomicPart" type="checkbox" value="Ear" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpEar" class="ml-2 text-sm text-slate-700">Ear</label></div>
-                                <div class="flex items-center"><input id="bpNeck" name="anatomicPart" type="checkbox" value="Neck" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpNeck" class="ml-2 text-sm text-slate-700">Neck</label></div>
-                                <div class="flex items-center"><input id="bpChest" name="anatomicPart" type="checkbox" value="Chest" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpChest" class="ml-2 text-sm text-slate-700">Chest</label></div>
-                                <div class="flex items-center"><input id="bpAbdomen" name="anatomicPart" type="checkbox" value="Abdomen" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpAbdomen" class="ml-2 text-sm text-slate-700">Abdomen</label></div>
-                                <div class="flex items-center"><input id="bpBack" name="anatomicPart" type="checkbox" value="Back" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpBack" class="ml-2 text-sm text-slate-700">Back</label></div>
-                                <div class="flex items-center"><input id="bpShoulder" name="anatomicPart" type="checkbox" value="Shoulder" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpShoulder" class="ml-2 text-sm text-slate-700">Shoulder</label></div>
-                                <div class="flex items-center"><input id="bpArm" name="anatomicPart" type="checkbox" value="Arm (Upper)" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpArm" class="ml-2 text-sm text-slate-700">Arm (Upper)</label></div>
-                                <div class="flex items-center"><input id="bpElbow" name="anatomicPart" type="checkbox" value="Elbow" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpElbow" class="ml-2 text-sm text-slate-700">Elbow</label></div>
-                                <div class="flex items-center"><input id="bpForearm" name="anatomicPart" type="checkbox" value="Forearm" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpForearm" class="ml-2 text-sm text-slate-700">Forearm</label></div>
-                                <div class="flex items-center"><input id="bpWrist" name="anatomicPart" type="checkbox" value="Wrist" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpWrist" class="ml-2 text-sm text-slate-700">Wrist</label></div>
-                                <div class="flex items-center"><input id="bpHand" name="anatomicPart" type="checkbox" value="Hand" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpHand" class="ml-2 text-sm text-slate-700">Hand</label></div>
-                                <div class="flex items-center"><input id="bpFingers" name="anatomicPart" type="checkbox" value="Fingers" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpFingers" class="ml-2 text-sm text-slate-700">Fingers</label></div>
-                                <div class="flex items-center"><input id="bpGroin" name="anatomicPart" type="checkbox" value="Groin/Genital" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpGroin" class="ml-2 text-sm text-slate-700">Groin/Genital</label></div>
-                                <div class="flex items-center"><input id="bpButtock" name="anatomicPart" type="checkbox" value="Buttock" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpButtock" class="ml-2 text-sm text-slate-700">Buttock</label></div>
-                                <div class="flex items-center"><input id="bpHip" name="anatomicPart" type="checkbox" value="Hip" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpHip" class="ml-2 text-sm text-slate-700">Hip</label></div>
-                                <div class="flex items-center"><input id="bpThigh" name="anatomicPart" type="checkbox" value="Thigh" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpThigh" class="ml-2 text-sm text-slate-700">Thigh</label></div>
-                                <div class="flex items-center"><input id="bpKnee" name="anatomicPart" type="checkbox" value="Knee" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpKnee" class="ml-2 text-sm text-slate-700">Knee</label></div>
-                                <div class="flex items-center"><input id="bpLeg" name="anatomicPart" type="checkbox" value="Leg (Lower)" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpLeg" class="ml-2 text-sm text-slate-700">Leg (Lower)</label></div>
-                                <div class="flex items-center"><input id="bpAnkle" name="anatomicPart" type="checkbox" value="Ankle" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpAnkle" class="ml-2 text-sm text-slate-700">Ankle</label></div>
-                                <div class="flex items-center"><input id="bpFoot" name="anatomicPart" type="checkbox" value="Foot" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpFoot" class="ml-2 text-sm text-slate-700">Foot</label></div>
-                                <div class="flex items-center"><input id="bpToes" name="anatomicPart" type="checkbox" value="Toes" class="loc-check focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300 rounded"><label for="bpToes" class="ml-2 text-sm text-slate-700">Toes</label></div>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="imageLocationFreeText" class="block text-sm font-medium text-slate-700 mb-1">Or, describe location directly / add details:</label>
-                            <input type="text" id="imageLocationFreeText" name="imageLocationFreeText" placeholder="e.g., Junction of left upper and lower back" class="block w-full text-sm text-slate-700 border border-slate-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                    </div>
-                </div>
-
-
-                <div id="imagePreviewContainer" class="w-full h-64 border border-slate-300 rounded-lg flex items-center justify-center bg-slate-50 overflow-hidden hidden mt-4">
+                <div id="imagePreviewContainer" class="w-full h-64 border border-slate-300 rounded-lg flex items-center justify-center bg-slate-50 overflow-hidden hidden">
                     <img id="imagePreview" src="#" alt="Image Preview" class="max-w-full max-h-full object-contain">
                 </div>
-                <button id="analyzeImageBtn" class="w-full flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-150 ease-in-out mt-4" disabled>
+                <button id="analyzeImageBtn" class="w-full flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-150 ease-in-out" disabled>
                     <span class="material-symbols-outlined mr-2">image_search</span>Analyze Image
                 </button>
-                <div id="imageAnalysisResult" class="p-3 border border-slate-200 rounded-lg bg-slate-50 min-h-[100px] text-sm mt-4">
+                <div id="imageAnalysisResult" class="p-3 border border-slate-200 rounded-lg bg-slate-50 min-h-[100px] text-sm">
                     <p class="text-slate-400 italic">AI description of image findings will appear here...</p>
                 </div>
-                <div id="imageApprovalControls" class="flex justify-end space-x-3 hidden mt-4">
+                <div id="imageApprovalControls" class="flex justify-end space-x-3 hidden">
                     <button id="cancelImageAnalysisBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 px-4 rounded-lg shadow transition">Cancel</button>
                     <button id="approveImageDescriptionBtn" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg shadow transition">Approve & Integrate</button>
                 </div>
@@ -435,9 +324,80 @@
 
     <script type="module">
         import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "https://esm.run/@google/generative-ai";
+// ── PROXY HELPER FOR HIDDEN GEMINI KEY ────────────────────────────────────────
+const WORKER_URL = "https://shiny-tooth-b3de.ramiefathy.workers.dev";
+
+async function callViaWorker(endpoint, payload) {
+  const res = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ endpoint, payload })
+  });
+  if (!res.ok) {
+    throw new Error(`Worker proxy error: ${res.status} ${res.statusText}`);
+  }
+  return await res.json();
+}
+
+async function callGeminiAPI(prompt, imageBase64 = null, imageMimeType = null) {
+  // match your existing model-selection logic
+  const modelName = modelNameInput.value || "models/gemini-2.5-flash-preview-05-20";
+
+  // build contents array
+  const parts = [{ text: prompt }];
+  if (imageBase64 && imageMimeType && modelName.includes("vision")) {
+    parts.push({ inlineData: { mimeType: imageMimeType, data: imageBase64 } });
+  } else if (imageBase64 && !modelName.includes("vision")) {
+    console.warn("Image provided, but a non-vision model is selected. Image will not be sent.");
+    // Optionally, you could append a note to the prompt that an image was intended but not processed.
+    // parts[0].text += "\n\n[AI Scribe Note: An image was uploaded by the user but could not be processed with the current text-only model.]";
+  }
+
+
+  // mirror your prior generationConfig & safetySettings
+  const payload = {
+    model: modelName,
+    contents: [{ role: "user", parts }],
+    generationConfig: {
+      temperature: 0.2,
+      topK:         1,
+      topP:         1,
+      maxOutputTokens: 4096
+    },
+    safetySettings: [
+      { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+      { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+      { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+      { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    ]
+  };
+
+  // send through your Worker
+  const json = await callViaWorker("generateContent", payload);
+  // The worker is expected to return a structure like: { response: { text: () => "..." } } or similar
+  // Based on the original code's direct API call `result.response.text()`
+  // and the worker proxy's `return await res.json();` which then has `json.response.text()`
+  // We assume the worker's JSON response correctly mimics the Gemini SDK structure for the text part.
+  // If the worker returns { "text": "response_text" }, then it should be `json.text`.
+  // If the worker returns { "response": { "candidates": [{ "content": { "parts": [{ "text": "response_text" }]}}]}},
+  // then it needs more complex parsing.
+  // The original proxy code was `return json.response.text();` which implies the worker returns
+  // an object that has a `response` key, and that object has a `text` method or property.
+  // Given the worker returns `await res.json()`, `json.response` likely contains the Gemini `GenerateContentResponse`
+  // So, we need to access the text from the first candidate's content.
+    if (json && json.response && typeof json.response.text === 'function') {
+        return json.response.text(); // If worker returns { response: { text: () => "..." } }
+    } else if (json && json.response && json.response.candidates && json.response.candidates[0] && json.response.candidates[0].content && json.response.candidates[0].content.parts && json.response.candidates[0].content.parts[0]) {
+        return json.response.candidates[0].content.parts[0].text;
+    } else if (json && json.text) { // Simpler proxy response
+        return json.text;
+    }
+    throw new Error("Unexpected response structure from worker proxy for generateContent");
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 
         // DOM Elements
-        const apiKeyInput = document.getElementById('apiKey');
         const modelNameInput = document.getElementById('modelName');
         const startButton = document.getElementById('startButton');
         const pauseButton = document.getElementById('pauseButton');
@@ -464,7 +424,7 @@
         const uploadImageBtn = document.getElementById('uploadImageBtn');
         const imageUploadModal = document.getElementById('imageUploadModal');
         const closeImageModalBtn = document.getElementById('closeImageModalBtn');
-        const imageUploadInputModal = document.getElementById('imageUploadInputModal');
+        const imageUploadInput = document.getElementById('imageUploadInput');
         const imagePreviewContainer = document.getElementById('imagePreviewContainer');
         const imagePreview = document.getElementById('imagePreview');
         const analyzeImageBtn = document.getElementById('analyzeImageBtn');
@@ -472,16 +432,6 @@
         const imageApprovalControls = document.getElementById('imageApprovalControls');
         const cancelImageAnalysisBtn = document.getElementById('cancelImageAnalysisBtn');
         const approveImageDescriptionBtn = document.getElementById('approveImageDescriptionBtn');
-        
-        const imageTypeClinicalRadio = document.getElementById('imageTypeClinical');
-        const imageTypeDermoscopicRadio = document.getElementById('imageTypeDermoscopic');
-        const imageTypeHistologicRadio = document.getElementById('imageTypeHistologic');
-
-        // New Location Detail Elements
-        const toggleLocationDetailsBtn = document.getElementById('toggleLocationDetailsBtn');
-        const locationDetailsContent = document.getElementById('locationDetailsContent');
-        const locationToggleIcon = document.getElementById('locationToggleIcon');
-        const imageLocationFreeText = document.getElementById('imageLocationFreeText');
 
 
         // State variables
@@ -494,13 +444,11 @@
         let currentImageBase64 = null;
         let currentImageMimeType = null;
         let currentImageDescription = ""; 
-        let currentSelectedImageType = "";
-        let currentImageLocations = ""; 
         let discussionHistory = []; 
         let aiSuggestionInterval;
         let lastTranscriptLengthForSuggestion = 0;
-        const SUGGESTION_WORD_THRESHOLD = 25; 
-        const SUGGESTION_NEW_WORDS_INTERVAL = 40; 
+        const SUGGESTION_WORD_THRESHOLD = 25; // Words before first suggestion attempt
+        const SUGGESTION_NEW_WORDS_INTERVAL = 40; // New words before next suggestion attempt
         let isFetchingSuggestion = false;
 
 
@@ -665,7 +613,7 @@
         }
         
         async function fetchAndDisplayAiSuggestions() {
-            if (!isRecording || isPaused || isFetchingSuggestion || !apiKeyInput.value) return;
+            if (!isRecording || isPaused || isFetchingSuggestion ) return; // Removed apiKeyInput check as it's not directly used here with proxy
 
             const currentTranscriptWordCount = fullTranscript.split(' ').filter(Boolean).length;
             if (currentTranscriptWordCount < SUGGESTION_WORD_THRESHOLD || 
@@ -690,7 +638,7 @@
                 const recentTranscriptSegment = transcriptWords.slice(-200).join(' '); 
 
                 const prompt = REALTIME_SUGGESTION_PROMPT_TEMPLATE(recentTranscriptSegment, Array.from(shownSuggestionTexts));
-                const suggestionsText = await callAPI(prompt);
+                const suggestionsText = await callGeminiAPI(prompt);
                 loadingSuggestion.remove(); 
 
                 if (suggestionsText && suggestionsText.trim().toLowerCase() !== "no specific suggestions at this moment.") {
@@ -710,7 +658,7 @@
                     if (!addedSuggestion && newSuggestions.length > 0) { 
                         console.log("All new suggestions were repeats of previous ones.");
                     }
-                } else if (suggestionsText.trim().toLowerCase() === "no specific suggestions at this moment.") {
+                } else if (suggestionsText && suggestionsText.trim().toLowerCase() === "no specific suggestions at this moment.") {
                     console.log("AI: No specific suggestions at this moment.");
                      const noSuggestionMsg = document.createElement('p');
                      noSuggestionMsg.className = 'note-item italic text-slate-400 text-xs';
@@ -724,8 +672,10 @@
 
             } catch (error) {
                 console.error("Error fetching AI suggestions:", error);
-                loadingSuggestion.textContent = 'Error fetching suggestions.';
-                setTimeout(() => {if(loadingSuggestion.parentNode) loadingSuggestion.remove();}, 3000);
+                if(loadingSuggestion && loadingSuggestion.parentNode) {
+                    loadingSuggestion.textContent = 'Error fetching suggestions.';
+                    setTimeout(() => {if(loadingSuggestion.parentNode) loadingSuggestion.remove();}, 3000);
+                }
             } finally {
                 isFetchingSuggestion = false;
             }
@@ -745,7 +695,7 @@
                     discussMicButton.classList.add('text-red-500', 'animate-pulse');
                     physicianFeedbackInput.disabled = true;
                     sendFeedbackButton.disabled = true;
-                } else { 
+                } else { // Main recording
                     isRecording = true;
                     isPaused = false;
                     startTimer();
@@ -811,7 +761,7 @@
                 console.error(`Speech recognition error (${isDiscussionMic ? 'discussion' : 'main'}):`, event.error);
                 displayError(`Speech error: ${event.error}.`, isDiscussionMic ? 'discussionChatOutput' : 'transcriptionOutput');
                 if (event.error === 'not-allowed' || event.error === 'audio-capture') {
-                    if(isRecording && !isDiscussionMic) stopButton.click();
+                    if(isRecording && !isDiscussionMic && !isPaused) stopButton.click(); // Stop main recording if active and not paused
                     if(isDiscussing && isDiscussionMic) { 
                         isDiscussing = false;
                         discussMicButton.classList.remove('text-red-500', 'animate-pulse');
@@ -834,11 +784,21 @@
                     sendFeedbackButton.disabled = false;
                     updateUIForRecordingState();
                     if (tempTranscript.trim()) {
-                        addChatMessage(tempTranscript, 'physician', 'discussionChatOutput');
+                        // addChatMessage(tempTranscript, 'physician', 'discussionChatOutput'); // Chat message added before calling handleDiscussionInput
                         handleDiscussionInput(tempTranscript);
                     }
                 } else { 
                     clearInterval(aiSuggestionInterval); 
+                    // If recording was stopped by user, stopButton handler will call generateInitialNoteAndAnalysis
+                    // If it ended unexpectedly (e.g. silence timeout, but continuous should prevent this unless error),
+                    // we might want to finalize. However, usually the user explicitly stops.
+                    // For now, let explicit stop handle finalization.
+                    if (isRecording && !isPaused) { // If it ended while it was supposed to be actively recording and not paused
+                        console.log("Main recognition ended unexpectedly. Consider auto-stopping or notifying user.");
+                        // To prevent unexpected states, let's reflect that it's no longer actively recording in UI
+                        // isRecording = false; // This might conflict with pause/resume logic if it's a temporary stop
+                        // updateUIForRecordingState();
+                    }
                 }
             };
         }
@@ -857,8 +817,8 @@ I. Opening Statement:
 II. For Each Dermatological Complaint (Address separately if multiple distinct issues):
 Organize the details for each complaint using a structure similar to "OLD CARTS" (Onset, Location, Duration, Characteristics, Aggravating factors, Relieving factors, Treatments, Severity/Symptoms), plus dermatology-specific elements:
 * A. Onset & Duration: When did it start? How long has it persisted? Constant, intermittent, recurrent?
-* B. Location: Precisely where on the body? (This can be informed by "IMAGE DETAILS" if provided in the transcript)
-* C. Characteristics & Morphology: Type (cyst, spot, rash), Appearance (color, size, shape, texture), Symptoms (itching, pain, tenderness, bleeding, discharge). (This can be informed by "CLINICAL IMAGE FINDINGS" if provided)
+* B. Location: Precisely where on the body?
+* C. Characteristics & Morphology: Type (cyst, spot, rash), Appearance (color, size, shape, texture), Symptoms (itching, pain, tenderness, bleeding, discharge).
 * D. Evolution/Progression: How has it changed since onset?
 * E. Aggravating/Alleviating Factors: What makes it worse or better?
 * F. Treatments Tried: What has the patient used? What was the outcome?
@@ -886,7 +846,7 @@ HISTORY OF PRESENT ILLNESS (Write this section in paragraph form, following thes
 PAST MEDICAL HISTORY (If not mentioned, state "None reported by patient." or similar)
 MEDICATIONS (If none, state "Patient reports no current medications." or similar)
 ALLERGIES (If none, state "No known drug allergies." or similar)
-OBJECTIVE FINDINGS (List specific dermatologic findings using proper terminology, in bullet points. Example: "- Erythematous papules on bilateral elbows." If image details like type/location are in "IMAGE DETAILS" and visual findings are in "CLINICAL IMAGE FINDINGS" in the transcript, incorporate them here or in HPI as appropriate.)
+OBJECTIVE FINDINGS (List specific dermatologic findings using proper terminology, in bullet points. Example: "- Erythematous papules on bilateral elbows." If image findings are included in the transcript under a "CLINICAL IMAGE FINDINGS" header, incorporate them here.)
 ASSESSMENT (Your primary assessment or diagnosis based on the encounter.)
 PLAN (Your treatment plan, patient education, and follow-up instructions.)
 
@@ -907,7 +867,7 @@ ADDITIONAL WORKUP (FOR "DON'T MISS" DIAGNOSES, IF APPLICABLE AND PERTINENT)
 
 Make text bold by wrapping it in double asterisks, like **this**. Use bullet points like "- Point" or numbered lists like "1. Point" where appropriate within sections.
 
-Transcript (may include image context under "IMAGE DETAILS", image findings under "CLINICAL IMAGE FINDINGS", or physician clarifications under "PHYSICIAN ADDITIONAL INFO" or "PHYSICIAN QUERY FOR ANALYSIS REFINEMENT"):
+Transcript (may include image findings at the end under a "CLINICAL IMAGE FINDINGS" header, or physician clarifications under "PHYSICIAN ADDITIONAL INFO" or "PHYSICIAN QUERY FOR ANALYSIS REFINEMENT"):
 ---
 ${transcript}
 ---
@@ -916,14 +876,14 @@ ${transcript}
         const NOTE_REFINEMENT_PROMPT_TEMPLATE = (transcript, currentNote, feedback) => `
 You are an expert medical scribe AI for a dermatologist. You previously generated a clinical note. The physician has provided feedback or clarifications.
 Refine the **Current Drafted Note** based on the **Physician's Feedback/Clarification**.
-The original consultation transcript (which may include image details, findings and prior physician inputs) is provided for context.
+The original consultation transcript (which may include image findings and prior physician inputs) is provided for context.
 The refined note should maintain the first-person physician perspective and the established section structure (do NOT include "SECTION: " before the headers):
 CHIEF COMPLAINT
 HISTORY OF PRESENT ILLNESS (paragraph form, following these HPI guidelines: ${HPI_GUIDELINES})
 PAST MEDICAL HISTORY
 MEDICATIONS
 ALLERGIES
-OBJECTIVE FINDINGS (bullet points, incorporate any image details/findings from the transcript)
+OBJECTIVE FINDINGS (bullet points, incorporate any image findings from the transcript)
 ASSESSMENT
 PLAN
 
@@ -949,7 +909,7 @@ Do NOT include the "AI_ANALYSIS_SEPARATOR_V2" or any differential diagnosis/work
 You are an expert dermatology AI assistant. You previously provided a "CASE SUMMARY", "DIFFERENTIAL DIAGNOSIS (ORDERED BY LIKELIHOOD)", "RATIONALE FOR DIFFERENTIALS", "POTENTIAL \"DON'T MISS\" DIAGNOSES (IF APPLICABLE)", "SUGGESTED WORKUP (FOR TOP DIFFERENTIALS)", and "ADDITIONAL WORKUP (FOR \"DON'T MISS\" DIAGNOSES, IF APPLICABLE AND PERTINENT)".
 The physician has provided additional context or information.
 Please refine your **Current AI Analysis** based on this new information.
-The original consultation transcript (which may include image details, findings and prior physician inputs) is provided for context.
+The original consultation transcript (which may include image findings and prior physician inputs) is provided for context.
 
 Maintain this exact structure for your refined output (do NOT include "SECTION: " before the headers):
 CASE SUMMARY (2-3 sentences)
@@ -975,21 +935,13 @@ Please provide the **fully updated and refined AI Analysis only**.
 Strictly use the specified headers. Use bullet points or numbered lists where appropriate. Make text bold with **double asterisks**.
 `;
 
-        const DYNAMIC_IMAGE_ANALYSIS_PROMPT_TEMPLATE = (imageType, locations) => {
-            let context = "Analyze the following clinical image.";
-            if (imageType) {
-                context += ` The image is a ${imageType} view.`;
-            }
-            if (locations) {
-                context += ` It depicts or is from the following location(s): ${locations}.`;
-            }
-            return `You are a dermatology AI assistant. ${context}
+        const IMAGE_ANALYSIS_PROMPT_TEMPLATE = `
+You are a dermatology AI assistant. Analyze the following clinical image.
 Provide a concise dermatological description of the key visual findings.
 Focus on morphology, color, distribution (if discernible from a single image), and any other relevant visual characteristics.
 Example: "Image shows multiple erythematous, annular plaques with central clearing and a raised, scaling border on the forearm. Some lesions exhibit a targetoid appearance."
-Do not provide a diagnosis or treatment plan. Just describe the findings.`;
-        };
-
+Do not provide a diagnosis or treatment plan. Just describe the findings.
+`;
         const CONVERSATIONAL_CASE_DISCUSSION_PROMPT_TEMPLATE = (transcript, draftNote, aiAnalysis, physicianQuery) => `
 You are a helpful AI assistant for a dermatologist. The dermatologist is currently reviewing a case.
 Provided below is the full consultation transcript, the AI-generated draft clinical note, and the AI-generated case analysis (DDx, workup).
@@ -1035,47 +987,8 @@ ${transcriptSegment}
 Suggestions (1-2 lines max, each suggestion on a new line, or "No specific suggestions at this moment."):
 `;
 
-
-        async function callAPI(prompt, imageBase64 = null, imageMimeType = null) {
-            const apiKey = apiKeyInput.value;
-            const modelNameFromInput = modelNameInput.value; 
-            if (!apiKey) {
-                throw new Error("API Key is missing.");
-            }
-
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const effectiveModelName = (imageBase64 && imageMimeType && (modelNameFromInput.includes("vision") || modelNameFromInput.includes("flash"))) ? modelNameFromInput : (modelNameFromInput || "models/gemini-2.5-flash-preview-04-17");
-            
-            const model = genAI.getGenerativeModel({ model: effectiveModelName }); 
-            
-            const generationConfig = { temperature: 0.2, topK: 1, topP: 1, maxOutputTokens: 8192 };
-            const safetySettings = [
-                { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-                { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-                { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-                { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-            ];
-
-            const parts = [{ text: prompt }];
-            if (imageBase64 && imageMimeType) {
-                 if (!effectiveModelName.includes("vision") && !effectiveModelName.includes("flash")) { 
-                    console.warn("Attempting image analysis with a non-vision model. This might not work as expected.");
-                } else {
-                    parts.push({
-                        inlineData: {
-                            mimeType: imageMimeType,
-                            data: imageBase64
-                        }
-                    });
-                }
-            }
-            
-            const result = await model.generateContent({
-                contents: [{ role: "user", parts: parts }],
-                generationConfig, safetySettings
-            });
-            return result.response.text();
-        }
+        // The block of code that was here from lines 971-991 in the original has been removed.
+        // The `callGeminiAPI` function (defined above using the proxy) is used instead.
 
 
         async function generateInitialNoteAndAnalysis(transcriptToProcess) {
@@ -1090,7 +1003,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 
             try {
                 const prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(transcriptToProcess);
-                const fullResponseText = await callAPI(prompt);
+                const fullResponseText = await callGeminiAPI(prompt);
 
                 const parts = fullResponseText.split("AI_ANALYSIS_SEPARATOR_V2");
                 const notesText = parts[0] || "";
@@ -1114,10 +1027,49 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             }
         }
         
+       async function refineClinicalNote(transcript, currentNote, feedback) {
+            aiNotesOutput.innerHTML = '<p class="text-slate-500 italic">AI is refining the clinical note, please wait...</p>';
+            saveButton.disabled = true;
+            try {
+                const prompt = NOTE_REFINEMENT_PROMPT_TEMPLATE(transcript, currentNote, feedback);
+                const refinedNoteText = await callGeminiAPI(prompt);
+                currentDraftNote = refinedNoteText.trim();
+                displayFormattedNotes(currentDraftNote, 'aiNotesOutput');
+                addChatMessage("Clinical note updated.", "ai", 'discussionChatOutput');
+            } catch (error) {
+                console.error("Error refining clinical note:", error);
+                addChatMessage(`Error refining note: ${error.message}`, "ai", 'discussionChatOutput');
+                displayFormattedNotes(currentNote, 'aiNotesOutput'); // Revert to old note on error
+            } finally {
+                saveButton.disabled = !fullTranscript || !currentDraftNote;
+            }
+        }
+
+        async function refineAiAnalysis(transcript, currentAnalysis, feedback) {
+            aiAnalysisContentOutput.innerHTML = '<p class="text-slate-500 italic">AI is refining the analysis & workup, please wait...</p>';
+            try {
+                const prompt = AI_ANALYSIS_REFINEMENT_PROMPT_TEMPLATE(transcript, currentAnalysis, feedback);
+                const refinedAnalysisText = await callGeminiAPI(prompt);
+                currentAiAnalysis = refinedAnalysisText.trim();
+                displayFormattedNotes(currentAiAnalysis, 'aiAnalysisContentOutput');
+                addChatMessage("AI analysis and workup updated.", "ai", 'discussionChatOutput');
+            } catch (error) {
+                console.error("Error refining AI analysis:", error);
+                addChatMessage(`Error refining AI analysis: ${error.message}`, "ai", 'discussionChatOutput');
+                displayFormattedNotes(currentAnalysis, 'aiAnalysisContentOutput'); // Revert on error
+            }
+        }
+
+
        async function handleDiscussionInput(physicianInputText) {
             if (!physicianInputText.trim()) return;
+            // Add physician's message immediately for better UX
+            addChatMessage(physicianInputText, 'physician', 'discussionChatOutput');
+            physicianFeedbackInput.value = ''; // Clear input after sending
 
-            addChatMessage("AI is thinking...", "ai", 'discussionChatOutput');
+            // Show "AI is thinking..." only once
+            const thinkingMsg = addChatMessage("AI is thinking...", "ai", 'discussionChatOutput');
+
 
             const conversationalPrompt = CONVERSATIONAL_CASE_DISCUSSION_PROMPT_TEMPLATE(
                 fullTranscript,
@@ -1127,47 +1079,47 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             );
             let aiConversationalResponse = "";
             try {
-                aiConversationalResponse = await callAPI(conversationalPrompt);
-                const thinkingMsg = Array.from(discussionChatOutput.children).find(el => el.textContent === "AI is thinking..." && el.classList.contains('chat-bubble-ai'));
-                if (thinkingMsg) {
-                    thinkingMsg.textContent = aiConversationalResponse;
-                } else { 
-                    addChatMessage(aiConversationalResponse, "ai", 'discussionChatOutput');
-                }
+                aiConversationalResponse = await callGeminiAPI(conversationalPrompt);
+                if (thinkingMsg) thinkingMsg.remove(); // Remove "AI is thinking..."
+                addChatMessage(aiConversationalResponse, "ai", 'discussionChatOutput');
             } catch (error) {
                 console.error("Error in conversational AI call:", error);
-                const thinkingMsg = Array.from(discussionChatOutput.children).find(el => el.textContent === "AI is thinking..." && el.classList.contains('chat-bubble-ai'));
-                const errorMsg = `Sorry, I encountered an error: ${error.message}`;
-                if(thinkingMsg) thinkingMsg.textContent = errorMsg;
-                else addChatMessage(errorMsg, "ai", 'discussionChatOutput');
+                if (thinkingMsg) thinkingMsg.remove();
+                addChatMessage(`Sorry, I encountered an error during conversation: ${error.message}`, "ai", 'discussionChatOutput');
                 return; 
             }
 
             const lowerInput = physicianInputText.toLowerCase();
             const lowerAIResponse = aiConversationalResponse.toLowerCase();
             
-            const newClinicalInfoKeywords = ["patient also reports", "new finding:", "update on symptoms:", "i forgot to mention:", "add to history:", "observed that:", "test result shows", "labs are back", "correction to symptoms", "additional detail is"];
+            // Check if the AI's response indicates it will update the note/analysis
+            const aiWillUpdateNoteAndAnalysis = lowerAIResponse.includes("will update the note and analysis") || lowerAIResponse.includes("i will update the note and analysis");
+            const aiWillUpdateNote = lowerAIResponse.includes("will update the clinical note") || lowerAIResponse.includes("i will update the clinical note");
+            const aiWillUpdateAnalysis = lowerAIResponse.includes("will update the ai analysis") || lowerAIResponse.includes("i will update the ai analysis");
+
+            // Keywords for physician triggering updates directly (in case AI doesn't catch it via conversation)
+            const newClinicalInfoKeywords = ["patient also reports", "new finding:", "update on symptoms:", "i forgot to mention:", "add to history:", "observed that:", "test result shows", "labs are back", "correction to symptoms", "additional detail is", "the image shows"];
             const noteRefinementKeywords = ["correct the note:", "change the assessment to", "update the plan to say", "modify hpi regarding", "revise objective findings for", "the diagnosis should be", "in the plan, add", "update the note to reflect"];
             const analysisRefinementKeywords = ["reconsider differential for", "what if the patient also had", "update workup based on this new info:", "could it also be x disease?", "refine the ddx", "update my analysis", "given this new info, what about the ddx"];
 
 
-            if (newClinicalInfoKeywords.some(keyword => lowerInput.includes(keyword)) || lowerAIResponse.includes("will update the note and analysis with this new information")) {
+            if (aiWillUpdateNoteAndAnalysis || newClinicalInfoKeywords.some(keyword => lowerInput.includes(keyword))) {
                 fullTranscript += `\n\n--- PHYSICIAN INPUT (DISCUSSION) ---\n${physicianInputText}\n--- END PHYSICIAN INPUT ---`;
-                addChatMessage("New clinical information detected. Updating note and AI analysis...", "ai", 'discussionChatOutput');
+                // addChatMessage("New clinical information detected by AI or keyword. Updating note and AI analysis...", "ai", 'discussionChatOutput'); // Already handled by AI response or below
                 await generateInitialNoteAndAnalysis(fullTranscript); 
-            } else if (noteRefinementKeywords.some(keyword => lowerInput.includes(keyword)) || lowerAIResponse.includes("will update the clinical note")) {
+            } else if (aiWillUpdateNote || noteRefinementKeywords.some(keyword => lowerInput.includes(keyword))) {
                  if (currentDraftNote) {
-                    addChatMessage("Attempting to refine the clinical note based on your input...", "ai", 'discussionChatOutput');
+                    // addChatMessage("Attempting to refine the clinical note based on AI understanding or keyword...", "ai", 'discussionChatOutput');
                     await refineClinicalNote(fullTranscript, currentDraftNote, physicianInputText);
-                } else {
+                } else if (!aiWillUpdateNote) { // Only show this if AI didn't already say it's updating
                     addChatMessage("No draft note available to refine. Please finalize recording first.", "ai", 'discussionChatOutput');
                 }
-            } else if (analysisRefinementKeywords.some(keyword => lowerInput.includes(keyword)) || lowerAIResponse.includes("will update the ai analysis")) {
+            } else if (aiWillUpdateAnalysis || analysisRefinementKeywords.some(keyword => lowerInput.includes(keyword))) {
                  if (currentAiAnalysis) {
-                    addChatMessage("Attempting to refine the AI analysis based on your input...", "ai", 'discussionChatOutput');
-                     fullTranscript += `\n\n--- PHYSICIAN QUERY FOR ANALYSIS REFINEMENT ---\n${physicianInputText}\n--- END PHYSICIAN QUERY ---`; 
-                    await refineAiAnalysis(fullTranscript, currentAiAnalysis, physicianInputText);
-                } else {
+                    // addChatMessage("Attempting to refine the AI analysis based on AI understanding or keyword...", "ai", 'discussionChatOutput');
+                     const tempTranscriptForAnalysis = fullTranscript + `\n\n--- PHYSICIAN QUERY FOR ANALYSIS REFINEMENT ---\n${physicianInputText}\n--- END PHYSICIAN QUERY ---`; 
+                    await refineAiAnalysis(tempTranscriptForAnalysis, currentAiAnalysis, physicianInputText);
+                } else if (!aiWillUpdateAnalysis) {
                      addChatMessage("No AI analysis available to refine. Please finalize recording first.", "ai", 'discussionChatOutput');
                 }
             }
@@ -1274,7 +1226,7 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
                      if (sectionTitleText === 'ALLERGIES' || sectionTitleText === 'MEDICATIONS' || sectionTitleText === 'PAST MEDICAL HISTORY') {
                          emptyText.textContent = 'None identified from transcript.';
                      } else if (sectionTitleText.includes("DON'T MISS") && sectionTitleText.includes("IF APPLICABLE")) {
-                         emptyText.textContent = 'No critical "don\'t miss" diagnoses immediately apparent based on current information.';
+                         emptyText.textContent = 'No specifically identified as "Don\'t Miss" based on current information.';
                      } else if (sectionTitleText.includes("ADDITIONAL WORKUP") && sectionTitleText.includes("IF APPLICABLE AND PERTINENT")) {
                          emptyText.textContent = 'N/A';
                      }
@@ -1292,61 +1244,42 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 
         function addChatMessage(text, sender, outputElementId = 'discussionChatOutput') { 
             const chatOutputDiv = document.getElementById(outputElementId);
-            if(!chatOutputDiv) return; 
+            if(!chatOutputDiv) return null; 
 
-            if (chatOutputDiv.innerHTML.includes("will appear here") || (chatOutputDiv.firstChild && chatOutputDiv.firstChild.nodeName === 'P' && chatOutputDiv.firstChild.classList.contains('text-slate-400'))) {
-                chatOutputDiv.innerHTML = '';
+            // Clear placeholder if it exists
+            const placeholder = chatOutputDiv.querySelector('p.text-slate-400.italic');
+            if (placeholder) {
+                placeholder.remove();
             }
+            
+            // Remove "AI is thinking..." if this new message isn't it
+            if (text !== "AI is thinking...") {
+                const thinkingBubbles = chatOutputDiv.querySelectorAll('.chat-bubble-ai');
+                thinkingBubbles.forEach(tb => {
+                    if (tb.textContent === "AI is thinking...") {
+                        tb.remove();
+                    }
+                });
+            }
+
+
             const bubble = document.createElement('div');
             bubble.className = `chat-bubble ${sender === 'physician' ? 'chat-bubble-physician' : 'chat-bubble-ai'}`;
-            bubble.textContent = text;
+            // Basic sanitization for text display
+            const textNode = document.createTextNode(text);
+            bubble.appendChild(textNode);
+
             chatOutputDiv.appendChild(bubble);
             chatOutputDiv.scrollTop = chatOutputDiv.scrollHeight;
+            return bubble; // Return the bubble element if needed (e.g., to remove "thinking" message)
         }
-        
-        function resetLocationDetailsForm() {
-            document.querySelectorAll('input[name="medialLateral"]').forEach(radio => radio.checked = (radio.id === 'locMedialLateralNone'));
-            document.querySelectorAll('input[name="surfaceAspect"]').forEach(radio => radio.checked = (radio.id === 'locSurfaceAspectNone'));
-            document.querySelectorAll('input[name="laterality"]').forEach(radio => radio.checked = (radio.id === 'locLateralityNone'));
-            document.querySelectorAll('input[name="proximalDistal"]').forEach(radio => radio.checked = (radio.id === 'locProximalDistalNone'));
-            document.querySelectorAll('input[name="anatomicPart"]').forEach(checkbox => checkbox.checked = false);
-            imageLocationFreeText.value = "";
-            if (!locationDetailsContent.classList.contains('hidden')) {
-                locationDetailsContent.classList.add('hidden');
-                locationToggleIcon.textContent = 'expand_more';
-            }
-        }
-
 
         // Image Modal Logic
         uploadImageBtn.addEventListener('click', () => imageUploadModal.classList.add('active'));
         closeImageModalBtn.addEventListener('click', () => imageUploadModal.classList.remove('active'));
-        
-        cancelImageAnalysisBtn.addEventListener('click', () => {
-            imageUploadModal.classList.remove('active');
-            imagePreviewContainer.classList.add('hidden');
-            imagePreview.src = "#";
-            imageUploadInputModal.value = "";
-            analyzeImageBtn.disabled = true;
-            currentImageBase64 = null;
-            currentImageMimeType = null;
-            currentSelectedImageType = "";
-            currentImageLocations = "";
-            imageTypeClinicalRadio.checked = false;
-            imageTypeDermoscopicRadio.checked = false;
-            imageTypeHistologicRadio.checked = false;
-            resetLocationDetailsForm();
-            imageAnalysisResult.innerHTML = '<p class="text-slate-400 italic">AI description of image findings will appear here...</p>';
-            imageApprovalControls.classList.add('hidden');
-        });
+        cancelImageAnalysisBtn.addEventListener('click', () => imageUploadModal.classList.remove('active'));
 
-        toggleLocationDetailsBtn.addEventListener('click', () => {
-            const isHidden = locationDetailsContent.classList.toggle('hidden');
-            locationToggleIcon.textContent = isHidden ? 'expand_more' : 'expand_less';
-        });
-
-
-        imageUploadInputModal.addEventListener('change', (event) => { 
+        imageUploadInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
                 currentImageMimeType = file.type;
@@ -1374,56 +1307,24 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
                 displayError("Please select an image first.", "imageAnalysisResult");
                 return;
             }
+             const selectedModel = modelNameInput.value || "models/gemini-2.5-flash-preview-05-20";
+            if (!selectedModel.includes("vision") && !selectedModel.includes("preview")) { // Assuming "preview" models might be vision capable. Be more specific if needed.
+                 displayError(`Selected model (${selectedModel}) may not support image analysis. Please choose a vision-capable model (e.g., models/gemini-2.5-flash-preview-05-20).`, "imageAnalysisResult");
+                 // return; // You might still want to allow attempt if not sure
+            }
+
             imageAnalysisResult.innerHTML = '<p class="text-slate-500 italic">AI is analyzing the image, please wait...</p>';
             analyzeImageBtn.disabled = true;
-
-            currentSelectedImageType = "";
-            if (imageTypeClinicalRadio.checked) currentSelectedImageType = imageTypeClinicalRadio.value;
-            else if (imageTypeDermoscopicRadio.checked) currentSelectedImageType = imageTypeDermoscopicRadio.value;
-            else if (imageTypeHistologicRadio.checked) currentSelectedImageType = imageTypeHistologicRadio.value;
-
-            let locationParts = [];
-            const medialLateralRadio = document.querySelector('input[name="medialLateral"]:checked');
-            if (medialLateralRadio && medialLateralRadio.value) locationParts.push(medialLateralRadio.value);
-
-            const surfaceAspectRadio = document.querySelector('input[name="surfaceAspect"]:checked');
-            if (surfaceAspectRadio && surfaceAspectRadio.value) locationParts.push(surfaceAspectRadio.value);
-            
-            const lateralityRadio = document.querySelector('input[name="laterality"]:checked');
-            if (lateralityRadio && lateralityRadio.value) locationParts.push(lateralityRadio.value);
-
-            const proximalDistalRadio = document.querySelector('input[name="proximalDistal"]:checked');
-            if (proximalDistalRadio && proximalDistalRadio.value) locationParts.push(proximalDistalRadio.value);
-
-            let selectedBodyParts = [];
-            document.querySelectorAll('input[name="anatomicPart"]:checked').forEach(checkbox => {
-                selectedBodyParts.push(checkbox.value);
-            });
-            if (selectedBodyParts.length > 0) {
-                locationParts.push(selectedBodyParts.join(', '));
-            }
-
-            const freeTextLoc = imageLocationFreeText.value.trim();
-            if (freeTextLoc) {
-                if (locationParts.length > 0) {
-                     locationParts.push(`(Details: ${freeTextLoc})`);
-                } else {
-                    locationParts.push(freeTextLoc);
-                }
-            }
-            currentImageLocations = locationParts.join('; ').trim();
-            if (currentImageLocations.startsWith('; ')) currentImageLocations = currentImageLocations.substring(2); // Clean leading separator if N/A options were "checked" (empty value)
-
             try {
-                const prompt = DYNAMIC_IMAGE_ANALYSIS_PROMPT_TEMPLATE(currentSelectedImageType, currentImageLocations);
-                const description = await callAPI(prompt, currentImageBase64, currentImageMimeType); 
+                const prompt = IMAGE_ANALYSIS_PROMPT_TEMPLATE;
+                const description = await callGeminiAPI(prompt, currentImageBase64, currentImageMimeType); 
                 currentImageDescription = description.trim();
                 imageAnalysisResult.textContent = currentImageDescription;
                 imageApprovalControls.classList.remove('hidden');
 
             } catch (error) {
                 console.error("Error analyzing image:", error);
-                displayError(`Error analyzing image: ${error.message}. Ensure a vision-capable model is selected (e.g., models/gemini-2.5-flash-preview-04-17").`, "imageAnalysisResult");
+                displayError(`Error analyzing image: ${error.message}. Ensure a vision-capable model is selected (e.g., models/gemini-2.5-flash-preview-05-20).`, "imageAnalysisResult");
             } finally {
                 analyzeImageBtn.disabled = false;
             }
@@ -1431,43 +1332,26 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
 
         approveImageDescriptionBtn.addEventListener('click', async () => {
             if (currentImageDescription) {
-                let imageMetadataForTranscript = "";
-                if (currentSelectedImageType) {
-                    imageMetadataForTranscript += `Image Type: ${currentSelectedImageType}. `;
-                }
-                // currentImageLocations is already assembled and cleaned in analyzeImageBtn
-                if (currentImageLocations) { 
-                    imageMetadataForTranscript += `Location(s): ${currentImageLocations}. `;
-                }
-
-
-                if (imageMetadataForTranscript.trim()) {
-                    fullTranscript += `\n\n--- IMAGE DETAILS ---\n${imageMetadataForTranscript.trim()}\n--- END IMAGE DETAILS ---`;
-                }
                 fullTranscript += `\n\n--- CLINICAL IMAGE FINDINGS ---\n${currentImageDescription}\n--- END CLINICAL IMAGE FINDINGS ---`;
-                
                 imageUploadModal.classList.remove('active');
-                
                 imagePreviewContainer.classList.add('hidden');
                 imagePreview.src = "#";
-                imageUploadInputModal.value = ""; 
+                imageUploadInput.value = ""; 
                 analyzeImageBtn.disabled = true;
                 imageAnalysisResult.innerHTML = '<p class="text-slate-400 italic">AI description of image findings will appear here...</p>';
                 imageApprovalControls.classList.add('hidden');
                 currentImageBase64 = null;
                 currentImageMimeType = null;
-                currentImageDescription = "";
-                currentSelectedImageType = "";
-                currentImageLocations = ""; // Reset combined string
-                imageTypeClinicalRadio.checked = false;
-                imageTypeDermoscopicRadio.checked = false;
-                imageTypeHistologicRadio.checked = false;
-                resetLocationDetailsForm();
+                // currentImageDescription = ""; // Keep it in case it needs to be re-added or for logs
 
-
-                if (fullTranscript.trim()) {
-                    addChatMessage("Image details and findings integrated. Regenerating note and analysis...", "ai", 'discussionChatOutput'); 
+                if (fullTranscript.trim()) { // Check if there's any transcript to add to
+                    addChatMessage("Image findings integrated. Regenerating note and analysis...", "ai", 'discussionChatOutput'); 
                     await generateInitialNoteAndAnalysis(fullTranscript);
+                } else {
+                    // If no transcript yet, the image findings are just added to fullTranscript
+                    // and will be used when recording starts and stops.
+                    // Or, decide if you want to generate a note with only image findings (currently no).
+                    addChatMessage("Image findings noted. They will be included when a transcript is generated.", "ai", 'discussionChatOutput');
                 }
             }
         });
@@ -1477,57 +1361,68 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
         startButton.addEventListener('click', () => {
             if (!SpeechRecognition) return;
             if (!isRecording) { 
-                fullTranscript = ""; 
+                fullTranscript = currentImageDescription ? `--- CLINICAL IMAGE FINDINGS ---\n${currentImageDescription}\n--- END CLINICAL IMAGE FINDINGS ---\n\n` : ""; 
                 currentDraftNote = "";
                 currentAiAnalysis = "";
                 transcriptWordCount = 0; 
                 shownSuggestionTexts.clear(); 
                 lastTranscriptLengthForSuggestion = 0;
                 transcriptionOutput.innerHTML = '<p class="text-slate-400 italic">Initializing microphone...</p>';
-                aiNotesOutput.innerHTML = '<p class="text-slate-400 italic">AI insights will generate here after stopping the recording...</p>';
-                aiAnalysisContentOutput.innerHTML = '<p class="text-slate-400 italic">AI Analysis will generate here after stopping the recording...</p>';
-                realtimeSuggestionsOutput.innerHTML = '<p class="text-slate-400 italic">Real-time AI suggestions will appear here during recording...</p>';
-                discussionChatOutput.innerHTML = '<p class="text-slate-400 italic">Discussion about the note will appear here...</p>';
+                // aiNotesOutput.innerHTML = '<p class="text-slate-400 italic">AI insights will generate here after stopping the recording...</p>';
+                // aiAnalysisContentOutput.innerHTML = '<p class="text-slate-400 italic">AI Analysis will generate here after stopping the recording...</p>';
+                // realtimeSuggestionsOutput.innerHTML = '<p class="text-slate-400 italic">Real-time AI suggestions will appear here during recording...</p>';
+                // discussionChatOutput.innerHTML = '<p class="text-slate-400 italic">Discussion about the note will appear here...</p>';
+                clearAllPlaceholders(); // Clear all placeholders more reliably
+                if (currentImageDescription) {
+                    transcriptionOutput.innerHTML = `<p class="text-slate-600 mb-2"><em>Image findings already integrated.</em></p>` + transcriptionOutput.innerHTML;
+                }
+
                 resetTimer();
                 try {
                     recognition.start();
+                    // isRecording = true; // Set in onstart
+                    // isPaused = false; // Set in onstart
+                    // updateUIForRecordingState(); // Called in onstart
                 } catch (e) {
                     displayError(`Could not start microphone: ${e.message}.`);
                     isRecording = false; 
+                    isPaused = false;
                     updateUIForRecordingState();
                 }
             }
         });
 
         pauseButton.addEventListener('click', () => {
-            if (!SpeechRecognition || !isRecording || isDiscussing) return;
-            isPaused = !isPaused;
-            if (isPaused) {
+            if (!SpeechRecognition || !isRecording || isDiscussing) return; // Should be !isRecording OR isPaused
+            if (isPaused) { // If paused, we want to resume
+                 isPaused = false;
+                try {
+                    recognition.start(); 
+                    // aiSuggestionInterval = setInterval(fetchAndDisplayAiSuggestions, 15000); // Restarted in onstart of recognition
+                    console.log("Recording resumed");
+                } catch (e) {
+                    displayError(`Could not resume microphone: ${e.message}.`);
+                    isPaused = true; // Revert state if start failed
+                }
+            } else { // If recording, we want to pause
+                isPaused = true;
                 recognition.stop(); 
                 stopTimer(); 
                 clearInterval(aiSuggestionInterval);
                 console.log("Recording paused");
-            } else { 
-                try {
-                    recognition.start(); 
-                    console.log("Recording resumed");
-                } catch (e) {
-                    displayError(`Could not resume microphone: ${e.message}.`);
-                    isPaused = true; 
-                }
             }
             updateUIForRecordingState();
         });
 
         stopButton.addEventListener('click', async () => {
-            if (!SpeechRecognition || !isRecording || isDiscussing) return;
+            if (!SpeechRecognition || !isRecording || isDiscussing) return; // Should be !isRecording
             
-            isRecording = false;
-            isPaused = false;
-            recognition.stop(); 
+            isRecording = false; // This should be set here
+            isPaused = false;    // And this
+            if (recognition) recognition.stop(); 
             stopTimer();
             clearInterval(aiSuggestionInterval);
-            updateUIForRecordingState();
+            updateUIForRecordingState(); // Update UI based on new state
             console.log("Recording stopped. Final Transcript:", fullTranscript);
             
             if (fullTranscript.trim()) {
@@ -1542,9 +1437,9 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
         sendFeedbackButton.addEventListener('click', () => { 
             const feedback = physicianFeedbackInput.value;
             if (feedback.trim()) {
-                addChatMessage(feedback, 'physician', 'discussionChatOutput');
+                // addChatMessage(feedback, 'physician', 'discussionChatOutput'); // Moved inside handleDiscussionInput
                 handleDiscussionInput(feedback); 
-                physicianFeedbackInput.value = '';
+                // physicianFeedbackInput.value = ''; // Moved inside handleDiscussionInput
             }
         });
 
@@ -1560,12 +1455,16 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             if (!discussionRecognition || isRecording) return; 
             if (isDiscussing) { 
                 discussionRecognition.stop();
+                // isDiscussing set to false in onend
             } else { 
-                 if (discussionChatOutput.innerHTML.includes("will appear here")) {
-                    discussionChatOutput.innerHTML = '';
-                }
+                 const placeholder = discussionChatOutput.querySelector('p.text-slate-400.italic');
+                 if (placeholder) {
+                     placeholder.remove();
+                 }
                 try {
                     discussionRecognition.start();
+                    // isDiscussing = true; // Set in onstart
+                    // updateUIForRecordingState(); // Called in onstart
                 } catch (e) {
                     displayError(`Could not start discussion mic: ${e.message}.`, 'discussionChatOutput');
                 }
@@ -1580,7 +1479,8 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
                     duration: formatTime(secondsElapsed),
                     transcript: fullTranscript,
                     aiClinicalNote: currentDraftNote, 
-                    aiAnalysis: currentAiAnalysis  
+                    aiAnalysis: currentAiAnalysis,
+                    modelUsed: modelNameInput.value
                 };
                 const blob = new Blob([JSON.stringify(sessionData, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -1591,7 +1491,15 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                alert("Session data prepared for download.");
+                // alert("Session data prepared for download."); 
+                // Add a more subtle notification if desired, e.g., a temporary message on screen
+                const saveMsg = document.createElement('p');
+                saveMsg.textContent = "Session data saved!";
+                saveMsg.className = "text-xs text-blue-500 ml-2";
+                saveButton.parentNode.insertBefore(saveMsg, saveButton.nextSibling);
+                setTimeout(() => saveMsg.remove(), 3000);
+
+
             } else {
                 alert("No complete data to save or recording is active.");
             }
@@ -1604,7 +1512,6 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
             updateUIForRecordingState();
             switchTab('left', 'liveTranscription');
             switchTab('right', 'realtimeSuggestions');
-            resetLocationDetailsForm(); // Ensure it's initially reset
             
             const adjustMinHeight = () => {
                 const headerHeight = document.querySelector('header')?.offsetHeight || 0;
@@ -1612,13 +1519,14 @@ Suggestions (1-2 lines max, each suggestion on a new line, or "No specific sugge
                 const patientBarHeight = document.querySelector('.bg-slate-100')?.offsetHeight || 0;
                 const controlsHeight = document.querySelector('.bg-white.py-3.px-4')?.offsetHeight || 0;
                 const footerHeight = document.querySelector('footer')?.offsetHeight || 0;
-                const mainPadding = 32; 
-                const tabNavHeight = document.querySelector('.border-b.border-slate-200 nav')?.offsetHeight || 40; 
+                const mainPadding = 32; // Corresponds to p-4 on main (1rem top/bottom = 16*2 = 32)
+                const tabNavHeight = document.querySelector('.border-b.border-slate-200 nav')?.offsetHeight || 40; // Approximate or measure precisely
+                const internalPaddingAndMargins = 40; // Estimate for internal paddings/margins within tab content
 
-                const availableHeight = window.innerHeight - headerHeight - apiBarHeight - patientBarHeight - controlsHeight - footerHeight - mainPadding - tabNavHeight - 40; 
+                const availableHeight = window.innerHeight - headerHeight - apiBarHeight - patientBarHeight - controlsHeight - footerHeight - mainPadding - tabNavHeight - internalPaddingAndMargins;
 
                 document.querySelectorAll('.lg\\:min-h-\\[calc\\(100vh-400px\\)\\]').forEach(el => {
-                    el.style.minHeight = `${Math.max(250, availableHeight)}px`; 
+                    el.style.minHeight = `${Math.max(200, availableHeight)}px`; // Min of 200px
                 });
             };
             adjustMinHeight();
