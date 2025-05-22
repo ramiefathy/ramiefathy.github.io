@@ -210,7 +210,8 @@
             <div class="text-2xl font-bold text-blue-700">Ramie Fathy, MD</div>
             <div class="hidden md:flex space-x-8 items-center h-full">
                 <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="home">Home</a>
-                <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="about">About</a>
+                <a href="#about" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="about">About</a>
+                <a href="#apps" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="applications">Apps</a>
                 <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="clinical">Clinical</a>
                 <div class="dropdown h-full flex items-center" data-dropdown-parent="research,ongoing-projects,publications">
                     <span class="text-gray-700 cursor-pointer h-full flex items-center transition duration-200 ease-in-out nav-tab py-3">
@@ -223,7 +224,6 @@
                     </div>
                 </div>
                 <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="leadership">Leadership & Writing</a>
-                <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="applications">Tools & Applications</a>
                 <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="skills">Skills & Interests</a>
                 <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="contact">Contact</a>
             </div>
@@ -235,7 +235,8 @@
         </nav>
         <div id="mobile-menu" class="md:hidden bg-white shadow-lg absolute top-full left-0 w-full border-t border-gray-200">
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="home">Home</a>
-            <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="about">About</a>
+            <a href="#about" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="about">About</a>
+            <a href="#apps" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="applications">Apps</a>
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="clinical">Clinical</a>
             <div>
                 <button class="mobile-dropdown-toggle w-full text-left flex justify-between items-center px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out" data-dropdown-parent="research,ongoing-projects,publications">
@@ -248,7 +249,6 @@
                 </div>
             </div>
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="leadership">Leadership & Writing</a>
-            <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="applications">Tools & Applications</a>
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="skills">Skills & Interests</a>
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="contact">Contact</a>
         </div>
@@ -491,6 +491,50 @@
             </section>
         </div>
 
+        <div class="tab-content" id="apps">
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="section-title text-3xl">Applications</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="application-item">
+                        <a href="apps/PDF Merger.html">PDF Merger</a>
+                        <p class="text-sm text-gray-600 mt-1">Merge multiple PDF files into one document</p>
+                    </div>
+                    <div class="application-item">
+                        <a href="apps/PDF Splitter.html">PDF Splitter</a>
+                        <p class="text-sm text-gray-600 mt-1">Split PDF files into separate documents</p>
+                    </div>
+                    <div class="application-item">
+                        <a href="apps/Scheduler.html">Scheduler</a>
+                        <p class="text-sm text-gray-600 mt-1">Schedule management tool</p>
+                    </div>
+                    <div class="application-item">
+                        <a href="apps/WoundCareWebpages.html">Wound Care</a>
+                        <p class="text-sm text-gray-600 mt-1">Wound care management resources</p>
+                    </div>
+                    <div class="application-item">
+                        <a href="apps/codingTutor.html">Coding Tutor</a>
+                        <p class="text-sm text-gray-600 mt-1">Interactive coding learning tool</p>
+                    </div>
+                    <div class="application-item">
+                        <a href="apps/dermascore.html">DermaScore</a>
+                        <p class="text-sm text-gray-600 mt-1">Dermatology scoring system</p>
+                    </div>
+                    <div class="application-item">
+                        <a href="apps/dermpath ddxs.html">Dermpath DDx</a>
+                        <p class="text-sm text-gray-600 mt-1">Dermatopathology differential diagnosis tool</p>
+                    </div>
+                    <div class="application-item">
+                        <a href="apps/raeTest.html">RAE Test</a>
+                        <p class="text-sm text-gray-600 mt-1">Research and education assessment tool</p>
+                    </div>
+                    <div class="application-item">
+                        <a href="apps/textExtractor.html">Text Extractor</a>
+                        <p class="text-sm text-gray-600 mt-1">Extract text from various document formats</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
     </main>
 
     <footer class="bg-gray-900 text-gray-400 py-10 mt-16">
@@ -552,7 +596,7 @@
         const affiliationItems = [ { item: "Council of Science and Research, American Academy of Dermatology (2025-2027)" }, { item: "Rheumatology-Dermatology Society" }, { item: "Medical Dermatology Society" }, { item: "American Academy of Dermatology" }, { item: "Society of Dermatology Hospitalists" } ];
         const awardsData = [
             { category: "Residency", description: "Maryland Dermatologic Society Resident Research Grant (to support a study investigating whether the Apple Vision Pro can be used for 3D remote dermatologic assessment)" },
-            { category: "Residency", description: "Kenvue and L’Oreal Resident Scholarship to attend the 2024 Science of Skincare Summit" },
+            { category: "Residency", description: "Kenvue and L'Oreal Resident Scholarship to attend the 2024 Science of Skincare Summit" },
             { category: "Residency", description: "Best Lecture Award: Dermatopharmacology: Systemic Immunomodulators, Johns Hopkins Department of Dermatology (2024)"},
             { category: "Residency", description: "Best Lecture Award: NF1/TSC Lecture, Johns Hopkins Department of Dermatology (2025)"},
             { category: "Medical School", description: "Best Abstract Award: American Healthcare Social Media Conference (2020)"},
@@ -585,7 +629,7 @@
             { topic: "COVID-19", title: "COVID-19 vaccines and the skin: the landscape of cutaneous vaccine reactions worldwide", authors: "Sun Q, Fathy R, McMahon DE, Freeman EE.", details: "Dermatologic clinics. 2021 Oct 1;39(4):653-73.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=COVID-19+vaccines+and+the+skin%3A+the+landscape+of+cutaneous+vaccine+reactions+worldwide&btnG=" },
             { topic: "COVID-19", title: "Subepidermal blistering eruptions, including bullous pemphigoid, following COVID-19 vaccination", authors: "Tomayko MM, Damsky W, Fathy R, McMahon DE, Turner N, Valentin MN, Rallis T, Aivaz O, Fox LP, Freeman EE.", details: "Journal of Allergy and Clinical Immunology. 2021 Sep 1;148(3):750-1.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Subepidermal+blistering+eruptions%2C+including+bullous+pemphigoid%2C+following+COVID-19+vaccination&btnG=" },
             { topic: "Climate Change / Environmental Dermatology", title: "Increased ambient outdoor temperatures are associated with increased disease flaring in hidradenitis suppurativa", authors: "Singh R, Fathy R, Kassamali B, Noe MH, Barbieri JS, LaChance A, Charrow AP.", details: "Archives of Dermatological Research. 2023 Dec 18;316(1):49.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Increased+ambient+outdoor+temperatures+are+associated+with+increased+disease+flaring+in+hidradenitis+suppurativa&btnG=" },
-            { topic: "Climate Change / Environmental Dermatology", title: "Climate Change and Cost-Effective Strategies to Reduce Dermatology’s Carbon Footprint", authors: "Fathy R, Chu B, Barbieri JS.", details: "Int J Womens Dermatol. 2021.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Climate+Change+and+Cost-Effective+Strategies+to+Reduce+Dermatology%E2%80%99s+Carbon+Footprint&btnG=" },
+            { topic: "Climate Change / Environmental Dermatology", title: "Climate Change and Cost-Effective Strategies to Reduce Dermatology's Carbon Footprint", authors: "Fathy R, Chu B, Barbieri JS.", details: "Int J Womens Dermatol. 2021.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Climate+Change+and+Cost-Effective+Strategies+to+Reduce+Dermatology%E2%80%99s+Carbon+Footprint&btnG=" },
             { topic: "Climate Change / Environmental Dermatology", title: "Climate change and inpatient dermatology", authors: "Fathy R, Rosenbach M.", details: "Current dermatology reports. 2020 Dec;9:201-9.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Climate+change+and+inpatient+dermatology&btnG=" },
             { topic: "Merkel Cell Carcinoma / Oncology", title: "Sentinel lymph node biopsy in Merkel cell carcinoma: rates and predictors of compliance with the National Comprehensive Cancer Network guidelines", authors: "Lewis DJ, Fathy RA, Nugent S, Etzkorn JR, Sobanko JF, Shin TM, Giordano CN, McMurray SL, Walker JL, Zhang J, Miller CJ.", details: "Journal of the American Academy of Dermatology. 2023 Feb;88(2):448-50.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Sentinel+lymph+node+biopsy+in+Merkel+cell+carcinoma%3A+rates+and+predictors+of+compliance&btnG=" },
             { topic: "Merkel Cell Carcinoma / Oncology", title: "Talimogene Laherparepvec for Advanced Stage Merkel Cell Carcinoma: Therapeutic Role and Immunologic Mechanisms", authors: "Farr MA, Joshi TP, Fathy RA, Lewis DJ.", details: "Skinmed. 2023;21(3):153-5.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Talimogene+Laherparepvec+for+Advanced+Stage+Merkel+Cell+Carcinoma&btnG=" },
