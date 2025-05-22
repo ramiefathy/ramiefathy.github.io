@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DermaScribe - AI-Powered Dermatology Assistant</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="style.css" as="style">
+    <link rel="preload" href="script.js" as="script">
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <!-- Load styles -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Load scripts with defer -->
+    <script src="https://cdn.tailwindcss.com" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script src="script.js" defer></script>
+    
+    <!-- Add service worker for offline support -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('ServiceWorker registered'))
+                    .catch(err => console.log('ServiceWorker registration failed:', err));
+            });
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">DermaScribe</h1>
+            <p class="text-xl text-gray-600">AI-Powered Dermatology Assistant</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Left Column: Controls and Status -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Session Controls</h2>
+                    <div class="space-y-4">
+                        <button id="startButton" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 font-semibold text-lg">
+                            Start Recording
+                        </button>
+                        <button id="stopButton" class="w-full bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition duration-200 font-semibold text-lg" disabled>
+                            Stop Recording
+                        </button>
+                        <button id="clearButton" class="w-full bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition duration-200 font-semibold text-lg">
+                            Clear Session
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Session Status</h2>
+                    <div id="statusDisplay" class="text-gray-600 text-lg">
+                        Ready to start
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Output Display -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Generated Note</h2>
+                <div id="outputDisplay" class="prose max-w-none text-gray-700">
+                    <p class="text-gray-500 italic">Your generated note will appear here...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Context Section -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Additional Context</h2>
+            <textarea id="additionalContext" class="w-full h-32 p-4 border rounded-lg text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                      placeholder="Add any additional context or specific requirements here..."></textarea>
+        </div>
+
+        <!-- Error Display -->
+        <div id="errorDisplay" class="mt-4 hidden">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg relative" role="alert">
+                <span class="block sm:inline" id="errorMessage"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-700 text-lg font-semibold">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Image Upload Modal -->
+    <div id="imageUploadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-2xl w-full mx-4">
+            <h3 class="text-2xl font-semibold mb-6 text-gray-800">Upload Image</h3>
+            <div class="space-y-4">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <input type="file" id="imageInput" accept="image/*" class="hidden">
+                    <label for="imageInput" class="cursor-pointer">
+                        <div class="text-gray-600">
+                            <i class="fas fa-cloud-upload-alt text-4xl mb-2"></i>
+                            <p class="text-lg">Click to upload or drag and drop</p>
+                            <p class="text-sm text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                        </div>
+                    </label>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button id="cancelUpload" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200">
+                        Cancel
+                    </button>
+                    <button id="confirmUpload" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">
+                        Upload
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
