@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Harm Reduction Companion (Baltimore Focus)</title>
+    <style>
+        :root {
+            --primary-color: #007aff; /* Blue */
+            --secondary-color: #4CAF50; /* Green for positive/safer actions */
+            --warning-color: #ff9800; /* Orange for caution */
+            --danger-color: #f44336; /* Red for high risk */
+            --light-gray-color: #f4f4f4;
+            --medium-gray-color: #ddd;
+            --dark-gray-color: #333;
+            --text-color: #333;
+            --background-color: #fff;
+            --focus-outline-color: #0056b3; /* A darker blue for focus */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-gray-color);
+            color: var(--text-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        nav.main-nav {
+            display: flex;
+            justify-content: center;
+            background-color: var(--dark-gray-color);
+            flex-wrap: wrap;
+        }
+
+        nav.main-nav button {
+            background-color: var(--dark-gray-color);
+            color: var(--background-color);
+            border: none;
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease, border-bottom-color 0.3s ease;
+            border-bottom: 3px solid transparent;
+            flex-grow: 1;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        nav.main-nav button:hover,
+        nav.main-nav button:focus {
+            background-color: #555; /* Slightly lighter for hover/focus */
+            outline: 2px solid var(--focus-outline-color);
+            outline-offset: -2px;
+        }
+        nav.main-nav button.active {
+            background-color: var(--primary-color);
+            border-bottom: 3px solid var(--secondary-color); /* Highlight active tab */
+        }
+         nav.main-nav button.active:focus {
+            outline: 2px solid var(--secondary-color);
+            outline-offset: -2px;
+        }
+
+
+        .emergency-button-fixed {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--danger-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            text-align: center;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            z-index: 1001;
+            border: none; /* remove default border for button */
+        }
+        .emergency-button-fixed:hover,
+        .emergency-button-fixed:focus {
+            background-color: #d32f2f; /* Darker red */
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
+
+        main { /* Added main tag wrapper */
+            display: block; /* Ensures it behaves as a block element */
+        }
+
+        .container {
+            padding: 1rem;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .content-section {
+            display: none; /* Hidden by default */
+            background-color: var(--background-color);
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .content-section.active {
+            display: block; /* Shown when active */
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.3rem;
+            margin-top: 0;
+            font-size: 1.6rem;
+        }
+        h3 {
+            color: var(--dark-gray-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.7rem;
+            font-size: 1.3rem;
+            border-bottom: 1px solid var(--medium-gray-color);
+            padding-bottom: 0.2rem;
+        }
+        h4 {
+            color: var(--primary-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        #drugSearch {
+            width: calc(100% - 22px); /* Adjust for padding and border */
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--medium-gray-color);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        #drugSearch:focus {
+            outline: 2px solid var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+
+        .drug-list-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .drug-list-item:hover,
+        .drug-list-item:focus {
+            background-color: #f0f0f0;
+            outline: 1px dashed var(--primary-color); /* Subtle focus for list items */
+            outline-offset: -1px;
+        }
+        .drug-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .drug-info-content .detail-block,
+        .harm-reduction-topic .detail-block, /* This class might not be used in harm-reduction-topic divs, but style is available */
+        .resource-item, .legal-item, .wellbeing-item {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid var(--medium-gray-color);
+            border-radius: 5px;
+            background-color: #fdfdfd;
+        }
+        .drug-info-content .detail-block strong,
+        .harm-reduction-topic .detail-block strong { /* Style for strong tags if .detail-block is used */
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .drug-info-content .field-label {
+            font-weight: bold;
+            color: var(--primary-color); 
+        }
+       .drug-info-content .sub-field-label {
+            font-weight: bold;
+            color: #555;
+            margin-left:10px; 
+        }
+       .drug-info-content .nested-object {
+            padding-left: 15px;
+            border-left: 2px solid #eee;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .drug-info-content .nested-object p {
+            margin-bottom: 0.3rem; 
+        }
+
+
+        .drug-info-content p, .drug-info-content ul,
+        .harm-reduction-topic p, .harm-reduction-topic ul,
+        .resource-item p, .legal-item p, .wellbeing-item p {
+            margin-bottom: 1rem;
+        }
+        .drug-info-content ul, .harm-reduction-topic ul {
+            padding-left: 20px;
+        }
+       
+
+        .warning, .disclaimer, .important-note {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-width: 1px;
+            border-style: solid;
+        }
+        .warning {
+            background-color: #fff3e0; 
+            color: #e65100; 
+            border-color: var(--warning-color);
+        }
+        .disclaimer {
+            background-color: #e3f2fd; 
+            color: #0d47a1; 
+            border-color: var(--primary-color);
+        }
+        .important-note {
+            background-color: #e8f5e9; 
+            color: #1b5e20; 
+            border-color: var(--secondary-color);
+        }
+        .warning strong, .disclaimer strong, .important-note strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .resource-link {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .resource-link:hover,
+        .resource-link:focus {
+            text-decoration: underline;
+            outline: 1px dashed var(--primary-color);
+        }
+
+        .interaction-matrix, .reagent-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            overflow-x: auto; 
+        }
+        .interaction-matrix th, .interaction-matrix td,
+        .reagent-table th, .reagent-table td {
+            border: 1px solid var(--medium-gray-color);
+            padding: 0.6rem;
+            text-align: left;
+        }
+        .interaction-matrix th, .reagent-table th {
+            background-color: var(--light-gray-color);
+            font-weight: bold;
+        }
+        .severity-High { background-color: #ffcdd2; color: var(--danger-color); } 
+        .severity-Moderate { background-color: #fff9c4; color: #f57f17; } 
+        .severity-Caution { background-color: #e0f7fa; color: #006064; } 
+        .severity-Life-Threatening { background-color: var(--danger-color); color: white; font-weight: bold;}
+
+
+        .sub-nav {
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--medium-gray-color);
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 0.5rem; 
+        }
+        .sub-nav button, .sub-nav-button { /* Added .sub-nav-button for Back to List */
+            background-color: var(--light-gray-color);
+            color: var(--primary-color);
+            border: 1px solid var(--medium-gray-color);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            font-size: 0.9rem; /* Ensure consistent font size */
+            margin-bottom: 0.5rem; /* Add some margin if they wrap */
+        }
+        .sub-nav button:hover, .sub-nav-button:hover,
+        .sub-nav button:focus, .sub-nav-button:focus {
+            background-color: #e0e0e0; 
+            border-color: #c0c0c0;
+            outline: 2px solid var(--focus-outline-color);
+            outline-offset: -1px;
+        }
+        .sub-nav button.active {
+            background-color: var(--primary-color);
+            color: var(--background-color);
+            border-color: var(--primary-color);
+        }
+        .sub-nav button.active:focus {
+            outline: 2px solid var(--secondary-color);
+        }
+        .drug-info-content .sub-nav-button { /* Specific margin for back button if needed */
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+        }
+
+
+        .sub-content {
+            display: none; 
+        }
+        .sub-content.active {
+            display: block; 
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            background-color: var(--dark-gray-color);
+            color: var(--light-gray-color);
+        }
+        footer p { margin: 0.3rem 0; }
+        footer a { color: var(--primary-color); text-decoration: none; }
+        footer a:hover, footer a:focus { text-decoration: underline; outline: 1px dashed var(--primary-color); }
+
+        /* Modal for Disclaimer */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1002; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.6); /* Darker overlay */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; 
+            padding: 25px;
+            border: 1px solid #888;
+            width: 85%;
+            max-width: 700px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none; 
+            border: none;
+            padding: 5px;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .modal-close:hover,
+        .modal-close:focus {
+            color: black;
+            text-decoration: none;
+            outline: 2px solid var(--focus-outline-color);
+            border-radius: 3px;
+        }
+        #disclaimerModalTitle { 
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Advanced Harm Reduction Companion</h1>
+        <p style="font-size:0.9em; margin:0.2em;">Baltimore Focus - Education & Information</p>
+    </header>
+
+    <nav class="main-nav">
+        <button onclick="showSection('home', this)" class="active">Home</button>
+        <button onclick="showSection('drugInfo', this)">Drug Information</button>
+        <button onclick="showSection('harmReductionPractices', this)">Harm Reduction Practices</button>
+        <button onclick="showSection('baltimoreResources', this)">Baltimore Resources</button>
+        <button onclick="showSection('marylandLegal', this)">Maryland Legal Info</button>
+        <button onclick="showSection('safetyWellbeing', this)">General Safety & Well-being</button>
+        <button onclick="showSection('emergencyInfoGlobal', this)">EMERGENCY INFO</button>
+    </nav>
+
+    <main>
+        <div class="container">
+            <div id="home" class="content-section active">
+                <h2>Welcome to the Harm Reduction Companion</h2>
+                <p>This application provides information aimed at reducing potential harms associated with drug use. It is for educational and informational purposes only.</p>
+                <p><strong>Our Philosophy:</strong> We believe in providing objective, fact-based, and non-judgmental information to help individuals make informed decisions. While not using drugs is the safest option, if you choose to use substances, knowing more can help you and others stay safer. This application is guided by the principles of harm reduction, which include respect for the rights of people who use drugs, a commitment to social justice, and the avoidance of stigma.</p>
+
+                <div class="disclaimer" id="mainDisclaimer">
+                    <strong>Critical Disclaimer: Read Carefully</strong>
+                    <p>The information provided in this application is for educational and informational purposes only and does not constitute medical or legal advice. It is not a substitute for professional medical advice, diagnosis, treatment, or legal counsel.</p>
+                    <p><strong>Always seek the advice of your physician or other qualified health provider</strong> with any questions you may have regarding a medical condition, substance use, or treatment options. Never disregard professional medical advice or delay in seeking it because of something you have read in this application.</p>
+                    <p><strong>If you are experiencing a medical emergency, call 911 or your local emergency number immediately.</strong></p>
+                    <p>The use of any illicit substance carries inherent risks. Information on dosage, effects, and interactions of illicit substances is highly variable due to unknown purity, potency, and potential adulterants. This application does not endorse or encourage the use of illegal substances. Any actions you take based on information from this application are solely at your own risk.</p>
+                    <p>The legal status of substances and related activities can vary significantly by jurisdiction and change over time. It is your sole responsibility to be aware of and comply with all applicable local, state, and federal laws. The legal information provided herein is specific to Maryland where indicated and is for general informational purposes only; it is not a substitute for advice from a qualified legal professional.</p>
+                    <p>The developers of this application assume no liability for any actions taken or not taken based on the content of this application. By using this application, you acknowledge and agree to these terms.</p>
+                </div>
+                <p>Current Date (ET): <span id="currentDate">Loading date...</span></p>
+            </div>
+
+            <div id="drugInfo" class="content-section">
+                <h2>Drug Information A-Z</h2>
+                <input type="text" id="drugSearch" onkeyup="filterDrugs()" placeholder="Search for a drug by name or street name...">
+                <div id="drugList">
+                    </div>
+                <div id="drugDetail" class="drug-info-content" style="display: none;">
+                    <button onclick="goBackToList()" class="sub-nav-button">← Back to List</button> 
+                    <h2 id="drugPrimaryNameDetail" style="display: inline-block; margin-left: 10px;"></h2>
+
+                    <div class="detail-block">
+                        <strong>Identification & Classification</strong>
+                        <p><span class="field-label">Common/Street Names:</span> <span id="drugCommonNames"></span></p>
+                        <p><span class="field-label">Chemical Name:</span> <span id="drugChemicalName"></span></p>
+                        <p><span class="field-label">Substance Class(es):</span> <span id="drugSubstanceClass"></span></p>
+                        <p><span class="field-label">Appearance/Forms:</span> <span id="drugAppearanceForms"></span></p>
+                        <p><span class="field-label">Origin:</span> <span id="drugOrigin"></span></p>
+                    </div>
+                    <div class="detail-block">
+                        <strong>Administration & Dosage</strong>
+                        <div id="drugRoutesOfAdmin"></div>
+                        <div id="drugDosageInfo"></div>
+                        <p><span class="field-label">Typical Potency Notes:</span> <span id="drugPotencyNotes"></span></p>
+                        <p><span class="field-label">Common Purity Issues & Adulterants:</span> <span id="drugPurityAdulterants"></span></p>
+                        <div class="warning"><strong>Dosage Disclaimer:</strong> Information on dosage for illicit substances is highly unreliable due to unknown purity and individual factors. Any dose can be dangerous. Start with an extremely small amount if using an unknown substance. This is not a recommendation.</div>
+                    </div>
+                     <div class="detail-block">
+                        <strong>Pharmacology & Effects</strong>
+                        <p><span class="field-label">Mechanism of Action:</span> <span id="drugMechanismOfAction"></span></p>
+                        <p><span class="field-label">Desired/Positive Subjective Effects:</span></p> <div id="drugEffectsPositive" class="nested-object"></div>
+                        <p><span class="field-label">Neutral Subjective Effects:</span></p> <div id="drugEffectsNeutral" class="nested-object"></div>
+                        <p><span class="field-label">Negative/Unwanted Short-Term Effects:</span></p> <div id="drugEffectsNegativeShortTerm" class="nested-object"></div>
+                        <p><span class="field-label">Cognitive Effects:</span></p> <div id="drugEffectsCognitive" class="nested-object"></div>
+                        <p><span class="field-label">Emotional Effects:</span></p> <div id="drugEffectsEmotional" class="nested-object"></div>
+                        <p><span class="field-label">Physical Effects:</span></p> <div id="drugEffectsPhysical" class="nested-object"></div>
+                        <h4>Pharmacokinetics (Onset, Duration by ROA):</h4>
+                        <div id="drugPharmacokinetics"></div>
+                    </div>
+                    <div class="detail-block">
+                        <strong>Risks & Safety Profile</strong>
+                        <p><span class="field-label">Short-Term Risks:</span></p> <div id="drugRisksShortTerm" class="nested-object"></div>
+                        <p><span class="field-label">Long-Term Risks (Chronic Use):</span></p> <div id="drugRisksLongTerm" class="nested-object"></div>
+                        <h4>Tolerance:</h4>
+                        <div id="drugTolerance" class="nested-object"></div>
+                        <h4>Withdrawal Syndrome:</h4>
+                        <div id="drugWithdrawalSyndrome" class="nested-object"></div>
+                        <div class="warning"><strong>Withdrawal Warning:</strong> Abruptly stopping some substances (e.g., alcohol, benzodiazepines, opioids) can be dangerous or life-threatening. Consult a medical professional for advice on managing withdrawal.</div>
+                        <h4>Addiction Potential:</h4>
+                        <div id="drugAddictionPotential" class="nested-object"></div>
+                        <h4>Overdose Signs:</h4>
+                        <div id="drugOverdoseSigns" class="nested-object"></div>
+                        <p><span class="field-label">Emergency Actions for Overdose:</span> <span id="drugEmergencyActionsForOverdose"></span></p>
+                    </div>
+                    <div class="detail-block">
+                        <strong>Harm Reduction & Interactions</strong>
+                        <h4>Specific Harm Reduction Tips:</h4>
+                        <div id="drugHarmReductionSpecific" class="nested-object"></div>
+                        <h4>Interactions:</h4>
+                        <div id="drugInteractionsList"></div>
+                        <p><span class="field-label">Common Adulterants & Their Risks:</span></p> <div id="drugCommonAdulterants" class="nested-object"></div>
+                    </div>
+                    <div class="detail-block">
+                        <strong>Legal & Miscellaneous</strong>
+                        <p><span class="field-label">Storage Recommendations:</span> <span id="drugStorageRecommendations"></span></p>
+                        <div class="warning">
+                            <strong>Legal Status Disclaimer:</strong>
+                            <p id="drugLegalStatusDisclaimerText"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="harmReductionPractices" class="content-section">
+                <h2>Harm Reduction Practices</h2>
+                <div class="sub-nav" id="hrPracticesNav">
+                    </div>
+                <div id="saferUseIntro" class="sub-content active harm-reduction-topic">
+                    </div>
+                <div id="saferInjection" class="sub-content harm-reduction-topic">
+                    </div>
+                <div id="saferSmoking" class="sub-content harm-reduction-topic">
+                    </div>
+                <div id="saferSnorting" class="sub-content harm-reduction-topic">
+                    </div>
+                <div id="saferOral" class="sub-content harm-reduction-topic">
+                    </div>
+                 <div id="saferRectal" class="sub-content harm-reduction-topic">
+                    </div>
+                <div id="comedownsIntegration" class="sub-content harm-reduction-topic">
+                    </div>
+                <div id="polydrugUseHR" class="sub-content harm-reduction-topic">
+                    </div>
+            </div>
+
+            <div id="substanceTesting" class="content-section">
+                 </div>
+
+            <div id="overdoseResponse" class="content-section">
+                </div>
+
+            <div id="baltimoreResources" class="content-section">
+                <h2>Baltimore, MD: Local Resources</h2>
+                <p>This section provides a starting point for finding harm reduction, treatment, and support services in Baltimore City and surrounding areas. <strong>Always call ahead or check websites to confirm services, hours, and eligibility.</strong> This list is not exhaustive.</p>
+                <div id="baltimoreResourceListDisplay">
+                    </div>
+                <div class="important-note">
+                    <strong>Finding More Resources:</strong>
+                    <ul>
+                        <li><strong>211 Maryland:</strong> Dial 2-1-1 or visit <a href="https://211md.org/" target="_blank" rel="noopener noreferrer" class="resource-link">211md.org</a>.</li>
+                        <li><strong>SAMHSA National Helpline:</strong> 1-800-662-HELP (4357).</li>
+                        <li><strong>FindTreatment.gov:</strong> Online SUD/mental health treatment locator.</li>
+                        <li><strong>Behavioral Health System Baltimore (BHSB):</strong> <a href="https://www.bhsb.org" target="_blank" rel="noopener noreferrer" class="resource-link">bhsb.org</a>.</li>
+                    </ul>
+                </div>
+            </div>
+            <div id="marylandLegal" class="content-section">
+                <h2>Maryland Legal Information (Focus: Harm Reduction Context)</h2>
+                <div class="disclaimer"><strong>This is NOT legal advice.</strong> Laws can change and application is complex. Consult a qualified attorney for advice on any specific legal situation. This information aims to raise awareness about laws relevant to harm reduction.</div>
+                <div id="marylandLegalContentDisplay">
+                     </div>
+            </div>
+
+
+            <div id="safetyWellbeing" class="content-section"> 
+                <h2>General Safety & Well-being</h2>
+                <div class="sub-nav" id="wellbeingNav">
+                    </div>
+                <div id="understandingSUD" class="sub-content active wellbeing-item">
+                    </div>
+                <div id="cooccurringDisorders" class="sub-content wellbeing-item">
+                    </div>
+                 <div id="mentalHealthSupport" class="sub-content wellbeing-item">
+                    </div>
+            </div>
+            
+            <div id="emergencyInfoGlobal" class="content-section">
+                <h2>EMERGENCY INFORMATION & HELPLINES</h2>
+                <p><strong>If you or someone else is experiencing a life-threatening medical emergency, CALL 911 IMMEDIATELY.</strong></p>
+                <p>If you are in Baltimore, MD, provide your location clearly to the 911 operator.</p>
+                 <div style="text-align: center; font-size: 1.5em; padding: 1em; background-color: #ffcdd2; border: 2px solid var(--danger-color); border-radius: 5px; color: var(--danger-color); font-weight: bold;">
+                    <strong>IN CASE OF OVERDOSE: CALL 911 FIRST!</strong>
+                </div>
+
+                <h3>Key National Helplines (USA):</h3>
+                <ul>
+                    <li><strong>988 Suicide & Crisis Lifeline:</strong> Call or Text 988. Free, confidential support for people in distress, prevention and crisis resources. Available 24/7.</li>
+                    <li><strong>SAMHSA National Helpline:</strong> 1-800-662-HELP (4357). Free, confidential, 24/7 treatment referral and information service (in English and Spanish) for individuals and families facing mental and/or substance use disorders.</li>
+                    <li><strong>Poison Control Center:</strong> 1-800-222-1222. For accidental ingestions, exposures to toxins, or drug information in an emergency.</li>
+                    <li><strong>Crisis Text Line:</strong> Text HOME to 741741. Free, 24/7 crisis support via text message.</li>
+                     <li><strong>Never Use Alone Hotline:</strong> 1-800-484-3731. A non-judgmental hotline for people who are using drugs alone, to have someone on the line in case of an overdose.</li>
+                </ul>
+                <h3>Online Treatment Locators:</h3>
+                <ul>
+                    <li><a href="https://findtreatment.gov/" target="_blank" rel="noopener noreferrer" class="resource-link">FindTreatment.gov:</a> SAMHSA online locator for SUD and mental health treatment facilities.</li>
+                </ul>
+                <h3>Recognizing an Overdose:</h3>
+                <p>Go to the "Overdose Response" section (main navigation) for detailed signs of overdose by drug class and emergency response steps.</p>
+
+                <div class="important-note">
+                    <strong>Maryland's Good Samaritan Law:</strong> In Maryland, individuals who seek, provide, or assist with medical help for someone experiencing an alcohol or drug-related overdose may be protected from certain criminal charges. (See "Maryland Legal Info" section). <strong>Don't let fear of arrest stop you from calling 911 to save a life.</strong>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+     <div id="disclaimerModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="disclaimerModalTitle" tabindex="-1">
+        <div class="modal-content">
+            <button type="button" class="modal-close" onclick="closeDisclaimerPopup()" aria-label="Close disclaimer">&times;</button>
+            <h2 id="disclaimerModalTitle">Full Disclaimer</h2>
+            <div id="fullDisclaimerContent">
+                </div>
+             <p><strong>Additional Points:</strong></p>
+             <ul>
+                <li>This application is not a substitute for individualized advice from a healthcare professional who knows your medical history.</li>
+                <li>The information about street drugs is inherently limited due to the unregulated nature of their production. Potency, purity, and the presence of adulterants can vary dramatically and unpredictably.</li>
+                <li>While harm reduction strategies aim to reduce negative consequences, they do not eliminate all risks associated with drug use. The safest option is always not to use illicit substances.</li>
+                <li>Information on legal status is for general awareness and is not exhaustive. Laws change frequently. Always consult current local, state, and federal statutes or a legal professional.</li>
+             </ul>
+        </div>
+    </div>
+
+    <button type="button" class="emergency-button-fixed" onclick="showSection('emergencyInfoGlobal', document.querySelector('nav.main-nav button[onclick*=\'emergencyInfoGlobal\']'))">
+        ! EMERGENCY !
+    </button>
+
+    <footer>
+        <p>&copy; <span id="currentYearFooter"></span> Advanced Harm Reduction Companion. For Educational & Informational Purposes Only.</p>
+        <p>This application does NOT provide medical or legal advice. In an emergency, call 911.</p>
+        <p><a href="javascript:void(0)" onclick="showDisclaimerPopup(event)" id="viewFullDisclaimerLink">View Full Disclaimer</a></p>
+    </footer>
+
+    <script>
+    // --- Global Data Definitions ---
+    const drugDatabase = [
+        { 
+            id: "mdma",
+            primaryName: "MDMA",
+            identification: {
+                commonNames: ["Ecstasy", "Molly", "E", "XTC", "Beans", "Adam"],
+                chemicalName: "3,4-methylenedioxymethamphetamine",
+                substanceClass: ["Empathogen", "Stimulant", "Psychedelic (mild)"],
+                appearanceForms: "Typically pills (various colors/logos, often called Ecstasy), crystalline powder/crystals (often called Molly), or capsules. Pure MDMA is a white crystalline substance.",
+                origin: "Synthetic"
+            },
+            administrationAndDosage: {
+                routesOfAdministration: [
+                    { route: "Oral (Pills/Capsules/Powder)", notes: "Most common route. Powder can be 'bombed' (wrapped in rolling paper)." },
+                    { route: "Insufflation (Snorting Powder)", notes: "Faster onset, shorter duration, more nasal irritation. Less common." },
+                    { route: "Rectal ('Boofing')", notes: "Dissolved powder administered with an oral syringe. Rapid onset." }
+                ],
+                dosage: [ 
+                    { route: "Oral", threshold: "30-50 mg", light: "50-75 mg", common: "75-125 mg", strong: "125-175 mg", heavy: ">175 mg", warning: "Doses above 120-150mg significantly increase neurotoxic risk and negative side effects with diminishing positive returns. Redosing also increases risks." },
+                    { route: "Insufflation", threshold: "20-40 mg", light: "40-60 mg", common: "60-100 mg", strong: "100-150 mg", heavy: ">150 mg", warning: "More caustic to nasal passages. Effects may feel more intense but shorter." }
+                ],
+                potencyNotes: "Street MDMA purity varies wildly. Pills often contain other substances. Crystal form is not a guarantee of purity.",
+                purityAdulterants: "PMA/PMMA (very dangerous, slower onset, can cause fatal overheating), synthetic cathinones ('bath salts'), caffeine, methamphetamine, ketamine, fentanyl (rarely as intended cut, but cross-contamination is a risk), N-Ethylpentylone."
+            },
+            pharmacologyAndEffects: {
+                mechanismOfAction: "Primarily a serotonin releaser and reuptake inhibitor. Also significantly affects dopamine and norepinephrine release and reuptake.",
+                effectsPositive: ["Euphoria", "Increased empathy and sociability", "Feelings of closeness and connection", "Enhanced sensory perception (music, touch)", "Increased energy", "Reduced anxiety (initially for some)"],
+                effectsNeutral: ["Pupil dilation (mydriasis)", "Increased heart rate and blood pressure", "Jaw clenching (trismus/bruxism)", "Nystagmus (involuntary eye movements)", "Altered time perception", "Increased body temperature", "Sweating", "Restlessness"],
+                effectsNegativeShortTerm: ["Nausea/vomiting (especially on come-up)", "Anxiety/panic (especially on come-up or with high doses)", "Insomnia", "Difficulty concentrating", "Temporary erectile dysfunction", "Loss of appetite", "Overheating (hyperthermia)", "Dehydration or Hyponatremia", "Confusion", "Paranoia (rare, high doses)", "Comedown: fatigue, depression, irritability (typically 1-3 days after)"],
+                effectsCognitive: ["Impaired short-term memory during use", "Difficulty concentrating during comedown"],
+                effectsEmotional: ["Intense positive emotions, potential for emotional lability during comedown"],
+                effectsPhysical: ["Increased energy, muscle tension, sweating, dry mouth"],
+                pharmacokinetics: [
+                    { route: "Oral", onset: "20-70 min (avg 30-45 min)", peak: "75-120 min post-onset", durationMainEffects: "3-5 hours", durationAfterEffects: "2-12 hours" },
+                    { route: "Insufflation", onset: "5-15 min", peak: "30-60 min post-onset", durationMainEffects: "2-3 hours", durationAfterEffects: "1-4 hours" }
+                ]
+            },
+            risksAndSafety: {
+                risksShortTerm: ["Hyperthermia (can be life-threatening)", "Dehydration/Hyponatremia", "Serotonin Syndrome (rare, risk with MAOIs/other serotonergic drugs)", "Cardiovascular stress", "Neurotoxicity (high doses/frequent use)", "Impaired judgment", "Anxiety/panic attacks"],
+                risksLongTerm: ["Potential changes to serotonin system (depression, anxiety, memory issues with chronic heavy use)", "Cognitive impairments", "Mood disorders", "HPPD (rare)", "Psychological dependence"],
+                tolerance: { buildup: "Rapidly with repeated use. Effects diminish if used multiple days.", duration: "Resets after 1-3 months of abstinence.", crossTolerance: "MDA, MDEA, other stimulants (partially for energy)." },
+                withdrawalSyndrome: { likelihood: "Primarily psychological after heavy use.", symptoms: ["Fatigue, lethargy", "Depression, low mood", "Anxiety, irritability", "Difficulty concentrating", "Insomnia/hypersomnia", "Increased appetite"], timeline: "Peaks 1-3 days after last use, can last 1-2 weeks." },
+                addictionPotential: { physical: "Low", psychological: "Moderate", notes: "Compulsive use can develop." },
+                overdoseSigns: ["Severe hyperthermia", "Rapid/irregular heartbeat", "Seizures", "Loss of consciousness", "Extreme agitation/panic", "Serotonin syndrome symptoms"],
+                emergencyActionsForOverdose: "Call 911 immediately. Cool person down. Sip water if conscious. Reassure. Recovery position if unconscious but breathing. CPR if needed. Inform paramedics."
+            },
+            harmReductionAndInteractions: {
+                specificHarmReductionTips: ["Test your substance (reagents, FTS).", "Start with small dose (e.g., 50-75mg powder), wait 1.5-2 hrs before redosing.", "Avoid or limit redosing (half initial dose max).", "Stay hydrated (water/electrolytes, ~1-2 cups/hr if active).", "Take cool-down breaks.", "Don't mix with alcohol, other stimulants, MAOIs. Caution with SSRIs.", "Space use (1-3+ months apart).", "Have a trusted friend present.", "Magnesium for jaw clenching.", "Plan comedown (rest, nutrition)."],
+                interactions: [
+                    { substanceOrClass: "Alcohol", interactionEffect: "Increases dehydration, neurotoxicity, liver strain. Masks intoxication.", severity: "High", advice: "Avoid or limit strictly." },
+                    { substanceOrClass: "Other Stimulants (Cocaine, Amphetamines)", interactionEffect: "Increased heart strain, BP, temp, anxiety, seizure risk. Masks effects.", severity: "Dangerous", advice: "Avoid." },
+                    { substanceOrClass: "MAOIs", interactionEffect: "Potentially fatal Serotonin Syndrome or Hypertensive Crisis.", severity: "Life-Threatening", advice: "Strictly avoid. Allow 2+ weeks after MAOI use." },
+                    { substanceOrClass: "SSRIs/SNRIs", interactionEffect: "Often blunts MDMA effects. Paradoxical risk of Serotonin Syndrome (less common than MAOIs).", severity: "Moderate", advice: "Generally avoid or extreme caution. Do not increase MDMA dose to overcome blunting. Monitor for Serotonin Syndrome." },
+                    { substanceOrClass: "Tramadol", interactionEffect: "Increased risk of seizures and Serotonin Syndrome.", severity: "Dangerous", advice: "Avoid." }
+                ],
+                commonAdulterants: ["Synthetic Cathinones ('Bath Salts')", "PMA/PMMA (highly toxic)", "Caffeine", "Methamphetamine", "Ketamine", "Fentanyl (cross-contamination)"]
+            },
+            legalAndMiscellaneous: {
+                storageRecommendations: "Cool, dark, dry place. Airtight container.",
+                legalStatusDisclaimerText: "MDMA is a Schedule I controlled substance in the US. Possession, sale, and manufacture carry severe penalties. Laws vary. Check local laws."
+            }
+        }
+    ];
+
+    const harmReductionPracticeData = {
+        saferUseIntro: { 
+            id: "saferUseIntro", title: "General Principles of Harm Reduction", 
+            content: `<p>Harm reduction is a set of practical strategies...</p><ul><li>Know Your Substance...</li></ul>` // Content shortened for brevity here, full content in HTML
+        },
+        saferInjection: { id: "saferInjection", title: "Safer Injection Practices", content: `<p>Injecting drugs carries the highest risk...</p><ol><li>Hygiene First...</li></ol>` },
+        saferSmoking: { id: "saferSmoking", title: "Safer Smoking/Inhalation Practices", content: `<p>While generally less risky than injecting...</p><ul><li>Use your own equipment...</li></ul>` },
+        saferSnorting: { id: "saferSnorting", title: "Safer Snorting (Insufflation) Practices", content: `<p>Snorting drugs can damage nasal passages...</p><ul><li>Use your own sterile snorting implement...</li></ul>` },
+        saferOral: { id: "saferOral", title: "Safer Oral Use (Pills, Powders, Edibles)", content: `<p>Oral use is generally safer...</p><ul><li>"Start low, go slow,"...</li></ul>` },
+        saferRectal: { id: "saferRectal", title: "Safer Rectal Use (\"Boofing\")", content: `<p>Rectal administration can lead to rapid...</p><ul><li>Use a needle-less oral syringe...</li></ul>` },
+        comedownsIntegration: { id: "comedownsIntegration", title: "Managing Comedowns & Psychedelic Integration", content: `<h4>Stimulant Comedowns</h4><p>Focus on: Hydration...</p><h4>Psychedelic Aftercare & Integration</h4><p>Create a safe space...</p>` },
+        polydrugUseHR: { 
+            id: "polydrugUseHR", title: "Specific Considerations for Polydrug Use", 
+            content: `<p>Using multiple substances ("polydrug use")...</p><h4>Key Risks:</h4><ul><li>Synergistic Effects...</li></ul><h4>High-Risk Polydrug Interaction Matrix (Illustrative - Not Exhaustive)</h4><div id="polydrugInteractionMatrixDisplayMain"></div><h4>Harm Reduction for Polydrug Use...</h4><ul><li>Research interactions thoroughly...</li></ul>`
+        }
+    };
+    const hrPracticeNavOrder = ['saferUseIntro', 'saferInjection', 'saferSmoking', 'saferSnorting', 'saferOral', 'saferRectal', 'comedownsIntegration', 'polydrugUseHR'];
+
+    const substanceTestingData = { 
+        intro: { title: "Substance Testing Overview", content: `<p>Testing your drugs before use can help...</p>` },
+        fts: { title: "Fentanyl Test Strips (FTS)", content: `<ul><li><strong>Purpose:</strong> Detects the presence of fentanyl...</li></ul>` },
+        reagents: { title: "Reagent Test Kits", content: `<ul><li><strong>Purpose:</strong> Liquid chemicals that change color...</li></ul><h4>Reagent Test Interpretation Guide...</h4><div id="reagentTableDisplayMain"></div>` },
+        otherStrips: { title: "Other Test Strips", content: `<p>Test strips for Xylazine, Nitazenes...</p>` },
+        procurement: { title: "Procurement (Baltimore Area & Online)", content: `<p>Local: Baltimore City/County Health Depts...</p>` },
+        disclaimerTest: { title: "Testing Disclaimer", content: `<div class="warning"><strong>Important Testing Disclaimer:</strong> Drug checking is an important harm reduction strategy...</div>` }
+    };
+    
+    const overdoseResponseData = { 
+        intro: { title: "Overdose Prevention & Response Overview", content: `<p><strong>If you suspect an overdose, CALL 911 IMMEDIATELY.</strong>...</p>` },
+        signs: { title: "Recognizing Overdose (Signs Vary by Drug Class)", content: `<ul><li><strong>Opioids (Fentanyl, Heroin):</strong> Slow/no breathing...</li></ul>` },
+        responseSteps: { title: "Emergency Response Steps: S.A.V.E. M.E.", content: `<ol><li><strong>S - STIMULATE:</strong> Shout name...</li></ol>` },
+        stimulantPsychosis: { title: "Stimulant Overamping/Psychosis Response", content: `<p>Stay calm. Quiet environment...</p>` },
+        xylazineNote: { title: "Xylazine (Tranq) Considerations", content: `<div class="important-note"><strong>Xylazine (Tranq) Co-involvement:</strong> Xylazine is a non-opioid sedative...</div>` } // Simplified "Tranq"
+    };
+
+    const baltimoreResourceData = [
+        { name: "Baltimore City Health Dept. Harm Reduction", type: "SSP, Naloxone, FTS, Wound Care", contact: "health.baltimorecity.gov / Call 311", notes: "Mobile van and fixed sites. Check website for current info." },
+        { name: "Baltimore County Dept. of Health Harm Reduction", type: "SSP, Naloxone", contact: "baltimorecountymd.gov/health", notes: "Check website for locations and services." },
+        { name: "Baltimore Harm Reduction Coalition (BHRC)", type: "Advocacy, Naloxone, FTS, Peer Support", contact: "baltimoreharmreduction.org", notes: "Community-based organization. Check website for events and resources." },
+        { name: "Health Care for the Homeless", type: "Healthcare, Wound Care, MAT, Mental Health", contact: "hchmd.org", notes: "Multiple locations. Comprehensive services." },
+        { name: "SPARC Women's Center", type: "Support Services, Harm Reduction Supplies (for women/non-binary)", contact: "sparcbaltimore.org", notes: "Drop-in center with various resources." }
+    ];
+
+    const marylandLegalData = {
+        goodSamaritan: { title: "Maryland Good Samaritan Law (911 Immunity)", content: `<ul><li><strong>Protection:</strong> If you seek, in good faith, medical assistance...</li></ul><p><em>Source: Md. Code Ann., Crim. Law § 1-210...</em></p>` },
+        cdsParaphernalia: { title: "Controlled Substances & Paraphernalia Laws", content: "<p>Possession of most illicit substances...</p>" },
+        naloxoneAccess: { title: "Naloxone Access Laws", content: "<p>Maryland law allows individuals to obtain naloxone...</p>" },
+        sspLegality: { title: "Syringe Service Programs (SSPs)", content: "<p>Syringe Service Programs (SSPs) are legal in Maryland...</p>" }
+    };
+
+    const generalWellbeingData = {
+        understandingSUD: { id: "understandingSUD", title: "Understanding Tolerance, Dependence, SUD & Addiction", content: `<p>These terms are often used interchangeably...</p><ul><li><strong>Tolerance:</strong> Needing more of a substance...</li></ul>` },
+        cooccurringDisorders: { id: "cooccurringDisorders", title: "Co-occurring Substance Use & Mental Health Disorders", content: `<p>It's common for people with substance use disorders...</p><ul><li><strong>Bidirectional Relationship:</strong> Substance use can worsen...</li></ul>` },
+        mentalHealthSupport: { id: "mentalHealthSupport", title: "Supporting Mental Health", content: `<p>Substance use can significantly impact mental health...</p><ul><li><strong>Acknowledge Feelings:</strong> It's okay to not be okay...</li></ul>` }
+    };
+    const wellbeingNavOrder = ['understandingSUD', 'cooccurringDisorders', 'mentalHealthSupport'];
+
+    const polydrugInteractionMatrix = [
+        { drugA: "Opioids (Fentanyl, Heroin)", drugB: "Benzodiazepines (Xanax, Valium)", interaction: "Profound Sedation, Respiratory Depression, Coma, Death", severity: "Life-Threatening", advice: "AVOID. Extremely dangerous..." },
+        { drugA: "Opioids", drugB: "Alcohol", interaction: "Profound Sedation, Respiratory Depression, Coma, Death", severity: "Life-Threatening", advice: "AVOID. Similar to opioids + benzos..." },
+        { drugA: "Benzodiazepines", drugB: "Alcohol", interaction: "Extreme Drowsiness, Respiratory Depression, Blackouts, Overdose, Memory Loss", severity: "High", advice: "AVOID. High risk of overdose..." },
+        { drugA: "Stimulants (Cocaine, Meth)", drugB: "MAOIs (e.g., some antidepressants)", interaction: "Hypertensive Crisis...", severity: "Life-Threatening", advice: "Strictly AVOID. Requires a washout period..." },
+        { drugA: "MDMA", drugB: "SSRIs/SNRIs (e.g., many antidepressants)", interaction: "Serotonin Syndrome (risk exists...)...", severity: "Moderate", advice: "Generally avoid or use extreme caution..." },
+        { drugA: "Cocaine", drugB: "Alcohol", interaction: "Forms Cocaethylene in the liver...", severity: "High", advice: "AVOID. Significantly increases strain..." },
+        { drugA: "Fentanyl", drugB: "Xylazine (Tranq)", interaction: "Profound Sedation, Severe Respiratory Depression...", severity: "Life-Threatening", advice: "AVOID. Extremely dangerous. Prioritize rescue breathing..." }, // Simplified "Tranq"
+        { drugA: "Ketamine", drugB: "Alcohol", interaction: "Increased sedation, nausea, vomiting...", severity: "High", advice: "Avoid. Can lead to dangerous situations..." },
+        { drugA: "Psychedelics (LSD, Psilocybin)", drugB: "Lithium", interaction: "Increased risk of seizures...", severity: "High", advice: "AVOID. This combination is known to be dangerous."}
+    ];
+    
+    const reagentReactionData = [
+        { reagent: "Marquis", substance: "MDMA/MDA/MDE", color: "Purple to Black", notes: "Orange/Brown may indicate Amphetamine/Meth." },
+        { reagent: "Marquis", substance: "Amphetamine/Methamphetamine", color: "Orange to Brown/Red", notes: "" },
+        { reagent: "Marquis", substance: "DXM", color: "Greyish-Black", notes: "" },
+        { reagent: "Mecke", substance: "Heroin/Morphine/Codeine", color: "Green to Blue/Green", notes: "MDMA also Green to Dark Blue/Black." },
+        { reagent: "Mecke", substance: "MDMA/MDA/MDE", color: "Green to Dark Blue/Black", notes: "" },
+        { reagent: "Mandelin", substance: "Ketamine", color: "Orange to Dark Orange/Red", notes: "MDMA: Dark Blue/Black" },
+        { reagent: "Ehrlich", substance: "LSD/Indoles (Psilocybin, DMT)", color: "Purple", notes: "Takes up to 5 mins. No reaction with MDMA/Amphetamines." },
+        { reagent: "Froehde", substance: "MDMA/MDA", color: "Yellow to Black", notes: "Heroin/Morphine: Purple/Grey"},
+        { reagent: "Simon's (A+B)", substance: "Methamphetamine (vs Amphetamine)", color: "Blue (for secondary amines like Meth, MDMA)", notes: "Amphetamine (primary amine) shows no color change or very light. Use with Marquis to differentiate." },
+        { reagent: "Liebermann", substance: "Cocaine", color: "Yellow/Orange", notes: "Many substances react. Use in combination."},
+    ];
+
+    // --- Global Variable Declarations for DOM Elements and State ---
+    let mainNavButtons, contentSections, drugListDiv, drugDetailDiv, drugSearchInput,
+        disclaimerModal, fullDisclaimerContent, mainDisclaimer, modalCloseButton, 
+        viewFullDisclaimerLink, lastFocusedElement = null, currentOpenSectionId = 'home';
+
+    // --- Global Function Definitions ---
+    function showSection(sectionId, clickedButton) {
+        if (!contentSections || !mainNavButtons) {
+            console.error("Navigation elements not initialized for showSection");
+            return;
+        }
+        contentSections.forEach(section => section.classList.remove('active'));
+        mainNavButtons.forEach(btn => btn.classList.remove('active'));
+
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        } else {
+            console.warn(`Section with ID '${sectionId}' not found.`);
+        }
+        if (clickedButton) {
+            clickedButton.classList.add('active');
+        }
+        currentOpenSectionId = sectionId;
+        window.scrollTo(0, 0); 
+
+        if (sectionId === 'drugInfo') goBackToList();
+        if (sectionId === 'harmReductionPractices') {
+            const firstSubNavButton = document.querySelector('#hrPracticesNav button');
+            if (firstSubNavButton && harmReductionPracticeData[hrPracticeNavOrder[0]]) {
+                showSubSection('harmReductionPractices', harmReductionPracticeData[hrPracticeNavOrder[0]].id, firstSubNavButton);
+            }
+        }
+        if (sectionId === 'safetyWellbeing') {
+             const firstWellbeingButton = document.querySelector('#wellbeingNav button');
+             if(firstWellbeingButton && generalWellbeingData[wellbeingNavOrder[0]]) {
+                showSubSection('safetyWellbeing', generalWellbeingData[wellbeingNavOrder[0]].id, firstWellbeingButton);
+             }
+        }
+    }
+
+    function showSubSection(parentSectionId, subSectionId, clickedSubNavButton) {
+        const parentElement = document.getElementById(parentSectionId);
+        if (!parentElement) {
+            console.warn(`Parent section '${parentSectionId}' for sub-section not found.`);
+            return;
+        }
+        const subContents = parentElement.querySelectorAll('.sub-content');
+        subContents.forEach(sc => sc.classList.remove('active'));
+        
+        const subNavContainer = parentElement.querySelector('.sub-nav');
+        if (subNavContainer) {
+            const subNavButtons = subNavContainer.querySelectorAll('button');
+            subNavButtons.forEach(btn => btn.classList.remove('active'));
+        } else {
+             console.warn(`Sub-nav container for '${parentSectionId}' not found.`);
+        }
+
+        const activeSubContent = document.getElementById(subSectionId);
+        if (activeSubContent) {
+            activeSubContent.classList.add('active');
+        } else {
+             console.warn(`Sub-content with ID '${subSectionId}' not found.`);
+        }
+        if (clickedSubNavButton) {
+            clickedSubNavButton.classList.add('active');
+        }
+    }
+
+    function populateDrugList(drugsToDisplay = drugDatabase) {
+        if (!drugListDiv) {
+            console.warn("Drug list container 'drugList' not found.");
+            return;
+        }
+        drugListDiv.innerHTML = ''; 
+        if (drugsToDisplay.length === 0) {
+            drugListDiv.innerHTML = '<p>No drugs match your search.</p>';
+            return;
+        }
+        drugsToDisplay.sort((a, b) => a.primaryName.localeCompare(b.primaryName));
+        drugsToDisplay.forEach(drug => {
+            const item = document.createElement('div');
+            item.textContent = drug.primaryName;
+            item.classList.add('drug-list-item');
+            item.setAttribute('role', 'button'); 
+            item.setAttribute('tabindex', '0'); 
+            item.onclick = () => showDrugDetail(drug);
+            item.onkeydown = (event) => { 
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault(); // Prevent default space scroll
+                    showDrugDetail(drug);
+                }
+            };
+            drugListDiv.appendChild(item);
+        });
+    }
+    
+    function setElementText(id, text, defaultValue = 'N/A') {
+        const el = document.getElementById(id);
+        if (el) {
+            el.textContent = text || defaultValue;
+        } else {
+            // console.warn(`Element with ID '${id}' not found for setting text.`); // Can be noisy
+        }
+    }
+
+    function renderListToElement(elementId, listArray, itemClass = '') {
+        const el = document.getElementById(elementId);
+        if (!el) { /* console.warn(`Element with ID ${elementId} not found for list rendering.`);*/ return; }
+        
+        el.innerHTML = ''; 
+        if (!listArray || listArray.length === 0) { 
+            el.innerHTML = '<p>N/A</p>'; 
+            return; 
+        }
+        const ul = document.createElement('ul');
+        if(itemClass) ul.className = itemClass;
+        listArray.forEach(itemText => {
+            const li = document.createElement('li');
+            li.textContent = itemText;
+            ul.appendChild(li);
+        });
+        el.appendChild(ul);
+    }
+
+    function renderObjectToElement(elementId, dataObject, itemClass = '') {
+        const el = document.getElementById(elementId);
+        if (!el) { /* console.warn(`Element with ID ${elementId} not found for object rendering.`);*/ return; }
+
+        el.innerHTML = ''; 
+        if (!dataObject || Object.keys(dataObject).length === 0) { 
+            el.innerHTML = '<p>N/A</p>'; 
+            return;
+        }
+        
+        for (const key in dataObject) {
+            if (dataObject.hasOwnProperty(key)) {
+                const p = document.createElement('p');
+                if(itemClass) p.className = itemClass;
+                
+                const label = document.createElement('span');
+                label.className = 'sub-field-label';
+                let formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').trim();
+                label.textContent = `${formattedKey}: `;
+                p.appendChild(label);
+                
+                const value = dataObject[key];
+                if (Array.isArray(value)) {
+                    if (value.length > 0) {
+                        const ul = document.createElement('ul');
+                        value.forEach(itemText => {
+                            const li = document.createElement('li');
+                            li.textContent = itemText;
+                            ul.appendChild(li);
+                        });
+                        p.appendChild(ul);
+                    } else {
+                         p.appendChild(document.createTextNode('N/A'));
+                    }
+                } else if (typeof value === 'object' && value !== null) {
+                    const nestedDiv = document.createElement('div');
+                    nestedDiv.className = 'nested-object'; 
+                    let hasContent = false;
+                    for (const nestedKey in value) {
+                         if (value.hasOwnProperty(nestedKey)) {
+                            hasContent = true;
+                            const nestedP = document.createElement('p');
+                            let formattedNestedKey = nestedKey.charAt(0).toUpperCase() + nestedKey.slice(1).replace(/([A-Z])/g, ' $1').trim();
+                            nestedP.innerHTML = `<span class="sub-field-label">${formattedNestedKey}:</span> ${value[nestedKey] || 'N/A'}`;
+                            nestedDiv.appendChild(nestedP);
+                         }
+                    }
+                    if (hasContent) p.appendChild(nestedDiv);
+                    else p.appendChild(document.createTextNode('N/A'));
+                } else {
+                    const valueSpan = document.createElement('span');
+                    valueSpan.textContent = value || 'N/A';
+                    p.appendChild(valueSpan);
+                }
+                el.appendChild(p);
+            }
+        }
+    }
+
+    function showDrugDetail(drug) {
+        if (!drugDetailDiv || !drugListDiv || !drugSearchInput) {
+            console.warn("One or more drug detail elements not found.");
+            return;
+        }
+        drugListDiv.style.display = 'none';
+        drugSearchInput.style.display = 'none';
+        drugDetailDiv.style.display = 'block';
+        window.scrollTo(0,0); 
+
+        setElementText('drugPrimaryNameDetail', drug.primaryName);
+        setElementText('drugCommonNames', drug.identification?.commonNames?.join(', '));
+        setElementText('drugChemicalName', drug.identification?.chemicalName);
+        setElementText('drugSubstanceClass', drug.identification?.substanceClass?.join(', '));
+        setElementText('drugAppearanceForms', drug.identification?.appearanceForms);
+        setElementText('drugOrigin', drug.identification?.origin);
+
+        const routesDiv = document.getElementById('drugRoutesOfAdmin');
+        if (routesDiv) {
+            routesDiv.innerHTML = '<h4>Routes of Administration:</h4>';
+            if (drug.administrationAndDosage?.routesOfAdministration?.length > 0) {
+                const routesUl = document.createElement('ul');
+                drug.administrationAndDosage.routesOfAdministration.forEach(r => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="sub-field-label">${r.route || 'N/A'}:</span> ${r.notes || 'N/A'}`;
+                    routesUl.appendChild(li);
+                });
+                routesDiv.appendChild(routesUl);
+            } else { routesDiv.innerHTML += '<p>N/A</p>'; }
+        }
+
+        const dosageDiv = document.getElementById('drugDosageInfo');
+        if (dosageDiv) {
+            dosageDiv.innerHTML = '<h4>Dosage (Illustrative - Not Recommendation):</h4>';
+            if (drug.administrationAndDosage?.dosage?.length > 0) {
+                drug.administrationAndDosage.dosage.forEach(d => {
+                    const p = document.createElement('p');
+                    p.innerHTML = `<span class="sub-field-label">${d.route || 'N/A'}:</span> Thresh: ${d.threshold||'N/A'}, Light: ${d.light||'N/A'}, Common: ${d.common||'N/A'}, Strong: ${d.strong||'N/A'}, Heavy: ${d.heavy||'N/A'}. <br><em>Warning: ${d.warning||'N/A'}</em>`;
+                    dosageDiv.appendChild(p);
+                });
+            } else { dosageDiv.innerHTML += '<p>N/A</p>'; }
+        }
+        setElementText('drugPotencyNotes', drug.administrationAndDosage?.potencyNotes);
+        setElementText('drugPurityAdulterants', drug.administrationAndDosage?.purityAdulterants);
+        setElementText('drugMechanismOfAction', drug.pharmacologyAndEffects?.mechanismOfAction);
+        renderListToElement('drugEffectsPositive', drug.pharmacologyAndEffects?.effectsPositive);
+        renderListToElement('drugEffectsNeutral', drug.pharmacologyAndEffects?.effectsNeutral);
+        renderListToElement('drugEffectsNegativeShortTerm', drug.pharmacologyAndEffects?.effectsNegativeShortTerm);
+        renderListToElement('drugEffectsCognitive', drug.pharmacologyAndEffects?.effectsCognitive);
+        renderListToElement('drugEffectsEmotional', drug.pharmacologyAndEffects?.effectsEmotional);
+        renderListToElement('drugEffectsPhysical', drug.pharmacologyAndEffects?.effectsPhysical);
+
+        const pharmDiv = document.getElementById('drugPharmacokinetics');
+        if (pharmDiv) {
+            pharmDiv.innerHTML = ''; 
+            if (drug.pharmacologyAndEffects?.pharmacokinetics?.length > 0) {
+                drug.pharmacologyAndEffects.pharmacokinetics.forEach(pk => {
+                    const p = document.createElement('p');
+                    p.innerHTML = `<span class="sub-field-label">${pk.route||'N/A'}:</span> Onset: ${pk.onset||'N/A'}, Peak: ${pk.peak||'N/A'}, Main Duration: ${pk.durationMainEffects||'N/A'}, After Effects: ${pk.durationAfterEffects||'N/A'}`;
+                    pharmDiv.appendChild(p);
+                });
+            } else { pharmDiv.innerHTML = '<p>N/A</p>'; }
+        }
+        
+        renderListToElement('drugRisksShortTerm', drug.risksAndSafety?.risksShortTerm);
+        renderListToElement('drugRisksLongTerm', drug.risksAndSafety?.risksLongTerm);
+        renderObjectToElement('drugTolerance', drug.risksAndSafety?.tolerance);
+        renderObjectToElement('drugWithdrawalSyndrome', drug.risksAndSafety?.withdrawalSyndrome);
+        renderObjectToElement('drugAddictionPotential', drug.risksAndSafety?.addictionPotential);
+        renderListToElement('drugOverdoseSigns', drug.risksAndSafety?.overdoseSigns);
+        setElementText('drugEmergencyActionsForOverdose', drug.risksAndSafety?.emergencyActionsForOverdose);
+        renderListToElement('drugHarmReductionSpecific', drug.harmReductionAndInteractions?.specificHarmReductionTips);
+        
+        const interactionsDiv = document.getElementById('drugInteractionsList');
+        if (interactionsDiv) {
+            interactionsDiv.innerHTML = ''; 
+            if (drug.harmReductionAndInteractions?.interactions?.length > 0) {
+                const table = document.createElement('table');
+                table.className = 'interaction-matrix';
+                const caption = table.createCaption();
+                caption.textContent = `${drug.primaryName} Interaction Details`;
+                const thead = table.createTHead();
+                const headerRow = thead.insertRow();
+                ['Substance/Class', 'Effect', 'Severity', 'Advice'].forEach(headerText => {
+                    const th = document.createElement('th');
+                    th.scope = "col";
+                    th.textContent = headerText;
+                    headerRow.appendChild(th);
+                });
+                const tbody = table.createTBody();
+                drug.harmReductionAndInteractions.interactions.forEach(item => {
+                    const tr = tbody.insertRow();
+                    let severityClass = item.severity ? 'severity-' + item.severity.replace(/\s+/g, '-').toLowerCase() : '';
+                    tr.insertCell().textContent = item.substanceOrClass || 'N/A';
+                    tr.insertCell().textContent = item.interactionEffect || 'N/A';
+                    const severityCell = tr.insertCell();
+                    severityCell.textContent = item.severity || 'N/A';
+                    severityCell.className = severityClass;
+                    tr.insertCell().textContent = item.advice || 'N/A';
+                });
+                interactionsDiv.appendChild(table);
+            } else { interactionsDiv.innerHTML = '<p>No specific interaction data available for this substance.</p>'; }
+        }
+        renderListToElement('drugCommonAdulterants', drug.harmReductionAndInteractions?.commonAdulterants);
+        setElementText('drugStorageRecommendations', drug.legalAndMiscellaneous?.storageRecommendations);
+        setElementText('drugLegalStatusDisclaimerText', drug.legalAndMiscellaneous?.legalStatusDisclaimerText);
+    }
+
+    function goBackToList() {
+        if (!drugDetailDiv || !drugListDiv || !drugSearchInput) return;
+        drugDetailDiv.style.display = 'none';
+        drugListDiv.style.display = 'block';
+        drugSearchInput.style.display = 'block';
+        drugSearchInput.focus(); 
+    }
+
+    function filterDrugs() {
+        if (!drugSearchInput) return;
+        const searchTerm = drugSearchInput.value.toLowerCase().trim();
+        const filteredDrugs = drugDatabase.filter(drug =>
+            drug.primaryName.toLowerCase().includes(searchTerm) ||
+            (drug.identification?.commonNames && drug.identification.commonNames.some(name => name.toLowerCase().includes(searchTerm))) ||
+            (drug.identification?.substanceClass && drug.identification.substanceClass.some(sc => sc.toLowerCase().includes(searchTerm)))
+        );
+        populateDrugList(filteredDrugs);
+    }
+
+    function populateHarmReductionPracticeNav() {
+        const navContainer = document.getElementById('hrPracticesNav');
+        if (!navContainer) { console.warn("Harm reduction practice nav container 'hrPracticesNav' not found."); return; }
+        navContainer.innerHTML = ''; 
+        hrPracticeNavOrder.forEach((key, index) => {
+            const practice = harmReductionPracticeData[key];
+            if (practice) {
+                const button = document.createElement('button');
+                button.textContent = practice.title;
+                button.onclick = () => showSubSection('harmReductionPractices', practice.id, button);
+                if (index === 0) button.classList.add('active'); 
+                navContainer.appendChild(button);
+            }
+        });
+    }
+    
+    function populateHarmReductionSections() {
+        hrPracticeNavOrder.forEach(key => {
+            const practice = harmReductionPracticeData[key];
+            if (practice) {
+                const sectionDiv = document.getElementById(practice.id);
+                if (sectionDiv) {
+                    sectionDiv.innerHTML = `<h3>${practice.title}</h3>${practice.content}`;
+                    if (practice.id === 'polydrugUseHR') {
+                        const matrixContainer = sectionDiv.querySelector('#polydrugInteractionMatrixDisplayMain');
+                        if (matrixContainer) renderPolydrugMatrix(matrixContainer, polydrugInteractionMatrix, "General Polydrug Interactions");
+                    }
+                } else { /* console.warn(`Harm reduction section content div '${practice.id}' not found.`); */ }
+            }
+        });
+    }
+    
+    function populateWellbeingNav() {
+        const navContainer = document.getElementById('wellbeingNav');
+        if (!navContainer) { console.warn("Wellbeing nav container 'wellbeingNav' not found."); return; }
+        navContainer.innerHTML = '';
+        wellbeingNavOrder.forEach((key, index) => {
+            const item = generalWellbeingData[key];
+            if (item) {
+                const button = document.createElement('button');
+                button.textContent = item.title;
+                button.onclick = () => showSubSection('safetyWellbeing', item.id, button);
+                if (index === 0) button.classList.add('active');
+                navContainer.appendChild(button);
+            }
+        });
+    }
+
+    function populateWellbeingSections() {
+        wellbeingNavOrder.forEach(key => {
+            const item = generalWellbeingData[key];
+            if (item) {
+                const sectionDiv = document.getElementById(item.id);
+                if (sectionDiv) {
+                    sectionDiv.innerHTML = `<h3>${item.title}</h3>${item.content}`;
+                } else { /* console.warn(`Wellbeing section content div '${item.id}' not found.`); */ }
+            }
+        });
+    }
+
+    function populateSubstanceTestingSection() {
+        const testingSection = document.getElementById('substanceTesting');
+        if (!testingSection) { console.warn("Substance testing section 'substanceTesting' not found."); return; }
+        
+        let htmlContent = '';
+        for (const key in substanceTestingData) {
+            const item = substanceTestingData[key];
+            htmlContent += `<div class="harm-reduction-topic"><h3>${item.title}</h3>${item.content}</div>`;
+        }
+        testingSection.innerHTML = htmlContent;
+        const reagentTablePlaceholder = testingSection.querySelector('#reagentTableDisplayMain');
+        if (reagentTablePlaceholder) {
+            renderReagentTable(reagentTablePlaceholder, reagentReactionData, "Illustrative Reagent Reactions");
+        }
+    }
+
+    function populateOverdoseResponseSection() {
+        const overdoseSection = document.getElementById('overdoseResponse');
+        if (!overdoseSection) { console.warn("Overdose response section 'overdoseResponse' not found."); return; }
+        
+        let htmlContent = '';
+        for (const key in overdoseResponseData) {
+            const item = overdoseResponseData[key];
+            htmlContent += `<div class="harm-reduction-topic"><h3>${item.title}</h3>${item.content}</div>`;
+        }
+        overdoseSection.innerHTML = htmlContent;
+    }
+
+    function renderPolydrugMatrix(container, matrixData, captionText = "Polydrug Interaction Matrix") {
+        if (!container || !matrixData) {
+            if(container) container.innerHTML = "<p>Matrix data not available.</p>";
+            return;
+        }
+        container.innerHTML = ''; 
+        const table = document.createElement('table');
+        table.className = 'interaction-matrix';
+        const caption = table.createCaption();
+        caption.textContent = captionText;
+        const thead = table.createTHead();
+        const headerRow = thead.insertRow();
+        ['Drug A', 'Drug B', 'Potential Interaction(s)', 'Severity', 'Harm Reduction Advice'].forEach(headerText => {
+            const th = document.createElement('th');
+            th.scope = "col";
+            th.textContent = headerText;
+            headerRow.appendChild(th);
+        });
+        const tbody = table.createTBody();
+        matrixData.forEach(item => {
+            const tr = tbody.insertRow();
+            let severityClass = item.severity ? 'severity-' + item.severity.replace(/\s+/g, '-').toLowerCase() : '';
+            tr.insertCell().textContent = item.drugA || 'N/A';
+            tr.insertCell().textContent = item.drugB || 'N/A';
+            tr.insertCell().textContent = item.interaction || 'N/A';
+            const severityCell = tr.insertCell();
+            severityCell.textContent = item.severity || 'N/A';
+            severityCell.className = severityClass;
+            tr.insertCell().textContent = item.advice || 'N/A';
+        });
+        container.appendChild(table);
+    }
+
+    function renderReagentTable(container, reagentData, captionText = "Reagent Test Interpretation Guide") {
+        if (!container || !reagentData) {
+            if(container) container.innerHTML = "<p>Reagent data not available.</p>";
+            return;
+        }
+        container.innerHTML = ''; 
+        const table = document.createElement('table');
+        table.className = 'reagent-table';
+        const caption = table.createCaption();
+        caption.textContent = captionText;
+        const thead = table.createTHead();
+        const headerRow = thead.insertRow();
+        ['Reagent', 'Expected Substance', 'Expected Color(s)', 'Notes'].forEach(headerText => {
+            const th = document.createElement('th');
+            th.scope = "col";
+            th.textContent = headerText;
+            headerRow.appendChild(th);
+        });
+        const tbody = table.createTBody();
+        reagentData.forEach(item => {
+            const tr = tbody.insertRow();
+            tr.insertCell().textContent = item.reagent || 'N/A';
+            tr.insertCell().textContent = item.substance || 'N/A';
+            tr.insertCell().textContent = item.color || 'N/A';
+            tr.insertCell().textContent = item.notes || 'N/A';
+        });
+        container.appendChild(table);
+    }
+
+    function populateBaltimoreInfo() {
+        const resourceListDiv = document.getElementById('baltimoreResourceListDisplay');
+        if (resourceListDiv) {
+            resourceListDiv.innerHTML = ''; 
+            if (baltimoreResourceData.length > 0) {
+                baltimoreResourceData.forEach(r => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'resource-item';
+                    itemDiv.innerHTML = `<h4>${r.name || 'Unnamed Resource'}</h4><p><strong>Type:</strong> ${r.type || 'N/A'}</p><p><strong>Contact:</strong> ${r.contact || 'N/A'}</p><p><strong>Notes:</strong> ${r.notes || 'N/A'}</p>`;
+                    resourceListDiv.appendChild(itemDiv);
+                });
+            } else { resourceListDiv.innerHTML = '<p>No local resources currently listed.</p>'; }
+        } else { console.warn("Baltimore resource list container 'baltimoreResourceListDisplay' not found."); }
+
+        const legalContentDiv = document.getElementById('marylandLegalContentDisplay');
+        if (legalContentDiv) {
+            legalContentDiv.innerHTML = ''; 
+            if (Object.keys(marylandLegalData).length > 0) {
+                for (const key in marylandLegalData) {
+                    const item = marylandLegalData[key];
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'legal-item';
+                    itemDiv.innerHTML = `<h4>${item.title || 'Legal Information'}</h4>${item.content || '<p>N/A</p>'}`;
+                    legalContentDiv.appendChild(itemDiv);
+                }
+            } else { legalContentDiv.innerHTML = '<p>No legal information currently listed.</p>'; }
+        } else { console.warn("Maryland legal content container 'marylandLegalContentDisplay' not found."); }
+    }
+    
+    function showDisclaimerPopup(event) {
+        if (event) event.preventDefault(); // Prevent default link behavior if called from <a>
+        if(disclaimerModal) {
+            lastFocusedElement = document.activeElement; 
+            disclaimerModal.style.display = "block";
+            if (modalCloseButton) modalCloseButton.focus(); 
+            disclaimerModal.addEventListener('keydown', handleModalKeydown);
+        }
+    }
+    function closeDisclaimerPopup() {
+        if(disclaimerModal) {
+            disclaimerModal.style.display = "none";
+            disclaimerModal.removeEventListener('keydown', handleModalKeydown);
+            if (lastFocusedElement) lastFocusedElement.focus(); 
+        }
+    }
+    function handleModalKeydown(event) {
+        if (event.key === 'Escape') {
+            closeDisclaimerPopup();
+        }
+        if (event.key === 'Tab' && disclaimerModal) {
+            const focusableElements = disclaimerModal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusableElements.length === 0) return;
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (event.shiftKey) { 
+                if (document.activeElement === firstElement) {
+                    lastElement.focus();
+                    event.preventDefault();
+                }
+            } else { 
+                if (document.activeElement === lastElement) {
+                    firstElement.focus();
+                    event.preventDefault();
+                }
+            }
+        }
+    }
+
+    // --- DOMContentLoaded Event Listener ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Assign DOM elements to global variables
+        mainNavButtons = document.querySelectorAll('nav.main-nav button');
+        contentSections = document.querySelectorAll('.content-section');
+        drugListDiv = document.getElementById('drugList');
+        drugDetailDiv = document.getElementById('drugDetail');
+        drugSearchInput = document.getElementById('drugSearch');
+        disclaimerModal = document.getElementById('disclaimerModal');
+        fullDisclaimerContent = document.getElementById('fullDisclaimerContent');
+        mainDisclaimer = document.getElementById('mainDisclaimer');
+        modalCloseButton = disclaimerModal ? disclaimerModal.querySelector('.modal-close') : null;
+        viewFullDisclaimerLink = document.getElementById('viewFullDisclaimerLink');
+
+        // Populate modal with main disclaimer content
+        if(mainDisclaimer && fullDisclaimerContent) {
+            fullDisclaimerContent.innerHTML = mainDisclaimer.innerHTML; 
+        }
+
+        // Attach modal close functionality to backdrop click
+        if (disclaimerModal) {
+            disclaimerModal.addEventListener('click', function(event) {
+                if (event.target === disclaimerModal) { 
+                    closeDisclaimerPopup();
+                }
+            });
+        }
+      
+        // Update footer year and current date
+        const currentYearFooterSpan = document.getElementById('currentYearFooter');
+        if(currentYearFooterSpan) currentYearFooterSpan.textContent = new Date().getFullYear();
+        
+        try {
+            const estDate = new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/New_York' 
+            });
+            const dateSpan = document.getElementById('currentDate');
+            if(dateSpan) dateSpan.textContent = estDate;
+        } catch (e) {
+            console.error("Error formatting date for ET. Displaying local date.", e);
+            const dateSpan = document.getElementById('currentDate');
+            if (dateSpan) dateSpan.textContent = new Date().toLocaleDateString() + " (Local Time)";
+        }
+        
+        // Initial population calls
+        populateDrugList();
+        populateHarmReductionPracticeNav();
+        populateHarmReductionSections(); 
+        populateSubstanceTestingSection();
+        populateOverdoseResponseSection();
+        populateBaltimoreInfo();
+        populateWellbeingNav();
+        populateWellbeingSections(); 
+
+        // Set initial active section
+        const initialActiveButton = document.querySelector('nav.main-nav button.active');
+        if (initialActiveButton) {
+            showSection(currentOpenSectionId, initialActiveButton);
+        } else {
+            const firstNavButton = document.querySelector('nav.main-nav button');
+            if (firstNavButton) showSection('home', firstNavButton);
+        }
+    }); 
+    </script>
+
+</body>
+</html>
