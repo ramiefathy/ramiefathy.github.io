@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Coding Tutor Pro (CF Worker)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom scrollbar for chat and lesson content */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #e2e8f0; /* slate-200 */
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* slate-400 */
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* slate-500 */
+        }
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+            color: #1e293b; /* slate-800 */
+        }
+        .loader {
+            border: 5px solid #e2e8f0; /* slate-200 */
+            border-top: 5px solid #3b82f6; /* blue-500 */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .tab-active {
+            border-bottom-color: #3b82f6; /* blue-500 */
+            color: #3b82f6; /* blue-500 */
+            font-weight: 600;
+        }
+        /* Ensure content area has a minimum height */
+        #contentArea > div {
+            min-height: calc(100vh - 220px); /* Adjusted for header/footer/nav height */
+        }
+        /* Prose styling overrides for better LLM output rendering */
+        .prose h1, .prose h2, .prose h3 { color: #3b82f6; /* blue-500 */ }
+        .prose code { background-color: #e2e8f0; padding: 0.2em 0.4em; margin: 0; font-size: 85%; border-radius: 3px; }
+        .prose pre { background-color: #0f172a; /* slate-900 */ color: #e2e8f0; /* slate-200 */ padding: 1em; border-radius: 0.5rem; overflow-x: auto; }
+        .prose pre code { background-color: transparent; color: inherit; padding: 0; font-size: inherit; }
+        .prose ul { list-style-type: disc; }
+        .prose ol { list-style-type: decimal; }
+        .prose strong { color: #1e293b; } /* slate-800 */
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="bg-gradient-to-r from-sky-600 to-indigo-700 text-white p-5 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">LLM Coding Tutor Pro</h1>
+            <div id="authStatus" class="text-sm bg-white/20 px-3 py-1 rounded-full">Initializing...</div>
+        </div>
+    </header>
+
+    <nav class="bg-white shadow-md sticky top-[76px] sm:top-[84px] z-40"> 
+        <div class="container mx-auto flex justify-center items-center space-x-1 sm:space-x-2 md:space-x-4 py-2 px-1 custom-scrollbar overflow-x-auto">
+            <button data-view="welcome" class="nav-tab px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-md hover:bg-slate-200 transition-colors whitespace-nowrap tab-active">Welcome</button>
+            <button data-view="lessonPlan" class="nav-tab px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-md hover:bg-slate-200 transition-colors whitespace-nowrap">Lesson Plan</button>
+            <button data-view="learn" class="nav-tab px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-md hover:bg-slate-200 transition-colors whitespace-nowrap">Learn</button>
+            <button data-view="chat" class="nav-tab px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-md hover:bg-slate-200 transition-colors whitespace-nowrap">Chat Tutor</button>
+            <button data-view="challenges" class="nav-tab px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-md hover:bg-slate-200 transition-colors whitespace-nowrap">Challenges</button>
+            <button data-view="requests" class="nav-tab px-2 sm:px-3 py-2 text-xs sm:text-sm rounded-md hover:bg-slate-200 transition-colors whitespace-nowrap">Requests</button>
+        </div>
+    </nav>
+
+    <main id="contentArea" class="container mx-auto p-3 sm:p-5 flex-grow">
+        <div id="welcomeView" class="view-content">
+            <div class="bg-white p-5 sm:p-8 rounded-xl shadow-xl max-w-2xl mx-auto">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-6 text-indigo-600">Welcome to Your AI Coding Journey!</h2>
+                <p class="mb-4 text-sm sm:text-base text-slate-700">To personalize your learning, please tell us a bit about yourself:</p>
+                <form id="userSetupForm">
+                    <div class="mb-4">
+                        <label for="userName" class="block text-sm font-medium text-slate-700 mb-1">Your Name:</label>
+                        <input type="text" id="userName" name="userName" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base" placeholder="e.g., Alex Innovator">
+                    </div>
+                    <div class="mb-4">
+                        <label for="userBackground" class="block text-sm font-medium text-slate-700 mb-1">Current programming experience:</label>
+                        <select id="userBackground" name="userBackground" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base">
+                            <option value="none">None, I'm a complete beginner!</option>
+                            <option value="beginner">Beginner (know some very basic concepts)</option>
+                            <option value="intermediate">Intermediate (some projects, understand core concepts)</option>
+                            <option value="advanced">Advanced (comfortable with multiple languages/paradigms)</option>
+                        </select>
+                    </div>
+                    <div class="mb-6">
+                        <label for="userGoals" class="block text-sm font-medium text-slate-700 mb-1">What are you hoping to achieve or learn?</label>
+                        <textarea id="userGoals" name="userGoals" rows="4" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base" placeholder="e.g., Build web apps, understand AI in coding, automate tasks, explore future of development with LLMs..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 text-sm sm:text-base">Let's Get Started!</button>
+                </form>
+                <div id="welcomeLoader" class="loader hidden mt-6"></div>
+                <p id="welcomeError" class="text-red-600 mt-4 hidden text-sm"></p>
+            </div>
+        </div>
+
+        <div id="lessonPlanView" class="view-content hidden">
+            <div class="bg-white p-5 sm:p-8 rounded-xl shadow-xl">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-6 text-indigo-600">Your Personalized Lesson Plan</h2>
+                <div id="lessonPlanLoader" class="loader"></div>
+                <div id="lessonPlanContent" class="prose max-w-none prose-indigo text-sm sm:text-base">
+                    <p class="text-slate-700">Your lesson plan will appear here. If you haven't completed the welcome setup, please do so first.</p>
+                </div>
+                <p id="lessonPlanError" class="text-red-600 mt-4 hidden text-sm"></p>
+            </div>
+        </div>
+
+        <div id="learnView" class="view-content hidden">
+            <div class="bg-white p-5 sm:p-8 rounded-xl shadow-xl">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-2 text-indigo-600">Learn a Topic</h2>
+                 <p class="mb-6 text-slate-600 text-xs sm:text-sm">Select a topic from your lesson plan or enter a custom one.</p>
+                <div class="mb-6">
+                    <label for="lessonTopicSelect" class="block text-sm font-medium text-slate-700 mb-1">Choose from your plan:</label>
+                    <select id="lessonTopicSelect" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mb-2 text-sm sm:text-base">
+                        <option value="">-- Select a Topic --</option>
+                    </select>
+                    <span class="text-slate-500 text-xs block mb-2">Or enter a custom topic:</span>
+                    <input type="text" id="customLessonTopic" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base" placeholder="e.g., 'Introduction to Python functions'">
+                    <button id="fetchLessonButton" class="mt-3 w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors duration-150 ease-in-out text-sm sm:text-base">Load Lesson</button>
+                </div>
+                <div id="lessonLoader" class="loader hidden"></div>
+                <div id="lessonContent" class="prose max-w-none prose-indigo custom-scrollbar overflow-y-auto text-sm sm:text-base" style="max-height: 65vh;">
+                    <p class="text-slate-700">Your lesson content will appear here.</p>
+                </div>
+                <p id="lessonError" class="text-red-600 mt-4 hidden text-sm"></p>
+            </div>
+        </div>
+
+        <div id="chatView" class="view-content hidden">
+            <div class="bg-white p-3 sm:p-6 rounded-xl shadow-xl flex flex-col" style="height: calc(100vh - 250px); max-height: 700px;">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-4 text-indigo-600">Chat with Your AI Tutor</h2>
+                <div id="chatMessages" class="flex-grow overflow-y-auto custom-scrollbar mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-3 text-sm sm:text-base">
+                     <div class="p-3 rounded-lg bg-sky-100 text-sky-800 self-start max-w-xs sm:max-w-md lg:max-w-lg break-words shadow">Hi there! I'm your AI Coding Tutor. Ask me anything about programming, your lessons, or how to leverage LLMs in development.</div>
+                </div>
+                <div id="chatLoader" class="loader hidden self-center my-2"></div>
+                <div class="mt-auto flex space-x-2">
+                    <input type="text" id="chatInput" class="flex-grow p-3 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base" placeholder="Type your question...">
+                    <button id="sendChatButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold p-3 rounded-lg transition-colors shadow-md">Send</button>
+                </div>
+                 <p id="chatError" class="text-red-600 mt-2 text-xs hidden"></p>
+            </div>
+        </div>
+
+        <div id="challengesView" class="view-content hidden">
+            <div class="bg-white p-5 sm:p-8 rounded-xl shadow-xl">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-2 text-indigo-600">Coding Challenges</h2>
+                <p class="mb-6 text-slate-600 text-xs sm:text-sm">Test your understanding. Describe your approach in plain English.</p>
+                <div class="mb-4">
+                     <label for="challengeTopicSelect" class="block text-sm font-medium text-slate-700 mb-1">Challenge based on topic:</label>
+                     <select id="challengeTopicSelect" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mb-2 text-sm sm:text-base">
+                        <option value="">-- AI Suggests or Select Topic --</option>
+                    </select>
+                    <input type="text" id="customChallengeTopic" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 text-sm sm:text-base" placeholder="Or specify a topic, e.g., 'Array manipulation'">
+                    <button id="getChallengeButton" class="mt-3 w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors text-sm sm:text-base">Get Challenge</button>
+                </div>
+                <div id="challengeLoader" class="loader hidden"></div>
+                <div id="challengeArea" class="hidden mt-6">
+                    <div id="challengeDescription" class="prose max-w-none prose-indigo p-4 bg-slate-50 rounded-lg border border-slate-200 mb-4 text-sm sm:text-base"></div>
+                    <label for="challengeApproach" class="block text-sm font-medium text-slate-700 mb-1">Describe your approach:</label>
+                    <textarea id="challengeApproach" rows="5" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mb-3 text-sm sm:text-base" placeholder="Explain how you would solve this..."></textarea>
+                    <button id="submitApproachButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors text-sm sm:text-base">Submit Approach</button>
+                    <div id="challengeFeedbackLoader" class="loader hidden mt-4"></div>
+                    <div id="challengeFeedback" class="prose max-w-none prose-indigo mt-4 p-4 bg-green-50 text-green-800 rounded-lg border border-green-200 hidden text-sm sm:text-base"></div>
+                </div>
+                <p id="challengeError" class="text-red-600 mt-4 hidden text-sm"></p>
+            </div>
+        </div>
+
+        <div id="requestsView" class="view-content hidden">
+            <div class="bg-white p-5 sm:p-8 rounded-xl shadow-xl max-w-xl mx-auto">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-6 text-indigo-600">Request a Topic or Ask a Question</h2>
+                <p class="mb-4 text-slate-700 text-sm sm:text-base">Have a specific question or a topic you'd like to explore? Let us know!</p>
+                <form id="userRequestForm">
+                    <div class="mb-4">
+                        <label for="requestTopic" class="block text-sm font-medium text-slate-700 mb-1">Topic/Question:</label>
+                        <input type="text" id="requestTopic" name="requestTopic" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base" placeholder="e.g., 'How do APIs work?' or 'Explain recursion'">
+                    </div>
+                    <div class="mb-6">
+                        <label for="requestDetails" class="block text-sm font-medium text-slate-700 mb-1">Additional details (optional):</label>
+                        <textarea id="requestDetails" name="requestDetails" rows="3" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base" placeholder="More context about your request..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors text-sm sm:text-base">Submit Request</button>
+                </form>
+                <div id="requestLoader" class="loader hidden mt-6"></div>
+                <div id="requestResponse" class="mt-6 prose max-w-none prose-indigo hidden text-sm sm:text-base"></div>
+                <p id="requestError" class="text-red-600 mt-4 hidden text-sm"></p>
+                 <h3 class="text-lg font-semibold mt-8 mb-4 text-indigo-500">Your Submitted Requests:</h3>
+                <ul id="submittedRequestsList" class="list-disc list-inside space-y-2 text-slate-700 text-sm sm:text-base">
+                    <li class="italic">No requests submitted yet.</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 p-5 text-center mt-auto">
+        <p class="text-sm">&copy; <span id="currentYear"></span> LLM Coding Tutor Pro. Empowering your coding journey with AI.</p>
+        <p class="text-xs mt-1">Content generated by AI. Always verify critical information. Reflects knowledge up to its last training data.</p>
+    </footer>
+
+    <div id="messageModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 overflow-y-auto h-full w-full flex items-center justify-center hidden z-[100] p-4">
+        <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-xl bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2" id="messageModalTitle">Message</h3>
+                <div class="mt-2 px-4 py-3">
+                    <p class="text-sm text-gray-600" id="messageModalText"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="messageModalCloseButton" class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // --- Configuration ---
+        const CLOUDFLARE_WORKER_URL = "https://shiny-tooth-b3de.ramiefathy.workers.dev/"; 
+        const GEMINI_MODEL_NAME = "gemini-2.5-flash-preview-05-20"; // Using a consistent, recent model
+
+        // --- Application State ---
+        let userProfile = { name: '', background: '', goals: '', isSetupComplete: false };
+        let lessonPlan = [];
+        let chatHistory = [{ role: "model", parts: [{ text: "Hi there! I'm your AI Coding Tutor. Ask me anything about programming, your lessons, or how to leverage LLMs in development, including the latest trends." }] }];
+        let currentChallenge = null;
+        let submittedRequests = [];
+
+        // --- UI Elements ---
+        const views = {}; // Populated in initializeApp
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const contentArea = document.getElementById('contentArea');
+        const userSetupForm = document.getElementById('userSetupForm');
+        const welcomeLoader = document.getElementById('welcomeLoader');
+        const welcomeError = document.getElementById('welcomeError');
+        const lessonPlanContent = document.getElementById('lessonPlanContent');
+        const lessonPlanLoader = document.getElementById('lessonPlanLoader');
+        const lessonPlanError = document.getElementById('lessonPlanError');
+        const lessonTopicSelect = document.getElementById('lessonTopicSelect');
+        const customLessonTopic = document.getElementById('customLessonTopic');
+        const fetchLessonButton = document.getElementById('fetchLessonButton');
+        const lessonLoader = document.getElementById('lessonLoader');
+        const lessonContent = document.getElementById('lessonContent');
+        const lessonError = document.getElementById('lessonError');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatButton = document.getElementById('sendChatButton');
+        const chatLoader = document.getElementById('chatLoader');
+        const chatError = document.getElementById('chatError');
+        const challengeTopicSelect = document.getElementById('challengeTopicSelect');
+        const customChallengeTopic = document.getElementById('customChallengeTopic');
+        const getChallengeButton = document.getElementById('getChallengeButton');
+        const challengeLoader = document.getElementById('challengeLoader');
+        const challengeArea = document.getElementById('challengeArea');
+        const challengeDescription = document.getElementById('challengeDescription');
+        const challengeApproach = document.getElementById('challengeApproach');
+        const submitApproachButton = document.getElementById('submitApproachButton');
+        const challengeFeedbackLoader = document.getElementById('challengeFeedbackLoader');
+        const challengeFeedback = document.getElementById('challengeFeedback');
+        const challengeError = document.getElementById('challengeError');
+        const userRequestForm = document.getElementById('userRequestForm');
+        const requestLoader = document.getElementById('requestLoader');
+        const requestResponse = document.getElementById('requestResponse');
+        const requestError = document.getElementById('requestError');
+        const submittedRequestsList = document.getElementById('submittedRequestsList');
+        const messageModal = document.getElementById('messageModal');
+        const messageModalTitle = document.getElementById('messageModalTitle');
+        const messageModalText = document.getElementById('messageModalText');
+        const messageModalCloseButton = document.getElementById('messageModalCloseButton');
+
+        // --- Helper Functions ---
+        function showView(viewId) {
+            Object.values(views).forEach(view => view.classList.add('hidden'));
+            if (views[viewId]) views[viewId].classList.remove('hidden');
+            navTabs.forEach(tab => {
+                tab.classList.remove('tab-active');
+                if (tab.dataset.view === viewId) tab.classList.add('tab-active');
+            });
+            contentArea.scrollTop = 0;
+        }
+
+        function showLoader(loaderElement) { loaderElement.classList.remove('hidden'); }
+        function hideLoader(loaderElement) { loaderElement.classList.add('hidden'); }
+        function showError(errorElement, message) {
+            errorElement.textContent = `Error: ${message}`;
+            errorElement.classList.remove('hidden');
+        }
+        function hideError(errorElement) {
+            errorElement.classList.add('hidden');
+            errorElement.textContent = '';
+        }
+
+        function showMessageModal(title, text) {
+            messageModalTitle.textContent = title;
+            messageModalText.innerHTML = sanitizeHTML(text); 
+            messageModal.classList.remove('hidden');
+        }
+
+        messageModalCloseButton.addEventListener('click', () => messageModal.classList.add('hidden'));
+
+        function sanitizeHTML(str) { 
+            const temp = document.createElement('div');
+            temp.textContent = str;
+            return temp.innerHTML;
+        }
+        
+        function markdownToHtml(md) {
+            if (!md) return '';
+            let html = md;
+            html = html.replace(/```(\w*)\n([\s\S]*?)\n```/g, (match, lang, code) => {
+                const sanitizedCode = sanitizeHTML(code); 
+                return `<pre><code class="language-${lang || 'plaintext'}">${sanitizedCode}</code></pre>`;
+            });
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            html = html.replace(/^\s*[\*-]\s+(.*)/gm, '<li>$1</li>');
+            html = html.replace(/((?:<li>.*?<\/li>\s*)+)/gs, (match) => {
+                if (match.includes('<ul>') || match.includes('<ol>')) return match; 
+                return `<ul>${match}</ul>`;
+            });
+            html = html.replace(/^\s*\d+\.\s+(.*)/gm, '<olli>$1</olli>'); 
+            html = html.replace(/((?:<olli>.*?<\/olli>\s*)+)/gs, (match) => {
+                 if (match.includes('<ul>') || match.includes('<ol>')) return match;
+                return `<ol>${match}</ol>`;
+            });
+            html = html.replace(/<olli>/g, '<li>').replace(/<\/olli>/g, '</li>');
+            html = html.split(/\n\s*\n/).map(paragraph => {
+                const pTrimmed = paragraph.trim();
+                if (!pTrimmed) return '';
+                if (/^<(h[1-3]|ul|ol|li|pre|code)/.test(pTrimmed)) { 
+                    return pTrimmed;
+                }
+                return `<p>${pTrimmed}</p>`;
+            }).join('');
+            html = html.replace(/\*\*(.*?)\*\*|__(.*?)__/g, '<strong>$1$2</strong>');
+            html = html.replace(/\*(.*?)\*|_(.*?)_/g, '<em>$1$2</em>');
+            html = html.replace(/`([^`]+?)`/g, '<code>$1</code>'); 
+            html = html.replace(/<p>(.*?)<\/p>/gs, (match, content) => `<p>${content.replace(/\n/g, '<br>')}</p>`);
+            html = html.replace(/<li>(.*?)<\/li>/gs, (match, content) => `<li>${content.replace(/\n/g, '<br>')}</li>`);
+            return html;
+        }
+
+        // --- API Call via Cloudflare Worker (Adapted from DermaScribe example) ---
+        async function callGemini(promptText) {
+            // This is the payload structure the Gemini API expects.
+            const geminiPayload = {
+                model: `models/${GEMINI_MODEL_NAME}`, // Ensure "models/" prefix if your worker doesn't add it
+                contents: [{ role: "user", parts: [{ text: promptText }] }],
+                generationConfig: {
+                  temperature: 0.7, // Adjusted for more creative/varied responses suitable for a tutor
+                  topK: 1,
+                  topP: 1,
+                  maxOutputTokens: 4096,
+                },
+                safetySettings: [ // Standard safety settings
+                  { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                  { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                  { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                  { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                ]
+            };
+
+            // This is the payload structure the DermaScribe worker example expects.
+            const workerRequestPayload = {
+                endpoint: "generateContent", // To tell the worker which Gemini function to call
+                payload: geminiPayload         // The actual payload for the Gemini API
+            };
+
+            try {
+                const response = await fetch(CLOUDFLARE_WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(workerRequestPayload)
+                });
+
+                if (!response.ok) {
+                    let errorBodyText = await response.text();
+                    let errorDetail = `Request to Worker failed with status ${response.status}.`;
+                    try {
+                        const errorBodyJson = JSON.parse(errorBodyText);
+                        errorDetail += ` Message: ${errorBodyJson?.error?.message || errorBodyJson?.message || 'Unknown worker error.'}`;
+                    } catch (e) {
+                        errorDetail += ` Response: ${errorBodyText}`;
+                    }
+                    console.error("Cloudflare Worker Error Response:", errorDetail);
+                    throw new Error(errorDetail);
+                }
+
+                const json = await response.json(); 
+
+                // Adapted response parsing from DermaScribe
+                if (json && json.response && typeof json.response.text === 'function') { // SDK-like response from worker
+                    return json.response.text(); 
+                } else if (json && json.response && json.response.candidates && json.response.candidates[0]?.content?.parts?.[0]?.text) { // More direct Gemini API structure
+                    return json.response.candidates[0].content.parts[0].text;
+                } else if (json && json.text) { // Simplest proxy response
+                    return json.text;
+                } else if (json && json.candidates && json.candidates[0]?.content?.parts?.[0]?.text) { // Direct pass-through of Gemini API JSON
+                    return json.candidates[0].content.parts[0].text;
+                } else if (json && json.promptFeedback && json.promptFeedback.blockReason) { // Handle blocked content if worker forwards it directly
+                     const blockMessage = `Content generation blocked (via Worker): ${json.promptFeedback.blockReason}. ${json.promptFeedback.blockReasonMessage || ''}`;
+                     console.warn("Gemini API content block (via Worker):", blockMessage, json.promptFeedback);
+                     throw new Error(blockMessage);
+                }
+
+                console.warn("Unexpected response structure from Worker:", json);
+                throw new Error("Failed to get valid content from Worker. The response structure was unexpected.");
+
+            } catch (error) {
+                console.error("Raw error object from Cloudflare Worker call:", error); 
+                let errorMessage = "An unknown error occurred during the Worker API call.";
+                if (error instanceof Error && error.message) {
+                    errorMessage = error.message;
+                } else if (typeof error === 'string' && error) {
+                    errorMessage = error;
+                } else if (error && typeof error === 'object' && Object.keys(error).length === 0) {
+                    errorMessage = "Network error or CORS issue suspected. Worker did not respond or request was blocked. Check browser console (Network tab) and Worker logs for more details.";
+                } else {
+                    try {
+                        const errorString = JSON.stringify(error);
+                        if (errorString !== '{}') { 
+                           errorMessage = errorString;
+                        }
+                    } catch (e) { /* Stick to generic message */ }
+                }
+                throw new Error(errorMessage);
+            }
+        }
+
+        // --- Event Listeners and Logic (Largely unchanged, they use the new callGemini) ---
+
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const viewId = tab.dataset.view;
+                if (viewId === 'lessonPlan' && !userProfile.isSetupComplete) {
+                    showMessageModal("Setup Required", "Please complete the Welcome setup first to generate your personalized lesson plan.");
+                    return;
+                }
+                if ((viewId === 'learn' || viewId === 'challenges') && lessonPlan.length === 0 && userProfile.isSetupComplete) {
+                     showMessageModal("Lesson Plan Needed", "Your lesson plan is being generated or is empty. Please check the Lesson Plan tab. You can still use custom topics in the Learn section.");
+                }
+                showView(viewId);
+            });
+        });
+
+        userSetupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError(welcomeError);
+            showLoader(welcomeLoader);
+            userProfile.name = sanitizeHTML(document.getElementById('userName').value);
+            userProfile.background = document.getElementById('userBackground').value;
+            userProfile.goals = sanitizeHTML(document.getElementById('userGoals').value);
+
+            if (!userProfile.name || !userProfile.goals) {
+                showError(welcomeError, "Please fill in your name and goals.");
+                hideLoader(welcomeLoader);
+                return;
+            }
+            userProfile.isSetupComplete = true;
+            showMessageModal("Profile Saved!", `Thanks, ${userProfile.name}! We'll use this to personalize your learning. Generating your lesson plan now...`);
+            await generateAndDisplayLessonPlan(); 
+        });
+
+        async function generateAndDisplayLessonPlan() {
+            if (!userProfile.isSetupComplete) {
+                lessonPlanContent.innerHTML = "<p>Please complete the Welcome setup to generate a lesson plan.</p>";
+                hideLoader(lessonPlanLoader); 
+                return;
+            }
+            showLoader(lessonPlanLoader); 
+            hideError(lessonPlanError);
+            lessonPlanContent.innerHTML = ""; 
+            const prompt = `
+                Based on the following user profile, generate a concise, ordered list of 5-7 key programming and software development lesson topics.
+                The user wants to develop applications/websites, leveraging modern LLMs (like those discussed around Google I/O 2025 and beyond) and AI coding agents.
+                Focus on foundational knowledge, practical application with LLMs, and future-oriented skills.
+                Topics should progress logically. Examples:
+                1. Core Programming Concepts (Variables, Control Flow, Functions, Data Structures).
+                2. Choosing Your First Language (e.g., Python for versatility & AI, JavaScript for web).
+                3. Project Structure & File Organization.
+                4. Web Development Basics (HTML, CSS, JS - if goal-aligned).
+                5. Effective LLM Prompting for Code Generation & Problem Solving.
+                6. Evaluating, Debugging, and Integrating AI-Generated Code.
+                7. Version Control (e.g., Git) and Collaborative Coding with AI.
+                8. Understanding APIs and How Software Components Communicate.
+                9. Future of Development: AI Agents, Low-Code/No-Code with LLM understanding.
+
+                User Profile:
+                - Name: ${userProfile.name}
+                - Experience: ${userProfile.background}
+                - Goals: ${userProfile.goals}
+
+                Output ONLY the list as a numbered list of topic titles. For example:
+                1. Topic A: Subtitle if applicable
+                2. Topic B
+            `;
+            try {
+                const responseText = await callGemini(prompt);
+                lessonPlan = responseText.split('\n')
+                                        .map(line => line.replace(/^\d+\.\s*/, '').trim())
+                                        .filter(topic => topic.length > 0);
+                if (lessonPlan.length > 0) {
+                    const ol = document.createElement('ol');
+                    ol.className = 'list-decimal list-inside space-y-3 text-slate-700 pl-5';
+                    lessonPlan.forEach(topic => {
+                        const li = document.createElement('li');
+                        li.className = 'hover:text-indigo-600 cursor-pointer transition-colors';
+                        li.textContent = topic;
+                        li.onclick = () => {
+                            customLessonTopic.value = topic;
+                            lessonTopicSelect.value = topic;
+                            showView('learn');
+                            fetchLessonButton.click();
+                        };
+                        ol.appendChild(li);
+                    });
+                    lessonPlanContent.innerHTML = '';
+                    lessonPlanContent.appendChild(ol);
+                    updateTopicSelects();
+                    showMessageModal("Lesson Plan Ready!", "Your personalized lesson plan is here. Click a topic to start, or explore other sections.");
+                } else {
+                    lessonPlanContent.innerHTML = "<p>Could not generate a lesson plan from the AI's response. The response might have been empty or not in the expected format. Try adjusting your goals or try again later.</p>";
+                }
+            } catch (error) {
+                showError(lessonPlanError, error.message || "An unknown error occurred.");
+                lessonPlanContent.innerHTML = "<p>An error occurred while generating your lesson plan. Please check the error message and try again.</p>";
+            } finally {
+                hideLoader(welcomeLoader); 
+                hideLoader(lessonPlanLoader); 
+                if(userProfile.isSetupComplete && document.getElementById('welcomeView').style.display !== 'none') {
+                   showView('lessonPlan'); 
+                }
+            }
+        }
+        
+        function updateTopicSelects() {
+            lessonTopicSelect.length = 1; 
+            challengeTopicSelect.length = 1;
+            lessonPlan.forEach(topic => {
+                const option = new Option(topic, topic);
+                lessonTopicSelect.add(option.cloneNode(true));
+                challengeTopicSelect.add(option);
+            });
+        }
+
+        fetchLessonButton.addEventListener('click', async () => {
+            const selectedTopic = lessonTopicSelect.value;
+            const customTopicVal = customLessonTopic.value.trim();
+            const topicToFetch = customTopicVal || selectedTopic;
+            if (!topicToFetch) {
+                showMessageModal("No Topic", "Please select or enter a topic to learn.");
+                return;
+            }
+            showLoader(lessonLoader);
+            hideError(lessonError);
+            lessonContent.innerHTML = "<p>Loading lesson...</p>";
+            const prompt = `
+                You are an expert programming tutor. Generate a comprehensive yet easy-to-understand lesson on the topic: "${topicToFetch}".
+                Consider the user's profile:
+                - Experience: ${userProfile.background || 'Not specified'}
+                - Goals: ${userProfile.goals || 'Not specified'}
+                The lesson should:
+                1. Clearly explain core concepts with definitions.
+                2. Use analogies or simple, relatable examples.
+                3. Include short, illustrative code snippets (e.g., Python or JavaScript, or pseudocode if language-agnostic) where relevant. Mark code clearly.
+                4. Briefly mention how understanding this topic helps when using modern LLM coding agents (e.g., for better prompting, evaluating AI code, understanding AI suggestions, or discussing topics like those from Google I/O 2025 regarding AI in development).
+                5. Structure the lesson with headings, paragraphs, lists, and bold text for key terms to ensure readability.
+                6. Conclude with a brief summary or key takeaways.
+                Output the lesson in Markdown format.
+            `;
+            try {
+                const responseText = await callGemini(prompt);
+                lessonContent.innerHTML = markdownToHtml(responseText);
+            } catch (error) {
+                showError(lessonError, error.message || "Failed to fetch lesson.");
+                lessonContent.innerHTML = "<p>An error occurred while fetching the lesson. Please check the error and try again.</p>";
+            } finally {
+                hideLoader(lessonLoader);
+                lessonContent.scrollTop = 0;
+            }
+        });
+
+        function appendChatMessage(message, sender, isHtml = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('p-3', 'rounded-lg', 'max-w-[85%]', 'sm:max-w-[75%]', 'break-words', 'mb-2', 'shadow');
+            if (isHtml) messageDiv.innerHTML = message; 
+            else messageDiv.innerHTML = markdownToHtml(sanitizeHTML(message));
+            if (sender === 'user') messageDiv.classList.add('bg-indigo-500', 'text-white', 'self-end', 'ml-auto');
+            else messageDiv.classList.add('bg-sky-100', 'text-sky-800', 'self-start', 'mr-auto');
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function handleChatSend() {
+            const userInput = chatInput.value.trim();
+            if (!userInput) return;
+            appendChatMessage(userInput, 'user'); 
+            chatHistory.push({ role: "user", parts: [{ text: userInput }] });
+            chatInput.value = '';
+            showLoader(chatLoader);
+            hideError(chatError);
+            const recentHistory = chatHistory.slice(-6); 
+            const promptForApi = `
+                You are a friendly, patient, and highly knowledgeable AI programming tutor. Your knowledge includes the latest trends in software development, including advancements discussed at events like Google I/O 2025 concerning AI's role in coding.
+                User's profile: Experience: ${userProfile.background || 'Not specified'}, Goals: ${userProfile.goals || 'Not specified'}.
+                Current conversation history (most recent messages first):
+                ${recentHistory.map(m => `${m.role === 'user' ? 'User' : 'Tutor'}: ${m.parts[0].text}`).reverse().join('\n')}
+                User's latest message: "${userInput}"
+                Please provide a helpful, clear, and encouraging response. Use Markdown for formatting.
+            `;
+            try {
+                const responseText = await callGemini(promptForApi);
+                appendChatMessage(responseText, 'model'); 
+                chatHistory.push({ role: "model", parts: [{ text: responseText }] });
+            } catch (error) {
+                const errorMessage = `Sorry, I encountered an error: ${error.message || 'Unknown error'}. Please try again.`;
+                appendChatMessage(errorMessage, 'model', true); 
+                chatHistory.push({ role: "model", parts: [{ text: `Error: ${error.message}` }] }); 
+                showError(chatError, error.message || 'Unknown error');
+            } finally {
+                hideLoader(chatLoader);
+            }
+        }
+        sendChatButton.addEventListener('click', handleChatSend);
+        chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleChatSend(); });
+
+        getChallengeButton.addEventListener('click', async () => {
+            const selectedTopic = challengeTopicSelect.value;
+            const customTopicVal = customChallengeTopic.value.trim();
+            let topicForChallenge = customTopicVal || selectedTopic;
+            showLoader(challengeLoader);
+            hideError(challengeError);
+            challengeArea.classList.add('hidden');
+            const prompt = `
+                You are an AI programming tutor. Generate a beginner-to-intermediate level coding challenge.
+                User profile: Experience: ${userProfile.background || 'Not specified'}, Goals: ${userProfile.goals || 'Not specified'}.
+                ${topicForChallenge ? `The challenge should be related to the topic: "${topicForChallenge}".` : "Choose a general programming concept."}
+                The challenge description should state the problem, specify inputs/outputs if applicable, be solvable by describing an approach in plain English, and be formatted using Markdown.
+                Output only the challenge description.
+            `;
+            try {
+                const responseText = await callGemini(prompt);
+                currentChallenge = { description: responseText, topic: topicForChallenge || "General" };
+                challengeDescription.innerHTML = markdownToHtml(responseText);
+                challengeArea.classList.remove('hidden');
+                challengeApproach.value = '';
+            } catch (error) {
+                showError(challengeError, error.message || "Failed to get challenge.");
+            } finally {
+                hideLoader(challengeLoader);
+            }
+        });
+
+        submitApproachButton.addEventListener('click', async () => {
+            const userApproach = challengeApproach.value.trim();
+            if (!userApproach || !currentChallenge) {
+                showMessageModal("Input Needed", "Please describe your approach to the challenge first.");
+                return;
+            }
+            showLoader(challengeFeedbackLoader);
+            challengeFeedback.classList.add('hidden');
+            hideError(challengeError);
+            const prompt = `
+                You are an AI programming tutor. Challenge: "${currentChallenge.description}"
+                User's approach: "${userApproach}"
+                Provide feedback using Markdown: Evaluate the approach (correctness, efficiency, issues). Provide constructive feedback. Describe an optimal solution (logic/pseudocode). Explain its effectiveness. Mention LLM assistance if relevant.
+            `;
+            try {
+                const responseText = await callGemini(prompt);
+                challengeFeedback.innerHTML = markdownToHtml(responseText);
+                challengeFeedback.classList.remove('hidden');
+            } catch (error) {
+                showError(challengeError, error.message || "Failed to get feedback.");
+                challengeFeedback.innerHTML = `<p class="text-red-600">Error getting feedback: ${sanitizeHTML(error.message || 'Unknown error')}</p>`;
+                challengeFeedback.classList.remove('hidden');
+            } finally {
+                hideLoader(challengeFeedbackLoader);
+            }
+        });
+
+        userRequestForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const topic = document.getElementById('requestTopic').value.trim();
+            const details = document.getElementById('requestDetails').value.trim();
+            if (!topic) {
+                showMessageModal("Topic Needed", "Please enter a topic or question for your request.");
+                return;
+            }
+            showLoader(requestLoader);
+            hideError(requestError);
+            requestResponse.classList.add('hidden');
+            submittedRequests.push({ topic, details, date: new Date().toLocaleDateString() });
+            updateSubmittedRequestsList();
+            const prompt = `
+                User learning request. Profile: Exp: ${userProfile.background || 'N/A'}, Goals: ${userProfile.goals || 'N/A'}.
+                Request: "${topic}". Details: "${details || 'None'}"
+                Provide a concise explanation or answer. Use Markdown.
+            `;
+            try {
+                const responseText = await callGemini(prompt);
+                requestResponse.innerHTML = markdownToHtml(responseText);
+                requestResponse.classList.remove('hidden');
+                userRequestForm.reset();
+            } catch (error) {
+                showError(requestError, error.message || "Failed to process request.");
+                requestResponse.innerHTML = `<p class="text-red-600">Error processing request: ${sanitizeHTML(error.message || 'Unknown error')}</p>`;
+                requestResponse.classList.remove('hidden');
+            } finally {
+                hideLoader(requestLoader);
+            }
+        });
+        
+        function updateSubmittedRequestsList() {
+            if (submittedRequests.length === 0) {
+                submittedRequestsList.innerHTML = '<li class="italic text-slate-500">No requests submitted yet.</li>';
+                return;
+            }
+            submittedRequestsList.innerHTML = '';
+            submittedRequests.forEach(req => {
+                const li = document.createElement('li');
+                li.className = "py-1";
+                li.textContent = `${req.topic} (Requested: ${req.date})`;
+                if (req.details) li.title = `Details: ${req.details}`;
+                submittedRequestsList.appendChild(li);
+            });
+        }
+
+        // --- Initialization ---
+        function initializeApp() {
+            views.welcome = document.getElementById('welcomeView');
+            views.lessonPlan = document.getElementById('lessonPlanView');
+            views.learn = document.getElementById('learnView');
+            views.chat = document.getElementById('chatView');
+            views.challenges = document.getElementById('challengesView');
+            views.requests = document.getElementById('requestsView');
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            updateSubmittedRequestsList();
+            showView('welcome');
+            document.getElementById('authStatus').textContent = "Ready to Learn!"; 
+            hideLoader(lessonPlanLoader);
+            if (CLOUDFLARE_WORKER_URL === "https://your-llm-tutor-worker.your-username.workers.dev/") {
+                 showMessageModal(
+                    "Important Configuration Reminder", 
+                    "This application is set up to use a Cloudflare Worker for API calls. The default placeholder URL is still in use. Please update the `CLOUDFLARE_WORKER_URL` constant in the HTML script with your actual Worker URL for the application to function correctly."
+                );
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
