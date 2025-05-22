@@ -23,6 +23,7 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link rel="stylesheet" href="style.css" type="text/css" />
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -279,19 +280,19 @@ $(document).ready(function () {
   <a href="about.html">About</a>
 </li>
 <li>
-  <a href="NCDB.html">NCDB</a>
+  <a href="private/research/analysis/NCDB.html">NCDB</a>
 </li>
 <li>
-  <a href="NAMCS.html">NAMCS</a>
+  <a href="private/research/analysis/NAMCS.html">NAMCS</a>
 </li>
 <li>
-  <a href="CYOA.html">CYOA</a>
+  <a href="private/research/analysis/CYOA.html">CYOA</a>
 </li>
 <li>
-  <a href="Reddit.html">Reddit</a>
+  <a href="private/research/analysis/Reddit.html">Reddit</a>
 </li>
 <li>
-  <a href="Other.html">Other</a>
+  <a href="private/research/analysis/Other.html">Other</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -312,7 +313,7 @@ $(document).ready(function () {
 </div>
 
 
-<p>#Reading in the functions I’ll be using…</p>
+<p>#Reading in the functions I'll be using…</p>
 <pre class="r"><code>p_table &lt;- function(tab_data, ...) {
   tab_data_2 &lt;- deparse(substitute(tab_data))
   
@@ -329,7 +330,7 @@ $(document).ready(function () {
 
 nrow(aad) #1174 images reviewed</code></pre>
 <pre><code>## [1] 1174</code></pre>
-<p>##We reviewed a total of 1174 images, but some duplicates or not clinical images – let’s exclude those</p>
+<p>##We reviewed a total of 1174 images, but some duplicates or not clinical images – let's exclude those</p>
 <pre class="r"><code># how many clinical images were of patients w/ indeterminate skin type?
 nrow(aad %&gt;% filter(fitzpatrick == 4)) # answer: 33</code></pre>
 <pre><code>## [1] 33</code></pre>
@@ -357,11 +358,11 @@ data &lt;- aad %&gt;%
            fitzpatrick != &quot;4&quot; &amp;
            dx != &quot;Excluded-NoDx&quot;) %&gt;%
   droplevels()</code></pre>
-<p>##After excluding images that were duplicates (102), non-clinical (410), indeterminate skin type (33), or didn’t have an associated diagnosis (3), we’re left with 663 images</p>
+<p>##After excluding images that were duplicates (102), non-clinical (410), indeterminate skin type (33), or didn't have an associated diagnosis (3), we're left with 663 images</p>
 <div id="data-exploration" class="section level1">
 <h1>Data Exploration</h1>
 <div id="lets-start-with-our-primary-question-what-is-the-distribution-of-skin-types-in-the-aad-modules-images" class="section level2">
-<h2>Let’s start with our primary question: what is the distribution of skin types in the AAD Modules’ images?</h2>
+<h2>Let's start with our primary question: what is the distribution of skin types in the AAD Modules' images?</h2>
 <pre class="r"><code>p_table(data,
         vars = &quot;fitzpatrick&quot;)</code></pre>
 <table>
@@ -481,7 +482,7 @@ ggplot(data = data) +
        title = &quot;Number of Images with Fitzpatrick Skin Types I/II, III/IV, V/VI&quot;) +
   theme_minimal()</code></pre>
 <pre><code>## Warning: Ignoring unknown parameters: binwidth, bins, pad</code></pre>
-<p><img src="20200625_AAD-Modules-Analysis_RAF_files/figure-html/individual%20score%20distributions-2.png" width="672" /> ##Pretty similar, though RF’s lectures seemed to have more 3’s than 2’s and GO’s had fewer 1’s than BC/RF</p>
+<p><img src="20200625_AAD-Modules-Analysis_RAF_files/figure-html/individual%20score%20distributions-2.png" width="672" /> ##Pretty similar, though RF's lectures seemed to have more 3's than 2's and GO's had fewer 1's than BC/RF</p>
 <p>#By Module</p>
 <pre class="r"><code># table form
 p_table(data, 
@@ -2323,7 +2324,7 @@ p_table(data,
 </tr>
 <tr class="even">
 <td></td>
-<td align="center">vitiligo - Wood’s lamp</td>
+<td align="center">vitiligo - Wood's lamp</td>
 <td align="center">1 (0.2)</td>
 <td align="center">0 (0.0)</td>
 <td align="center">3 (2.9)</td>
@@ -2346,7 +2347,7 @@ p_table(data,
 </div>
 </div>
 <div id="lots-of-diagnoses-so-lets-just-look-at-ones-with-at-least-five-pictures" class="section level2">
-<h2>lots of diagnoses… so let’s just look at ones with at least five pictures</h2>
+<h2>lots of diagnoses… so let's just look at ones with at least five pictures</h2>
 <pre class="r"><code>names(which(table(data$dx) &gt; 5))</code></pre>
 <pre><code>##  [1] &quot;acne vulgaris&quot;            &quot;atopic dermatitis&quot;        &quot;basal cell carcinoma&quot;     &quot;female pattern hair loss&quot;
 ##  [5] &quot;herpes simplex&quot;           &quot;male pattern hair loss&quot;   &quot;melanoma&quot;                 &quot;molluscum contagiosum&quot;   
@@ -2831,7 +2832,7 @@ p_table(dxs,
 </tbody>
 </table>
 <p>##the following have &gt;10% of images being of patients with FP V/VI skin type: ###acne, ###psorasis, ###pityriasis rosacea, ###rosacea, ###SJS/TEN, ###ulcer</p>
-<p>##that’s SIX diagnoses… out of the top 29… ###i.e., 20.7% of the top diagnoses have somewhat decent representation…</p>
+<p>##that's SIX diagnoses… out of the top 29… ###i.e., 20.7% of the top diagnoses have somewhat decent representation…</p>
 <p>##FP III/IV have a few more than that… but not by much: ###acne, ###atopic dermatitis ###molluscum contagiosum, ###nevus, ###pityriasis rosacea, ###psoriasis, ###purpura, ###rhus dermatitis ###rosacea, ###scabies, ###SJS/TEN, ###squamous cell carcinoma, ###tinea corporis, ###tinea versicolor, ###ulcer</p>
 <p>##15/29 of the top 29 diagnoses have over 10% of their images including someone of skin type III/IV ###51.72% – better, but still not where it should be ###Question is: what is the proportion of the population with these skin types? ###In other words: what should our cutoff for reasonable representation be?</p>
 <pre class="r"><code>#ignore this for now...
