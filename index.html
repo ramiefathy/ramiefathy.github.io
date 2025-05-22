@@ -13,7 +13,7 @@
         /* Apply Inter font globally */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f9fafb; /* Tailwind gray-50, slightly different shade for subtlety */
+            background-color: #f9fafb; /* Tailwind gray-50 */
             color: #1f2937; /* Tailwind gray-800 */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
@@ -25,71 +25,71 @@
             border-bottom: 3px solid #1d4ed8;
             padding-bottom: calc(0.75rem - 3px); /* Adjust padding to account for border */
         }
-         /* Styling for the dropdown parent when active */
-        .dropdown-active > span {
-             font-weight: 700;
-             color: #1d4ed8; /* blue-700 */
-             border-bottom: 3px solid #1d4ed8;
-             padding-bottom: calc(0.75rem - 3px);
+        /* Styling for the dropdown parent when active */
+        .dropdown-active > span { /* This styles the main "Research" text on desktop */
+            font-weight: 700;
+            color: #1d4ed8; /* blue-700 */
+            border-bottom: 3px solid #1d4ed8;
+            padding-bottom: calc(0.75rem - 3px);
         }
         /* Hover Tab Styling - Desktop */
         .nav-tab:not(.tab-active):not(.dropdown-active > span):hover {
-             color: #2563eb; /* blue-600 */
-             border-bottom: 3px solid #60a5fa; /* blue-400 for hover */
-             padding-bottom: calc(0.75rem - 3px);
+            color: #2563eb; /* blue-600 */
+            border-bottom: 3px solid #60a5fa; /* blue-400 for hover */
+            padding-bottom: calc(0.75rem - 3px);
         }
         /* Mobile Active Tab Styling */
         .mobile-tab-active {
-             background-color: #dbeafe; /* blue-100 */
-             color: #1e40af; /* blue-800 */
-             font-weight: 600;
+            background-color: #dbeafe; /* blue-100 */
+            color: #1e40af; /* blue-800 */
+            font-weight: 600;
         }
-         /* Mobile Dropdown Styling */
+        /* Mobile Dropdown Styling */
         .mobile-dropdown-item {
-            padding-left: 2.5rem;
+            padding-left: 2.5rem; /* Indent dropdown items */
             font-size: 0.9rem;
             color: #374151; /* gray-700 */
         }
-        .mobile-dropdown-item.mobile-tab-active {
-             background-color: #bfdbfe; /* blue-200 */
-             color: #1e3a8a; /* blue-900 */
+        .mobile-dropdown-item.mobile-tab-active { /* Specific active style for mobile dropdown items */
+            background-color: #bfdbfe; /* blue-200 */
+            color: #1e3a8a; /* blue-900 */
         }
         /* Style for content cards */
         .content-card {
             background-color: #ffffff;
             border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0,0,0,0.03); /* Softer, more spread shadow */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0,0,0,0.03);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
             height: 100%;
             border: 1px solid #e5e7eb; /* gray-200 */
-            overflow: hidden; /* To ensure rounded corners clip content */
+            overflow: hidden;
         }
         .content-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.07), 0 6px 12px rgba(0,0,0,0.05);
         }
-        .content-card-content { flex-grow: 1; padding: 1.5rem; } /* Added padding to content */
-        .content-card-header { /* For cards with icons */
+        .content-card-content { flex-grow: 1; padding: 1.5rem; }
+        .content-card-header {
             padding: 1rem 1.5rem;
             border-bottom: 1px solid #f3f4f6; /* gray-100 */
         }
         /* Section padding */
         .tab-content section { padding-top: 4rem; padding-bottom: 4rem; }
         /* Section title styling */
-        .section-title { color: #111827; /* gray-900 */ margin-bottom: 3.5rem; /* Increased margin */ font-weight: 800; /* Extra bold */ }
+        .section-title { color: #111827; margin-bottom: 3.5rem; font-weight: 800; }
         /* Sub-section title styling */
-         .subsection-title { color: #1e3a8a; /* blue-800 */ font-size: 1.375rem; /* Between text-xl and text-2xl */ font-weight: 700; margin-bottom: 1.75rem; padding-bottom: 0.75rem; border-bottom: 2px solid #93c5fd; /* blue-300 */ }
+        .subsection-title { color: #1e3a8a; font-size: 1.375rem; font-weight: 700; margin-bottom: 1.75rem; padding-bottom: 0.75rem; border-bottom: 2px solid #93c5fd; }
         /* Card title styling */
-        .card-title { color: #1e40af; /* blue-800 */ font-weight: 700; }
+        .card-title { color: #1e40af; font-weight: 700; }
         /* List styling inside cards/sections */
-        .data-list { font-size: 0.9rem; /* Slightly larger */ color: #374151; /* gray-700 */ line-height: 1.7; }
-        .data-list strong { color: #1f2937; /* gray-800 */ }
-         /* Publication Item Styling */
-        .publication-item { background-color: #f9fafb; /* gray-50 */ padding: 1.25rem 1.75rem; margin-bottom: 1.25rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03); transition: box-shadow 0.3s ease; }
+        .data-list { font-size: 0.9rem; color: #374151; line-height: 1.7; }
+        .data-list strong { color: #1f2937; }
+        /* Publication Item Styling */
+        .publication-item { background-color: #f9fafb; padding: 1.25rem 1.75rem; margin-bottom: 1.25rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03); transition: box-shadow 0.3s ease; }
         .publication-item:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-        .publication-title { font-weight: 700; color: #1e3a8a; /* blue-800 */ margin-bottom: 0.375rem; font-size: 1rem; }
+        .publication-title { font-weight: 700; color: #1e3a8a; margin-bottom: 0.375rem; font-size: 1rem; }
         .publication-authors { font-style: italic; color: #4b5563; margin-bottom: 0.375rem; font-size: 0.875rem; }
         .publication-details { color: #6b7280; font-size: 0.875rem; margin-bottom: 0.75rem; }
         .publication-link { color: #2563eb; font-weight: 600; font-size: 0.875rem; text-decoration: none; transition: color 0.2s; }
@@ -97,13 +97,14 @@
         /* Header styling */
         header { border-bottom: 1px solid #e5e7eb; background-color: #ffffff; }
         /* Footer styling */
-        footer { background-color: #111827; /* gray-900 */ color: #9ca3af; /* gray-400 */ }
+        footer { background-color: #111827; color: #9ca3af; }
         /* Basic responsive adjustments for navigation */
         @media (max-width: 768px) {
             #mobile-menu { display: none; }
             #mobile-menu.show { display: block; }
-            .tab-active, .dropdown-active > span { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
-            .nav-tab:not(.tab-active):not(.dropdown-active > span):hover { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+            /* Remove bottom border from desktop active styles on mobile */
+            .tab-active, .dropdown-active > span { border-bottom: none; padding-bottom: 0.75rem; /* Revert padding */ }
+            .nav-tab:not(.tab-active):not(.dropdown-active > span):hover { border-bottom: none; padding-bottom: 0.75rem; }
         }
         .hidden { display: none; }
         /* Dropdown specific styles */
@@ -111,14 +112,14 @@
         .dropdown .dropdown-menu {
             display: none;
             position: absolute;
-            top: calc(100% + 0.25rem); /* Ensure it's below the parent */
+            top: calc(100% + 0.25rem);
             left: 50%;
-            transform: translateX(-50%); /* Center the dropdown */
+            transform: translateX(-50%);
             background-color: white;
-            min-width: 200px; /* Wider dropdown */
-            box-shadow: 0px 10px 25px 0px rgba(0,0,0,0.1); /* More pronounced shadow */
+            min-width: 200px;
+            box-shadow: 0px 10px 25px 0px rgba(0,0,0,0.1);
             z-index: 50;
-            border-radius: 0.5rem; /* rounded-lg */
+            border-radius: 0.5rem;
             border: 1px solid #e5e7eb;
             padding-top: 0.5rem;
             padding-bottom: 0.5rem;
@@ -126,62 +127,60 @@
         .dropdown:hover .dropdown-menu { display: block; }
         .dropdown-menu a {
             color: #374151;
-            padding: 0.625rem 1.25rem; /* Adjusted padding */
+            padding: 0.625rem 1.25rem;
             text-decoration: none;
             display: block;
             font-size: 0.9rem;
             transition: background-color 0.2s ease, color 0.2s ease;
         }
-        .dropdown-menu a:hover {
+        .dropdown-menu a:hover, .dropdown-menu a.tab-active { /* Style active tab in desktop dropdown */
             background-color: #eff6ff; /* blue-50 */
             color: #1d4ed8; /* blue-700 */
         }
-         /* Mobile Dropdown Toggle */
+        /* Mobile Dropdown Toggle */
         .mobile-dropdown-toggle + .mobile-dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .mobile-dropdown-toggle.open + .mobile-dropdown-content { max-height: 500px; transition: max-height 0.5s ease-in; }
+        .mobile-dropdown-toggle.open + .mobile-dropdown-content { max-height: 500px; /* Adjust as needed */ transition: max-height 0.5s ease-in; }
         /* Styling for Applications list items */
         .application-item {
-            background-color: #f9fafb; /* gray-50 */
+            background-color: #f9fafb;
             padding: 1rem 1.25rem;
             border: 1px solid #e5e7eb;
-            border-radius: 0.5rem; /* rounded-lg */
+            border-radius: 0.5rem;
             margin-bottom: 0.75rem;
             transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
         }
         .application-item:hover {
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            border-color: #93c5fd; /* blue-300 */
+            border-color: #93c5fd;
         }
-        .application-item a { color: #1e40af; /* blue-800 */ font-weight: 600; }
+        .application-item a { color: #1e40af; font-weight: 600; }
         .application-item a:hover { text-decoration: underline; color: #1d4ed8; }
         /* About section specific styling */
         .about-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; }
         .about-card {
             background-color: #fff;
-            padding: 2rem; /* Increased padding */
-            border-radius: 0.75rem; /* rounded-xl */
+            padding: 2rem;
+            border-radius: 0.75rem;
             border: 1px solid #e5e7eb;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
-        .about-card h3 { font-size: 1.25rem; font-weight: 700; color: #1e3a8a; /* blue-800 */ margin-bottom: 1rem; }
-        .about-card p, .about-card li { font-size: 0.9rem; color: #374151; /* gray-700 */ line-height: 1.7; }
+        .about-card h3 { font-size: 1.25rem; font-weight: 700; color: #1e3a8a; margin-bottom: 1rem; }
+        .about-card p, .about-card li { font-size: 0.9rem; color: #374151; line-height: 1.7; }
         .about-card ul { list-style-type: disc; padding-left: 1.25rem; margin-top: 0.75rem; }
-        .about-card ul ul { margin-top: 0.25rem; } /* Nested list margin */
+        .about-card ul ul { margin-top: 0.25rem; }
         /* Skills section specific styling */
         .skill-category-title {
-            font-weight: 700; /* Bold */
-            color: #1e40af; /* blue-800 */
-            margin-top: 1rem; /* Space above category title */
+            font-weight: 700;
+            color: #1e40af;
+            margin-top: 1rem;
             margin-bottom: 0.5rem;
-            font-size: 1rem; /* text-base */
+            font-size: 1rem;
         }
-        .skill-category-title:first-child {
-            margin-top: 0; /* No top margin for the first category */
-        }
+        .skill-category-title:first-child { margin-top: 0; }
         .skills-list {
             list-style-type: disc;
-            padding-left: 1.5rem; /* Indent bullets */
-            color: #374151; /* gray-700 */
+            padding-left: 1.5rem;
+            color: #374151;
             font-size: 0.9rem;
             line-height: 1.7;
         }
@@ -192,20 +191,16 @@
             border-radius: 0.75rem;
             border: 1px solid #e5e7eb;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            margin-top: 2rem; /* Space above the awards section */
+            margin-top: 2rem;
         }
         .awards-category-title {
-            font-size: 1.125rem; /* text-lg */
+            font-size: 1.125rem;
             font-weight: 700;
-            color: #1e3a8a; /* blue-800 */
+            color: #1e3a8a;
             margin-bottom: 0.75rem;
             margin-top: 1.5rem;
         }
-        .awards-category-title:first-child {
-            margin-top: 0;
-        }
-
-
+        .awards-category-title:first-child { margin-top: 0; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased">
@@ -214,11 +209,11 @@
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <div class="text-2xl font-bold text-blue-700">Ramie Fathy, MD</div>
             <div class="hidden md:flex space-x-8 items-center h-full">
-                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="home">Home</a>
-                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="about">About</a>
-                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="clinical">Clinical</a>
+                <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="home">Home</a>
+                <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="about">About</a>
+                <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="clinical">Clinical</a>
                 <div class="dropdown h-full flex items-center" data-dropdown-parent="research,ongoing-projects,publications">
-                    <span class="text-gray-700 hover:text-blue-600 cursor-pointer h-full flex items-center transition duration-200 ease-in-out nav-tab">
+                    <span class="text-gray-700 cursor-pointer h-full flex items-center transition duration-200 ease-in-out nav-tab py-3">
                         Research <i class="fas fa-chevron-down fa-xs ml-1"></i>
                     </span>
                     <div class="dropdown-menu">
@@ -227,10 +222,10 @@
                         <a href="#" class="nav-tab" data-target="publications">Publications</a>
                     </div>
                 </div>
-                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="leadership">Leadership & Writing</a>
-                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="applications">Tools & Applications</a>
-                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="skills">Skills & Interests</a>
-                <a href="#" class="text-gray-700 hover:text-blue-600 h-full flex items-center transition duration-200 ease-in-out nav-tab" data-target="contact">Contact</a>
+                <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="leadership">Leadership & Writing</a>
+                <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="applications">Tools & Applications</a>
+                <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="skills">Skills & Interests</a>
+                <a href="#" class="text-gray-700 h-full flex items-center transition duration-200 ease-in-out nav-tab py-3" data-target="contact">Contact</a>
             </div>
             <div class="md:hidden">
                 <button id="mobile-menu-button" class="text-gray-500 hover:text-blue-600 focus:outline-none">
@@ -243,15 +238,14 @@
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="about">About</a>
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="clinical">Clinical</a>
             <div>
-                 <button class="mobile-dropdown-toggle w-full text-left flex justify-between items-center px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out" data-dropdown-parent="research,ongoing-projects,publications">
-                     <span>Research</span>
-                     <i class="fas fa-chevron-down fa-xs transform transition-transform duration-300"></i>
-                 </button>
-                 <div class="mobile-dropdown-content">
-                     <a href="#" class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab mobile-dropdown-item" data-target="research">Overview</a>
-                     <a href="#" class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab mobile-dropdown-item" data-target="ongoing-projects">Ongoing Projects</a>
-                     <a href="#" class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab mobile-dropdown-item" data-target="publications">Publications</a>
-                 </div>
+                <button class="mobile-dropdown-toggle w-full text-left flex justify-between items-center px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out" data-dropdown-parent="research,ongoing-projects,publications">
+                    <span>Research</span>
+                    <i class="fas fa-chevron-down fa-xs transform transition-transform duration-300"></i>
+                </button>
+                <div class="mobile-dropdown-content bg-gray-50"> <a href="#" class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab mobile-dropdown-item" data-target="research">Overview</a>
+                    <a href="#" class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab mobile-dropdown-item" data-target="ongoing-projects">Ongoing Projects</a>
+                    <a href="#" class="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab mobile-dropdown-item" data-target="publications">Publications</a>
+                </div>
             </div>
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="leadership">Leadership & Writing</a>
             <a href="#" class="block px-6 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition duration-200 ease-in-out nav-tab" data-target="applications">Tools & Applications</a>
@@ -294,21 +288,22 @@
                         </div>
                     </div>
 
-                    <div class="about-grid mb-12"> <div class="about-card">
+                    <div class="about-grid mb-12">
+                        <div class="about-card">
                             <h3>Education</h3>
-                            <ul id="education-list"></ul>
+                            <ul id="education-list" class="data-list"></ul>
                         </div>
                         <div class="about-card">
                             <h3>Professional Appointments</h3>
-                             <ul id="appointments-list"></ul>
+                            <ul id="appointments-list" class="data-list"></ul>
                         </div>
-                         <div class="about-card">
+                        <div class="about-card">
                             <h3>Licensure & Certifications</h3>
-                            <ul id="licensure-list"></ul>
+                            <ul id="licensure-list" class="data-list"></ul>
                         </div>
                         <div class="about-card">
                             <h3>Key Affiliations & Memberships</h3>
-                            <ul id="affiliations-list"></ul>
+                            <ul id="affiliations-list" class="data-list"></ul>
                         </div>
                     </div>
                     <div class="awards-section">
@@ -320,9 +315,8 @@
             </section>
         </div>
 
-
         <div id="content-clinical" class="tab-content hidden">
-             <section class="bg-white rounded-xl shadow-lg border border-gray-200">
+            <section class="bg-white rounded-xl shadow-lg border border-gray-200">
                 <div class="container mx-auto px-6 md:px-10 py-10">
                     <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Clinical Experience & Interests</h2>
                     <div class="flex flex-col md:flex-row items-center gap-12">
@@ -338,7 +332,7 @@
                             <p class="text-gray-700 mb-6 leading-relaxed">
                                 My interests within dermatology include medical dermatology, epidemiology, the impact of environmental factors like climate change on skin health, teledermatology, applications of AI in clinical practice, and exploring integrative approaches to patient care. I am an active member of the Rheumatology-Dermatology Society, Medical Dermatology Society, and Society of Dermatology Hospitalists.
                             </p>
-                             <a href="https://www.hopkinsmedicine.org/dermatology/" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group">
+                            <a href="https://www.hopkinsmedicine.org/dermatology/" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group">
                                 Learn More About Johns Hopkins Dermatology <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform duration-200"></i>
                             </a>
                         </div>
@@ -348,22 +342,21 @@
         </div>
 
         <div id="content-research" class="tab-content hidden">
-            <section class="bg-gray-50 rounded-xl shadow-lg border border-gray-200">
-                <div class="container mx-auto px-6 md:px-10 py-10">
+            <section class="bg-gray-50 rounded-xl shadow-lg border border-gray-200"> <div class="container mx-auto px-6 md:px-10 py-10">
                     <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Research Overview & Experience</h2>
                     <div class="max-w-4xl mx-auto">
-                         <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200 mb-10">
+                        <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200 mb-10">
                             <h4 class="text-2xl font-semibold card-title mb-5">Past Research Fellowships & Projects</h4>
-                             <div id="research-past-list"></div>
+                            <div id="research-past-list"></div>
                         </div>
-                         <div class="text-center mt-12 space-x-6">
-                             <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group nav-tab text-lg" data-target="ongoing-projects">
+                        <div class="text-center mt-12 space-x-4 sm:space-x-6">
+                            <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group nav-tab text-lg" data-target="ongoing-projects">
                                 View Ongoing Projects <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform duration-200"></i>
                             </a>
-                             <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group nav-tab text-lg" data-target="publications">
-                                View Detailed Publications List <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform duration-200"></i>
+                            <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group nav-tab text-lg" data-target="publications">
+                                View Publications <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform duration-200"></i>
                             </a>
-                         </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -374,15 +367,15 @@
                 <div class="container mx-auto px-6 md:px-10 py-10">
                     <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Ongoing Projects</h2>
                     <div class="max-w-4xl mx-auto">
-                         <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200 mb-10">
+                        <div class="bg-white p-8 rounded-xl shadow-md border border-gray-200 mb-10">
                             <h4 class="text-2xl font-semibold card-title mb-5">Current Research (Johns Hopkins / Glass Health)</h4>
                             <div id="research-ongoing-list"></div>
                         </div>
-                         <div class="text-center mt-12">
-                             <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group nav-tab text-lg" data-target="publications">
+                        <div class="text-center mt-12">
+                            <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center transition duration-300 group nav-tab text-lg" data-target="publications">
                                 View Detailed Publications List <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform duration-200"></i>
                             </a>
-                         </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -395,12 +388,13 @@
                     <p class="text-lg text-gray-700 text-center max-w-3xl mx-auto mb-12 leading-relaxed">
                         Selected publications organized by topic. For a complete list, please visit Google Scholar.
                     </p>
-                    <div id="publications-by-topic" class="max-w-4xl mx-auto space-y-12"></div>
+                    <div id="publications-by-topic" class="max-w-4xl mx-auto space-y-12">
+                        </div>
                     <div class="text-center mt-16">
-                         <a href="https://scholar.google.com/citations?user=Pb_Ht9cAAAAJ&hl=en" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg text-md transition duration-300 ease-in-out inline-flex items-center shadow hover:shadow-md transform hover:-translate-y-0.5">
+                        <a href="https://scholar.google.com/citations?user=Pb_Ht9cAAAAJ&hl=en" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg text-md transition duration-300 ease-in-out inline-flex items-center shadow hover:shadow-md transform hover:-translate-y-0.5">
                             View Full List on Google Scholar <i class="fas fa-external-link-alt ml-2"></i>
                         </a>
-                     </div>
+                    </div>
                 </div>
             </section>
         </div>
@@ -414,24 +408,24 @@
                     </p>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
                         <div class="content-card">
-                             <div class="content-card-header text-center"><i class="fas fa-users text-5xl text-purple-600 mb-3"></i></div>
+                            <div class="content-card-header text-center"><i class="fas fa-users text-5xl text-purple-600 mb-3"></i></div>
                             <div class="content-card-content">
                                 <h4 class="text-2xl font-semibold card-title mb-4 text-center">Leadership & Service</h4>
                                 <div id="leadership-list"></div>
                             </div>
                         </div>
-                         <div class="content-card">
-                             <div class="content-card-header text-center"><i class="fas fa-pencil-alt text-5xl text-green-600 mb-3"></i></div>
+                        <div class="content-card">
+                            <div class="content-card-header text-center"><i class="fas fa-pencil-alt text-5xl text-green-600 mb-3"></i></div>
                             <div class="content-card-content">
                                 <h4 class="text-2xl font-semibold card-title mb-4 text-center">Writing & Contributions</h4>
                                 <div id="writing-list"></div>
                             </div>
                         </div>
                         <div class="content-card">
-                             <div class="content-card-header text-center"><i class="fas fa-podcast text-5xl text-red-600 mb-3"></i></div>
+                            <div class="content-card-header text-center"><i class="fas fa-podcast text-5xl text-red-600 mb-3"></i></div>
                             <div class="content-card-content">
                                 <h4 class="text-2xl font-semibold card-title mb-4 text-center">Podcasting & Radio</h4>
-                                 <div id="media-list"></div>
+                                <div id="media-list"></div>
                             </div>
                         </div>
                     </div>
@@ -446,7 +440,8 @@
                     <p class="text-lg text-gray-700 text-center max-w-3xl mx-auto mb-16 leading-relaxed">
                         A collection of tools and applications I have developed or contributed to.
                     </p>
-                    <div id="applications-categorized-list" class="max-w-3xl mx-auto space-y-12"></div>
+                    <div id="applications-categorized-list" class="max-w-3xl mx-auto space-y-12">
+                        </div>
                 </div>
             </section>
         </div>
@@ -455,20 +450,22 @@
             <section class="bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 rounded-xl shadow-lg border border-gray-200">
                 <div class="container mx-auto px-6 md:px-10 py-10">
                     <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Skills & Personal Interests</h2>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto mb-12">
-                         <div class="content-card">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto mb-12">
+                        <div class="content-card">
                             <div class="content-card-header text-center"><i class="fas fa-laptop-code text-5xl text-blue-600 mb-3"></i></div>
                             <div class="content-card-content">
                                 <h4 class="text-2xl font-semibold text-gray-800 mb-4 text-center">Skills</h4>
-                                 <div id="skills-categorized-list"></div>
-                             </div>
-                         </div>
-                         <div class="content-card">
-                            <div class="content-card-header text-center"><i class="fas fa-palette text-5xl text-orange-500 mb-3"></i></div> <div class="content-card-content">
+                                <div id="skills-categorized-list"></div>
+                            </div>
+                        </div>
+                        <div class="content-card">
+                            <div class="content-card-header text-center"><i class="fas fa-palette text-5xl text-orange-500 mb-3"></i></div>
+                            <div class="content-card-content">
                                 <h4 class="text-2xl font-semibold text-gray-800 mb-4 text-center">Hobbies</h4>
-                                 <div id="hobbies-list"></div> </div>
-                         </div>
-                     </div>
+                                <div id="hobbies-list"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
@@ -481,14 +478,14 @@
                         You can view my professional profiles and publications via the links below. Please note that medical advice cannot be provided through these channels.
                     </p>
                     <div class="bg-gray-100 p-10 rounded-xl border border-gray-200 text-center">
-                         <div class="flex justify-center space-x-10">
+                        <div class="flex justify-center space-x-10">
                             <a href="https://scholar.google.com/citations?user=Pb_Ht9cAAAAJ&hl=en" target="_blank" title="Google Scholar" class="text-gray-500 hover:text-blue-600 transition duration-300 transform hover:scale-110">
                                 <i class="fas fa-graduation-cap fa-3x"></i>
                             </a>
                             <a href="https://www.researchgate.net/profile/Ramie-Fathy-2" target="_blank" title="ResearchGate" class="text-gray-500 hover:text-green-600 transition duration-300 transform hover:scale-110">
                                 <i class="fab fa-researchgate fa-3x"></i>
                             </a>
-                         </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -496,7 +493,8 @@
 
     </main>
 
-    <footer class="bg-gray-900 text-gray-400 py-10 mt-16"> <div class="container mx-auto px-6 text-center">
+    <footer class="bg-gray-900 text-gray-400 py-10 mt-16">
+        <div class="container mx-auto px-6 text-center">
             <p>&copy; <span id="current-year"></span> Ramie Fathy, MD. All Rights Reserved.</p>
             <p class="text-sm mt-2 text-gray-500">Website design enhanced.</p>
         </div>
@@ -511,11 +509,11 @@
             { description: "Assessing the effect of GLP-1 agonists on psoriasis and hidradenitis suppurativa severity." }
         ];
         const pastResearchItems = [
-             { title: "Harvard Medical School (Research Fellow, 2021-2022)", description: "Characterized cutaneous reactions to COVID-19 vaccines using the international registry (PI: Dr. Esther Freeman)." },
-             { title: "University of Pennsylvania (Clinical Researcher, 2020-2022)", description: "Analyzed representation of skin of color in educational materials and studied dermatology influencers on social media (PI: Dr. Jules Lipoff)." },
-             { title: "UCSF Breast Care Center (Clinical Researcher, 2016-2017)", description: "Analyzed proton therapy efficacy and genetic factors in radiation response; served in Patient Support Corps and Ask Your Pathologist programs." },
-             { title: "Princeton University (Senior Thesis, 2014-2016)", description: "Investigated neural mechanisms of courtship behavior in *Drosophila melanogaster* using optogenetics (PI: Dr. Mala Murthy)." },
-             { title: "Naguru Teenage Information and Health Centre, Uganda (2018)", description: "Conducted hearing screens for adolescents." }
+            { title: "Harvard Medical School (Research Fellow, 2021-2022)", description: "Characterized cutaneous reactions to COVID-19 vaccines using the international registry (PI: Dr. Esther Freeman)." },
+            { title: "University of Pennsylvania (Clinical Researcher, 2020-2022)", description: "Analyzed representation of skin of color in educational materials and studied dermatology influencers on social media (PI: Dr. Jules Lipoff)." },
+            { title: "UCSF Breast Care Center (Clinical Researcher, 2016-2017)", description: "Analyzed proton therapy efficacy and genetic factors in radiation response; served in Patient Support Corps and Ask Your Pathologist programs." },
+            { title: "Princeton University (Senior Thesis, 2014-2016)", description: "Investigated neural mechanisms of courtship behavior in *Drosophila melanogaster* using optogenetics (PI: Dr. Mala Murthy)." },
+            { title: "Naguru Teenage Information and Health Centre, Uganda (2018)", description: "Conducted hearing screens for adolescents." }
         ];
         const leadershipItems = [
             { description: "Vice President of Resident Affairs, Johns Hopkins House Staff Council" },
@@ -527,9 +525,9 @@
             { description: "Patient Advocate, UCSF Patient Support Corps" }
         ];
         const writingItems = [
-             { description: "Contributor, Practical Dermatology (Articles on AI, conference summaries)" },
-             { description: "Writer/Editor/Producer, ABC News (COVID-19, vaccines, climate change articles; script vetting)" },
-             { description: "Contributor, Medscape (Articles on public perception, medical education, mentorship)" },
+            { description: "Contributor, Practical Dermatology (Articles on AI, conference summaries)" },
+            { description: "Writer/Editor/Producer, ABC News (COVID-19, vaccines, climate change articles; script vetting)" },
+            { description: "Contributor, Medscape (Articles on public perception, medical education, mentorship)" },
         ];
         const mediaItems = [
             { description: "Producer, Carry the One Radio (UCSF) - Episodes on neuroscience of music, FDA-approved games." },
@@ -539,32 +537,10 @@
 
         // Data for About Tab
         const educationItems = [
-            {
-                degree: "MD",
-                institution: "Perelman School of Medicine, University of Pennsylvania (2017–2022)",
-                honors: [
-                    "Twenty-First Century Gamble Endowed Scholar (Full-tuition)",
-                    "Walter Lewis Croll Scholarship",
-                    "Alpha Omega Alpha Honors Society"
-                ]
-            },
-            {
-                degree: "BA, Molecular Biology",
-                institution: "Princeton University (2012–2016)",
-                honors: [
-                    "Summa Cum Laude",
-                    "Phi Beta Kappa Academic Honor Society",
-                    "Sigma Xi Scientific Research Honor Society",
-                    "Henrietta S. Treen Scholarship Awardee"
-                ]
-            },
-            {
-                degree: "High School",
-                institution: "Farragut High School, TN (2008–2012)",
-                honors: ["Valedictorian", "Class President"]
-            }
+            { degree: "MD", institution: "Perelman School of Medicine, University of Pennsylvania (2017–2022)", honors: ["Twenty-First Century Gamble Endowed Scholar (Full-tuition)", "Walter Lewis Croll Scholarship", "Alpha Omega Alpha Honors Society"] },
+            { degree: "BA, Molecular Biology", institution: "Princeton University (2012–2016)", honors: ["Summa Cum Laude", "Phi Beta Kappa Academic Honor Society", "Sigma Xi Scientific Research Honor Society", "Henrietta S. Treen Scholarship Awardee"] },
+            { degree: "High School", institution: "Farragut High School, TN (2008–2012)", honors: ["Valedictorian", "Class President"] }
         ];
-
         const appointmentItems = [
             { role: "Dermatology Resident Physician", institution: "Johns Hopkins Hospital (2023–Present)" },
             { role: "AI Clinical Fellow and Project Lead", institution: "Glass Health (2023-2025)" },
@@ -572,66 +548,29 @@
             { role: "Research Fellow in Dermatology", institution: "Harvard Medical School (2021–2022)" },
             { role: "Clinical Researcher and Patient Advocate", institution: "UCSF Breast Care Center (2016–2017)" }
         ];
-
-        const licensureItems = [
-            { item: "Medical License: Pennsylvania, Maryland" },
-            { item: "Basic Life Support (BLS)" },
-            { item: "Advance Cardiovascular Life Support (ACLS)" }
-        ];
-
-        const affiliationItems = [
-            { item: "Council of Science and Research, American Academy of Dermatology (2025-2027)" },
-            { item: "Rheumatology-Dermatology Society" },
-            { item: "Medical Dermatology Society" },
-            { item: "American Academy of Dermatology" },
-            { item: "Society of Dermatology Hospitalists" }
-        ];
-
-        const awardsData = [ // Updated structure for categorization
+        const licensureItems = [ { item: "Medical License: Pennsylvania, Maryland" }, { item: "Basic Life Support (BLS)" }, { item: "Advance Cardiovascular Life Support (ACLS)" } ];
+        const affiliationItems = [ { item: "Council of Science and Research, American Academy of Dermatology (2025-2027)" }, { item: "Rheumatology-Dermatology Society" }, { item: "Medical Dermatology Society" }, { item: "American Academy of Dermatology" }, { item: "Society of Dermatology Hospitalists" } ];
+        const awardsData = [
             { category: "Residency", description: "Maryland Dermatologic Society Resident Research Grant (to support a study investigating whether the Apple Vision Pro can be used for 3D remote dermatologic assessment)" },
             { category: "Residency", description: "Kenvue and L’Oreal Resident Scholarship to attend the 2024 Science of Skincare Summit" },
             { category: "Residency", description: "Best Lecture Award: Dermatopharmacology: Systemic Immunomodulators, Johns Hopkins Department of Dermatology (2024)"},
-            { category: "Residency", description: "Best Lecture Award: NF1/TSC Lecture, Johns Hopkins Department of Dermatology (2025)"}, // New Award
+            { category: "Residency", description: "Best Lecture Award: NF1/TSC Lecture, Johns Hopkins Department of Dermatology (2025)"},
             { category: "Medical School", description: "Best Abstract Award: American Healthcare Social Media Conference (2020)"},
             { category: "Medical School", description: "First Place, Clinical Vignette Poster, American College of Physicians (2019)"},
             { category: "Medical School", description: "FOCUS Women's Health Research Grant: Awarded for COVID-19- and COVID-Vaccine Related Research (2021-2022)"},
             { category: "Undergraduate", description: "Stanford Undergraduate Research Conference Stipend Recipient (2016)"},
-            { category: "Other", description: "United States Senate Youth Program Scholar (2011)"} // Assuming 'Other' or 'Pre-College'
+            { category: "Other", description: "United States Senate Youth Program Scholar (2011)"}
         ];
-
 
         // Data for Skills Tab
         const skillsData = [
-            {
-                category: "Languages",
-                items: ["English (Native)", "Arabic (Conversational)", "Spanish (Advanced)"]
-            },
-            {
-                category: "Technical",
-                items: ["Python (Intermediate)", "R (Proficient)"]
-            },
-            {
-                category: "Media",
-                items: ["Podcasting (Drafting, interviewing, recording, editing - Intermediate)"]
-            }
+            { category: "Languages", items: ["English (Native)", "Arabic (Conversational)", "Spanish (Advanced)"] },
+            { category: "Technical", items: ["Python (Intermediate)", "R (Proficient)"] },
+            { category: "Media", items: ["Podcasting (Drafting, interviewing, recording, editing - Intermediate)"] }
         ];
-        // Data for Hobbies
-        const hobbiesData = [
-            { name: "Writing" },
-            { name: "Photography", link: "photography.html" }, // Link for photography
-            { name: "Guitar" },
-            { name: "Live Music / Concerts" },
-            { name: "Board Games" },
-            { name: "Cooking" },
-            { name: "Travel" },
-            { name: "Pickleball" },
-            { name: "Tennis" },
-            { name: "Hiking" }
-        ];
-
+        const hobbiesData = [ { name: "Writing" }, { name: "Photography", link: "photography.html" }, { name: "Guitar" }, { name: "Live Music / Concerts" }, { name: "Board Games" }, { name: "Cooking" }, { name: "Travel" }, { name: "Pickleball" }, { name: "Tennis" }, { name: "Hiking" } ];
 
         const publicationsData = [
-            // --- AI / Social Media / Teledermatology ---
             { topic: "AI / Social Media / Teledermatology", title: "Comparative Assessment of GPT-4 Vision in Dermoscopic Image Analysis", authors: "Tadros, A., Zhuo, W., Fathy, R., et al.", details: "In Preparation.", link: null },
             { topic: "AI / Social Media / Teledermatology", title: "Patterns of Promotional Content by Dermatology Influencers on TikTok", authors: "Ranpariya VK, Fathy R, Chu B, Wang S, Lipoff JB.", details: "JMIR dermatology. 2022 Mar 30;5(1):e34935.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Patterns+of+Promotional+Content+by+Dermatology+Influencers+on+TikTok&btnG=" },
             { topic: "AI / Social Media / Teledermatology", title: "Comparing antibiotic prescription rates between in-person and telemedicine visits", authors: "Fathy R, Briker S, Rodriguez O, Barbieri JS.", details: "Journal of the American Academy of Dermatology. 2021 Sep 6;87(2):438.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Comparing+antibiotic+prescription+rates+between+in-person+and+telemedicine+visits&btnG=" },
@@ -640,64 +579,50 @@
             { topic: "AI / Social Media / Teledermatology", title: "Patient crowdsourcing of dermatologic consults on a Reddit social media community", authors: "Chu, B., Fathy, R., et al.", details: "Journal of the American Academy of Dermatology 85.1 (2021): 226.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Patient+crowdsourcing+of+dermatologic+consults+on+a+Reddit+social+media+community&btnG=" },
             { topic: "AI / Social Media / Teledermatology", title: "Instagram influencer definitions and the need for dermatologist engagement on social media", authors: "Ranpariya V, Chu B, Fathy R, Lipoff JB.", details: "Journal of the American Academy of Dermatology. 2020 Dec 1;83(6):e449-50.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Instagram+influencer+definitions+and+the+need+for+dermatologist+engagement+on+social+media&btnG=" },
             { topic: "AI / Social Media / Teledermatology", title: "Dermatology without dermatologists? Analyzing Instagram influencers with dermatology-related hashtags", authors: "Ranpariya, V., Fathy, R., et al.", details: "Journal of the American Academy of Dermatology 83.6 (2020): 1840-1842.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Dermatology+without+dermatologists%3F+Analyzing+Instagram+influencers&btnG=" },
-            // --- COVID-19 ---
             { topic: "COVID-19", title: "Pediatric teledermatology: a retrospective review of 1199 encounters during the COVID-19 pandemic", authors: "Havele SA, Fathy R, McMahon P, Murthy AS.", details: "Journal of the American Academy of Dermatology. 2022 Sep 1;87(3):678-80.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Pediatric+teledermatology%3A+a+retrospective+review+of+1199+encounters+during+the+COVID-19+pandemic&btnG=" },
             { topic: "COVID-19", title: "Skin reactions to COVID-19 vaccines: an American Academy of Dermatology/International League of Dermatological Societies registry update on reaction location and COVID vaccine type", authors: "Freeman EE, Sun Q, McMahon DE, Singh R, Fathy R, Tyagi A, Blumenthal K, Hruza GJ, French LE, Fox LP.", details: "Journal of the American Academy of Dermatology. 2022 Apr 1;86(4):e165-7.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Skin+reactions+to+COVID-19+vaccines%3A+an+American+Academy+of+Dermatology%2FInternational+League+of+Dermatological+Societies+registry+update&btnG=" },
             { topic: "COVID-19", title: "Clinical and pathologic correlation of cutaneous COVID-19 vaccine reactions including V-REPP: a registry-based study", authors: "McMahon, Devon E., et al.", details: "Journal of the American Academy of Dermatology 86.1 (2022): 113-121.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Clinical+and+pathologic+correlation+of+cutaneous+COVID-19+vaccine+reactions+including+V-REPP&btnG=" },
             { topic: "COVID-19", title: "COVID-19 vaccines and the skin: the landscape of cutaneous vaccine reactions worldwide", authors: "Sun Q, Fathy R, McMahon DE, Freeman EE.", details: "Dermatologic clinics. 2021 Oct 1;39(4):653-73.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=COVID-19+vaccines+and+the+skin%3A+the+landscape+of+cutaneous+vaccine+reactions+worldwide&btnG=" },
             { topic: "COVID-19", title: "Subepidermal blistering eruptions, including bullous pemphigoid, following COVID-19 vaccination", authors: "Tomayko MM, Damsky W, Fathy R, McMahon DE, Turner N, Valentin MN, Rallis T, Aivaz O, Fox LP, Freeman EE.", details: "Journal of Allergy and Clinical Immunology. 2021 Sep 1;148(3):750-1.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Subepidermal+blistering+eruptions%2C+including+bullous+pemphigoid%2C+following+COVID-19+vaccination&btnG=" },
-            // --- Climate Change / Environmental Dermatology ---
             { topic: "Climate Change / Environmental Dermatology", title: "Increased ambient outdoor temperatures are associated with increased disease flaring in hidradenitis suppurativa", authors: "Singh R, Fathy R, Kassamali B, Noe MH, Barbieri JS, LaChance A, Charrow AP.", details: "Archives of Dermatological Research. 2023 Dec 18;316(1):49.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Increased+ambient+outdoor+temperatures+are+associated+with+increased+disease+flaring+in+hidradenitis+suppurativa&btnG=" },
             { topic: "Climate Change / Environmental Dermatology", title: "Climate Change and Cost-Effective Strategies to Reduce Dermatology’s Carbon Footprint", authors: "Fathy R, Chu B, Barbieri JS.", details: "Int J Womens Dermatol. 2021.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Climate+Change+and+Cost-Effective+Strategies+to+Reduce+Dermatology%E2%80%99s+Carbon+Footprint&btnG=" },
             { topic: "Climate Change / Environmental Dermatology", title: "Climate change and inpatient dermatology", authors: "Fathy R, Rosenbach M.", details: "Current dermatology reports. 2020 Dec;9:201-9.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Climate+change+and+inpatient+dermatology&btnG=" },
-            // --- Merkel Cell Carcinoma / Oncology ---
             { topic: "Merkel Cell Carcinoma / Oncology", title: "Sentinel lymph node biopsy in Merkel cell carcinoma: rates and predictors of compliance with the National Comprehensive Cancer Network guidelines", authors: "Lewis DJ, Fathy RA, Nugent S, Etzkorn JR, Sobanko JF, Shin TM, Giordano CN, McMurray SL, Walker JL, Zhang J, Miller CJ.", details: "Journal of the American Academy of Dermatology. 2023 Feb;88(2):448-50.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Sentinel+lymph+node+biopsy+in+Merkel+cell+carcinoma%3A+rates+and+predictors+of+compliance&btnG=" },
             { topic: "Merkel Cell Carcinoma / Oncology", title: "Talimogene Laherparepvec for Advanced Stage Merkel Cell Carcinoma: Therapeutic Role and Immunologic Mechanisms", authors: "Farr MA, Joshi TP, Fathy RA, Lewis DJ.", details: "Skinmed. 2023;21(3):153-5.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Talimogene+Laherparepvec+for+Advanced+Stage+Merkel+Cell+Carcinoma&btnG=" },
             { topic: "Merkel Cell Carcinoma / Oncology", title: "Therapeutic targets for vaccination in polyomavirus‐driven Merkel cell carcinoma", authors: "Joshi TP, Farr MA, Hsiou DA, Nugent S, Fathy RA, Lewis DJ.", details: "Dermatologic Therapy. 2022 Jul 1;35(7).", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Therapeutic+targets+for+vaccination+in+polyomavirus%E2%80%90driven+Merkel+cell+carcinoma&btnG=" },
-             // --- Head & Neck / Skull Base Surgery / Oncology ---
             { topic: "Head & Neck / Skull Base Surgery / Oncology", title: "Association of type of treatment facility with overall survival after a diagnosis of head and neck cancer", authors: "Carey RM, Fathy R, Shah RR, Rajasekaran K, Cannady SB, Newman JG, Ibrahim SA, Brant JA.", details: "JAMA Network Open. 2020 Jan 3;3(1):e1919697-.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Association+of+type+of+treatment+facility+with+overall+survival+after+a+diagnosis+of+head+and+neck+cancer&btnG=" },
             { topic: "Head & Neck / Skull Base Surgery / Oncology", title: "Predictors of nodal metastasis in sinonasal squamous cell carcinoma: A national cancer database analysis", authors: "Ranasinghe VJ, Stubbs VC, Reny DC, Fathy R, Brant JA, Newman JG.", details: "World Journal of Otorhinolaryngology-Head and Neck Surgery. 2020 Jun 1;6(2):137-41.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Predictors+of+nodal+metastasis+in+sinonasal+squamous+cell+carcinoma&btnG=" },
             { topic: "Head & Neck / Skull Base Surgery / Oncology", title: "Recent trends in vestibular schwannoma management: an 11-year analysis of the National Cancer Database", authors: "Torres Maldonado S, Naples JG, Fathy R, Eliades SJ, Lee JY, Brant JA, Ruckenstein MJ.", details: "Otolaryngology–Head and Neck Surgery. 2019 Jul;161(1):137-43.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Recent+trends+in+vestibular+schwannoma+management&btnG=" },
             { topic: "Head & Neck / Skull Base Surgery / Oncology", title: "Temporal Trends in the Use of Radiation Therapy for the Treatment of Pituitary Adenoma in the National Cancer Database", authors: "Fathy RA, Kuan EC, Lee JY, Grady MS, Alonso-Basanta M, Palmer JN, Adappa ND, O'Malley Jr BW, Brant JA.", details: "Journal of Neurological Surgery Part B: Skull Base. 2019 Feb;80(S 01):A183.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Temporal+Trends+in+the+Use+of+Radiation+Therapy+for+the+Treatment+of+Pituitary+Adenoma&btnG=" },
             { topic: "Head & Neck / Skull Base Surgery / Oncology", title: "Sinonasal Solitary Fibrous Tumor: A Review of the National Cancer Database", authors: "Triantafillou V, Fathy R, Kuan EC, Palmer JN, Adappa ND, Brant JA.", details: "Journal of Neurological Surgery Part B: Skull Base. 2019 Feb;80(S 01):P095.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Sinonasal+Solitary+Fibrous+Tumor%3A+A+Review+of+the+National+Cancer+Database&btnG=" },
-            // --- Medical Education & Practice ---
             { topic: "Medical Education & Practice", title: "Demographic differences and the impact of research years for reapplicants to dermatology residency programs: A retrospective cohort study", authors: "Truel JS, Ferree S, Fathy R, Hossler E, Rosman IS.", details: "Journal of the American Academy of Dermatology. 2024 Nov 1;91(5):971-2.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Demographic+differences+and+the+impact+of+research+years+for+reapplicants+to+dermatology+residency+programs&btnG=" },
             { topic: "Medical Education & Practice", title: "Comparative evaluation of choose your own adventure and traditional linear case formats in radiology small group teaching", authors: "Thomas SP, Fathy R, Aepli S, Clancy CB, Lipschik GY, Simpson SA, Katz SI, Doms RW, Nachiappan AC.", details: "Academic Radiology. 2022 May 1;29:S82-8.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Comparative+evaluation+of+choose+your+own+adventure+and+traditional+linear+case+formats+in+radiology&btnG=" },
             { topic: "Medical Education & Practice", title: "Variation in topical antibiotics recommendations in wound care instructions by non-dermatologists", authors: "Fathy R, Chu B, Singh P, James WD, Barbieri JS.", details: "Journal of General Internal Medicine. 2021 Jan;36:238-9.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Variation+in+topical+antibiotics+recommendations+in+wound+care+instructions&btnG=" },
             { topic: "Medical Education & Practice", title: "Comment on\" Distribution of Skin-Type Diversity in Photographs in AAD Online Educational Modules\" Response", authors: "Chu B, Fathy R, Onyekaba G, Lipoff JB.", details: "CUTIS. 2021 Jul 1;108(1):42-+.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Comment+on+Distribution+of+Skin-Type+Diversity+in+Photographs+in+AAD+Online+Educational+Modules+Response&btnG=" },
             { topic: "Medical Education & Practice", title: "The frequency of topical antibiotic use after biopsy and excision procedures among dermatologists and non-dermatologists: 2006 through 2015", authors: "Fathy, R., Chu, B., James, W. D., & Barbieri, J. S.", details: "Journal of the American Academy of Dermatology , 82 (5), 1258-1261.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=The+frequency+of+topical+antibiotic+use+after+biopsy+and+excision+procedures&btnG=" },
-            // --- Basic Science ---
             { topic: "Basic Science", title: "The neural basis for a persistent internal state in Drosophila females", authors: "Deutsch, D., et al.", details: "Elife 9 (2020): e59502.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=The+neural+basis+for+a+persistent+internal+state+in+Drosophila+females&btnG=" },
-            // --- Health Equity / Disparities ---
             { topic: "Health Equity / Disparities", title: "Inequalities in meningioma survival: results from the National Cancer Database", authors: "Yang AI, Mensah-Brown KG, Rinehart C, Fathy R, Hitti FL, Brant J, Lee JY.", details: "Cureus. 2020 Mar 18;12(3).", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Inequalities+in+meningioma+survival%3A+results+from+the+National+Cancer+Database&btnG=" },
             { topic: "Health Equity / Disparities", title: "Molecular Subtypes and Pathogenic Germline Mutations Vary by Ethnicity in Young Women Treated With Breast-Conserving Surgery and Radiation Therapy", authors: "Fathy R, Chan J, Pejavar S, Schechter N, Sherertz TS, Park CC, Fowble BL.", details: "International Journal of Radiation Oncology, Biology, Physics. 2017 Oct 1;99(2):E14.", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Molecular+Subtypes+and+Pathogenic+Germline+Mutations+Vary+by+Ethnicity+in+Young+Women&btnG=" },
-            // --- Other Clinical Dermatology ---
             { topic: "Other Clinical Dermatology", title: "Decreased access to UVA phototherapy: an unintended consequence of biologic therapy", authors: "Fathy RA, Lewis DJ.", details: "International Journal of Dermatology. 2021 Jan 1;60(1).", link: "https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q=Decreased+access+to+UVA+phototherapy%3A+an+unintended+consequence+of+biologic+therapy&btnG=" },
-            // --- Book Chapters ---
             { topic: "Book Chapters", title: "Making the Most of your Hidradenitis Suppurativa", authors: "Fathy, R. & Micheletti, R.", details: "In V. Shi, J. Hsiao (Ed.), A Comprehensive Guide to Hidradenitis Suppurativa for Patients and Caregivers, 1e, Philadelphia: Springer. (2021)", link: null },
-            // --- Other Articles ---
             { topic: "Other Articles", title: "From wildfires to disease, here are the top 5 ways climate change is already hurting your health", authors: "Fathy, R.", details: "ABC News. (November 25, 2020)", link: "https://abcnews.go.com/Health/wildfires-disease-top-ways-climate-change-hurting-health/story?id=74307157" },
             { topic: "Other Articles", title: "COVID and Med Ed: Resident and Student Describe 'New Normal'", authors: "Fathy, C. & Fathy, R.", details: "Medscape. (2020)", link: "https://www.medscape.com/viewarticle/928359" },
             { topic: "Other Articles", title: "The Problem with Paid Mentorship in Medicine", authors: "Fathy, R. & Benson, T.", details: "Medscape. (2020)", link: "https://www.medscape.com/viewarticle/938506" },
             { topic: "Other Articles", title: "Why Mindfulness in Medical School Is Not Just Hokey Self-care", authors: "Fathy, R.", details: "Medscape. (February 11, 2022)", link: "https://www.medscape.com/viewarticle/968087"},
             { topic: "Other Articles", title: "From Unmatched to Top Pick: The Highs and Lows of a Year in Limbo", authors: "Fathy, R.", details: "Medscape. (April 20, 2022)", link: "https://www.medscape.com/viewarticle/972199"}
         ];
-
         const applicationItems = [
-            // Clinical Applications
             { name: "Dermatopathology Differentials", href: "dermpath ddxs.html", category: "Clinical Applications"},
             { name: "Dermatology Scoring and Screening Calculators", href: "dermascore.html", category: "Clinical Applications"},
             { name: "AI Scribe with Real-Time Feedback and Iterative Note Refinement", href: "DermaScribe.html", category: "Clinical Applications"},
             { name: "Advanced AI Scribe", href: "client/index.html", category: "Clinical Applications"},
             { name: "Automated Clinic Scheduler", href: "Scheduler.html", category: "Clinical Applications"},
-            // File Management Tools
             { name: "PDF Text Extractor", href: "textExtractor.html", category: "File Management Tools"},
             { name: "PDF Splitter", href: "PDF Splitter.html", category: "File Management Tools"},
             { name: "PDF Merger", href: "PDF Merger.html", category: "File Management Tools"},
             { name: "test site for Rae", href: "raeTest.html", category: "Clinical Applications"},
             { name: "Personalized AI Coding Tutor",  href: "codingTutor.html", category: "File Management Tools"}
         ];
-
 
         // --- Function to Populate Basic Lists ---
         function populateList(items, containerId, isResearch = false) {
@@ -722,15 +647,14 @@
         function populateAboutList(items, containerId, itemFormatter) {
             const container = document.getElementById(containerId);
             if (!container) { console.error(`Container with ID '${containerId}' not found for About section.`); return; }
-            container.innerHTML = ''; // Clear previous content
+            container.innerHTML = '';
             items.forEach(itemData => {
                 const li = document.createElement('li');
-                li.innerHTML = itemFormatter(itemData); // Use a formatter function for complex list items
+                li.innerHTML = itemFormatter(itemData);
                 container.appendChild(li);
             });
         }
 
-        // Formatters for About section lists
         const educationFormatter = (item) => {
             let honorsHTML = '';
             if (item.honors && item.honors.length > 0) {
@@ -746,26 +670,20 @@
         function populateAwardsCategorized(awards, containerId) {
             const container = document.getElementById(containerId);
             if (!container) { console.error(`Awards container with ID '${containerId}' not found.`); return; }
-            container.innerHTML = ''; // Clear previous content
-
+            container.innerHTML = '';
             const groupedAwards = awards.reduce((acc, award) => {
                 const category = award.category || "Other Awards";
-                if (!acc[category]) {
-                    acc[category] = [];
-                }
+                if (!acc[category]) acc[category] = [];
                 acc[category].push(award.description);
                 return acc;
             }, {});
-
-            const categoryOrder = ["Residency", "Medical School", "Undergraduate", "Other"]; // Define order
-
+            const categoryOrder = ["Residency", "Medical School", "Undergraduate", "Other"];
             categoryOrder.forEach(category => {
                 if (groupedAwards[category]) {
                     const categoryTitle = document.createElement('h4');
                     categoryTitle.className = 'awards-category-title';
                     categoryTitle.textContent = category;
                     container.appendChild(categoryTitle);
-
                     const ul = document.createElement('ul');
                     ul.className = 'list-disc list-inside space-y-2 data-list';
                     groupedAwards[category].forEach(awardText => {
@@ -778,21 +696,18 @@
             });
         }
 
-
         // --- Function to Populate Skills List (Categorized) ---
         function populateSkillsCategorized(skillsData, containerId) {
             const container = document.getElementById(containerId);
             if (!container) { console.error(`Skills container with ID '${containerId}' not found.`); return; }
-            container.innerHTML = ''; // Clear previous content
-
+            container.innerHTML = '';
             skillsData.forEach(skillCategory => {
                 const categoryTitle = document.createElement('h5');
                 categoryTitle.className = 'skill-category-title';
                 categoryTitle.textContent = skillCategory.category;
                 container.appendChild(categoryTitle);
-
                 const ul = document.createElement('ul');
-                ul.className = 'skills-list'; // Use the new class for styling
+                ul.className = 'skills-list';
                 skillCategory.items.forEach(skill => {
                     const li = document.createElement('li');
                     li.textContent = skill;
@@ -806,11 +721,9 @@
         function populateHobbiesList(hobbies, containerId) {
             const container = document.getElementById(containerId);
             if (!container) { console.error(`Hobbies container with ID '${containerId}' not found.`); return; }
-            container.innerHTML = ''; // Clear previous content
-
+            container.innerHTML = '';
             const ul = document.createElement('ul');
-            ul.className = 'list-disc list-inside space-y-2 card-list text-left'; // Same styling as skills list for consistency
-
+            ul.className = 'list-disc list-inside space-y-2 data-list'; // Changed from card-list for consistency
             hobbies.forEach(hobby => {
                 const li = document.createElement('li');
                 if (hobby.link) {
@@ -818,8 +731,6 @@
                     a.href = hobby.link;
                     a.textContent = hobby.name;
                     a.className = "text-blue-600 hover:underline";
-                    // a.target = "_blank"; // Optional: Open in new tab
-                    // a.rel = "noopener noreferrer";
                     li.appendChild(a);
                 } else {
                     li.textContent = hobby.name;
@@ -829,46 +740,35 @@
             container.appendChild(ul);
         }
 
-
         // --- Function to Populate Applications List (Categorized) ---
         function populateApplicationsCategorized(items, containerId) {
             const container = document.getElementById(containerId);
             if (!container) { console.error(`Container with ID '${containerId}' not found.`); return; }
-            container.innerHTML = ''; // Clear previous content
-
+            container.innerHTML = '';
             const groupedApplications = items.reduce((acc, app) => {
                 const category = app.category || "Other Tools";
-                if (!acc[category]) {
-                    acc[category] = [];
-                }
+                if (!acc[category]) acc[category] = [];
                 acc[category].push(app);
                 return acc;
             }, {});
-
-            // Define order of categories
+            // FIXED: Corrected syntax error in array definition (removed trailing semicolon)
             const categoryOrder = ["Clinical Applications", "File Management Tools", "Other Tools"];
-
             categoryOrder.forEach(category => {
                 if (groupedApplications[category]) {
                     const categorySection = document.createElement('div');
-                    categorySection.className = 'mb-8'; // Space between categories
-
+                    categorySection.className = 'mb-8';
                     const title = document.createElement('h3');
-                    title.className = 'text-xl font-semibold subsection-title'; // Use subsection-title style
+                    title.className = 'text-xl font-semibold subsection-title';
                     title.textContent = category;
                     categorySection.appendChild(title);
-
                     const ul = document.createElement('ul');
-                    ul.className = 'space-y-3'; // Remove list-disc, apply custom styling via .application-item
-
+                    ul.className = 'space-y-3';
                     groupedApplications[category].forEach(item => {
                         const li = document.createElement('li');
-                        li.className = 'application-item'; // Apply specific styling for these items
+                        li.className = 'application-item';
                         const a = document.createElement('a');
                         a.href = item.href;
                         a.textContent = item.name;
-                        // a.target = "_blank"; // Uncomment if you want links to open in a new tab
-                        // a.rel = "noopener noreferrer"; // For security with target="_blank"
                         li.appendChild(a);
                         ul.appendChild(li);
                     });
@@ -878,29 +778,25 @@
             });
         }
 
-
         // --- Function to Populate Publications by Topic ---
         function populatePublicationsByTopic(publications, containerId) {
             const container = document.getElementById(containerId);
             if (!container) { console.error(`Container with ID '${containerId}' not found.`); return; }
             container.innerHTML = '';
-
             const groupedPublications = publications.reduce((acc, pub) => {
                 const topic = pub.topic || "Other";
                 if (!acc[topic]) acc[topic] = [];
                 acc[topic].push(pub);
                 return acc;
             }, {});
-
             const topicOrder = [
                 "AI / Social Media / Teledermatology", "COVID-19", "Climate Change / Environmental Dermatology",
                 "Merkel Cell Carcinoma / Oncology", "Head & Neck / Skull Base Surgery / Oncology",
                 "Medical Education & Practice", "Health Equity / Disparities", "Other Clinical Dermatology",
                 "Basic Science", "Book Chapters", "Other Articles", "Other"
             ];
-
-             topicOrder.forEach(topic => {
-                 if (groupedPublications[topic]) {
+            topicOrder.forEach(topic => {
+                if (groupedPublications[topic]) {
                     const topicSection = document.createElement('div');
                     topicSection.className = 'mb-8';
                     const title = document.createElement('h3');
@@ -909,7 +805,6 @@
                     topicSection.appendChild(title);
                     const listContainer = document.createElement('div');
                     listContainer.className = 'space-y-4';
-
                     groupedPublications[topic].forEach(pub => {
                         const itemDiv = document.createElement('div');
                         itemDiv.className = 'publication-item';
@@ -917,96 +812,134 @@
                         if (pub.authors) content += `<div class="publication-authors">${pub.authors}</div>`;
                         if (pub.details) content += `<div class="publication-details">${pub.details}</div>`;
                         let googleScholarLink = `https://scholar.google.com/scholar?q=${encodeURIComponent(pub.title + ' ' + (pub.authors ? pub.authors.split(',')[0] : ''))}`;
-                        if (pub.link) { // If a direct link is provided, use it
-                             content += `<a href="${pub.link}" target="_blank" rel="noopener noreferrer" class="publication-link">View Article <i class="fas fa-external-link-alt fa-xs ml-1"></i></a>`;
-                        } else if (pub.topic !== "Book Chapters" && pub.details !== "In Preparation.") { // For others, generate a Google Scholar search link
-                             content += `<a href="${googleScholarLink}" target="_blank" rel="noopener noreferrer" class="publication-link">Find on Google Scholar <i class="fas fa-external-link-alt fa-xs ml-1"></i></a>`;
+                        if (pub.link) {
+                            content += `<a href="${pub.link}" target="_blank" rel="noopener noreferrer" class="publication-link">View Article <i class="fas fa-external-link-alt fa-xs ml-1"></i></a>`;
+                        } else if (pub.topic !== "Book Chapters" && pub.details !== "In Preparation.") {
+                            content += `<a href="${googleScholarLink}" target="_blank" rel="noopener noreferrer" class="publication-link">Find on Google Scholar <i class="fas fa-external-link-alt fa-xs ml-1"></i></a>`;
                         }
                         itemDiv.innerHTML = content;
                         listContainer.appendChild(itemDiv);
                     });
                     topicSection.appendChild(listContainer);
                     container.appendChild(topicSection);
-                 }
+                }
             });
         }
 
-
-        // --- Tab Switching Logic ---
+        // --- Tab Switching Logic (Refined) ---
         const tabs = document.querySelectorAll('.nav-tab');
         const contentSections = document.querySelectorAll('.tab-content');
         const mobileMenu = document.getElementById('mobile-menu');
+        // dropdownParents querySelectorAll('[data-dropdown-parent]') will select desktop DIVs and mobile BUTTONs
         const dropdownParents = document.querySelectorAll('[data-dropdown-parent]');
 
         function activateTab(targetId) {
+            // Hide all content sections
             contentSections.forEach(section => {
-                 if (!section.id.startsWith('content-')) return;
-                section.classList.add('hidden');
+                if (section.id.startsWith('content-')) section.classList.add('hidden');
             });
 
+            // Show the target content section
             const targetSection = document.getElementById(`content-${targetId}`);
             if (targetSection) {
                 targetSection.classList.remove('hidden');
             } else {
                 console.error(`Target section 'content-${targetId}' not found.`);
+                 // Fallback to home if target not found
+                const homeSection = document.getElementById('content-home');
+                if (homeSection) homeSection.classList.remove('hidden');
             }
 
+            // Reset all tab active visual states
             tabs.forEach(t => t.classList.remove('tab-active', 'mobile-tab-active'));
-            dropdownParents.forEach(dp => dp.classList.remove('dropdown-active'));
+            
+            // Reset desktop dropdown parent active states (the DIVs)
+            document.querySelectorAll('div.dropdown[data-dropdown-parent]').forEach(dp => dp.classList.remove('dropdown-active'));
 
-            tabs.forEach(tab => {
-                const isMobile = tab.closest('#mobile-menu');
-                let isActive = false;
-                if (tab.dataset.target === targetId) {
-                    isActive = true;
+            // Reset mobile dropdown open states (the BUTTONs), only if not parent of current target
+            document.querySelectorAll('.mobile-dropdown-toggle[data-dropdown-parent]').forEach(button => {
+                const parentTargets = button.dataset.dropdownParent.split(',');
+                if (!parentTargets.includes(targetId)) { // If this button is NOT a parent of the active section
+                    button.classList.remove('open');
+                    const icon = button.querySelector('i.fas.fa-chevron-down');
+                    if (icon) icon.classList.remove('rotate-180');
                 }
+            });
 
-                const dropdownParent = tab.closest('[data-dropdown-parent]');
-                if (dropdownParent) {
-                    const parentTargets = dropdownParent.dataset.dropdownParent.split(',');
-                    if (parentTargets.includes(targetId)) {
-                         dropdownParent.classList.add('dropdown-active');
-                         if (tab.dataset.target === targetId) { isActive = true; }
-                         else { isActive = false; }
+            // Apply active states to the current tab and its parent dropdown(s)
+            tabs.forEach(tab => {
+                const isMobileContext = !!tab.closest('#mobile-menu'); // Is this tab within the mobile menu structure?
+                const isCurrentActiveTab = (tab.dataset.target === targetId);
+
+                if (isCurrentActiveTab) {
+                    if (isMobileContext) {
+                        tab.classList.add('mobile-tab-active');
+                        // If this active tab is a mobile dropdown item, ensure its parent toggle is open
+                        const mobileDropdownContentDiv = tab.closest('.mobile-dropdown-content');
+                        if (mobileDropdownContentDiv) {
+                            const toggleButton = mobileDropdownContentDiv.previousElementSibling;
+                            if (toggleButton && toggleButton.classList.contains('mobile-dropdown-toggle')) {
+                                toggleButton.classList.add('open');
+                                const icon = toggleButton.querySelector('i.fas.fa-chevron-down');
+                                if (icon) icon.classList.add('rotate-180');
+                            }
+                        }
+                    } else { // Desktop context
+                        tab.classList.add('tab-active'); // Applies to direct links AND links within dropdown menu
                     }
                 }
 
-                 if (isActive) {
-                     if (isMobile && tab.classList.contains('mobile-dropdown-item')) {
-                         tab.classList.add('mobile-tab-active');
-                     } else if (isMobile) {
-                          tab.classList.add('mobile-tab-active');
-                     }
-                     else if (!isMobile && !dropdownParent) {
-                         tab.classList.add('tab-active');
-                     }
-                 }
+                // Ensure parent dropdowns are visually active if one of their children is the target
+                // For desktop dropdowns (the DIV wrapper):
+                const desktopDropdownWrapper = tab.closest('div.dropdown[data-dropdown-parent]');
+                if (desktopDropdownWrapper) {
+                    const parentTargets = desktopDropdownWrapper.dataset.dropdownParent.split(',');
+                    if (parentTargets.includes(targetId)) {
+                        desktopDropdownWrapper.classList.add('dropdown-active'); // This styles the main "Research" SPAN via CSS
+                    }
+                }
+                // For mobile dropdowns (the BUTTON toggle), their 'open' state is handled above
+                // when the specific child item is marked active.
             });
-
+            
+            // Close mobile menu overlay if it's open
             if (mobileMenu.classList.contains('show')) {
-                 mobileMenu.classList.remove('show');
+                mobileMenu.classList.remove('show');
             }
-            window.scrollTo(0, 0);
+            window.scrollTo(0, 0); // Scroll to top after tab switch
         }
+
 
         tabs.forEach(tab => {
             tab.addEventListener('click', (event) => {
                 event.preventDefault();
                 const targetId = tab.dataset.target;
-                if (targetId) { activateTab(targetId); }
-                else { console.error("Tab clicked without a valid data-target:", tab); }
+                if (targetId) {
+                    activateTab(targetId);
+                } else {
+                    // This case for desktop dropdown span which doesn't have data-target
+                    // Its role is to toggle display, but clicks on it shouldn't change content unless a child is clicked.
+                    // Hover handles its display. If it needs to be clickable to show first item, that's new logic.
+                    // For now, if it's a span inside a dropdown, let its children handle activation.
+                    if (tab.tagName === 'SPAN' && tab.closest('div.dropdown')) {
+                        // Potentially open the first item or do nothing, TBD by UX.
+                        // Current setup: hover opens desktop dropdown, click on item activates.
+                    } else {
+                         console.error("Tab clicked without a valid data-target:", tab);
+                    }
+                }
             });
         });
 
         // --- Mobile Menu Toggle ---
         const menuButton = document.getElementById('mobile-menu-button');
         menuButton.addEventListener('click', (event) => {
-             event.stopPropagation();
+            event.stopPropagation(); // Prevent click from bubbling to document listener immediately
             mobileMenu.classList.toggle('show');
         });
-
-         document.addEventListener('click', (event) => {
-            if (!mobileMenu.contains(event.target) && !menuButton.contains(event.target) && mobileMenu.classList.contains('show')) {
+        // Close mobile menu if clicking outside
+        document.addEventListener('click', (event) => {
+            if (mobileMenu.classList.contains('show') && !mobileMenu.contains(event.target) && !menuButton.contains(event.target)) {
                 mobileMenu.classList.remove('show');
             }
         });
@@ -1015,45 +948,58 @@
         const mobileDropdownToggles = document.querySelectorAll('.mobile-dropdown-toggle');
         mobileDropdownToggles.forEach(button => {
             button.addEventListener('click', (e) => {
-                e.preventDefault();
+                e.preventDefault(); // Prevent navigation if it's also an <a>
+                // If already open and clicked, and it's not because a child activated it,
+                // then toggle it closed. Otherwise, let activateTab handle opening.
+                const currentlyOpen = button.classList.contains('open');
+                const icon = button.querySelector('i.fas.fa-chevron-down');
+
+                // Simple toggle:
                 button.classList.toggle('open');
-                const icon = button.querySelector('i');
-                if (icon) {
-                    icon.classList.toggle('rotate-180');
-                }
+                if (icon) icon.classList.toggle('rotate-180');
+
+                // If we want to navigate to the first child when parent is clicked:
+                // const firstChildTarget = button.nextElementSibling?.querySelector('.nav-tab')?.dataset.target;
+                // if (firstChildTarget) {
+                //    activateTab(firstChildTarget);
+                // }
             });
         });
-
 
         // --- Footer Year ---
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
         // --- Initial State & Data Population ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Populate About Tab lists
             populateAboutList(educationItems, 'education-list', educationFormatter);
             populateAboutList(appointmentItems, 'appointments-list', appointmentFormatter);
             populateAboutList(licensureItems, 'licensure-list', licensureFormatter);
             populateAboutList(affiliationItems, 'affiliations-list', affiliationFormatter);
-            populateAwardsCategorized(awardsData, 'awards-categorized-list'); // Populate categorized awards
+            populateAwardsCategorized(awardsData, 'awards-categorized-list');
 
-            // Populate other dynamic lists
             populateList(ongoingProjectItems, 'research-ongoing-list');
-            populateList(pastResearchItems, 'research-past-list', false, true);
+            // FIXED: Corrected the third argument to true for pastResearchItems
+            populateList(pastResearchItems, 'research-past-list', true);
             populateList(leadershipItems, 'leadership-list');
             populateList(writingItems, 'writing-list');
             populateList(mediaItems, 'media-list');
             populatePublicationsByTopic(publicationsData, 'publications-by-topic');
             populateApplicationsCategorized(applicationItems, 'applications-categorized-list');
             populateSkillsCategorized(skillsData, 'skills-categorized-list');
-            populateHobbiesList(hobbiesData, 'hobbies-list'); // Populate new hobbies list
+            populateHobbiesList(hobbiesData, 'hobbies-list');
 
-
-             if (!document.querySelector('.tab-active') && !document.querySelector('.mobile-tab-active') && !document.querySelector('.dropdown-active')) {
+            // Activate initial tab (home)
+            // Check if any tab is already active (e.g. from URL hash, though not implemented here)
+            let activeTabFound = false;
+            tabs.forEach(tab => {
+                if (tab.classList.contains('tab-active') || tab.classList.contains('mobile-tab-active')) {
+                    activeTabFound = true;
+                }
+            });
+            if (!activeTabFound) {
                  activateTab('home');
-             }
+            }
         });
-
     </script>
 
 </body>
