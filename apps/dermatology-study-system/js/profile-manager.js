@@ -5,7 +5,8 @@ class ProfileManager {
         this.modal = null;
         this.initialized = false;
         this.initializationAttempts = 0;
-        this.MAX_INITIALIZATION_ATTEMPTS = 5;
+        this.MAX_INITIALIZATION_ATTEMPTS = 10;
+        this.INITIALIZATION_DELAY = 200;
     }
 
     async initialize() {
@@ -19,13 +20,16 @@ class ProfileManager {
             if (this.initializationAttempts < this.MAX_INITIALIZATION_ATTEMPTS) {
                 console.warn(`Profile modal not found. Retrying initialization (attempt ${this.initializationAttempts}/${this.MAX_INITIALIZATION_ATTEMPTS})...`);
                 // Wait a bit before retrying
-                await new Promise(resolve => setTimeout(resolve, 200));
+                await new Promise(resolve => setTimeout(resolve, this.INITIALIZATION_DELAY));
                 return this.initialize();
             } else {
                 console.error('Failed to find profile modal after multiple attempts');
                 return;
             }
         }
+
+        // Wait a bit to ensure all elements are in the DOM
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         this.initializeEventListeners();
         this.initialized = true;

@@ -166,6 +166,16 @@ const imageApprovalControls = document.getElementById('imageApprovalControls');
 const cancelImageAnalysisBtn = document.getElementById('cancelImageAnalysisBtn');
 const approveImageDescriptionBtn = document.getElementById('approveImageDescriptionBtn');
 
+const statusDisplay = document.getElementById('statusDisplay');
+const outputDisplay = document.getElementById('outputDisplay');
+const additionalContext = document.getElementById('additionalContext');
+const errorDisplay = document.getElementById('errorDisplay');
+const errorMessage = document.getElementById('errorMessage');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const imageInput = document.getElementById('imageInput');
+const cancelUpload = document.getElementById('cancelUpload');
+const confirmUpload = document.getElementById('confirmUpload');
+
 // --- State Variables ---
 const state = {
     websocket: null,
@@ -178,7 +188,8 @@ const state = {
     audioChunks: [],
     recognition: null,
     finalTranscript: '',
-    interimTranscript: ''
+    interimTranscript: '',
+    currentImage: null
 };
 
 let timerInterval;
@@ -829,3 +840,119 @@ function adjustMinHeight() {
 }
 
     window.addEventListener('resize', adjustMinHeight);
+
+// New event listeners and functions for the new code block
+startButton.addEventListener('click', startRecording);
+stopButton.addEventListener('click', stopRecording);
+clearButton.addEventListener('click', clearSession);
+imageInput.addEventListener('change', handleImageUpload);
+cancelUpload.addEventListener('click', () => imageUploadModal.classList.add('hidden'));
+confirmUpload.addEventListener('click', confirmImageUpload);
+
+function startRecording() {
+    try {
+        speechManager.start();
+        startButton.disabled = true;
+        stopButton.disabled = false;
+    } catch (error) {
+        showError('Failed to start recording: ' + error.message);
+    }
+}
+
+function stopRecording() {
+    state.isRecording = false;
+    speechManager.stop();
+    startButton.disabled = false;
+    stopButton.disabled = true;
+    statusDisplay.textContent = 'Recording stopped';
+    processTranscript();
+}
+
+function clearSession() {
+    state.finalTranscript = '';
+    state.interimTranscript = '';
+    updateOutputDisplay();
+    statusDisplay.textContent = 'Ready to start';
+    startButton.disabled = false;
+    stopButton.disabled = true;
+}
+
+function updateOutputDisplay() {
+    if (state.finalTranscript) {
+        outputDisplay.innerHTML = `
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold mb-2">Transcript:</h3>
+                <p class="text-gray-700">${state.finalTranscript}</p>
+            </div>
+        `;
+    } else {
+        outputDisplay.innerHTML = '<p class="text-gray-500 italic">Your generated note will appear here...</p>';
+    }
+}
+
+function showError(message) {
+    errorMessage.textContent = message;
+    errorDisplay.classList.remove('hidden');
+    setTimeout(() => {
+        errorDisplay.classList.add('hidden');
+    }, 5000);
+}
+
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            state.currentImage = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function confirmImageUpload() {
+    if (state.currentImage) {
+        imageUploadModal.classList.add('hidden');
+        // Add image to the output display
+        const imageElement = document.createElement('img');
+        imageElement.src = state.currentImage;
+        imageElement.className = 'max-w-full h-auto rounded-lg shadow-md mb-4';
+        outputDisplay.insertBefore(imageElement, outputDisplay.firstChild);
+    }
+}
+
+async function processTranscript() {
+    if (!state.finalTranscript) return;
+
+    loadingOverlay.classList.remove('hidden');
+    
+    try {
+        // Get additional context
+        const context = additionalContext.value.trim();
+        
+        // Prepare the prompt
+        const prompt = `Generate a clinical note based on the following transcript${context ? ' and additional context' : ''}:\n\n${state.finalTranscript}${context ? '\n\nAdditional Context:\n' + context : ''}`;
+        
+        // Call the AI API (implement your API call here)
+        const response = await callAIAPI(prompt);
+        
+        // Update the output display with the generated note
+        outputDisplay.innerHTML = `
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold mb-2">Generated Note:</h3>
+                <div class="prose max-w-none">
+                    ${response}
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        showError('Failed to process transcript: ' + error.message);
+    } finally {
+        loadingOverlay.classList.add('hidden');
+    }
+}
+
+async function callAIAPI(prompt) {
+    // Implement your AI API call here
+    // This is a placeholder that returns the transcript
+    return state.finalTranscript;
+}

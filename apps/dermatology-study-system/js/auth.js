@@ -1,5 +1,4 @@
 import { auth, db } from './firebase-config.js';
-import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from 'firebase/auth';
 
 class AuthManager {
     constructor() {
@@ -7,7 +6,7 @@ class AuthManager {
         this.userProfile = null;
         this.authStateChanged = this.authStateChanged.bind(this);
         this.sessionTimeout = null;
-        this.SESSION_DURATION = 30 * 60 * 1000; // 30 minutes
+        this.SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
         this.loginAttempts = new Map();
         this.MAX_LOGIN_ATTEMPTS = 5;
         this.LOGIN_TIMEOUT = 15 * 60 * 1000; // 15 minutes
@@ -25,6 +24,12 @@ class AuthManager {
                 if (Date.now() - timestamp < this.SESSION_DURATION) {
                     // Session is still valid
                     this.startSessionTimer();
+                    // Try to restore the user session
+                    const user = auth.currentUser;
+                    if (user) {
+                        this.user = user;
+                        await this.loadUserProfile();
+                    }
                 } else {
                     // Session expired
                     await this.signOut();
@@ -41,13 +46,28 @@ class AuthManager {
             this.user = user;
             this.startSessionTimer();
             localStorage.setItem('authSession', JSON.stringify({
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                uid: user.uid
             }));
+            await this.loadUserProfile();
         } else {
             this.user = null;
             this.userProfile = null;
             this.clearSessionTimer();
             localStorage.removeItem('authSession');
+        }
+    }
+
+    async loadUserProfile() {
+        if (!this.user) return;
+        
+        try {
+            const userDoc = await db.collection('users').doc(this.user.uid).get();
+            if (userDoc.exists) {
+                this.userProfile = userDoc.data();
+            }
+        } catch (error) {
+            console.error('Error loading user profile:', error);
         }
     }
 
@@ -135,7 +155,7 @@ class AuthManager {
                 throw new Error('Too many login attempts. Please try again later.');
             }
 
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
             this.recordLoginAttempt(email, true);
             return userCredential.user;
         } catch (error) {
@@ -164,11 +184,11 @@ class AuthManager {
             }
 
             // Try to create the account
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
             
             // Update display name
-            await updateProfile(user, { displayName });
+            await user.updateProfile({ displayName });
             
             // Create user profile
             await this.createUserProfile(user, displayName);

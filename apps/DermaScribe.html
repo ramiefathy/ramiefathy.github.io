@@ -123,5 +123,30 @@
             </div>
         </div>
     </div>
+
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBbyHyAxTOwFu4q-Mh0jDuJq5ZPVAy2V0",
+            authDomain: "dermai-e69a5.firebaseapp.com",
+            projectId: "dermai-e69a5",
+            storageBucket: "dermai-e69a5.firebasestorage.app",
+            messagingSenderId: "940424189728",
+            appId: "1:940424189728:web:8a6769a48b742055046945",
+            measurementId: "G-YM5MFVJZBY"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Export Firebase instances
+        window.firebase = { app, auth, db };
+    </script>
 </body>
 </html>

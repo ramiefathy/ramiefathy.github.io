@@ -1,8 +1,16 @@
 import { db } from './firebase-config.js';
 import questionReviewer from './question-reviewer.js';
+import { askLLM } from './ask-llm.js';
 
 class QuestionGenerator {
     constructor() {
+        console.log('[QuestionGenerator] Initializing with configuration:', {
+            maxEnhancementAttempts: this.MAX_ENHANCEMENT_ATTEMPTS,
+            minQualityScore: this.MIN_QUALITY_SCORE,
+            cacheTTL: this.CACHE_TTL,
+            maxQuizGenerationAttempts: this.MAX_QUIZ_GENERATION_ATTEMPTS,
+            quizGenerationBackoff: this.QUIZ_GENERATION_BACKOFF
+        });
         this.questionTypes = {
             TYPE_A: 'TYPE_A', // One-best-answer
             TYPE_B: 'TYPE_B', // Matching
@@ -10,49 +18,144 @@ class QuestionGenerator {
         };
         this.MAX_ENHANCEMENT_ATTEMPTS = 3;
         this.MIN_QUALITY_SCORE = 4; // Minimum acceptable quality score (out of 5)
+        this.questionCache = new Map();
+        this.CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+        this.MAX_QUIZ_GENERATION_ATTEMPTS = 3;
+        this.QUIZ_GENERATION_BACKOFF = 30000; // 30 seconds
     }
 
     /**
      * Generates a Type A (one-best-answer) question
      * @param {Object} options - Question generation options
-     * @returns {Object} Generated question
+     * @returns {Promise<Object>} Generated question
      */
-    generateTypeAQuestion(options = {}) {
+    async generateTypeAQuestion(options = {}) {
+        console.log('[QuestionGenerator] Starting Type A question generation:', {
+            topic: options.topic,
+            difficulty: options.difficulty,
+            focusOn: options.focusOn,
+            timestamp: new Date().toISOString()
+        });
+
         const {
             topic = 'general',
             difficulty = 'medium',
-            focusOn = 'diagnosis' // diagnosis, treatment, mechanism, etc.
+            focusOn = 'diagnosis'
         } = options;
 
-        // TODO: Implement AI-based question generation
-        // For now, return a sample question
-        const question = {
-            type: this.questionTypes.TYPE_A,
-            stem: {
-                vignette: `A 45-year-old woman presents with a 2-week history of pruritic, erythematous papules and plaques on her elbows and knees. The lesions are well-demarcated and covered with silvery scales. She reports no previous similar episodes.`,
-                question: `Which of the following is the most likely diagnosis?`
-            },
-            options: [
-                { id: 'A', text: 'Psoriasis vulgaris' },
-                { id: 'B', text: 'Atopic dermatitis' },
-                { id: 'C', text: 'Contact dermatitis' },
-                { id: 'D', text: 'Nummular eczema' },
-                { id: 'E', text: 'Lichen planus' }
-            ],
-            correctAnswer: 'A',
-            explanation: `The clinical presentation is classic for psoriasis vulgaris, characterized by well-demarcated, erythematous plaques with silvery scales, typically affecting extensor surfaces. The distribution on elbows and knees is characteristic.`,
-            topic: topic,
-            difficulty: difficulty,
-            focusArea: focusOn
-        };
-
-        // Validate the generated question
-        if (!this._validateQuestionStructure(question)) {
-            console.error('Generated invalid Type A question structure');
-            throw new Error('Failed to generate valid Type A question');
+        // Create cache key
+        const cacheKey = JSON.stringify({ type: 'TYPE_A', topic, difficulty, focusOn });
+        console.log('[QuestionGenerator] Cache key:', cacheKey);
+        
+        // Check cache first
+        const cachedQuestion = this.questionCache.get(cacheKey);
+        if (cachedQuestion && Date.now() - cachedQuestion.timestamp < this.CACHE_TTL) {
+            console.log('[QuestionGenerator] Using cached question:', {
+                cacheAge: Date.now() - cachedQuestion.timestamp,
+                cacheTTL: this.CACHE_TTL
+            });
+            return cachedQuestion.question;
         }
 
-        return question;
+        try {
+            console.log('[QuestionGenerator] Constructing prompt for LLM');
+            const prompt = `You are an expert medical educator specializing in dermatology board exam question writing.
+                Generate a Type A (one-best-answer) question for a dermatology board exam with the following specifications:
+                - Topic: ${topic}
+                - Difficulty: ${difficulty}
+                - Focus: ${focusOn}
+                
+                The question should include:
+                1. A clinical vignette
+                2. A clear question stem
+                3. Five answer options (A-E)
+                4. The correct answer
+                5. A detailed explanation
+                
+                IMPORTANT: Your response must be a valid JSON object with exactly this structure:
+                {
+                    "type": "TYPE_A",
+                    "stem": {
+                        "vignette": "detailed clinical scenario",
+                        "question": "clear question asking for the best answer"
+                    },
+                    "options": [
+                        {"id": "A", "text": "first option"},
+                        {"id": "B", "text": "second option"},
+                        {"id": "C", "text": "third option"},
+                        {"id": "D", "text": "fourth option"},
+                        {"id": "E", "text": "fifth option"}
+                    ],
+                    "correctAnswer": "A",
+                    "explanation": "detailed explanation of why this is correct",
+                    "topic": "${topic}",
+                    "difficulty": "${difficulty}",
+                    "focusArea": "${focusOn}"
+                }
+
+                Do not include any text before or after the JSON object. The response must be parseable JSON.`;
+
+            console.log('[QuestionGenerator] Calling LLM with prompt length:', prompt.length);
+            const response = await askLLM(prompt, { 
+                type: 'question_generation',
+                systemMessage: 'You are an expert medical educator specializing in dermatology board exam question writing. Your task is to generate high-quality, clinically relevant questions in the exact JSON format specified.'
+            });
+            console.log('[QuestionGenerator] Received response from LLM, length:', response.length);
+
+            // Try to extract JSON from the response
+            let jsonStr = response;
+            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                console.log('[QuestionGenerator] Found JSON match in response');
+                jsonStr = jsonMatch[0];
+            } else {
+                console.warn('[QuestionGenerator] No JSON match found in response');
+            }
+
+            let question;
+            try {
+                console.log('[QuestionGenerator] Attempting to parse JSON response');
+                question = JSON.parse(jsonStr);
+                console.log('[QuestionGenerator] Successfully parsed JSON response');
+            } catch (parseError) {
+                console.error('[QuestionGenerator] JSON parse error:', {
+                    error: parseError.message,
+                    responsePreview: response.substring(0, 200) + '...'
+                });
+                throw new Error('Invalid JSON response from LLM');
+            }
+
+            // Validate the generated question
+            console.log('[QuestionGenerator] Validating question structure');
+            if (!this._validateQuestionStructure(question)) {
+                console.error('[QuestionGenerator] Invalid question structure:', {
+                    type: question.type,
+                    hasStem: !!question.stem,
+                    optionsCount: question.options?.length,
+                    hasCorrectAnswer: !!question.correctAnswer,
+                    hasExplanation: !!question.explanation
+                });
+                throw new Error('Failed to generate valid Type A question structure');
+            }
+
+            // Cache the question
+            console.log('[QuestionGenerator] Caching valid question');
+            this.questionCache.set(cacheKey, {
+                question,
+                timestamp: Date.now()
+            });
+
+            return question;
+        } catch (error) {
+            console.error('[QuestionGenerator] Error in generateTypeAQuestion:', {
+                error: error.message,
+                stack: error.stack,
+                topic,
+                difficulty,
+                focusOn
+            });
+            throw new Error('Failed to generate Type A question: ' + error.message);
+        }
     }
 
     /**
@@ -171,6 +274,7 @@ class QuestionGenerator {
      * @returns {Object} Validation results
      */
     validateQuestion(question) {
+        console.log('[QuestionGenerator] Validating question:', question);
         const validationResults = {
             isValid: true,
             issues: []
@@ -393,87 +497,66 @@ class QuestionGenerator {
      * @returns {Promise<Array>} Array of generated questions
      * @throws {Error} If generation fails
      */
-    async generateQuiz(questionCount, topics, difficulty = 'medium') {
-        // Validate inputs
-        if (!Number.isInteger(questionCount) || questionCount <= 0) {
-            throw new Error('Invalid question count');
-        }
-        if (!this.validateTopics(topics)) {
-            throw new Error('Invalid topic(s)');
-        }
-        if (!['easy', 'medium', 'hard'].includes(difficulty)) {
-            throw new Error('Invalid difficulty level');
-        }
-
+    async generateQuiz({ questionCount, topics, difficulty }) {
+        console.log('[QuestionGenerator] Starting quiz generation:', { questionCount, topics, difficulty });
         const questions = [];
-        const typeDistribution = {
-            [this.questionTypes.TYPE_A]: 0.7,
-            [this.questionTypes.TYPE_B]: 0.15,
-            [this.questionTypes.TYPE_R]: 0.15
-        };
+        let attempts = 0;
+        const maxAttempts = questionCount * 3;
+        const topicArray = Array.isArray(topics) ? topics : [topics];
+        
+        // Pre-generate some questions for each topic to have in cache
+        await this._preGenerateQuestions(topicArray, difficulty);
 
-        // Handle multiple topics
-        const topic = Array.isArray(topics) ? topics[Math.floor(Math.random() * topics.length)] : topics;
-        const MAX_RETRIES = 3;
-        let retryCount = 0;
-
-        for (let i = 0; i < questionCount; i++) {
+        while (questions.length < questionCount && attempts < maxAttempts) {
+            attempts++;
+            let topic = topicArray[questions.length % topicArray.length];
             let question;
-            let isValid = false;
-            let attempts = 0;
-
-            while (!isValid && attempts < MAX_RETRIES) {
-                const random = Math.random();
-                try {
-                    // Generate initial question
-                    if (random < typeDistribution[this.questionTypes.TYPE_A]) {
-                        question = this.generateTypeAQuestion({ topic, difficulty });
-                    } else if (random < typeDistribution[this.questionTypes.TYPE_A] + typeDistribution[this.questionTypes.TYPE_B]) {
-                        question = this.generateTypeBQuestionSet({ topic, difficulty });
-                    } else {
-                        question = this.generateTypeRQuestionSet({ topic, difficulty });
-                    }
-
-                    // Log the generated question for debugging
-                    console.log('Generated question:', JSON.stringify(question, null, 2));
-
-                    // Review and enhance the question
-                    question = await this._reviewAndEnhanceQuestion(question);
-
-                    // Log the enhanced question for debugging
-                    console.log('Enhanced question:', JSON.stringify(question, null, 2));
-
-                    // Validate the enhanced question
-                    const validation = this.validateQuestion(question);
-                    if (validation.isValid) {
-                        isValid = true;
-                        questions.push(question);
-                    } else {
-                        console.warn('Invalid question generated:', validation.issues);
-                        attempts++;
-                    }
-                } catch (error) {
-                    console.error('Error in question generation/validation:', error);
-                    console.error('Question state:', question);
-                    attempts++;
-                }
+            try {
+                console.log(`[QuestionGenerator] Generating question #${questions.length + 1} (Attempt ${attempts}) for topic:`, topic);
+                question = await this.generateTypeAQuestion({ topic, difficulty });
+                console.log('[QuestionGenerator] Raw question from LLM:', question);
+            } catch (err) {
+                console.error(`[QuestionGenerator] Error during LLM question generation (Attempt ${attempts}):`, err);
+                // If we hit rate limit or any other error, stop immediately
+                throw new Error(`Failed to generate question: ${err.message}`);
             }
 
-            if (!isValid) {
-                retryCount++;
-                if (retryCount >= MAX_RETRIES) {
-                    throw new Error(`Failed to generate valid questions after ${MAX_RETRIES} attempts`);
+            try {
+                const isValid = this.validateQuestion(question);
+                console.log(`[QuestionGenerator] Validation result for question #${questions.length + 1}:`, isValid);
+                if (isValid) {
+                    questions.push(question);
+                    console.log(`[QuestionGenerator] Question #${questions.length} added to quiz.`);
+                } else {
+                    console.warn(`[QuestionGenerator] Invalid question (Attempt ${attempts}):`, question);
                 }
-                i--; // Try again with a different topic
-                continue;
+            } catch (validationErr) {
+                console.error(`[QuestionGenerator] Error during question validation (Attempt ${attempts}):`, validationErr);
+                throw new Error(`Failed to validate question: ${validationErr.message}`);
             }
         }
 
-        if (questions.length === 0) {
-            throw new Error('Failed to generate any valid questions');
+        if (questions.length < questionCount) {
+            throw new Error(`Failed to generate enough valid questions (${questions.length}/${questionCount})`);
         }
 
         return questions;
+    }
+
+    /**
+     * Pre-generates questions for each topic to have in cache
+     * @private
+     */
+    async _preGenerateQuestions(topics, difficulty) {
+        console.log('[QuestionGenerator] Pre-generating questions for topics:', topics);
+        const preGeneratePromises = topics.map(async (topic) => {
+            try {
+                await this.generateTypeAQuestion({ topic, difficulty });
+            } catch (error) {
+                console.warn(`[QuestionGenerator] Failed to pre-generate question for topic ${topic}:`, error);
+            }
+        });
+        await Promise.all(preGeneratePromises);
     }
 
     /**

@@ -5,38 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dermatology Study System</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="/dist/css/styles.css" rel="stylesheet">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script>
-        // Initialize Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyBBbyHyAxTOwFu4q-Mh0jDuJq5ZPVAy2V0",
-            authDomain: "dermai-e69a5.firebaseapp.com",
-            projectId: "dermai-e69a5",
-            storageBucket: "dermai-e69a5.firebasestorage.app",
-            messagingSenderId: "940424189728",
-            appId: "1:940424189728:web:8a6769a48b742055046945",
-            measurementId: "G-YM5MFVJZBY"
-        };
-
-        // Initialize Firebase with error handling
-        try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            console.log('Firebase initialized successfully');
-        } catch (error) {
-            console.error('Error initializing Firebase:', error);
-        }
-    </script>
     <!-- Application Scripts -->
-    <script type="module" src="/dist/app.bundle.js"></script>
-    <script type="module" src="/dist/quiz.bundle.js"></script>
-    <script type="module" src="/dist/auth.bundle.js"></script>
-    <script type="module" src="/dist/profile.bundle.js"></script>
+    <script defer type="module" src="/dist/app.bundle.js"></script>
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
@@ -69,52 +43,52 @@
                 <div class="p-6">
                     <h2 class="text-lg font-medium text-gray-900">Quiz Generator</h2>
                     <p class="mt-1 text-sm text-gray-500">Practice with AI-generated questions</p>
-                    <button id="startQuizBtn" class="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    <button id="quizBtn" class="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
                         Start Quiz
                     </button>
                 </div>
             </div>
 
-            <!-- Clinical Cases -->
+            <!-- Clinical Cases Module -->
             <div class="bg-white overflow-hidden shadow rounded-lg">
                 <div class="p-6">
                     <h2 class="text-lg font-medium text-gray-900">Clinical Cases</h2>
-                    <p class="mt-1 text-sm text-gray-500">Interactive case simulations</p>
-                    <button id="startCaseBtn" class="mt-4 w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
-                        Start Case
+                    <p class="mt-1 text-sm text-gray-500">Practice with case-based scenarios</p>
+                    <button id="casesBtn" class="mt-4 w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        Start Cases
                     </button>
                 </div>
             </div>
 
-            <!-- DDx Tool -->
+            <!-- Differential Diagnosis Module -->
             <div class="bg-white overflow-hidden shadow rounded-lg">
                 <div class="p-6">
                     <h2 class="text-lg font-medium text-gray-900">Differential Diagnosis</h2>
-                    <p class="mt-1 text-sm text-gray-500">Explore potential diagnoses</p>
-                    <button id="startDDxBtn" class="mt-4 w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+                    <p class="mt-1 text-sm text-gray-500">Practice building differential diagnoses</p>
+                    <button id="differentialBtn" class="mt-4 w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
                         Start DDx
                     </button>
                 </div>
             </div>
 
-            <!-- Study Planner -->
+            <!-- Study Plan Module -->
             <div class="bg-white overflow-hidden shadow rounded-lg">
                 <div class="p-6">
                     <h2 class="text-lg font-medium text-gray-900">Study Planner</h2>
-                    <p class="mt-1 text-sm text-gray-500">Personalized study plans</p>
-                    <button id="viewPlanBtn" class="mt-4 w-full bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700">
+                    <p class="mt-1 text-sm text-gray-500">View your personalized study plan</p>
+                    <button id="studyPlanBtn" class="mt-4 w-full bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700">
                         View Plan
                     </button>
                 </div>
             </div>
 
-            <!-- Flashcards -->
+            <!-- Flashcards Module -->
             <div class="bg-white overflow-hidden shadow rounded-lg">
                 <div class="p-6">
                     <h2 class="text-lg font-medium text-gray-900">Flashcards</h2>
-                    <p class="mt-1 text-sm text-gray-500">Review key concepts</p>
-                    <button id="startFlashcardsBtn" class="mt-4 w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
-                        Start Review
+                    <p class="mt-1 text-sm text-gray-500">Study with interactive flashcards</p>
+                    <button id="flashcardsBtn" class="mt-4 w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                        Start Flashcards
                     </button>
                 </div>
             </div>
@@ -124,59 +98,91 @@
                 <div class="p-6">
                     <h2 class="text-lg font-medium text-gray-900">AI Assistant</h2>
                     <p class="mt-1 text-sm text-gray-500">Ask questions about dermatology</p>
-                    <button id="startChatBtn" class="mt-4 w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                    <button id="chatBtn" class="mt-4 w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
                         Start Chat
                     </button>
                 </div>
             </div>
         </div>
+    </main>
 
-        <!-- Quiz Modal -->
-        <div id="quizModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                <div class="mt-3">
-                    <h3 class="text-lg font-medium text-gray-900">Quiz Settings</h3>
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700">Number of Questions</label>
-                        <select id="questionCount" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="15">15</option>
-                            <option value="20">20</option>
-                        </select>
-                    </div>
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700">Topic</label>
-                        <select id="quizTopic" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option value="general">General Dermatology</option>
-                            <option value="pathology">Dermatopathology</option>
-                            <option value="surgery">Dermatologic Surgery</option>
-                            <option value="pediatric">Pediatric Dermatology</option>
-                        </select>
-                    </div>
-                    <div class="mt-4 flex justify-end">
-                        <button id="startQuizConfirmBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                            Start Quiz
-                        </button>
-                        <button id="closeQuizModalBtn" class="ml-3 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
-                            Cancel
-                        </button>
-                    </div>
+    <!-- User Profile Component Placeholder -->
+    <div id="userProfileComponent"></div>
+
+    <!-- Quiz Modal -->
+    <div id="quizModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-3/4 max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-medium text-gray-900">Quiz Configuration</h3>
+                <button id="closeQuizModalBtn" class="text-gray-400 hover:text-gray-500 text-2xl">&times;</button>
+            </div>
+            <div class="p-4">
+                <div class="mb-4">
+                    <label for="quizTopic" class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                    <select id="quizTopic" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                        <option value="general">General Dermatology</option>
+                        <option value="inflammatory">Inflammatory Conditions</option>
+                        <option value="neoplastic">Neoplastic Conditions</option>
+                        <option value="infectious">Infectious Diseases</option>
+                        <option value="pediatric">Pediatric Dermatology</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="questionCount" class="block text-sm font-medium text-gray-700 mb-1">Number of Questions</label>
+                    <input type="number" id="questionCount" min="5" max="20" value="10" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                </div>
+                <div class="mt-6">
+                    <button id="startQuizConfirmBtn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Start Quiz</button>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- Include User Profile Component -->
-    <div id="userProfileComponent"></div>
+    <!-- Chat Modal -->
+    <div id="chatModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-3/4 max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-medium text-gray-900">AI Dermatology Assistant</h3>
+                <button id="closeChatBtn" class="text-gray-400 hover:text-gray-500 text-2xl">&times;</button>
+            </div>
+            <div id="chatMessages" class="h-[60vh] overflow-y-auto mb-4 space-y-4 p-4 bg-gray-50 rounded-lg"></div>
+            <div class="flex items-center space-x-2">
+                <input type="text" id="chatInput" class="flex-1 rounded-lg border border-gray-300 px-4 py-2" placeholder="Type your question...">
+                <button id="sendMessageBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Send</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Load User Profile HTML -->
-    <script>
-        fetch('/apps/dermatology-study-system/components/user-profile.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('userProfileComponent').innerHTML = html;
-            });
-    </script>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl">
+            <div class="flex items-center space-x-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p id="loadingMessage" class="text-gray-700">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Message Overlay -->
+    <div id="errorOverlay" class="hidden fixed top-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg max-w-md z-50">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p id="errorMessage" class="text-sm font-medium">An error occurred.</p>
+            </div>
+            <div class="ml-auto pl-3">
+                <button id="closeErrorBtn" class="inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

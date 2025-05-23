@@ -2,189 +2,210 @@ import { db } from './firebase-config.js';
 import userProfile from './user-profile.js';
 import questionGenerator from './question-generator.js';
 import authManager from './auth.js';
-import askLLM from './ask-llm.js';
+import { askLLM } from './ask-llm.js';
 import uiManager from './ui-manager.js';
 
 class QuizState {
     constructor() {
         this.currentQuiz = null;
-        this.currentQuestionIndex = 0;
-        this.score = 0;
-        this.timer = null;
-        this.timeRemaining = 0;
-        this.eventListeners = new Map();
+        this.quizConfig = {
+            questionCount: 10,
+            timerEnabled: false,
+            navigationMode: 'sequential',
+            includeMissedQuestions: false,
+            includeWeakTopics: false,
+            missedQuestionsPercentage: 20
+        };
+        this.quizHistory = [];
+        this.missedQuestions = new Set();
+        this.weakTopics = new Map();
         this.isLoading = false;
+        this.error = null;
     }
 
     reset() {
-        // Clear timer
-        if (this.timer) {
-            clearInterval(this.timer);
-            this.timer = null;
-        }
-
-        // Remove all event listeners
-        this.cleanupEventListeners();
-
-        // Reset state
         this.currentQuiz = null;
-        this.currentQuestionIndex = 0;
-        this.score = 0;
-        this.timeRemaining = 0;
         this.isLoading = false;
+        this.error = null;
     }
 
     cleanupEventListeners() {
-        this.eventListeners.forEach((listener, element) => {
-            if (element && element.removeEventListener) {
-                element.removeEventListener(listener.type, listener.handler);
+        // Remove any existing event listeners
+        const elements = [
+            'quizAnswerInput',
+            'submitQuizAnswerButton',
+            'startQuizButton',
+            'quizTypeSelect'
+        ];
+        elements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                const clone = element.cloneNode(true);
+                element.parentNode.replaceChild(clone, element);
             }
         });
-        this.eventListeners.clear();
     }
 
     addEventListener(element, type, handler) {
-        if (!element) return;
-        element.addEventListener(type, handler);
-        this.eventListeners.set(element, { type, handler });
+        const el = document.getElementById(element);
+        if (el) {
+            el.addEventListener(type, handler);
+        }
     }
 
     async saveProgress() {
+        try {
         if (!this.currentQuiz) return;
 
-        try {
             const progress = {
-                quizId: this.currentQuiz.id,
-                currentQuestionIndex: this.currentQuestionIndex,
-                score: this.score,
-                timeRemaining: this.timeRemaining,
-                answers: this.currentQuiz.questions.map((q, index) => ({
-                    questionId: q.id,
-                    selectedAnswer: q.selectedAnswer,
-                    isCorrect: q.isCorrect
+                quizId: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                type: this.currentQuiz.type,
+                score: this.currentQuiz.score,
+                totalQuestions: this.currentQuiz.questions.length,
+                questions: this.currentQuiz.questions.map(q => ({
+                    questionText: q.questionText,
+                    userAnswer: q.userAnswer,
+                    isCorrect: q.isCorrect,
+                    type: q.type
                 }))
             };
 
-            // Save to localStorage
-            localStorage.setItem('quizProgress', JSON.stringify(progress));
-
-            // Save to database if user is logged in
+            // Save to user's profile if logged in
             if (authManager.user) {
-                await db.collection('users')
-                    .doc(authManager.user.uid)
-                    .collection('quizProgress')
-                    .doc(this.currentQuiz.id)
-                    .set(progress);
+                const userRef = db.collection('users').doc(authManager.user.uid);
+                await userRef.update({
+                    quizHistory: firebase.firestore.FieldValue.arrayUnion(progress)
+                });
             }
+
+            // Update local state
+            this.quizHistory.push(progress);
+
+            // Update missed questions and weak topics
+            this.currentQuiz.questions.forEach((q, index) => {
+                if (!q.isCorrect) {
+                    this.missedQuestions.add(q.questionText);
+                    const topic = q.type;
+                    this.weakTopics.set(topic, (this.weakTopics.get(topic) || 0) + 1);
+            }
+            });
+
         } catch (error) {
             console.error('Error saving quiz progress:', error);
-            // Continue even if save fails - at least we have localStorage
+            throw new Error('Failed to save quiz progress');
         }
     }
 
     async loadProgress(quizId) {
         try {
-            this.isLoading = true;
+            if (!authManager.user) return null;
 
-            // Try to load from localStorage first
-            const savedProgress = localStorage.getItem('quizProgress');
-            if (savedProgress) {
-                const progress = JSON.parse(savedProgress);
-                if (progress.quizId === quizId) {
-                    return progress;
-                }
-            }
+            const userRef = db.collection('users').doc(authManager.user.uid);
+            const doc = await userRef.get();
+            
+            if (!doc.exists) return null;
 
-            // If not in localStorage, try database
-            if (authManager.user) {
-                const progressDoc = await db.collection('users')
-                    .doc(authManager.user.uid)
-                    .collection('quizProgress')
-                    .doc(quizId)
-                    .get();
+            const userData = doc.data();
+            const quizProgress = userData.quizHistory?.find(q => q.quizId === quizId);
+            
+            if (quizProgress) {
+                // Update local state
+                this.quizHistory = userData.quizHistory || [];
+                this.missedQuestions = new Set(userData.missedQuestions || []);
+                this.weakTopics = new Map(Object.entries(userData.weakTopics || {}));
                 
-                if (progressDoc.exists) {
-                    return progressDoc.data();
+                return quizProgress;
                 }
-            }
+            
+            return null;
         } catch (error) {
             console.error('Error loading quiz progress:', error);
             throw new Error('Failed to load quiz progress');
-        } finally {
-            this.isLoading = false;
         }
-        return null;
     }
 
     startTimer(duration) {
-        if (this.timer) {
-            clearInterval(this.timer);
-        }
+        if (!this.currentQuiz) return;
+        
+        this.currentQuiz.timer = {
+            startTime: Date.now(),
+            duration: duration * 60 * 1000, // Convert minutes to milliseconds
+            remaining: duration * 60 * 1000
+        };
 
-        this.timeRemaining = duration;
-        this.timer = setInterval(() => {
-            this.timeRemaining--;
-            this.updateTimerDisplay();
+        this.currentQuiz.timerInterval = setInterval(() => {
+            const now = Date.now();
+            const elapsed = now - this.currentQuiz.timer.startTime;
+            this.currentQuiz.timer.remaining = Math.max(0, this.currentQuiz.timer.duration - elapsed);
 
-            if (this.timeRemaining <= 0) {
-                clearInterval(this.timer);
-                this.timer = null;
+            if (this.currentQuiz.timer.remaining === 0) {
                 this.handleTimeUp();
+            } else {
+                this.updateTimerDisplay();
             }
         }, 1000);
     }
 
     updateTimerDisplay() {
-        const timerElement = document.getElementById('quizTimer');
-        if (!timerElement) return;
+        if (!this.currentQuiz?.timer) return;
 
-        const minutes = Math.floor(this.timeRemaining / 60);
-        const seconds = this.timeRemaining % 60;
-        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        const minutes = Math.floor(this.currentQuiz.timer.remaining / 60000);
+        const seconds = Math.floor((this.currentQuiz.timer.remaining % 60000) / 1000);
+        
+        const timerDisplay = document.getElementById('quizTimer');
+        if (timerDisplay) {
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-        // Update visual indicator
-        const progress = (this.timeRemaining / this.currentQuiz.duration) * 100;
-        timerElement.style.setProperty('--progress', `${progress}%`);
-
-        // Add warning class when time is running low
-        if (this.timeRemaining <= 30) {
-            timerElement.classList.add('warning');
+            // Add warning class when less than 1 minute remaining
+            if (this.currentQuiz.timer.remaining < 60000) {
+                timerDisplay.classList.add('text-red-600');
         } else {
-            timerElement.classList.remove('warning');
+                timerDisplay.classList.remove('text-red-600');
+            }
         }
     }
 
     handleTimeUp() {
-        // Save final progress
-        this.saveProgress();
+        if (!this.currentQuiz) return;
+
+        // Clear timer
+        if (this.currentQuiz.timerInterval) {
+            clearInterval(this.currentQuiz.timerInterval);
+        }
+
+        // Disable input and submit button
+        const answerInput = document.getElementById('quizAnswerInput');
+        const submitButton = document.getElementById('submitQuizAnswerButton');
+        if (answerInput) answerInput.disabled = true;
+        if (submitButton) submitButton.disabled = true;
 
         // Show time up message
-        const quizContainer = document.getElementById('quizContainer');
-        if (quizContainer) {
-            quizContainer.innerHTML = `
-                <div class="text-center p-8">
-                    <h2 class="text-2xl font-bold text-red-600 mb-4">Time's Up!</h2>
-                    <p class="mb-4">Your quiz has ended due to time expiration.</p>
-                    <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" 
-                            onclick="showResults()">
-                        View Results
-                    </button>
-                </div>
-            `;
+        const feedback = document.getElementById('quizFeedback');
+        if (feedback) {
+            feedback.textContent = "Time's up!";
+            feedback.className = "mt-2 text-red-600";
         }
 
-        // Update user profile
-        if (authManager.user) {
-            authManager.updateQuizHistory(this.currentQuiz.id, {
-                completed: true,
-                score: this.score,
-                timeExpired: true
-            });
+        // Auto-submit current question if not answered
+        if (this.currentQuiz.currentQuestionIndex < this.currentQuiz.questions.length) {
+            const currentQuestion = this.currentQuiz.questions[this.currentQuiz.currentQuestionIndex];
+            if (!currentQuestion.userAnswer) {
+                currentQuestion.userAnswer = '';
+                currentQuestion.isCorrect = false;
+                this.currentQuiz.currentQuestionIndex++;
+            }
+        }
+
+        // Show results after a delay
+        setTimeout(() => {
+            this.showResults();
+        }, 2000);
         }
     }
-}
 
-const quizState = new QuizState();
+// Export the QuizState class
+export default QuizState;
 
 /**
  * Generates and starts a new quiz
@@ -192,73 +213,54 @@ const quizState = new QuizState();
  * @param {string[]} topics - Selected topics
  * @param {Object} config - Quiz configuration
  */
-export async function generateQuiz(questionCount, topics, config = {}) {
+export async function generateQuiz({ questionCount, topics, difficulty }) {
     const loadingId = uiManager.showLoading('quiz_loading', 'Generating your quiz...');
     
     try {
         // Reset previous state
         quizState.reset();
 
-        // Create quiz container if it doesn't exist
-        let quizContainer = document.getElementById('quizContainer');
-        if (!quizContainer) {
-            quizContainer = document.createElement('div');
-            quizContainer.id = 'quizContainer';
-            quizContainer.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full';
-            document.body.appendChild(quizContainer);
-        } else {
-            // Clear existing content
-            quizContainer.innerHTML = '';
+        // Test LLM with a simple message
+        console.log('Testing LLM with Hello World...');
+        try {
+            const testResponse = await askLLM('Hello, World!', { type: 'test' });
+            console.log('LLM Test Response:', testResponse);
+        } catch (error) {
+            console.error('LLM Test Error:', error);
         }
-        
-        // Generate questions with retry mechanism
-        let questions;
-        let retryCount = 0;
-        const maxRetries = 3;
 
-        while (retryCount < maxRetries) {
-            try {
-                questions = await questionGenerator.generateQuiz(questionCount, topics, 'medium');
-                break;
-            } catch (error) {
-                retryCount++;
-                if (retryCount === maxRetries) {
-                    throw new Error('Failed to generate questions after multiple attempts');
-                }
-                await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-            }
-        }
-        
-        // Initialize quiz state
+        // Generate a single question
+        console.log('Generating single question...');
+        const question = await questionGenerator.generateTypeAQuestion({
+            topic: topics[0] || 'general',
+            difficulty: difficulty || 'medium'
+        });
+
+        // Create quiz with single question
         quizState.currentQuiz = {
             id: Date.now().toString(),
-            questions,
-            questionCount: questions.length,
-            config: {
-                timerEnabled: config.timerEnabled ?? true,
-                timerDuration: config.timerDuration ?? 3600,
-                navigationMode: config.navigationMode ?? 'free'
-            }
+            questions: [question],
+            duration: 300, // 5 minutes
+            startTime: Date.now()
         };
 
-        // Start timer if enabled
-        if (quizState.currentQuiz.config.timerEnabled) {
-            quizState.startTimer(quizState.currentQuiz.config.timerDuration);
-        }
-
-        // Show first question
+        // Show the question
         showQuestion();
-
+        
+        // Start timer
+        quizState.startTimer(quizState.currentQuiz.duration);
+        
         // Add keyboard shortcuts
         addKeyboardShortcuts();
-
-        // Hide loading indicator
-        uiManager.hideLoading(loadingId);
-
+        
+        // Save initial progress
+        await quizState.saveProgress();
+        
     } catch (error) {
         console.error('Error generating quiz:', error);
+        uiManager.showError('Failed to generate quiz: ' + error.message);
+    } finally {
         uiManager.hideLoading(loadingId);
-        alert('Error generating quiz. Please try again.');
     }
 }
 
@@ -442,7 +444,7 @@ function generateTypeAQuestionHTML(question) {
                     <button class="quiz-option w-full text-left p-3 rounded-md border border-gray-300 hover:bg-gray-50"
                             data-option="${option.id}">
                         ${option.id}. ${option.text}
-                    </button>
+                        </button>
                 `).join('')}
             </div>
             ${generateRatingSystem(question.id)}
@@ -878,11 +880,11 @@ async function showResults() {
                     </button>
                     <button id="newQuizBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
                         Start New Quiz
-                    </button>
+                </button>
                 </div>
             </div>
-        </div>
-    `;
+            </div>
+        `;
 
     // Add event listeners
     document.getElementById('reviewQuizBtn').addEventListener('click', () => {

@@ -1,6 +1,10 @@
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyBZT_2iD6wZKMsnuJhZhBOi2IjEdwlYHLs",
+    apiKey: "AIzaSyBBbyHyAxTOwFu4q-Mh0jDuJq5ZPVAy2V0",
     authDomain: "dermai-e69a5.firebaseapp.com",
     projectId: "dermai-e69a5",
     storageBucket: "dermai-e69a5.firebasestorage.app",
@@ -10,9 +14,17 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+let app, auth, db;
+
+try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    console.log('Firebase initialized successfully');
+} catch (error) {
+    console.error('Firebase initialization error:', error);
+    throw new Error('Failed to initialize Firebase: ' + error.message);
+}
 
 // Export Firebase instances
-export { app, db, auth }; 
+export { app, auth, db }; 

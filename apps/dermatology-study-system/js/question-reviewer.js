@@ -1,4 +1,4 @@
-import askLLM from './ask-llm.js';
+import { askLLM } from './ask-llm.js';
 
 class QuestionReviewer {
     constructor() {
