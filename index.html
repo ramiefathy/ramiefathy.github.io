@@ -201,6 +201,97 @@
             margin-top: 1.5rem;
         }
         .awards-category-title:first-child { margin-top: 0; }
+        /* Apps section specific styling */
+        .app-category {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+        .app-category-title {
+            color: #1e40af;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #93c5fd;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .app-category-title i {
+            color: #3b82f6;
+        }
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .app-card {
+            background-color: #f8fafc;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .app-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border-color: #93c5fd;
+        }
+        .app-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .app-icon {
+            width: 48px;
+            height: 48px;
+            background-color: #dbeafe;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e40af;
+            font-size: 1.5rem;
+        }
+        .app-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e40af;
+            margin: 0;
+        }
+        .app-description {
+            color: #4b5563;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+        .app-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: auto;
+            transition: color 0.2s ease;
+        }
+        .app-link:hover {
+            color: #2563eb;
+        }
+        .app-link i {
+            font-size: 0.875rem;
+            transition: transform 0.2s ease;
+        }
+        .app-link:hover i {
+            transform: translateX(4px);
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased">
@@ -438,10 +529,11 @@
                 <div class="container mx-auto px-6 md:px-10 py-10">
                     <h2 class="text-4xl md:text-5xl font-extrabold text-center section-title tracking-tight">Tools & Applications</h2>
                     <p class="text-lg text-gray-700 text-center max-w-3xl mx-auto mb-16 leading-relaxed">
-                        A collection of tools and applications I have developed or contributed to.
+                        A collection of tools and applications I have developed or contributed to, designed to enhance clinical workflow and research efficiency.
                     </p>
-                    <div id="applications-categorized-list" class="max-w-3xl mx-auto space-y-12">
-                        </div>
+                    <div id="applications-categorized-list" class="max-w-6xl mx-auto">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
                 </div>
             </section>
         </div>
@@ -486,50 +578,6 @@
                                 <i class="fab fa-researchgate fa-3x"></i>
                             </a>
                         </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div class="tab-content" id="apps">
-            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="section-title text-3xl">Applications</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="application-item">
-                        <a href="apps/PDF Merger.html">PDF Merger</a>
-                        <p class="text-sm text-gray-600 mt-1">Merge multiple PDF files into one document</p>
-                    </div>
-                    <div class="application-item">
-                        <a href="apps/PDF Splitter.html">PDF Splitter</a>
-                        <p class="text-sm text-gray-600 mt-1">Split PDF files into separate documents</p>
-                    </div>
-                    <div class="application-item">
-                        <a href="apps/Scheduler.html">Scheduler</a>
-                        <p class="text-sm text-gray-600 mt-1">Schedule management tool</p>
-                    </div>
-                    <div class="application-item">
-                        <a href="apps/WoundCareWebpages.html">Wound Care</a>
-                        <p class="text-sm text-gray-600 mt-1">Wound care management resources</p>
-                    </div>
-                    <div class="application-item">
-                        <a href="apps/codingTutor.html">Coding Tutor</a>
-                        <p class="text-sm text-gray-600 mt-1">Interactive coding learning tool</p>
-                    </div>
-                    <div class="application-item">
-                        <a href="apps/dermascore.html">DermaScore</a>
-                        <p class="text-sm text-gray-600 mt-1">Dermatology scoring system</p>
-                    </div>
-                    <div class="application-item">
-                        <a href="apps/dermpath ddxs.html">Dermpath DDx</a>
-                        <p class="text-sm text-gray-600 mt-1">Dermatopathology differential diagnosis tool</p>
-                    </div>
-                    <div class="application-item">
-                        <a href="apps/raeTest.html">RAE Test</a>
-                        <p class="text-sm text-gray-600 mt-1">Research and education assessment tool</p>
-                    </div>
-                    <div class="application-item">
-                        <a href="apps/textExtractor.html">Text Extractor</a>
-                        <p class="text-sm text-gray-600 mt-1">Extract text from various document formats</p>
                     </div>
                 </div>
             </section>
@@ -656,16 +704,17 @@
             { topic: "Other Articles", title: "From Unmatched to Top Pick: The Highs and Lows of a Year in Limbo", authors: "Fathy, R.", details: "Medscape. (April 20, 2022)", link: "https://www.medscape.com/viewarticle/972199"}
         ];
         const applicationItems = [
-            { name: "Dermatopathology Differentials", href: "dermpath ddxs.html", category: "Clinical Applications"},
-            { name: "Dermatology Scoring and Screening Calculators", href: "dermascore.html", category: "Clinical Applications"},
-            { name: "AI Scribe with Real-Time Feedback and Iterative Note Refinement", href: "DermaScribe.html", category: "Clinical Applications"},
-            { name: "Advanced AI Scribe", href: "client/index.html", category: "Clinical Applications"},
-            { name: "Automated Clinic Scheduler", href: "Scheduler.html", category: "Clinical Applications"},
-            { name: "PDF Text Extractor", href: "textExtractor.html", category: "File Management Tools"},
-            { name: "PDF Splitter", href: "PDF Splitter.html", category: "File Management Tools"},
-            { name: "PDF Merger", href: "PDF Merger.html", category: "File Management Tools"},
-            { name: "test site for Rae", href: "raeTest.html", category: "Clinical Applications"},
-            { name: "Personalized AI Coding Tutor",  href: "codingTutor.html", category: "File Management Tools"}
+            { name: "Dermatopathology Differentials", href: "apps/dermpath ddxs.html", category: "Clinical Applications"},
+            { name: "Dermatology Scoring and Screening Calculators", href: "apps/dermascore.html", category: "Clinical Applications"},
+            { name: "DermaScribe", href: "apps/DermaScribe.html", category: "Clinical Applications"},
+            { name: "Dermatology Study System", href: "apps/dermatology-study-system/index.html", category: "Clinical Applications"},
+            { name: "Advanced AI Scribe", href: "apps/client/index.html", category: "Clinical Applications"},
+            { name: "Automated Clinic Scheduler", href: "apps/Scheduler.html", category: "Clinical Applications"},
+            { name: "PDF Text Extractor", href: "apps/textExtractor.html", category: "File Management Tools"},
+            { name: "PDF Splitter", href: "apps/PDF Splitter.html", category: "File Management Tools"},
+            { name: "PDF Merger", href: "apps/PDF Merger.html", category: "File Management Tools"},
+            { name: "Research and Education Assessment Tool", href: "apps/raeTest.html", category: "Clinical Applications"},
+            { name: "Personalized AI Coding Tutor", href: "apps/codingTutor.html", category: "File Management Tools"}
         ];
 
         // --- Function to Populate Basic Lists ---
@@ -785,38 +834,74 @@
         }
 
         // --- Function to Populate Applications List (Categorized) ---
-        function populateApplicationsCategorized(items, containerId) {
+        function populateApplicationsCategorized(applications, containerId) {
             const container = document.getElementById(containerId);
             if (!container) { console.error(`Container with ID '${containerId}' not found.`); return; }
             container.innerHTML = '';
-            const groupedApplications = items.reduce((acc, app) => {
+            
+            const groupedApplications = applications.reduce((acc, app) => {
                 const category = app.category || "Other Tools";
                 if (!acc[category]) acc[category] = [];
                 acc[category].push(app);
                 return acc;
             }, {});
-            // FIXED: Corrected syntax error in array definition (removed trailing semicolon)
+
+            const categoryIcons = {
+                "Clinical Applications": "fa-stethoscope",
+                "File Management Tools": "fa-file-alt",
+                "Other Tools": "fa-tools"
+            };
+
             const categoryOrder = ["Clinical Applications", "File Management Tools", "Other Tools"];
             categoryOrder.forEach(category => {
                 if (groupedApplications[category]) {
                     const categorySection = document.createElement('div');
-                    categorySection.className = 'mb-8';
+                    categorySection.className = 'app-category';
+                    
                     const title = document.createElement('h3');
-                    title.className = 'text-xl font-semibold subsection-title';
-                    title.textContent = category;
+                    title.className = 'app-category-title';
+                    title.innerHTML = `<i class="fas ${categoryIcons[category] || 'fa-tools'}"></i>${category}`;
                     categorySection.appendChild(title);
-                    const ul = document.createElement('ul');
-                    ul.className = 'space-y-3';
-                    groupedApplications[category].forEach(item => {
-                        const li = document.createElement('li');
-                        li.className = 'application-item';
-                        const a = document.createElement('a');
-                        a.href = item.href;
-                        a.textContent = item.name;
-                        li.appendChild(a);
-                        ul.appendChild(li);
+                    
+                    const grid = document.createElement('div');
+                    grid.className = 'app-grid';
+                    
+                    groupedApplications[category].forEach(app => {
+                        const card = document.createElement('div');
+                        card.className = 'app-card';
+                        
+                        const header = document.createElement('div');
+                        header.className = 'app-card-header';
+                        
+                        const icon = document.createElement('div');
+                        icon.className = 'app-icon';
+                        icon.innerHTML = `<i class="fas ${categoryIcons[category] || 'fa-tools'}"></i>`;
+                        
+                        const title = document.createElement('h4');
+                        title.className = 'app-title';
+                        title.textContent = app.name;
+                        
+                        header.appendChild(icon);
+                        header.appendChild(title);
+                        
+                        const link = document.createElement('a');
+                        link.href = app.href;
+                        link.className = 'app-link';
+                        link.innerHTML = 'Open Tool <i class="fas fa-arrow-right"></i>';
+                        // Add target="_blank" to open in new tab
+                        link.setAttribute('target', '_blank');
+                        // Prevent default behavior and handle navigation manually
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            window.location.href = app.href;
+                        });
+                        
+                        card.appendChild(header);
+                        card.appendChild(link);
+                        grid.appendChild(card);
                     });
-                    categorySection.appendChild(ul);
+                    
+                    categorySection.appendChild(grid);
                     container.appendChild(categorySection);
                 }
             });
