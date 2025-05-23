@@ -5,25 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dermatology Study System</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script type="module">
-        // Import Firebase
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-
+    <link href="/dist/css/styles.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script>
         // Initialize Firebase
         const firebaseConfig = {
-            // Your Firebase config here
+            apiKey: "AIzaSyBBbyHyAxTOwFu4q-Mh0jDuJq5ZPVAy2V0",
+            authDomain: "dermai-e69a5.firebaseapp.com",
+            projectId: "dermai-e69a5",
+            storageBucket: "dermai-e69a5.firebasestorage.app",
+            messagingSenderId: "940424189728",
+            appId: "1:940424189728:web:8a6769a48b742055046945",
+            measurementId: "G-YM5MFVJZBY"
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // Make Firebase instances available globally
-        window.firebase = { app, auth, db };
+        // Initialize Firebase with error handling
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Error initializing Firebase:', error);
+        }
     </script>
+    <!-- Application Scripts -->
     <script type="module" src="/dist/app.bundle.js"></script>
     <script type="module" src="/dist/quiz.bundle.js"></script>
     <script type="module" src="/dist/auth.bundle.js"></script>
