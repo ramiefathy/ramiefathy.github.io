@@ -31,11 +31,20 @@ async function initializeApp() {
         const userProfile = await fetch('components/user-profile.html').then(r => r.text());
         document.body.insertAdjacentHTML('beforeend', userProfile);
 
+        // Wait for DOM to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Initialize profile manager after modal is added to DOM
+        await profileManager.initialize();
+
     } catch (error) {
         console.error('Error initializing app:', error);
         alert('Error initializing application. Please refresh the page.');
     }
 }
+
+// Initialize app when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeApp);
 
 function initializeLoginModal() {
     const loginModal = document.getElementById('loginModal');
@@ -168,9 +177,6 @@ startChatBtn.addEventListener('click', () => {
 });
 
 // User Profile
-userProfileBtn.addEventListener('click', () => {
-    profileManager.showProfile();
-});
-
-// Initialize the application
-initializeApp(); 
+userProfileBtn.addEventListener('click', async () => {
+    await profileManager.showProfile();
+}); 

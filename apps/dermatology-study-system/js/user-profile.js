@@ -6,16 +6,22 @@ class UserProfile {
         this.profile = null;
         this.learningHistory = [];
         this.preferences = {
-            difficulty: 'medium',
-            topics: [],
-            dailyGoal: 10,
-            notifications: true
+            theme: 'light',
+            notifications: true,
+            autoSave: true,
+            defaultQuestionCount: 10,
+            defaultDifficulty: 'medium'
         };
+        this.isLoading = false;
+        this.retryCount = 0;
+        this.MAX_RETRIES = 3;
     }
 
     // Initialize user profile
     async initialize() {
         try {
+            this.isLoading = true;
+            
             // Listen for auth state changes
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
@@ -23,37 +29,65 @@ class UserProfile {
                     await this.loadProfile();
                     await this.loadLearningHistory();
                 } else {
-                    this.user = null;
-                    this.profile = null;
-                    this.learningHistory = [];
+                    this.reset();
                 }
             });
         } catch (error) {
             console.error('Error initializing user profile:', error);
-            throw error;
+            throw new Error('Failed to initialize user profile');
+        } finally {
+            this.isLoading = false;
         }
+    }
+
+    reset() {
+        this.user = null;
+        this.profile = null;
+        this.learningHistory = [];
+        this.retryCount = 0;
     }
 
     // Load user profile from Firestore
     async loadProfile() {
         try {
-            const profileDoc = await db.collection('users').doc(this.user.uid).get();
-            if (profileDoc.exists) {
-                this.profile = profileDoc.data();
-                this.preferences = this.profile.preferences || this.preferences;
-            } else {
-                // Create new profile if it doesn't exist
-                await this.createProfile();
+            this.isLoading = true;
+            this.retryCount = 0;
+
+            while (this.retryCount < this.MAX_RETRIES) {
+                try {
+                    const profileDoc = await db.collection('users').doc(this.user.uid).get();
+                    if (profileDoc.exists) {
+                        this.profile = profileDoc.data();
+                        this.preferences = this.profile.preferences || this.preferences;
+                        return;
+                    } else {
+                        // Create new profile if it doesn't exist
+                        await this.createProfile();
+                        return;
+                    }
+                } catch (error) {
+                    this.retryCount++;
+                    if (this.retryCount >= this.MAX_RETRIES) {
+                        throw error;
+                    }
+                    // Wait before retrying
+                    await new Promise(resolve => setTimeout(resolve, 1000 * this.retryCount));
+                }
             }
         } catch (error) {
             console.error('Error loading profile:', error);
-            throw error;
+            throw new Error('Failed to load user profile');
+        } finally {
+            this.isLoading = false;
         }
     }
 
     // Create new user profile
     async createProfile() {
         try {
+            this.isLoading = true;
+            this.retryCount = 0;
+
             const newProfile = {
                 email: this.user.email,
                 displayName: this.user.displayName || this.user.email.split('@')[0],
@@ -63,15 +97,34 @@ class UserProfile {
                     quizzesCompleted: 0,
                     totalScore: 0,
                     averageScore: 0,
-                    topicsMastered: []
+                    topicsMastered: [],
+                    lastActive: new Date()
+                },
+                progress: {
+                    topicPerformance: {},
+                    missedQuestions: [],
+                    questionHistory: []
                 }
             };
 
-            await db.collection('users').doc(this.user.uid).set(newProfile);
-            this.profile = newProfile;
+            while (this.retryCount < this.MAX_RETRIES) {
+                try {
+                    await db.collection('users').doc(this.user.uid).set(newProfile);
+                    this.profile = newProfile;
+                    return;
+                } catch (error) {
+                    this.retryCount++;
+                    if (this.retryCount >= this.MAX_RETRIES) {
+                        throw error;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000 * this.retryCount));
+                }
+            }
         } catch (error) {
             console.error('Error creating profile:', error);
-            throw error;
+            throw new Error('Failed to create user profile');
+        } finally {
+            this.isLoading = false;
         }
     }
 
@@ -176,6 +229,157 @@ class UserProfile {
         const masteredTopics = this.profile?.stats.topicsMastered || [];
         const allTopics = ['general', 'pathology', 'surgery', 'pediatric'];
         return allTopics.filter(topic => !masteredTopics.includes(topic));
+    }
+
+    // Update user profile
+    async updateProfile(updates) {
+        if (!this.user) throw new Error('No user logged in');
+        if (!updates || typeof updates !== 'object') {
+            throw new Error('Invalid update data');
+        }
+
+        try {
+            this.isLoading = true;
+            this.retryCount = 0;
+
+            // Validate updates
+            const validatedUpdates = this.validateProfileUpdates(updates);
+            if (!validatedUpdates) {
+                throw new Error('Invalid profile updates');
+            }
+
+            while (this.retryCount < this.MAX_RETRIES) {
+                try {
+                    await db.collection('users').doc(this.user.uid).update({
+                        ...validatedUpdates,
+                        lastUpdated: new Date()
+                    });
+                    this.profile = { ...this.profile, ...validatedUpdates };
+                    return;
+                } catch (error) {
+                    this.retryCount++;
+                    if (this.retryCount >= this.MAX_RETRIES) {
+                        throw error;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000 * this.retryCount));
+                }
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            throw new Error('Failed to update user profile');
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    // Validate profile updates
+    validateProfileUpdates(updates) {
+        const validFields = {
+            displayName: 'string',
+            preferences: 'object',
+            stats: 'object',
+            progress: 'object'
+        };
+
+        const validatedUpdates = {};
+
+        for (const [key, value] of Object.entries(updates)) {
+            if (!validFields[key]) continue;
+            
+            if (typeof value !== validFields[key]) {
+                console.warn(`Invalid type for ${key}: expected ${validFields[key]}, got ${typeof value}`);
+                continue;
+            }
+
+            // Additional validation for specific fields
+            switch (key) {
+                case 'displayName':
+                    if (value.length < 2 || value.length > 50) continue;
+                    break;
+                case 'preferences':
+                    if (!this.validatePreferences(value)) continue;
+                    break;
+                case 'stats':
+                    if (!this.validateStats(value)) continue;
+                    break;
+                case 'progress':
+                    if (!this.validateProgress(value)) continue;
+                    break;
+            }
+
+            validatedUpdates[key] = value;
+        }
+
+        return Object.keys(validatedUpdates).length > 0 ? validatedUpdates : null;
+    }
+
+    // Validate preferences object
+    validatePreferences(preferences) {
+        const requiredPreferences = {
+            theme: ['light', 'dark'],
+            notifications: 'boolean',
+            autoSave: 'boolean',
+            defaultQuestionCount: 'number',
+            defaultDifficulty: ['easy', 'medium', 'hard']
+        };
+
+        for (const [key, value] of Object.entries(preferences)) {
+            if (!requiredPreferences[key]) return false;
+            
+            if (Array.isArray(requiredPreferences[key])) {
+                if (!requiredPreferences[key].includes(value)) return false;
+            } else if (typeof value !== requiredPreferences[key]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Validate stats object
+    validateStats(stats) {
+        const requiredStats = {
+            quizzesCompleted: 'number',
+            totalScore: 'number',
+            averageScore: 'number',
+            topicsMastered: 'array',
+            lastActive: 'date'
+        };
+
+        for (const [key, value] of Object.entries(stats)) {
+            if (!requiredStats[key]) return false;
+            
+            switch (requiredStats[key]) {
+                case 'number':
+                    if (typeof value !== 'number' || isNaN(value)) return false;
+                    break;
+                case 'array':
+                    if (!Array.isArray(value)) return false;
+                    break;
+                case 'date':
+                    if (!(value instanceof Date) && isNaN(Date.parse(value))) return false;
+                    break;
+            }
+        }
+
+        return true;
+    }
+
+    // Validate progress object
+    validateProgress(progress) {
+        const requiredProgress = {
+            topicPerformance: 'object',
+            missedQuestions: 'array',
+            questionHistory: 'array'
+        };
+
+        for (const [key, value] of Object.entries(progress)) {
+            if (!requiredProgress[key]) return false;
+            
+            if (typeof value !== requiredProgress[key]) return false;
+        }
+
+        return true;
     }
 }
 

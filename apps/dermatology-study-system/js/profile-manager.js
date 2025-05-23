@@ -2,44 +2,87 @@ import authManager from './auth.js';
 
 class ProfileManager {
     constructor() {
+        this.modal = null;
+        this.initialized = false;
+        this.initializationAttempts = 0;
+        this.MAX_INITIALIZATION_ATTEMPTS = 5;
+    }
+
+    async initialize() {
+        if (this.initialized) return;
+
+        // Try to find the modal
         this.modal = document.getElementById('userProfileModal');
+        
+        if (!this.modal) {
+            this.initializationAttempts++;
+            if (this.initializationAttempts < this.MAX_INITIALIZATION_ATTEMPTS) {
+                console.warn(`Profile modal not found. Retrying initialization (attempt ${this.initializationAttempts}/${this.MAX_INITIALIZATION_ATTEMPTS})...`);
+                // Wait a bit before retrying
+                await new Promise(resolve => setTimeout(resolve, 200));
+                return this.initialize();
+            } else {
+                console.error('Failed to find profile modal after multiple attempts');
+                return;
+            }
+        }
+
         this.initializeEventListeners();
+        this.initialized = true;
+        console.log('Profile manager initialized successfully');
     }
 
     initializeEventListeners() {
+        if (!this.modal) {
+            console.warn('Cannot initialize event listeners: modal not found');
+            return;
+        }
+
         // Close modal
-        document.getElementById('closeProfileModalBtn').addEventListener('click', () => {
-            this.modal.classList.add('hidden');
-        });
+        const closeBtn = document.getElementById('closeProfileModalBtn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.modal.classList.add('hidden');
+            });
+        }
 
         // Sign out
-        document.getElementById('signOutBtn').addEventListener('click', async () => {
-            try {
-                await authManager.signOut();
-                this.modal.classList.add('hidden');
-            } catch (error) {
-                console.error('Error signing out:', error);
-                alert('Error signing out. Please try again.');
-            }
-        });
+        const signOutBtn = document.getElementById('signOutBtn');
+        if (signOutBtn) {
+            signOutBtn.addEventListener('click', async () => {
+                try {
+                    await authManager.signOut();
+                    this.modal.classList.add('hidden');
+                } catch (error) {
+                    console.error('Error signing out:', error);
+                    alert('Error signing out. Please try again.');
+                }
+            });
+        }
 
         // Save preferences
-        document.getElementById('savePreferencesBtn').addEventListener('click', async () => {
-            try {
-                const preferences = this.getPreferences();
-                await authManager.updatePreferences(preferences);
-                alert('Preferences saved successfully!');
-            } catch (error) {
-                console.error('Error saving preferences:', error);
-                alert('Error saving preferences. Please try again.');
-            }
-        });
+        const savePrefsBtn = document.getElementById('savePreferencesBtn');
+        if (savePrefsBtn) {
+            savePrefsBtn.addEventListener('click', async () => {
+                try {
+                    const preferences = this.getPreferences();
+                    await authManager.updatePreferences(preferences);
+                    alert('Preferences saved successfully!');
+                } catch (error) {
+                    console.error('Error saving preferences:', error);
+                    alert('Error saving preferences. Please try again.');
+                }
+            });
+        }
 
         // Edit profile
-        document.getElementById('editProfileBtn').addEventListener('click', () => {
-            // TODO: Implement profile editing
-            alert('Profile editing coming soon!');
-        });
+        const editProfileBtn = document.getElementById('editProfileBtn');
+        if (editProfileBtn) {
+            editProfileBtn.addEventListener('click', () => {
+                // TODO: Implement profile editing
+                alert('Profile editing coming soon!');
+            });
+        }
     }
 
     getPreferences() {
@@ -95,7 +138,15 @@ class ProfileManager {
             .slice(0, 2);
     }
 
-    showProfile() {
+    async showProfile() {
+        // Ensure modal is initialized
+        await this.initialize();
+        
+        if (!this.modal) {
+            console.error('Profile modal not found');
+            return;
+        }
+
         this.updateProfileDisplay();
         this.modal.classList.remove('hidden');
     }
