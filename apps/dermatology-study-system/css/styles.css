@@ -82,24 +82,23 @@
 /* Custom modal animations */
 .modal-enter {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.9);
 }
 
 .modal-enter-active {
     opacity: 1;
     transform: scale(1);
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    transition: opacity 300ms, transform 300ms;
 }
 
 .modal-exit {
     opacity: 1;
-    transform: scale(1);
 }
 
 .modal-exit-active {
     opacity: 0;
-    transform: scale(0.95);
-    transition: opacity 0.3s ease-in, transform 0.3s ease-in;
+    transform: scale(0.9);
+    transition: opacity 300ms, transform 300ms;
 }
 
 /* Custom tooltip styles */
@@ -191,4 +190,25 @@
     border: solid white;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
+}
+
+/* Custom styles for the Dermatology Study System */
+
+/* Card hover effects */
+.bg-white {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.bg-white:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Button hover effects */
+button {
+    transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+    transform: translateY(-1px);
 } 

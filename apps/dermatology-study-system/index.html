@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dermatology Study System</title>
+    <title>Dermatology AI Tutor</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
@@ -19,11 +20,14 @@
             <div class="flex justify-between h-16">
                 <div class="flex">
                     <div class="flex-shrink-0 flex items-center">
-                        <h1 class="text-xl font-bold text-gray-800">Dermatology Study System</h1>
+                        <h1 class="text-xl font-bold text-gray-800">Dermatology AI Tutor</h1>
                     </div>
                 </div>
-                <div class="flex items-center">
-                    <button id="userProfileBtn" class="ml-4 px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">
+                <div class="flex items-center space-x-4">
+                    <button id="loginBtn" class="px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">
+                        Login
+                    </button>
+                    <button id="userProfileBtn" class="px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hidden">
                         Profile
                     </button>
                 </div>
@@ -138,9 +142,23 @@
         </div>
     </main>
 
+    <!-- Include User Profile Component -->
+    <div id="userProfileComponent"></div>
+
+    <!-- Load User Profile HTML -->
+    <script>
+        fetch('components/user-profile.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('userProfileComponent').innerHTML = html;
+            });
+    </script>
+
     <!-- Custom JavaScript -->
-    <script src="js/app.js"></script>
-    <script src="js/quiz.js"></script>
-    <script src="js/firebase-config.js"></script>
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/user-profile.js"></script>
+    <script type="module" src="js/profile-manager.js"></script>
+    <script type="module" src="js/quiz.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html> 
