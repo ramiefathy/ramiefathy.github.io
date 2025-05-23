@@ -206,6 +206,9 @@ export async function generateQuiz(questionCount, topics, config = {}) {
             quizContainer.id = 'quizContainer';
             quizContainer.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full';
             document.body.appendChild(quizContainer);
+        } else {
+            // Clear existing content
+            quizContainer.innerHTML = '';
         }
         
         // Generate questions with retry mechanism
@@ -227,43 +230,21 @@ export async function generateQuiz(questionCount, topics, config = {}) {
         }
         
         // Initialize quiz state
-        const quizId = `quiz_${Date.now()}`;
         quizState.currentQuiz = {
-            id: quizId,
+            id: Date.now().toString(),
             questions,
-            startTime: new Date(),
-            topics,
-            questionCount,
-            config
+            questionCount: questions.length,
+            config: {
+                timerEnabled: config.timerEnabled ?? true,
+                timerDuration: config.timerDuration ?? 3600,
+                navigationMode: config.navigationMode ?? 'free'
+            }
         };
 
-        // Load saved progress if exists
-        const savedProgress = await quizState.loadProgress(quizId);
-        if (savedProgress) {
-            quizState.currentQuestionIndex = savedProgress.currentQuestionIndex;
-            quizState.score = savedProgress.score;
-            quizState.timeRemaining = savedProgress.timeRemaining;
-            
-            // Restore answers
-            savedProgress.answers.forEach(answer => {
-                const question = quizState.currentQuiz.questions.find(q => q.id === answer.questionId);
-                if (question) {
-                    question.selectedAnswer = answer.selectedAnswer;
-                    question.isCorrect = answer.isCorrect;
-                }
-            });
+        // Start timer if enabled
+        if (quizState.currentQuiz.config.timerEnabled) {
+            quizState.startTimer(quizState.currentQuiz.config.timerDuration);
         }
-
-        // Initialize timer if enabled
-        if (config.timerEnabled) {
-            quizState.timeRemaining = config.timerDuration || 3600;
-            startTimer();
-        }
-
-        // Start auto-save
-        quizState.autoSaveInterval = setInterval(() => {
-            quizState.saveProgress();
-        }, 30000); // Save every 30 seconds
 
         // Show first question
         showQuestion();
@@ -271,14 +252,13 @@ export async function generateQuiz(questionCount, topics, config = {}) {
         // Add keyboard shortcuts
         addKeyboardShortcuts();
 
-        uiManager.showNotification('Quiz generated successfully!', 'success');
+        // Hide loading indicator
+        uiManager.hideLoading(loadingId);
+
     } catch (error) {
         console.error('Error generating quiz:', error);
-        uiManager.showErrorWithRetry('Failed to generate quiz. Please try again.', () => {
-            generateQuiz(questionCount, topics, config);
-        });
-    } finally {
         uiManager.hideLoading(loadingId);
+        alert('Error generating quiz. Please try again.');
     }
 }
 
