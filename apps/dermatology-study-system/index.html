@@ -172,7 +172,7 @@
 
     <!-- Load User Profile HTML -->
     <script>
-        fetch('components/user-profile.html')
+        fetch('/apps/dermatology-study-system/components/user-profile.html')
             .then(response => response.text())
             .then(html => {
                 document.getElementById('userProfileComponent').innerHTML = html;

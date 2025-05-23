@@ -11,11 +11,11 @@ async function initializeApp() {
         await authManager.initialize();
 
         // Add login modal to page
-        const loginModal = await fetch('components/login-modal.html').then(r => r.text());
+        const loginModal = await fetch('/apps/dermatology-study-system/components/login-modal.html').then(r => r.text());
         document.body.insertAdjacentHTML('beforeend', loginModal);
 
         // Add user profile component to page
-        const userProfile = await fetch('components/user-profile.html').then(r => r.text());
+        const userProfile = await fetch('/apps/dermatology-study-system/components/user-profile.html').then(r => r.text());
         document.body.insertAdjacentHTML('beforeend', userProfile);
 
         // Wait for DOM to update
@@ -66,11 +66,13 @@ function initializeEventListeners() {
                 alert('Please sign in to start a quiz.');
                 return;
             }
-            const questionCount = document.getElementById('questionCount')?.value;
-            const topic = document.getElementById('quizTopic')?.value;
-            if (questionCount && topic) {
-                generateQuiz(questionCount, topic);
-            }
+            const questionCount = parseInt(document.getElementById('questionCount')?.value || '10', 10);
+            const topic = document.getElementById('quizTopic')?.value || 'general';
+            generateQuiz({
+                questionCount,
+                topics: [topic],
+                difficulty: 'medium'
+            });
         });
     }
 
@@ -87,11 +89,13 @@ function initializeEventListeners() {
                 alert('Please sign in to start a quiz.');
                 return;
             }
-            const questionCount = document.getElementById('questionCount')?.value;
-            const topic = document.getElementById('quizTopic')?.value;
-            if (questionCount && topic) {
-                generateQuiz(questionCount, topic);
-            }
+            const questionCount = parseInt(document.getElementById('questionCount')?.value || '10', 10);
+            const topic = document.getElementById('quizTopic')?.value || 'general';
+            generateQuiz({
+                questionCount,
+                topics: [topic],
+                difficulty: 'medium'
+            });
         });
     }
 
