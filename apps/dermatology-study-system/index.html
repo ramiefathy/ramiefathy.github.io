@@ -3,15 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dermatology AI Tutor</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <title>Dermatology Study System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        // Initialize Firebase
+        const firebaseConfig = {
+            // Your Firebase config here
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Make Firebase instances available globally
+        window.firebase = { app, auth, db };
+    </script>
+    <script type="module" src="/dist/app.bundle.js"></script>
+    <script type="module" src="/dist/quiz.bundle.js"></script>
+    <script type="module" src="/dist/auth.bundle.js"></script>
+    <script type="module" src="/dist/profile.bundle.js"></script>
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
@@ -153,12 +169,5 @@
                 document.getElementById('userProfileComponent').innerHTML = html;
             });
     </script>
-
-    <!-- Custom JavaScript -->
-    <script type="module" src="js/firebase-config.js"></script>
-    <script type="module" src="js/user-profile.js"></script>
-    <script type="module" src="js/profile-manager.js"></script>
-    <script type="module" src="js/quiz.js"></script>
-    <script type="module" src="js/app.js"></script>
 </body>
 </html> 

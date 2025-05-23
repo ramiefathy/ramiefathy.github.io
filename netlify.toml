@@ -1,14 +1,33 @@
 [build]
   publish = "."
-  command = ""
+  command = "npm run build"
 
-# Redirects for handling 404s and clean URLs
+[build.environment]
+  NODE_VERSION = "18"
+
+# Redirect all requests to index.html for SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Headers for security and caching
+# Protect sensitive routes
+[[redirects]]
+  from = "/apps/dermatology-study-system/js/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/apps/dermatology-study-system/components/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/apps/dermatology-study-system/config/*"
+  to = "/404.html"
+  status = 404
+
+# Headers for security
 [[headers]]
   for = "/*"
   [headers.values]
@@ -16,7 +35,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: https:; font-src 'self' https://cdn.jsdelivr.net https://unpkg.com; connect-src 'self' https://*.netlify.app https://*.netlify.com;"
 
 # Cache control for static assets
 [[headers]]

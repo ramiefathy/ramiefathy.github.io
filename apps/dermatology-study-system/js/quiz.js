@@ -1,7 +1,7 @@
 import { db } from './firebase-config.js';
 import userProfile from './user-profile.js';
 import questionGenerator from './question-generator.js';
-import authManager from './auth-manager.js';
+import authManager from './auth.js';
 import askLLM from './ask-llm.js';
 import uiManager from './ui-manager.js';
 

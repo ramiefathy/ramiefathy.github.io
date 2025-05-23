@@ -56,3 +56,30 @@ server/
 
 # Allow app files
 !apps/*.html 
+
+# Dependencies
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Application specific
+apps/dermatology-study-system/js/*.js
+apps/dermatology-study-system/components/*.html
+apps/dermatology-study-system/css/*.css
+apps/dermatology-study-system/config/*.json
+
+# Keep only the necessary files for deployment
+!apps/dermatology-study-system/index.html
+!apps/dermatology-study-system/README.md 
