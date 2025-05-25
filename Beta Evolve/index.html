@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini AI CodeGen Assistant - Auto-Debug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .log-entry { padding: 8px; margin-bottom: 4px; border-radius: 4px; font-size: 0.875rem; }
+        .log-info { background-color: #e0f2fe; border-left: 4px solid #0ea5e9; color: #0c4a6e;}
+        .log-success { background-color: #dcfce7; border-left: 4px solid #22c55e; color: #166534;}
+        .log-error { background-color: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b;}
+        .log-warn { background-color: #fef3c7; border-left: 4px solid #f59e0b; color: #92400e;}
+        .log-refine { background-color: #e5e7eb; border-left: 4px solid #6b7280; color: #374151;}
+        .log-debug { background-color: #ede9fe; border-left: 4px solid #7c3aed; color: #5b21b6;}
+
+        #activityLog::-webkit-scrollbar, #refinementLog::-webkit-scrollbar, #versionHistoryLog::-webkit-scrollbar, #debugLog::-webkit-scrollbar { width: 8px; }
+        #activityLog::-webkit-scrollbar-track, #refinementLog::-webkit-scrollbar-track, #versionHistoryLog::-webkit-scrollbar-track, #debugLog::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        #activityLog::-webkit-scrollbar-thumb, #refinementLog::-webkit-scrollbar-thumb, #versionHistoryLog::-webkit-scrollbar-thumb, #debugLog::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        #activityLog::-webkit-scrollbar-thumb:hover, #refinementLog::-webkit-scrollbar-thumb:hover, #versionHistoryLog::-webkit-scrollbar-thumb:hover, #debugLog::-webkit-scrollbar-thumb:hover { background: #555; }
+        
+        .file-item { display: flex; justify-content: space-between; align-items: center; padding: 6px; border: 1px solid #e5e7eb; border-radius: 0.375rem; margin-bottom: 0.5rem; }
+        .file-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
+        
+        .modal { position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+        .modal-content { background-color: #fefefe; margin: auto; padding: 20px; border: 1px solid #888; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .hidden { display: none !important; }
+        .tab-button { padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; }
+        .tab-button.active { border-bottom-color: #3b82f6; color: #3b82f6; font-weight: 600; }
+        #projectRunnerFrame { width: 100%; height: 100%; border: none; }
+        .text-xxs { font-size: 0.625rem; line-height: 0.875rem; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 p-4 md:p-8">
+    <div class="container mx-auto max-w-5xl bg-white p-6 md:p-8 rounded-xl shadow-2xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-sky-600">Gemini AI CodeGen Assistant</h1>
+            <p class="text-slate-600 mt-2">Generate, Evolve, and Auto-Debug Web Applications.</p>
+        </header>
+
+        <div id="apiKeyWarningModal" class="modal hidden">
+            <div class="modal-content max-w-lg">
+                <span class="modal-close" onclick="document.getElementById('apiKeyWarningModal').classList.add('hidden')">&times;</span>
+                <h2 class="text-xl font-semibold text-amber-600 mb-3">API Key Security Notice</h2>
+                <p class="text-sm text-slate-700">You are entering your Gemini API Key directly. For development, this might be okay. <strong>Do not use in production or with sensitive keys.</strong> Consider a backend proxy for secure applications.</p>
+                <button onclick="document.getElementById('apiKeyWarningModal').classList.add('hidden')" class="mt-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg w-full">I Understand</button>
+            </div>
+        </div>
+
+        <section id="inputsSection" class="mb-8 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="apiKey" class="block text-sm font-medium text-slate-700 mb-1">Gemini API Key <span class="text-red-500">*</span></label>
+                    <input type="password" id="apiKey" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500" placeholder="Enter your Gemini API Key">
+                    <button type="button" onclick="document.getElementById('apiKeyWarningModal').classList.remove('hidden')" class="text-xs text-amber-600 hover:text-amber-700 mt-1">Security Notice</button>
+                </div>
+                <div>
+                    <label for="defaultModelName" class="block text-sm font-medium text-slate-700 mb-1">Default Gemini Model <span class="text-red-500">*</span></label>
+                    <input type="text" id="defaultModelName" value="gemini-1.5-flash-latest" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500" placeholder="e.g., gemini-1.5-flash-latest">
+                </div>
+            </div>
+            <details class="bg-slate-50 p-3 rounded-lg">
+                <summary class="text-sm font-medium text-slate-700 cursor-pointer hover:text-sky-600">Advanced: Role-Specific Models (Optional)</summary>
+                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div><label for="plannerModelName" class="block font-medium text-slate-600 mb-0.5">Planner Model:</label><input type="text" id="plannerModelName" class="w-full p-2 border border-slate-300 rounded-md" placeholder="Default if empty"></div>
+                    <div><label for="coderModelName" class="block font-medium text-slate-600 mb-0.5">Coder Model:</label><input type="text" id="coderModelName" class="w-full p-2 border border-slate-300 rounded-md" placeholder="Default if empty"></div>
+                    <div><label for="reviewerModelName" class="block font-medium text-slate-600 mb-0.5">Reviewer Model:</label><input type="text" id="reviewerModelName" class="w-full p-2 border border-slate-300 rounded-md" placeholder="Default if empty"></div>
+                    <div><label for="evolverModelName" class="block font-medium text-slate-600 mb-0.5">Evolver/Debugger Model:</label><input type="text" id="evolverModelName" class="w-full p-2 border border-slate-300 rounded-md" placeholder="Default if empty"></div>
+                </div>
+            </details>
+            <div><label for="projectInstructions" class="block text-sm font-medium text-slate-700 mb-1">Project Instructions <span class="text-red-500">*</span></label><textarea id="projectInstructions" rows="5" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm" placeholder="Detailed description..."></textarea></div>
+            <div><label for="additionalContext" class="block text-sm font-medium text-slate-700 mb-1">Additional Context / Sanity Checks (Optional)</label><textarea id="additionalContext" rows="3" class="w-full p-3 border border-slate-300 rounded-lg shadow-sm" placeholder="API docs, snippets, input -> expected output..."></textarea></div>
+            <div><label for="fileUpload" class="block text-sm font-medium text-slate-700 mb-1">Upload Existing Files (Optional)</label><input type="file" id="fileUpload" multiple class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100"><div id="uploadedFilesList" class="mt-2 text-xs"><p class="text-slate-500 italic">No files uploaded yet.</p></div></div>
+        </section>
+
+        <section id="controlsSection" class="mb-8 flex space-x-4">
+            <button id="startButton" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-lg shadow-md text-lg flex items-center justify-center">
+                <svg class="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.624L16.5 21.75l-.398-1.126a3.375 3.375 0 00-2.456-2.456L12.75 18l1.126-.398a3.375 3.375 0 002.456-2.456L16.5 14.25l.398 1.126a3.375 3.375 0 002.456 2.456L20.25 18l-1.126.398a3.375 3.375 0 00-2.456 2.456z" /></svg>
+                Generate Project
+            </button>
+            <button id="runDebugButton" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-md text-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 9.75l-5.046 5.046a1.5 1.5 0 01-2.122 0L7.5 9.75M12 21v-5.25"></path></svg>
+                Run & Auto-Debug (Web App)
+            </button>
+        </section>
+        
+        <div id="loadingIndicator" class="hidden fixed inset-0 bg-slate-900/80 flex items-center justify-center z-[101]">
+            <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-sky-500 mx-auto mb-4"></div>
+                <p class="text-lg font-semibold text-slate-700">Processing...</p>
+                <p id="loadingStatus" class="text-sm text-slate-500">Please wait.</p>
+            </div>
+        </div>
+
+        <section id="resultsSection" class="space-y-6">
+            <div><h2 class="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">Main Activity Log</h2><div id="activityLog" class="h-40 bg-slate-50 p-3 rounded-lg shadow-inner overflow-y-auto border text-xs"><p class="text-slate-400 italic">Activity will appear here...</p></div></div>
+            <div><h2 class="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">Project Plan</h2><div id="planDisplay" class="bg-slate-50 p-3 rounded-lg shadow-inner border min-h-[80px] max-h-60 overflow-y-auto"><pre class="text-xs whitespace-pre-wrap"><code class="language-json">Plan will appear here...</code></pre></div></div>
+            <div><h2 class="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">Generated Files</h2><div id="generatedFilesDisplay" class="bg-slate-50 p-3 rounded-lg shadow-inner border min-h-[120px] max-h-80 overflow-y-auto"><p class="text-slate-400 italic text-sm">Files will appear here...</p></div></div>
+        </section>
+
+        <div id="fileContentModal" class="modal hidden">
+            <div class="modal-content w-full max-w-4xl h-[85vh] flex flex-col">
+                <div class="flex justify-between items-center mb-3 p-4 border-b"><h3 id="fileContentTitle" class="text-lg font-semibold">File Content</h3><button class="modal-close" onclick="document.getElementById('fileContentModal').classList.add('hidden')">&times;</button></div>
+                <div class="flex-grow overflow-hidden p-1">
+                    <div class="flex border-b mb-1 text-sm"><button id="codeViewTab" class="tab-button active">Code</button><button id="versionHistoryTab" class="tab-button">Version History</button></div>
+                    <div id="codeViewContent"><pre id="fileContentPreview" class="bg-gray-900 text-white text-xs p-3 rounded-md overflow-auto h-[calc(85vh-150px)] whitespace-pre-wrap"></pre></div>
+                    <div id="versionHistoryContent" class="hidden h-[calc(85vh-150px)] overflow-y-auto"><p class="text-slate-500 italic text-xs p-2">Version history will appear here...</p><div id="versionHistoryLog"></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="projectRunnerModal" class="modal hidden">
+            <div class="modal-content w-[90vw] h-[85vh] max-w-[1200px] flex flex-col p-2">
+                 <div class="flex justify-between items-center mb-2 p-2 border-b">
+                    <h3 class="text-md font-semibold text-slate-700">Project Runner / Auto-Debugger</h3>
+                    <button class="modal-close text-xl" onclick="closeProjectRunner()">&times;</button>
+                </div>
+                <div class="flex-grow border rounded-md overflow-hidden">
+                    <iframe id="projectRunnerFrame"></iframe>
+                </div>
+                <div class="mt-2">
+                    <h4 class="text-sm font-semibold text-slate-600 mb-1">Auto-Debug Log:</h4>
+                    <div id="debugLog" class="h-24 bg-slate-100 p-2 rounded-md shadow-inner overflow-y-auto border text-xs"><p class="text-slate-400 italic">Debugging attempts will appear here...</p></div>
+                </div>
+            </div>
+        </div>
+
+        <section id="refinementSection" class="mt-8 pt-6 border-t-2 border-dashed border-slate-300 hidden">
+            <h2 class="text-2xl font-bold text-amber-600 mb-4">Iterative Refinement Cycle</h2>
+            <div class="p-4 bg-amber-50 rounded-lg shadow-md space-y-4">
+                <div><label for="fileToRefine" class="block text-sm font-medium text-slate-700 mb-1">Select File to Refine:</label><select id="fileToRefine" class="w-full p-2 border border-slate-300 rounded-lg shadow-sm"></select></div>
+                <div><label for="refinementIssues" class="block text-sm font-medium text-slate-700 mb-1">Issues to Address / Feedback:</label><textarea id="refinementIssues" rows="3" class="w-full p-2 border border-slate-300 rounded-lg" placeholder="e.g., 1. Login button broken..."></textarea></div>
+                <div><label for="refinementSuccessCriteria" class="block text-sm font-medium text-slate-700 mb-1">Success Criteria / Desired Outcome:</label><textarea id="refinementSuccessCriteria" rows="2" class="w-full p-2 border border-slate-300 rounded-lg" placeholder="e.g., Login authenticates correctly..."></textarea></div>
+                <div><label for="refinementInspirationalVersion" class="block text-sm font-medium text-slate-700 mb-1">Inspire from Version (Optional):</label><select id="refinementInspirationalVersion" class="w-full p-2 border border-slate-300 rounded-lg shadow-sm"><option value="">-- None (Use Latest) --</option><option value="initial">Initial Version</option></select></div>
+                <div><label for="maxRefinementIterations" class="block text-sm font-medium text-slate-700 mb-1">Max Refinement Attempts:</label><input type="number" id="maxRefinementIterations" value="3" min="1" max="5" class="w-20 p-2 border border-slate-300 rounded-lg shadow-sm"></div>
+                <button id="startRefinementButton" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm">Refine Selected File</button>
+            </div>
+            <div class="mt-4"><h3 class="text-md font-semibold text-slate-600 mb-2">Refinement Log:</h3><div id="refinementLog" class="h-32 bg-slate-50 p-3 rounded-lg shadow-inner overflow-y-auto border text-xs"><p class="text-slate-400 italic">Refinement attempts will appear here...</p></div></div>
+        </section>
+
+        <div class="mt-10 pt-6 border-t">
+            <button id="downloadZipButton" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md disabled:opacity-50" disabled>
+                 <svg class="w-6 h-6 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                Download Project as ZIP
+            </button>
+        </div>
+        <div id="errorDisplayArea" class="mt-4"></div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const ui = {
+            apiKeyInput: document.getElementById('apiKey'),
+            defaultModelNameInput: document.getElementById('defaultModelName'),
+            plannerModelNameInput: document.getElementById('plannerModelName'),
+            coderModelNameInput: document.getElementById('coderModelName'),
+            reviewerModelNameInput: document.getElementById('reviewerModelName'),
+            evolverModelNameInput: document.getElementById('evolverModelName'),
+            projectInstructionsInput: document.getElementById('projectInstructions'),
+            additionalContextInput: document.getElementById('additionalContext'),
+            fileUploadInput: document.getElementById('fileUpload'),
+            uploadedFilesListDiv: document.getElementById('uploadedFilesList'),
+            startButton: document.getElementById('startButton'),
+            runDebugButton: document.getElementById('runDebugButton'),
+            activityLogDiv: document.getElementById('activityLog'),
+            planDisplayDiv: document.getElementById('planDisplay'),
+            generatedFilesDisplayDiv: document.getElementById('generatedFilesDisplay'),
+            downloadZipButton: document.getElementById('downloadZipButton'),
+            loadingIndicator: document.getElementById('loadingIndicator'),
+            loadingStatus: document.getElementById('loadingStatus'),
+            fileContentModal: document.getElementById('fileContentModal'),
+            fileContentTitle: document.getElementById('fileContentTitle'),
+            fileContentPreview: document.getElementById('fileContentPreview'),
+            codeViewTab: document.getElementById('codeViewTab'),
+            versionHistoryTab: document.getElementById('versionHistoryTab'),
+            codeViewContent: document.getElementById('codeViewContent'),
+            versionHistoryContent: document.getElementById('versionHistoryContent'),
+            versionHistoryLog: document.getElementById('versionHistoryLog'),
+            errorDisplayArea: document.getElementById('errorDisplayArea'),
+            refinementSection: document.getElementById('refinementSection'),
+            fileToRefineSelect: document.getElementById('fileToRefine'),
+            refinementIssuesInput: document.getElementById('refinementIssues'),
+            refinementSuccessCriteriaInput: document.getElementById('refinementSuccessCriteria'),
+            refinementInspirationalVersionSelect: document.getElementById('refinementInspirationalVersion'),
+            maxRefinementIterationsInput: document.getElementById('maxRefinementIterations'),
+            startRefinementButton: document.getElementById('startRefinementButton'),
+            refinementLogDiv: document.getElementById('refinementLog'),
+            projectRunnerModal: document.getElementById('projectRunnerModal'),
+            projectRunnerFrame: document.getElementById('projectRunnerFrame'),
+            debugLogDiv: document.getElementById('debugLog')
+        };
+
+        // --- State Variables ---
+        let uploadedFiles = []; 
+        let projectPlan = null; 
+        let generatedFileContents = []; 
+        let currentRefinementFile = null; 
+        let currentFileViewingHistory = null; 
+        let autoDebugAttempts = 0;
+        const MAX_AUTO_DEBUG_ATTEMPTS_PER_FILE = 2;
+        let iframeErrorListener = null; 
+        let currentIframeErrorKey = null; 
+
+        // --- Event Listeners ---
+        ui.fileUploadInput.addEventListener('change', handleFileUpload);
+        ui.startButton.addEventListener('click', startGenerationProcess);
+        ui.downloadZipButton.addEventListener('click', downloadProjectZip);
+        ui.startRefinementButton.addEventListener('click', startRefinementCycle);
+        ui.runDebugButton.addEventListener('click', runAndDebugProject);
+        
+        ui.fileToRefineSelect.addEventListener('change', (e) => {
+            currentRefinementFile = e.target.value;
+            ui.refinementLogDiv.innerHTML = '<p class="text-slate-400 italic">Refinement attempts for selected file will appear here...</p>';
+            populateInspirationalVersionSelect(currentRefinementFile);
+        });
+
+        ui.codeViewTab.addEventListener('click', () => switchFileModalTab('code'));
+        ui.versionHistoryTab.addEventListener('click', () => switchFileModalTab('history'));
+
+        // --- Utility Functions ---
+        function logActivity(message, type = 'info', logDiv = ui.activityLogDiv) {
+            if (logDiv.childElementCount === 1 && logDiv.firstChild.tagName === 'P' && logDiv.firstChild.textContent.includes('will appear here...')) {
+                logDiv.innerHTML = '';
+            }
+            const entry = document.createElement('div');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            entry.classList.add('log-entry', `log-${type}`);
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function showLoading(message = "Processing...") { 
+            ui.loadingStatus.textContent = message;
+            ui.loadingIndicator.classList.remove('hidden');
+            ui.startButton.disabled = true;
+            ui.startRefinementButton.disabled = true;
+            ui.runDebugButton.disabled = true;
+        }
+        function hideLoading() { 
+            ui.loadingIndicator.classList.add('hidden');
+            ui.startButton.disabled = false;
+            ui.startRefinementButton.disabled = false;
+            if (generatedFileContents.length > 0) ui.runDebugButton.disabled = false;
+        }
+        function displayAppError(message) { 
+            logActivity(message, 'error', ui.activityLogDiv);
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg';
+            errorDiv.setAttribute('role', 'alert');
+            errorDiv.innerHTML = `<span class="font-medium">Error!</span> ${message}`;
+            ui.errorDisplayArea.innerHTML = ''; 
+            ui.errorDisplayArea.appendChild(errorDiv);
+        }
+        function handleFileUpload(event) { 
+            uploadedFiles = [];
+            ui.uploadedFilesListDiv.innerHTML = ''; 
+            const files = event.target.files;
+            if (files.length === 0) {
+                ui.uploadedFilesListDiv.innerHTML = '<p class="text-slate-500 italic">No files uploaded yet.</p>';
+                return;
+            }
+            const list = document.createElement('ul');
+            list.className = 'list-disc list-inside space-y-1 text-xs';
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedFiles.push({ name: file.name, content: e.target.result, type: file.type });
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                    list.appendChild(listItem);
+                };
+                reader.onerror = () => logActivity(`Error reading file: ${file.name}`, 'error');
+                reader.readAsText(file); 
+            });
+            ui.uploadedFilesListDiv.appendChild(list);
+            logActivity(`${files.length} file(s) selected.`, 'info');
+        }
+        function getModelForTask(taskType) { 
+            const defaultModel = ui.defaultModelNameInput.value.trim();
+            let modelToUse = defaultModel;
+            switch(taskType) {
+                case 'planner': modelToUse = ui.plannerModelNameInput.value.trim() || defaultModel; break;
+                case 'coder': modelToUse = ui.coderModelNameInput.value.trim() || defaultModel; break;
+                case 'reviewer': modelToUse = ui.reviewerModelNameInput.value.trim() || defaultModel; break;
+                case 'evolver': modelToUse = ui.evolverModelNameInput.value.trim() || defaultModel; break;
+            }
+            if (!modelToUse) {
+                logActivity("Warning: No model specified for task, falling back to 'gemini-1.5-flash-latest'.", "warn");
+                return 'gemini-1.5-flash-latest';
+            }
+            return modelToUse;
+        }
+        
+        async function callGeminiAPI(prompt, apiKey, taskSpecificModelName, isJsonOutput = false) {
+            const effectiveApiKey = typeof __GEMINI_API_KEY__ !== 'undefined' && __GEMINI_API_KEY__ ? __GEMINI_API_KEY__ : apiKey;
+            const queryParams = effectiveApiKey ? `?key=${effectiveApiKey}` : '';
+            
+            if (!taskSpecificModelName) {
+                const errorMsg = "API Error: Model name for task is undefined or empty. Cannot make API call.";
+                logActivity(errorMsg, 'error'); console.error(errorMsg, "Prompt:", prompt);
+                throw new Error(errorMsg);
+            }
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${taskSpecificModelName}:generateContent${queryParams}`;
+            
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            if (isJsonOutput) {
+                payload.generationConfig = { responseMimeType: "application/json" };
+            }
+            
+            logActivity(`Calling Gemini (${taskSpecificModelName})...`, 'info');
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const result = await response.json(); 
+
+                if (!response.ok) {
+                    const errorMsg = `API Error: ${response.status} ${response.statusText}. ${JSON.stringify(result.error?.message || result)}`;
+                    logActivity(errorMsg, 'error'); console.error("Full API Error Response:", result);
+                    throw new Error(errorMsg);
+                }
+                
+                if (result.candidates && result.candidates.length > 0) {
+                    const candidate = result.candidates[0];
+                    if (candidate.finishReason && candidate.finishReason !== 'STOP' && candidate.finishReason !== 'MAX_TOKENS') {
+                        let errorDetails = `API Error: Response generation stopped. Reason: ${candidate.finishReason}.`;
+                        if(candidate.safetyRatings) errorDetails += ` Safety Ratings: ${JSON.stringify(candidate.safetyRatings)}`;
+                        logActivity(errorDetails, 'error'); console.error("Full API Response (Blocked/Stopped):", result);
+                        throw new Error(errorDetails);
+                    }
+                    if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0 && typeof candidate.content.parts[0].text === 'string') {
+                        logActivity(`Gemini response received.`, 'success');
+                        return candidate.content.parts[0].text;
+                    }
+                }
+                let errorDetails = "API Error: Unexpected response structure or no text content, even though response was OK.";
+                if (result.promptFeedback && result.promptFeedback.blockReason) {
+                     errorDetails += ` Prompt blocked: ${result.promptFeedback.blockReason}. Safety Ratings: ${JSON.stringify(result.promptFeedback.safetyRatings)}`;
+                }
+                logActivity(errorDetails, 'error'); console.error("Full API Response (Unexpected OK):", result);
+                throw new Error(errorDetails);
+
+            } catch (error) {
+                if (!error.message.startsWith("API Error:")) { 
+                    logActivity(`Workspace/API Call Error: ${error.message}`, 'error');
+                }
+                console.error("Fetch/API Call Error details:", error);
+                throw error; 
+            }
+        }
+
+        function basicSyntaxCheck(code, language = 'javascript') { 
+            if (language.toLowerCase() === 'javascript' || language.toLowerCase() === 'js') {
+                try {
+                    new Function(code); 
+                    return { ok: true, message: "Basic JavaScript syntax OK." };
+                } catch (e) {
+                    return { ok: false, message: `JS Syntax Error: ${e.message}` };
+                }
+            }
+            if (language.toLowerCase() === 'html' || language.toLowerCase() === 'htm') {
+                const openTags = (code.match(/</g) || []).length;
+                const closeTags = (code.match(/>/g) || []).length;
+                if (openTags !== closeTags) {
+                    return { ok: false, message: `HTML Basic Check: Mismatched tag count (<: ${openTags}, >: ${closeTags}).`};
+                }
+            }
+            return { ok: true, message: `No specific syntax check available for ${language}. Assuming OK.` };
+        }
+        
+        async function startGenerationProcess() { 
+            const apiKey = ui.apiKeyInput.value.trim();
+            const defaultModel = ui.defaultModelNameInput.value.trim();
+            const instructions = ui.projectInstructionsInput.value.trim();
+            const additionalContext = ui.additionalContextInput.value.trim();
+
+            if ((typeof __GEMINI_API_KEY__ === 'undefined' || !__GEMINI_API_KEY__) && !apiKey) {
+                 displayAppError("Gemini API Key is required."); return;
+            }
+            if (!defaultModel || !instructions) { displayAppError("Default Model & Project Instructions are required."); return; }
+            
+            ui.activityLogDiv.innerHTML = '<p class="text-slate-400 italic">Activity will appear here...</p>';
+            ui.planDisplayDiv.innerHTML = '<pre><code class="language-json">Plan will appear here...</code></pre>';
+            ui.generatedFilesDisplayDiv.innerHTML = '<p class="text-slate-400 italic text-sm">Files will appear here...</p>';
+            generatedFileContents = [];
+            updateGeneratedFilesDisplay();
+            projectPlan = null;
+            ui.downloadZipButton.disabled = true;
+            ui.runDebugButton.disabled = true;
+            ui.refinementSection.classList.add('hidden');
+
+            showLoading("Starting generation...");
+            try {
+                showLoading("Step 1/4: Planning...");
+                logActivity("Planner Agent starting...");
+                let filesSummary = uploadedFiles.length > 0 ? "Existing files:\n" + uploadedFiles.map(f => `- ${f.name}:\n\`\`\`\n${f.content.substring(0,300)}...\n\`\`\`\n`).join("\n") : "No existing files.";
+                const plannerPrompt = `You are a Planner Agent. Based on instructions, existing files, and additional context, create a detailed JSON plan. The JSON plan must strictly adhere to this format: { "files": [ { "filePath": "path/to/file.ext", "action": "create" | "modify", "description": "Detailed purpose of this file, its core logic, and success criteria based on project instructions.", "originalFilePath": "path/to/original_file.ext" (only if action is 'modify' and the path differs, otherwise optional) } ] }.
+Project Instructions: ${instructions}
+Additional Context/Sanity Checks: ${additionalContext || 'None provided.'}
+${filesSummary}
+Respond ONLY with the valid JSON object described above.`;
+                const planJsonString = await callGeminiAPI(plannerPrompt, apiKey, getModelForTask('planner'), true);
+                try {
+                    projectPlan = JSON.parse(planJsonString);
+                    if (!projectPlan.files || !Array.isArray(projectPlan.files)) throw new Error("Plan missing 'files' array or is not an array.");
+                    if (projectPlan.files.some(f => !f.filePath || !f.action || !f.description)) throw new Error("Plan contains files with missing 'filePath', 'action', or 'description'.");
+                    logActivity("Project plan generated successfully.", "success");
+                    ui.planDisplayDiv.innerHTML = `<pre class="text-xs whitespace-pre-wrap"><code class="language-json">${JSON.stringify(projectPlan, null, 2)}</code></pre>`;
+                } catch (e) { throw new Error(`Parsing project plan failed: ${e.message}. Response: ${planJsonString.substring(0,500)}`); }
+
+                showLoading("Step 2/4: Coding files...");
+                for (let i = 0; i < projectPlan.files.length; i++) {
+                    const task = projectPlan.files[i];
+                    showLoading(`Coding ${task.filePath} (${i+1}/${projectPlan.files.length})`);
+                    let originalContent = "";
+                    if (task.action === 'modify') {
+                        const orgFile = uploadedFiles.find(f => f.name === (task.originalFilePath || task.filePath));
+                        if (orgFile) originalContent = orgFile.content;
+                        else { logActivity(`Warning: Original content for modifying ${task.filePath} not found in uploaded files. Will attempt to create it based on description.`, "warn"); task.action = 'create'; }
+                    }
+                    const coderPrompt = `You are a Coder Agent. Your task is to ${task.action} the file "${task.filePath}". 
+File Description & Purpose: ${task.description}
+Overall Project Instructions: ${instructions}
+Additional Context/Sanity Checks: ${additionalContext || 'None provided.'}
+${task.action === 'modify' && originalContent ? `This is the original content of "${task.filePath}":\n\`\`\`\n${originalContent}\n\`\`\`\nPlease modify it according to the file description and project goals.` : `Please generate the new content for "${task.filePath}" based on its description and project goals.`} 
+Output ONLY the raw code for the file. Ensure the code is complete, functional, and directly usable. Do not include any explanations, apologies, or markdown formatting like \`\`\` around the code.`;
+                    let code = await callGeminiAPI(coderPrompt, apiKey, getModelForTask('coder'));
+                    code = code.replace(/^```[\w\s]*\n|```$/g, '').trim();
+                    const syntaxCheckResult = basicSyntaxCheck(code, task.filePath.split('.').pop());
+                    if (!syntaxCheckResult.ok) logActivity(`Initial code for ${task.filePath} has a syntax issue: ${syntaxCheckResult.message}. This may be addressed by the Reviewer/Evolver.`, "warn");
+                    generatedFileContents.push({ filePath: task.filePath, content: code, originalDescription: task.description, versionHistory: [{content: code, iteration: 0, feedbackThatLedToThisVersion: "Initial Coder generation", status: syntaxCheckResult.ok ? "Initial" : "InitialWithSyntaxError", timestamp: new Date().toISOString()}] });
+                }
+                updateGeneratedFilesDisplay();
+                
+                showLoading("Step 3/4: Initial review...");
+                for (let i = 0; i < generatedFileContents.length; i++) {
+                    const file = generatedFileContents[i];
+                    showLoading(`Reviewing ${file.filePath} (${i+1}/${generatedFileContents.length})`);
+                    const reviewerPrompt = `You are a Reviewer Agent. Review the following code for the file "${file.filePath}". 
+File's Original Purpose: ${file.originalDescription}. 
+Overall Project Instructions: ${instructions}.
+Additional Context/Sanity Checks from User: ${additionalContext || 'None provided.'}
+Code to Review:\n\`\`\`\n${file.content}\n\`\`\`
+Carefully review the code for correctness, adherence to the purpose and project instructions, functionality, clarity, and best practices. Consider any specified sanity checks.
+If the code is excellent and fully meets all criteria, respond ONLY with the exact string "PERFECT". 
+Otherwise, respond ONLY with the complete, corrected, and improved raw code for the entire file. Do not include explanations or markdown formatting.`;
+                    let reviewResponse = await callGeminiAPI(reviewerPrompt, apiKey, getModelForTask('reviewer'));
+                    if (reviewResponse.trim().toUpperCase() !== "PERFECT") {
+                        logActivity(`Reviewer suggested updates for ${file.filePath}.`, "warn");
+                        reviewResponse = reviewResponse.replace(/^```[\w\s]*\n|```$/g, '').trim(); 
+                        file.content = reviewResponse;
+                        file.versionHistory.push({content: reviewResponse, iteration: -1, 
+                            feedbackThatLedToThisVersion: "Initial Reviewer pass for corrections and improvements.", 
+                            status: "Reviewed", timestamp: new Date().toISOString()});
+                    } else {
+                        logActivity(`Reviewer: ${file.filePath} is PERFECT.`, "success");
+                        const lastVersion = file.versionHistory[file.versionHistory.length-1];
+                        if (lastVersion) lastVersion.status = "ReviewedOK"; 
+                    }
+                }
+                updateGeneratedFilesDisplay();
+                logActivity("Initial generation & review complete.", "success");
+                
+                if (generatedFileContents.length > 0) {
+                    ui.downloadZipButton.disabled = false;
+                    ui.runDebugButton.disabled = false;
+                    ui.refinementSection.classList.remove('hidden');
+                    populateFileToRefineSelect();
+                }
+                showLoading("Step 4/4: Ready for download, refinement, or running.");
+                setTimeout(hideLoading, 1500);
+
+            } catch (error) {
+                displayAppError(`Main generation process error: ${error.message}`);
+                console.error("Main generation process error details:", error);
+                hideLoading();
+            }
+        }
+        
+        async function startRefinementCycle() { 
+            currentRefinementFile = ui.fileToRefineSelect.value;
+            if (!currentRefinementFile) { displayAppError("Please select a file to refine."); return; }
+
+            const fileToRefine = generatedFileContents.find(f => f.filePath === currentRefinementFile);
+            if (!fileToRefine) { displayAppError("Selected file for refinement not found in generated files."); return; }
+
+            const issues = ui.refinementIssuesInput.value.trim();
+            const successCriteria = ui.refinementSuccessCriteriaInput.value.trim();
+            const maxIterations = parseInt(ui.maxRefinementIterationsInput.value, 10);
+            const inspirationalVersionChoice = ui.refinementInspirationalVersionSelect.value;
+
+            if (!issues) { displayAppError("Please provide issues/feedback for the refinement cycle."); return; }
+            if (isNaN(maxIterations) || maxIterations < 1 || maxIterations > 5) { displayAppError("Max refinement iterations must be between 1 and 5."); return; }
+
+            logActivity(`Starting refinement cycle for ${currentRefinementFile}. Max attempts: ${maxIterations}.`, 'refine', ui.refinementLogDiv);
+            showLoading(`Refining ${currentRefinementFile}...`);
+
+            let currentCodeForEvolver = fileToRefine.content;
+            const apiKey = ui.apiKeyInput.value.trim();
+            const projectInstructions = ui.projectInstructionsInput.value.trim();
+            const additionalContext = ui.additionalContextInput.value.trim();
+            
+            let inspirationalCodeSnippet = "";
+            if (inspirationalVersionChoice) {
+                let versionToInspireFrom;
+                if (inspirationalVersionChoice === "initial" && fileToRefine.versionHistory.length > 0) {
+                    versionToInspireFrom = fileToRefine.versionHistory.find(v => v.iteration === 0);
+                } else if (inspirationalVersionChoice.startsWith("version_")) {
+                    const index = parseInt(inspirationalVersionChoice.split("_")[1], 10);
+                    if (index >= 0 && index < fileToRefine.versionHistory.length) {
+                        versionToInspireFrom = fileToRefine.versionHistory[index];
+                    }
+                }
+                if (versionToInspireFrom) {
+                    inspirationalCodeSnippet = `For inspiration, here is a previous version of this file (Version ${versionToInspireFrom.iteration === -1 ? 'Reviewer' : versionToInspireFrom.iteration}, Status: ${versionToInspireFrom.status || 'N/A'}) that aimed to address '${versionToInspireFrom.feedbackThatLedToThisVersion.substring(0,100)}...':\n\`\`\`\n${versionToInspireFrom.content.substring(0,500)}...\n\`\`\`\n`;
+                }
+            }
+
+            try {
+                for (let i = 1; i <= maxIterations; i++) {
+                    logActivity(`Refinement attempt ${i}/${maxIterations} for ${currentRefinementFile}...`, 'refine', ui.refinementLogDiv);
+                    showLoading(`Refining ${currentRefinementFile} (Attempt ${i}/${maxIterations})`);
+                    const evolverPrompt = `You are an Evolver Agent. Your task is to fix or improve the code for the file "${currentRefinementFile}" based on the provided feedback.
+Original File Purpose: "${fileToRefine.originalDescription}"
+Overall Project Instructions: "${projectInstructions}"
+Additional Context/Sanity Checks from User: "${additionalContext || 'None provided.'}"
+${inspirationalCodeSnippet}
+Current Code for "${currentRefinementFile}" (this might be buggy or incomplete):
+\`\`\`
+${currentCodeForEvolver}
+\`\`\`
+Issues to Address / User Feedback: "${issues}"
+Success Criteria / Desired Outcome for this specific file after your changes: "${successCriteria || 'The code should effectively address the listed issues and align with the original file purpose and project instructions.'}"
+Your goal is to provide a corrected and improved version of the *entire file content*. Try to address all listed issues comprehensively. 
+Output ONLY the raw, complete, corrected code for the entire file. Do NOT use diff format. Do not include any explanations, apologies, or markdown formatting like \`\`\` around the code.`;
+                    
+                    let evolvedResponse = await callGeminiAPI(evolverPrompt, apiKey, getModelForTask('evolver'));
+                    evolvedResponse = evolvedResponse.replace(/^```[\w\s]*\n|```$/g, '').trim(); 
+                    
+                    const syntaxCheckResult = basicSyntaxCheck(evolvedResponse, currentRefinementFile.split('.').pop());
+                    if (!syntaxCheckResult.ok) {
+                        logActivity(`Refinement attempt ${i} for ${currentRefinementFile} resulted in a syntax error: ${syntaxCheckResult.message}. This version will be stored but marked.`, 'error', ui.refinementLogDiv);
+                    }
+                    if (evolvedResponse.trim() === currentCodeForEvolver.trim() && syntaxCheckResult.ok) { 
+                        logActivity(`Refinement attempt ${i}: No significant change in code was produced. Stopping refinement for this cycle.`, 'warn', ui.refinementLogDiv); 
+                        break; 
+                    }
+                    currentCodeForEvolver = evolvedResponse; 
+                    fileToRefine.content = currentCodeForEvolver; 
+                    const currentFeedback = `Issues: ${issues}. Criteria: ${successCriteria}. Attempt: ${i}`;
+                    fileToRefine.versionHistory.push({ 
+                        content: currentCodeForEvolver, 
+                        iteration: fileToRefine.versionHistory.filter(v => v.iteration >= 0).length, 
+                        feedbackThatLedToThisVersion: currentFeedback, 
+                        status: syntaxCheckResult.ok ? "RefinedAttempt" : "RefinedAttemptWithSyntaxError", 
+                        timestamp: new Date().toISOString() 
+                    });
+                    updateGeneratedFilesDisplay(); 
+                    logActivity(`Refinement attempt ${i} for ${currentRefinementFile} complete. New version available. Please test.`, 'success', ui.refinementLogDiv);
+                    if (i < maxIterations) {
+                        logActivity(`Pausing refinement for ${currentRefinementFile}. Test the latest version. You can provide new feedback if issues persist and start another refinement cycle.`, 'info', ui.refinementLogDiv);
+                    }
+                }
+                logActivity(`Refinement cycle for ${currentRefinementFile} finished.`, 'success', ui.refinementLogDiv);
+            } catch (error) {
+                displayAppError(`Error during refinement of ${currentRefinementFile}: ${error.message}`);
+                logActivity(`Error refining ${currentRefinementFile}: ${error.message}`, 'error', ui.refinementLogDiv);
+                 console.error("Refinement error details:", error);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        function switchFileModalTab(tabName) {
+            if (tabName === 'code') {
+                ui.codeViewTab.classList.add('active');
+                ui.versionHistoryTab.classList.remove('active');
+                ui.codeViewContent.classList.remove('hidden');
+                ui.versionHistoryContent.classList.add('hidden');
+            } else if (tabName === 'history') {
+                ui.codeViewTab.classList.remove('active');
+                ui.versionHistoryTab.classList.add('active');
+                ui.codeViewContent.classList.add('hidden');
+                ui.versionHistoryContent.classList.remove('hidden');
+                displayVersionHistory(currentFileViewingHistory);
+            }
+        }
+        function populateFileToRefineSelect() {
+            ui.fileToRefineSelect.innerHTML = '<option value="">-- Select a file --</option>';
+            generatedFileContents.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file.filePath;
+                option.textContent = file.filePath;
+                ui.fileToRefineSelect.appendChild(option);
+            });
+            if (generatedFileContents.length > 0) {
+                ui.fileToRefineSelect.value = generatedFileContents[0].filePath; 
+                currentRefinementFile = generatedFileContents[0].filePath;
+                populateInspirationalVersionSelect(currentRefinementFile);
+                 ui.refinementLogDiv.innerHTML = '<p class="text-slate-400 italic">Refinement attempts for selected file will appear here...</p>';
+            } else {
+                ui.refinementLogDiv.innerHTML = '<p class="text-slate-400 italic">No files available to refine.</p>';
+            }
+        }
+        function populateInspirationalVersionSelect(filePath) {
+            ui.refinementInspirationalVersionSelect.innerHTML = '<option value="">-- None (Use Latest) --</option><option value="initial">Initial Coder Version</option>';
+            const file = generatedFileContents.find(f => f.filePath === filePath);
+            if (file && file.versionHistory) {
+                file.versionHistory.forEach((version, index) => {
+                    if (version.iteration >= -1) { 
+                        const option = document.createElement('option');
+                        option.value = `version_${index}`; 
+                        let label = version.iteration === 0 ? "Initial Coder" : 
+                                    version.iteration === -1 ? "Initial Reviewer" : `Iter. ${version.iteration}`;
+                        option.textContent = `${label} (${version.status || 'N/A'}) - ${version.feedbackThatLedToThisVersion.substring(0,30)}...`;
+                        ui.refinementInspirationalVersionSelect.appendChild(option);
+                    }
+                });
+            }
+        }
+        function updateGeneratedFilesDisplay() {
+            ui.generatedFilesDisplayDiv.innerHTML = ''; 
+            if (generatedFileContents.length === 0) {
+                ui.generatedFilesDisplayDiv.innerHTML = '<p class="text-slate-400 italic text-sm">No files generated yet.</p>';
+                return;
+            }
+            const ul = document.createElement('ul');
+            ul.className = 'space-y-1';
+            generatedFileContents.forEach(file => {
+                const li = document.createElement('li');
+                li.className = 'file-item group text-xs';
+                const fileNameSpan = document.createElement('span');
+                const refinementVersions = file.versionHistory ? file.versionHistory.filter(v => v.iteration >= 0) : [];
+                const latestUserVersionNum = refinementVersions.length > 0 ? refinementVersions[refinementVersions.length -1].iteration : 0;
+                fileNameSpan.textContent = `${file.filePath} (v${latestUserVersionNum})`;
+                fileNameSpan.className = 'text-sky-700 font-medium';
+                
+                const viewButton = document.createElement('button');
+                viewButton.innerHTML = `<svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View/History`;
+                viewButton.className = 'text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-1 rounded-md transition-colors opacity-70 group-hover:opacity-100';
+                viewButton.onclick = () => {
+                    currentFileViewingHistory = file.filePath;
+                    ui.fileContentTitle.textContent = `File: ${file.filePath}`;
+                    ui.fileContentPreview.textContent = file.content; 
+                    switchFileModalTab('code'); 
+                    ui.fileContentModal.classList.remove('hidden');
+                };
+                
+                li.appendChild(fileNameSpan);
+                li.appendChild(viewButton);
+                ul.appendChild(li);
+            });
+            ui.generatedFilesDisplayDiv.appendChild(ul);
+        }
+        function displayVersionHistory(filePath) {
+            ui.versionHistoryLog.innerHTML = '';
+            const placeholderP = ui.versionHistoryContent.querySelector('p.text-slate-500.italic');
+            if (placeholderP) placeholderP.textContent = `Version history for ${filePath}...`;
+
+            const file = generatedFileContents.find(f => f.filePath === filePath);
+            if (!file || !file.versionHistory || file.versionHistory.length === 0) {
+                ui.versionHistoryLog.innerHTML = '<p class="text-slate-500 italic text-xs p-2">No version history available for this file.</p>';
+                return;
+            }
+
+            file.versionHistory.slice().reverse().forEach((version, revIndex) => {
+                const originalIndex = file.versionHistory.length - 1 - revIndex;
+                const entry = document.createElement('div');
+                entry.className = 'p-2 mb-2 border rounded-md bg-white text-xs';
+                let versionLabel = '';
+                if (version.iteration === 0) versionLabel = "Initial Coder Version";
+                else if (version.iteration === -1) versionLabel = "Initial Reviewer Pass";
+                else versionLabel = `Refinement/Auto-Debug Iter. ${version.iteration}`;
+
+                entry.innerHTML = `
+                    <p class="font-semibold text-slate-700">${versionLabel} <span class="text-slate-500 text-xxs">(${version.status || 'N/A'} - ${new Date(version.timestamp).toLocaleString()})</span></p>
+                    <p class="text-slate-600 mt-1 text-xxs"><strong>Trigger:</strong> ${version.feedbackThatLedToThisVersion.substring(0,150)}...</p>
+                    <button class="text-xxs bg-sky-100 hover:bg-sky-200 text-sky-700 px-1.5 py-0.5 rounded mt-1" data-version-index="${originalIndex}">View this version's code</button>
+                `;
+                entry.querySelector('button').addEventListener('click', (e) => {
+                    const versionIdx = parseInt(e.target.dataset.versionIndex, 10);
+                    const selectedVersion = file.versionHistory[versionIdx];
+                    ui.fileContentPreview.textContent = selectedVersion.content;
+                    switchFileModalTab('code'); 
+                    ui.fileContentTitle.textContent = `File: ${file.filePath} (Viewing ${versionLabel})`;
+                });
+                ui.versionHistoryLog.appendChild(entry);
+            });
+        }
+        function downloadProjectZip() {
+            if (generatedFileContents.length === 0) { displayAppError("No files to download."); return; }
+            logActivity("Preparing ZIP file...", "info");
+            const zip = new JSZip();
+            generatedFileContents.forEach(file => zip.file(file.filePath, file.content));
+            zip.generateAsync({ type: "blob" })
+                .then(content => {
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(content);
+                    a.download = `codegen_project_${new Date().toISOString().split('T')[0]}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(a.href);
+                    logActivity("Project ZIP downloaded.", "success");
+                })
+                .catch(err => displayAppError(`ZIP Error: ${err.message}`));
+        }
+
+        // --- Project Runner & Auto-Debug ---
+        function closeProjectRunner() {
+            ui.projectRunnerModal.classList.add('hidden');
+            if (ui.projectRunnerFrame.contentWindow && iframeErrorListener) {
+                ui.projectRunnerFrame.contentWindow.removeEventListener('error', iframeErrorListener);
+                iframeErrorListener = null; 
+            }
+            ui.projectRunnerFrame.srcdoc = ''; 
+        }
+
+        async function runAndDebugProject() {
+            if (generatedFileContents.length === 0) { displayAppError("No project generated to run."); return; }
+            const mainHtmlFile = generatedFileContents.find(f => f.filePath.toLowerCase().endsWith('.html') || f.filePath.toLowerCase().endsWith('.htm'));
+            if (!mainHtmlFile) { displayAppError("Could not find a main HTML file (e.g., index.html) to run in the project."); return; }
+            
+            ui.debugLogDiv.innerHTML = '<p class="text-slate-400 italic">Debugging attempts will appear here...</p>';
+            logActivity(`Attempting to run project with main file: ${mainHtmlFile.filePath}`, 'info', ui.debugLogDiv);
+            ui.projectRunnerModal.classList.remove('hidden');
+            autoDebugAttempts = 0; 
+            currentIframeErrorKey = null; 
+            await loadAndRunInIframe(mainHtmlFile.filePath);
+        }
+
+        async function loadAndRunInIframe(mainHtmlPath, attempt = 1) {
+            logActivity(`Loading project into iframe (Attempt ${attempt}). Main HTML: ${mainHtmlPath}`, 'info', ui.debugLogDiv);
+            showLoading(`Running project (Attempt ${attempt})...`);
+            
+            const mainFile = generatedFileContents.find(f => f.filePath === mainHtmlPath);
+            if (!mainFile) { 
+                logActivity(`Error: Main HTML file ${mainHtmlPath} not found in generated files.`, 'error', ui.debugLogDiv); 
+                hideLoading(); 
+                return; 
+            }
+
+            let htmlContent = mainFile.content;
+            const blobUrlMap = new Map(); 
+
+            const scriptRegex = /<script([^>]*?)src=["'](.*?)["']([^>]*)><\/script>/gi;
+            htmlContent = htmlContent.replace(scriptRegex, (match, preAttrs, src, postAttrs) => {
+                const jsFile = generatedFileContents.find(f => f.filePath === src || `./${f.filePath}` === src || f.filePath.endsWith(src.startsWith('./') ? src.substring(2) : src));
+                if (jsFile) { 
+                    const blob = new Blob([jsFile.content],{type:'text/javascript'}); 
+                    const blobUrl=URL.createObjectURL(blob); 
+                    blobUrlMap.set(blobUrl,jsFile.filePath); 
+                    
+                    return `<script${preAttrs}src="${blobUrl}"${postAttrs}></s`+`cript>`; 
+                }
+                logActivity(`Script link "${src}" not found in generated files. Kept as is.`, 'warn', ui.debugLogDiv);
+                return match; 
+            });
+
+            const cssRegex = /<link([^>]*?)href=["'](.*?)["']([^>]*?rel=["']stylesheet["'][^>]*?)>/gi;
+            htmlContent = htmlContent.replace(cssRegex, (match, preAttrs, href, postAttrs) => {
+                const cssFile = generatedFileContents.find(f => f.filePath === href || `./${f.filePath}` === href || f.filePath.endsWith(href.startsWith('./') ? href.substring(2) : href));
+                if (cssFile) { 
+                    const blob = new Blob([cssFile.content],{type:'text/css'}); 
+                    const blobUrl=URL.createObjectURL(blob); 
+                    blobUrlMap.set(blobUrl,cssFile.filePath); 
+                    // Corrected line: Ensure it returns the new link tag properly
+                    return `<link${preAttrs}href="${blobUrl}"${postAttrs}>`; 
+                }
+                logActivity(`CSS link "${href}" not found in generated files. Kept as is.`, 'warn', ui.debugLogDiv);
+                return match;
+            });
+            
+            ui.projectRunnerFrame.srcdoc = htmlContent;
+
+            if (iframeErrorListener && ui.projectRunnerFrame.contentWindow) {
+                 ui.projectRunnerFrame.contentWindow.removeEventListener('error', iframeErrorListener);
+            }
+
+            iframeErrorListener = async (event) => {
+                event.preventDefault(); 
+                const { message, filename, lineno, colno, error } = event;
+                const errorKey = `${filename}-${lineno}-${colno}-${message.substring(0,50)}`;
+
+                if (currentIframeErrorKey === errorKey) { 
+                    logActivity(`Repeated error detected, stopping auto-debug for this specific error: ${message}`, 'warn', ui.debugLogDiv); 
+                    hideLoading(); 
+                    return; 
+                }
+                currentIframeErrorKey = errorKey;
+                logActivity(`Runtime Error in iframe: ${message} at ${filename}:${lineno}:${colno}`, 'error', ui.debugLogDiv);
+                
+                const erroredFilePath = blobUrlMap.get(filename) || filename; 
+                const fileToDebug = generatedFileContents.find(f => f.filePath === erroredFilePath);
+
+                if (fileToDebug && autoDebugAttempts < MAX_AUTO_DEBUG_ATTEMPTS_PER_FILE) {
+                    autoDebugAttempts++;
+                    logActivity(`Attempting auto-debug for ${erroredFilePath} (Attempt ${autoDebugAttempts}/${MAX_AUTO_DEBUG_ATTEMPTS_PER_FILE})...`, 'debug', ui.debugLogDiv);
+                    showLoading(`Auto-debugging ${erroredFilePath} (Attempt ${autoDebugAttempts})...`);
+                    const apiKey = ui.apiKeyInput.value.trim();
+                    const projectInstructions = ui.projectInstructionsInput.value.trim();
+                    const additionalContext = ui.additionalContextInput.value.trim();
+                    
+                    const debuggerPrompt = `You are an expert Debugger Agent. The code in file "${fileToDebug.filePath}" produced a runtime error.
+File's Original Description: "${fileToDebug.originalDescription}"
+Overall Project Instructions: "${projectInstructions}"
+Additional Context/Sanity Checks from User: "${additionalContext || 'None provided.'}"
+Error Message: "${message}"
+Source File (approximate): ${filename} (Line: ${lineno}, Column: ${colno})
+Stack Trace (if available): ${error ? error.stack : 'N/A'}
+Current Code for "${fileToDebug.filePath}":
+\`\`\`
+${fileToDebug.content}
+\`\`\`
+Please provide the corrected, complete code for the entire file "${fileToDebug.filePath}" to fix this specific runtime error.
+Output ONLY the raw, corrected code. Do not include any explanations, apologies, or markdown formatting like \`\`\` around the code.`;
+                    try {
+                        let correctedCode = await callGeminiAPI(debuggerPrompt, apiKey, getModelForTask('evolver'));
+                        correctedCode = correctedCode.replace(/^```[\w\s]*\n|```$/g, '').trim();
+                        const syntaxCheck = basicSyntaxCheck(correctedCode, fileToDebug.filePath.split('.').pop());
+
+                        if (!syntaxCheck.ok) { 
+                            logActivity(`Auto-debug for ${fileToDebug.filePath} produced new code with a syntax error: ${syntaxCheck.message}. Stopping auto-debug for this error.`, 'error', ui.debugLogDiv); 
+                            hideLoading(); 
+                            return; 
+                        }
+                        if (correctedCode.trim() !== fileToDebug.content.trim()) {
+                            fileToDebug.content = correctedCode;
+                            fileToDebug.versionHistory.push({ 
+                                content: correctedCode, 
+                                iteration: fileToDebug.versionHistory.filter(v => v.iteration >= 0).length, 
+                                feedbackThatLedToThisVersion: `Auto-debug: Fixed runtime error - ${message.substring(0,100)}...`, 
+                                status: "AutoDebugAttempt", 
+                                timestamp: new Date().toISOString() 
+                            });
+                            updateGeneratedFilesDisplay(); 
+                            logActivity(`Auto-debug fix applied to ${fileToDebug.filePath}. Reloading project...`, 'success', ui.debugLogDiv);
+                            await loadAndRunInIframe(mainHtmlPath, attempt + 1); 
+                        } else {
+                            logActivity(`Auto-debug for ${fileToDebug.filePath}: AI proposed no change to the code. The error might be more complex or in a different file.`, 'warn', ui.debugLogDiv);
+                            hideLoading();
+                        }
+                    } catch (e) { 
+                        logActivity(`Error during auto-debug API call for ${fileToDebug.filePath}: ${e.message}`, 'error', ui.debugLogDiv); 
+                        console.error("Auto-debug API error:", e);
+                        hideLoading(); 
+                    }
+                } else {
+                    if (!fileToDebug) {
+                        logActivity(`Could not identify the source file for the error: ${filename}. Path not found in generated files. Manual debugging or refinement needed.`, 'warn', ui.debugLogDiv);
+                    } else {
+                         logActivity(`Max auto-debug attempts (${MAX_AUTO_DEBUG_ATTEMPTS_PER_FILE}) reached for ${erroredFilePath}. Please use manual refinement if issues persist.`, 'warn', ui.debugLogDiv);
+                    }
+                    hideLoading();
+                }
+            };
+            
+            ui.projectRunnerFrame.onload = () => {
+                if (ui.projectRunnerFrame.contentWindow) {
+                    ui.projectRunnerFrame.contentWindow.addEventListener('error', iframeErrorListener);
+                    logActivity("Project loaded in iframe. Monitoring for runtime errors.", 'success', ui.debugLogDiv);
+                } else {
+                    logActivity("Critical: Failed to access iframe content window after load. Auto-debug may not function.", 'error', ui.debugLogDiv);
+                }
+                hideLoading(); 
+            };
+            ui.projectRunnerFrame.onerror = (e) => { 
+                logActivity(`Critical error loading project into iframe shell. Details: ${e.message || 'Unknown iframe load error'}`, 'error', ui.debugLogDiv); 
+                hideLoading(); 
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            logActivity("App initialized. Fill details & start generation.", "info");
+            if (typeof __GEMINI_API_KEY__ !== 'undefined' && __GEMINI_API_KEY__ && __GEMINI_API_KEY__.trim() !== '') {
+                ui.apiKeyInput.value = '********'; 
+                ui.apiKeyInput.disabled = true;
+                logActivity("Using API key from pre-configured environment.", "info");
+                const securityButton = ui.apiKeyInput.nextElementSibling;
+                if(securityButton && securityButton.tagName === 'BUTTON') securityButton.style.display = 'none';
+            } else {
+                 logActivity("API Key needed. Enter your Gemini API Key.", "warn");
+            }
+            ui.runDebugButton.disabled = true; 
+            ui.downloadZipButton.disabled = true;
+            
+            // Ensure all initial placeholders are set correctly
+            const logsToInitialize = [
+                { div: ui.activityLogDiv, text: "Activity will appear here..." },
+                { div: ui.planDisplayDiv.querySelector('code'), text: "Plan will appear here...", isPre: true },
+                { div: ui.generatedFilesDisplayDiv, text: "Files will appear here..." },
+                { div: ui.refinementLogDiv, text: "Refinement attempts will appear here..." },
+                { div: ui.debugLogDiv, text: "Debugging attempts will appear here..." },
+                { div: ui.versionHistoryContent.querySelector('p.text-slate-500.italic'), text: "Version history will appear here..." }
+            ];
+
+            logsToInitialize.forEach(item => {
+                if (item.div) {
+                    if (item.isPre) {
+                        item.div.textContent = item.text;
+                    } else if (item.div.tagName === 'P' || item.div.tagName === 'DIV' && item.div.classList.contains('text-xs')) { // for log divs
+                        item.div.innerHTML = `<p class="text-slate-400 italic">${item.text}</p>`;
+                    } else if (item.div.tagName === 'DIV' && item.div.id === 'generatedFilesDisplay'){
+                         item.div.innerHTML = `<p class="text-slate-400 italic text-sm">${item.text}</p>`;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
