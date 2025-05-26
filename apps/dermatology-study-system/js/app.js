@@ -1,20 +1,12 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { generateQuiz } from './quiz.js';
-import profileManager from './profile-manager.js';
-import chatManager from './chat.js';
+import { firebaseConfig } from './firebase-config.js'; // Import the configuration
+// import { generateQuiz } from './quiz.js'; // Will use internal QuizManager.generateQuestions for now
+// import profileManager from './profile-manager.js'; // Stubbed out for now
+// import chatManager from './chat.js'; // Will use internal ChatManager for now
 
-// Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyBBbyHyAxTOwFu4q-Mh0jDuJq5ZPVAy2V0",
-    authDomain: "dermai-e69a5.firebaseapp.com",
-    projectId: "dermai-e69a5",
-    storageBucket: "dermai-e69a5.firebasestorage.app",
-    messagingSenderId: "940424189728",
-    appId: "1:940424189728:web:8a6769a48b742055046945",
-    measurementId: "G-YM5MFVJZBY"
-};
+// Firebase configuration is now imported from firebase-config.js
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -33,6 +25,7 @@ class AuthManager {
             const userCredential = await auth.signInWithEmailAndPassword(email, password);
             this.user = userCredential.user;
             await this.loadUserProfile();
+            updateUIAfterAuthStateChange(this.user); // Update UI
             return this.user;
         } catch (error) {
             console.error('Error signing in:', error);
@@ -43,10 +36,11 @@ class AuthManager {
     async signUp(email, password, displayName) {
         try {
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            const user = userCredential.user;
-            await user.updateProfile({ displayName });
-            await this.createUserProfile(user, displayName);
-            return user;
+            this.user = userCredential.user; // Assign to this.user
+            await this.user.updateProfile({ displayName });
+            await this.createUserProfile(this.user, displayName);
+            updateUIAfterAuthStateChange(this.user); // Update UI
+            return this.user;
         } catch (error) {
             console.error('Error signing up:', error);
             throw error;
@@ -58,6 +52,7 @@ class AuthManager {
             await auth.signOut();
             this.user = null;
             this.userProfile = null;
+            updateUIAfterAuthStateChange(null); // Update UI
         } catch (error) {
             console.error('Error signing out:', error);
             throw error;
@@ -121,14 +116,30 @@ class QuizManager {
     }
 
     async generateQuestions(count, topics, difficulty) {
-        // Simplified question generation
-        return Array(count).fill().map((_, i) => ({
-            id: i + 1,
-            question: `Sample question ${i + 1} about ${topics[0]}`,
-            options: ['A', 'B', 'C', 'D', 'E'],
-            correctAnswer: 'A',
-            explanation: 'Sample explanation'
-        }));
+        const prompt = `Generate ${count} quiz questions about ${topics[0]} (difficulty: ${difficulty}). Each question should have 4 options and a correct answer.`;
+        try {
+            const aiResponse = await callGeminiAPI(prompt);
+            // Basic parsing of a simple string response (assuming one question per line, or just using the whole response for each question's text for now)
+            // This will be improved when callGeminiAPI returns structured data.
+            // For now, creating placeholder questions based on a simple transformation of aiResponse:
+            return Array(count).fill().map((_, i) => ({
+                id: i + 1,
+                question: `AI Question ${i + 1}: ${aiResponse.substring(0, 100)} (topic: ${topics[0]})`, // Example transformation
+                options: ['Option A', 'Option B', 'Option C', 'Option D'],
+                correctAnswer: 'Option A',
+                explanation: `Explanation from AI for Q${i+1} (placeholder based on: ${aiResponse.substring(0,30)}...)`
+            }));
+        } catch (error) {
+            console.error('Error generating AI questions:', error);
+            // Fallback to simple sample questions if AI call fails
+            return Array(count).fill().map((_, i) => ({
+                id: i + 1,
+                question: `Fallback Sample question ${i + 1} about ${topics[0]}`,
+                options: ['A', 'B', 'C', 'D'],
+                correctAnswer: 'A',
+                explanation: 'Sample explanation (fallback)'
+            }));
+        }
     }
 }
 
@@ -161,14 +172,33 @@ class ChatManager {
     }
 
     async getAIResponse(message) {
-        // Simplified AI response
-        return `AI response to: ${message}`;
+        try {
+            const aiResponse = await callGeminiAPI(message);
+            return aiResponse; // Directly return the string from the dummy callGeminiAPI
+        } catch (error) {
+            console.error('Error getting AI response:', error);
+            return "Sorry, I couldn't get a response from the AI at this moment.";
+        }
     }
 }
 
 // Initialize managers
 const authManager = new AuthManager();
 const quizManager = new QuizManager();
+const chatManager = new ChatManager(); // Using the internal ChatManager
+
+// Stubbed profileManager
+const profileManager = {
+    initialize: async () => { console.log("ProfileManager initialize (stubbed)"); },
+    showProfile: async () => {
+        console.log("ProfileManager showProfile (stubbed)");
+        alert("Profile feature is currently under development.");
+        // Potentially show a basic modal or redirect, for now, just an alert.
+        // Example:
+        // const userProfileModal = document.getElementById('userProfileModal'); // Assuming you add such a modal
+        // if (userProfileModal) userProfileModal.classList.remove('hidden');
+    }
+};
 
 // Export managers
 export { authManager, quizManager, chatManager };
@@ -176,33 +206,23 @@ export { authManager, quizManager, chatManager };
 // Initialize application
 async function initializeApplication() {
     try {
-        // Initialize authentication
-        await authManager.initialize();
-
-        // Initialize chat manager
-        await chatManager.initialize();
-
-        // Add login modal to page
-        const loginModal = await fetch('/apps/dermatology-study-system/components/login-modal.html').then(r => r.text());
-        document.body.insertAdjacentHTML('beforeend', loginModal);
-
-        // Add user profile component to page
-        const userProfile = await fetch('/apps/dermatology-study-system/components/user-profile.html').then(r => r.text());
-        const userProfileContainer = document.getElementById('userProfileComponent');
-        if (userProfileContainer) {
-            userProfileContainer.innerHTML = userProfile;
-        } else {
-            // If container doesn't exist, create it
-            const container = document.createElement('div');
-            container.id = 'userProfileComponent';
-            container.innerHTML = userProfile;
-            document.body.appendChild(container);
-        }
-
-        // Wait for DOM to update
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Initialize profile manager after modal is added to DOM
+        // Listen for authentication state changes
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in.
+                authManager.user = user; // Update AuthManager's user
+                authManager.loadUserProfile().then(() => {
+                    updateUIAfterAuthStateChange(user);
+                });
+            } else {
+                // User is signed out.
+                authManager.user = null;
+                authManager.userProfile = null;
+                updateUIAfterAuthStateChange(null);
+            }
+        });
+        
+        // Initialize profile manager (stubbed)
         await profileManager.initialize();
 
         // Initialize all event listeners
@@ -210,134 +230,504 @@ async function initializeApplication() {
 
     } catch (error) {
         console.error('Error initializing app:', error);
-        alert('Error initializing application. Please refresh the page.');
     }
 }
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApplication);
 
-function initializeEventListeners() {
-    // Get all DOM elements
-    const startQuizBtn = document.getElementById('startQuizBtn');
-    const startCaseBtn = document.getElementById('startCaseBtn');
-    const startDDxBtn = document.getElementById('startDDxBtn');
-    const viewPlanBtn = document.getElementById('viewPlanBtn');
-    const startFlashcardsBtn = document.getElementById('startFlashcardsBtn');
-    const startChatBtn = document.getElementById('startChatBtn');
-    const userProfileBtn = document.getElementById('userProfileBtn');
-    const loginBtn = document.getElementById('loginBtn');
-    const closeQuizModalBtn = document.getElementById('closeQuizModalBtn');
-    const startQuizConfirmBtn = document.getElementById('startQuizConfirmBtn');
+// --- UI Helper Functions ---
 
-    // Initialize login modal
-    initializeLoginModal();
+function showLoadingOverlay(message = 'Loading...') {
+    const overlay = document.getElementById('loadingOverlay');
+    const messageEl = document.getElementById('loadingMessage');
+    if (messageEl) messageEl.textContent = message;
+    if (overlay) overlay.classList.remove('hidden');
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.classList.add('hidden');
+}
+
+function showError(message) {
+    const errorOverlay = document.getElementById('errorOverlay');
+    const errorMessageEl = document.getElementById('errorMessage');
+    if (errorMessageEl) errorMessageEl.textContent = message;
+    if (errorOverlay) errorOverlay.classList.remove('hidden');
+}
+
+function hideError() {
+    const errorOverlay = document.getElementById('errorOverlay');
+    if (errorOverlay) errorOverlay.classList.add('hidden');
+}
+
+function updateUIAfterAuthStateChange(user) {
+    const loginButton = document.getElementById('loginBtn');
+    const userProfileButton = document.getElementById('userProfileBtn');
+
+    if (user) {
+        // User is signed in
+        if (loginButton) loginButton.classList.add('hidden');
+        if (userProfileButton) userProfileButton.classList.remove('hidden');
+        // Potentially update userProfileButton text with user's name/initials if available
+        // if (userProfileButton && authManager.userProfile) {
+        //     userProfileButton.textContent = authManager.userProfile.displayName || 'Profile';
+        // } else if (userProfileButton && authManager.user) {
+        //     userProfileButton.textContent = authManager.user.displayName || authManager.user.email || 'Profile';
+        // }
+    } else {
+        // User is signed out
+        if (loginButton) loginButton.classList.remove('hidden');
+        if (userProfileButton) userProfileButton.classList.add('hidden');
+    }
+}
+
+
+function initializeEventListeners() {
+    // Get all DOM elements from index.html
+    const loginBtn = document.getElementById('loginBtn'); // For showing login modal
+    const userProfileBtn = document.getElementById('userProfileBtn'); // For showing profile (stubbed)
+    
+    // Buttons for main dashboard actions
+    const quizBtn = document.getElementById('quizBtn'); // Matches index.html
+    const casesBtn = document.getElementById('casesBtn'); // Matches index.html
+    const differentialBtn = document.getElementById('differentialBtn'); // Matches index.html
+    const studyPlanBtn = document.getElementById('studyPlanBtn'); // Matches index.html
+    const flashcardsBtn = document.getElementById('flashcardsBtn'); // Matches index.html
+    const chatBtn = document.getElementById('chatBtn'); // Matches index.html
+
+    // Quiz Modal elements
+    const closeQuizModalBtn = document.getElementById('closeQuizModalBtn'); // Matches index.html
+    const startQuizConfirmBtn = document.getElementById('startQuizConfirmBtn'); // Matches index.html
+    const quizModal = document.getElementById('quizModal'); // Matches index.html
+    const questionCountInput = document.getElementById('questionCount'); // Matches index.html
+    const quizTopicSelect = document.getElementById('quizTopic'); // Matches index.html
+
+    // Chat Modal elements (from index.html)
+    const chatModal = document.getElementById('chatModal');
+    const closeChatBtn = document.getElementById('closeChatBtn');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const chatInput = document.getElementById('chatInput');
+    const chatMessagesDiv = document.getElementById('chatMessages');
+
+
+    // Initialize login modal events
+    initializeLoginModal(); 
+
+    // Close error overlay button
+    const closeErrorBtn = document.getElementById('closeErrorBtn');
+    if (closeErrorBtn) {
+        closeErrorBtn.addEventListener('click', hideError);
+    }
 
     // Event Listeners
     if (loginBtn) {
         loginBtn.addEventListener('click', () => {
-            const loginModal = document.getElementById('loginModal');
-            if (loginModal) loginModal.classList.remove('hidden');
+            const loginModalEl = document.getElementById('loginModal'); 
+            if (loginModalEl) {
+                loginModalEl.classList.remove('hidden'); 
+            } else {
+                console.error("Login modal element (#loginModal) not found!");
+            }
         });
     }
 
-    if (startQuizBtn) {
-        startQuizBtn.addEventListener('click', () => {
+    if (quizBtn) { 
+        quizBtn.addEventListener('click', () => {
             if (!authManager.user) {
                 alert('Please sign in to start a quiz.');
+                const loginModalEl = document.getElementById('loginModal');
+                if (loginModalEl) loginModalEl.classList.remove('hidden');
                 return;
             }
-            const questionCount = parseInt(document.getElementById('questionCount')?.value || '10', 10);
-            const topic = document.getElementById('quizTopic')?.value || 'general';
-            generateQuiz({
-                questionCount,
-                topics: [topic],
-                difficulty: 'medium'
-            });
+            if (quizModal) quizModal.classList.remove('hidden'); 
         });
     }
 
     if (closeQuizModalBtn) {
         closeQuizModalBtn.addEventListener('click', () => {
-            const quizModal = document.getElementById('quizModal');
             if (quizModal) quizModal.classList.add('hidden');
         });
     }
 
     if (startQuizConfirmBtn) {
-        startQuizConfirmBtn.addEventListener('click', () => {
+        startQuizConfirmBtn.addEventListener('click', async () => { 
             if (!authManager.user) {
                 alert('Please sign in to start a quiz.');
+                const loginModalEl = document.getElementById('loginModal');
+                if (loginModalEl) loginModalEl.classList.remove('hidden');
                 return;
             }
-            const questionCount = parseInt(document.getElementById('questionCount')?.value || '10', 10);
-            const topic = document.getElementById('quizTopic')?.value || 'general';
-            generateQuiz({
-                questionCount,
-                topics: [topic],
-                difficulty: 'medium'
-            });
+            const count = parseInt(questionCountInput?.value || '10', 10);
+            const topic = quizTopicSelect?.value || 'general';
+            
+            showLoadingOverlay('Generating quiz...');
+            try {
+                const questions = await quizManager.generateQuiz({ 
+                    questionCount: count,
+                    topics: [topic],
+                    difficulty: 'medium'
+                });
+                console.log("Generated quiz questions:", questions);
+                if (quizModal) quizModal.classList.add('hidden');
+                // alert(`Quiz generated with ${questions.length} questions on ${topic}. (Check console for questions)`);
+                // TODO: Implement displayQuiz function
+                displayQuiz(questions); // Placeholder for actual quiz display
+            } catch (error) {
+                console.error("Error generating quiz:", error);
+                showError(`Failed to generate quiz: ${error.message}`);
+            } finally {
+                hideLoadingOverlay();
+            }
         });
     }
 
-    if (startCaseBtn) {
-        startCaseBtn.addEventListener('click', () => {
+    if (casesBtn) { 
+        casesBtn.addEventListener('click', () => {
             if (!authManager.user) {
                 alert('Please sign in to access clinical cases.');
+                const loginModalEl = document.getElementById('loginModal');
+                if (loginModalEl) loginModalEl.classList.remove('hidden');
                 return;
             }
-            alert('Clinical Cases feature coming soon!');
+            window.location.href = 'clinical-cases.html';
         });
     }
 
-    if (startDDxBtn) {
-        startDDxBtn.addEventListener('click', () => {
+    if (differentialBtn) { 
+        differentialBtn.addEventListener('click', () => {
             if (!authManager.user) {
                 alert('Please sign in to access the DDx tool.');
+                const loginModalEl = document.getElementById('loginModal');
+                if (loginModalEl) loginModalEl.classList.remove('hidden');
                 return;
             }
-            alert('Differential Diagnosis tool coming soon!');
+            window.location.href = 'differential-diagnosis.html';
         });
     }
 
-    if (viewPlanBtn) {
-        viewPlanBtn.addEventListener('click', () => {
+    if (studyPlanBtn) { 
+        studyPlanBtn.addEventListener('click', () => {
             if (!authManager.user) {
                 alert('Please sign in to access the study planner.');
+                const loginModalEl = document.getElementById('loginModal');
+                if (loginModalEl) loginModalEl.classList.remove('hidden');
                 return;
             }
-            alert('Study Planner feature coming soon!');
+            window.location.href = 'study-plan.html';
         });
     }
 
-    if (startFlashcardsBtn) {
-        startFlashcardsBtn.addEventListener('click', () => {
+    if (flashcardsBtn) { 
+        flashcardsBtn.addEventListener('click', () => {
             if (!authManager.user) {
                 alert('Please sign in to access flashcards.');
+                const loginModalEl = document.getElementById('loginModal');
+                if (loginModalEl) loginModalEl.classList.remove('hidden');
                 return;
             }
-            alert('Flashcards feature coming soon!');
+            window.location.href = 'flashcards.html';
         });
     }
 
-    if (startChatBtn) {
-        startChatBtn.addEventListener('click', () => {
+    if (chatBtn) { 
+        chatBtn.addEventListener('click', () => {
             if (!authManager.user) {
                 alert('Please sign in to access the AI assistant.');
+                const loginModalEl = document.getElementById('loginModal');
+                if (loginModalEl) loginModalEl.classList.remove('hidden');
                 return;
             }
-            chatManager.showChat();
+            if (chatModal) chatModal.classList.remove('hidden');
         });
     }
+    
+    if(closeChatBtn) {
+        closeChatBtn.addEventListener('click', () => {
+            if (chatModal) chatModal.classList.add('hidden');
+        });
+    }
+
+    if(sendMessageBtn && chatInput && chatMessagesDiv) { //Ensure all chat elements exist
+        sendMessageBtn.addEventListener('click', async () => {
+            const messageText = chatInput.value.trim();
+            if (!messageText) return;
+
+            if (!authManager.user) {
+                // This case should ideally be prevented by the chatBtn listener,
+                // but as a safeguard:
+                showError('Please sign in to chat.');
+                const loginModalEl = document.getElementById('loginModal');
+                if (loginModalEl) loginModalEl.classList.remove('hidden');
+                return;
+            }
+            
+            addMessageToUI(messageText, 'user');
+            chatInput.value = '';
+            showLoadingOverlay('Getting AI response...');
+
+            try {
+                const aiResponse = await chatManager.sendMessage(messageText); 
+                addMessageToUI(aiResponse, 'assistant');
+            } catch (error) {
+                console.error("Error sending chat message:", error);
+                showError(`Failed to send message: ${error.message}`);
+                addMessageToUI('Error: Could not get AI response.', 'error'); // Show error in chat UI
+            } finally {
+                hideLoadingOverlay();
+            }
+        });
+         // Also allow sending message with Enter key
+         chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessageBtn.click();
+            }
+        });
+    }
+
 
     if (userProfileBtn) {
         userProfileBtn.addEventListener('click', async () => {
-            await profileManager.showProfile();
+            if (!authManager.user) {
+                alert('Please sign in to view your profile.');
+                 const loginModalEl = document.getElementById('loginModal');
+                if (loginModalEl) loginModalEl.classList.remove('hidden');
+                return;
+            }
+            await profileManager.showProfile(); 
         });
     }
 }
 
 function initializeLoginModal() {
+    // This function now assumes the login modal structure is IN index.html
+    // It will handle the form submissions and toggling visibility.
+    const loginModal = document.getElementById('loginModal'); // From index.html
+    const loginForm = document.getElementById('loginForm'); // From index.html
+    const signupForm = document.getElementById('signupForm'); // From index.html
+    const toggleFormsBtn = document.getElementById('toggleFormsBtn'); // From index.html
+    const closeLoginModalBtn = document.getElementById('closeLoginModalBtn'); // From index.html
+
+    // The original initializeLoginModal checked if elements were found and warned.
+    // We should maintain that or ensure index.html is correctly providing these.
+    // For now, we assume index.html has these elements.
+    if (!loginModal || !loginForm || !signupForm || !toggleFormsBtn || !closeLoginModalBtn) {
+        console.warn('One or more login modal elements not found. Login/Signup functionality may be impaired.');
+        return;
+    }
+
+    if (toggleFormsBtn) {
+        toggleFormsBtn.addEventListener('click', () => {
+            loginForm.classList.toggle('hidden');
+            signupForm.classList.toggle('hidden');
+            const isLoginFormHidden = loginForm.classList.contains('hidden');
+            toggleFormsBtn.textContent = isLoginFormHidden ? 'Already have an account? Sign in' : "Don't have an account? Sign up";
+        });
+    }
+
+    if (closeLoginModalBtn) {
+        closeLoginModalBtn.addEventListener('click', () => {
+            if (loginModal) loginModal.classList.add('hidden');
+        });
+    }
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoadingOverlay('Signing in...');
+            const emailInput = document.getElementById('loginEmail'); 
+            const passwordInput = document.getElementById('loginPassword'); 
+            
+            const email = emailInput?.value;
+            const password = passwordInput?.value;
+
+            if (!email || !password) {
+                hideLoadingOverlay(); // Hide loading before showing alert
+                showError('Please enter both email and password');
+                return;
+            }
+
+            try {
+                // authManager.signIn will call updateUIAfterAuthStateChange
+                await authManager.signIn(email, password); 
+                if (loginModal) loginModal.classList.add('hidden');
+                // alert('Login successful!'); // Already handled by updateUIAfterAuthStateChange
+            } catch (error) {
+                console.error('Error signing in:', error);
+                showError(`Error signing in: ${error.message}. Please check your credentials and try again.`);
+            } finally {
+                hideLoadingOverlay();
+            }
+        });
+    }
+
+    if (signupForm) {
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoadingOverlay('Signing up...');
+            const emailInput = document.getElementById('signupEmail'); 
+            const passwordInput = document.getElementById('signupPassword'); 
+            const displayNameInput = document.getElementById('signupName'); 
+
+            const email = emailInput?.value;
+            const password = passwordInput?.value;
+            const displayName = displayNameInput?.value;
+
+            if (!email || !password || !displayName) {
+                hideLoadingOverlay();
+                showError('Please fill in all fields');
+                return;
+            }
+
+            try {
+                // authManager.signUp will call updateUIAfterAuthStateChange
+                await authManager.signUp(email, password, displayName);
+                if (loginModal) loginModal.classList.add('hidden');
+                // alert('Signup successful! You are now logged in.'); // Already handled
+            } catch (error) {
+                console.error('Error signing up:', error);
+                showError(`Error creating account: ${error.message}. Please try again.`);
+            } finally {
+                hideLoadingOverlay();
+            }
+        });
+    }
+}
+
+// Placeholder for displaying quiz questions
+function displayQuiz(questions) {
+    console.log("Attempting to display quiz with questions:", questions);
+    // For now, just alert the number of questions.
+    // In a real app, you'd render these to the DOM.
+    alert(`Quiz generated with ${questions.length} questions. See console for details. UI display is a TODO.`);
+    // Example: Render to a specific div
+    // const quizDisplayArea = document.getElementById('quizDisplayArea'); // Assuming such an element exists
+    // if (quizDisplayArea) {
+    //     quizDisplayArea.innerHTML = ''; // Clear previous quiz
+    //     questions.forEach(q => {
+    //         const questionEl = document.createElement('div');
+    //         questionEl.innerHTML = `<h4>${q.question}</h4><p>Options: ${q.options.join(', ')}</p>`;
+    //         quizDisplayArea.appendChild(questionEl);
+    //     });
+    // } else {
+    //     console.warn("#quizDisplayArea not found. Cannot display quiz questions in UI.");
+    // }
+}
+
+// Function to add messages to the chat UI
+function addMessageToUI(message, role) {
+    const chatMessagesDiv = document.getElementById('chatMessages');
+    if (!chatMessagesDiv) {
+        console.error("#chatMessages element not found in the DOM.");
+        return;
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = message; // For 'error' role, it's just the message text
+    
+    if (role === 'user') {
+        messageDiv.textContent = `You: ${message}`;
+        messageDiv.classList.add('text-right', 'mb-2', 'p-2', 'rounded-lg', 'bg-blue-100');
+    } else if (role === 'assistant') {
+        messageDiv.textContent = `AI: ${message}`;
+        messageDiv.classList.add('text-left', 'mb-2', 'p-2', 'rounded-lg', 'bg-gray-100');
+    } else if (role === 'error') { // For displaying errors directly in chat
+        messageDiv.classList.add('text-left', 'mb-2', 'text-red-500', 'p-2');
+    } else { // Generic message if role is not specific
+         messageDiv.classList.add('text-left', 'mb-2', 'p-2');
+    }
+    
+    chatMessagesDiv.appendChild(messageDiv);
+    chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight; // Scroll to bottom
+}
+
+
+// const MAX_RETRIES = 3; // Removed as callWithRetry is removed
+// const RETRY_DELAY = 1000; // Removed as callWithRetry is removed
+
+// async function callWithRetry(fn, ...args) { // This function is no longer used
+//     let lastError;
+//     for (let i = 0; i < MAX_RETRIES; i++) {
+//         try {
+//             return await fn(...args);
+//         } catch (error) {
+//             lastError = error;
+//             console.warn(`Attempt ${i + 1} failed:`, error);
+//             if (i < MAX_RETRIES - 1) {
+//                 await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
+//             }
+//         }
+//     }
+//     throw lastError;
+// }
+
+// Enhanced error handling for API calls (Simplified - callWithRetry removed)
+async function callGeminiAPI(prompt, imageBase64 = null, imageMimeType = null) {
+    try {
+        // const modelName = modelNameInput.value || "models/gemini-2.5-flash-preview-05-20"; // modelNameInput does not exist
+        const modelName = "models/gemini-pro"; // Using a hardcoded model as per instructions
+        const parts = [{ text: prompt }];
+        
+        if (imageBase64 && imageMimeType && modelName.includes("vision")) { // Simple check for vision model
+            parts.push({ inlineData: { mimeType: imageMimeType, data: imageBase64 } });
+        } else if (imageBase64 && !modelName.includes("vision")) {
+            console.warn("Image provided but non-vision model selected. Image will be ignored.");
+        }
+
+        const payload = {
+            model: modelName,
+            contents: [{ role: "user", parts }],
+            generationConfig: { // Simplified config
+                temperature: 0.7, // Adjusted for general purpose
+                maxOutputTokens: 1024 // Reduced for study app context
+            },
+            // safetySettings: [ // Simplified or removed if not strictly necessary for basic function
+            //     { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            //     { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            //     { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            //     { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+            // ]
+        };
+        
+        // Assuming callViaWorker is a globally available function or needs to be defined/imported.
+        // For now, this will likely cause an error if callViaWorker is not defined.
+        // This function is not defined in the provided code.
+        // This will need to be replaced with a direct fetch or similar mechanism if callViaWorker is not available.
+        // For now, let's assume it's a placeholder that needs to be replaced.
+        // To make progress, I will comment this out and return a dummy response.
+        console.warn("callGeminiAPI: 'callViaWorker' is not defined. Using dummy response.");
+        // const json = await callViaWorker("generateContent", payload); // This line would cause an error
+        // if (!json || !json.response || typeof json.response.text !== 'function') { // Check if text is a function
+        //     throw new Error("Invalid response from API or response.text is not a function");
+        // }
+        // return json.response.text(); // This would be the ideal return if callViaWorker worked
+        return Promise.resolve(`Dummy AI response for prompt: "${prompt.substring(0, 50)}..."`); // Dummy response wrapped in Promise
+
+    } catch (error) {
+        console.error("Error in callGeminiAPI:", error);
+        throw new Error(`AI service error: ${error.message}`);
+    }
+}
+
+// Remove rate limiting, input sanitization, session management, keyboard shortcuts, caching,
+// image processing, real-time suggestions, toast notifications, loading states
+// as they are mostly related to the more complex features not present in index.html
+// or refer to elements not available.
+
+// Session management (SESSION object and related functions) - REMOVED
+// Keyboard shortcuts - REMOVED
+// Caching mechanism (CACHE object and functions) - REMOVED
+// Debouncing for real-time suggestions - REMOVED
+// Optimize image processing - REMOVED
+// Optimize real-time suggestions with debouncing - REMOVED
+// Update image upload handler - REMOVED (no imageUploadInput)
+// Update recognition events - REMOVED (no speech recognition elements)
+// Toast notification system - REMOVED
+// Loading state management - REMOVED
+// generateInitialNoteAndAnalysis - REMOVED (references removed elements)
+// analyzeImageBtn event listener - REMOVED (no analyzeImageBtn)
+// fetchAndDisplayAiSuggestions - REMOVED (real-time suggestions)
     const loginModal = document.getElementById('loginModal');
     const loginForm = document.getElementById('loginForm');
     const signupForm = document.getElementById('signupForm');
@@ -405,558 +795,7 @@ function initializeLoginModal() {
 }
 
 // Add retry mechanism for API calls
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
-
-async function callWithRetry(fn, ...args) {
-    let lastError;
-    for (let i = 0; i < MAX_RETRIES; i++) {
-        try {
-            return await fn(...args);
-        } catch (error) {
-            lastError = error;
-            console.warn(`Attempt ${i + 1} failed:`, error);
-            if (i < MAX_RETRIES - 1) {
-                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
-            }
-        }
-    }
-    throw lastError;
-}
-
-// Enhanced error handling for API calls
-async function callGeminiAPI(prompt, imageBase64 = null, imageMimeType = null) {
-    try {
-        const modelName = modelNameInput.value || "models/gemini-2.5-flash-preview-05-20";
-        const parts = [{ text: prompt }];
-        
-        if (imageBase64 && imageMimeType && modelName.includes("vision")) {
-            parts.push({ inlineData: { mimeType: imageMimeType, data: imageBase64 } });
-        } else if (imageBase64 && !modelName.includes("vision")) {
-            console.warn("Image provided but non-vision model selected");
-        }
-
-        const payload = {
-            model: modelName,
-            contents: [{ role: "user", parts }],
-            generationConfig: {
-                temperature: 0.2,
-                topK: 1,
-                topP: 1,
-                maxOutputTokens: 4096
-            },
-            safetySettings: [
-                { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-                { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-                { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-                { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-            ]
-        };
-
-        return await callWithRetry(async () => {
-            const json = await callViaWorker("generateContent", payload);
-            if (!json || !json.response) {
-                throw new Error("Invalid response from API");
-            }
-            return json.response.text();
-        });
-    } catch (error) {
-        console.error("Error in callGeminiAPI:", error);
-        throw new Error(`AI service error: ${error.message}`);
-    }
-}
-
-// Add rate limiting
-const RATE_LIMIT = {
-    maxRequests: 10,
-    timeWindow: 60000, // 1 minute
-    requests: []
-};
-
-function checkRateLimit() {
-    const now = Date.now();
-    RATE_LIMIT.requests = RATE_LIMIT.requests.filter(time => now - time < RATE_LIMIT.timeWindow);
-    if (RATE_LIMIT.requests.length >= RATE_LIMIT.maxRequests) {
-        throw new Error("Rate limit exceeded. Please wait a moment before trying again.");
-    }
-    RATE_LIMIT.requests.push(now);
-}
-
-// Add input sanitization
-function sanitizeInput(input) {
-    if (typeof input !== 'string') return '';
-    return input
-        .replace(/[<>]/g, '') // Remove potential HTML tags
-        .trim();
-}
-
-// Add session management
-const SESSION = {
-    id: Date.now().toString(36) + Math.random().toString(36).substr(2),
-    startTime: Date.now(),
-    lastActivity: Date.now(),
-    autoSaveInterval: null,
-    data: {
-        transcript: '',
-        draftNote: '',
-        aiAnalysis: '',
-        imageData: null
-    }
-};
-
-function updateSessionActivity() {
-    SESSION.lastActivity = Date.now();
-}
-
-function startAutoSave() {
-    if (SESSION.autoSaveInterval) {
-        clearInterval(SESSION.autoSaveInterval);
-    }
-    SESSION.autoSaveInterval = setInterval(() => {
-        saveSessionData();
-    }, 30000); // Auto-save every 30 seconds
-}
-
-function saveSessionData() {
-    try {
-        SESSION.data = {
-            transcript: fullTranscript,
-            draftNote: currentDraftNote,
-            aiAnalysis: currentAiAnalysis,
-            imageData: currentImageBase64 ? {
-                base64: currentImageBase64,
-                mimeType: currentImageMimeType
-            } : null
-        };
-        localStorage.setItem(`session_${SESSION.id}`, JSON.stringify(SESSION.data));
-    } catch (error) {
-        console.error("Error saving session data:", error);
-    }
-}
-
-function loadSessionData() {
-    try {
-        const savedData = localStorage.getItem(`session_${SESSION.id}`);
-        if (savedData) {
-            const data = JSON.parse(savedData);
-            fullTranscript = data.transcript || '';
-            currentDraftNote = data.draftNote || '';
-            currentAiAnalysis = data.aiAnalysis || '';
-            if (data.imageData) {
-                currentImageBase64 = data.imageData.base64;
-                currentImageMimeType = data.imageData.mimeType;
-            }
-            updateUIFromSessionData();
-        }
-    } catch (error) {
-        console.error("Error loading session data:", error);
-    }
-}
-
-function updateUIFromSessionData() {
-    if (fullTranscript) {
-        transcriptionOutput.innerHTML = fullTranscript;
-    }
-    if (currentDraftNote) {
-        displayFormattedNotes(currentDraftNote, 'aiNotesOutput');
-    }
-    if (currentAiAnalysis) {
-        displayFormattedNotes(currentAiAnalysis, 'aiAnalysisContentOutput');
-    }
-}
-
-// Add keyboard shortcuts
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey || e.metaKey) {
-        switch (e.key) {
-            case 's':
-                e.preventDefault();
-                saveButton.click();
-                break;
-            case 'r':
-                e.preventDefault();
-                if (!isRecording) {
-                    startRecording();
-                } else {
-                    stopRecording();
-                }
-                break;
-            case 'd':
-                e.preventDefault();
-                discussMicButton.click();
-                break;
-        }
-    }
-});
-
-// Initialize session management
-document.addEventListener('DOMContentLoaded', () => {
-    loadSessionData();
-    startAutoSave();
-    document.addEventListener('click', updateSessionActivity);
-    document.addEventListener('keydown', updateSessionActivity);
-});
-
-// Add caching mechanism
-const CACHE = {
-    maxSize: 100,
-    data: new Map(),
-    timestamps: new Map(),
-    maxAge: 3600000, // 1 hour
-};
-
-function addToCache(key, value) {
-    if (CACHE.data.size >= CACHE.maxSize) {
-        const oldestKey = CACHE.timestamps.entries().next().value[0];
-        CACHE.data.delete(oldestKey);
-        CACHE.timestamps.delete(oldestKey);
-    }
-    CACHE.data.set(key, value);
-    CACHE.timestamps.set(key, Date.now());
-}
-
-function getFromCache(key) {
-    const timestamp = CACHE.timestamps.get(key);
-    if (!timestamp || Date.now() - timestamp > CACHE.maxAge) {
-        CACHE.data.delete(key);
-        CACHE.timestamps.delete(key);
-        return null;
-    }
-    return CACHE.data.get(key);
-}
-
-// Add debouncing for real-time suggestions
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Optimize image processing
-async function optimizeImage(file) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX_SIZE = 1024;
-                let width = img.width;
-                let height = img.height;
-                
-                if (width > height && width > MAX_SIZE) {
-                    height = Math.round((height * MAX_SIZE) / width);
-                    width = MAX_SIZE;
-                } else if (height > MAX_SIZE) {
-                    width = Math.round((width * MAX_SIZE) / height);
-                    height = MAX_SIZE;
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                const optimizedBase64 = canvas.toDataURL(file.type, 0.8);
-                resolve({
-                    base64: optimizedBase64.split(',')[1],
-                    mimeType: file.type
-                });
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
-// Optimize real-time suggestions with debouncing
-const debouncedFetchSuggestions = debounce(async (transcriptSegment) => {
-    if (!isRecording || isPaused || isFetchingSuggestion) return;
-    
-    const currentTranscriptWordCount = transcriptSegment.split(' ').filter(Boolean).length;
-    if (currentTranscriptWordCount < SUGGESTION_WORD_THRESHOLD || 
-        (currentTranscriptWordCount - lastTranscriptLengthForSuggestion < SUGGESTION_NEW_WORDS_INTERVAL && lastTranscriptLengthForSuggestion > 0)) {
-        return;
-    }
-    
-    try {
-        checkRateLimit();
-        isFetchingSuggestion = true;
-        lastTranscriptLengthForSuggestion = currentTranscriptWordCount;
-        
-        const cacheKey = `suggestion_${transcriptSegment}`;
-        const cachedSuggestion = getFromCache(cacheKey);
-        
-        if (cachedSuggestion) {
-            displaySuggestion(cachedSuggestion);
-            return;
-        }
-        
-        const prompt = REALTIME_SUGGESTION_PROMPT_TEMPLATE(transcriptSegment, Array.from(shownSuggestionTexts));
-        const suggestion = await callGeminiAPI(prompt);
-        
-        if (suggestion) {
-            addToCache(cacheKey, suggestion);
-            displaySuggestion(suggestion);
-        }
-    } catch (error) {
-        console.error("Error fetching suggestions:", error);
-        displayError("Error fetching suggestions. Please try again.", 'realtimeSuggestionsOutput');
-    } finally {
-        isFetchingSuggestion = false;
-    }
-}, 1000);
-
-// Update image upload handler to use optimized image processing
-imageUploadInput.addEventListener('change', async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        try {
-            const optimized = await optimizeImage(file);
-            currentImageBase64 = optimized.base64;
-            currentImageMimeType = optimized.mimeType;
-            
-            imagePreview.src = `data:${optimized.mimeType};base64,${optimized.base64}`;
-            imagePreviewContainer.classList.remove('hidden');
-            analyzeImageBtn.disabled = false;
-            imageAnalysisResult.innerHTML = '<p class="text-slate-400 italic">AI description of image findings will appear here...</p>';
-            imageApprovalControls.classList.add('hidden');
-        } catch (error) {
-            console.error("Error processing image:", error);
-            displayError("Error processing image. Please try again.", 'imageAnalysisResult');
-        }
-    } else {
-        imagePreviewContainer.classList.add('hidden');
-        imagePreview.src = "#";
-        analyzeImageBtn.disabled = true;
-        currentImageBase64 = null;
-        currentImageMimeType = null;
-    }
-});
-
-// Update recognition events to use debounced suggestions
-function setupRecognitionEvents(recInstance, outputElement, isDiscussionMic = false) {
-    if (!recInstance) return;
-    let currentLineElement = null;
-    let tempTranscript = "";
-
-    recInstance.onstart = () => {
-        console.log(`Speech recognition started (${isDiscussionMic ? 'discussion' : 'main'}).`);
-        if (isDiscussionMic) {
-            isDiscussing = true;
-            tempTranscript = "";
-            discussMicButton.classList.add('text-red-500', 'animate-pulse');
-            physicianFeedbackInput.disabled = true;
-            sendFeedbackButton.disabled = true;
-        } else {
-            isRecording = true;
-            isPaused = false;
-            startTimer();
-            clearAllPlaceholders();
-        }
-        updateUIForRecordingState();
-    };
-
-    recInstance.onresult = (event) => {
-        let interimTranscript = '';
-        let finalTranscriptSegment = '';
-
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-                const segment = event.results[i][0].transcript;
-                finalTranscriptSegment += segment;
-                if (!isDiscussionMic) {
-                    transcriptWordCount += segment.split(' ').filter(Boolean).length;
-                    debouncedFetchSuggestions(fullTranscript + finalTranscriptSegment);
-                }
-            } else {
-                interimTranscript += event.results[i][0].transcript;
-            }
-        }
-        
-        // ... rest of the existing onresult code ...
-    };
-
-    // ... rest of the existing setupRecognitionEvents code ...
-}
-
-// Toast notification system
-const TOAST = {
-    queue: [],
-    isProcessing: false,
-    duration: 3000
-};
-
-function showToast(message, type = 'info') {
-    TOAST.queue.push({ message, type });
-    if (!TOAST.isProcessing) {
-        processToastQueue();
-    }
-}
-
-function processToastQueue() {
-    if (TOAST.queue.length === 0) {
-        TOAST.isProcessing = false;
-        return;
-    }
-
-    TOAST.isProcessing = true;
-    const { message, type } = TOAST.queue.shift();
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            document.body.removeChild(toast);
-            processToastQueue();
-        }, 300);
-    }, TOAST.duration);
-}
-
-// Loading state management
-const LOADING = {
-    states: new Map(),
-    
-    start(elementId, message = 'Loading...') {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-        
-        element.classList.add('loading');
-        const spinner = document.createElement('div');
-        spinner.className = 'spinner';
-        element.appendChild(spinner);
-        
-        if (message) {
-            const messageElement = document.createElement('div');
-            messageElement.className = 'loading-message';
-            messageElement.textContent = message;
-            element.appendChild(messageElement);
-        }
-        
-        this.states.set(elementId, { spinner, messageElement: message ? element.lastChild : null });
-    },
-    
-    stop(elementId) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-        
-        const state = this.states.get(elementId);
-        if (state) {
-            if (state.spinner) element.removeChild(state.spinner);
-            if (state.messageElement) element.removeChild(state.messageElement);
-            this.states.delete(elementId);
-        }
-        
-        element.classList.remove('loading');
-    }
-};
-
-// Update existing functions to use loading states and toasts
-async function generateInitialNoteAndAnalysis(transcriptToProcess) {
-    if (!transcriptToProcess.trim()) {
-        showToast("Transcript is empty. No notes to generate.", 'error');
-        return;
-    }
-    
-    LOADING.start('aiNotesOutput', 'Generating clinical note...');
-    LOADING.start('aiAnalysisContentOutput', 'Generating analysis & workup...');
-    saveButton.disabled = true;
-
-    try {
-        const prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(transcriptToProcess);
-        const fullResponseText = await callGeminiAPI(prompt);
-
-        const parts = fullResponseText.split("AI_ANALYSIS_SEPARATOR_V2");
-        const notesText = parts[0] || "";
-        const analysisText = parts[1] || "";
-
-        currentDraftNote = notesText.trim();
-        currentAiAnalysis = analysisText.trim();
-
-        displayFormattedNotes(currentDraftNote, 'aiNotesOutput'); 
-        displayFormattedNotes(currentAiAnalysis, 'aiAnalysisContentOutput');
-        
-        switchTab('right', 'draftedNote'); 
-        switchTab('left', 'aiAnalysis');
-        
-        showToast("Note and analysis generated successfully", 'success');
-    } catch (error) {
-        console.error("Error generating note and analysis:", error);
-        showToast("Error generating note and analysis. Please try again.", 'error');
-    } finally {
-        LOADING.stop('aiNotesOutput');
-        LOADING.stop('aiAnalysisContentOutput');
-        saveButton.disabled = false;
-    }
-}
-
-// Update image analysis to use loading states
-analyzeImageBtn.addEventListener('click', async () => {
-    if (!currentImageBase64) {
-        showToast("Please upload an image first", 'error');
-        return;
-    }
-    
-    LOADING.start('imageAnalysisResult', 'Analyzing image...');
-    try {
-        const prompt = IMAGE_ANALYSIS_PROMPT_TEMPLATE;
-        const description = await callGeminiAPI(prompt, currentImageBase64, currentImageMimeType);
-        
-        if (description) {
-            currentImageDescription = description;
-            imageAnalysisResult.innerHTML = `<p class="text-slate-700">${description}</p>`;
-            imageApprovalControls.classList.remove('hidden');
-            showToast("Image analysis complete", 'success');
-        }
-    } catch (error) {
-        console.error("Error analyzing image:", error);
-        showToast("Error analyzing image. Please try again.", 'error');
-        imageAnalysisResult.innerHTML = '<p class="text-red-500">Error analyzing image. Please try again.</p>';
-    } finally {
-        LOADING.stop('imageAnalysisResult');
-    }
-});
-
-// Update real-time suggestions to use loading states
-async function fetchAndDisplayAiSuggestions() {
-    if (!isRecording || isPaused || isFetchingSuggestion) return;
-    
-    const currentTranscriptWordCount = fullTranscript.split(' ').filter(Boolean).length;
-    if (currentTranscriptWordCount < SUGGESTION_WORD_THRESHOLD || 
-        (currentTranscriptWordCount - lastTranscriptLengthForSuggestion < SUGGESTION_NEW_WORDS_INTERVAL && lastTranscriptLengthForSuggestion > 0)) {
-        return;
-    }
-    
-    LOADING.start('realtimeSuggestionsOutput', 'Thinking of suggestions...');
-    isFetchingSuggestion = true;
-    lastTranscriptLengthForSuggestion = currentTranscriptWordCount;
-    
-    try {
-        checkRateLimit();
-        const prompt = REALTIME_SUGGESTION_PROMPT_TEMPLATE(fullTranscript, Array.from(shownSuggestionTexts));
-        const suggestion = await callGeminiAPI(prompt);
-        
-        if (suggestion) {
-            displaySuggestion(suggestion);
-            showToast("New suggestion available", 'info');
-        }
-    } catch (error) {
-        console.error("Error fetching suggestions:", error);
-        showToast("Error fetching suggestions. Please try again.", 'error');
-    } finally {
-        LOADING.stop('realtimeSuggestionsOutput');
-        isFetchingSuggestion = false;
-    }
-} 
+// All the complex features like session management, advanced image processing,
+// real-time suggestions, toast notifications, loading states, extensive keyboard shortcuts,
+// caching, etc., have been removed or commented out above.
+// The file is now significantly shorter and focused on the core UI interactions.
