@@ -8,6 +8,12 @@
     <!-- Preload critical resources -->
     <link rel="preload" href="style.css" as="style">
     <link rel="preload" href="script.js" as="script">
+
+    <!-- Fonts and Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <!-- Preconnect to external domains -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
@@ -32,32 +38,32 @@
         }
     </script>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <header class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">DermaScribe</h1>
-            <p class="text-xl text-gray-600">AI-Powered Dermatology Assistant</p>
+<body class="bg-gray-50 min-h-screen font-sans">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <header class="hero mb-10 text-center shadow-lg">
+            <h1 class="text-5xl font-extrabold mb-2">DermaScribe</h1>
+            <p class="text-lg font-medium opacity-90">AI-Powered Dermatology Assistant</p>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Left Column: Controls and Status -->
             <div class="space-y-6">
-                <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="card">
                     <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Session Controls</h2>
                     <div class="space-y-4">
-                        <button id="startButton" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 font-semibold text-lg">
-                            Start Recording
+                        <button id="startButton" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 font-semibold text-lg flex items-center justify-center space-x-2">
+                            <i class="fas fa-play"></i><span>Start Recording</span>
                         </button>
-                        <button id="stopButton" class="w-full bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition duration-200 font-semibold text-lg" disabled>
-                            Stop Recording
+                        <button id="stopButton" class="w-full bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition duration-200 font-semibold text-lg flex items-center justify-center space-x-2" disabled>
+                            <i class="fas fa-stop"></i><span>Stop Recording</span>
                         </button>
-                        <button id="clearButton" class="w-full bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition duration-200 font-semibold text-lg">
-                            Clear Session
+                        <button id="clearButton" class="w-full bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition duration-200 font-semibold text-lg flex items-center justify-center space-x-2">
+                            <i class="fas fa-trash-alt"></i><span>Clear Session</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="card">
                     <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Session Status</h2>
                     <div id="statusDisplay" class="text-gray-600 text-lg">
                         Ready to start
@@ -66,7 +72,7 @@
             </div>
 
             <!-- Right Column: Output Display -->
-            <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="card">
                 <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Generated Note</h2>
                 <div id="outputDisplay" class="prose max-w-none text-gray-700">
                     <p class="text-gray-500 italic">Your generated note will appear here...</p>
@@ -75,7 +81,7 @@
         </div>
 
         <!-- Additional Context Section -->
-        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+        <div class="mt-8 card">
             <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Additional Context</h2>
             <textarea id="additionalContext" class="w-full h-32 p-4 border rounded-lg text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                       placeholder="Add any additional context or specific requirements here..."></textarea>
