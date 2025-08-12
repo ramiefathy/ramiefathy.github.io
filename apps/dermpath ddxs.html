@@ -1638,11 +1638,25 @@
                         name: processedFindingsMap.get(key).displayFindingName
                     }));
 
-                    fuseInstance = new Fuse(searchData, {
-                        keys: ['name'],
-                        threshold: 0.3,
-                        includeScore: true
-                    });
+                    if (typeof Fuse === 'function') {
+                        fuseInstance = new Fuse(searchData, {
+                            keys: ['name'],
+                            threshold: 0.3,
+                            includeScore: true
+                        });
+                    } else {
+                        console.warn('Fuse.js not available; falling back to basic substring search');
+                        // Minimal fallback so the app still works without Fuse
+                        fuseInstance = {
+                            search(query) {
+                                const lower = String(query || '').toLowerCase();
+                                return searchData
+                                    .filter(item => item.name.toLowerCase().includes(lower))
+                                    .slice(0, 20)
+                                    .map(item => ({ item, score: 0 }));
+                            }
+                        };
+                    }
 
                     populateFindingSelectors();
                     initializeEventListeners();
