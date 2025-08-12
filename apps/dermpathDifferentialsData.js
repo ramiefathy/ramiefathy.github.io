@@ -2,7 +2,7 @@ const differentialsData = [
             // --- Ko Data ---
             {
                 finding: "Regular acanthosis (Ko)",
-                source: "Ko Ch 1, p25-28",
+                sources: ["Ko Ch 1, p25-28"],
                 diagnoses: [
                     { name: "Bowen disease", keyFeatures: "Full-thickness epidermal disorder, atypical keratinocytes and mitoses, basal layer may appear focally normal ('eyeliner' sign)." },
                     { name: "Clear cell acanthoma", keyFeatures: "Sharply demarcated clear/pale keratinocytes, parakeratosis above clear cells, neutrophils in stratum corneum." },
@@ -11,7 +11,7 @@ const differentialsData = [
             },
             {
                 finding: "Lobular proliferation (Ko)",
-                source: "Ko Ch 1, p29-34",
+                sources: ["Ko Ch 1, p29-34"],
                 diagnoses: [
                     { name: "Inverted follicular keratosis", keyFeatures: "Normal-appearing keratinocytes arranged in squamous eddies." },
                     { name: "Molluscum contagiosum", keyFeatures: "Blue-gray hue to some keratinocytes, large pink intracytoplasmic inclusions (Henderson-Paterson bodies)." },
@@ -22,7 +22,7 @@ const differentialsData = [
             },
             {
                 finding: "Reticulated proliferation (Ko)",
-                source: "Ko Ch 1, p35-41",
+                sources: ["Ko Ch 1, p35-41"],
                 diagnoses: [
                     { name: "Fibroepithelioma of Pinkus", keyFeatures: "Strands of basaloid cells in a fibrovascular stroma, hints of peripheral palisading." },
                     { name: "Fibrofolliculoma", keyFeatures: "Hair follicle with adjacent fibrotic stroma containing reticulated epithelial strands." },
@@ -34,7 +34,7 @@ const differentialsData = [
             },
             {
                 finding: "Central pore (Ko)",
-                source: "Ko Ch 1, p42-45",
+                sources: ["Ko Ch 1, p42-45"],
                 diagnoses: [
                     { name: "Dilated pore of Winer", keyFeatures: "Central pore with invaginated, acanthotic epidermis." },
                     { name: "Pilar sheath acanthoma", keyFeatures: "Central pore, invaginated epidermis is acanthotic and resembles outer root sheath (peripheral palisading, pale cells)." },
@@ -43,7 +43,7 @@ const differentialsData = [
             },
             {
                 finding: "Epidermal perforation (Ko)",
-                source: "Ko Ch 1, p46-48",
+                sources: ["Ko Ch 1, p46-48"],
                 diagnoses: [
                     { name: "Elastosis perforans serpiginosa", keyFeatures: "Epidermal perforation with elongated rete ('claw') gripping thin, eosinophilic elastic fibers and debris." },
                     { name: "Reactive perforating collagenosis", keyFeatures: "Shallow cup-shaped epidermal perforation with vertically oriented pink collagen fibers extending through epidermis." },
@@ -51,7 +51,7 @@ const differentialsData = [
             },
             {
                 finding: "Circular islands (Ko)",
-                source: "Ko Ch 1, p49-52",
+                sources: ["Ko Ch 1, p49-52"],
                 diagnoses: [
                     { name: "Adenoid cystic carcinoma", keyFeatures: "Circular dermal islands of basaloid cells with cribriform pattern of duct-like spaces filled with amorphous material." },
                     { name: "Cylindroma", keyFeatures: "Circular dermal islands of basaloid cells arranged like 'jigsaw puzzle', surrounded by thick pink basement membrane." },
@@ -60,7 +60,7 @@ const differentialsData = [
             },
             {
                 finding: "Cords/tubules and comma shapes (Ko)",
-                source: "Ko Ch 1, p53-58",
+                sources: ["Ko Ch 1, p53-58"],
                 diagnoses: [
                     { name: "Desmoplastic trichoepithelioma", keyFeatures: "Cords/tubules in dermis, numerous horn cysts, tubules of two-layered epithelium, fibrotic stroma, often calcification." },
                     { name: "Metastatic breast carcinoma", keyFeatures: "Cords/tubules in dermis and below, single-layered ('Indian filing') and multi-layered epithelium, some gland-like structures." },
@@ -71,7 +71,7 @@ const differentialsData = [
             },
             {
                 finding: "Spongiosis (Ko)",
-                source: "Ko Ch 2, p102-105",
+                sources: ["Ko Ch 2, p102-105"],
                 diagnoses: [
                     { name: "Allergic contact dermatitis", keyFeatures: "Spongiosis, prominent vesicles within epidermis." },
                     { name: "Arthropod assault", keyFeatures: "Eosinophilic spongiosis, wedge-shaped inflammation, prominent vesicles." },
@@ -80,7 +80,7 @@ const differentialsData = [
             },
              {
                 finding: "Interface (lichenoid) (Ko)",
-                source: "Ko Ch 2, p117-122",
+                sources: ["Ko Ch 2, p117-122"],
                 diagnoses: [
                     { name: "Discoid lupus erythematosus", keyFeatures: "Lichenoid infiltrate (sometimes vacuolar), follicular plugging, atrophic epidermis, thickened basement membrane, pigment incontinence, periadnexal/perivascular lymphocytes." },
                     { name: "Halo nevus", keyFeatures: "Lichenoid infiltrate obscuring nests of melanocytes (junctional and/or dermal)." },
@@ -91,7 +91,7 @@ const differentialsData = [
             },
             {
                 finding: "Spindle cells (Ko)",
-                source: "Ko Ch 3, p164-177",
+                sources: ["Ko Ch 3, p164-177"],
                 diagnoses: [
                     { name: "Blue nevus, cellular", keyFeatures: "Spindled and rounded melanocytes (biphasic), often bulbous deep, scattered melanin." },
                     { name: "Melanoma, desmoplastic", keyFeatures: "Atypical spindled melanocytes in bundles infiltrating collagen, often overlying melanoma in situ, perivascular lymphocytes." },
@@ -109,7 +109,7 @@ const differentialsData = [
             },
             {
                 finding: "Acantholysis (Ko)",
-                source: "Ko Ch 4, p238-247",
+                sources: ["Ko Ch 4, p238-247"],
                 diagnoses: [
                     { name: "Darier disease", keyFeatures: "Benign acantholytic dyskeratosis (corp ronds, grains), parakeratosis/crust above, villi at base." },
                     { name: "Grover disease", keyFeatures: "Focal benign acantholytic dyskeratosis, also foci of spongiosis, Hailey-Hailey pattern, pemphigus patterns." },
@@ -123,7 +123,7 @@ const differentialsData = [
             },
             {
                 finding: "Subepidermal space/cleft (Ko)",
-                source: "Ko Ch 4, p248-254",
+                sources: ["Ko Ch 4, p248-254"],
                 diagnoses: [
                     { name: "Angiokeratoma", keyFeatures: "Subepidermal space (can appear intraepidermal) filled with erythrocytes, thin 'grenz zone'." },
                     { name: "Bullous pemphigoid / Pemphigoid gestationis", keyFeatures: "Subepidermal space, prominent eosinophils at base, may see festooning." },
@@ -135,7 +135,7 @@ const differentialsData = [
             },
             {
                 finding: "Blue tumor (Ko)",
-                source: "Ko Ch 5, p281-290",
+                sources: ["Ko Ch 5, p281-290"],
                 diagnoses: [
                     { name: "Basal cell carcinoma", keyFeatures: "Peripheral palisading, retraction artifact around islands, often mucinous stroma, mitoses/necrosis within islands." },
                     { name: "Glomus tumor", keyFeatures: "Monomorphous cells with central round nuclei surrounding vascular spaces." },
@@ -150,7 +150,7 @@ const differentialsData = [
             },
             {
                 finding: "Pink material (Ko)",
-                source: "Ko Ch 6, p308-314",
+                sources: ["Ko Ch 6, p308-314"],
                 diagnoses: [
                     { name: "Amyloid", keyFeatures: "Amorphous pink material in upper dermis, often perivascular, plasma cells often present." },
                     { name: "Cryoglobulinemia (type I)", keyFeatures: "Glassy, smooth pink material within vessels, minimal inflammation." },
@@ -162,7 +162,7 @@ const differentialsData = [
             },
             {
                 finding: "Epidermal necrosis (Ko)",
-                source: "Ko Ch 6, p317-322",
+                sources: ["Ko Ch 6, p317-322"],
                 diagnoses: [
                     { name: "Aspergillosis", keyFeatures: "Epidermal and dermal necrosis, necrotic vessels with visible fungal hyphae (septate, branching)." },
                     { name: "Burn", keyFeatures: "Epidermal necrosis, reversal of epidermal staining (basophilic superficially), sharp demarcation, often non-inflammatory acutely." },
@@ -174,7 +174,7 @@ const differentialsData = [
             // --- Rapini Data ---
             {
                 finding: "Acantholysis (Rapini)",
-                source: "Rapini p.2 (1.2)",
+                sources: ["Rapini p.2 (1.2)"],
                 diagnoses: [
                     { name: "Actinic keratosis", keyFeatures: "Acantholytic variant shows suprabasal clefting with atypical keratinocytes." },
                     { name: "Darier's disease", keyFeatures: "Suprabasal acantholysis with dyskeratosis (corps ronds and grains)." },
@@ -192,7 +192,7 @@ const differentialsData = [
             },
             {
                 finding: "Basaloid cells (Rapini)",
-                source: "Rapini p.5 (1.11)",
+                sources: ["Rapini p.5 (1.11)"],
                 diagnoses: [
                     { name: "Basal cell carcinoma", keyFeatures: "Nests/strands of basaloid cells with peripheral palisading, retraction artifact, mucinous stroma." },
                     { name: "Seborrheic keratosis", keyFeatures: "Proliferation of basaloid keratinocytes, horn cysts/pseudocysts, often papillated surface." },
@@ -205,7 +205,7 @@ const differentialsData = [
             },
             {
                 finding: "Clear or pale cell neoplasms (Rapini)",
-                source: "Rapini p.7 (1.22)",
+                sources: ["Rapini p.7 (1.22)"],
                 diagnoses: [
                     { name: "Adipose tumors", keyFeatures: "Mature adipocytes (Lipoma) or lipoblasts (Liposarcoma)." },
                     { name: "Balloon cell nevus/melanoma", keyFeatures: "Melanocytes with abundant clear/foamy cytoplasm; look for conventional nevus/melanoma areas." },
@@ -227,7 +227,7 @@ const differentialsData = [
             },
             {
                 finding: "Eosinophils in dermis (Rapini)",
-                source: "Rapini p.11 (1.36B)",
+                sources: ["Rapini p.11 (1.36B)"],
                 diagnoses: [
                     { name: "Angiolymphoid hyperplasia with eosinophilia", keyFeatures: "Epithelioid endothelial cells, lymphoid follicles, eosinophils." },
                     { name: "Arthropod bites and parasitic infestations", keyFeatures: "Wedge-shaped infiltrate, eosinophils, sometimes spongiosis/blister." },
@@ -257,7 +257,7 @@ const differentialsData = [
             },
             {
                 finding: "Epidermotropism and pagetoid cells (Rapini)",
-                source: "Rapini p.12 (1.37)",
+                sources: ["Rapini p.12 (1.37)"],
                 diagnoses: [
                     { name: "Paget's disease", keyFeatures: "Intraepidermal adenocarcinoma cells (pale cytoplasm, often mucin+), CK7+, CEA+." },
                     { name: "Bowen's disease (SCCIS)", keyFeatures: "Full-thickness epidermal atypia, dyskeratotic cells, may have pale cells (glycogen+), pankeratin+." },
@@ -277,7 +277,7 @@ const differentialsData = [
             },
             {
                 finding: "Granulomas (Rapini)",
-                source: "Rapini p.16 (1.51)",
+                sources: ["Rapini p.16 (1.51)"],
                 diagnoses: [
                     { name: "Foreign body granulomas", keyFeatures: "Histiocytes and giant cells surrounding foreign material (suture, keratin, silica, etc.)." },
                     { name: "Ruptured cysts or follicles", keyFeatures: "Granulomatous inflammation surrounding keratin debris from ruptured structure." },
@@ -290,7 +290,7 @@ const differentialsData = [
             },
             {
                 finding: "Interface dermatitis (vacuolar) (Rapini)",
-                source: "Rapini p.19-20 (1.64)",
+                sources: ["Rapini p.19-20 (1.64)"],
                 diagnoses: [
                     { name: "Dermatomyositis", keyFeatures: "Minimal vacuolar change, marked dermal mucin, epidermal atrophy." },
                     { name: "Erythema multiforme", keyFeatures: "Vacuolar alteration, scattered necrotic keratinocytes throughout epidermis, superficial lymphocytes." },
@@ -302,7 +302,7 @@ const differentialsData = [
             },
             {
                 finding: "Neutrophils in epidermis (Rapini)",
-                source: "Rapini p.26-27 (1.89A)",
+                sources: ["Rapini p.26-27 (1.89A)"],
                 diagnoses: [
                     { name: "Impetigo", keyFeatures: "Subcorneal pustules with neutrophils and bacteria." },
                     { name: "Psoriasis", keyFeatures: "Neutrophilic microabscesses (Munro's in stratum corneum, Kogoj in spinosum)." },
@@ -327,7 +327,7 @@ const differentialsData = [
             },
             {
                 finding: "Pseudoepitheliomatous hyperplasia (PEH) (Rapini)",
-                source: "Rapini p.35 (1.116)",
+                sources: ["Rapini p.35 (1.116)"],
                 diagnoses: [
                     { name: "Infections (Deep Fungal, Mycobacterial, Halogenoderma)", keyFeatures: "PEH overlying specific infectious organisms or granulomas." },
                     { name: "Ulcer Borders / Healing Wounds", keyFeatures: "Reactive PEH adjacent to ulceration or granulation tissue." },
@@ -339,7 +339,7 @@ const differentialsData = [
             },
             {
                 finding: "Spindle cell neoplasms (Rapini)",
-                source: "Rapini p.38 (1.131)",
+                sources: ["Rapini p.38 (1.131)"],
                 diagnoses: [
                     { name: "Fibrous proliferations (DF, DFSP, Scar, Fibromatosis)", keyFeatures: "Varying patterns of fibroblasts/myofibroblasts and collagen." },
                     { name: "Melanocytic neoplasms (Blue nevus, Spitz, Melanoma)", keyFeatures: "Spindled melanocytes, S100+, SOX10+." },
@@ -353,7 +353,7 @@ const differentialsData = [
             // --- Alikhan Data ---
             {
                 finding: "Busy Dermis (Alikhan)",
-                source: "Alikhan Table 7.13",
+                sources: ["Alikhan Table 7.13"],
                 diagnoses: [
                     { name: "Blue nevus", keyFeatures: "Paucicellular dendritic melanocytes, sclerotic stroma, melanophages." },
                     { name: "Dermatofibroma", keyFeatures: "Interstitial spindle cells, collagen trapping, epidermal induction, Factor XIIIa+." },
@@ -367,7 +367,7 @@ const differentialsData = [
             },
             {
                 finding: "Vacuolar Interface Dermatitis (Alikhan)",
-                source: "Alikhan Table 7.14",
+                sources: ["Alikhan Table 7.14"],
                 diagnoses: [
                     { name: "Lupus erythematosus (SCLE)", keyFeatures: "Brisk vacuolar interface, superficial > deep infiltrate, BMZ thickening, ↑ mucin." },
                     { name: "Lupus erythematosus (Discoid)", keyFeatures: "Vacuolar interface (esp. follicular), follicular plugging, epidermal atrophy, deep infiltrate, BMZ thickening, ↑ mucin." },
@@ -380,7 +380,7 @@ const differentialsData = [
             },
             {
                 finding: "Lichenoid Interface Dermatitis (Alikhan)",
-                source: "Alikhan Table 7.15",
+                sources: ["Alikhan Table 7.15"],
                 diagnoses: [
                     { name: "Lichen planus", keyFeatures: "Hyperkeratosis, V-hypergranulosis, saw-toothed rete, basal apoptotic keratinocytes." },
                     { name: "Lichen planus-like keratosis (BLK)", keyFeatures: "Like LP, but +/- parakeratosis/eosinophils, often adjacent solar lentigo/SK." },
@@ -396,7 +396,7 @@ const differentialsData = [
             },
             {
                 finding: "Paisley Tie ('Tadpole') Pattern (Alikhan)",
-                source: "Alikhan Table 7.17",
+                sources: ["Alikhan Table 7.17"],
                 diagnoses: [
                     { name: "Desmoplastic trichoepithelioma (DTE)", keyFeatures: "Basaloid strands, horn cysts (often calcified), fibroblast-rich stroma, central dell." },
                     { name: "Microcystic adnexal carcinoma (MAC)", keyFeatures: "Deeply infiltrative, horn cysts & ducts (superficial) + strands (deep), PNI, lymphoid nodules." },
@@ -406,7 +406,7 @@ const differentialsData = [
             },
             {
                 finding: "Pagetoid Scatter Pattern (Alikhan)",
-                source: "Alikhan Table 7.22",
+                sources: ["Alikhan Table 7.22"],
                 diagnoses: [
                     { name: "Pagetoid Bowen's disease", keyFeatures: "Atypical keratinocytes with clear cytoplasm, involves basal layer, CK5/6+." },
                     { name: "EMPD/Paget's disease", keyFeatures: "Adenocarcinoma cells with mucin, compress basal layer, CK7+, CEA+." },
@@ -417,7 +417,7 @@ const differentialsData = [
             },
             {
                 finding: "Square Biopsy Pattern (Alikhan)",
-                source: "Alikhan Table 7.23",
+                sources: ["Alikhan Table 7.23"],
                 diagnoses: [
                     { name: "Chronic radiation dermatitis", keyFeatures: "Homogenized ('sick') dermis, telangiectasias, stellate fibroblasts, loss of adnexae." },
                     { name: "Necrobiosis lipoidica", keyFeatures: "Diffuse granulomatous inflammation, 'cake-layered' necrobiosis, plasma cells." },
@@ -431,7 +431,7 @@ const differentialsData = [
             },
             {
                 finding: "SLAM DDx (Spindle Cell Malignancy) (Alikhan)",
-                source: "Alikhan Table 7.24",
+                sources: ["Alikhan Table 7.24"],
                 diagnoses: [
                     { name: "SCC (spindle cell type)", keyFeatures: "Atypical spindle cells often connected to epidermis/adnexa, Keratin+, p63/p40+." },
                     { name: "Leiomyosarcoma", keyFeatures: "Atypical spindle cells, fascicular pattern, cigar nuclei, SMA+, Desmin+." },
@@ -441,7 +441,7 @@ const differentialsData = [
             },
             {
                 finding: "Acantholytic Disorders (Alikhan)",
-                source: "Alikhan Table 7.26",
+                sources: ["Alikhan Table 7.26"],
                 diagnoses: [
                     { name: "Pemphigus foliaceus", keyFeatures: "Subcorneal/granular layer acantholysis. DIF: Intercellular." },
                     { name: "Pemphigus vulgaris", keyFeatures: "Suprabasal acantholysis, tombstoning. DIF: Intercellular." },
@@ -456,7 +456,7 @@ const differentialsData = [
             },
             {
                 finding: "Granulomatous Disorders (Alikhan)",
-                source: "Alikhan Table 7.28",
+                sources: ["Alikhan Table 7.28"],
                 diagnoses: [
                     { name: "Sarcoidosis", keyFeatures: "'Naked' epithelioid granulomas (minimal lymphocytes)." },
                     { name: "Granuloma Annulare (GA)", keyFeatures: "Palisading/interstitial histiocytes, central mucin ('blue' necrobiosis), often eosinophils." },
@@ -470,7 +470,7 @@ const differentialsData = [
             },
             {
                 finding: "Vascular Tumors (Alikhan)",
-                source: "Alikhan Table 7.32",
+                sources: ["Alikhan Table 7.32"],
                 diagnoses: [
                     { name: "Masson's/IPEH", keyFeatures: "Intravascular papillary endothelial hyperplasia within thrombosed vessel, organized thrombus." },
                     { name: "Angiosarcoma", keyFeatures: "Infiltrative, anastomosing vascular channels lined by atypical, hyperchromatic endothelial cells." },
@@ -482,7 +482,7 @@ const differentialsData = [
             // --- Ref Sheet Data ---
             {
                 finding: "Complex Cystic Proliferations ('Rolls and Scrolls') (Ref Sheet - Alikhan T7.18)",
-                source: "Ref Sheet (Alikhan Table 7.18)",
+                sources: ["Ref Sheet (Alikhan Table 7.18)"],
                 diagnoses: [
                     { name: "Proliferating Pilar cyst", keyFeatures: "Lobules of squamous epithelium without granular layer, abrupt ('trichilemmal') keratinization into dense pink keratin, often mitoses/atypia." },
                     { name: "Pilomatricoma", keyFeatures: "Nodules of basaloid cells transitioning to anucleated 'ghost cells', often calcification/ossification and foreign body reaction." }
@@ -490,7 +490,7 @@ const differentialsData = [
             },
             {
                 finding: "Epidermoid Cyst Mimickers (Ref Sheet - Alikhan T7.19)",
-                source: "Ref Sheet (Alikhan Table 7.19)",
+                sources: ["Ref Sheet (Alikhan Table 7.19)"],
                 diagnoses: [
                     { name: "Vellus hair cyst", keyFeatures: "Cyst lined by stratified squamous epithelium (like epidermoid cyst) containing multiple small vellus hairs." },
                     { name: "Dermoid cyst", keyFeatures: "Cyst lined by epidermis-like epithelium with adnexal structures (hair follicles, sebaceous glands) in the cyst wall." },
@@ -499,7 +499,7 @@ const differentialsData = [
             },
             {
                 finding: "Smooth Muscle DDx (Ref Sheet - Alikhan T7.34)",
-                source: "Ref Sheet (Alikhan Table 7.34)",
+                sources: ["Ref Sheet (Alikhan Table 7.34)"],
                 diagnoses: [
                     { name: "Accessory Nipple", keyFeatures: "Papillomatous epidermis, underlying smooth muscle bundles, +/- mammary glands/ducts." },
                     { name: "Becker's Nevus", keyFeatures: "Epidermal hyperplasia/pigmentation, smooth muscle hamartoma, +/- increased terminal hairs." },
@@ -510,7 +510,7 @@ const differentialsData = [
             },
             {
                 finding: "Panniculitis (Ref Sheet - Alikhan T7.30)",
-                source: "Ref Sheet (Alikhan Table 7.30)",
+                sources: ["Ref Sheet (Alikhan Table 7.30)"],
                 diagnoses: [
                     { name: "Cold panniculitis (deep perniosis)", keyFeatures: "Lobular necrosis, lymphohistiocytic infiltrate, often at dermal-SQ junction." },
                     { name: "Erythema induratum/nodular vasculitis", keyFeatures: "Lobular panniculitis with caseous necrosis, vasculitis of septal/lobular vessels." },
@@ -525,7 +525,7 @@ const differentialsData = [
             },
             {
                 finding: "Endophytic Neoplasms (Ref Sheet - Alikhan T7.16)",
-                source: "Ref Sheet (Alikhan Table 7.16)",
+                sources: ["Ref Sheet (Alikhan Table 7.16)"],
                 diagnoses: [
                     { name: "Eccrine Poroma", keyFeatures: "Nests/cords of small, uniform cuboidal 'poroid' cells connecting to epidermis, ductal differentiation." },
                     { name: "Trichilemmoma", keyFeatures: "Lobules of clear glycogenated cells connecting to epidermis/follicle, peripheral palisading, thick BMZ." },
@@ -539,7 +539,7 @@ const differentialsData = [
             },
             {
                 finding: "Neural Tumors (High-Yield) (Ref Sheet - Alikhan T7.31)",
-                source: "Ref Sheet (Alikhan Table 7.31)",
+                sources: ["Ref Sheet (Alikhan Table 7.31)"],
                 diagnoses: [
                     { name: "Neurofibroma (NF)", keyFeatures: "Wavy spindle cells, pink 'bubble gum' stroma, mast cells, S100+." },
                     { name: "Plexiform neurofibroma", keyFeatures: "Expansion of multiple nerve fascicles by neurofibroma ('bag of worms')." },
@@ -551,7 +551,7 @@ const differentialsData = [
             },
             {
                 finding: "Adipocytic Tumors (High-Yield) (Ref Sheet - Alikhan T7.33)",
-                source: "Ref Sheet (Alikhan Table 7.33)",
+                sources: ["Ref Sheet (Alikhan Table 7.33)"],
                 diagnoses: [
                     { name: "Lipoma", keyFeatures: "Circumscribed nodule of mature adipocytes." },
                     { name: "Mobile encapsulated lipoma", keyFeatures: "Encapsulated lipoma, often with fat necrosis." },
@@ -564,7 +564,7 @@ const differentialsData = [
             },
             {
                 finding: "DF vs DFSP vs Fibromatosis (Ref Sheet - Alikhan T7.35)",
-                source: "Ref Sheet (Alikhan Table 7.35)",
+                sources: ["Ref Sheet (Alikhan Table 7.35)"],
                 diagnoses: [
                     { name: "DF (Dermatofibroma)", keyFeatures: "Dermal spindle cells, collagen trapping, epidermal induction, Factor XIIIa+." },
                     { name: "DFSP (Dermatofibrosarcoma Protuberans)", keyFeatures: "Cellular storiform pattern, infiltrates fat ('honeycomb'), CD34+." },
@@ -573,7 +573,7 @@ const differentialsData = [
             },
             {
                 finding: "Normal Skin DDx (Ref Sheet - Alikhan T7.12)",
-                source: "Ref Sheet (Alikhan Table 7.12)",
+                sources: ["Ref Sheet (Alikhan Table 7.12)"],
                 diagnoses: [
                     { name: "Macular amyloid", keyFeatures: "Pink globules in papillary dermis, pigment incontinence." },
                     { name: "TMEP", keyFeatures: "Telangiectasias + sparse spindled mast cells (CD117+)." },
@@ -586,7 +586,7 @@ const differentialsData = [
             },
             {
                 finding: "Eosinophilic spongiosis = HAAPPIED (Mnemonic)",
-                source: "Ref Sheet (Box 7-4)",
+                sources: ["Ref Sheet (Box 7-4)"],
                 diagnoses: [
                     { name: "Herpes gestationis", keyFeatures: "Subepidermal blister + eosinophilic spongiosis." },
                     { name: "Arthropod", keyFeatures: "Wedge infiltrate, eosinophilic spongiosis." },
@@ -600,7 +600,7 @@ const differentialsData = [
             },
             {
                 finding: "Neuts in the horn = PTICSS (Mnemonic)",
-                source: "Ref Sheet (Box 7-2)",
+                sources: ["Ref Sheet (Box 7-2)"],
                 diagnoses: [
                     { name: "Psoriasis", keyFeatures: "Munro's microabscesses." },
                     { name: "Tinea", keyFeatures: "Neutrophils in stratum corneum with hyphae." },
@@ -612,7 +612,7 @@ const differentialsData = [
             },
             {
                 finding: "Subcorneal pustules = CAT PISS (Mnemonic)",
-                source: "Ref Sheet (Box 7-3)",
+                sources: ["Ref Sheet (Box 7-3)"],
                 diagnoses: [
                     { name: "Candida", keyFeatures: "Yeast/pseudohyphae present." },
                     { name: "Acropustulosis of infancy", keyFeatures: "Neutrophilic/eosinophilic pustules on hands/feet." },
@@ -626,7 +626,7 @@ const differentialsData = [
             // --- Lipoff Data ---
             {
                 finding: "Eosinophilic Spongiosis (Lipoff - HAPPIE FD)",
-                source: "Lipoff p.1-2 (15.4.1.1)",
+                sources: ["Lipoff p.1-2 (15.4.1.1)"],
                 diagnoses: [
                     { name: "Herpes gestationis (Pemphigoid Gestationis)", keyFeatures: "Subepidermal blister + eosinophilic spongiosis." },
                     { name: "Arthropod/Allergic contact", keyFeatures: "Spongiosis, often eosinophils, wedge-shaped infiltrate (arthropod)." },
@@ -640,7 +640,7 @@ const differentialsData = [
             },
             {
                 finding: "Pagetoid Spread (Lipoff)",
-                source: "Lipoff p.2 (15.4.1.1)",
+                sources: ["Lipoff p.2 (15.4.1.1)"],
                 diagnoses: [
                     { name: "Melanoma", keyFeatures: "Atypical melanocytes scattered upward. S100+, SOX10+, Melan-A/MART-1+." },
                     { name: "SCC / Bowen's disease/SCCIS", keyFeatures: "Atypical keratinocytes scattered upward. Pankeratin+, p63/p40+." },
@@ -650,7 +650,7 @@ const differentialsData = [
             },
             {
                 finding: "Parasitized Histiocytes (Lipoff - His girl Penelope T!)",
-                source: "Lipoff p.2 (15.4.1.1)",
+                sources: ["Lipoff p.2 (15.4.1.1)"],
                 diagnoses: [
                     { name: "Histoplasmosis", keyFeatures: "Small yeasts within histiocytes, pseudocapsule." },
                     { name: "Granuloma inguinale", keyFeatures: "Donovan bodies (bacteria) within histiocytes." },
@@ -662,7 +662,7 @@ const differentialsData = [
             },
             {
                 finding: "Paisley Tie/Tadpole/Comma-shaped (Lipoff)",
-                source: "Lipoff p.2 (15.4.1.1)",
+                sources: ["Lipoff p.2 (15.4.1.1)"],
                 diagnoses: [
                     { name: "Syringoma", keyFeatures: "Superficial tadpoles/ducts in fibrotic stroma, eosinophilic cuticle." },
                     { name: "Microcystic adnexal carcinoma (MAC)", keyFeatures: "Infiltrative cords/ducts/cysts, perineural invasion, deeper than syringoma." },
@@ -672,7 +672,7 @@ const differentialsData = [
             },
             {
                 finding: "Pseudoepitheliomatous Hyperplasia (PEH) (Lipoff)",
-                source: "Lipoff p.2-3 (15.4.1.1)",
+                sources: ["Lipoff p.2-3 (15.4.1.1)"],
                 diagnoses: [
                     { name: "Mycobacterial infections (e.g., TB verrucosa cutis)", keyFeatures: "PEH overlying tuberculoid granulomas." },
                     { name: "Deep fungal infections (e.g., Blastomycosis, Chromomycosis)", keyFeatures: "PEH overlying suppurative/granulomatous inflammation with fungal elements." },
@@ -684,7 +684,7 @@ const differentialsData = [
             },
             {
                 finding: "Interface Dermatitis (Lichenoid/Vacuolar) (Lipoff)",
-                source: "Lipoff p.3 (15.4.1.1)",
+                sources: ["Lipoff p.3 (15.4.1.1)"],
                 diagnoses: [
                     { name: "Lichen Planus/LPLK/Lichenoid Drug/Lichen Striatus", keyFeatures: "Primarily lichenoid infiltrate, variable hyperkeratosis/hypergranulosis/sawtoothing; Eos/parakeratosis suggest drug/LPLK; Deep/perieccrine suggests Striatus." },
                     { name: "EM/TEN/Fixed Drug/GVHD/PLEVA", keyFeatures: "Primarily vacuolar interface with apoptotic keratinocytes; distribution varies (scattered vs confluent); infiltrate varies (lymphocytes vs mixed w/ eos); RBCs suggest PLEVA." },
@@ -694,7 +694,7 @@ const differentialsData = [
             },
             {
                 finding: "Dermal Pallor (Lipoff)",
-                source: "Lipoff p.3 (15.4.1.1)",
+                sources: ["Lipoff p.3 (15.4.1.1)"],
                 diagnoses: [
                     { name: "PMLE (Polymorphous Light Eruption)", keyFeatures: "Papillary dermal edema, superficial/deep perivascular lymphocytes." },
                     { name: "Sweet's syndrome", keyFeatures: "Marked papillary dermal edema, diffuse neutrophilic infiltrate." },
@@ -705,7 +705,7 @@ const differentialsData = [
             },
             {
                 finding: "Psoriasiform Pattern (Lipoff)",
-                source: "Lipoff p.3 (15.4.1.1)",
+                sources: ["Lipoff p.3 (15.4.1.1)"],
                 diagnoses: [
                     { name: "Psoriasis", keyFeatures: "Regular acanthosis, confluent parakeratosis with neutrophils, hypogranulosis, thin suprapapillary plates." },
                     { name: "PRP (Pityriasis Rubra Pilaris)", keyFeatures: "Checkerboard/shoulder parakeratosis, follicular plugging, irregular acanthosis, +/- focal acantholysis." },
@@ -714,7 +714,7 @@ const differentialsData = [
             },
             {
                 finding: "Alternating Parakeratosis/Orthokeratosis (Lipoff)",
-                source: "Lipoff p.4 (15.4.1.1)",
+                sources: ["Lipoff p.4 (15.4.1.1)"],
                 diagnoses: [
                     { name: "Actinic keratosis", keyFeatures: "Alternating parakeratosis (over atypia) and orthokeratosis (over spared adnexae)." },
                     { name: "Pityriasis rubra pilaris", keyFeatures: "'Checkerboard' pattern of alternating ortho/parakeratosis horizontally and vertically." },
@@ -723,7 +723,7 @@ const differentialsData = [
             },
             {
                 finding: "Necrotic Keratinocytes (Lipoff)",
-                source: "Lipoff p.4 (15.4.1.1)",
+                sources: ["Lipoff p.4 (15.4.1.1)"],
                 diagnoses: [
                     { name: "Erythema multiforme", keyFeatures: "Scattered apoptotic keratinocytes at all levels." },
                     { name: "GVHD (Graft vs Host Disease)", keyFeatures: "Apoptotic keratinocytes, often basal or adnexal, 'satellite cell necrosis'." },
@@ -737,7 +737,7 @@ const differentialsData = [
             },
             {
                 finding: "Pale Epidermis (Lipoff)",
-                source: "Lipoff p.4 (15.4.1.1)",
+                sources: ["Lipoff p.4 (15.4.1.1)"],
                 diagnoses: [
                     { name: "Nutritional deficiency/Necrolytic erythemas", keyFeatures: "Pallor/necrosis of upper 1/3 epidermis ('moth-eaten'), confluent parakeratosis." },
                     { name: "Normal mucosa", keyFeatures: "Keratinocytes appear pale due to glycogen content." },
@@ -747,7 +747,7 @@ const differentialsData = [
             // --- Jackson Data ---
             {
                 finding: "Acantholysis (Jackson)",
-                source: "Jackson p.245",
+                sources: ["Jackson p.245"],
                 diagnoses: [
                     { name: "Acantholytic dyskeratosis of the vulva", keyFeatures: "Similar to Darier's but on vulva." },
                     { name: "Actinic keratosis", keyFeatures: "Acantholytic variant shows suprabasal clefting with atypical keratinocytes." },
@@ -766,7 +766,7 @@ const differentialsData = [
             },
             {
                 finding: "Basaloid Cells (Jackson)",
-                source: "Jackson p.246",
+                sources: ["Jackson p.246"],
                 diagnoses: [
                     { name: "Basal cell carcinoma", keyFeatures: "Nests/strands, peripheral palisading, retraction." },
                     { name: "Basaloid follicular hamartoma", keyFeatures: "Organized proliferation resembling basaloid follicles." },
@@ -786,7 +786,7 @@ const differentialsData = [
             },
             {
                 finding: "Borst-Jadassohn Phenomenon (Jackson)",
-                source: "Jackson p.246-247",
+                sources: ["Jackson p.246-247"],
                 diagnoses: [
                     { name: "Actinic keratosis", keyFeatures: "Can show intraepidermal nesting of atypical cells." },
                     { name: "Bowen's disease", keyFeatures: "Intraepidermal nests of atypical keratinocytes within SCCIS." },
@@ -800,7 +800,7 @@ const differentialsData = [
             },
             {
                 finding: "Clear Cells (Jackson)",
-                source: "Jackson p.249",
+                sources: ["Jackson p.249"],
                 diagnoses: [
                     { name: "Adipose tumors", keyFeatures: "Mature adipocytes (Lipoma) or lipoblasts (Liposarcoma)." },
                     { name: "Balloon cell tumors", keyFeatures: "Melanocytes with abundant clear/foamy cytoplasm." },
@@ -821,7 +821,7 @@ const differentialsData = [
             },
             {
                 finding: "Dyskeratosis (Jackson)",
-                source: "Jackson p.252-253",
+                sources: ["Jackson p.252-253"],
                 diagnoses: [
                     { name: "Acantholytic dyskeratosis of the vulva", keyFeatures: "Darier-like changes on vulva." },
                     { name: "Acrodermatitis enteropathica", keyFeatures: "Epidermal pallor/necrosis with dyskeratosis." },
@@ -845,7 +845,7 @@ const differentialsData = [
             },
             {
                 finding: "Epidermal Pallor (Jackson)",
-                source: "Jackson p.255-256",
+                sources: ["Jackson p.255-256"],
                 diagnoses: [
                     { name: "Acrodermatitis enteropathica", keyFeatures: "Pallor/necrosis of upper epidermis, parakeratosis." },
                     { name: "Hartnup's disease", keyFeatures: "Pellagra-like dermatitis, can show epidermal pallor." },
@@ -859,7 +859,7 @@ const differentialsData = [
             },
             {
                 finding: "Epidermotropism (Jackson)",
-                source: "Jackson p.256",
+                sources: ["Jackson p.256"],
                 diagnoses: [
                     { name: "Epidermotropic CD8+ T cell lymphoma", keyFeatures: "Atypical CD8+ lymphocytes infiltrating epidermis, often aggressive." },
                     { name: "Langerhans cell histiocytosis", keyFeatures: "LCH cells (S100+, CD1a+) infiltrating epidermis." },
@@ -873,7 +873,7 @@ const differentialsData = [
             },
             {
                 finding: "Foam Cells (Jackson)",
-                source: "Jackson p.258-259",
+                sources: ["Jackson p.258-259"],
                 diagnoses: [
                     { name: "Atypical fibroxanthoma", keyFeatures: "Pleomorphic tumor with foamy histiocyte-like cells." },
                     { name: "Balloon cell melanoma/nevus", keyFeatures: "Melanocytes with clear/foamy cytoplasm." },
@@ -896,7 +896,7 @@ const differentialsData = [
             },
             {
                 finding: "Grenz Zone (Jackson)",
-                source: "Jackson p.261",
+                sources: ["Jackson p.261"],
                 diagnoses: [
                     { name: "B cell lymphoma", keyFeatures: "Dense lymphoid infiltrate separated from epidermis by narrow collagen band." },
                     { name: "Cutaneous T cell lymphoma", keyFeatures: "Less common than in B-cell lymphoma, but can occur." },
@@ -908,7 +908,7 @@ const differentialsData = [
             },
             {
                 finding: "Interstitial Inflammation (Jackson)",
-                source: "Jackson p.261-262",
+                sources: ["Jackson p.261-262"],
                 diagnoses: [
                     { name: "Abscess/cellulitis", keyFeatures: "Diffuse interstitial neutrophils +/- bacteria." },
                     { name: "Arthropod bite reaction", keyFeatures: "Interstitial eosinophils and lymphocytes, often wedge-shaped." },
@@ -927,7 +927,7 @@ const differentialsData = [
             },
             {
                 finding: "Lichenoid Reaction Pattern/Band-Like Infiltrate (Cell Rich) (Jackson)",
-                source: "Jackson p.262-263",
+                sources: ["Jackson p.262-263"],
                 diagnoses: [
                     { name: "Lichen planus", keyFeatures: "Dense band-like lymphs, sawtoothing, hypergranulosis, colloid bodies." },
                     { name: "Lichenoid drug eruption", keyFeatures: "LP-like, but often parakeratosis, eosinophils, deeper infiltrate." },
@@ -947,7 +947,7 @@ const differentialsData = [
             },
             {
                 finding: "Mucin (Primary) (Jackson)",
-                source: "Jackson p.266",
+                sources: ["Jackson p.266"],
                 diagnoses: [
                     { name: "Cutaneous focal mucinosis / Digital mucous cyst", keyFeatures: "Localized pool of dermal mucin, +/- fibroblasts." },
                     { name: "Generalized/Pretibial myxedema", keyFeatures: "Diffuse dermal mucin associated with thyroid disease." },
@@ -960,7 +960,7 @@ const differentialsData = [
             },
             {
                 finding: "Neutrophils (Jackson)",
-                source: "Jackson p.267-269",
+                sources: ["Jackson p.267-269"],
                 diagnoses: [
                     { name: "Sweet's syndrome", keyFeatures: "Diffuse dermal neutrophils, papillary edema, leukocytoclasis, no true vasculitis." },
                     { name: "Leukocytoclastic vasculitis", keyFeatures: "Perivascular neutrophils, fibrin deposition, vessel damage, RBC extravasation." },
@@ -978,7 +978,7 @@ const differentialsData = [
             },
             {
                 finding: "Pagetoid Cells (Jackson)",
-                source: "Jackson p.269-270",
+                sources: ["Jackson p.269-270"],
                 diagnoses: [
                     { name: "Paget's disease / EMPD", keyFeatures: "Intraepidermal adenocarcinoma cells, CK7+, CEA+." },
                     { name: "Bowen's disease", keyFeatures: "Full-thickness atypia, can have pale/clear cells." },
@@ -993,7 +993,7 @@ const differentialsData = [
             },
             {
                 finding: "Papillomatosis, Hyperkeratosis, Acanthosis (Jackson)",
-                source: "Jackson p.270",
+                sources: ["Jackson p.270"],
                 diagnoses: [
                     { name: "Acanthosis nigricans", keyFeatures: "Papillomatosis, hyperkeratosis, minimal acanthosis, hyperpigmentation." },
                     { name: "Acrokeratosis verruciformis", keyFeatures: "'Church spire' papillomatosis, hyperkeratosis." },
@@ -1005,7 +1005,7 @@ const differentialsData = [
             },
             {
                 finding: "Parakeratosis (Jackson)",
-                source: "Jackson p.271",
+                sources: ["Jackson p.271"],
                 diagnoses: [
                     { name: "Psoriasis", keyFeatures: "Confluent parakeratosis with neutrophils." },
                     { name: "Pityriasis rosea", keyFeatures: "Mounds of parakeratosis, often thin/non-adherent." },
@@ -1019,7 +1019,7 @@ const differentialsData = [
             },
             {
                 finding: "Plasma Cells (Jackson)",
-                source: "Jackson p.272-273",
+                sources: ["Jackson p.272-273"],
                 diagnoses: [
                     { name: "Secondary syphilis", keyFeatures: "Often numerous plasma cells in lichenoid/perivascular infiltrate." },
                     { name: "Rhinoscleroma", keyFeatures: "Dense plasma cell infiltrate with Russell bodies, Mikulicz cells." },
@@ -1035,7 +1035,7 @@ const differentialsData = [
             },
             {
                 finding: "Pseudoepitheliomatous Hyperplasia (PEH) (Jackson)",
-                source: "Jackson p.273-274",
+                sources: ["Jackson p.273-274"],
                 diagnoses: [
                     { name: "Deep Fungal Infections (Blastomycosis, Chromo, Sporo)", keyFeatures: "PEH overlying suppurative/granulomatous inflammation containing fungi." },
                     { name: "Mycobacterial Infections (TB verrucosa cutis)", keyFeatures: "PEH overlying tuberculoid granulomas." },
@@ -1050,7 +1050,7 @@ const differentialsData = [
             },
             {
                 finding: "Spindle Cells (Jackson)",
-                source: "Jackson p.274",
+                sources: ["Jackson p.274"],
                 diagnoses: [
                     { name: "Dermatofibroma", keyFeatures: "Entraps collagen, Factor XIIIa+." },
                     { name: "Dermatofibrosarcoma protuberans", keyFeatures: "Storiform pattern, infiltrates fat, CD34+." },
@@ -1067,7 +1067,7 @@ const differentialsData = [
             },
             {
                 finding: "Spongiosis (Jackson)",
-                source: "Jackson p.275",
+                sources: ["Jackson p.275"],
                 diagnoses: [
                     { name: "Eczematous Dermatitis (Atopic, Contact, Nummular, Dyshidrotic)", keyFeatures: "Intercellular edema, lymphocyte exocytosis, variable acanthosis/parakeratosis." },
                     { name: "Pityriasis rosea", keyFeatures: "Mild spongiosis, mounds of parakeratosis, RBC extravasation." },
@@ -1083,7 +1083,7 @@ const differentialsData = [
             },
             {
                 finding: "Square Specimen (Jackson)",
-                source: "Jackson p.276",
+                sources: ["Jackson p.276"],
                 diagnoses: [
                     { name: "Scleredema", keyFeatures: "Increased space/mucin between normal collagen, no increased cellularity." },
                     { name: "Morphea / Scleroderma", keyFeatures: "Thickened, hyalinized collagen bundles, loss of adnexal fat." },
@@ -1097,7 +1097,7 @@ const differentialsData = [
             },
             {
                 finding: "Transepidermal Elimination (Jackson)",
-                source: "Jackson p.276",
+                sources: ["Jackson p.276"],
                 diagnoses: [
                     { name: "Reactive perforating collagenosis", keyFeatures: "Elimination of altered collagen bundles through epidermis." },
                     { name: "Elastosis perforans serpiginosa", keyFeatures: "Elimination of abnormal elastic fibers through epidermis." },
@@ -1110,3 +1110,6 @@ const differentialsData = [
                 
             }
         ];
+
+// Assign data to global window object for the dermpath ddxs app
+window.dermDifferentialData = differentialsData;
