@@ -1,84 +1,120 @@
-# Personal Website and Research Repository
+# Dr. Ramie Fathy - Personal Website
 
-This repository contains both public-facing website content and private research materials. The public content is hosted on GitHub Pages, while private content will be migrated to GitLab.
+This repository contains the personal website and professional portfolio of Dr. Ramie Fathy, MD, hosted on GitHub Pages.
+
+🌐 **Live Site**: [https://ramiefathy.github.io](https://ramiefathy.github.io)
+
+## About Dr. Fathy
+
+PGY-3 Dermatology Resident Physician at Johns Hopkins University, with expertise in:
+- Dermatology and dermatopathology
+- AI applications in medicine
+- Medical research and education
+- Clinical innovation
 
 ## Repository Structure
 
 ```
 .
-├── assets/                    # All static assets
-│   ├── public/               # Public assets
-│   │   ├── documents/        # Public documentation
-│   │   └── images/          # Public images
-│   └── private/             # Private assets
-│       ├── documents/       # Private documentation
-│       └── images/         # Private images
-├── private/                  # Private content
-│   ├── research/            # Research materials
-│   │   ├── analysis/       # Analysis files (.Rmd, .nb.html)
-│   │   └── data/          # Data files
-│   └── tools/              # Private tools and utilities
-├── docs/                     # Documentation
-│   ├── public/             # Public documentation
-│   └── private/            # Private documentation
-├── client/                   # Client-side code
-├── server/                   # Server-side code
-└── site_libs/               # Website dependencies
+├── index.html                # Main website homepage
+├── about.html               # About page
+├── apps/                    # Interactive applications
+│   ├── dermpath ddxs.html  # Dermatopathology Navigator Pro
+│   ├── dermascore.html     # DermaScore Calculator
+│   ├── Scheduler.html      # Clinic Scheduler
+│   └── ...                 # Other medical applications
+├── assets/                 # Static assets
+│   ├── public/            # Public assets
+│   └── private/           # Private assets (not served)
+├── site_libs/             # Website dependencies
+└── docs/                  # Documentation
 ```
 
-## Public Content
+## Features
 
-The public content is hosted on GitHub Pages and includes:
-- Main website pages (index.html, about.html)
-- Public documentation
-- Public assets
+### Interactive Medical Applications
+- **Dermatopathology Navigator Pro**: Advanced differential diagnosis tool
+- **DermaScore**: Comprehensive medical scoring calculators
+- **Clinic Scheduler**: Multi-functional scheduling system
+- **Study Tools**: Educational resources and tools
 
-## Private Content
+### Professional Portfolio
+- Research publications and projects
+- Clinical experience and expertise
+- Leadership and writing contributions
+- Educational content and resources
 
-Private content will be migrated to GitLab and includes:
-- Research and analysis files
-- Private tools and utilities
-- Sensitive documents
-- Internal documentation
+## Technology Stack
+
+- **Hosting**: GitHub Pages (Static hosting)
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
+- **Styling**: Tailwind CSS via CDN
+- **Icons**: Font Awesome
+- **Analytics**: Built-in engagement tracking
+
+## GitHub Pages Setup
+
+This site is optimized for GitHub Pages static hosting:
+
+- ✅ No build process required
+- ✅ Direct HTML/CSS/JS serving
+- ✅ CDN-based dependencies
+- ✅ Mobile-responsive design
+- ✅ Professional accessibility features
+
+### Previous Build Issues Resolved
+
+The repository previously had Netlify and Node.js build configurations that caused deployment issues with GitHub Pages. These have been resolved:
+
+- `netlify.toml` → `netlify.toml.disabled`
+- `webpack.config.js` → `webpack.config.js.disabled`
+- Simplified `package.json` for GitHub Pages compatibility
 
 ## Development
 
-### Website Development
-- The website is built using HTML, CSS, and JavaScript
-- R Markdown files are used for generating some content
-- Site configuration is managed through `_site.yml`
+### Local Development
+```bash
+# Simple HTTP server (Python)
+python -m http.server 8000
 
-### Research Tools
-- Various tools for data analysis and processing
-- R-based analysis notebooks
-- Custom utilities for specific research needs
+# Or with Node.js (if you have live-server installed)
+npx live-server
+```
 
-## Migration to GitLab
+### File Organization
+- **Public Content**: All HTML, CSS, JS files in root and `/apps/`
+- **Private Content**: Stored in `/private/`, `/assets/private/`, `/server/` (gitignored)
+- **Large Files**: Research data and analysis files (gitignored)
 
-This repository is in the process of being migrated to GitLab for private hosting. The migration will:
-1. Keep public content on GitHub Pages
-2. Move private content to GitLab
-3. Maintain proper access controls
-4. Preserve all functionality
+## Privacy & Content
+
+This repository contains both public and private content:
+
+- **Public**: Website files, applications, and general documentation
+- **Private**: Research data, analysis files, and sensitive materials (properly gitignored)
+
+**Security Measures**:
+- Private folders are gitignored
+- No sensitive data in public directories
+- Proper access controls maintained
 
 ## Contributing
 
-Please contact the repository owner for contribution guidelines.
+For contributions or suggestions, please contact Dr. Fathy directly.
 
 ## License
 
-This repository contains both public and private content. The public content is available under the MIT License, while private content is restricted.
+- **Public Content**: MIT License
+- **Private Content**: All rights reserved
 
-## Privacy & Sensitive Data
+## Recent Updates
 
-This repository contains both public and private content.
+- ✅ Implemented comprehensive design system
+- ✅ Enhanced accessibility features
+- ✅ Mobile-optimized responsive design
+- ✅ Professional UI/UX improvements
+- ✅ GitHub Pages deployment optimization
 
-- **Public:** General website, documentation, and non-sensitive research outputs.
-- **Private:** All files in `private/`, `assets/private/`, and `server/` contain sensitive or unpublished data, analyses, or tools. These must not be made public.
+---
 
-**Guidelines:**
-- Do not move or copy files from private folders into public ones unless they are cleared for release.
-- All collaborators must keep this repository private on GitLab.
-- Before sharing or publishing, review all links and references to ensure no private data is exposed.
-
-**If you clone or fork this repository, double-check your `.gitignore` and privacy settings.**
+**Contact**: [Dr. Ramie Fathy](https://ramiefathy.github.io) | Johns Hopkins University School of Medicine

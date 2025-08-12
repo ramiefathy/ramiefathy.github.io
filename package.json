@@ -1,20 +1,24 @@
 {
-  "name": "dermatology-study-system",
+  "name": "ramie-fathy-personal-website",
   "version": "1.0.0",
-  "description": "Dermatology Study System",
+  "description": "Personal website for Dr. Ramie Fathy - hosted on GitHub Pages",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ramiefathy/ramiefathy.github.io"
+  },
+  "homepage": "https://ramiefathy.github.io",
   "scripts": {
-    "build": "webpack --mode production",
-    "dev": "webpack serve --mode development"
+    "serve": "python -m http.server 8000",
+    "test": "echo \"GitHub Pages static hosting - no build process needed\" && exit 0"
   },
-  "dependencies": {
-    "firebase": "^10.8.0"
-  },
+  "keywords": ["dermatology", "medical", "personal-website", "github-pages"],
+  "author": "Dr. Ramie Fathy",
+  "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.24.0",
-    "@babel/preset-env": "^7.24.0",
-    "babel-loader": "^9.1.3",
-    "webpack": "^5.90.3",
-    "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.0.2"
+    "live-server": "^1.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 } 

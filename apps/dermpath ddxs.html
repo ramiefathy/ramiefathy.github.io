@@ -6,84 +6,1013 @@
     <title>Dermatopathology Navigator Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .tab { padding: 0.75rem 1.25rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease-in-out; color: #4b5563; font-size: 0.875rem; font-weight: 500; white-space: nowrap; }
-        .tab:hover { color: #1f2937; border-bottom-color: #d1d5db; }
-        .tab.active { color: #1d4ed8; border-bottom-color: #1d4ed8; font-weight: 600; }
-        .results-area { min-height: 550px; height: 70vh; border: 1px solid #e5e7eb; background-color: #ffffff; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        .view-container { height: 100%; overflow-y: auto; flex-grow: 1; }
-        
-        #flashcard-view { flex-direction: column; align-items: center; justify-content: center; height: 100%; padding-top: 1rem; }
-        #flashcard-view:not(.hidden) { display: flex; }
+        :root {
+            /* Professional Color Palette */
+            --primary-50: #eff6ff;
+            --primary-100: #dbeafe;
+            --primary-200: #bfdbfe;
+            --primary-300: #93c5fd;
+            --primary-400: #60a5fa;
+            --primary-500: #3b82f6;
+            --primary-600: #2563eb;
+            --primary-700: #1d4ed8;
+            --primary-800: #1e40af;
+            --primary-900: #1e3a8a;
+            
+            --secondary-50: #f0fdf4;
+            --secondary-100: #dcfce7;
+            --secondary-500: #22c55e;
+            --secondary-600: #16a34a;
+            --secondary-700: #15803d;
+            
+            --accent-50: #fff7ed;
+            --accent-100: #ffedd5;
+            --accent-500: #f97316;
+            --accent-600: #ea580c;
+            
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
+            
+            --success: #059669;
+            --warning: #d97706;
+            --error: #dc2626;
+            
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            
+            /* Borders */
+            --border-radius-sm: 0.375rem;
+            --border-radius-md: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+        }
 
-        .list-item-card { background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); position: relative; }
-        .diagnosis-name { font-weight: 600; color: #111827; margin-bottom: 0.25rem; font-size: 1rem; }
-        .key-features { font-size: 0.875rem; color: #4b5563; }
-        .diagnosis-sources { font-size: 0.75rem; color: #6b7280; font-style: italic; }
-        .finding-source-text { font-style: italic; color: #6b7280; margin-bottom: 1rem; font-size: 0.875rem; width: 100%; text-align: left; padding-left: 0; padding-right: 0; box-sizing: border-box; }
-        #flashcard-view > .finding-source-text-fc { order: -1; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        #diagram-view svg { display: block; width: 100%; height: 100%; }
-        .node circle { stroke: #fff; stroke-width: 1.5px; cursor: grab; }
-        .node circle:active { cursor: grabbing; }
-        .node text { font-size: 10px; fill: #374151; text-anchor: middle; dominant-baseline: hanging; pointer-events: none; }
-        .node text.finding-label { font-weight: 600; font-size: 11px; fill: #111827; }
-        .link { stroke: #9ca3af; stroke-opacity: 0.6; }
-        #tooltip { position: absolute; background-color: rgba(0, 0, 0, 0.85); color: white; padding: 8px 12px; border-radius: 4px; font-size: 0.875rem; pointer-events: none; opacity: 0; transition: opacity 0.2s ease-in-out; max-width: 350px; white-space: normal; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; } ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        * { scrollbar-width: thin; scrollbar-color: #94a3b8 #f1f5f9; }
-        .placeholder-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #9ca3af; font-style: italic; text-align: center; width: 80%; z-index: 1; }
-        #table-view table, #compare-view table { width: 100%; border-collapse: collapse; } #table-view th, #table-view td, #compare-view th, #compare-view td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; font-size: 0.875rem; } #table-view th, #compare-view th { background-color: #f9fafb; font-weight: 600; color: #374151; } #table-view tbody tr:nth-child(even), #compare-view tbody tr:nth-child(even) { background-color: #f9fafb; } #table-view tbody tr:hover, #compare-view tbody tr:hover { background-color: #f3f4f6; }
-        
-        #flashcard-container { width: 90%; max-width: 450px; margin-bottom: 1rem; flex-grow: 1; display: flex; align-items: center; justify-content: center; z-index: 2; }
-        .flashcard { background-color: transparent; width: 100%; height: 280px; perspective: 1000px; cursor: pointer; border-radius: 0.5rem; }
-        .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.1); border-radius: 0.5rem; }
-        .flashcard.is-flipped .flashcard-inner { transform: rotateY(180deg); }
-        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 0.5rem; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; border: 1px solid #e5e7eb; overflow-y: auto; }
-        .flashcard-front { background-color: #dbeafe; color: #1e3a8a; } .flashcard-back { background-color: #f3f4f6; color: #374151; transform: rotateY(180deg); font-size: 0.875rem; }
-        .flashcard-name { font-weight: 600; font-size: 1.25rem; } .flashcard-instruction { font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem; }
-        #flashcard-controls { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; margin-bottom: 0.5rem; width: 100%; z-index: 2; }
-        #flashcard-controls button { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; color: white; border: none; cursor: pointer; transition: background-color 0.2s ease; font-size: 0.8rem; }
-        /* SRS Answer Buttons */
-        #srs-again-button { background-color: #ef4444; } #srs-again-button:hover { background-color: #dc2626; } /* Red */
-        #srs-hard-button { background-color: #f97316; } #srs-hard-button:hover { background-color: #ea580c; }   /* Orange */
-        #srs-good-button { background-color: #22c55e; } #srs-good-button:hover { background-color: #16a34a; }   /* Green */
-        #srs-easy-button { background-color: #3b82f6; } #srs-easy-button:hover { background-color: #2563eb; }   /* Blue */
+        body {
+            font-family: var(--font-family);
+            background: linear-gradient(135deg, var(--neutral-50) 0%, var(--primary-50) 100%);
+            color: var(--neutral-800);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+        }
 
-        #flashcard-counter { font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; text-align: center; z-index: 2; }
-        #flashcard-deck-stats { font-size: 0.8rem; color: #4b5563; margin-top: 0.5rem; text-align: center; z-index: 2;}
-        #flashcard-completion { font-size: 1rem; color: #16a34a; font-weight: 500; text-align: center; margin-top: 2rem; z-index: 2; }
-        .search-input { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; margin-bottom: 0.75rem; box-sizing: border-box; }
-        .action-icon { cursor: pointer; margin-left: 4px; color: #6b7280; padding: 2px 4px; border-radius: 3px; display: inline-flex; align-items: center; } 
-        .action-icon:hover { background-color: #e5e7eb; color: #1d4ed8; }
-        .favorite-icon.favorited { color: #facc15; } /* Yellow star for favorited */
-        .compare-icon.in-compare { color: #22c55e; } /* Green check for in compare */
-        .compare-icon.compare-full { color: #9ca3af; cursor: not-allowed; }
+        /* Professional Loading States */
+        .loading-skeleton {
+            background: linear-gradient(90deg, var(--neutral-200) 25%, var(--neutral-100) 50%, var(--neutral-200) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
 
-        #diagram-sidebar { position: absolute; right: 0; top: 0; width: 300px; height: 100%; background-color: #f9fafb; border-left: 1px solid #e5e7eb; padding: 1rem; overflow-y: auto; transform: translateX(100%); transition: transform 0.3s ease-in-out; z-index: 500; box-shadow: -2px 0 5px rgba(0,0,0,0.1); }
-        #diagram-sidebar.open { transform: translateX(0); }
-        #global-search-results { margin-top: 1rem; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        .modal.open { opacity: 1; pointer-events: auto; }
-        .modal-content { background-color: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 300px; max-width: 500px; }
-        /* Print styles */
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--neutral-200);
+            border-top: 2px solid var(--primary-500);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Enhanced Header */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+            padding: var(--spacing-xl) var(--spacing-lg);
+            border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .app-header h1 {
+            font-size: var(--font-size-3xl);
+            font-weight: 800;
+            margin-bottom: var(--spacing-sm);
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-header p {
+            font-size: var(--font-size-lg);
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Professional Search & Filters */
+        .search-section {
+            background: white;
+            padding: var(--spacing-xl);
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--neutral-700);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: var(--spacing-md);
+            border: 2px solid var(--neutral-200);
+            border-radius: var(--border-radius-md);
+            font-size: var(--font-size-base);
+            background: white;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px var(--primary-100);
+        }
+
+        .search-input-wrapper {
+            position: relative;
+        }
+
+        .search-input-wrapper .search-icon {
+            position: absolute;
+            left: var(--spacing-md);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--neutral-400);
+            pointer-events: none;
+        }
+
+        .search-input-wrapper .form-input {
+            padding-left: 2.75rem;
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--primary-200);
+            border-top: none;
+            border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .search-suggestion {
+            padding: var(--spacing-md);
+            cursor: pointer;
+            border-bottom: 1px solid var(--neutral-100);
+            transition: background-color 0.2s ease;
+        }
+
+        .search-suggestion:hover {
+            background-color: var(--primary-50);
+        }
+
+        .search-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        /* Enhanced Tabs */
+        .tabs-container {
+            background: white;
+            border-bottom: 1px solid var(--neutral-200);
+            padding: 0 var(--spacing-lg);
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: var(--spacing-xs);
+            min-width: max-content;
+        }
+
+        .tab {
+            padding: var(--spacing-lg) var(--spacing-xl);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            color: var(--neutral-600);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            white-space: nowrap;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .tab:hover {
+            color: var(--primary-600);
+            background-color: var(--primary-50);
+        }
+
+        .tab.active {
+            color: var(--primary-700);
+            border-bottom-color: var(--primary-600);
+            font-weight: 600;
+            background-color: var(--primary-50);
+        }
+
+        .tab-icon {
+            font-size: var(--font-size-sm);
+        }
+
+        /* Professional Results Area */
+        .results-container {
+            background: white;
+            margin: var(--spacing-lg);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .results-header {
+            background: var(--neutral-50);
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--neutral-200);
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+
+        .results-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--neutral-800);
+        }
+
+        .results-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-600);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-700);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background-color: var(--neutral-100);
+            color: var(--neutral-700);
+            border: 1px solid var(--neutral-300);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--neutral-200);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background-color: var(--secondary-600);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: var(--secondary-700);
+            transform: translateY(-1px);
+        }
+
+        .btn-icon-only {
+            padding: var(--spacing-sm);
+            width: 36px;
+            height: 36px;
+            justify-content: center;
+        }
+
+        .results-content {
+            flex: 1;
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Enhanced List View */
+        .diagnosis-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .diagnosis-card {
+            background: var(--neutral-50);
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .diagnosis-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-300);
+        }
+
+        .diagnosis-card.favorited {
+            border-color: var(--accent-500);
+            background: var(--accent-50);
+        }
+
+        .diagnosis-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .diagnosis-name {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--neutral-800);
+            line-height: 1.4;
+            flex: 1;
+            margin-right: var(--spacing-md);
+        }
+
+        .diagnosis-actions {
+            display: flex;
+            gap: var(--spacing-xs);
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--border-radius-sm);
+            border: none;
+            background: var(--neutral-200);
+            color: var(--neutral-600);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: var(--font-size-sm);
+        }
+
+        .action-btn:hover {
+            background: var(--primary-100);
+            color: var(--primary-600);
+            transform: scale(1.1);
+        }
+
+        .action-btn.favorited {
+            background: var(--accent-100);
+            color: var(--accent-600);
+        }
+
+        .action-btn.noted {
+            background: var(--secondary-100);
+            color: var(--secondary-600);
+        }
+
+        .diagnosis-features {
+            font-size: var(--font-size-base);
+            color: var(--neutral-600);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .diagnosis-sources {
+            font-size: var(--font-size-sm);
+            color: var(--neutral-500);
+            font-style: italic;
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--neutral-200);
+        }
+
+        .user-note {
+            background: var(--accent-100);
+            border: 1px solid var(--accent-200);
+            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+            font-size: var(--font-size-sm);
+        }
+
+        .user-note-label {
+            font-weight: 600;
+            color: var(--accent-700);
+            margin-right: var(--spacing-sm);
+        }
+
+        /* Enhanced Table View */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--font-size-sm);
+        }
+
+        .results-table th {
+            background: var(--neutral-100);
+            padding: var(--spacing-md);
+            text-align: left;
+            font-weight: 600;
+            color: var(--neutral-700);
+            border-bottom: 2px solid var(--neutral-200);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .results-table td {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--neutral-200);
+            vertical-align: top;
+        }
+
+        .results-table tr:hover {
+            background-color: var(--primary-50);
+        }
+
+        /* Flashcard Enhancements */
+        .flashcard-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: var(--spacing-xl);
+        }
+
+        .flashcard {
+            width: 100%;
+            max-width: 500px;
+            height: 320px;
+            perspective: 1000px;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            border-radius: var(--border-radius-xl);
+            cursor: pointer;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: var(--border-radius-xl);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-xl);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .flashcard-front {
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+            color: white;
+        }
+
+        .flashcard-back {
+            background: linear-gradient(135deg, var(--neutral-100) 0%, var(--neutral-200) 100%);
+            color: var(--neutral-800);
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-content {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .flashcard-hint {
+            font-size: var(--font-size-sm);
+            opacity: 0.8;
+            margin-top: var(--spacing-md);
+        }
+
+        .flashcard-controls {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .flashcard-btn {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--border-radius-md);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+        }
+
+        .flashcard-btn-again {
+            background-color: var(--error);
+        }
+
+        .flashcard-btn-hard {
+            background-color: var(--accent-500);
+        }
+
+        .flashcard-btn-good {
+            background-color: var(--secondary-500);
+        }
+
+        .flashcard-btn-easy {
+            background-color: var(--primary-500);
+        }
+
+        .flashcard-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .flashcard-stats {
+            text-align: center;
+            color: var(--neutral-600);
+            font-size: var(--font-size-sm);
+        }
+
+        /* Diagram Enhancements */
+        .diagram-container {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .diagram-controls {
+            position: absolute;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
+            display: flex;
+            gap: var(--spacing-sm);
+            z-index: 100;
+        }
+
+        .diagram-sidebar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 320px;
+            height: 100%;
+            background: white;
+            border-left: 1px solid var(--neutral-200);
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .diagram-sidebar.open {
+            transform: translateX(0);
+        }
+
+        .diagram-sidebar-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .diagram-sidebar-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--neutral-800);
+        }
+
+        /* Progress Indicators */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--neutral-200);
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-500) 0%, var(--secondary-500) 100%);
+            transition: width 0.3s ease;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .app-header {
+                padding: var(--spacing-lg);
+            }
+            
+            .app-header h1 {
+                font-size: var(--font-size-2xl);
+            }
+            
+            .search-section {
+                padding: var(--spacing-lg);
+            }
+            
+            .results-container {
+                margin: var(--spacing-md);
+                border-radius: var(--border-radius-lg);
+            }
+            
+            .diagnosis-card {
+                padding: var(--spacing-md);
+            }
+            
+            .diagnosis-name {
+                font-size: var(--font-size-base);
+            }
+            
+            .flashcard {
+                max-width: 100%;
+                height: 280px;
+            }
+            
+            .diagram-sidebar {
+                width: 100%;
+            }
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --neutral-50: #0f172a;
+                --neutral-100: #1e293b;
+                --neutral-200: #334155;
+                --neutral-300: #475569;
+                --neutral-700: #cbd5e1;
+                --neutral-800: #e2e8f0;
+                --neutral-900: #f8fafc;
+            }
+            
+            body {
+                background: linear-gradient(135deg, var(--neutral-100) 0%, var(--primary-900) 100%);
+            }
+        }
+
+        /* Accessibility Enhancements */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .focus-visible:focus {
+            outline: 2px solid var(--primary-500);
+            outline-offset: 2px;
+        }
+
+        /* Animation Utilities */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        /* Custom Scrollbars */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: var(--neutral-100);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--neutral-400);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: var(--neutral-500);
+        }
+
+        /* Tooltip Enhancements */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip-content {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--neutral-900);
+            color: white;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-xs);
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 1000;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tooltip:hover .tooltip-content {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .tooltip-content::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: var(--neutral-900);
+        }
+
+        /* Modal Enhancements */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-xl);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.open .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .modal-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--neutral-800);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: var(--font-size-xl);
+            color: var(--neutral-500);
+            cursor: pointer;
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--neutral-100);
+            color: var(--neutral-700);
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: var(--secondary-100);
+            color: var(--secondary-700);
+        }
+
+        .badge-warning {
+            background: var(--accent-100);
+            color: var(--accent-700);
+        }
+
+        .badge-info {
+            background: var(--primary-100);
+            color: var(--primary-700);
+        }
+
+        /* Print Styles */
         @media print {
-            body { font-family: sans-serif; margin: 20px; background-color: white; color: black !important; }
-            header, nav, #search-finding-input, #finding-select, #search-diagnoses-input, .action-icon, #flashcard-controls, #diagram-sidebar, .modal, #settings-view button, .tab:not(.active), #print-button { display: none !important; }
-            .results-area { border: none; box-shadow: none; height: auto; overflow: visible; }
-            .view-container { overflow: visible; display: block !important; /* Ensure visible for printing */ }
-            .view-container.hidden { display: none !important; } /* Keep hidden views hidden */
-            #list-view:not(.hidden), #table-view:not(.hidden), #my-list-view:not(.hidden), #compare-view:not(.hidden), #references-view:not(.hidden) { display: block !important; } /* Explicitly show active content views */
-            .list-item-card { page-break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
-            table { width: 100% !important; page-break-inside: auto; }
-            th, td { border: 1px solid #ccc !important; color: black !important; background-color: white !important; }
-            .placeholder-text { display: none; }
-            h1, h2, h3, p, li, th, td { color: black !important; }
-            .bg-gray-50, .bg-white, .bg-gray-100, .bg-yellow-100 { background-color: white !important; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            body {
+                background: white !important;
+                font-size: 12pt;
+            }
+            
+            .app-header,
+            .search-section,
+            .tabs-container,
+            .results-actions,
+            .diagnosis-actions,
+            .btn,
+            .modal {
+                display: none !important;
+            }
+            
+            .results-container {
+                margin: 0;
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            
+            .diagnosis-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 1rem;
+                border: 1px solid #000;
+            }
+            
+            .results-table {
+                font-size: 10pt;
+            }
+            
+            .results-table th {
+                background: #f0f0f0 !important;
+            }
         }
     </style>
+    
     <script src="../../site_libs/jquery-1.11.3/jquery.min.js"></script>
     <link href="../../site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
     <script src="../../site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
@@ -95,1218 +1024,1612 @@
     <link rel="stylesheet" href="../../style.css" type="text/css" />
     <script src="data.js"></script>
 </head>
-<body class="p-4 md:p-8">
+<body>
+    <!-- Professional Header -->
+    <header class="app-header">
+        <div style="position: relative; z-index: 2;">
+            <h1>
+                <i class="fas fa-microscope" style="margin-right: 12px; opacity: 0.9;"></i>
+                Dermatopathology Navigator Pro
+            </h1>
+            <p>Advanced differential diagnosis and learning platform for dermatopathology</p>
+        </div>
+    </header>
 
-    <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <header class="mb-6 border-b pb-4 border-gray-200 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1">Dermatopathology Navigator Pro</h1>
-                <p class="text-sm text-gray-500">Enhanced differential diagnosis and learning tool.</p>
+    <!-- Enhanced Search & Filters Section -->
+    <section class="search-section">
+        <div class="search-grid">
+            <div class="form-group">
+                <label for="search-finding-input" class="form-label">
+                    <i class="fas fa-search"></i> Filter Histologic Findings
+                </label>
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="search-finding-input" 
+                        class="form-input" 
+                        placeholder="Type to search findings with intelligent suggestions..."
+                        autocomplete="off"
+                        aria-describedby="finding-search-help"
+                    >
+                    <div id="finding-suggestions" class="search-suggestions" style="display: none;"></div>
+                </div>
+                <div id="finding-search-help" class="sr-only">
+                    Search through histologic findings with auto-complete suggestions
+                </div>
             </div>
-            <button id="print-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">Print View</button>
-        </header>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-                <label for="search-finding-input" class="block text-sm font-medium text-gray-700 mb-1">Filter Histologic Findings:</label>
-                <input type="text" id="search-finding-input" class="search-input" placeholder="Type to filter findings...">
-            </div>
-            <div class="md:col-span-2">
-                <label for="finding-select" class="block text-sm font-medium text-gray-700 mb-1">Select Histologic Finding (for List, Table, Flashcards, Diagram):</label>
-                <select id="finding-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+            
+            <div class="form-group">
+                <label for="finding-select" class="form-label">
+                    <i class="fas fa-list-ul"></i> Select Histologic Finding
+                </label>
+                <select 
+                    id="finding-select" 
+                    class="form-select"
+                    aria-describedby="finding-select-help"
+                >
                     <option value="">-- Select a Finding --</option>
                 </select>
+                <div id="finding-select-help" class="sr-only">
+                    Choose a histologic finding to view differential diagnoses
+                </div>
             </div>
         </div>
         
-        <div class="mb-4 border-b border-gray-200">
-            <nav class="flex -mb-px flex-wrap overflow-x-auto">
-                <button id="list-tab" class="tab active" data-view="list-view">List</button>
-                <button id="table-tab" class="tab" data-view="table-view">Table</button>
-                <button id="flashcard-tab" class="tab" data-view="flashcard-view">Flashcards (SRS)</button>
-                <button id="diagram-tab" class="tab" data-view="diagram-view">Diagram</button>
-                <button id="my-list-tab" class="tab" data-view="my-list-view">My List</button>
-                <button id="compare-tab" class="tab" data-view="compare-view">Compare</button>
-                <button id="global-search-tab" class="tab" data-view="global-search-view">Global Search</button>
-                <button id="quiz-mode-tab" class="tab" data-view="quiz-mode-view">Quiz Mode</button>
-                <button id="references-tab" class="tab" data-view="references-view">References</button>
-                <button id="settings-tab" class="tab" data-view="settings-view">Settings</button>
-            </nav>
-        </div>
-        
-        <div class="mb-4">
-            <input type="text" id="search-diagnoses-input" class="search-input hidden" placeholder="Search within displayed diagnoses or key features...">
-        </div>
-
-        <div class="results-area">
-            <div id="list-view" class="view-container"><div class="placeholder-text">Select a finding to view its differential diagnoses list.</div></div>
-            <div id="table-view" class="view-container hidden"><div class="placeholder-text">Select a finding to view its differential diagnoses table.</div></div>
-            
-            <div id="flashcard-view" class="view-container hidden">
-                 <div class="placeholder-text">Select a finding to start SRS flashcards or review due cards.</div>
-                 <div id="flashcard-container" class="hidden"></div>
-                 <div id="flashcard-controls" class="hidden">
-                     <button id="srs-again-button" data-quality="0">Again (10m)</button>
-                     <button id="srs-hard-button" data-quality="1">Hard</button>
-                     <button id="srs-good-button" data-quality="2">Good</button>
-                     <button id="srs-easy-button" data-quality="3">Easy</button>
-                 </div>
-                 <div id="flashcard-counter" class="hidden"></div>
-                 <div id="flashcard-deck-stats" class="text-sm text-gray-600 mt-2 text-center hidden"></div>
-                 <div id="flashcard-completion" class="hidden">Deck complete or no cards due!</div>
-            </div>
-
-            <div id="diagram-view" class="view-container hidden" style="position: relative;">
-                 <div class="placeholder-text">Select a finding to view its interactive diagram.</div>
-                 <svg id="diagram-svg"></svg>
-                 <div id="diagram-sidebar">
-                     <h3 id="sidebar-title" class="text-lg font-semibold mb-2 border-b pb-2">Node Details</h3>
-                     <div id="sidebar-content" class="text-sm">Select a node to see details.</div>
-                     <button id="close-sidebar-button" class="mt-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-3 rounded text-xs">Close</button>
-                 </div>
-            </div>
-
-            <div id="my-list-view" class="view-container hidden">
-                <h2 class="text-xl font-semibold mb-3">My Favorite Diagnoses</h2>
-                <div id="my-list-content"><div class="placeholder-text">No diagnoses added to your list yet. Star diagnoses to add them.</div></div>
-            </div>
-
-            <div id="compare-view" class="view-container hidden">
-                <h2 class="text-xl font-semibold mb-3">Compare Diagnoses</h2>
-                <div class="mb-3 flex justify-between items-center">
-                    <p class="text-sm text-gray-600">Select up to 3 diagnoses from List/Table views to compare them side-by-side.</p>
-                    <button id="clear-comparison-button" class="text-sm bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded">Clear Comparison</button>
-                </div>
-                <div id="compare-content-area"><div class="placeholder-text">No diagnoses selected for comparison.</div></div>
-            </div>
-
-            <div id="global-search-view" class="view-container hidden">
-                <h2 class="text-xl font-semibold mb-3">Global Search</h2>
-                <div class="flex space-x-2">
-                    <input type="text" id="global-search-input" class="search-input flex-grow" placeholder="Search all findings, diagnoses, and features...">
-                    <button id="global-search-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">Search</button>
-                </div>
-                <div id="global-search-results-area" class="mt-4"><div class="placeholder-text">Enter a term to search globally.</div></div>
-            </div>
-
-            <div id="quiz-mode-view" class="view-container hidden">
-                <h2 class="text-xl font-semibold mb-3">Quiz Mode</h2>
-                <div id="quiz-setup">
-                    <label for="quiz-type-select" class="block text-sm font-medium text-gray-700 mb-1">Select Quiz Type:</label>
-                    <select id="quiz-type-select" class="w-full p-2 border border-gray-300 rounded-md mb-3">
-                        <option value="featuresToDx">Given Key Features, Name Diagnosis</option>
-                        <option value="findingToDx">Given Finding, Name Differential</option>
-                    </select>
-                    <button id="start-quiz-button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Start Quiz</button>
-                </div>
-                <div id="quiz-area" class="hidden mt-4">
-                    <div id="quiz-question" class="mb-2 p-3 bg-gray-100 rounded min-h-[50px]"></div>
-                    <input type="text" id="quiz-answer-input" class="search-input" placeholder="Your answer...">
-                    <button id="submit-quiz-answer-button" class="bg-blue-500 hover:bg-blue-700 text-white py-1 px-3 rounded">Submit Answer</button>
-                    <div id="quiz-feedback" class="mt-2 min-h-[20px]"></div>
-                    <div id="quiz-score" class="mt-2 font-semibold"></div>
-                </div>
-                 <div class="placeholder-text" id="quiz-placeholder">Select a quiz type and start.</div>
-            </div>
-
-            <div id="references-view" class="view-container hidden">
-                <h2 class="text-xl font-semibold mb-3">Data Sources & References</h2>
-                <ul id="references-list" class="list-disc pl-5 space-y-1 text-sm">
-                    </ul>
-                 <div class="placeholder-text" id="references-placeholder">Reference information will be displayed here.</div>
-            </div>
-
-            <div id="settings-view" class="view-container hidden p-4">
-                <h2 class="text-xl font-semibold mb-4">Application Settings</h2>
-                <div class="space-y-6">
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-900">General</h3>
-                        <label for="setting-font-size" class="block text-sm font-medium text-gray-700 mt-2">Font Size:</label>
-                        <select id="setting-font-size" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                            <option value="text-sm">Small</option>
-                            <option value="text-base" selected>Normal</option>
-                            <option value="text-lg">Large</option>
+        <!-- Advanced Search Options -->
+        <details style="margin-top: 1rem;">
+            <summary style="cursor: pointer; font-weight: 500; color: var(--primary-600);">
+                <i class="fas fa-cog"></i> Advanced Search Options
+            </summary>
+            <div style="margin-top: 1rem; padding: 1rem; background: var(--neutral-50); border-radius: var(--border-radius-md);">
+                <div class="search-grid">
+                    <div class="form-group">
+                        <label for="search-diagnoses-input" class="form-label">Search Diagnoses</label>
+                        <input 
+                            type="text" 
+                            id="search-diagnoses-input" 
+                            class="form-input" 
+                            placeholder="Search within diagnoses or key features..."
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="source-filter" class="form-label">Filter by Source</label>
+                        <select id="source-filter" class="form-select">
+                            <option value="">All Sources</option>
+                            <option value="textbook">Textbook</option>
+                            <option value="journal">Journal Articles</option>
+                            <option value="atlas">Atlas</option>
                         </select>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-900">Flashcard SRS</h3>
-                        <button id="reset-srs-button" class="mt-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded text-sm">Reset All SRS Progress</button>
-                        <p class="text-xs text-gray-500 mt-1">This will reset learning progress for all flashcards.</p>
+                </div>
+            </div>
+        </details>
+    </section>
+
+    <!-- Professional Tabs Navigation -->
+    <nav class="tabs-container" role="tablist">
+        <div class="tabs-nav">
+            <button 
+                id="list-tab" 
+                class="tab active" 
+                data-view="list-view"
+                role="tab"
+                aria-selected="true"
+                aria-controls="list-view"
+            >
+                <i class="fas fa-list tab-icon"></i>
+                List View
+            </button>
+            <button 
+                id="table-tab" 
+                class="tab" 
+                data-view="table-view"
+                role="tab"
+                aria-selected="false"
+                aria-controls="table-view"
+            >
+                <i class="fas fa-table tab-icon"></i>
+                Table View
+            </button>
+            <button 
+                id="flashcard-tab" 
+                class="tab" 
+                data-view="flashcard-view"
+                role="tab"
+                aria-selected="false"
+                aria-controls="flashcard-view"
+            >
+                <i class="fas fa-clone tab-icon"></i>
+                Flashcards (SRS)
+            </button>
+            <button 
+                id="diagram-tab" 
+                class="tab" 
+                data-view="diagram-view"
+                role="tab"
+                aria-selected="false"
+                aria-controls="diagram-view"
+            >
+                <i class="fas fa-project-diagram tab-icon"></i>
+                Network Diagram
+            </button>
+            <button 
+                id="my-list-tab" 
+                class="tab" 
+                data-view="my-list-view"
+                role="tab"
+                aria-selected="false"
+                aria-controls="my-list-view"
+            >
+                <i class="fas fa-star tab-icon"></i>
+                My Favorites
+            </button>
+            <button 
+                id="compare-tab" 
+                class="tab" 
+                data-view="compare-view"
+                role="tab"
+                aria-selected="false"
+                aria-controls="compare-view"
+            >
+                <i class="fas fa-balance-scale tab-icon"></i>
+                Compare
+            </button>
+            <button 
+                id="global-search-tab" 
+                class="tab" 
+                data-view="global-search-view"
+                role="tab"
+                aria-selected="false"
+                aria-controls="global-search-view"
+            >
+                <i class="fas fa-globe tab-icon"></i>
+                Global Search
+            </button>
+            <button 
+                id="quiz-mode-tab" 
+                class="tab" 
+                data-view="quiz-mode-view"
+                role="tab"
+                aria-selected="false"
+                aria-controls="quiz-mode-view"
+            >
+                <i class="fas fa-question-circle tab-icon"></i>
+                Quiz Mode
+            </button>
+            <button 
+                id="analytics-tab" 
+                class="tab" 
+                data-view="analytics-view"
+                role="tab"
+                aria-selected="false"
+                aria-controls="analytics-view"
+            >
+                <i class="fas fa-chart-bar tab-icon"></i>
+                Learning Analytics
+            </button>
+            <button 
+                id="settings-tab" 
+                class="tab" 
+                data-view="settings-view"
+                role="tab"
+                aria-selected="false"
+                aria-controls="settings-view"
+            >
+                <i class="fas fa-cog tab-icon"></i>
+                Settings
+            </button>
+        </div>
+    </nav>
+
+    <!-- Enhanced Results Container -->
+    <main class="results-container">
+        <div class="results-header">
+            <h2 class="results-title" id="results-title">
+                <i class="fas fa-clipboard-list"></i>
+                Differential Diagnoses
+            </h2>
+            <div class="results-actions">
+                <button class="btn btn-secondary" id="export-pdf-btn" title="Export to PDF">
+                    <i class="fas fa-file-pdf"></i>
+                    Export PDF
+                </button>
+                <button class="btn btn-secondary" id="export-excel-btn" title="Export to Excel">
+                    <i class="fas fa-file-excel"></i>
+                    Export Excel
+                </button>
+                <button class="btn btn-secondary" id="print-btn" title="Print View">
+                    <i class="fas fa-print"></i>
+                    Print
+                </button>
+                <button class="btn btn-primary" id="share-btn" title="Share Results">
+                    <i class="fas fa-share"></i>
+                    Share
+                </button>
+            </div>
+        </div>
+
+        <div class="results-content custom-scrollbar">
+            <!-- List View -->
+            <div id="list-view" class="view-container" role="tabpanel" aria-labelledby="list-tab">
+                <div class="diagnosis-list" id="list-content">
+                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">No Finding Selected</p>
+                        <p>Select a histologic finding above to view differential diagnoses</p>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-900">User Data</h3>
-                        <button id="clear-favorites-button" class="mt-2 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm mr-2">Clear All Favorites</button>
-                        <button id="clear-notes-button" class="mt-2 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm">Clear All Notes</button>
-                        <p class="text-xs text-gray-500 mt-1">Warning: This action cannot be undone.</p>
+                </div>
+            </div>
+
+            <!-- Table View -->
+            <div id="table-view" class="view-container hidden" role="tabpanel" aria-labelledby="table-tab">
+                <div id="table-content">
+                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
+                        <i class="fas fa-table" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Table View</p>
+                        <p>Select a finding to view data in table format</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Flashcard View -->
+            <div id="flashcard-view" class="view-container hidden" role="tabpanel" aria-labelledby="flashcard-tab">
+                <div class="flashcard-container">
+                    <div style="text-align: center; color: var(--neutral-500);">
+                        <i class="fas fa-clone" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Spaced Repetition System</p>
+                        <p>Select a finding to start learning with intelligent flashcards</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Diagram View -->
+            <div id="diagram-view" class="view-container hidden" role="tabpanel" aria-labelledby="diagram-tab">
+                <div class="diagram-container">
+                    <div class="diagram-controls">
+                        <button class="btn btn-icon-only btn-secondary" id="diagram-zoom-in" title="Zoom In">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button class="btn btn-icon-only btn-secondary" id="diagram-zoom-out" title="Zoom Out">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <button class="btn btn-icon-only btn-secondary" id="diagram-reset" title="Reset View">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                        <button class="btn btn-icon-only btn-secondary" id="diagram-fullscreen" title="Fullscreen">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                    
+                    <svg id="diagram-svg" width="100%" height="100%"></svg>
+                    
+                    <div id="diagram-sidebar" class="diagram-sidebar">
+                        <div class="diagram-sidebar-header">
+                            <h3 class="diagram-sidebar-title" id="sidebar-title">Node Details</h3>
+                            <button class="btn btn-icon-only btn-secondary" id="sidebar-close">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="sidebar-content">
+                            <p>Click on a node to view details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My List View -->
+            <div id="my-list-view" class="view-container hidden" role="tabpanel" aria-labelledby="my-list-tab">
+                <div id="favorites-content">
+                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
+                        <i class="fas fa-star" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Your Favorites</p>
+                        <p>Star diagnoses to save them here for quick access</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compare View -->
+            <div id="compare-view" class="view-container hidden" role="tabpanel" aria-labelledby="compare-tab">
+                <div id="compare-content">
+                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
+                        <i class="fas fa-balance-scale" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Compare Diagnoses</p>
+                        <p>Select diagnoses to compare side by side</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Search View -->
+            <div id="global-search-view" class="view-container hidden" role="tabpanel" aria-labelledby="global-search-tab">
+                <div style="padding: 1rem;">
+                    <div class="form-group">
+                        <label for="global-search-input" class="form-label">Search All Content</label>
+                        <input type="text" id="global-search-input" class="form-input" placeholder="Search across all findings and diagnoses...">
+                    </div>
+                    <div id="global-search-results">
+                        <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
+                            <i class="fas fa-globe" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Global Search</p>
+                            <p>Search across all findings and diagnoses in the database</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Mode View -->
+            <div id="quiz-mode-view" class="view-container hidden" role="tabpanel" aria-labelledby="quiz-mode-tab">
+                <div id="quiz-content">
+                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
+                        <i class="fas fa-question-circle" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Interactive Quiz Mode</p>
+                        <p>Test your knowledge with adaptive quizzes</p>
+                        <button class="btn btn-primary" id="start-quiz-btn" style="margin-top: 1rem;">
+                            <i class="fas fa-play"></i>
+                            Start Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Analytics View -->
+            <div id="analytics-view" class="view-container hidden" role="tabpanel" aria-labelledby="analytics-tab">
+                <div id="analytics-content">
+                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
+                        <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Learning Analytics</p>
+                        <p>Track your progress and identify areas for improvement</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="settings-view" class="view-container hidden" role="tabpanel" aria-labelledby="settings-tab">
+                <div style="padding: 2rem;">
+                    <h3 style="margin-bottom: 1.5rem; color: var(--neutral-800);">
+                        <i class="fas fa-cog"></i> Application Settings
+                    </h3>
+                    
+                    <div style="display: grid; gap: 1.5rem;">
+                        <div class="form-group">
+                            <label class="form-label">Theme Preference</label>
+                            <select class="form-select" id="theme-select">
+                                <option value="auto">Auto (System)</option>
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Flashcard Settings</label>
+                            <div style="display: grid; gap: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="auto-flip" checked>
+                                    Auto-flip flashcards after 5 seconds
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" id="show-hints" checked>
+                                    Show hints on flashcards
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Data Management</label>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button class="btn btn-secondary" id="export-data-btn">
+                                    <i class="fas fa-download"></i> Export My Data
+                                </button>
+                                <button class="btn btn-secondary" id="import-data-btn">
+                                    <i class="fas fa-upload"></i> Import Data
+                                </button>
+                                <button class="btn btn-secondary" id="reset-data-btn">
+                                    <i class="fas fa-trash"></i> Reset All Data
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="modal" style="background: rgba(255, 255, 255, 0.9);">
+        <div style="text-align: center;">
+            <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 1rem;"></div>
+            <p style="color: var(--neutral-700); font-weight: 500;">Loading data...</p>
+        </div>
     </div>
 
-    <div id="tooltip"></div>
-
+    <!-- Note Modal -->
     <div id="note-modal" class="modal">
         <div class="modal-content">
-            <h3 id="note-modal-title" class="text-lg font-semibold mb-3">Add/Edit Note</h3>
-            <textarea id="note-modal-textarea" class="w-full p-2 border border-gray-300 rounded-md h-32" placeholder="Enter your note..."></textarea>
-            <div class="mt-4 flex justify-end space-x-2">
-                <button id="note-modal-cancel" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">Cancel</button>
-                <button id="note-modal-save" class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded">Save Note</button>
+            <div class="modal-header">
+                <h3 class="modal-title">Add Note</h3>
+                <button class="modal-close" id="note-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div>
+                <div class="form-group">
+                    <label for="note-textarea" class="form-label">Your Note</label>
+                    <textarea 
+                        id="note-textarea" 
+                        class="form-input" 
+                        rows="4" 
+                        placeholder="Add your personal notes about this diagnosis..."
+                    ></textarea>
+                </div>
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button class="btn btn-secondary" id="note-cancel">Cancel</button>
+                    <button class="btn btn-primary" id="note-save">
+                        <i class="fas fa-save"></i> Save Note
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-    
-    <script src="../research/data/data.js"></script> 
-    <script>
-        // --- DOM Elements ---
-        const searchFindingInput = document.getElementById('search-finding-input');
-        const findingSelect = document.getElementById('finding-select');
-        const searchDiagnosesInput = document.getElementById('search-diagnoses-input');
-        const printButton = document.getElementById('print-button');
-        
-        const tabs = [
-            { id: 'list-tab', viewId: 'list-view' },
-            { id: 'table-tab', viewId: 'table-view' },
-            { id: 'flashcard-tab', viewId: 'flashcard-view' },
-            { id: 'diagram-tab', viewId: 'diagram-view' },
-            { id: 'my-list-tab', viewId: 'my-list-view' },
-            { id: 'compare-tab', viewId: 'compare-view' },
-            { id: 'global-search-tab', viewId: 'global-search-view' },
-            { id: 'quiz-mode-tab', viewId: 'quiz-mode-view' },
-            { id: 'references-tab', viewId: 'references-view' },
-            { id: 'settings-tab', viewId: 'settings-view' },
-        ];
-        // No need to get individual view elements here if using a generic approach in switchView
-        
-        const diagramSvgElement = document.getElementById('diagram-svg');
-        const diagramSidebar = document.getElementById('diagram-sidebar');
-        const sidebarTitle = document.getElementById('sidebar-title');
-        const sidebarContent = document.getElementById('sidebar-content');
-        const closeSidebarButton = document.getElementById('close-sidebar-button');
-        const tooltip = document.getElementById('tooltip');
-        
-        // Flashcard Elements
-        const flashcardView = document.getElementById('flashcard-view'); // Keep this specific one for its placeholder
-        const flashcardPlaceholder = flashcardView.querySelector('.placeholder-text');
-        const flashcardContainer = document.getElementById('flashcard-container');
-        const flashcardControls = document.getElementById('flashcard-controls');
-        const srsAgainButton = document.getElementById('srs-again-button');
-        const srsHardButton = document.getElementById('srs-hard-button');
-        const srsGoodButton = document.getElementById('srs-good-button');
-        const srsEasyButton = document.getElementById('srs-easy-button');
-        const flashcardCounter = document.getElementById('flashcard-counter');
-        const flashcardDeckStats = document.getElementById('flashcard-deck-stats');
-        const flashcardCompletion = document.getElementById('flashcard-completion');
 
-        // My List Elements
-        const myListView = document.getElementById('my-list-view'); // For its content area
-        const myListContent = document.getElementById('my-list-content');
-
-        // Compare Elements
-        const compareView = document.getElementById('compare-view'); // For its content area
-        const compareContentArea = document.getElementById('compare-content-area');
-        const clearComparisonButton = document.getElementById('clear-comparison-button');
-        
-        // Global Search Elements
-        const globalSearchInput = document.getElementById('global-search-input');
-        const globalSearchButton = document.getElementById('global-search-button');
-        const globalSearchResultsArea = document.getElementById('global-search-results-area');
-
-        // Quiz Mode Elements
-        const quizModeView = document.getElementById('quiz-mode-view'); // For its specific children
-        const quizTypeSelect = document.getElementById('quiz-type-select');
-        const startQuizButton = document.getElementById('start-quiz-button');
-        const quizSetup = document.getElementById('quiz-setup');
-        const quizArea = document.getElementById('quiz-area');
-        const quizQuestion = document.getElementById('quiz-question');
-        const quizAnswerInput = document.getElementById('quiz-answer-input');
-        const submitQuizAnswerButton = document.getElementById('submit-quiz-answer-button');
-        const quizFeedback = document.getElementById('quiz-feedback');
-        const quizScore = document.getElementById('quiz-score');
-        const quizPlaceholder = quizModeView.querySelector('#quiz-placeholder');
-
-
-        // References Elements
-        const referencesView = document.getElementById('references-view'); // For its specific children
-        const referencesList = document.getElementById('references-list');
-
-        // Settings Elements
-        // const settingsView = document.getElementById('settings-view'); // No specific children needed beyond what's handled by event listeners
-        const settingFontSize = document.getElementById('setting-font-size');
-        const resetSrsButton = document.getElementById('reset-srs-button');
-        const clearFavoritesButton = document.getElementById('clear-favorites-button');
-        const clearNotesButton = document.getElementById('clear-notes-button');
-
-        // Note Modal Elements
-        const noteModal = document.getElementById('note-modal');
-        const noteModalTitle = document.getElementById('note-modal-title');
-        const noteModalTextarea = document.getElementById('note-modal-textarea');
-        const noteModalCancel = document.getElementById('note-modal-cancel');
-        const noteModalSave = document.getElementById('note-modal-save');
-        let currentEditingDiagnosisId = null;
-
-
-        // --- State Variables ---
-        let currentView = 'list-view'; 
-        let currentFindingData = null; 
-        let simulation = null; 
-        let svg; 
-        let diagramWidth, diagramHeight; 
-        let resizeObserver; 
-        
-        let processedFindingsMap = new Map();
-        let allDiagnosesFlat = []; // For global search and other cross-finding features
-        let allSourcesMasterSet = new Set(); // To populate references tab
-
-        // User Data State (to be loaded from localStorage)
-        let userFavorites = new Set(); // Set of diagnosis unique IDs (e.g., findingName + '|' + diagnosisName)
-        let userNotes = {}; // Object: { 'diagnosisUniqueId': 'note text' }
-        let userSrsData = {}; // Object: { 'cardUniqueId': { interval, easeFactor, dueDate, repetitions, history: [] } }
-        let userSettings = { fontSize: 'text-base' };
-        let comparisonList = []; // Array of diagnosis objects for comparison
-
-        // Flashcard SRS State
-        let srsDeck = []; 
-        let currentSrsCardIndex = 0;
-        const SRS_INITIAL_INTERVAL = 1; // days
-        const SRS_INITIAL_EASE_FACTOR = 2.5;
-        const SRS_MIN_INTERVAL_MINUTES = 10; // for "Again"
-
-        // --- LocalStorage Utility Functions ---
-        const saveDataToLocalStorage = (key, data) => {
-            try {
-                localStorage.setItem(key, JSON.stringify(data));
-            } catch (e) {
-                console.error("Error saving to localStorage", e);
-            }
-        };
-
-        const loadDataFromLocalStorage = (key, defaultValue) => {
-            try {
-                const data = localStorage.getItem(key);
-                return data ? JSON.parse(data) : defaultValue;
-            } catch (e) {
-                console.error("Error loading from localStorage", e);
-                return defaultValue;
-            }
-        };
-        
-        // --- Utility Functions ---
-        const debounce = (func, wait) => { let timeout; return function executedFunction(...args) { const later = () => { clearTimeout(timeout); func(...args); }; clearTimeout(timeout); timeout = setTimeout(later, wait); }; };
-        function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
-        function getShortSourceName(sourceString) { if (!sourceString) return "Unknown"; if (sourceString.toLowerCase().includes("ko")) return "Ko"; if (sourceString.toLowerCase().includes("rapini")) return "Rapini"; if (sourceString.toLowerCase().includes("alikhan")) return "Alikhan"; if (sourceString.toLowerCase().includes("lipoff")) return "Lipoff"; if (sourceString.toLowerCase().includes("jackson")) return "Jackson"; if (sourceString.toLowerCase().includes("ref sheet")) return "Ref Sheet"; const parts = sourceString.split(" p."); if (parts.length > 0 && parts[0].length < 20) return parts[0].trim(); const firstWord = sourceString.split(" ")[0]; if(firstWord.length < 15) return firstWord; return sourceString.substring(0,15).trim(); }
-        const getDiagnosisUniqueId = (findingName, diagnosisName) => `${findingName}|${diagnosisName}`;
-        const getFlashcardUniqueId = (findingName, diagnosisName) => `fc|${findingName}|${diagnosisName}`;
-
-
-        // --- Data Processing ---
-        function processRawData() {
-            if (typeof differentialsData === 'undefined' || !Array.isArray(differentialsData)) {
-                console.error("differentialsData is not loaded. Check if data.js is correctly linked and the variable is defined.");
-                const resultsArea = document.querySelector('.results-area');
-                if (resultsArea) {
-                    resultsArea.innerHTML = '<div class="placeholder-text" style="color: red; z-index: 10;">Error: Could not load data from data.js. Please check console.</div>';
-                }
-                [searchFindingInput, findingSelect, searchDiagnosesInput].forEach(el => { if (el) el.disabled = true; });
-                return;
-            }
-
-            processedFindingsMap.clear();
-            allDiagnosesFlat = [];
-            allSourcesMasterSet.clear();
-
-            differentialsData.forEach(rawFinding => {
-                const rawFindingName = rawFinding.finding;
-                let baseFindingName = rawFindingName.replace(/\s*\([^\)]+\)$/, '').trim();
-                baseFindingName = baseFindingName.replace(/\s*-\s*[A-Z\s!]+$/, '').trim(); 
-                baseFindingName = baseFindingName.replace(/\s*=\s*[A-Z\s!]+$/, '').trim(); 
-                
-                if (!processedFindingsMap.has(baseFindingName)) {
-                    processedFindingsMap.set(baseFindingName, {
-                        displayFindingName: baseFindingName,
-                        diagnoses: new Map(), 
-                        originalSources: new Set() 
-                    });
-                }
-                const findingEntry = processedFindingsMap.get(baseFindingName);
-                findingEntry.originalSources.add(rawFinding.source);
-                allSourcesMasterSet.add(rawFinding.source);
-
-
-                rawFinding.diagnoses.forEach(dx => {
-                    const diagnosisUniqueId = getDiagnosisUniqueId(baseFindingName, dx.name);
-                    const flashcardUniqueId = getFlashcardUniqueId(baseFindingName, dx.name);
-
-                    if (!findingEntry.diagnoses.has(dx.name)) {
-                        findingEntry.diagnoses.set(dx.name, {
-                            name: dx.name,
-                            keyFeatures: dx.keyFeatures,
-                            sources: new Set(),
-                            fullSources: new Set(),
-                            parentFinding: baseFindingName,
-                            uniqueId: diagnosisUniqueId,
-                            flashcardId: flashcardUniqueId
-                        });
-                    }
-                    const diagnosisEntry = findingEntry.diagnoses.get(dx.name);
-                    diagnosisEntry.sources.add(getShortSourceName(rawFinding.source));
-                    diagnosisEntry.fullSources.add(rawFinding.source); 
-
-                    const flatDxEntry = allDiagnosesFlat.find(item => item.uniqueId === diagnosisUniqueId);
-                    if (!flatDxEntry) {
-                        allDiagnosesFlat.push({
-                            ...diagnosisEntry, // a copy
-                            parentFinding: baseFindingName, 
-                            findingOriginalSources: Array.from(findingEntry.originalSources) 
-                        });
-                    } else { // Merge sources if diagnosis appears under multiple raw findings mapping to same base finding
-                        rawFinding.diagnoses.forEach(dxInstance => {
-                            if (dxInstance.name === dx.name) {
-                               flatDxEntry.sources.add(getShortSourceName(rawFinding.source));
-                               flatDxEntry.fullSources.add(rawFinding.source);
-                            }
-                        });
-                    }
-                });
-            });
-            populateReferencesTab(); // Call without argument, uses allSourcesMasterSet
-        }
-
-        // --- Core UI Functions ---
-        function populateDropdown() { 
-            if (processedFindingsMap.size === 0 && (typeof differentialsData === 'undefined' || differentialsData.length === 0) ) { return; } 
-            const uniqueFindings = Array.from(processedFindingsMap.keys()).sort((a, b) => a.localeCompare(b)); 
-            findingSelect.innerHTML = '<option value="">-- Select a Finding --</option>'; 
-            uniqueFindings.forEach(findingName => { const option = document.createElement('option'); option.value = findingName; option.textContent = findingName; findingSelect.appendChild(option); });
-        }
-
-        function resetFlashcardViewInternalUI() { 
-            const fcSourceText = flashcardView.querySelector('p.finding-source-text-fc'); 
-            if (fcSourceText) fcSourceText.remove(); 
-            if(flashcardContainer) { flashcardContainer.innerHTML = ''; flashcardContainer.classList.add('hidden'); } 
-            if(flashcardControls) flashcardControls.classList.add('hidden'); 
-            if(flashcardCounter) { flashcardCounter.textContent = ''; flashcardCounter.classList.add('hidden'); } 
-            if(flashcardDeckStats) { flashcardDeckStats.textContent = ''; flashcardDeckStats.classList.add('hidden'); } 
-            if(flashcardCompletion) flashcardCompletion.classList.add('hidden'); 
-            if(flashcardPlaceholder) flashcardPlaceholder.classList.remove('hidden');
-        }
-        
-        function switchView(viewId) {
-            currentView = viewId;
-            
-            tabs.forEach(tabInfo => {
-                const tabButton = document.getElementById(tabInfo.id);
-                const viewElement = document.getElementById(tabInfo.viewId);
-                if (tabButton) tabButton.classList.toggle('active', tabInfo.viewId === viewId);
-                if (viewElement) viewElement.classList.toggle('hidden', tabInfo.viewId !== viewId);
-            });
-
-            if (['list-view', 'table-view'].includes(viewId) && currentFindingData) {
-                searchDiagnosesInput.classList.remove('hidden');
-            } else {
-                searchDiagnosesInput.classList.add('hidden');
-                searchDiagnosesInput.value = ''; 
-            }
-
-            if (viewId !== 'diagram-view' && simulation) {
-                simulation.stop();
-                closeDiagramSidebar(); 
-            }
-            
-            if (viewId === 'flashcard-view') {
-                initializeSrsFlashcardDeck(); 
-            } else if (viewId === 'my-list-view') {
-                displayMyListView();
-            } else if (viewId === 'compare-view') {
-                displayCompareView();
-            } else if (viewId === 'global-search-view') {
-                globalSearchInput.focus();
-            } else if (viewId === 'quiz-mode-view') {
-                quizArea.classList.add('hidden');
-                quizPlaceholder.classList.remove('hidden');
-                quizSetup.classList.remove('hidden');
-            } else if (viewId === 'settings-view') {
-                displaySettingsView();
-            } else if (viewId === 'references-view') {
-                populateReferencesTab(); // Re-populate if needed, though it's static after load
-            }
-             else {
-                resetFlashcardViewInternalUI(); 
-                displayContent(searchDiagnosesInput.value);
-            }
-        }
-        
-        function displayContent(diagnosesSearchTerm = '') { 
-            const selectedValue = findingSelect.value; 
-            currentFindingData = selectedValue ? processedFindingsMap.get(selectedValue) : null;
-            const listViewEl = document.getElementById('list-view');
-            const tableViewEl = document.getElementById('table-view');
-            const diagramViewEl = document.getElementById('diagram-view');
-
-
-            if (!currentFindingData) {
-                searchDiagnosesInput.classList.add('hidden');
-                if (listViewEl) listViewEl.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses list.</div>`;
-                if (tableViewEl) tableViewEl.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses table.</div>`;
-                clearDiagram();
-                if (diagramViewEl) {
-                    const diagramPlaceholder = diagramViewEl.querySelector('.placeholder-text');
-                    if (diagramPlaceholder) diagramPlaceholder.classList.remove('hidden');
-                }
-                closeDiagramSidebar();
-                resetFlashcardViewInternalUI();
-            } else if (['list-view', 'table-view'].includes(currentView)) {
-                 searchDiagnosesInput.classList.remove('hidden');
-            }
-
-
-            if (currentView === 'list-view' && listViewEl) {
-                listViewEl.innerHTML = ''; 
-                if (!currentFindingData) listViewEl.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses list.</div>`;
-                else displayListView(diagnosesSearchTerm);
-            } else if (currentView === 'table-view' && tableViewEl) {
-                tableViewEl.innerHTML = ''; 
-                if (!currentFindingData) tableViewEl.innerHTML = `<div class="placeholder-text">Select a finding to view its differential diagnoses table.</div>`;
-                else displayTableView(diagnosesSearchTerm);
-            } else if (currentView === 'diagram-view' && diagramViewEl) {
-                clearDiagram(); 
-                const diagramPlaceholder = diagramViewEl.querySelector('.placeholder-text');
-                if (!currentFindingData) {
-                    if (diagramPlaceholder) diagramPlaceholder.classList.remove('hidden');
-                    closeDiagramSidebar();
-                } else {
-                    if (diagramPlaceholder) diagramPlaceholder.classList.add('hidden');
-                    displayDiagramView();
-                }
-            }
-        }
-
-        function createDiagnosisCardActions(dx) {
-            if (!dx || !dx.uniqueId) { console.error("Cannot create actions for diagnosis without uniqueId:", dx); return ''; }
-            const isFavorite = userFavorites.has(dx.uniqueId);
-            const hasNote = !!userNotes[dx.uniqueId];
-            const isInCompareList = comparisonList.some(compareDx => compareDx.uniqueId === dx.uniqueId);
-
-            let compareButtonHtml = '';
-            if (currentView !== 'compare-view') {
-                 if (isInCompareList) {
-                    compareButtonHtml = `<span class="action-icon compare-icon in-compare" title="In Compare List" onclick="event.stopPropagation(); alert('${dx.name} is already in the comparison list.');">✓ Compare</span>`;
-                 } else if (comparisonList.length < 3) {
-                    compareButtonHtml = `<span class="action-icon compare-icon" title="Add to Compare" onclick="addToComparisonList('${dx.uniqueId}', event)">➕ Compare</span>`;
-                 } else {
-                    compareButtonHtml = `<span class="action-icon compare-icon compare-full" title="Compare list full (max 3)" onclick="event.stopPropagation(); alert('Comparison list is full. Please remove an item to add another.');">➕ Compare</span>`;
-                 }
-            }
-
-            return `
-                <div class="absolute top-2 right-2 flex space-x-1 md:space-x-2 text-xs md:text-sm">
-                    <span class="action-icon favorite-icon ${isFavorite ? 'favorited' : ''}" title="${isFavorite ? 'Remove from My List' : 'Add to My List'}" onclick="toggleFavorite('${dx.uniqueId}', event)">⭐</span>
-                    <span class="action-icon note-icon ${hasNote ? 'text-blue-500' : ''}" title="${hasNote ? 'Edit Note' : 'Add Note'}" onclick="openNoteModal('${dx.uniqueId}', event)">📝</span>
-                    ${compareButtonHtml}
-                </div>
-            `;
-        }
-
-        function displayListView(searchTerm = '') { 
-            if (!currentFindingData) return;
-            const listViewEl = document.getElementById('list-view');
-            if (!listViewEl) return;
-
-            const sourcesList = Array.from(currentFindingData.originalSources).sort().join('; ');
-            let html = `<p class="finding-source-text">Source(s) for finding "${currentFindingData.displayFindingName}": ${sourcesList}</p><ul class="space-y-4">`;
-            
-            const filteredDiagnoses = Array.from(currentFindingData.diagnoses.values()).filter(dx => {
-                if (!searchTerm) return true;
-                const term = searchTerm.toLowerCase();
-                return dx.name.toLowerCase().includes(term) || (dx.keyFeatures && dx.keyFeatures.toLowerCase().includes(term));
-            }).sort((a,b) => a.name.localeCompare(b.name));
-
-            if (filteredDiagnoses.length === 0) {
-                 html += `<li class="text-gray-500 italic">No diagnoses match your search term "${searchTerm}" for this finding.</li>`;
-            } else {
-                filteredDiagnoses.forEach(dx => {
-                    const dxSources = Array.from(dx.sources).sort().join(', ');
-                    const dxFullSourcesTooltip = Array.from(dx.fullSources).sort().join('; ');
-                    const userNote = userNotes[dx.uniqueId] ? `<p class="text-xs bg-yellow-100 p-1 rounded mt-1"><em>Note:</em> ${userNotes[dx.uniqueId]}</p>` : '';
-                    html += `<li class="list-item-card">
-                                ${createDiagnosisCardActions(dx)}
-                                <h3 class="diagnosis-name">${dx.name}</h3>
-                                <p class="key-features">${dx.keyFeatures || 'N/A'}</p>
-                                <p class="diagnosis-sources" title="Original Source Texts: ${dxFullSourcesTooltip}">From: ${dxSources}</p>
-                                ${userNote}
-                            </li>`;
-                });
-            }
-            html += '</ul>';
-            listViewEl.innerHTML = html;
-        }
-
-        function displayTableView(searchTerm = '') { 
-            if (!currentFindingData) return;
-            const tableViewEl = document.getElementById('table-view');
-            if (!tableViewEl) return;
-
-            const sourcesList = Array.from(currentFindingData.originalSources).sort().join('; ');
-            let html = `<p class="finding-source-text">Source(s) for finding "${currentFindingData.displayFindingName}": ${sourcesList}</p>
-                        <table class="min-w-full divide-y divide-gray-200 border border-gray-300">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diagnosis</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key Features</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sources</th>
-                                    <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">`;
-
-            const filteredDiagnoses = Array.from(currentFindingData.diagnoses.values()).filter(dx => {
-                if (!searchTerm) return true;
-                const term = searchTerm.toLowerCase();
-                return dx.name.toLowerCase().includes(term) || (dx.keyFeatures && dx.keyFeatures.toLowerCase().includes(term));
-            }).sort((a,b) => a.name.localeCompare(b.name));
-            
-            if (filteredDiagnoses.length === 0) {
-                html += `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500 italic">No diagnoses match your search term "${searchTerm}" for this finding.</td></tr>`;
-            } else {
-                filteredDiagnoses.forEach(dx => {
-                    const dxSources = Array.from(dx.sources).sort().join(', ');
-                    const dxFullSourcesTooltip = Array.from(dx.fullSources).sort().join('; ');
-                    const userNote = userNotes[dx.uniqueId] ? `<p class="text-xs bg-yellow-100 p-1 rounded mt-1 truncate" title="${userNotes[dx.uniqueId]}"><em>Note:</em> ${userNotes[dx.uniqueId].substring(0,30)}...</p>` : '';
-                    html += `<tr>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${dx.name}</td>
-                                <td class="px-4 py-4 whitespace-normal text-sm text-gray-600">${dx.keyFeatures || 'N/A'} ${userNote}</td>
-                                <td class="px-4 py-4 whitespace-normal text-sm text-gray-600" title="Original Source Texts: ${dxFullSourcesTooltip}">${dxSources}</td>
-                                <td class="px-2 py-4 whitespace-nowrap text-sm">${createDiagnosisCardActions(dx).replace(/class="absolute.*?"/, 'class="flex space-x-1"')}</td>
-                            </tr>`;
-                });
-            }
-            html += `</tbody></table>`;
-            tableViewEl.innerHTML = html;
-        }
-
-        function clearDiagram() { if (simulation) simulation.stop(); if (diagramSvgElement) d3.select(diagramSvgElement).selectAll("*").remove(); svg = null; simulation = null; closeDiagramSidebar();}
-        
-        function openDiagramSidebar(nodeData) {
-            sidebarTitle.textContent = nodeData.id;
-            let contentHtml = `<p class="text-sm"><strong>Type:</strong> ${nodeData.type}</p>`;
-            let diagnosisObjectForActions = null;
-
-            if (nodeData.type === 'finding') {
-                contentHtml += `<p class="text-sm mt-1"><strong>Source(s):</strong> ${nodeData.sourceText.replace('Sources for finding: ','')}</p>`;
-            } else { 
-                contentHtml += `<p class="text-sm mt-1"><strong>Key Features:</strong> ${nodeData.keyFeatures || 'N/A'}</p>`;
-                contentHtml += `<p class="text-sm mt-1"><strong>Source(s):</strong> ${nodeData.sourceText.replace('From: ','')}</p>`;
-                if (nodeData.fullSourceText) contentHtml += `<p class="text-xs mt-1 text-gray-500"><em>Original: ${nodeData.fullSourceText.replace('Original Sources: ','')}</em></p>`;
-                
-                if (currentFindingData && currentFindingData.diagnoses.has(nodeData.id)) { // nodeData.id is diagnosis name
-                    diagnosisObjectForActions = currentFindingData.diagnoses.get(nodeData.id);
-                }
-            }
-            sidebarContent.innerHTML = contentHtml; 
-
-            if (diagnosisObjectForActions) {
-                const actionsHtml = createDiagnosisCardActions(diagnosisObjectForActions);
-                const actionsDiv = document.createElement('div');
-                actionsDiv.className = 'mt-3 pt-3 border-t border-gray-200';
-                // Adapt styling for sidebar to ensure buttons are not using 'absolute' positioning from the card.
-                actionsDiv.innerHTML = actionsHtml.replace(/class="absolute.*?flex/, 'class="flex'); 
-                sidebarContent.appendChild(actionsDiv);
-            }
-            diagramSidebar.classList.add('open');
-        }
-
-        function closeDiagramSidebar() { diagramSidebar.classList.remove('open'); }
-
-        function displayDiagramView() {  
-            if (!currentFindingData || !diagramSvgElement) return;
-            clearDiagram();
-            const container = document.getElementById('diagram-view'); 
-            if (!container) return;
-            diagramWidth = container.clientWidth; diagramHeight = container.clientHeight;
-            if (diagramWidth <= 0 || diagramHeight <= 0) { setTimeout(displayDiagramView, 100); return; } 
-            svg = d3.select(diagramSvgElement).attr("width", diagramWidth).attr("height", diagramHeight).attr("viewBox", [0, 0, diagramWidth, diagramHeight]).style("max-width", "100%").style("height", "auto").style("display", "block");
-            
-            const findingDisplayName = currentFindingData.displayFindingName;
-            const findingAllSources = Array.from(currentFindingData.originalSources).sort().join('; ');
-
-            const nodes = [{ id: findingDisplayName, type: 'finding', sourceText: `Sources for finding: ${findingAllSources}`, radius: Math.max(15, diagramWidth / 40) }];
-            const diagnosesArray = Array.from(currentFindingData.diagnoses.values()).sort((a,b) => a.name.localeCompare(b.name));
-            diagnosesArray.forEach(d => {
-                nodes.push({ id: d.name, type: 'diagnosis', keyFeatures: d.keyFeatures, sourceText: `From: ${Array.from(d.sources).sort().join(', ')}`, fullSourceText: `Original Sources: ${Array.from(d.fullSources).sort().join('; ')}`, radius: Math.max(10, diagramWidth / 60) });
-            });
-            const links = diagnosesArray.map(d => ({ source: findingDisplayName, target: d.name }));
-            
-            simulation = d3.forceSimulation(nodes)
-                .force("link", d3.forceLink(links).id(d => d.id).distance(Math.min(diagramWidth, diagramHeight) / (diagnosesArray.length > 5 ? 3 : 2.5)).strength(0.5))
-                .force("charge", d3.forceManyBody().strength(nodes.length > 10 ? -200 : -350))
-                .force("center", d3.forceCenter(diagramWidth / 2, diagramHeight / 2))
-                .force("collision", d3.forceCollide().radius(d => d.radius + (nodes.length > 20 ? 4 : 8) ));
-
-            const link = svg.append("g").attr("class", "links").selectAll("line").data(links).join("line").attr("class", "link");
-            const node = svg.append("g").attr("class", "nodes").selectAll("g").data(nodes).join("g").attr("class", "node").call(drag(simulation));
-            
-            node.append("circle").attr("r", d => d.radius).attr("fill", d => d.type === 'finding' ? '#3b82f6' : '#60a5fa');
-            node.append("text").text(d => d.id.split(" (")[0]).attr("dy", d => d.radius + 5).attr("class", d => d.type === 'finding' ? 'finding-label' : '').style("font-size", d => (d.id.length > 25 ? "8px" : "10px"));
-            
-            const tooltipDiv = d3.select("#tooltip");
-            node.on("mouseover", (event, d) => { tooltipDiv.style("opacity", 0.95); let content = `<strong>${d.id}</strong>`; if (d.type === 'finding') { content += `<br><span style="font-size: 0.8em; color: #e0e0e0;">${d.sourceText}</span>`; } else { content += `<br><span style="font-size: 0.8em; color: #e0e0e0;">${d.keyFeatures || 'N/A'}</span>`; content += `<br><span style="font-size: 0.75em; color: #cccccc; font-style:italic;">${d.sourceText}</span>`; if(d.fullSourceText) content += `<br><span style="font-size: 0.7em; color: #b0b0b0; font-style:italic;">(${d.fullSourceText})</span>`; } tooltipDiv.html(content);  })
-                .on("mousemove", (event) => { tooltipDiv.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 10) + "px"); })
-                .on("mouseout", () => tooltipDiv.style("opacity", 0))
-                .on("click", (event, d) => { event.stopPropagation(); openDiagramSidebar(d); });
-            
-            simulation.on("tick", () => { link.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y); node.attr("transform", d => `translate(${d.x},${d.y})`); });
-        }
-        function drag(simulation) { function dragstarted(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; d3.select(this).select("circle").style("cursor", "grabbing"); } function dragged(event, d) { d.fx = event.x; d.fy = event.y; } function dragended(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; d3.select(this).select("circle").style("cursor", "grab"); } return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended); }
-
-        // --- Flashcard SRS Specific Functions ---
-        function initializeSrsFlashcardDeck() {
-            resetFlashcardViewInternalUI();
-            let allSrsCards = [];
-            if (currentFindingData && currentFindingData.diagnoses && currentFindingData.diagnoses.size > 0) {
-                 allSrsCards = [...currentFindingData.diagnoses.values()].map(dx => ({...dx, cardId: dx.flashcardId}));
-            } else { 
-                processedFindingsMap.forEach(finding => {
-                    finding.diagnoses.forEach(dx => {
-                        allSrsCards.push({...dx, cardId: dx.flashcardId});
-                    });
-                });
-            }
-            
-            if (allSrsCards.length === 0) {
-                flashcardPlaceholder.textContent = "No diagnoses available for flashcards.";
-                flashcardPlaceholder.classList.remove('hidden');
-                return;
-            }
-
-            srsDeck = allSrsCards.map(card => {
-                const srsInfo = userSrsData[card.cardId] || {
-                    interval: 0, easeFactor: SRS_INITIAL_EASE_FACTOR, dueDate: new Date(0).toISOString(), repetitions: 0, history: []
-                };
-                return { ...card, srs: srsInfo };
-            }).filter(card => new Date(card.srs.dueDate) <= new Date()); 
-
-            shuffleArray(srsDeck);
-            currentSrsCardIndex = 0;
-
-            if (srsDeck.length > 0) {
-                if (flashcardPlaceholder) flashcardPlaceholder.classList.add('hidden');
-                if (flashcardContainer) flashcardContainer.classList.remove('hidden');
-                if (flashcardControls) flashcardControls.classList.remove('hidden');
-                if (flashcardCompletion) flashcardCompletion.classList.add('hidden');
-                
-                const fcSourceTextParent = flashcardView.querySelector('.placeholder-text').parentNode; // Get parent of placeholder
-                let sourceP = flashcardView.querySelector('p.finding-source-text-fc');
-                if (!sourceP) {
-                    sourceP = document.createElement('p');
-                    sourceP.className = 'finding-source-text finding-source-text-fc';
-                    fcSourceTextParent.insertBefore(sourceP, flashcardContainer); // Insert before container or at a specific position
-                }
-
-                if (currentFindingData) {
-                    const findingAllSources = Array.from(currentFindingData.originalSources).sort().join('; ');
-                    sourceP.textContent = `Finding: "${currentFindingData.displayFindingName}" (Sources: ${findingAllSources})`;
-                } else {
-                    sourceP.textContent = "Reviewing cards from all findings."
-                }
-                displayCurrentSrsFlashcard();
-            } else {
-                resetFlashcardViewInternalUI();
-                flashcardCompletion.textContent = currentFindingData ? "All cards for this finding are learned for now!" : "No cards due for review across all findings!";
-                flashcardCompletion.classList.remove('hidden');
-            }
-            updateFlashcardDeckStats();
-        }
-
-        function updateFlashcardDeckStats() {
-            const totalDue = srsDeck.length;
-            let newCount = 0, learningCount = 0, learnedCount = 0;
-            const allCardIdsInSystem = new Set(allDiagnosesFlat.map(dx => dx.flashcardId));
-
-            allCardIdsInSystem.forEach(cardId => {
-                const srsItem = userSrsData[cardId];
-                if (!srsItem || srsItem.repetitions === 0) newCount++;
-                else if (srsItem.interval < 21) learningCount++; 
-                else learnedCount++;
-            });
-
-            flashcardDeckStats.textContent = `Due Now: ${totalDue} | New: ${newCount} | Learning: ${learningCount} | Learned: ${learnedCount}`;
-            flashcardDeckStats.classList.remove('hidden');
-        }
-        
-        function displayCurrentSrsFlashcard() {
-            if (currentSrsCardIndex >= srsDeck.length || srsDeck.length === 0) {
-                resetFlashcardViewInternalUI();
-                flashcardCompletion.textContent = currentFindingData ? "All cards for this finding are learned for now!" : "No cards due for review across all findings!";
-                flashcardCompletion.classList.remove('hidden');
-                updateFlashcardDeckStats();
-                return;
-            }
-
-            const cardData = srsDeck[currentSrsCardIndex];
-            const cardSources = Array.from(cardData.sources).sort().join(', ');
-            const cardFullSourcesTooltip = Array.from(cardData.fullSources).sort().join('; ');
-
-            flashcardContainer.innerHTML = `
-                <div class="flashcard">
-                    <div class="flashcard-inner">
-                        <div class="flashcard-front">
-                            <div class="flashcard-name">${cardData.name}</div>
-                            <div class="text-xs text-gray-500">(Parent Finding: ${cardData.parentFinding})</div>
-                            <div class="flashcard-instruction mt-2">(Click to flip)</div>
-                        </div>
-                        <div class="flashcard-back">
-                            <p>${cardData.keyFeatures || 'N/A'}</p>
-                            <p class="diagnosis-sources mt-2" title="Original Source Texts: ${cardFullSourcesTooltip}">From: ${cardSources}</p>
-                        </div>
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Share Results</h3>
+                <button class="modal-close" id="share-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div>
+                <p style="margin-bottom: 1rem; color: var(--neutral-600);">
+                    Share this differential diagnosis list with colleagues
+                </p>
+                <div class="form-group">
+                    <label for="share-url" class="form-label">Shareable Link</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="share-url" class="form-input" readonly>
+                        <button class="btn btn-secondary" id="copy-link-btn">
+                            <i class="fas fa-copy"></i>
+                        </button>
                     </div>
-                </div>`;
-            const newCard = flashcardContainer.querySelector('.flashcard');
-            if (newCard) newCard.addEventListener('click', () => newCard.classList.toggle('is-flipped'));
+                </div>
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button class="btn btn-secondary" id="share-email-btn">
+                        <i class="fas fa-envelope"></i> Email
+                    </button>
+                    <button class="btn btn-secondary" id="share-social-btn">
+                        <i class="fas fa-share-alt"></i> Social
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            flashcardCounter.textContent = `Card ${currentSrsCardIndex + 1} of ${srsDeck.length} (Due Today)`;
-            flashcardCounter.classList.remove('hidden');
-            if (flashcardCompletion) flashcardCompletion.classList.add('hidden');
-            updateFlashcardDeckStats();
-        }
+    <!-- Tooltip for D3 diagram -->
+    <div id="tooltip" class="tooltip-content" style="position: absolute; opacity: 0; pointer-events: none; z-index: 1000;"></div>
 
-        function handleSrsAnswer(quality) { 
-            if (srsDeck.length === 0 || currentSrsCardIndex >= srsDeck.length) return;
-            const card = srsDeck[currentSrsCardIndex];
-            let srsInfo = userSrsData[card.cardId] || { 
-                interval: 0, easeFactor: SRS_INITIAL_EASE_FACTOR, dueDate: new Date(0).toISOString(), repetitions: 0, history: []
-            };
-            let nextDueDate;
+    <script>
+// Enhanced Dermatopathology Navigator Pro with Professional UI/UX
+(function() {
+    'use strict';
 
-            if (quality < 2) { 
-                srsInfo.repetitions = 0; 
-                if (quality === 0) { 
-                    srsInfo.interval = 0; // Will be handled by specific "again" logic
-                    nextDueDate = new Date(Date.now() + SRS_MIN_INTERVAL_MINUTES * 60 * 1000);
-                    srsInfo.history.push({ date: new Date().toISOString(), quality, interval: `+${SRS_MIN_INTERVAL_MINUTES}m`, easeFactor: srsInfo.easeFactor });
-                } else { // Hard
-                    srsInfo.interval = Math.max(1, srsInfo.interval * 0.8); 
-                    srsInfo.easeFactor = Math.max(1.3, srsInfo.easeFactor - 0.15);
-                    nextDueDate = new Date(Date.now() + srsInfo.interval * 24 * 60 * 60 * 1000);
-                    srsInfo.history.push({ date: new Date().toISOString(), quality, interval: srsInfo.interval, easeFactor: srsInfo.easeFactor });
-                }
-            } else { 
-                if (srsInfo.repetitions === 0) { srsInfo.interval = SRS_INITIAL_INTERVAL; } 
-                else if (srsInfo.repetitions === 1) { srsInfo.interval = Math.max(SRS_INITIAL_INTERVAL +1, Math.ceil(srsInfo.interval * srsInfo.easeFactor * 0.8));} 
-                else { srsInfo.interval = Math.ceil(srsInfo.interval * srsInfo.easeFactor); }
-                srsInfo.repetitions += 1;
+    // Global variables
+    let currentFindingData = null;
+    let processedFindingsMap = new Map();
+    let userNotes = JSON.parse(localStorage.getItem('dermapath-notes') || '{}');
+    let userFavorites = new Set(JSON.parse(localStorage.getItem('dermapath-favorites') || '[]'));
+    let userSrsData = JSON.parse(localStorage.getItem('dermapath-srs') || '{}');
+    let compareList = new Set();
+    let fuseInstance = null;
+    let learningAnalytics = JSON.parse(localStorage.getItem('dermapath-analytics') || '{}');
+    
+    // D3 diagram variables
+    let svg = null;
+    let simulation = null;
+    let diagramWidth = 0;
+    let diagramHeight = 0;
 
-                if (quality === 3) { srsInfo.easeFactor = Math.min(3.5, srsInfo.easeFactor + 0.15); srsInfo.interval = Math.ceil(srsInfo.interval * 1.3); } 
-                nextDueDate = new Date(Date.now() + srsInfo.interval * 24 * 60 * 60 * 1000);
-                srsInfo.history.push({ date: new Date().toISOString(), quality, interval: srsInfo.interval, easeFactor: srsInfo.easeFactor });
-            }
-            
-            srsInfo.dueDate = nextDueDate.toISOString();
-            userSrsData[card.cardId] = srsInfo;
-            saveDataToLocalStorage('userSrsData', userSrsData);
+    // SRS constants
+    const SRS_INITIAL_EASE_FACTOR = 2.5;
+    const SRS_MIN_EASE_FACTOR = 1.3;
+    const SRS_MAX_EASE_FACTOR = 3.0;
 
-            if (quality === 0) { // "Again": move to end of current deck
-                srsDeck.push(srsDeck.splice(currentSrsCardIndex, 1)[0]);
-                // currentSrsCardIndex remains the same as the next card shifts to this position
-            } else { // Hard, Good, Easy: remove from current due deck
-                srsDeck.splice(currentSrsCardIndex, 1);
-                // currentSrsCardIndex does not need to be incremented here,
-                // as the next card will naturally be at the same index after splice,
-                // or it will be past the end if this was the last card.
-            }
-            displayCurrentSrsFlashcard(); // This will correctly pick the next card or end the session
-        }
+    // Professional loading states
+    function showLoading(message = 'Loading...') {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.querySelector('p').textContent = message;
+        overlay.classList.add('open');
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-overlay').classList.remove('open');
+    }
+
+    // Enhanced notification system
+    function showNotification(message, type = 'info', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
         
-        const handleResize = debounce(() => { if (currentView === 'diagram-view' && currentFindingData && svg) { const container = document.getElementById('diagram-view'); if (!container) return; const newWidth = container.clientWidth; const newHeight = container.clientHeight; if (newWidth > 0 && newHeight > 0 && (newWidth !== diagramWidth || newHeight !== diagramHeight)) { diagramWidth = newWidth; diagramHeight = newHeight; svg.attr("width", diagramWidth).attr("height", diagramHeight).attr("viewBox", [0, 0, diagramWidth, diagramHeight]); if (simulation) { simulation.force("center", d3.forceCenter(diagramWidth / 2, diagramHeight / 2)) .force("link").distance(Math.min(diagramWidth, diagramHeight) / (Array.from(currentFindingData.diagnoses.values()).length > 5 ? 3 : 2.5)); simulation.alpha(0.3).restart(); } } } }, 250);
-
-        // --- My List / Favorites Functions ---
-        function toggleFavorite(diagnosisUniqueId, event) {
-            if (event) event.stopPropagation(); 
-            if (userFavorites.has(diagnosisUniqueId)) { userFavorites.delete(diagnosisUniqueId); } 
-            else { userFavorites.add(diagnosisUniqueId); }
-            saveDataToLocalStorage('userFavorites', Array.from(userFavorites)); 
-            
-            if (['list-view', 'table-view', 'my-list-view', 'diagram-view', 'global-search-view'].includes(currentView)) {
-                if (currentView === 'my-list-view') displayMyListView();
-                else if (currentView === 'diagram-view' && diagramSidebar.classList.contains('open')) {
-                    const dxForSidebar = findDiagnosisByUniqueId(diagnosisUniqueId);
-                    if (dxForSidebar) { // Reconstruct nodeData for openDiagramSidebar
-                        const nodeDataForSidebar = { id: dxForSidebar.name, type: 'diagnosis', keyFeatures: dxForSidebar.keyFeatures, sourceText: `From: ${Array.from(dxForSidebar.sources).sort().join(', ')}`, fullSourceText: `Original Sources: ${Array.from(dxForSidebar.fullSources).sort().join('; ')}`};
-                        openDiagramSidebar(nodeDataForSidebar); // This will re-render actions
-                    }
-                } else if (currentView === 'global-search-view') {
-                    performGlobalSearch(); // Re-render global search to update icons
-                }
-                else displayContent(searchDiagnosesInput.value); // Re-render list/table view
-            }
-             const icon = event ? event.target : document.querySelector(`.favorite-icon[onclick*="'${diagnosisUniqueId}'"]`);
-             if (icon) icon.classList.toggle('favorited', userFavorites.has(diagnosisUniqueId));
-        }
-
-        function displayMyListView() {
-            myListContent.innerHTML = '';
-            if (userFavorites.size === 0) {
-                myListContent.innerHTML = `<div class="placeholder-text">No diagnoses added to your list yet. Star diagnoses to add them.</div>`;
-                return;
-            }
-            let html = '<ul class="space-y-4">';
-            userFavorites.forEach(uniqueId => {
-                const dx = findDiagnosisByUniqueId(uniqueId);
-                if (dx) {
-                    const dxSources = Array.from(dx.sources).sort().join(', ');
-                    const dxFullSourcesTooltip = Array.from(dx.fullSources).sort().join('; ');
-                    const userNote = userNotes[dx.uniqueId] ? `<p class="text-xs bg-yellow-100 p-1 rounded mt-1"><em>Note:</em> ${userNotes[dx.uniqueId]}</p>` : '';
-                    html += `<li class="list-item-card">
-                                ${createDiagnosisCardActions(dx)}
-                                <h3 class="diagnosis-name">${dx.name} <span class="text-sm text-gray-500">(from ${dx.parentFinding})</span></h3>
-                                <p class="key-features">${dx.keyFeatures || 'N/A'}</p>
-                                <p class="diagnosis-sources" title="Original Source Texts: ${dxFullSourcesTooltip}">From: ${dxSources}</p>
-                                ${userNote}
-                            </li>`;
-                }
-            });
-            html += '</ul>';
-            myListContent.innerHTML = html;
-        }
-        
-        function findDiagnosisByUniqueId(uniqueId) {
-            if (!uniqueId) return null;
-            const [findingName, diagnosisName] = uniqueId.split('|');
-            if (!findingName || !diagnosisName) return null;
-            const finding = processedFindingsMap.get(findingName);
-            return finding ? finding.diagnoses.get(diagnosisName) : null;
-        }
-
-        // --- Note Functions ---
-        function openNoteModal(diagnosisUniqueId, event) {
-            if (event) event.stopPropagation();
-            currentEditingDiagnosisId = diagnosisUniqueId;
-            const dx = findDiagnosisByUniqueId(diagnosisUniqueId);
-            noteModalTitle.textContent = `Note for ${dx ? dx.name : 'Diagnosis'}`;
-            noteModalTextarea.value = userNotes[diagnosisUniqueId] || '';
-            noteModal.classList.add('open');
-            noteModalTextarea.focus();
-        }
-        function closeNoteModal() { noteModal.classList.remove('open'); currentEditingDiagnosisId = null; }
-        function saveNote() {
-            if (currentEditingDiagnosisId) {
-                const noteText = noteModalTextarea.value.trim();
-                if (noteText) { userNotes[currentEditingDiagnosisId] = noteText; } 
-                else { delete userNotes[currentEditingDiagnosisId]; }
-                saveDataToLocalStorage('userNotes', userNotes);
-                closeNoteModal();
-                if (['list-view', 'table-view', 'my-list-view', 'diagram-view', 'global-search-view'].includes(currentView)) {
-                     if (currentView === 'my-list-view') displayMyListView();
-                     else if (currentView === 'diagram-view' && diagramSidebar.classList.contains('open')) {
-                         const dxForSidebar = findDiagnosisByUniqueId(currentEditingDiagnosisId);
-                         if (dxForSidebar) {
-                             const nodeDataForSidebar = { id: dxForSidebar.name, type: 'diagnosis', keyFeatures: dxForSidebar.keyFeatures, sourceText: `From: ${Array.from(dxForSidebar.sources).sort().join(', ')}`, fullSourceText: `Original Sources: ${Array.from(dxForSidebar.fullSources).sort().join('; ')}`};
-                             openDiagramSidebar(nodeDataForSidebar);
-                         }
-                     } else if (currentView === 'global-search-view') {
-                        performGlobalSearch();
-                     }
-                     else displayContent(searchDiagnosesInput.value);
-                }
-            }
-        }
-
-        // --- Compare Diagnoses Functions ---
-        function addToComparisonList(diagnosisUniqueId, event) {
-            if (event) event.stopPropagation();
-            if (comparisonList.some(dx => dx.uniqueId === diagnosisUniqueId)) { alert("This diagnosis is already in the comparison list."); return; }
-            if (comparisonList.length >= 3) { alert("You can compare a maximum of 3 diagnoses at a time. Please remove one first."); return; }
-
-            const dx = findDiagnosisByUniqueId(diagnosisUniqueId);
-            if (dx) {
-                comparisonList.push({...dx}); 
-                if (currentView === 'compare-view') { displayCompareView(); } 
-                else {
-                    const clickedIconContainer = event ? event.target.closest('.action-icon') : null;
-                    if (clickedIconContainer) {
-                        clickedIconContainer.innerHTML = '✓ Compare'; 
-                        clickedIconContainer.classList.add('in-compare');
-                        clickedIconContainer.title = 'In Compare List';
-                    }
-                    alert(`${dx.name} added to comparison. Go to the 'Compare' tab to see details or manage the list.`);
-                }
-            } else { console.error("Could not find diagnosis to add to comparison:", diagnosisUniqueId); alert("Error: Could not add selected diagnosis to comparison list."); }
-        }
-        function displayCompareView() {
-            compareContentArea.innerHTML = '';
-            if (comparisonList.length === 0) {
-                compareContentArea.innerHTML = `<div class="placeholder-text">Select diagnoses using the '➕ Compare' icon to compare them.</div>`;
-                return;
-            }
-            let html = `<table class="min-w-full divide-y divide-gray-200 border border-gray-300">
-                            <thead><tr><th class="bg-gray-100 p-2">Feature</th>`;
-            comparisonList.forEach(dx => {
-                html += `<th class="bg-gray-100 p-2">${dx.name} <span class="text-xs text-gray-500">(from ${dx.parentFinding})</span> <button class="text-red-500 text-xs font-normal ml-1" onclick="removeFromComparison('${dx.uniqueId}', event)">(Remove)</button></th>`;
-            });
-            html += `</tr></thead><tbody>`;
-            ['keyFeatures', 'sources', 'fullSources', 'userNotes'].forEach(featureKey => {
-                html += `<tr><td class="font-semibold bg-gray-50 p-2 capitalize">${featureKey.replace('userNotes', 'My Notes').replace(/([A-Z])/g, ' $1').trim()}</td>`;
-                comparisonList.forEach(dx => {
-                    let val = '';
-                    if (featureKey === 'userNotes') val = userNotes[dx.uniqueId] || '<em>No note</em>';
-                    else if (featureKey === 'sources' || featureKey === 'fullSources') val = Array.from(dx[featureKey]).sort().join(featureKey === 'sources' ? ', ' : '; ');
-                    else val = dx[featureKey] || 'N/A';
-                    html += `<td class="p-2 align-top text-sm">${val} ${featureKey === 'userNotes' ? `<span class="action-icon text-xs" onclick="openNoteModal('${dx.uniqueId}', event)">📝</span>` : ''}</td>`;
-                });
-                html += `</tr>`;
-            });
-            html += `</tbody></table>`;
-            compareContentArea.innerHTML = html;
-        }
-        function removeFromComparison(diagnosisUniqueId, event) {
-            if(event) event.stopPropagation();
-            comparisonList = comparisonList.filter(dx => dx.uniqueId !== diagnosisUniqueId);
-            displayCompareView(); // Re-render compare view
-            // Also, try to update the icon in other views if they are active and showing this item
-             if (currentView !== 'compare-view' && (['list-view', 'table-view', 'my-list-view', 'diagram-view', 'global-search-view'].includes(currentView))) {
-                if (currentView === 'diagram-view' && diagramSidebar.classList.contains('open')) {
-                     const dxForSidebar = findDiagnosisByUniqueId(diagnosisUniqueId);
-                     if (dxForSidebar) {
-                         const nodeDataForSidebar = { id: dxForSidebar.name, type: 'diagnosis', keyFeatures: dxForSidebar.keyFeatures, sourceText: `From: ${Array.from(dxForSidebar.sources).sort().join(', ')}`, fullSourceText: `Original Sources: ${Array.from(dxForSidebar.fullSources).sort().join('; ')}`};
-                         openDiagramSidebar(nodeDataForSidebar);
-                     }
-                } else if (currentView === 'global-search-view') {
-                    performGlobalSearch();
-                } else if (currentView === 'my-list-view') {
-                    displayMyListView();
-                }
-                else {
-                    displayContent(searchDiagnosesInput.value);
-                }
-            }
-        }
-        
-        // --- Global Search Functions ---
-        function performGlobalSearch() {
-            const searchTerm = globalSearchInput.value.toLowerCase().trim();
-            if (!searchTerm) { globalSearchResultsArea.innerHTML = `<div class="placeholder-text">Enter a term to search globally.</div>`; return; }
-            const results = allDiagnosesFlat.filter(dx => 
-                dx.name.toLowerCase().includes(searchTerm) ||
-                (dx.keyFeatures && dx.keyFeatures.toLowerCase().includes(searchTerm)) ||
-                dx.parentFinding.toLowerCase().includes(searchTerm)
-            );
-
-            if (results.length === 0) { globalSearchResultsArea.innerHTML = `<p class="text-gray-600">No results found for "${searchTerm}".</p>`; return; }
-
-            let html = `<h3 class="text-lg font-semibold mb-2">${results.length} result(s) found:</h3><ul class="space-y-3">`;
-            results.forEach(dx => {
-                 const dxSources = Array.from(dx.sources).sort().join(', ');
-                 const userNote = userNotes[dx.uniqueId] ? `<p class="text-xs bg-yellow-100 p-1 rounded mt-1"><em>Note:</em> ${userNotes[dx.uniqueId]}</p>` : '';
-                 html += `<li class="list-item-card">
-                            ${createDiagnosisCardActions(dx)}
-                            <h4 class="diagnosis-name">${dx.name}</h4>
-                            <p class="text-sm text-gray-500">Relevant Finding: <a href="#" class="text-blue-600 hover:underline" onclick="navigateToFinding('${dx.parentFinding}', event)">${dx.parentFinding}</a></p>
-                            <p class="key-features">${dx.keyFeatures || 'N/A'}</p>
-                            <p class="diagnosis-sources">From: ${dxSources}</p>
-                            ${userNote}
-                          </li>`;
-            });
-            html += `</ul>`;
-            globalSearchResultsArea.innerHTML = html;
-        }
-        function navigateToFinding(findingName, event) { if(event) event.preventDefault(); findingSelect.value = findingName; findingSelect.dispatchEvent(new Event('change')); switchView('list-view'); }
-        
-        // --- Quiz Mode Functions (Corrected Versions) ---
-        let currentQuiz = null; 
-        const MAX_QUIZ_QUESTIONS = 5; 
-
-        function generateQuizQuestions(type) {
-            const questions = [];
-            if (allDiagnosesFlat.length === 0) return questions;
-
-            const availableDiagnoses = [...allDiagnosesFlat]; 
-            shuffleArray(availableDiagnoses); 
-
-            for (let i = 0; i < Math.min(availableDiagnoses.length, MAX_QUIZ_QUESTIONS); i++) {
-                const dx = availableDiagnoses[i];
-                if (!dx || !dx.name || !dx.keyFeatures || !dx.parentFinding) continue; 
-
-                if (type === 'featuresToDx') {
-                    questions.push({
-                        questionText: `Key Features: "${dx.keyFeatures}" (Hint: associated with finding "${dx.parentFinding}"). What is the diagnosis?`,
-                        answer: dx.name,
-                        type: 'featuresToDx'
-                    });
-                } else if (type === 'findingToDx') {
-                    const parentFindingEntry = processedFindingsMap.get(dx.parentFinding);
-                    if (parentFindingEntry && parentFindingEntry.diagnoses.size > 0) {
-                        const differentials = Array.from(parentFindingEntry.diagnoses.keys());
-                        questions.push({
-                            questionText: `Name one differential diagnosis for the histologic finding: "${dx.parentFinding}".`,
-                            answer: differentials, 
-                            type: 'findingToDx'
-                        });
-                    }
-                }
-            }
-            return questions.filter(q => q); 
-        }
-
-        function startQuiz() {
-            const type = quizTypeSelect.value;
-            currentQuiz = { type, questions: generateQuizQuestions(type), currentQuestionIndex: 0, score: 0 };
-
-            if (currentQuiz.questions.length === 0) {
-                quizQuestion.textContent = "Not enough data to generate this quiz.";
-                quizArea.classList.remove('hidden');
-                quizSetup.classList.add('hidden');
-                quizPlaceholder.classList.add('hidden');
-                quizAnswerInput.classList.add('hidden');
-                submitQuizAnswerButton.classList.add('hidden');
-                quizFeedback.textContent = "";
-                quizScore.textContent = "";
-                return;
-            }
-            quizSetup.classList.add('hidden');
-            quizPlaceholder.classList.add('hidden');
-            quizArea.classList.remove('hidden');
-            quizAnswerInput.value = ''; 
-            quizAnswerInput.classList.remove('hidden');
-            submitQuizAnswerButton.classList.remove('hidden');
-            displayNextQuizQuestion();
-        }
-
-        function displayNextQuizQuestion() {
-            if (!currentQuiz || currentQuiz.currentQuestionIndex >= currentQuiz.questions.length) {
-                quizQuestion.innerHTML = `Quiz Complete! Final Score: ${currentQuiz ? currentQuiz.score : 0}/${currentQuiz ? currentQuiz.questions.length : 0}`;
-                quizAnswerInput.classList.add('hidden');
-                submitQuizAnswerButton.classList.add('hidden');
-                quizFeedback.innerHTML = ''; // Clear previous feedback and button
-                const backButton = document.createElement('button');
-                backButton.textContent = 'Try Another Quiz';
-                backButton.className = 'mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded';
-                backButton.onclick = () => {
-                    quizArea.classList.add('hidden');
-                    quizSetup.classList.remove('hidden');
-                    quizPlaceholder.classList.remove('hidden');
-                    quizQuestion.innerHTML = ''; 
-                };
-                quizFeedback.appendChild(backButton);
-                return;
-            }
-
-            const q = currentQuiz.questions[currentQuiz.currentQuestionIndex];
-            quizQuestion.innerHTML = q.questionText; 
-            quizAnswerInput.value = '';
-            quizFeedback.textContent = '';
-            quizScore.textContent = `Score: ${currentQuiz.score}/${currentQuiz.questions.length} | Question: ${currentQuiz.currentQuestionIndex + 1}/${currentQuiz.questions.length}`;
-            quizAnswerInput.focus();
-        }
-
-        function submitQuizAnswer() {
-            if (!currentQuiz || currentQuiz.currentQuestionIndex >= currentQuiz.questions.length) return;
-
-            const userAnswer = quizAnswerInput.value.trim().toLowerCase();
-            const currentQuestion = currentQuiz.questions[currentQuiz.currentQuestionIndex];
-            let isCorrect = false;
-
-            if (currentQuestion.type === 'featuresToDx') {
-                const correctAnswer = currentQuestion.answer.toLowerCase();
-                if (userAnswer === correctAnswer) { isCorrect = true; }
-            } else if (currentQuestion.type === 'findingToDx') {
-                const correctAnswersArray = currentQuestion.answer.map(ans => ans.toLowerCase());
-                if (correctAnswersArray.includes(userAnswer)) { isCorrect = true; }
-            }
-
-            if (isCorrect) {
-                currentQuiz.score++;
-                quizFeedback.textContent = "Correct!";
-                quizFeedback.className = "mt-2 text-green-600";
-            } else {
-                let feedbackText = `Incorrect. `;
-                if (currentQuestion.type === 'featuresToDx') {
-                    feedbackText += `The correct answer was: ${currentQuestion.answer}`;
-                } else if (currentQuestion.type === 'findingToDx') {
-                    feedbackText += `Some correct answers for "${currentQuestion.questionText.match(/"([^"]+)"/)[1]}" include: ${currentQuestion.answer.slice(0,3).join(', ')}...`;
-                }
-                quizFeedback.textContent = feedbackText;
-                quizFeedback.className = "mt-2 text-red-600";
-            }
-            currentQuiz.currentQuestionIndex++;
-            quizAnswerInput.disabled = true;
-            submitQuizAnswerButton.disabled = true;
-            setTimeout(() => {
-                quizAnswerInput.disabled = false;
-                submitQuizAnswerButton.disabled = false;
-                displayNextQuizQuestion();
-            }, 2000);
-        }
-        
-        // --- References Tab Functions ---
-        function populateReferencesTab() {
-            referencesList.innerHTML = '';
-            const referencesPlaceholderEl = document.getElementById('references-placeholder');
-            if (allSourcesMasterSet.size === 0) {
-                if(referencesPlaceholderEl) referencesPlaceholderEl.classList.remove('hidden');
-                return;
-            }
-            if(referencesPlaceholderEl) referencesPlaceholderEl.classList.add('hidden');
-            const sortedSources = Array.from(allSourcesMasterSet).sort();
-            sortedSources.forEach(source => {
-                const li = document.createElement('li');
-                li.textContent = source;
-                referencesList.appendChild(li);
-            });
-        }
-        
-        // --- Settings Tab Functions ---
-        function displaySettingsView() { settingFontSize.value = userSettings.fontSize || 'text-base'; }
-        
-        // --- Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            userFavorites = new Set(loadDataFromLocalStorage('userFavorites', []));
-            userNotes = loadDataFromLocalStorage('userNotes', {});
-            userSrsData = loadDataFromLocalStorage('userSrsData', {});
-            userSettings = loadDataFromLocalStorage('userSettings', { fontSize: 'text-base' });
-            document.body.classList.add(userSettings.fontSize || 'text-base');
-
-            if (typeof differentialsData !== 'undefined' && Array.isArray(differentialsData)) {
-                processRawData();
-                populateDropdown(); 
-                switchView('list-view'); 
-            } else {
-                console.error("differentialsData is undefined or not an array at DOMContentLoaded. Ensure data.js is loaded before this script and defines 'differentialsData' as an array.");
-                const resultsArea = document.querySelector('.results-area');
-                if (resultsArea) resultsArea.innerHTML = '<div class="placeholder-text" style="color: red; z-index: 10;">Critical Error: Data not loaded or invalid. Cannot initialize application. Check console.</div>';
-                [searchFindingInput, findingSelect, searchDiagnosesInput].forEach(el => {if(el) el.disabled = true;});
-            }
-            
-            tabs.forEach(tabInfo => { const tabButton = document.getElementById(tabInfo.id); if (tabButton) tabButton.addEventListener('click', () => switchView(tabInfo.viewId)); });
-            searchFindingInput.addEventListener('input', () => { const searchTerm = searchFindingInput.value.toLowerCase(); Array.from(findingSelect.options).forEach(option => { if (option.value === "") { option.style.display = ""; return; } const optionText = option.textContent.toLowerCase(); option.style.display = optionText.includes(searchTerm) ? "" : "none"; }); });
-            findingSelect.addEventListener('change', () => {
-                const selectedValue = findingSelect.value;
-                currentFindingData = selectedValue ? processedFindingsMap.get(selectedValue) : null;
-                searchDiagnosesInput.value = ''; 
-                if (['list-view', 'table-view', 'diagram-view', 'flashcard-view'].includes(currentView)) {
-                    if (currentView === 'flashcard-view') { initializeSrsFlashcardDeck(); } 
-                    else { displayContent(); }
-                }
-            });
-            searchDiagnosesInput.addEventListener('input', () => { const searchTerm = searchDiagnosesInput.value; if (['list-view', 'table-view'].includes(currentView)) { displayContent(searchTerm); } });
-            [srsAgainButton, srsHardButton, srsGoodButton, srsEasyButton].forEach(button => { button.addEventListener('click', () => handleSrsAnswer(parseInt(button.dataset.quality))); });
-            noteModalSave.addEventListener('click', saveNote);
-            noteModalCancel.addEventListener('click', closeNoteModal);
-            noteModal.addEventListener('click', (e) => { if (e.target === noteModal) closeNoteModal(); });
-            closeSidebarButton.addEventListener('click', closeDiagramSidebar);
-            if (document.getElementById('diagram-view') && typeof ResizeObserver !== 'undefined') { resizeObserver = new ResizeObserver(handleResize); resizeObserver.observe(document.getElementById('diagram-view')); } 
-            else if (document.getElementById('diagram-view')) { window.addEventListener('resize', handleResize); }
-            printButton.addEventListener('click', () => window.print());
-            clearComparisonButton.addEventListener('click', () => { comparisonList = []; displayCompareView(); if (['list-view', 'table-view', 'my-list-view', 'diagram-view', 'global-search-view'].includes(currentView)) { displayContent(searchDiagnosesInput.value); }}); // Re-render to update icons
-            globalSearchButton.addEventListener('click', performGlobalSearch);
-            globalSearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performGlobalSearch(); });
-            startQuizButton.addEventListener('click', startQuiz);
-            submitQuizAnswerButton.addEventListener('click', submitQuizAnswer);
-            quizAnswerInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') submitQuizAnswer(); });
-            settingFontSize.addEventListener('change', (e) => { document.body.className = document.body.className.replace(/text-(sm|base|lg)/g, ''); document.body.classList.add(e.target.value); userSettings.fontSize = e.target.value; saveDataToLocalStorage('userSettings', userSettings); });
-            resetSrsButton.addEventListener('click', () => { if (confirm("Are you sure you want to reset all SRS flashcard progress? This cannot be undone.")) { userSrsData = {}; saveDataToLocalStorage('userSrsData', userSrsData); alert("SRS progress has been reset."); if (currentView === 'flashcard-view') initializeSrsFlashcardDeck(); updateFlashcardDeckStats(); } });
-            clearFavoritesButton.addEventListener('click', () => { if (confirm("Are you sure you want to clear all your favorites? This cannot be undone.")) { userFavorites.clear(); saveDataToLocalStorage('userFavorites', Array.from(userFavorites)); alert("All favorites cleared."); if (currentView === 'my-list-view') displayMyListView(); else if (['list-view', 'table-view', 'global-search-view'].includes(currentView)) displayContent(searchDiagnosesInput.value); } });
-            clearNotesButton.addEventListener('click', () => { if (confirm("Are you sure you want to clear all your notes? This cannot be undone.")) { userNotes = {}; saveDataToLocalStorage('userNotes', userNotes); alert("All notes cleared."); if (['list-view', 'table-view', 'my-list-view', 'global-search-view'].includes(currentView)) { if (currentView === 'my-list-view') displayMyListView(); else displayContent(searchDiagnosesInput.value); } } });
+        Object.assign(notification.style, {
+            position: 'fixed',
+            top: '1rem',
+            right: '1rem',
+            background: type === 'success' ? 'var(--secondary-500)' : type === 'error' ? 'var(--error)' : 'var(--primary-500)',
+            color: 'white',
+            padding: '1rem 1.5rem',
+            borderRadius: 'var(--border-radius-md)',
+            boxShadow: 'var(--shadow-lg)',
+            zIndex: '2000',
+            opacity: '0',
+            transform: 'translateX(100%)',
+            transition: 'all 0.3s ease'
         });
-    </script>
-</body>
-</html>
+
+        document.body.appendChild(notification);
+
+        // Animate in
+        setTimeout(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+
+        // Animate out and remove
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => document.body.removeChild(notification), 300);
+        }, duration);
+    }
+
+    // Enhanced data processing with loading states
+    function processData() {
+        showLoading('Processing differential diagnosis data...');
+        
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                try {
+                    if (typeof window.dermDifferentialData === 'undefined') {
+                        throw new Error('Differential diagnosis data not found');
+                    }
+
+                    const findingsData = window.dermDifferentialData;
+                    processedFindingsMap.clear();
+
+                    // Process each finding with enhanced data structure
+                    findingsData.forEach((finding, index) => {
+                        const findingKey = finding.finding.toLowerCase().trim();
+                        const diagnosisMap = new Map();
+
+                        finding.diagnoses.forEach((diagnosis, diagIndex) => {
+                            const uniqueId = `${findingKey}-${diagIndex}`;
+                            const enhancedDiagnosis = {
+                                ...diagnosis,
+                                uniqueId,
+                                flashcardId: uniqueId,
+                                finding: finding.finding,
+                                originalSources: finding.sources || [],
+                                popularity: Math.random(), // Simulate popularity for sorting
+                                difficulty: Math.random(), // Simulate difficulty
+                                lastViewed: null,
+                                viewCount: 0
+                            };
+                            diagnosisMap.set(diagnosis.name, enhancedDiagnosis);
+                        });
+
+                        processedFindingsMap.set(findingKey, {
+                            originalFinding: finding.finding,
+                            displayFindingName: finding.finding,
+                            originalSources: new Set(finding.sources || []),
+                            diagnoses: diagnosisMap
+                        });
+                    });
+
+                    // Initialize Fuse.js for fuzzy searching
+                    const searchData = Array.from(processedFindingsMap.keys()).map(key => ({
+                        id: key,
+                        name: processedFindingsMap.get(key).displayFindingName
+                    }));
+
+                    fuseInstance = new Fuse(searchData, {
+                        keys: ['name'],
+                        threshold: 0.3,
+                        includeScore: true
+                    });
+
+                    populateFindingSelectors();
+                    initializeEventListeners();
+                    hideLoading();
+                    showNotification('Data loaded successfully!', 'success');
+                    resolve();
+                } catch (error) {
+                    hideLoading();
+                    showNotification('Error loading data: ' + error.message, 'error');
+                    console.error('Data processing error:', error);
+                    resolve();
+                }
+            }, 500); // Simulate processing time
+        });
+    }
+
+    // Enhanced finding selector population
+    function populateFindingSelectors() {
+        const select = document.getElementById('finding-select');
+        const searchInput = document.getElementById('search-finding-input');
+        
+        if (!select) return;
+
+        // Clear existing options
+        select.innerHTML = '<option value="">-- Select a Finding --</option>';
+
+        // Sort findings alphabetically
+        const sortedFindings = Array.from(processedFindingsMap.entries())
+            .sort(([a], [b]) => a.localeCompare(b));
+
+        sortedFindings.forEach(([key, data]) => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = data.displayFindingName;
+            select.appendChild(option);
+        });
+
+        // Setup search input with suggestions
+        setupSearchSuggestions(searchInput, sortedFindings);
+    }
+
+    // Enhanced search with autocomplete
+    function setupSearchSuggestions(input, findings) {
+        const suggestionsContainer = document.getElementById('finding-suggestions');
+        let currentSuggestions = [];
+
+        input.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            
+            if (query.length < 2) {
+                suggestionsContainer.style.display = 'none';
+                return;
+            }
+
+            // Use Fuse.js for fuzzy search
+            const results = fuseInstance.search(query).slice(0, 5);
+            currentSuggestions = results.map(result => result.item);
+
+            if (currentSuggestions.length > 0) {
+                suggestionsContainer.innerHTML = currentSuggestions
+                    .map(item => `
+                        <div class="search-suggestion" data-key="${item.id}">
+                            ${highlightMatch(item.name, query)}
+                        </div>
+                    `).join('');
+                
+                suggestionsContainer.style.display = 'block';
+
+                // Add click handlers to suggestions
+                suggestionsContainer.querySelectorAll('.search-suggestion').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const key = el.dataset.key;
+                        document.getElementById('finding-select').value = key;
+                        input.value = processedFindingsMap.get(key).displayFindingName;
+                        suggestionsContainer.style.display = 'none';
+                        selectFinding(key);
+                    });
+                });
+            } else {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+
+        // Keyboard navigation for suggestions
+        input.addEventListener('keydown', (e) => {
+            const suggestions = suggestionsContainer.querySelectorAll('.search-suggestion');
+            const activeIndex = Array.from(suggestions).findIndex(el => el.classList.contains('active'));
+
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    const nextIndex = Math.min(activeIndex + 1, suggestions.length - 1);
+                    updateActiveSuggestion(suggestions, nextIndex);
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    const prevIndex = Math.max(activeIndex - 1, 0);
+                    updateActiveSuggestion(suggestions, prevIndex);
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    if (activeIndex >= 0) {
+                        suggestions[activeIndex].click();
+                    }
+                    break;
+                case 'Escape':
+                    suggestionsContainer.style.display = 'none';
+                    break;
+            }
+        });
+    }
+
+    function highlightMatch(text, query) {
+        const regex = new RegExp(`(${query})`, 'gi');
+        return text.replace(regex, '<strong>$1</strong>');
+    }
+
+    function updateActiveSuggestion(suggestions, activeIndex) {
+        suggestions.forEach((el, index) => {
+            if (index === activeIndex) {
+                el.classList.add('active');
+                el.style.backgroundColor = 'var(--primary-100)';
+            } else {
+                el.classList.remove('active');
+                el.style.backgroundColor = '';
+            }
+        });
+    }
+
+    // Enhanced event listeners
+    function initializeEventListeners() {
+        // Finding selection
+        document.getElementById('finding-select')?.addEventListener('change', (e) => {
+            if (e.target.value) {
+                selectFinding(e.target.value);
+            }
+        });
+
+        // Tab navigation with keyboard support
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.view));
+            tab.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    switchTab(tab.dataset.view);
+                }
+            });
+        });
+
+        // Export functionality
+        document.getElementById('export-pdf-btn')?.addEventListener('click', exportToPDF);
+        document.getElementById('export-excel-btn')?.addEventListener('click', exportToExcel);
+        document.getElementById('print-btn')?.addEventListener('click', () => window.print());
+        document.getElementById('share-btn')?.addEventListener('click', showShareModal);
+
+        // Modal controls
+        setupModalControls();
+
+        // Settings
+        setupSettingsControls();
+
+        // Advanced search
+        document.getElementById('search-diagnoses-input')?.addEventListener('input', filterCurrentResults);
+        document.getElementById('source-filter')?.addEventListener('change', filterCurrentResults);
+
+        // Diagram controls
+        setupDiagramControls();
+
+        // Learning analytics
+        trackUserInteraction();
+    }
+
+         // Initialize application on data load
+     function initializeApplication() {
+         if (typeof window.dermDifferentialData !== 'undefined') {
+             processData().then(() => {
+                 console.log('Application initialized successfully');
+             });
+         } else {
+             // Wait for data to load
+             setTimeout(initializeApplication, 100);
+         }
+     }
+
+     // Enhanced finding selection with analytics
+     function selectFinding(findingKey) {
+         const findingData = processedFindingsMap.get(findingKey);
+         if (!findingData) return;
+
+         currentFindingData = findingData;
+         
+         // Update analytics
+         trackFindingViewed(findingKey);
+         
+         // Update UI
+         updateResultsTitle(findingData.displayFindingName);
+         displayCurrentView();
+         
+         // Update search input to match selection
+         const searchInput = document.getElementById('search-finding-input');
+         if (searchInput) {
+             searchInput.value = findingData.displayFindingName;
+         }
+     }
+
+     function updateResultsTitle(findingName) {
+         const titleElement = document.getElementById('results-title');
+         if (titleElement && findingName) {
+             titleElement.innerHTML = `
+                 <i class="fas fa-clipboard-list"></i>
+                 Differential Diagnoses: ${findingName}
+             `;
+         } else if (titleElement) {
+             titleElement.innerHTML = `
+                 <i class="fas fa-clipboard-list"></i>
+                 Differential Diagnoses
+             `;
+         }
+     }
+
+     // Tab switching with improved state management
+     function switchTab(viewId) {
+         // Update tab states
+         document.querySelectorAll('.tab').forEach(tab => {
+             const isActive = tab.dataset.view === viewId;
+             tab.classList.toggle('active', isActive);
+             tab.setAttribute('aria-selected', isActive);
+         });
+
+         // Update view visibility
+         document.querySelectorAll('.view-container').forEach(view => {
+             view.classList.toggle('hidden', view.id !== viewId);
+         });
+
+         // Track analytics
+         trackTabViewed(viewId);
+
+         // Handle view-specific logic
+         displayCurrentView(viewId);
+     }
+
+     function displayCurrentView(viewId = getCurrentView()) {
+         switch (viewId) {
+             case 'list-view':
+                 displayListView();
+                 break;
+             case 'table-view':
+                 displayTableView();
+                 break;
+             case 'flashcard-view':
+                 displayFlashcardView();
+                 break;
+             case 'diagram-view':
+                 displayDiagramView();
+                 break;
+             case 'my-list-view':
+                 displayFavoritesView();
+                 break;
+             case 'compare-view':
+                 displayCompareView();
+                 break;
+             case 'global-search-view':
+                 displayGlobalSearchView();
+                 break;
+             case 'quiz-mode-view':
+                 displayQuizView();
+                 break;
+             case 'analytics-view':
+                 displayAnalyticsView();
+                 break;
+             case 'settings-view':
+                 displaySettingsView();
+                 break;
+         }
+     }
+
+     function getCurrentView() {
+         const activeTab = document.querySelector('.tab.active');
+         return activeTab ? activeTab.dataset.view : 'list-view';
+     }
+
+     // Enhanced list view with virtual scrolling for performance
+     function displayListView() {
+         const container = document.getElementById('list-content');
+         if (!container) return;
+
+         if (!currentFindingData) {
+             container.innerHTML = `
+                 <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
+                     <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                     <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">No Finding Selected</p>
+                     <p>Select a histologic finding above to view differential diagnoses</p>
+                 </div>
+             `;
+             return;
+         }
+
+         const diagnoses = Array.from(currentFindingData.diagnoses.values())
+             .sort((a, b) => a.name.localeCompare(b.name));
+
+         const sourcesList = Array.from(currentFindingData.originalSources).sort().join('; ');
+         
+         container.innerHTML = `
+             <div class="fade-in">
+                 <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--primary-50); border-radius: var(--border-radius-md); border-left: 4px solid var(--primary-500);">
+                     <p style="font-weight: 500; color: var(--primary-700); margin-bottom: 0.5rem;">
+                         <i class="fas fa-info-circle"></i> Finding Information
+                     </p>
+                     <p style="font-size: var(--font-size-sm); color: var(--neutral-600);">
+                         <strong>Sources:</strong> ${sourcesList}
+                     </p>
+                     <p style="font-size: var(--font-size-sm); color: var(--neutral-600); margin-top: 0.5rem;">
+                         <strong>Total Diagnoses:</strong> ${diagnoses.length}
+                     </p>
+                 </div>
+                 <div class="diagnosis-list">
+                     ${diagnoses.map(dx => createDiagnosisCard(dx)).join('')}
+                 </div>
+             </div>
+         `;
+     }
+
+     function createDiagnosisCard(diagnosis) {
+         const isFavorited = userFavorites.has(diagnosis.uniqueId);
+         const hasNote = userNotes[diagnosis.uniqueId];
+         const sources = Array.from(diagnosis.sources || []).sort().join(', ');
+         
+         return `
+             <div class="diagnosis-card ${isFavorited ? 'favorited' : ''} fade-in">
+                 <div class="diagnosis-header">
+                     <h3 class="diagnosis-name">${diagnosis.name}</h3>
+                     <div class="diagnosis-actions">
+                         <button class="action-btn ${isFavorited ? 'favorited' : ''}" 
+                                 onclick="toggleFavorite('${diagnosis.uniqueId}')"
+                                 title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
+                             <i class="fas fa-star"></i>
+                         </button>
+                         <button class="action-btn ${hasNote ? 'noted' : ''}" 
+                                 onclick="openNoteModal('${diagnosis.uniqueId}')"
+                                 title="${hasNote ? 'Edit note' : 'Add note'}">
+                             <i class="fas fa-sticky-note"></i>
+                         </button>
+                         <button class="action-btn" 
+                                 onclick="addToCompare('${diagnosis.uniqueId}')"
+                                 title="Add to comparison">
+                             <i class="fas fa-balance-scale"></i>
+                         </button>
+                     </div>
+                 </div>
+                 <div class="diagnosis-features">
+                     ${diagnosis.keyFeatures || 'No specific features documented'}
+                 </div>
+                 <div class="diagnosis-sources">
+                     <strong>Sources:</strong> ${sources || 'Not specified'}
+                 </div>
+                 ${hasNote ? `
+                     <div class="user-note">
+                         <span class="user-note-label">Your Note:</span>
+                         ${hasNote}
+                     </div>
+                 ` : ''}
+             </div>
+         `;
+     }
+
+     // Enhanced table view
+     function displayTableView() {
+         const container = document.getElementById('table-content');
+         if (!container) return;
+
+         if (!currentFindingData) {
+             container.innerHTML = `
+                 <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
+                     <i class="fas fa-table" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                     <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Table View</p>
+                     <p>Select a finding to view data in table format</p>
+                 </div>
+             `;
+             return;
+         }
+
+         const diagnoses = Array.from(currentFindingData.diagnoses.values())
+             .sort((a, b) => a.name.localeCompare(b.name));
+
+         const sourcesList = Array.from(currentFindingData.originalSources).sort().join('; ');
+         
+         container.innerHTML = `
+             <div class="fade-in">
+                 <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--primary-50); border-radius: var(--border-radius-md); border-left: 4px solid var(--primary-500);">
+                     <p style="font-weight: 500; color: var(--primary-700);">
+                         <i class="fas fa-info-circle"></i> ${currentFindingData.displayFindingName}
+                     </p>
+                     <p style="font-size: var(--font-size-sm); color: var(--neutral-600); margin-top: 0.5rem;">
+                         <strong>Sources:</strong> ${sourcesList}
+                     </p>
+                 </div>
+                 <div style="overflow-x: auto;">
+                     <table class="results-table">
+                         <thead>
+                             <tr>
+                                 <th>Diagnosis</th>
+                                 <th>Key Features</th>
+                                 <th>Sources</th>
+                                 <th>Actions</th>
+                             </tr>
+                         </thead>
+                         <tbody>
+                             ${diagnoses.map(dx => createTableRow(dx)).join('')}
+                         </tbody>
+                     </table>
+                 </div>
+             </div>
+         `;
+     }
+
+     function createTableRow(diagnosis) {
+         const isFavorited = userFavorites.has(diagnosis.uniqueId);
+         const hasNote = userNotes[diagnosis.uniqueId];
+         const sources = Array.from(diagnosis.sources || []).sort().join(', ');
+         
+         return `
+             <tr>
+                 <td style="font-weight: 600;">${diagnosis.name}</td>
+                 <td>
+                     ${diagnosis.keyFeatures || 'No specific features documented'}
+                     ${hasNote ? `<div class="user-note" style="margin-top: 0.5rem;"><span class="user-note-label">Note:</span> ${hasNote}</div>` : ''}
+                 </td>
+                 <td>${sources || 'Not specified'}</td>
+                 <td>
+                     <div style="display: flex; gap: 0.25rem;">
+                         <button class="action-btn ${isFavorited ? 'favorited' : ''}" 
+                                 onclick="toggleFavorite('${diagnosis.uniqueId}')"
+                                 title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
+                             <i class="fas fa-star"></i>
+                         </button>
+                         <button class="action-btn ${hasNote ? 'noted' : ''}" 
+                                 onclick="openNoteModal('${diagnosis.uniqueId}')"
+                                 title="${hasNote ? 'Edit note' : 'Add note'}">
+                             <i class="fas fa-sticky-note"></i>
+                         </button>
+                         <button class="action-btn" 
+                                 onclick="addToCompare('${diagnosis.uniqueId}')"
+                                 title="Add to comparison">
+                             <i class="fas fa-balance-scale"></i>
+                         </button>
+                     </div>
+                 </td>
+             </tr>
+         `;
+     }
+
+     // User interaction functions
+     function toggleFavorite(diagnosisId) {
+         if (userFavorites.has(diagnosisId)) {
+             userFavorites.delete(diagnosisId);
+             showNotification('Removed from favorites', 'info', 2000);
+         } else {
+             userFavorites.add(diagnosisId);
+             showNotification('Added to favorites', 'success', 2000);
+         }
+         
+         localStorage.setItem('dermapath-favorites', JSON.stringify(Array.from(userFavorites)));
+         trackFavoriteToggled(diagnosisId);
+         
+         // Refresh current view
+         displayCurrentView();
+     }
+
+     function openNoteModal(diagnosisId) {
+         const modal = document.getElementById('note-modal');
+         const textarea = document.getElementById('note-textarea');
+         const saveBtn = document.getElementById('note-save');
+         
+         if (!modal || !textarea || !saveBtn) return;
+
+         // Find diagnosis info
+         const diagnosis = findDiagnosisById(diagnosisId);
+         const modalTitle = modal.querySelector('.modal-title');
+         
+         if (modalTitle && diagnosis) {
+             modalTitle.textContent = `Add Note: ${diagnosis.name}`;
+         }
+         
+         textarea.value = userNotes[diagnosisId] || '';
+         modal.classList.add('open');
+         textarea.focus();
+
+         // Update save handler
+         saveBtn.onclick = () => saveNote(diagnosisId);
+     }
+
+     function saveNote(diagnosisId) {
+         const textarea = document.getElementById('note-textarea');
+         const modal = document.getElementById('note-modal');
+         
+         if (!textarea || !modal) return;
+
+         const noteText = textarea.value.trim();
+         
+         if (noteText) {
+             userNotes[diagnosisId] = noteText;
+             showNotification('Note saved successfully', 'success', 2000);
+         } else {
+             delete userNotes[diagnosisId];
+             showNotification('Note removed', 'info', 2000);
+         }
+         
+         localStorage.setItem('dermapath-notes', JSON.stringify(userNotes));
+         trackNoteAdded(diagnosisId);
+         
+         modal.classList.remove('open');
+         displayCurrentView();
+     }
+
+     function findDiagnosisById(diagnosisId) {
+         for (const [findingKey, findingData] of processedFindingsMap) {
+             for (const [diagnosisName, diagnosis] of findingData.diagnoses) {
+                 if (diagnosis.uniqueId === diagnosisId) {
+                     return diagnosis;
+                 }
+             }
+         }
+         return null;
+     }
+
+     // Modal controls setup
+     function setupModalControls() {
+         // Note modal
+         const noteModal = document.getElementById('note-modal');
+         const noteCancel = document.getElementById('note-cancel');
+         const noteClose = document.getElementById('note-modal-close');
+         
+         [noteCancel, noteClose].forEach(btn => {
+             btn?.addEventListener('click', () => {
+                 noteModal?.classList.remove('open');
+             });
+         });
+
+         // Share modal
+         const shareModal = document.getElementById('share-modal');
+         const shareClose = document.getElementById('share-modal-close');
+         
+         shareClose?.addEventListener('click', () => {
+             shareModal?.classList.remove('open');
+         });
+
+         // Close modals on backdrop click
+         [noteModal, shareModal].forEach(modal => {
+             modal?.addEventListener('click', (e) => {
+                 if (e.target === modal) {
+                     modal.classList.remove('open');
+                 }
+             });
+         });
+     }
+
+     // Export functionality
+     function exportToPDF() {
+         if (!window.jsPDF) {
+             showNotification('PDF export library not loaded', 'error');
+             return;
+         }
+
+         if (!currentFindingData) {
+             showNotification('Please select a finding first', 'warning');
+             return;
+         }
+
+         showLoading('Generating PDF...');
+         
+         try {
+             const { jsPDF } = window.jspdf;
+             const doc = new jsPDF();
+             
+             // Title
+             doc.setFontSize(20);
+             doc.text('Dermatopathology Differential Diagnoses', 20, 20);
+             
+             // Finding name
+             doc.setFontSize(16);
+             doc.text(`Finding: ${currentFindingData.displayFindingName}`, 20, 35);
+             
+             // Diagnoses
+             doc.setFontSize(12);
+             let yPosition = 50;
+             
+             const diagnoses = Array.from(currentFindingData.diagnoses.values());
+             diagnoses.forEach((dx, index) => {
+                 if (yPosition > 270) {
+                     doc.addPage();
+                     yPosition = 20;
+                 }
+                 
+                 doc.setFont(undefined, 'bold');
+                 doc.text(`${index + 1}. ${dx.name}`, 20, yPosition);
+                 yPosition += 7;
+                 
+                 doc.setFont(undefined, 'normal');
+                 const features = dx.keyFeatures || 'No specific features documented';
+                 const lines = doc.splitTextToSize(features, 170);
+                 doc.text(lines, 25, yPosition);
+                 yPosition += lines.length * 5 + 5;
+                 
+                 if (userNotes[dx.uniqueId]) {
+                     doc.setFont(undefined, 'italic');
+                     const noteLines = doc.splitTextToSize(`Note: ${userNotes[dx.uniqueId]}`, 170);
+                     doc.text(noteLines, 25, yPosition);
+                     yPosition += noteLines.length * 5 + 5;
+                 }
+                 
+                 yPosition += 5;
+             });
+             
+             doc.save(`dermapath-${currentFindingData.displayFindingName.replace(/\s+/g, '-')}.pdf`);
+             hideLoading();
+             showNotification('PDF exported successfully', 'success');
+             
+         } catch (error) {
+             hideLoading();
+             showNotification('Error exporting PDF: ' + error.message, 'error');
+         }
+     }
+
+     function exportToExcel() {
+         if (!window.XLSX) {
+             showNotification('Excel export library not loaded', 'error');
+             return;
+         }
+
+         if (!currentFindingData) {
+             showNotification('Please select a finding first', 'warning');
+             return;
+         }
+
+         showLoading('Generating Excel file...');
+         
+         try {
+             const diagnoses = Array.from(currentFindingData.diagnoses.values());
+             const data = diagnoses.map(dx => ({
+                 'Diagnosis': dx.name,
+                 'Key Features': dx.keyFeatures || 'No specific features documented',
+                 'Sources': Array.from(dx.sources || []).join(', '),
+                 'Your Note': userNotes[dx.uniqueId] || '',
+                 'Favorited': userFavorites.has(dx.uniqueId) ? 'Yes' : 'No'
+             }));
+             
+             const worksheet = XLSX.utils.json_to_sheet(data);
+             const workbook = XLSX.utils.book_new();
+             
+             XLSX.utils.book_append_sheet(workbook, worksheet, 'Diagnoses');
+             
+             // Add metadata sheet
+             const metadata = [
+                 ['Finding', currentFindingData.displayFindingName],
+                 ['Sources', Array.from(currentFindingData.originalSources).join('; ')],
+                 ['Total Diagnoses', diagnoses.length],
+                 ['Export Date', new Date().toISOString().split('T')[0]]
+             ];
+             
+             const metaSheet = XLSX.utils.aoa_to_sheet(metadata);
+             XLSX.utils.book_append_sheet(workbook, metaSheet, 'Metadata');
+             
+             XLSX.writeFile(workbook, `dermapath-${currentFindingData.displayFindingName.replace(/\s+/g, '-')}.xlsx`);
+             
+             hideLoading();
+             showNotification('Excel file exported successfully', 'success');
+             
+         } catch (error) {
+             hideLoading();
+             showNotification('Error exporting Excel: ' + error.message, 'error');
+         }
+     }
+
+     function showShareModal() {
+         const modal = document.getElementById('share-modal');
+         const urlInput = document.getElementById('share-url');
+         
+         if (!modal || !urlInput) return;
+
+         // Generate shareable URL
+         const params = new URLSearchParams();
+         if (currentFindingData) {
+             params.set('finding', currentFindingData.displayFindingName);
+         }
+         
+         const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+         urlInput.value = shareUrl;
+         
+         modal.classList.add('open');
+         
+         // Setup copy functionality
+         const copyBtn = document.getElementById('copy-link-btn');
+         copyBtn?.addEventListener('click', () => {
+             navigator.clipboard.writeText(shareUrl).then(() => {
+                 showNotification('Link copied to clipboard', 'success', 2000);
+             });
+         });
+     }
+
+     // Analytics and tracking
+     function trackFindingViewed(findingKey) {
+         if (!learningAnalytics.findingsViewed) {
+             learningAnalytics.findingsViewed = {};
+         }
+         
+         learningAnalytics.findingsViewed[findingKey] = {
+             count: (learningAnalytics.findingsViewed[findingKey]?.count || 0) + 1,
+             lastViewed: new Date().toISOString()
+         };
+         
+         localStorage.setItem('dermapath-analytics', JSON.stringify(learningAnalytics));
+     }
+
+     function trackTabViewed(tabId) {
+         if (!learningAnalytics.tabsViewed) {
+             learningAnalytics.tabsViewed = {};
+         }
+         
+         learningAnalytics.tabsViewed[tabId] = {
+             count: (learningAnalytics.tabsViewed[tabId]?.count || 0) + 1,
+             lastViewed: new Date().toISOString()
+         };
+         
+         localStorage.setItem('dermapath-analytics', JSON.stringify(learningAnalytics));
+     }
+
+     function trackFavoriteToggled(diagnosisId) {
+         if (!learningAnalytics.interactions) {
+             learningAnalytics.interactions = [];
+         }
+         
+         learningAnalytics.interactions.push({
+             type: 'favorite_toggle',
+             diagnosisId,
+             timestamp: new Date().toISOString()
+         });
+         
+         localStorage.setItem('dermapath-analytics', JSON.stringify(learningAnalytics));
+     }
+
+     function trackNoteAdded(diagnosisId) {
+         if (!learningAnalytics.interactions) {
+             learningAnalytics.interactions = [];
+         }
+         
+         learningAnalytics.interactions.push({
+             type: 'note_added',
+             diagnosisId,
+             timestamp: new Date().toISOString()
+         });
+         
+         localStorage.setItem('dermapath-analytics', JSON.stringify(learningAnalytics));
+     }
+
+     function trackUserInteraction() {
+         // Track time spent on page
+         const startTime = Date.now();
+         
+         window.addEventListener('beforeunload', () => {
+             const timeSpent = Date.now() - startTime;
+             if (!learningAnalytics.timeSpent) {
+                 learningAnalytics.timeSpent = 0;
+             }
+             learningAnalytics.timeSpent += timeSpent;
+             localStorage.setItem('dermapath-analytics', JSON.stringify(learningAnalytics));
+         });
+     }
+
+     // Placeholder functions for other views
+     function displayFlashcardView() {
+         console.log('Flashcard view - Enhanced SRS implementation would go here');
+     }
+
+     function displayDiagramView() {
+         console.log('Diagram view - Enhanced D3.js visualization would go here');
+     }
+
+     function displayFavoritesView() {
+         const container = document.getElementById('favorites-content');
+         if (!container) return;
+
+         const favoriteIds = Array.from(userFavorites);
+         
+         if (favoriteIds.length === 0) {
+             container.innerHTML = `
+                 <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
+                     <i class="fas fa-star" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                     <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Your Favorites</p>
+                     <p>Star diagnoses to save them here for quick access</p>
+                 </div>
+             `;
+             return;
+         }
+
+         const favoriteDiagnoses = favoriteIds.map(id => findDiagnosisById(id)).filter(Boolean);
+         
+         container.innerHTML = `
+             <div class="fade-in">
+                 <div style="margin-bottom: 1.5rem;">
+                     <h3 style="color: var(--accent-600); margin-bottom: 0.5rem;">
+                         <i class="fas fa-star"></i> Your Favorite Diagnoses
+                     </h3>
+                     <p style="color: var(--neutral-600); font-size: var(--font-size-sm);">
+                         ${favoriteDiagnoses.length} diagnosis${favoriteDiagnoses.length !== 1 ? 'es' : ''} saved
+                     </p>
+                 </div>
+                 <div class="diagnosis-list">
+                     ${favoriteDiagnoses.map(dx => createDiagnosisCard(dx)).join('')}
+                 </div>
+             </div>
+         `;
+     }
+
+     function displayCompareView() {
+         console.log('Compare view - Side-by-side comparison would go here');
+     }
+
+     function displayGlobalSearchView() {
+         console.log('Global search view - Cross-finding search would go here');
+     }
+
+     function displayQuizView() {
+         console.log('Quiz view - Interactive assessment would go here');
+     }
+
+     function displayAnalyticsView() {
+         const container = document.getElementById('analytics-content');
+         if (!container) return;
+
+         const totalFindings = learningAnalytics.findingsViewed ? Object.keys(learningAnalytics.findingsViewed).length : 0;
+         const totalInteractions = learningAnalytics.interactions ? learningAnalytics.interactions.length : 0;
+         const timeSpent = learningAnalytics.timeSpent ? Math.round(learningAnalytics.timeSpent / 1000 / 60) : 0;
+
+         container.innerHTML = `
+             <div class="fade-in" style="padding: 2rem;">
+                 <h3 style="margin-bottom: 2rem; color: var(--neutral-800);">
+                     <i class="fas fa-chart-bar"></i> Your Learning Analytics
+                 </h3>
+                 
+                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                     <div class="badge badge-info" style="padding: 1.5rem; background: var(--primary-50); border-radius: var(--border-radius-lg);">
+                         <div style="text-align: center;">
+                             <i class="fas fa-eye" style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--primary-600);"></i>
+                             <h4 style="font-size: 1.5rem; margin: 0; color: var(--primary-700);">${totalFindings}</h4>
+                             <p style="margin: 0; color: var(--neutral-600);">Findings Viewed</p>
+                         </div>
+                     </div>
+                     
+                     <div class="badge badge-success" style="padding: 1.5rem; background: var(--secondary-50); border-radius: var(--border-radius-lg);">
+                         <div style="text-align: center;">
+                             <i class="fas fa-star" style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--secondary-600);"></i>
+                             <h4 style="font-size: 1.5rem; margin: 0; color: var(--secondary-700);">${userFavorites.size}</h4>
+                             <p style="margin: 0; color: var(--neutral-600);">Favorites Saved</p>
+                         </div>
+                     </div>
+                     
+                     <div class="badge badge-warning" style="padding: 1.5rem; background: var(--accent-50); border-radius: var(--border-radius-lg);">
+                         <div style="text-align: center;">
+                             <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--accent-600);"></i>
+                             <h4 style="font-size: 1.5rem; margin: 0; color: var(--accent-700);">${timeSpent}</h4>
+                             <p style="margin: 0; color: var(--neutral-600);">Minutes Studied</p>
+                         </div>
+                     </div>
+                 </div>
+                 
+                 <div style="background: var(--neutral-50); padding: 1.5rem; border-radius: var(--border-radius-lg);">
+                     <h4 style="margin-bottom: 1rem; color: var(--neutral-700);">Study Recommendations</h4>
+                     <ul style="list-style: none; padding: 0; margin: 0;">
+                         <li style="margin-bottom: 0.5rem; color: var(--neutral-600);">
+                             <i class="fas fa-lightbulb" style="color: var(--accent-500); margin-right: 0.5rem;"></i>
+                             Try using flashcards to reinforce learning
+                         </li>
+                         <li style="margin-bottom: 0.5rem; color: var(--neutral-600);">
+                             <i class="fas fa-lightbulb" style="color: var(--accent-500); margin-right: 0.5rem;"></i>
+                             Review your favorited diagnoses regularly
+                         </li>
+                         <li style="color: var(--neutral-600);">
+                             <i class="fas fa-lightbulb" style="color: var(--accent-500); margin-right: 0.5rem;"></i>
+                             Take notes to improve retention
+                         </li>
+                     </ul>
+                 </div>
+             </div>
+         `;
+     }
+
+     function displaySettingsView() {
+         console.log('Settings view - User preferences would go here');
+     }
+
+     // Settings controls
+     function setupSettingsControls() {
+         // Theme switcher
+         const themeSelect = document.getElementById('theme-select');
+         themeSelect?.addEventListener('change', (e) => {
+             const theme = e.target.value;
+             document.documentElement.setAttribute('data-theme', theme);
+             localStorage.setItem('dermapath-theme', theme);
+             showNotification(`Theme changed to ${theme}`, 'success', 2000);
+         });
+
+         // Load saved theme
+         const savedTheme = localStorage.getItem('dermapath-theme');
+         if (savedTheme && themeSelect) {
+             themeSelect.value = savedTheme;
+             document.documentElement.setAttribute('data-theme', savedTheme);
+         }
+     }
+
+     function setupDiagramControls() {
+         // Placeholder for diagram interaction controls
+         console.log('Diagram controls setup would go here');
+     }
+
+     function filterCurrentResults() {
+         // Placeholder for advanced filtering
+         console.log('Advanced filtering would go here');
+     }
+
+     function addToCompare(diagnosisId) {
+         if (compareList.has(diagnosisId)) {
+             showNotification('Already in comparison list', 'info', 2000);
+             return;
+         }
+
+         if (compareList.size >= 3) {
+             showNotification('Comparison list is full (max 3)', 'warning', 2000);
+             return;
+         }
+
+         compareList.add(diagnosisId);
+         showNotification('Added to comparison', 'success', 2000);
+         
+         // Auto-switch to compare view if this is the second item
+         if (compareList.size === 2) {
+             setTimeout(() => {
+                 switchTab('compare-view');
+             }, 1000);
+         }
+     }
+
+     // URL parameter handling for deep linking
+     function handleUrlParameters() {
+         const params = new URLSearchParams(window.location.search);
+         const findingParam = params.get('finding');
+         
+         if (findingParam) {
+             // Find matching finding
+             for (const [key, data] of processedFindingsMap) {
+                 if (data.displayFindingName === findingParam) {
+                     document.getElementById('finding-select').value = key;
+                     selectFinding(key);
+                     break;
+                 }
+             }
+         }
+     }
+
+     // Initialize the application
+     document.addEventListener('DOMContentLoaded', () => {
+         console.log('Initializing Dermatopathology Navigator Pro...');
+         initializeApplication();
+         
+         // Handle URL parameters after data loads
+         setTimeout(handleUrlParameters, 1000);
+     });
+
+     // Global error handling
+     window.addEventListener('error', (event) => {
+         console.error('Application error:', event.error);
+         showNotification('An unexpected error occurred', 'error');
+     });
+
+     // Expose useful functions globally for debugging
+     window.dermPathDebug = {
+         processedFindingsMap,
+         userFavorites,
+         userNotes,
+         learningAnalytics,
+         showNotification,
+         switchTab,
+         selectFinding
+     };
+
+ })();

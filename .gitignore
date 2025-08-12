@@ -1,87 +1,115 @@
-# R and RStudio
+# ===== GITHUB PAGES OPTIMIZED .GITIGNORE =====
+
+# === Operating System Files ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# === Editor and IDE Files ===
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# === R and RStudio ===
 .Rhistory
 .RData
 .Rproj.user/
 .Ruserdata
 .Rapp.history
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs and temp
-*.log
-*.tmp
-*.bak
-
-# Build artifacts
-_site/
-docs/
 *.nb.html
 *.Rmd~
 *.html~
 
-# Large data (customize as needed)
+# === Node.js and npm ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# === Build Artifacts (GitHub Pages serves source files directly) ===
+_site/
+dist/
+build/
+.next/
+out/
+
+# === Logs and Temporary Files ===
+*.log
+*.tmp
+*.bak
+*.cache
+
+# === Environment Files ===
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# === Large Data Files (customize as needed) ===
 *.csv
 *.tsv
 *.xlsx
 *.xls
+*.parquet
 
-# Node/npm (if used)
-node_modules/
-
-# Python (if used)
-__pycache__/
-*.pyc
-
-# Private or sensitive
-private/tools/
-private/research/
+# === PRIVATE CONTENT (Keep these patterns to protect sensitive data) ===
+private/
 assets/private/
-server/ 
+server/
+*_files/
 
-# Keep these files public but ignore their associated directories
+# === DISABLED BUILD TOOLS (No longer needed for GitHub Pages) ===
+webpack.config.js.disabled
+netlify.toml.disabled
+package-lock.json
+
+# === GitHub Pages Specific ===
+# GitHub Pages automatically ignores these, but good to be explicit
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+
+# === Application-Specific Rules ===
+# Allow public app HTML files but protect sensitive components
+!apps/*.html
+apps/*/js/*.js
+apps/*/components/*.html
+apps/*/css/*.css
+apps/*/config/*.json
+
+# Keep only essential files for specific apps
+!apps/dermatology-study-system/index.html
+!apps/dermatology-study-system/README.md
+
+# === Public HTML Analysis Files (Explicitly allow these) ===
 !20200625_AAD-Modules-Analysis_RAF.html
 !20200102_r_dermatology_analysis_RAF.html
 !20191121_WoundCareWebpages2.html
 !20191121_WoundCareWebpages.html
 !20191028_CTCL.nb2.html
 
-# Specific private HTML files
-*_AAD-Modules-Analysis_RAF.html
-*_r_dermatology_analysis_RAF.html
-*_WoundCareWebpages*.html
-*_CTCL*.html
-*_files/
-
-# Allow app files
-!apps/*.html 
-
-# Dependencies
-.env
-.env.local
-.env.*.local
-
-# Build output
-# dist/
-build/
-.next/
-out/
-
-# IDE and editor files
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Application specific
-apps/dermatology-study-system/js/*.js
-apps/dermatology-study-system/components/*.html
-apps/dermatology-study-system/css/*.css
-apps/dermatology-study-system/config/*.json
-
-# Keep only the necessary files for deployment
-!apps/dermatology-study-system/index.html
-!apps/dermatology-study-system/README.md 
-# Local Netlify folder
-.netlify
+# === Security ===
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
