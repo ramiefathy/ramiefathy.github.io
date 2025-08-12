@@ -1115,13 +1115,18 @@ const differentialsData = [
 // Expose data under window.dermDifferentialData and normalize sources
 (function() {
   try {
+    console.log('Compatibility shim running, differentialsData type:', typeof differentialsData);
     if (Array.isArray(differentialsData)) {
+      console.log('Processing', differentialsData.length, 'differential entries...');
       window.dermDifferentialData = differentialsData.map(item => ({
         ...item,
         sources: item.sources || (item.source ? [item.source] : []),
       }));
+      console.log('Successfully created window.dermDifferentialData with', window.dermDifferentialData.length, 'entries');
       // Optional: clean up legacy field to avoid confusion
       // but keep original 'source' in case other tools read it
+    } else {
+      console.error('differentialsData is not an array:', differentialsData);
     }
   } catch (e) {
     console.error('Failed to initialize dermDifferentialData:', e);

@@ -1599,6 +1599,7 @@
                     }
 
                     const findingsData = window.dermDifferentialData;
+                    console.log('Processing', findingsData.length, 'findings...');
                     processedFindingsMap.clear();
 
                     // Process each finding with enhanced data structure
@@ -1662,7 +1663,12 @@
         const select = document.getElementById('finding-select');
         const searchInput = document.getElementById('search-finding-input');
         
-        if (!select) return;
+        console.log('populateFindingSelectors called, processedFindingsMap size:', processedFindingsMap.size);
+        
+        if (!select) {
+            console.log('finding-select element not found');
+            return;
+        }
 
         // Clear existing options
         select.innerHTML = '<option value="">-- Select a Finding --</option>';
@@ -1822,12 +1828,15 @@
 
          // Initialize application on data load
      function initializeApplication() {
-         if (typeof window.dermDifferentialData !== 'undefined') {
+         console.log('Checking for dermDifferentialData...', typeof window.dermDifferentialData);
+         if (typeof window.dermDifferentialData !== 'undefined' && window.dermDifferentialData.length > 0) {
+             console.log('Data found, processing...', window.dermDifferentialData.length, 'findings');
              processData().then(() => {
                  console.log('Application initialized successfully');
              });
          } else {
              // Wait for data to load
+             console.log('Data not ready, waiting...');
              setTimeout(initializeApplication, 100);
          }
      }
