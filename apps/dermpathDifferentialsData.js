@@ -1112,4 +1112,7 @@ const differentialsData = [
         ];
 
 // Assign data to global window object for the dermpath ddxs app
+console.log('Loading dermpathDifferentialsData.js...');
+console.log('differentialsData array length:', differentialsData.length);
 window.dermDifferentialData = differentialsData;
+console.log('window.dermDifferentialData assigned successfully');
