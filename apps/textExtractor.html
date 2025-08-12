@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Text Extractor (Improved Formatting Attempt)</title>
+    <title>PDF Text Extractor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
@@ -32,9 +32,9 @@
             100% { transform: rotate(360deg); }
         }
         /* Ensure elements are rounded */
-        * {
-            border-radius: 0.5rem; /* Default rounded corners */
-        }
+        * { border-radius: 0.5rem; }
+        /* Modern card shadow */
+        .shadow-xl { box-shadow: 0 12px 30px rgba(2, 6, 23, 0.12); }
         input, button, select, div, a {
              border-radius: 0.5rem;
         }

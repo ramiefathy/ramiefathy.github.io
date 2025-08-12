@@ -1110,3 +1110,20 @@ const differentialsData = [
         
     }
 ];
+
+// Compatibility shim for Dermatopathology Navigator Pro
+// Expose data under window.dermDifferentialData and normalize sources
+(function() {
+  try {
+    if (Array.isArray(differentialsData)) {
+      window.dermDifferentialData = differentialsData.map(item => ({
+        ...item,
+        sources: item.sources || (item.source ? [item.source] : []),
+      }));
+      // Optional: clean up legacy field to avoid confusion
+      // but keep original 'source' in case other tools read it
+    }
+  } catch (e) {
+    console.error('Failed to initialize dermDifferentialData:', e);
+  }
+})();

@@ -630,20 +630,20 @@
         .dropdown .dropdown-menu {
             display: none;
             position: absolute;
-            top: calc(100% + 0.25rem);
+            top: calc(100% + 0rem); /* reduce gap so you don't lose hover */
             left: 50%;
             transform: translateX(-50%);
             background-color: white;
-            min-width: 200px;
+            min-width: 240px;
             box-shadow: var(--shadow-lg);
-            z-index: 50;
+            z-index: 2000; /* ensure on top */
             border-radius: var(--radius-lg);
             border: 1px solid var(--secondary-200);
-            padding-top: var(--space-2);
-            padding-bottom: var(--space-2);
+            padding-top: var(--space-1);
+            padding-bottom: var(--space-1);
         }
 
-        .dropdown:hover .dropdown-menu { display: block; }
+        .dropdown:hover .dropdown-menu, .dropdown:focus-within .dropdown-menu { display: block; }
         .dropdown-menu a {
             color: var(--secondary-600);
             padding: var(--space-3) var(--space-5);
@@ -1351,14 +1351,14 @@
             { name: "Dermatology Scoring and Screening Calculators", href: "apps/dermascore.html", category: "Clinical Applications"},
             { name: "DermaScribe", href: "apps/DermaScribe.html", category: "Clinical Applications"},
             { name: "Dermatology Study System", href: "apps/dermatology-study-system/index.html", category: "Clinical Applications"},
-            { name: "Advanced AI Scribe", href: "apps/client/index.html", category: "Clinical Applications"},
+            // { name: "Advanced AI Scribe", href: "apps/client/index.html", category: "Clinical Applications"}, // removed per request
             { name: "Automated Clinic Scheduler", href: "apps/Scheduler.html", category: "Clinical Applications"},
             { name: "Derm Surgery Boards Prep Game", href: "apps/SecretSurgicalAgent.html", category: "Clinical Applications"},
             { name: "SkinScore: A Collection of Dermatology-Related Scoring and Screening Tool Calculators", href: "https://studio--skinscore-afw5a.us-central1.hosted.app/", category: "Clinical Applications"},
             { name: "PDF Text Extractor", href: "apps/textExtractor.html", category: "File Management Tools"},
             { name: "PDF Splitter", href: "apps/PDF Splitter.html", category: "File Management Tools"},
             { name: "PDF Merger", href: "apps/PDF Merger.html", category: "File Management Tools"},
-            { name: "Research and Education Assessment Tool", href: "apps/raeTest.html", category: "Clinical Applications"},
+            // { name: "Research and Education Assessment Tool", href: "apps/raeTest.html", category: "Clinical Applications"}, // removed per request
             { name: "Personalized AI Coding Tutor", href: "apps/codingTutor.html", category: "File Management Tools"},
             { name: "App Builder (Inspired by Google's Alpha Evolve)", href: "apps/BetaEvolve.html", category: "File Management Tools"}
         ];
