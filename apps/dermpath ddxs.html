@@ -1679,6 +1679,7 @@
         const searchInput = document.getElementById('search-finding-input');
         
         console.log('populateFindingSelectors called, processedFindingsMap size:', processedFindingsMap.size);
+        console.log('select element found:', !!select);
         
         if (!select) {
             console.log('finding-select element not found');
@@ -1687,17 +1688,25 @@
 
         // Clear existing options
         select.innerHTML = '<option value="">-- Select a Finding --</option>';
+        console.log('Cleared existing options, current innerHTML:', select.innerHTML);
 
         // Sort findings alphabetically
         const sortedFindings = Array.from(processedFindingsMap.entries())
             .sort(([a], [b]) => a.localeCompare(b));
 
-        sortedFindings.forEach(([key, data]) => {
+        console.log('Sorted findings count:', sortedFindings.length);
+        
+        sortedFindings.forEach(([key, data], index) => {
             const option = document.createElement('option');
             option.value = key;
             option.textContent = data.displayFindingName;
             select.appendChild(option);
+            if (index < 3) {
+                console.log(`Added option ${index}: ${data.displayFindingName}`);
+            }
         });
+        
+        console.log('Final select options count:', select.options.length);
 
         // Setup search input with suggestions
         setupSearchSuggestions(searchInput, sortedFindings);
@@ -2633,6 +2642,11 @@
      // Initialize the application
      document.addEventListener('DOMContentLoaded', () => {
          console.log('Initializing Dermatopathology Navigator Pro...');
+         console.log('DOM loaded, checking script availability...');
+         console.log('dermDifferentialData available:', typeof window.dermDifferentialData !== 'undefined');
+         if (typeof window.dermDifferentialData !== 'undefined') {
+             console.log('Data length:', window.dermDifferentialData.length);
+         }
          initializeApplication();
          
          // Handle URL parameters after data loads
