@@ -4,2661 +4,988 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dermatopathology Navigator Pro</title>
+
+    <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="dermpathDifferentialsData.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
+    <!-- Custom CSS -->
     <style>
+        /* Design System using CSS Variables */
         :root {
-            /* Professional Color Palette */
-            --primary-50: #eff6ff;
-            --primary-100: #dbeafe;
-            --primary-200: #bfdbfe;
-            --primary-300: #93c5fd;
-            --primary-400: #60a5fa;
-            --primary-500: #3b82f6;
-            --primary-600: #2563eb;
-            --primary-700: #1d4ed8;
-            --primary-800: #1e40af;
-            --primary-900: #1e3a8a;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            --font-mono: 'Fira Code', 'Courier New', monospace;
+
+            /* Light Theme */
+            --color-bg: #f3f4f6; /* gray-100 */
+            --color-bg-alt: #ffffff; /* white */
+            --color-text: #1f2937; /* gray-800 */
+            --color-text-muted: #6b7280; /* gray-500 */
+            --color-border: #d1d5db; /* gray-300 */
+            --color-primary: #3b82f6; /* blue-500 */
+            --color-primary-hover: #2563eb; /* blue-600 */
+            --color-accent: #f59e0b; /* amber-500 */
             
-            --secondary-50: #f0fdf4;
-            --secondary-100: #dcfce7;
-            --secondary-500: #22c55e;
-            --secondary-600: #16a34a;
-            --secondary-700: #15803d;
-            
-            --accent-50: #fff7ed;
-            --accent-100: #ffedd5;
-            --accent-500: #f97316;
-            --accent-600: #ea580c;
-            
-            --neutral-50: #f8fafc;
-            --neutral-100: #f1f5f9;
-            --neutral-200: #e2e8f0;
-            --neutral-300: #cbd5e1;
-            --neutral-400: #94a3b8;
-            --neutral-500: #64748b;
-            --neutral-600: #475569;
-            --neutral-700: #334155;
-            --neutral-800: #1e293b;
-            --neutral-900: #0f172a;
-            
-            --success: #059669;
-            --warning: #d97706;
-            --error: #dc2626;
-            
-            /* Typography */
-            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            --font-size-xs: 0.75rem;
-            --font-size-sm: 0.875rem;
-            --font-size-base: 1rem;
-            --font-size-lg: 1.125rem;
-            --font-size-xl: 1.25rem;
-            --font-size-2xl: 1.5rem;
-            --font-size-3xl: 1.875rem;
-            
-            /* Spacing */
-            --spacing-xs: 0.25rem;
-            --spacing-sm: 0.5rem;
-            --spacing-md: 1rem;
-            --spacing-lg: 1.5rem;
-            --spacing-xl: 2rem;
-            --spacing-2xl: 3rem;
-            
-            /* Shadows */
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            
-            /* Borders */
-            --border-radius-sm: 0.375rem;
-            --border-radius-md: 0.5rem;
-            --border-radius-lg: 0.75rem;
-            --border-radius-xl: 1rem;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Dark Theme Logic */
+        html.dark {
+                --color-bg: #111827;
+                --color-bg-alt: #1f2937;
+                --color-text: #f9fafb;
+                --color-text-muted: #9ca3af;
+                --color-border: #374151;
+                --color-primary: #60a5fa;
+                --color-primary-hover: #3b82f6;
+                --color-accent: #fcd34d;
         }
 
+        /* Base Styles */
         body {
-            font-family: var(--font-family);
-            background: linear-gradient(135deg, var(--neutral-50) 0%, var(--primary-50) 100%);
-            color: var(--neutral-800);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            min-height: 100vh;
+            font-family: var(--font-sans);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Professional Loading States */
-        .loading-skeleton {
-            background: linear-gradient(90deg, var(--neutral-200) 25%, var(--neutral-100) 50%, var(--neutral-200) 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
+        /* Loading Spinner */
+        #loading-overlay {
+            background-color: rgba(0,0,0,0.7);
         }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
         .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--neutral-200);
-            border-top: 2px solid var(--primary-500);
-            border-radius: 50%;
+            border-top-color: var(--color-primary);
             animation: spin 1s linear infinite;
         }
-
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        /* Enhanced Header */
-        .app-header {
-            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
-            padding: var(--spacing-xl) var(--spacing-lg);
-            border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--color-bg-alt); }
+        ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
 
-        .app-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.3;
-        }
-
-        .app-header h1 {
-            font-size: var(--font-size-3xl);
-            font-weight: 800;
-            margin-bottom: var(--spacing-sm);
-            position: relative;
-            z-index: 1;
-        }
-
-        .app-header p {
-            font-size: var(--font-size-lg);
-            opacity: 0.9;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Professional Search & Filters */
-        .search-section {
-            background: white;
-            padding: var(--spacing-xl);
-            border-bottom: 1px solid var(--neutral-200);
-        }
-
-        .search-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--spacing-lg);
-        }
-
-        @media (max-width: 768px) {
-            .search-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .form-group {
-            position: relative;
-        }
-
-        .form-label {
-            display: block;
-            font-size: var(--font-size-base);
-            font-weight: 600;
-            color: var(--neutral-700);
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .form-input, .form-select {
-            width: 100%;
-            padding: var(--spacing-md);
-            border: 2px solid var(--neutral-200);
-            border-radius: var(--border-radius-md);
-            font-size: var(--font-size-lg);
-            background: white;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-
-        .form-input:focus, .form-select:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px var(--primary-100);
-        }
-
-        .search-input-wrapper {
-            position: relative;
-        }
-
-        .search-input-wrapper .search-icon {
-            position: absolute;
-            left: var(--spacing-md);
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--neutral-400);
-            pointer-events: none;
-        }
-
-        .search-input-wrapper .form-input {
-            padding-left: 2.75rem;
-        }
-
-        .search-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid var(--primary-200);
-            border-top: none;
-            border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
-            box-shadow: var(--shadow-lg);
-            z-index: 1000;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .search-suggestion {
-            padding: var(--spacing-md);
-            cursor: pointer;
-            border-bottom: 1px solid var(--neutral-100);
-            transition: background-color 0.2s ease;
-        }
-
-        .search-suggestion:hover {
-            background-color: var(--primary-50);
-        }
-
-        .search-suggestion:last-child {
-            border-bottom: none;
-        }
-
-        /* Enhanced Tabs */
-        .tabs-container {
-            background: white;
-            border-bottom: 1px solid var(--neutral-200);
-            padding: 0 var(--spacing-lg);
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .tabs-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .tabs-nav {
-            display: flex;
-            gap: var(--spacing-xs);
-            min-width: max-content;
-        }
-
-        .tab {
-            padding: var(--spacing-lg) var(--spacing-xl);
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s ease;
-            color: var(--neutral-600);
-            font-size: var(--font-size-base);
-            font-weight: 600;
-            white-space: nowrap;
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-        }
-
-        .tab:hover {
-            color: var(--primary-600);
-            background-color: var(--primary-50);
-        }
-
-        .tab.active {
-            color: var(--primary-700);
-            border-bottom-color: var(--primary-600);
-            font-weight: 600;
-            background-color: var(--primary-50);
-        }
-
-        .tab-icon {
-            font-size: var(--font-size-sm);
-        }
-
-        /* Professional Results Area */
-        .results-container {
-            background: white;
-            margin: var(--spacing-lg);
-            border-radius: var(--border-radius-xl);
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            min-height: 600px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .results-header {
-            background: var(--neutral-50);
-            padding: var(--spacing-lg);
-            border-bottom: 1px solid var(--neutral-200);
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: var(--spacing-md);
-        }
-
-        .results-title {
-            font-size: var(--font-size-2xl);
-            font-weight: 700;
-            color: var(--neutral-800);
-        }
-
-        .results-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--border-radius-md);
-            font-size: var(--font-size-sm);
-            font-weight: 500;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-600);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-700);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .btn-secondary {
-            background-color: var(--neutral-100);
-            color: var(--neutral-700);
-            border: 1px solid var(--neutral-300);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--neutral-200);
-            transform: translateY(-1px);
-        }
-
-        .btn-success {
-            background-color: var(--secondary-600);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background-color: var(--secondary-700);
-            transform: translateY(-1px);
-        }
-
-        .btn-icon-only {
-            padding: var(--spacing-sm);
-            width: 36px;
-            height: 36px;
-            justify-content: center;
-        }
-
-        .results-content {
-            flex: 1;
-            padding: var(--spacing-lg);
-            overflow-y: auto;
-            position: relative;
-        }
-
-        /* Enhanced List View */
-        .diagnosis-list {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-md);
-        }
-
-        .diagnosis-card {
-            background: var(--neutral-50);
-            border: 1px solid var(--neutral-200);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg);
-            position: relative;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .diagnosis-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary-300);
-        }
-
-        .diagnosis-card.favorited {
-            border-color: var(--accent-500);
-            background: var(--accent-50);
-        }
-
-        .diagnosis-header {
-            display: flex;
-            justify-content: between;
-            align-items: flex-start;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .diagnosis-name {
-            font-size: var(--font-size-xl);
-            font-weight: 700;
-            color: var(--neutral-800);
-            line-height: 1.4;
-            flex: 1;
-            margin-right: var(--spacing-md);
-        }
-
-        .diagnosis-actions {
-            display: flex;
-            gap: var(--spacing-xs);
-            flex-shrink: 0;
-        }
-
-        .action-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: var(--border-radius-sm);
-            border: none;
-            background: var(--neutral-200);
-            color: var(--neutral-600);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            font-size: var(--font-size-sm);
-        }
-
-        .action-btn:hover {
-            background: var(--primary-100);
-            color: var(--primary-600);
-            transform: scale(1.1);
-        }
-
-        .action-btn.favorited {
-            background: var(--accent-100);
-            color: var(--accent-600);
-        }
-
-        .action-btn.noted {
-            background: var(--secondary-100);
-            color: var(--secondary-600);
-        }
-
-        .diagnosis-features {
-            font-size: var(--font-size-base);
-            color: var(--neutral-600);
-            line-height: 1.6;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .diagnosis-sources {
-            font-size: var(--font-size-sm);
-            color: var(--neutral-500);
-            font-style: italic;
-            padding-top: var(--spacing-md);
-            border-top: 1px solid var(--neutral-200);
-        }
-
-        .user-note {
-            background: var(--accent-100);
-            border: 1px solid var(--accent-200);
-            border-radius: var(--border-radius-sm);
-            padding: var(--spacing-sm);
-            margin-top: var(--spacing-md);
-            font-size: var(--font-size-sm);
-        }
-
-        .user-note-label {
-            font-weight: 600;
-            color: var(--accent-700);
-            margin-right: var(--spacing-sm);
-        }
-
-        /* Enhanced Table View */
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: var(--font-size-base);
-        }
-
-        .results-table th {
-            background: var(--neutral-100);
-            padding: var(--spacing-md);
-            text-align: left;
-            font-weight: 600;
-            color: var(--neutral-700);
-            border-bottom: 2px solid var(--neutral-200);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .results-table td {
-            padding: var(--spacing-md);
-            border-bottom: 1px solid var(--neutral-200);
-            vertical-align: top;
-        }
-
-        .results-table tr:hover {
-            background-color: var(--primary-50);
-        }
-
-        /* Flashcard Enhancements */
-        .flashcard-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            padding: var(--spacing-xl);
-        }
-
+        /* Component Styles */
+        .main-card { background-color: var(--color-bg-alt); border: 1px solid var(--color-border); }
+        .tab-button { color: var(--color-text-muted); }
+        .tab-button.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+        .tab-button:hover { color: var(--color-primary); }
+        .btn-primary { background-color: var(--color-primary); color: white; }
+        .btn-primary:hover { background-color: var(--color-primary-hover); }
+        .btn-secondary { background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
+        .btn-secondary:hover { background-color: var(--color-bg); }
+        
+        /* Flashcard Styles */
+        .flashcard-scene { perspective: 1000px; }
         .flashcard {
-            width: 100%;
-            max-width: 500px;
-            height: 320px;
-            perspective: 1000px;
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .flashcard-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.6s;
             transform-style: preserve-3d;
-            border-radius: var(--border-radius-xl);
-            cursor: pointer;
+            transition: transform 0.6s;
         }
-
-        .flashcard.flipped .flashcard-inner {
-            transform: rotateY(180deg);
-        }
-
+        .flashcard.is-flipped { transform: rotateY(180deg); }
         .flashcard-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: var(--border-radius-xl);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: var(--spacing-xl);
-            box-shadow: var(--shadow-xl);
+            backface-visibility: hidden; -webkit-backface-visibility: hidden;
         }
-
-        .flashcard-front {
-            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
-            color: white;
+        .flashcard-back { transform: rotateY(180deg); }
+        
+        /* Toast Notifications */
+        #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; }
+        .toast {
+            animation: toast-in 0.5s, toast-out 0.5s 4.5s;
         }
-
-        .flashcard-back {
-            background: linear-gradient(135deg, var(--neutral-100) 0%, var(--neutral-200) 100%);
-            color: var(--neutral-800);
-            transform: rotateY(180deg);
+        @keyframes toast-in {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-
-        .flashcard-content {
-            font-size: var(--font-size-2xl);
-            font-weight: 700;
-            text-align: center;
-            line-height: 1.4;
-        }
-
-        .flashcard-hint {
-            font-size: var(--font-size-sm);
-            opacity: 0.8;
-            margin-top: var(--spacing-md);
-        }
-
-        .flashcard-controls {
-            display: flex;
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .flashcard-btn {
-            padding: var(--spacing-md) var(--spacing-lg);
-            border-radius: var(--border-radius-md);
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: white;
-        }
-
-        .flashcard-btn-again {
-            background-color: var(--error);
-        }
-
-        .flashcard-btn-hard {
-            background-color: var(--accent-500);
-        }
-
-        .flashcard-btn-good {
-            background-color: var(--secondary-500);
-        }
-
-        .flashcard-btn-easy {
-            background-color: var(--primary-500);
-        }
-
-        .flashcard-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .flashcard-stats {
-            text-align: center;
-            color: var(--neutral-600);
-            font-size: var(--font-size-sm);
-        }
-
-        /* Diagram Enhancements */
-        .diagram-container {
-            position: relative;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .diagram-controls {
-            position: absolute;
-            top: var(--spacing-md);
-            right: var(--spacing-md);
-            display: flex;
-            gap: var(--spacing-sm);
-            z-index: 100;
-        }
-
-        .diagram-sidebar {
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 320px;
-            height: 100%;
-            background: white;
-            border-left: 1px solid var(--neutral-200);
-            padding: var(--spacing-lg);
-            overflow-y: auto;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            box-shadow: var(--shadow-xl);
-        }
-
-        .diagram-sidebar.open {
-            transform: translateX(0);
-        }
-
-        .diagram-sidebar-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--neutral-200);
-        }
-
-        .diagram-sidebar-title {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            color: var(--neutral-800);
-        }
-
-        /* Progress Indicators */
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: var(--neutral-200);
-            border-radius: var(--border-radius-sm);
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary-500) 0%, var(--secondary-500) 100%);
-            transition: width 0.3s ease;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .app-header {
-                padding: var(--spacing-lg);
-            }
-            
-            .app-header h1 {
-                font-size: var(--font-size-2xl);
-            }
-            
-            .search-section {
-                padding: var(--spacing-lg);
-            }
-            
-            .results-container {
-                margin: var(--spacing-md);
-                border-radius: var(--border-radius-lg);
-            }
-            
-            .diagnosis-card {
-                padding: var(--spacing-md);
-            }
-            
-            .diagnosis-name {
-                font-size: var(--font-size-base);
-            }
-            
-            .flashcard {
-                max-width: 100%;
-                height: 280px;
-            }
-            
-            .diagram-sidebar {
-                width: 100%;
-            }
-        }
-
-        /* Dark Mode Support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --neutral-50: #0f172a;
-                --neutral-100: #1e293b;
-                --neutral-200: #334155;
-                --neutral-300: #475569;
-                --neutral-700: #cbd5e1;
-                --neutral-800: #e2e8f0;
-                --neutral-900: #f8fafc;
-            }
-            
-            body {
-                background: linear-gradient(135deg, var(--neutral-100) 0%, var(--primary-900) 100%);
-            }
-        }
-
-        /* Accessibility Enhancements */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-
-        .focus-visible:focus {
-            outline: 2px solid var(--primary-500);
-            outline-offset: 2px;
-        }
-
-        /* Animation Utilities */
-        .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .slide-in-right {
-            animation: slideInRight 0.3s ease-out;
-        }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-
-        /* Custom Scrollbars */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: var(--neutral-100);
-            border-radius: 10px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: var(--neutral-400);
-            border-radius: 10px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: var(--neutral-500);
-        }
-
-        /* Tooltip Enhancements */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-
-        .tooltip-content {
-            position: absolute;
-            bottom: 120%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--neutral-900);
-            color: white;
-            padding: var(--spacing-sm) var(--spacing-md);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-xs);
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s ease;
-            z-index: 1000;
-            box-shadow: var(--shadow-lg);
-        }
-
-        .tooltip:hover .tooltip-content {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .tooltip-content::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 5px solid transparent;
-            border-top-color: var(--neutral-900);
-        }
-
-        /* Modal Enhancements */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(4px);
-        }
-
-        .modal.open {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: var(--border-radius-xl);
-            padding: var(--spacing-xl);
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: var(--shadow-xl);
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-        }
-
-        .modal.open .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--neutral-200);
-        }
-
-        .modal-title {
-            font-size: var(--font-size-xl);
-            font-weight: 600;
-            color: var(--neutral-800);
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: var(--font-size-xl);
-            color: var(--neutral-500);
-            cursor: pointer;
-            padding: var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
-            transition: all 0.2s ease;
-        }
-
-        .modal-close:hover {
-            background: var(--neutral-100);
-            color: var(--neutral-700);
-        }
-
-        /* Status Badges */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-xs);
-            font-weight: 500;
-        }
-
-        .badge-success {
-            background: var(--secondary-100);
-            color: var(--secondary-700);
-        }
-
-        .badge-warning {
-            background: var(--accent-100);
-            color: var(--accent-700);
-        }
-
-        .badge-info {
-            background: var(--primary-100);
-            color: var(--primary-700);
+        @keyframes toast-out {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
         }
 
         /* Print Styles */
         @media print {
-            * {
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-            }
-            
-            body {
-                background: white !important;
-                font-size: 12pt;
-            }
-            
-            .app-header,
-            .search-section,
-            .tabs-container,
-            .results-actions,
-            .diagnosis-actions,
-            .btn,
-            .modal {
-                display: none !important;
-            }
-            
-            .results-container {
-                margin: 0;
-                box-shadow: none;
-                border: 1px solid #000;
-            }
-            
-            .diagnosis-card {
-                break-inside: avoid;
-                page-break-inside: avoid;
-                margin-bottom: 1rem;
-                border: 1px solid #000;
-            }
-            
-            .results-table {
-                font-size: 10pt;
-            }
-            
-            .results-table th {
-                background: #f0f0f0 !important;
-            }
+            body { background-color: white; color: black; }
+            .no-print { display: none !important; }
+            main { margin: 0; padding: 0; }
+            .main-card { border: none; box-shadow: none; }
+            #results-content { max-height: none !important; }
+            a { text-decoration: none; color: inherit; }
+            .diagnosis-card, .table { page-break-inside: avoid; }
         }
     </style>
-    
-    <script src="../site_libs/jquery-1.11.3/jquery.min.js"></script>
-<link href="../site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
-<script src="../site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
-<script src="../site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
-<script src="../site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
-<script src="../site_libs/navigation-1.1/tabsets.js"></script>
-<link href="../site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
-<script src="../site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link rel="stylesheet" href="../style.css" type="text/css" />
 </head>
-<body>
-    <!-- Professional Header -->
-    <header class="app-header">
-        <div style="position: relative; z-index: 2;">
-            <h1>
-                <i class="fas fa-microscope" style="margin-right: 12px; opacity: 0.9;"></i>
-                Dermatopathology Navigator Pro
-            </h1>
-            <p>Advanced differential diagnosis and learning platform for dermatopathology</p>
+<body class="antialiased">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300">
+        <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+        <div class="z-10 flex flex-col items-center">
+            <div class="spinner h-12 w-12 rounded-full border-4 border-gray-300"></div>
+            <p class="mt-4 text-white text-lg font-semibold">Initializing Navigator...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="p-4 shadow-md bg-white dark:bg-gray-800 no-print">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Dermatopathology Navigator Pro</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">An Advanced Learning & Reference Tool</p>
+            </div>
+             <button id="theme-toggle-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                <svg id="theme-icon-light" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <svg id="theme-icon-dark" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
         </div>
     </header>
 
-    <!-- Enhanced Search & Filters Section -->
-    <section class="search-section">
-        <div class="search-grid">
-            <div class="form-group">
-                <label for="search-finding-input" class="form-label">
-                    <i class="fas fa-search"></i> Filter Histologic Findings
-                </label>
-                <div class="search-input-wrapper">
-                    <i class="fas fa-search search-icon"></i>
-                    <input 
-                        type="text" 
-                        id="search-finding-input" 
-                        class="form-input" 
-                        placeholder="Type to search findings with intelligent suggestions..."
-                        autocomplete="off"
-                        aria-describedby="finding-search-help"
-                    >
-                    <div id="finding-suggestions" class="search-suggestions" style="display: none;"></div>
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 md:p-6">
+        <!-- Search and Filter Section -->
+        <div class="mb-6 p-4 rounded-lg bg-white dark:bg-gray-800 shadow-md no-print">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Fuzzy Search -->
+                <div class="relative">
+                    <label for="finding-search-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Search Histologic Findings</label>
+                    <input type="text" id="finding-search-input" placeholder="e.g., 'spindle cell', 'acantholysis'..." class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                    <div id="search-suggestions" class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 rounded-md shadow-lg hidden max-h-60 overflow-y-auto"></div>
                 </div>
-                <div id="finding-search-help" class="sr-only">
-                    Search through histologic findings with auto-complete suggestions
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="finding-select" class="form-label">
-                    <i class="fas fa-list-ul"></i> Select Histologic Finding
-                </label>
-                <select 
-                    id="finding-select" 
-                    class="form-select"
-                    aria-describedby="finding-select-help"
-                >
-                    <option value="">-- Select a Finding --</option>
-                </select>
-                <div id="finding-select-help" class="sr-only">
-                    Choose a histologic finding to view differential diagnoses
+                <!-- Dropdown Selector -->
+                <div>
+                    <label for="finding-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Or Select a Finding</label>
+                    <select id="finding-selector" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">-- Select a Finding --</option>
+                    </select>
                 </div>
             </div>
         </div>
-        
-        <!-- Advanced Search Options -->
-        <details style="margin-top: 1rem;">
-            <summary style="cursor: pointer; font-weight: 500; color: var(--primary-600);">
-                <i class="fas fa-cog"></i> Advanced Search Options
-            </summary>
-            <div style="margin-top: 1rem; padding: 1rem; background: var(--neutral-50); border-radius: var(--border-radius-md);">
-                <div class="search-grid">
-                    <div class="form-group">
-                        <label for="search-diagnoses-input" class="form-label">Search Diagnoses</label>
-                        <input 
-                            type="text" 
-                            id="search-diagnoses-input" 
-                            class="form-input" 
-                            placeholder="Search within diagnoses or key features..."
-                        >
-                    </div>
-                    <div class="form-group">
-                        <label for="source-filter" class="form-label">Filter by Source</label>
-                        <select id="source-filter" class="form-select">
-                            <option value="">All Sources</option>
-                            <option value="textbook">Textbook</option>
-                            <option value="journal">Journal Articles</option>
-                            <option value="atlas">Atlas</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </details>
-    </section>
 
-    <!-- Professional Tabs Navigation -->
-    <nav class="tabs-container" role="tablist">
-        <div class="tabs-nav">
-            <button 
-                id="list-tab" 
-                class="tab active" 
-                data-view="list-view"
-                role="tab"
-                aria-selected="true"
-                aria-controls="list-view"
-            >
-                <i class="fas fa-list tab-icon"></i>
-                List View
-            </button>
-            <button 
-                id="table-tab" 
-                class="tab" 
-                data-view="table-view"
-                role="tab"
-                aria-selected="false"
-                aria-controls="table-view"
-            >
-                <i class="fas fa-table tab-icon"></i>
-                Table View
-            </button>
-            <button 
-                id="flashcard-tab" 
-                class="tab" 
-                data-view="flashcard-view"
-                role="tab"
-                aria-selected="false"
-                aria-controls="flashcard-view"
-            >
-                <i class="fas fa-clone tab-icon"></i>
-                Flashcards (SRS)
-            </button>
-            <button 
-                id="diagram-tab" 
-                class="tab" 
-                data-view="diagram-view"
-                role="tab"
-                aria-selected="false"
-                aria-controls="diagram-view"
-            >
-                <i class="fas fa-project-diagram tab-icon"></i>
-                Network Diagram
-            </button>
-            <button 
-                id="my-list-tab" 
-                class="tab" 
-                data-view="my-list-view"
-                role="tab"
-                aria-selected="false"
-                aria-controls="my-list-view"
-            >
-                <i class="fas fa-star tab-icon"></i>
-                My Favorites
-            </button>
-            <button 
-                id="compare-tab" 
-                class="tab" 
-                data-view="compare-view"
-                role="tab"
-                aria-selected="false"
-                aria-controls="compare-view"
-            >
-                <i class="fas fa-balance-scale tab-icon"></i>
-                Compare
-            </button>
-            <button 
-                id="global-search-tab" 
-                class="tab" 
-                data-view="global-search-view"
-                role="tab"
-                aria-selected="false"
-                aria-controls="global-search-view"
-            >
-                <i class="fas fa-globe tab-icon"></i>
-                Global Search
-            </button>
-            <button 
-                id="quiz-mode-tab" 
-                class="tab" 
-                data-view="quiz-mode-view"
-                role="tab"
-                aria-selected="false"
-                aria-controls="quiz-mode-view"
-            >
-                <i class="fas fa-question-circle tab-icon"></i>
-                Quiz Mode
-            </button>
-            <button 
-                id="analytics-tab" 
-                class="tab" 
-                data-view="analytics-view"
-                role="tab"
-                aria-selected="false"
-                aria-controls="analytics-view"
-            >
-                <i class="fas fa-chart-bar tab-icon"></i>
-                Learning Analytics
-            </button>
-            <button 
-                id="settings-tab" 
-                class="tab" 
-                data-view="settings-view"
-                role="tab"
-                aria-selected="false"
-                aria-controls="settings-view"
-            >
-                <i class="fas fa-cog tab-icon"></i>
-                Settings
-            </button>
-        </div>
-    </nav>
-
-    <!-- Enhanced Results Container -->
-    <main class="results-container">
-        <div class="results-header">
-            <h2 class="results-title" id="results-title">
-                <i class="fas fa-clipboard-list"></i>
-                Differential Diagnoses
-            </h2>
-            <div class="results-actions">
-                <button class="btn btn-secondary" id="export-pdf-btn" title="Export to PDF">
-                    <i class="fas fa-file-pdf"></i>
-                    Export PDF
-                </button>
-                <button class="btn btn-secondary" id="export-excel-btn" title="Export to Excel">
-                    <i class="fas fa-file-excel"></i>
-                    Export Excel
-                </button>
-                <button class="btn btn-secondary" id="print-btn" title="Print View">
-                    <i class="fas fa-print"></i>
-                    Print
-                </button>
-                <button class="btn btn-primary" id="share-btn" title="Share Results">
-                    <i class="fas fa-share"></i>
-                    Share
-                </button>
-            </div>
-        </div>
-
-        <div class="results-content custom-scrollbar">
-            <!-- List View -->
-            <div id="list-view" class="view-container" role="tabpanel" aria-labelledby="list-tab">
-                <div class="diagnosis-list" id="list-content">
-                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
-                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">No Finding Selected</p>
-                        <p>Select a histologic finding above to view differential diagnoses</p>
-                    </div>
+        <!-- Main Results Container -->
+        <div id="results-container" class="main-card rounded-lg shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-wrap justify-between items-center gap-4">
+                <h2 id="results-title" class="text-xl font-bold text-gray-800 dark:text-white flex-shrink-0">Welcome! Select a finding to begin.</h2>
+                <div id="action-buttons" class="flex-shrink-0 flex flex-wrap gap-2 no-print hidden">
+                    <button id="export-pdf-btn" class="btn-secondary text-xs px-3 py-1.5 rounded-md flex items-center gap-1">PDF <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm5 1a1 1 0 00-1 1v1a1 1 0 001 1h2a1 1 0 001-1V6a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg></button>
+                    <button id="export-excel-btn" class="btn-secondary text-xs px-3 py-1.5 rounded-md flex items-center gap-1">Excel <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.5 1a.5.5 0 00-.5.5v2.5a.5.5 0 00.5.5h2.5a.5.5 0 00.5-.5V6.5a.5.5 0 00-.5-.5h-2.5zM14.5 6a.5.5 0 00-.5.5v2.5a.5.5 0 00.5.5h.5a.5.5 0 00.5-.5V6.5a.5.5 0 00-.5-.5h-.5zM5.5 11a.5.5 0 00-.5.5v2.5a.5.5 0 00.5.5h2.5a.5.5 0 00.5-.5v-2.5a.5.5 0 00-.5-.5h-2.5zM11 11.5a.5.5 0 00-.5.5v2.5a.5.5 0 00.5.5h2.5a.5.5 0 00.5-.5v-2.5a.5.5 0 00-.5-.5h-2.5z" /></svg></button>
+                    <button id="print-btn" class="btn-secondary text-xs px-3 py-1.5 rounded-md flex items-center gap-1">Print <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" /></svg></button>
+                    <button id="share-btn" class="btn-secondary text-xs px-3 py-1.5 rounded-md flex items-center gap-1">Share <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" /></svg></button>
                 </div>
             </div>
 
-            <!-- Table View -->
-            <div id="table-view" class="view-container hidden" role="tabpanel" aria-labelledby="table-tab">
-                <div id="table-content">
-                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
-                        <i class="fas fa-table" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Table View</p>
-                        <p>Select a finding to view data in table format</p>
-                    </div>
-                </div>
+            <!-- Tab Navigation -->
+            <div class="border-b border-gray-200 dark:border-gray-700 no-print">
+                <nav id="tab-nav" class="flex flex-wrap -mb-px px-4" aria-label="Tabs" role="tablist">
+                    <button role="tab" data-tab="list" class="tab-button active text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">List</button>
+                    <button role="tab" data-tab="table" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Table</button>
+                    <button role="tab" data-tab="flashcards" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Flashcards</button>
+                    <button role="tab" data-tab="network" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Network</button>
+                    <button role="tab" data-tab="favorites" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 flex items-center gap-1">Favorites <span id="favorites-count" class="bg-blue-100 text-blue-800 text-xs font-medium px-1.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">0</span></button>
+                    <button role="tab" data-tab="compare" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 disabled:opacity-50" disabled>Compare</button>
+                    <button role="tab" data-tab="quiz" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 disabled:opacity-50" disabled>Quiz</button>
+                    <button role="tab" data-tab="analytics" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Analytics</button>
+                </nav>
             </div>
             
-            <!-- Flashcard View -->
-            <div id="flashcard-view" class="view-container hidden" role="tabpanel" aria-labelledby="flashcard-tab">
-                <div class="flashcard-container">
-                    <div style="text-align: center; color: var(--neutral-500);">
-                        <i class="fas fa-clone" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Spaced Repetition System</p>
-                        <p>Select a finding to start learning with intelligent flashcards</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Diagram View -->
-            <div id="diagram-view" class="view-container hidden" role="tabpanel" aria-labelledby="diagram-tab">
-                <div class="diagram-container">
-                    <div class="diagram-controls">
-                        <button class="btn btn-icon-only btn-secondary" id="diagram-zoom-in" title="Zoom In">
-                            <i class="fas fa-search-plus"></i>
-                        </button>
-                        <button class="btn btn-icon-only btn-secondary" id="diagram-zoom-out" title="Zoom Out">
-                            <i class="fas fa-search-minus"></i>
-                        </button>
-                        <button class="btn btn-icon-only btn-secondary" id="diagram-reset" title="Reset View">
-                            <i class="fas fa-sync"></i>
-                        </button>
-                        <button class="btn btn-icon-only btn-secondary" id="diagram-fullscreen" title="Fullscreen">
-                            <i class="fas fa-expand"></i>
-                        </button>
-                    </div>
-                    
-                    <svg id="diagram-svg" width="100%" height="100%"></svg>
-                    
-                    <div id="diagram-sidebar" class="diagram-sidebar">
-                        <div class="diagram-sidebar-header">
-                            <h3 class="diagram-sidebar-title" id="sidebar-title">Node Details</h3>
-                            <button class="btn btn-icon-only btn-secondary" id="sidebar-close">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div id="sidebar-content">
-                            <p>Click on a node to view details</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- My List View -->
-            <div id="my-list-view" class="view-container hidden" role="tabpanel" aria-labelledby="my-list-tab">
-                <div id="favorites-content">
-                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
-                        <i class="fas fa-star" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Your Favorites</p>
-                        <p>Star diagnoses to save them here for quick access</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Compare View -->
-            <div id="compare-view" class="view-container hidden" role="tabpanel" aria-labelledby="compare-tab">
-                <div id="compare-content">
-                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
-                        <i class="fas fa-balance-scale" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Compare Diagnoses</p>
-                        <p>Select diagnoses to compare side by side</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Global Search View -->
-            <div id="global-search-view" class="view-container hidden" role="tabpanel" aria-labelledby="global-search-tab">
-                <div style="padding: 1rem;">
-                    <div class="form-group">
-                        <label for="global-search-input" class="form-label">Search All Content</label>
-                        <input type="text" id="global-search-input" class="form-input" placeholder="Search across all findings and diagnoses...">
-                    </div>
-                    <div id="global-search-results">
-                        <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
-                            <i class="fas fa-globe" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                            <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Global Search</p>
-                            <p>Search across all findings and diagnoses in the database</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quiz Mode View -->
-            <div id="quiz-mode-view" class="view-container hidden" role="tabpanel" aria-labelledby="quiz-mode-tab">
-                <div id="quiz-content">
-                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
-                        <i class="fas fa-question-circle" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Interactive Quiz Mode</p>
-                        <p>Test your knowledge with adaptive quizzes</p>
-                        <button class="btn btn-primary" id="start-quiz-btn" style="margin-top: 1rem;">
-                            <i class="fas fa-play"></i>
-                            Start Quiz
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Learning Analytics View -->
-            <div id="analytics-view" class="view-container hidden" role="tabpanel" aria-labelledby="analytics-tab">
-                <div id="analytics-content">
-                    <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
-                        <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Learning Analytics</p>
-                        <p>Track your progress and identify areas for improvement</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Settings View -->
-            <div id="settings-view" class="view-container hidden" role="tabpanel" aria-labelledby="settings-tab">
-                <div style="padding: 2rem;">
-                    <h3 style="margin-bottom: 1.5rem; color: var(--neutral-800);">
-                        <i class="fas fa-cog"></i> Application Settings
-                    </h3>
-                    
-                    <div style="display: grid; gap: 1.5rem;">
-                        <div class="form-group">
-                            <label class="form-label">Theme Preference</label>
-                            <select class="form-select" id="theme-select">
-                                <option value="auto">Auto (System)</option>
-                                <option value="light">Light</option>
-                                <option value="dark">Dark</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Flashcard Settings</label>
-                            <div style="display: grid; gap: 0.5rem;">
-                                <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <input type="checkbox" id="auto-flip" checked>
-                                    Auto-flip flashcards after 5 seconds
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <input type="checkbox" id="show-hints" checked>
-                                    Show hints on flashcards
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Data Management</label>
-                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                <button class="btn btn-secondary" id="export-data-btn">
-                                    <i class="fas fa-download"></i> Export My Data
-                                </button>
-                                <button class="btn btn-secondary" id="import-data-btn">
-                                    <i class="fas fa-upload"></i> Import Data
-                                </button>
-                                <button class="btn btn-secondary" id="reset-data-btn">
-                                    <i class="fas fa-trash"></i> Reset All Data
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Content -->
+            <div id="results-content" class="p-4 md:p-6 bg-gray-50 dark:bg-gray-900/50 max-h-[65vh] overflow-y-auto">
+                <!-- Welcome message -->
+                <div id="welcome-message" class="text-center py-16">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                    </svg>
+                    <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">No Finding Selected</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Use the search or dropdown above to view differential diagnoses.</p>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="modal" style="background: rgba(255, 255, 255, 0.9);">
-        <div style="text-align: center;">
-            <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 1rem;"></div>
-            <p style="color: var(--neutral-700); font-weight: 500;">Loading data...</p>
-        </div>
-    </div>
-
+    <!-- Modals -->
     <!-- Note Modal -->
-    <div id="note-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Add Note</h3>
-                <button class="modal-close" id="note-modal-close">
-                    <i class="fas fa-times"></i>
-                </button>
+    <div id="note-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black bg-opacity-50">
+        <div class="main-card rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3">
+            <div class="p-4 border-b dark:border-gray-700">
+                <h3 id="note-modal-title" class="text-lg font-semibold">Add/Edit Note</h3>
             </div>
-            <div>
-                <div class="form-group">
-                    <label for="note-textarea" class="form-label">Your Note</label>
-                    <textarea 
-                        id="note-textarea" 
-                        class="form-input" 
-                        rows="4" 
-                        placeholder="Add your personal notes about this diagnosis..."
-                    ></textarea>
-                </div>
-                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                    <button class="btn btn-secondary" id="note-cancel">Cancel</button>
-                    <button class="btn btn-primary" id="note-save">
-                        <i class="fas fa-save"></i> Save Note
-                    </button>
-                </div>
+            <div class="p-4">
+                <textarea id="note-textarea" rows="6" class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Your personal notes..."></textarea>
+            </div>
+            <div class="p-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3">
+                <button id="note-cancel-btn" class="btn-secondary px-4 py-2 rounded-md">Cancel</button>
+                <button id="note-save-btn" class="btn-primary px-4 py-2 rounded-md">Save</button>
             </div>
         </div>
     </div>
-
-    <!-- Share Modal -->
-    <div id="share-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Share Results</h3>
-                <button class="modal-close" id="share-modal-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div>
-                <p style="margin-bottom: 1rem; color: var(--neutral-600);">
-                    Share this differential diagnosis list with colleagues
-                </p>
-                <div class="form-group">
-                    <label for="share-url" class="form-label">Shareable Link</label>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" id="share-url" class="form-input" readonly>
-                        <button class="btn btn-secondary" id="copy-link-btn">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
-                    <button class="btn btn-secondary" id="share-email-btn">
-                        <i class="fas fa-envelope"></i> Email
-                    </button>
-                    <button class="btn btn-secondary" id="share-social-btn">
-                        <i class="fas fa-share-alt"></i> Social
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tooltip for D3 diagram -->
-    <div id="tooltip" class="tooltip-content" style="position: absolute; opacity: 0; pointer-events: none; z-index: 1000;"></div>
-
-    <script>
-// Enhanced Dermatopathology Navigator Pro with Professional UI/UX
-(function() {
-    'use strict';
-
-    // Global variables
-    let currentFindingData = null;
-    let processedFindingsMap = new Map();
-    let userNotes = JSON.parse(localStorage.getItem('dermapath-notes') || '{}');
-    let userFavorites = new Set(JSON.parse(localStorage.getItem('dermapath-favorites') || '[]'));
-    let userSrsData = JSON.parse(localStorage.getItem('dermapath-srs') || '{}');
-    let compareList = new Set();
-    let fuseInstance = null;
-    let learningAnalytics = JSON.parse(localStorage.getItem('dermapath-analytics') || '{}');
     
-    // D3 diagram variables
-    let svg = null;
-    let simulation = null;
-    let diagramWidth = 0;
-    let diagramHeight = 0;
-
-    // SRS constants
-    const SRS_INITIAL_EASE_FACTOR = 2.5;
-    const SRS_MIN_EASE_FACTOR = 1.3;
-    const SRS_MAX_EASE_FACTOR = 3.0;
-
-    // Professional loading states
-    function showLoading(message = 'Loading...') {
-        const overlay = document.getElementById('loading-overlay');
-        overlay.querySelector('p').textContent = message;
-        overlay.classList.add('open');
-    }
-
-    function hideLoading() {
-        document.getElementById('loading-overlay').classList.remove('open');
-    }
-
-    // Enhanced notification system
-    function showNotification(message, type = 'info', duration = 3000) {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
+    <!-- Share Modal -->
+    <div id="share-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black bg-opacity-50">
+        <div class="main-card rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3">
+            <h3 class="p-4 text-lg font-semibold border-b dark:border-gray-700">Share Link</h3>
+            <div class="p-4">
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Copy this link to share the current view:</p>
+                <input id="share-link-input" type="text" readonly class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white">
             </div>
-        `;
-        
-        Object.assign(notification.style, {
-            position: 'fixed',
-            top: '1rem',
-            right: '1rem',
-            background: type === 'success' ? 'var(--secondary-500)' : type === 'error' ? 'var(--error)' : 'var(--primary-500)',
-            color: 'white',
-            padding: '1rem 1.5rem',
-            borderRadius: 'var(--border-radius-md)',
-            boxShadow: 'var(--shadow-lg)',
-            zIndex: '2000',
-            opacity: '0',
-            transform: 'translateX(100%)',
-            transition: 'all 0.3s ease'
-        });
+            <div class="p-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3">
+                 <button id="share-close-btn" class="btn-secondary px-4 py-2 rounded-md">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+    
+    <!-- Data and App Logic -->
+    <script src="dermpathDifferentialsData.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        'use strict';
 
-        document.body.appendChild(notification);
-
-        // Animate in
-        setTimeout(() => {
-            notification.style.opacity = '1';
-            notification.style.transform = 'translateX(0)';
-        }, 100);
-
-        // Animate out and remove
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => document.body.removeChild(notification), 300);
-        }, duration);
-    }
-
-    // Enhanced data processing with loading states
-    function processData() {
-        showLoading('Processing differential diagnosis data...');
-        
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                try {
-                    if (typeof window.dermDifferentialData === 'undefined') {
-                        throw new Error('Differential diagnosis data not found');
-                    }
-
-                    const findingsData = window.dermDifferentialData;
-                    console.log('Processing', findingsData.length, 'findings...');
-                    processedFindingsMap.clear();
-
-                    // Process each finding with enhanced data structure
-                    findingsData.forEach((finding, index) => {
-                        const findingKey = finding.finding.toLowerCase().trim();
-                        const diagnosisMap = new Map();
-
-                        finding.diagnoses.forEach((diagnosis, diagIndex) => {
-                            const uniqueId = `${findingKey}-${diagIndex}`;
-                            const enhancedDiagnosis = {
-                                ...diagnosis,
-                                uniqueId,
-                                flashcardId: uniqueId,
-                                finding: finding.finding,
-                                originalSources: finding.sources || [],
-                                popularity: Math.random(), // Simulate popularity for sorting
-                                difficulty: Math.random(), // Simulate difficulty
-                                lastViewed: null,
-                                viewCount: 0
-                            };
-                            diagnosisMap.set(diagnosis.name, enhancedDiagnosis);
-                        });
-
-                        processedFindingsMap.set(findingKey, {
-                            originalFinding: finding.finding,
-                            displayFindingName: finding.finding,
-                            originalSources: new Set(finding.sources || []),
-                            diagnoses: diagnosisMap
-                        });
-                    });
-
-                    // Initialize Fuse.js for fuzzy searching
-                    const searchData = Array.from(processedFindingsMap.keys()).map(key => ({
-                        id: key,
-                        name: processedFindingsMap.get(key).displayFindingName
-                    }));
-
-                    if (typeof Fuse === 'function') {
-                        fuseInstance = new Fuse(searchData, {
-                            keys: ['name'],
-                            threshold: 0.3,
-                            includeScore: true
-                        });
-                    } else {
-                        console.warn('Fuse.js not available; falling back to basic substring search');
-                        // Minimal fallback so the app still works without Fuse
-                        fuseInstance = {
-                            search(query) {
-                                const lower = String(query || '').toLowerCase();
-                                return searchData
-                                    .filter(item => item.name.toLowerCase().includes(lower))
-                                    .slice(0, 20)
-                                    .map(item => ({ item, score: 0 }));
-                            }
-                        };
-                    }
-
-                    populateFindingSelectors();
-                    initializeEventListeners();
-                    hideLoading();
-                    showNotification('Data loaded successfully!', 'success');
-                    resolve();
-                } catch (error) {
-                    hideLoading();
-                    showNotification('Error loading data: ' + error.message, 'error');
-                    console.error('Data processing error:', error);
-                    resolve();
-                }
-            }, 500); // Simulate processing time
-        });
-    }
-
-    // Enhanced finding selector population
-    function populateFindingSelectors() {
-        const select = document.getElementById('finding-select');
-        const searchInput = document.getElementById('search-finding-input');
-        
-        console.log('populateFindingSelectors called, processedFindingsMap size:', processedFindingsMap.size);
-        console.log('select element found:', !!select);
-        
-        if (!select) {
-            console.log('finding-select element not found');
-            return;
-        }
-
-        // Clear existing options
-        select.innerHTML = '<option value="">-- Select a Finding --</option>';
-        console.log('Cleared existing options, current innerHTML:', select.innerHTML);
-
-        // Sort findings alphabetically
-        const sortedFindings = Array.from(processedFindingsMap.entries())
-            .sort(([a], [b]) => a.localeCompare(b));
-
-        console.log('Sorted findings count:', sortedFindings.length);
-        
-        sortedFindings.forEach(([key, data], index) => {
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = data.displayFindingName;
-            select.appendChild(option);
-            if (index < 3) {
-                console.log(`Added option ${index}: ${data.displayFindingName}`);
+        // --- STATE MANAGEMENT ---
+        const state = {
+            dataMap: new Map(),
+            findings: [],
+            selectedFinding: null,
+            activeTab: 'list',
+            favorites: {}, // { "diagnosisName": "findingName" }
+            notes: {}, // { "diagnosisName": "note text" }
+            analytics: {
+                startTime: Date.now(),
+                views: {}, // { "findingName": { count: 1, lastViewed: timestamp } }
+                tabUsage: {},
+                actions: { favorites: 0, notes: 0, exports: 0 }
             }
-        });
-        
-        console.log('Final select options count:', select.options.length);
+        };
 
-        // Setup search input with suggestions
-        setupSearchSuggestions(searchInput, sortedFindings);
-    }
+        let fuse;
 
-    // Enhanced search with autocomplete
-    function setupSearchSuggestions(input, findings) {
-        const suggestionsContainer = document.getElementById('finding-suggestions');
-        let currentSuggestions = [];
+        // --- DOM ELEMENT SELECTORS ---
+        const dom = {
+            loadingOverlay: document.getElementById('loading-overlay'),
+            findingSearchInput: document.getElementById('finding-search-input'),
+            searchSuggestions: document.getElementById('search-suggestions'),
+            findingSelector: document.getElementById('finding-selector'),
+            resultsContainer: document.getElementById('results-container'),
+            resultsTitle: document.getElementById('results-title'),
+            actionButtons: document.getElementById('action-buttons'),
+            resultsContent: document.getElementById('results-content'),
+            tabNav: document.getElementById('tab-nav'),
+            favoritesCount: document.getElementById('favorites-count'),
+            welcomeMessage: document.getElementById('welcome-message'),
+            noteModal: {
+                el: document.getElementById('note-modal'),
+                title: document.getElementById('note-modal-title'),
+                textarea: document.getElementById('note-textarea'),
+                saveBtn: document.getElementById('note-save-btn'),
+                cancelBtn: document.getElementById('note-cancel-btn')
+            },
+            shareModal: {
+                el: document.getElementById('share-modal'),
+                input: document.getElementById('share-link-input'),
+                closeBtn: document.getElementById('share-close-btn')
+            },
+            exportPdfBtn: document.getElementById('export-pdf-btn'),
+            exportExcelBtn: document.getElementById('export-excel-btn'),
+            printBtn: document.getElementById('print-btn'),
+            shareBtn: document.getElementById('share-btn'),
+            themeToggleBtn: document.getElementById('theme-toggle-btn'),
+            themeIconLight: document.getElementById('theme-icon-light'),
+            themeIconDark: document.getElementById('theme-icon-dark'),
+        };
 
-        input.addEventListener('input', (e) => {
-            const query = e.target.value.trim();
+        // --- INITIALIZATION ---
+        function initializeApplication() {
+            console.log("Starting application initialization...");
             
-            if (query.length < 2) {
-                suggestionsContainer.style.display = 'none';
+            loadStateFromLocalStorage();
+            processData();
+            setupEventListeners();
+            initializeFuse();
+            populateDropdown();
+            checkURLParameters();
+            
+            // Initial theme setup
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            updateThemeUI(savedTheme);
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if (localStorage.getItem('theme') === 'system') {
+                    updateThemeUI('system');
+                }
+            });
+
+            dom.loadingOverlay.style.opacity = '0';
+            setTimeout(() => dom.loadingOverlay.style.display = 'none', 300);
+            
+            console.log("Application initialized successfully.");
+        };
+
+        function processData() {
+            if (!window.dermDifferentialData || window.dermDifferentialData.length === 0) {
+                console.error("Differential data not found or is empty.");
+                showToast("Error: Could not load differential data.", "error");
                 return;
             }
 
-            // Use Fuse.js for fuzzy search
-            const results = fuseInstance.search(query).slice(0, 5);
-            currentSuggestions = results.map(result => result.item);
+            window.dermDifferentialData.forEach(item => {
+                state.dataMap.set(item.finding, item);
+            });
+            
+            state.findings = Array.from(state.dataMap.keys()).sort((a, b) => a.localeCompare(b));
+            console.log(`Processed ${state.dataMap.size} findings.`);
+        }
 
-            if (currentSuggestions.length > 0) {
-                suggestionsContainer.innerHTML = currentSuggestions
-                    .map(item => `
-                        <div class="search-suggestion" data-key="${item.id}">
-                            ${highlightMatch(item.name, query)}
-                        </div>
-                    `).join('');
-                
-                suggestionsContainer.style.display = 'block';
+        function initializeFuse() {
+            const options = {
+                includeScore: true,
+                keys: ['finding'],
+                threshold: 0.4
+            };
+            const fuseData = state.findings.map(f => ({ finding: f }));
+            fuse = new Fuse(fuseData, options);
+        }
 
-                // Add click handlers to suggestions
-                suggestionsContainer.querySelectorAll('.search-suggestion').forEach(el => {
-                    el.addEventListener('click', () => {
-                        const key = el.dataset.key;
-                        document.getElementById('finding-select').value = key;
-                        input.value = processedFindingsMap.get(key).displayFindingName;
-                        suggestionsContainer.style.display = 'none';
-                        selectFinding(key);
+        function populateDropdown() {
+            state.findings.forEach(finding => {
+                const option = document.createElement('option');
+                option.value = finding;
+                option.textContent = finding;
+                dom.findingSelector.appendChild(option);
+            });
+        }
+        
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            dom.findingSelector.addEventListener('change', handleFindingSelect);
+            dom.findingSearchInput.addEventListener('input', handleFuzzySearch);
+            dom.findingSearchInput.addEventListener('blur', () => setTimeout(() => dom.searchSuggestions.classList.add('hidden'), 200));
+            dom.tabNav.addEventListener('click', handleTabClick);
+            dom.resultsContent.addEventListener('click', handleCardActions);
+            
+            // Modals
+            dom.noteModal.saveBtn.addEventListener('click', handleSaveNote);
+            dom.noteModal.cancelBtn.addEventListener('click', () => dom.noteModal.el.classList.add('hidden'));
+            dom.shareModal.closeBtn.addEventListener('click', () => dom.shareModal.el.classList.add('hidden'));
+            dom.shareModal.input.addEventListener('click', e => e.target.select());
+
+            // Action Buttons
+            dom.exportPdfBtn.addEventListener('click', handleExportPDF);
+            dom.exportExcelBtn.addEventListener('click', handleExportExcel);
+            dom.printBtn.addEventListener('click', () => window.print());
+            dom.shareBtn.addEventListener('click', handleShare);
+
+            // Theme Toggle
+            dom.themeToggleBtn.addEventListener('click', toggleTheme);
+        }
+
+        // --- EVENT HANDLERS ---
+        function handleFindingSelect(event) {
+            const findingName = event.target.value;
+            if (findingName) {
+                renderFinding(findingName);
+                dom.findingSearchInput.value = '';
+                dom.searchSuggestions.classList.add('hidden');
+            }
+        }
+        
+        function handleFuzzySearch(event) {
+            const query = event.target.value;
+            if (query.length < 2) {
+                dom.searchSuggestions.innerHTML = '';
+                dom.searchSuggestions.classList.add('hidden');
+                return;
+            }
+            
+            const results = fuse.search(query).slice(0, 5);
+            dom.searchSuggestions.innerHTML = '';
+            
+            if (results.length > 0) {
+                results.forEach(result => {
+                    const item = document.createElement('div');
+                    item.textContent = result.item.finding;
+                    item.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer';
+                    item.addEventListener('click', () => {
+                        renderFinding(result.item.finding);
+                        dom.findingSearchInput.value = result.item.finding;
+                        dom.searchSuggestions.classList.add('hidden');
                     });
+                    dom.searchSuggestions.appendChild(item);
                 });
+                dom.searchSuggestions.classList.remove('hidden');
             } else {
-                suggestionsContainer.style.display = 'none';
+                dom.searchSuggestions.classList.add('hidden');
             }
-        });
+        }
 
-        // Hide suggestions when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!input.contains(e.target) && !suggestionsContainer.contains(e.target)) {
-                suggestionsContainer.style.display = 'none';
+        function handleTabClick(event) {
+            const button = event.target.closest('button[role="tab"]');
+            if (button && !button.disabled) {
+                const tab = button.dataset.tab;
+                if (tab !== state.activeTab) {
+                    state.activeTab = tab;
+                    trackEvent('tab_view', { tab });
+                    render();
+                }
             }
-        });
+        }
 
-        // Keyboard navigation for suggestions
-        input.addEventListener('keydown', (e) => {
-            const suggestions = suggestionsContainer.querySelectorAll('.search-suggestion');
-            const activeIndex = Array.from(suggestions).findIndex(el => el.classList.contains('active'));
+        function handleCardActions(event) {
+            const button = event.target.closest('button');
+            if (!button) return;
 
-            switch (e.key) {
-                case 'ArrowDown':
-                    e.preventDefault();
-                    const nextIndex = Math.min(activeIndex + 1, suggestions.length - 1);
-                    updateActiveSuggestion(suggestions, nextIndex);
-                    break;
-                case 'ArrowUp':
-                    e.preventDefault();
-                    const prevIndex = Math.max(activeIndex - 1, 0);
-                    updateActiveSuggestion(suggestions, prevIndex);
-                    break;
-                case 'Enter':
-                    e.preventDefault();
-                    if (activeIndex >= 0) {
-                        suggestions[activeIndex].click();
-                    }
-                    break;
-                case 'Escape':
-                    suggestionsContainer.style.display = 'none';
-                    break;
+            const diagnosisCard = button.closest('[data-diagnosis-name]');
+            if (!diagnosisCard) return;
+
+            const diagnosisName = diagnosisCard.dataset.diagnosisName;
+
+            if (button.dataset.action === 'favorite') {
+                toggleFavorite(diagnosisName, state.selectedFinding || state.favorites[diagnosisName]);
+            } else if (button.dataset.action === 'note') {
+                openNoteModal(diagnosisName);
             }
-        });
-    }
+        }
 
-    function highlightMatch(text, query) {
-        const regex = new RegExp(`(${query})`, 'gi');
-        return text.replace(regex, '<strong>$1</strong>');
-    }
+        function handleSaveNote() {
+            const diagnosisName = dom.noteModal.saveBtn.dataset.diagnosisName;
+            const noteText = dom.noteModal.textarea.value.trim();
 
-    function updateActiveSuggestion(suggestions, activeIndex) {
-        suggestions.forEach((el, index) => {
-            if (index === activeIndex) {
-                el.classList.add('active');
-                el.style.backgroundColor = 'var(--primary-100)';
+            if (noteText) {
+                state.notes[diagnosisName] = noteText;
+                showToast("Note saved successfully.", "success");
+                trackEvent('action', { type: 'note_add_edit' });
             } else {
-                el.classList.remove('active');
-                el.style.backgroundColor = '';
+                delete state.notes[diagnosisName];
+                showToast("Note removed.", "info");
             }
-        });
-    }
-
-    // Enhanced event listeners
-    function initializeEventListeners() {
-        // Finding selection
-        document.getElementById('finding-select')?.addEventListener('change', (e) => {
-            if (e.target.value) {
-                selectFinding(e.target.value);
+            saveStateToLocalStorage();
+            dom.noteModal.el.classList.add('hidden');
+            render(); // Re-render to show note indicator
+        }
+        
+        function handleShare() {
+            if (!state.selectedFinding) return;
+            const link = generateDeepLink();
+            dom.shareModal.input.value = link;
+            dom.shareModal.el.classList.remove('hidden');
+            dom.shareModal.input.focus();
+            dom.shareModal.input.select();
+            try {
+                navigator.clipboard.writeText(link);
+                showToast("Share link copied to clipboard!", "success");
+            } catch (err) {
+                console.warn("Could not copy to clipboard:", err);
             }
-        });
+        }
 
-        // Tab navigation with keyboard support
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => switchTab(tab.dataset.view));
-            tab.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    switchTab(tab.dataset.view);
+        // --- CORE LOGIC & RENDERING ---
+        function render() {
+            updateActiveTab();
+
+            if (state.activeTab === 'favorites') {
+                renderFavoritesView();
+                return;
+            }
+             if (state.activeTab === 'analytics') {
+                renderAnalyticsView();
+                return;
+            }
+
+            const findingData = state.dataMap.get(state.selectedFinding);
+            if (!findingData) {
+                dom.welcomeMessage.classList.remove('hidden');
+                dom.actionButtons.classList.add('hidden');
+                dom.resultsTitle.textContent = "Welcome! Select a finding to begin.";
+                dom.resultsContent.innerHTML = '';
+                dom.resultsContent.appendChild(dom.welcomeMessage);
+                return;
+            }
+            
+            dom.welcomeMessage.classList.add('hidden');
+            dom.actionButtons.classList.remove('hidden');
+            dom.resultsTitle.textContent = findingData.finding;
+
+            switch (state.activeTab) {
+                case 'list': renderListView(findingData.diagnoses); break;
+                case 'table': renderTableView(findingData.diagnoses); break;
+                case 'flashcards': renderFlashcardsView(findingData.diagnoses); break;
+                case 'network': renderNetworkView(findingData); break;
+                default:
+                    dom.resultsContent.innerHTML = `<div class="p-8 text-center text-gray-500">This feature is coming soon!</div>`;
+            }
+        }
+
+        function renderFinding(findingName) {
+            if (!state.dataMap.has(findingName)) return;
+
+            state.selectedFinding = findingName;
+            dom.findingSelector.value = findingName;
+            updateURL(findingName);
+            trackEvent('view_finding', { finding: findingName });
+            
+            if (state.activeTab === 'favorites' || state.activeTab === 'analytics') {
+                state.activeTab = 'list';
+            }
+            
+            render();
+        }
+
+        function updateActiveTab() {
+            dom.tabNav.querySelectorAll('button').forEach(btn => {
+                if (btn.dataset.tab === state.activeTab) {
+                    btn.classList.add('active', 'border-blue-500', 'dark:border-blue-400', 'text-blue-600', 'dark:text-blue-400');
+                    btn.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                    btn.setAttribute('aria-selected', 'true');
+                } else {
+                    btn.classList.remove('active', 'border-blue-500', 'dark:border-blue-400', 'text-blue-600', 'dark:text-blue-400');
+                    btn.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                    btn.setAttribute('aria-selected', 'false');
                 }
             });
-        });
-
-        // Export functionality
-        document.getElementById('export-pdf-btn')?.addEventListener('click', exportToPDF);
-        document.getElementById('export-excel-btn')?.addEventListener('click', exportToExcel);
-        document.getElementById('print-btn')?.addEventListener('click', () => window.print());
-        document.getElementById('share-btn')?.addEventListener('click', showShareModal);
-
-        // Modal controls
-        setupModalControls();
-
-        // Settings
-        setupSettingsControls();
-
-        // Advanced search
-        document.getElementById('search-diagnoses-input')?.addEventListener('input', filterCurrentResults);
-        document.getElementById('source-filter')?.addEventListener('change', filterCurrentResults);
-
-        // Diagram controls
-        setupDiagramControls();
-
-        // Learning analytics
-        trackUserInteraction();
-    }
-
-         // Initialize application on data load
-     function initializeApplication() {
-         console.log('Data is ready, processing...');
-         processData().then(() => {
-             console.log('Application initialized successfully');
-             // Handle URL parameters after data loads
-             handleUrlParameters();
-         });
-     }
-
-     // Enhanced finding selection with analytics
-     function selectFinding(findingKey) {
-         const findingData = processedFindingsMap.get(findingKey);
-         if (!findingData) return;
-
-         currentFindingData = findingData;
-         
-         // Update analytics
-         trackFindingViewed(findingKey);
-         
-         // Update UI
-         updateResultsTitle(findingData.displayFindingName);
-         displayCurrentView();
-         
-         // Update search input to match selection
-         const searchInput = document.getElementById('search-finding-input');
-         if (searchInput) {
-             searchInput.value = findingData.displayFindingName;
-         }
-     }
-
-     function updateResultsTitle(findingName) {
-         const titleElement = document.getElementById('results-title');
-         if (titleElement && findingName) {
-             titleElement.innerHTML = `
-                 <i class="fas fa-clipboard-list"></i>
-                 Differential Diagnoses: ${findingName}
-             `;
-         } else if (titleElement) {
-             titleElement.innerHTML = `
-                 <i class="fas fa-clipboard-list"></i>
-                 Differential Diagnoses
-             `;
-         }
-     }
-
-     // Tab switching with improved state management
-     function switchTab(viewId) {
-         // Update tab states
-         document.querySelectorAll('.tab').forEach(tab => {
-             const isActive = tab.dataset.view === viewId;
-             tab.classList.toggle('active', isActive);
-             tab.setAttribute('aria-selected', isActive);
-         });
-
-         // Update view visibility
-         document.querySelectorAll('.view-container').forEach(view => {
-             view.classList.toggle('hidden', view.id !== viewId);
-         });
-
-         // Track analytics
-         trackTabViewed(viewId);
-
-         // Handle view-specific logic
-         displayCurrentView(viewId);
-     }
-
-     function displayCurrentView(viewId = getCurrentView()) {
-         switch (viewId) {
-             case 'list-view':
-                 displayListView();
-                 break;
-             case 'table-view':
-                 displayTableView();
-                 break;
-             case 'flashcard-view':
-                 displayFlashcardView();
-                 break;
-             case 'diagram-view':
-                 displayDiagramView();
-                 break;
-             case 'my-list-view':
-                 displayFavoritesView();
-                 break;
-             case 'compare-view':
-                 displayCompareView();
-                 break;
-             case 'global-search-view':
-                 displayGlobalSearchView();
-                 break;
-             case 'quiz-mode-view':
-                 displayQuizView();
-                 break;
-             case 'analytics-view':
-                 displayAnalyticsView();
-                 break;
-             case 'settings-view':
-                 displaySettingsView();
-                 break;
-         }
-     }
-
-     function getCurrentView() {
-         const activeTab = document.querySelector('.tab.active');
-         return activeTab ? activeTab.dataset.view : 'list-view';
-     }
-
-     // Enhanced list view with virtual scrolling for performance
-     function displayListView() {
-         const container = document.getElementById('list-content');
-         if (!container) return;
-
-         if (!currentFindingData) {
-             container.innerHTML = `
-                 <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
-                     <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                     <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">No Finding Selected</p>
-                     <p>Select a histologic finding above to view differential diagnoses</p>
-                 </div>
-             `;
-             return;
-         }
-
-         const diagnoses = Array.from(currentFindingData.diagnoses.values())
-             .sort((a, b) => a.name.localeCompare(b.name));
-
-         const sourcesList = Array.from(currentFindingData.originalSources).sort().join('; ');
-         
-         container.innerHTML = `
-             <div class="fade-in">
-                 <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--primary-50); border-radius: var(--border-radius-md); border-left: 4px solid var(--primary-500);">
-                     <p style="font-weight: 500; color: var(--primary-700); margin-bottom: 0.5rem;">
-                         <i class="fas fa-info-circle"></i> Finding Information
-                     </p>
-                     <p style="font-size: var(--font-size-sm); color: var(--neutral-600);">
-                         <strong>Sources:</strong> ${sourcesList}
-                     </p>
-                     <p style="font-size: var(--font-size-sm); color: var(--neutral-600); margin-top: 0.5rem;">
-                         <strong>Total Diagnoses:</strong> ${diagnoses.length}
-                     </p>
-                 </div>
-                 <div class="diagnosis-list">
-                     ${diagnoses.map(dx => createDiagnosisCard(dx)).join('')}
-                 </div>
-             </div>
-         `;
-     }
-
-     function createDiagnosisCard(diagnosis) {
-         const isFavorited = userFavorites.has(diagnosis.uniqueId);
-         const hasNote = userNotes[diagnosis.uniqueId];
-         const sources = Array.from(diagnosis.sources || []).sort().join(', ');
-         
-         return `
-             <div class="diagnosis-card ${isFavorited ? 'favorited' : ''} fade-in">
-                 <div class="diagnosis-header">
-                     <h3 class="diagnosis-name">${diagnosis.name}</h3>
-                     <div class="diagnosis-actions">
-                         <button class="action-btn ${isFavorited ? 'favorited' : ''}" 
-                                 onclick="toggleFavorite('${diagnosis.uniqueId}')"
-                                 title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
-                             <i class="fas fa-star"></i>
-                         </button>
-                         <button class="action-btn ${hasNote ? 'noted' : ''}" 
-                                 onclick="openNoteModal('${diagnosis.uniqueId}')"
-                                 title="${hasNote ? 'Edit note' : 'Add note'}">
-                             <i class="fas fa-sticky-note"></i>
-                         </button>
-                         <button class="action-btn" 
-                                 onclick="addToCompare('${diagnosis.uniqueId}')"
-                                 title="Add to comparison">
-                             <i class="fas fa-balance-scale"></i>
-                         </button>
-                     </div>
-                 </div>
-                 <div class="diagnosis-features">
-                     ${diagnosis.keyFeatures || 'No specific features documented'}
-                 </div>
-                 <div class="diagnosis-sources">
-                     <strong>Sources:</strong> ${sources || 'Not specified'}
-                 </div>
-                 ${hasNote ? `
-                     <div class="user-note">
-                         <span class="user-note-label">Your Note:</span>
-                         ${hasNote}
-                     </div>
-                 ` : ''}
-             </div>
-         `;
-     }
-
-     // Enhanced table view
-     function displayTableView() {
-         const container = document.getElementById('table-content');
-         if (!container) return;
-
-         if (!currentFindingData) {
-             container.innerHTML = `
-                 <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
-                     <i class="fas fa-table" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                     <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Table View</p>
-                     <p>Select a finding to view data in table format</p>
-                 </div>
-             `;
-             return;
-         }
-
-         const diagnoses = Array.from(currentFindingData.diagnoses.values())
-             .sort((a, b) => a.name.localeCompare(b.name));
-
-         const sourcesList = Array.from(currentFindingData.originalSources).sort().join('; ');
-         
-         container.innerHTML = `
-             <div class="fade-in">
-                 <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--primary-50); border-radius: var(--border-radius-md); border-left: 4px solid var(--primary-500);">
-                     <p style="font-weight: 500; color: var(--primary-700);">
-                         <i class="fas fa-info-circle"></i> ${currentFindingData.displayFindingName}
-                     </p>
-                     <p style="font-size: var(--font-size-sm); color: var(--neutral-600); margin-top: 0.5rem;">
-                         <strong>Sources:</strong> ${sourcesList}
-                     </p>
-                 </div>
-                 <div style="overflow-x: auto;">
-                     <table class="results-table">
-                         <thead>
-                             <tr>
-                                 <th>Diagnosis</th>
-                                 <th>Key Features</th>
-                                 <th>Sources</th>
-                                 <th>Actions</th>
-                             </tr>
-                         </thead>
-                         <tbody>
-                             ${diagnoses.map(dx => createTableRow(dx)).join('')}
-                         </tbody>
-                     </table>
-                 </div>
-             </div>
-         `;
-     }
-
-     function createTableRow(diagnosis) {
-         const isFavorited = userFavorites.has(diagnosis.uniqueId);
-         const hasNote = userNotes[diagnosis.uniqueId];
-         const sources = Array.from(diagnosis.sources || []).sort().join(', ');
-         
-         return `
-             <tr>
-                 <td style="font-weight: 600;">${diagnosis.name}</td>
-                 <td>
-                     ${diagnosis.keyFeatures || 'No specific features documented'}
-                     ${hasNote ? `<div class="user-note" style="margin-top: 0.5rem;"><span class="user-note-label">Note:</span> ${hasNote}</div>` : ''}
-                 </td>
-                 <td>${sources || 'Not specified'}</td>
-                 <td>
-                     <div style="display: flex; gap: 0.25rem;">
-                         <button class="action-btn ${isFavorited ? 'favorited' : ''}" 
-                                 onclick="toggleFavorite('${diagnosis.uniqueId}')"
-                                 title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
-                             <i class="fas fa-star"></i>
-                         </button>
-                         <button class="action-btn ${hasNote ? 'noted' : ''}" 
-                                 onclick="openNoteModal('${diagnosis.uniqueId}')"
-                                 title="${hasNote ? 'Edit note' : 'Add note'}">
-                             <i class="fas fa-sticky-note"></i>
-                         </button>
-                         <button class="action-btn" 
-                                 onclick="addToCompare('${diagnosis.uniqueId}')"
-                                 title="Add to comparison">
-                             <i class="fas fa-balance-scale"></i>
-                         </button>
-                     </div>
-                 </td>
-             </tr>
-         `;
-     }
-
-     // User interaction functions
-     function toggleFavorite(diagnosisId) {
-         if (userFavorites.has(diagnosisId)) {
-             userFavorites.delete(diagnosisId);
-             showNotification('Removed from favorites', 'info', 2000);
-         } else {
-             userFavorites.add(diagnosisId);
-             showNotification('Added to favorites', 'success', 2000);
-         }
-         
-         localStorage.setItem('dermapath-favorites', JSON.stringify(Array.from(userFavorites)));
-         trackFavoriteToggled(diagnosisId);
-         
-         // Refresh current view
-         displayCurrentView();
-     }
-
-     function openNoteModal(diagnosisId) {
-         const modal = document.getElementById('note-modal');
-         const textarea = document.getElementById('note-textarea');
-         const saveBtn = document.getElementById('note-save');
-         
-         if (!modal || !textarea || !saveBtn) return;
-
-         // Find diagnosis info
-         const diagnosis = findDiagnosisById(diagnosisId);
-         const modalTitle = modal.querySelector('.modal-title');
-         
-         if (modalTitle && diagnosis) {
-             modalTitle.textContent = `Add Note: ${diagnosis.name}`;
-         }
-         
-         textarea.value = userNotes[diagnosisId] || '';
-         modal.classList.add('open');
-         textarea.focus();
-
-         // Update save handler
-         saveBtn.onclick = () => saveNote(diagnosisId);
-     }
-
-     function saveNote(diagnosisId) {
-         const textarea = document.getElementById('note-textarea');
-         const modal = document.getElementById('note-modal');
-         
-         if (!textarea || !modal) return;
-
-         const noteText = textarea.value.trim();
-         
-         if (noteText) {
-             userNotes[diagnosisId] = noteText;
-             showNotification('Note saved successfully', 'success', 2000);
-         } else {
-             delete userNotes[diagnosisId];
-             showNotification('Note removed', 'info', 2000);
-         }
-         
-         localStorage.setItem('dermapath-notes', JSON.stringify(userNotes));
-         trackNoteAdded(diagnosisId);
-         
-         modal.classList.remove('open');
-         displayCurrentView();
-     }
-
-     function findDiagnosisById(diagnosisId) {
-         for (const [findingKey, findingData] of processedFindingsMap) {
-             for (const [diagnosisName, diagnosis] of findingData.diagnoses) {
-                 if (diagnosis.uniqueId === diagnosisId) {
-                     return diagnosis;
-                 }
-             }
-         }
-         return null;
-     }
-
-     // Modal controls setup
-     function setupModalControls() {
-         // Note modal
-         const noteModal = document.getElementById('note-modal');
-         const noteCancel = document.getElementById('note-cancel');
-         const noteClose = document.getElementById('note-modal-close');
-         
-         [noteCancel, noteClose].forEach(btn => {
-             btn?.addEventListener('click', () => {
-                 noteModal?.classList.remove('open');
-             });
-         });
-
-         // Share modal
-         const shareModal = document.getElementById('share-modal');
-         const shareClose = document.getElementById('share-modal-close');
-         
-         shareClose?.addEventListener('click', () => {
-             shareModal?.classList.remove('open');
-         });
-
-         // Close modals on backdrop click
-         [noteModal, shareModal].forEach(modal => {
-             modal?.addEventListener('click', (e) => {
-                 if (e.target === modal) {
-                     modal.classList.remove('open');
-                 }
-             });
-         });
-     }
-
-     // Export functionality
-     function exportToPDF() {
-         if (!window.jsPDF) {
-             showNotification('PDF export library not loaded', 'error');
-             return;
-         }
-
-         if (!currentFindingData) {
-             showNotification('Please select a finding first', 'warning');
-             return;
-         }
-
-         showLoading('Generating PDF...');
-         
-         try {
-             const { jsPDF } = window.jspdf;
-             const doc = new jsPDF();
-             
-             // Title
-             doc.setFontSize(20);
-             doc.text('Dermatopathology Differential Diagnoses', 20, 20);
-             
-             // Finding name
-             doc.setFontSize(16);
-             doc.text(`Finding: ${currentFindingData.displayFindingName}`, 20, 35);
-             
-             // Diagnoses
-             doc.setFontSize(12);
-             let yPosition = 50;
-             
-             const diagnoses = Array.from(currentFindingData.diagnoses.values());
-             diagnoses.forEach((dx, index) => {
-                 if (yPosition > 270) {
-                     doc.addPage();
-                     yPosition = 20;
-                 }
-                 
-                 doc.setFont(undefined, 'bold');
-                 doc.text(`${index + 1}. ${dx.name}`, 20, yPosition);
-                 yPosition += 7;
-                 
-                 doc.setFont(undefined, 'normal');
-                 const features = dx.keyFeatures || 'No specific features documented';
-                 const lines = doc.splitTextToSize(features, 170);
-                 doc.text(lines, 25, yPosition);
-                 yPosition += lines.length * 5 + 5;
-                 
-                 if (userNotes[dx.uniqueId]) {
-                     doc.setFont(undefined, 'italic');
-                     const noteLines = doc.splitTextToSize(`Note: ${userNotes[dx.uniqueId]}`, 170);
-                     doc.text(noteLines, 25, yPosition);
-                     yPosition += noteLines.length * 5 + 5;
-                 }
-                 
-                 yPosition += 5;
-             });
-             
-             doc.save(`dermapath-${currentFindingData.displayFindingName.replace(/\s+/g, '-')}.pdf`);
-             hideLoading();
-             showNotification('PDF exported successfully', 'success');
-             
-         } catch (error) {
-             hideLoading();
-             showNotification('Error exporting PDF: ' + error.message, 'error');
-         }
-     }
-
-     function exportToExcel() {
-         if (!window.XLSX) {
-             showNotification('Excel export library not loaded', 'error');
-             return;
-         }
-
-         if (!currentFindingData) {
-             showNotification('Please select a finding first', 'warning');
-             return;
-         }
-
-         showLoading('Generating Excel file...');
-         
-         try {
-             const diagnoses = Array.from(currentFindingData.diagnoses.values());
-             const data = diagnoses.map(dx => ({
-                 'Diagnosis': dx.name,
-                 'Key Features': dx.keyFeatures || 'No specific features documented',
-                 'Sources': Array.from(dx.sources || []).join(', '),
-                 'Your Note': userNotes[dx.uniqueId] || '',
-                 'Favorited': userFavorites.has(dx.uniqueId) ? 'Yes' : 'No'
-             }));
-             
-             const worksheet = XLSX.utils.json_to_sheet(data);
-             const workbook = XLSX.utils.book_new();
-             
-             XLSX.utils.book_append_sheet(workbook, worksheet, 'Diagnoses');
-             
-             // Add metadata sheet
-             const metadata = [
-                 ['Finding', currentFindingData.displayFindingName],
-                 ['Sources', Array.from(currentFindingData.originalSources).join('; ')],
-                 ['Total Diagnoses', diagnoses.length],
-                 ['Export Date', new Date().toISOString().split('T')[0]]
-             ];
-             
-             const metaSheet = XLSX.utils.aoa_to_sheet(metadata);
-             XLSX.utils.book_append_sheet(workbook, metaSheet, 'Metadata');
-             
-             XLSX.writeFile(workbook, `dermapath-${currentFindingData.displayFindingName.replace(/\s+/g, '-')}.xlsx`);
-             
-             hideLoading();
-             showNotification('Excel file exported successfully', 'success');
-             
-         } catch (error) {
-             hideLoading();
-             showNotification('Error exporting Excel: ' + error.message, 'error');
-         }
-     }
-
-     function showShareModal() {
-         const modal = document.getElementById('share-modal');
-         const urlInput = document.getElementById('share-url');
-         
-         if (!modal || !urlInput) return;
-
-         // Generate shareable URL
-         const params = new URLSearchParams();
-         if (currentFindingData) {
-             params.set('finding', currentFindingData.displayFindingName);
-         }
-         
-         const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-         urlInput.value = shareUrl;
-         
-         modal.classList.add('open');
-         
-         // Setup copy functionality
-         const copyBtn = document.getElementById('copy-link-btn');
-         copyBtn?.addEventListener('click', () => {
-             navigator.clipboard.writeText(shareUrl).then(() => {
-                 showNotification('Link copied to clipboard', 'success', 2000);
-             });
-         });
-     }
-
-     // Analytics and tracking
-     function trackFindingViewed(findingKey) {
-         if (!learningAnalytics.findingsViewed) {
-             learningAnalytics.findingsViewed = {};
-         }
-         
-         learningAnalytics.findingsViewed[findingKey] = {
-             count: (learningAnalytics.findingsViewed[findingKey]?.count || 0) + 1,
-             lastViewed: new Date().toISOString()
-         };
-         
-         localStorage.setItem('dermapath-analytics', JSON.stringify(learningAnalytics));
-     }
-
-     function trackTabViewed(tabId) {
-         if (!learningAnalytics.tabsViewed) {
-             learningAnalytics.tabsViewed = {};
-         }
-         
-         learningAnalytics.tabsViewed[tabId] = {
-             count: (learningAnalytics.tabsViewed[tabId]?.count || 0) + 1,
-             lastViewed: new Date().toISOString()
-         };
-         
-         localStorage.setItem('dermapath-analytics', JSON.stringify(learningAnalytics));
-     }
-
-     function trackFavoriteToggled(diagnosisId) {
-         if (!learningAnalytics.interactions) {
-             learningAnalytics.interactions = [];
-         }
-         
-         learningAnalytics.interactions.push({
-             type: 'favorite_toggle',
-             diagnosisId,
-             timestamp: new Date().toISOString()
-         });
-         
-         localStorage.setItem('dermapath-analytics', JSON.stringify(learningAnalytics));
-     }
-
-     function trackNoteAdded(diagnosisId) {
-         if (!learningAnalytics.interactions) {
-             learningAnalytics.interactions = [];
-         }
-         
-         learningAnalytics.interactions.push({
-             type: 'note_added',
-             diagnosisId,
-             timestamp: new Date().toISOString()
-         });
-         
-         localStorage.setItem('dermapath-analytics', JSON.stringify(learningAnalytics));
-     }
-
-     function trackUserInteraction() {
-         // Track time spent on page
-         const startTime = Date.now();
-         
-         window.addEventListener('beforeunload', () => {
-             const timeSpent = Date.now() - startTime;
-             if (!learningAnalytics.timeSpent) {
-                 learningAnalytics.timeSpent = 0;
-             }
-             learningAnalytics.timeSpent += timeSpent;
-             localStorage.setItem('dermapath-analytics', JSON.stringify(learningAnalytics));
-         });
-     }
-
-     // Placeholder functions for other views
-     function displayFlashcardView() {
-         console.log('Flashcard view - Enhanced SRS implementation would go here');
-     }
-
-     function displayDiagramView() {
-         console.log('Diagram view - Enhanced D3.js visualization would go here');
-     }
-
-     function displayFavoritesView() {
-         const container = document.getElementById('favorites-content');
-         if (!container) return;
-
-         const favoriteIds = Array.from(userFavorites);
-         
-         if (favoriteIds.length === 0) {
-             container.innerHTML = `
-                 <div style="text-align: center; padding: 3rem; color: var(--neutral-500);">
-                     <i class="fas fa-star" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                     <p style="font-size: var(--font-size-lg); margin-bottom: 0.5rem;">Your Favorites</p>
-                     <p>Star diagnoses to save them here for quick access</p>
-                 </div>
-             `;
-             return;
-         }
-
-         const favoriteDiagnoses = favoriteIds.map(id => findDiagnosisById(id)).filter(Boolean);
-         
-         container.innerHTML = `
-             <div class="fade-in">
-                 <div style="margin-bottom: 1.5rem;">
-                     <h3 style="color: var(--accent-600); margin-bottom: 0.5rem;">
-                         <i class="fas fa-star"></i> Your Favorite Diagnoses
-                     </h3>
-                     <p style="color: var(--neutral-600); font-size: var(--font-size-sm);">
-                         ${favoriteDiagnoses.length} diagnosis${favoriteDiagnoses.length !== 1 ? 'es' : ''} saved
-                     </p>
-                 </div>
-                 <div class="diagnosis-list">
-                     ${favoriteDiagnoses.map(dx => createDiagnosisCard(dx)).join('')}
-                 </div>
-             </div>
-         `;
-     }
-
-     function displayCompareView() {
-         console.log('Compare view - Side-by-side comparison would go here');
-     }
-
-     function displayGlobalSearchView() {
-         console.log('Global search view - Cross-finding search would go here');
-     }
-
-     function displayQuizView() {
-         console.log('Quiz view - Interactive assessment would go here');
-     }
-
-     function displayAnalyticsView() {
-         const container = document.getElementById('analytics-content');
-         if (!container) return;
-
-         const totalFindings = learningAnalytics.findingsViewed ? Object.keys(learningAnalytics.findingsViewed).length : 0;
-         const totalInteractions = learningAnalytics.interactions ? learningAnalytics.interactions.length : 0;
-         const timeSpent = learningAnalytics.timeSpent ? Math.round(learningAnalytics.timeSpent / 1000 / 60) : 0;
-
-         container.innerHTML = `
-             <div class="fade-in" style="padding: 2rem;">
-                 <h3 style="margin-bottom: 2rem; color: var(--neutral-800);">
-                     <i class="fas fa-chart-bar"></i> Your Learning Analytics
-                 </h3>
-                 
-                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                     <div class="badge badge-info" style="padding: 1.5rem; background: var(--primary-50); border-radius: var(--border-radius-lg);">
-                         <div style="text-align: center;">
-                             <i class="fas fa-eye" style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--primary-600);"></i>
-                             <h4 style="font-size: 1.5rem; margin: 0; color: var(--primary-700);">${totalFindings}</h4>
-                             <p style="margin: 0; color: var(--neutral-600);">Findings Viewed</p>
-                         </div>
-                     </div>
-                     
-                     <div class="badge badge-success" style="padding: 1.5rem; background: var(--secondary-50); border-radius: var(--border-radius-lg);">
-                         <div style="text-align: center;">
-                             <i class="fas fa-star" style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--secondary-600);"></i>
-                             <h4 style="font-size: 1.5rem; margin: 0; color: var(--secondary-700);">${userFavorites.size}</h4>
-                             <p style="margin: 0; color: var(--neutral-600);">Favorites Saved</p>
-                         </div>
-                     </div>
-                     
-                     <div class="badge badge-warning" style="padding: 1.5rem; background: var(--accent-50); border-radius: var(--border-radius-lg);">
-                         <div style="text-align: center;">
-                             <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--accent-600);"></i>
-                             <h4 style="font-size: 1.5rem; margin: 0; color: var(--accent-700);">${timeSpent}</h4>
-                             <p style="margin: 0; color: var(--neutral-600);">Minutes Studied</p>
-                         </div>
-                     </div>
-                 </div>
-                 
-                 <div style="background: var(--neutral-50); padding: 1.5rem; border-radius: var(--border-radius-lg);">
-                     <h4 style="margin-bottom: 1rem; color: var(--neutral-700);">Study Recommendations</h4>
-                     <ul style="list-style: none; padding: 0; margin: 0;">
-                         <li style="margin-bottom: 0.5rem; color: var(--neutral-600);">
-                             <i class="fas fa-lightbulb" style="color: var(--accent-500); margin-right: 0.5rem;"></i>
-                             Try using flashcards to reinforce learning
-                         </li>
-                         <li style="margin-bottom: 0.5rem; color: var(--neutral-600);">
-                             <i class="fas fa-lightbulb" style="color: var(--accent-500); margin-right: 0.5rem;"></i>
-                             Review your favorited diagnoses regularly
-                         </li>
-                         <li style="color: var(--neutral-600);">
-                             <i class="fas fa-lightbulb" style="color: var(--accent-500); margin-right: 0.5rem;"></i>
-                             Take notes to improve retention
-                         </li>
-                     </ul>
-                 </div>
-             </div>
-         `;
-     }
-
-     function displaySettingsView() {
-         console.log('Settings view - User preferences would go here');
-     }
-
-     // Settings controls
-     function setupSettingsControls() {
-         // Theme switcher
-         const themeSelect = document.getElementById('theme-select');
-         themeSelect?.addEventListener('change', (e) => {
-             const theme = e.target.value;
-             document.documentElement.setAttribute('data-theme', theme);
-             localStorage.setItem('dermapath-theme', theme);
-             showNotification(`Theme changed to ${theme}`, 'success', 2000);
-         });
-
-         // Load saved theme
-         const savedTheme = localStorage.getItem('dermapath-theme');
-         if (savedTheme && themeSelect) {
-             themeSelect.value = savedTheme;
-             document.documentElement.setAttribute('data-theme', savedTheme);
-         }
-     }
-
-     function setupDiagramControls() {
-         // Placeholder for diagram interaction controls
-         console.log('Diagram controls setup would go here');
-     }
-
-     function filterCurrentResults() {
-         // Placeholder for advanced filtering
-         console.log('Advanced filtering would go here');
-     }
-
-     function addToCompare(diagnosisId) {
-         if (compareList.has(diagnosisId)) {
-             showNotification('Already in comparison list', 'info', 2000);
-             return;
-         }
-
-         if (compareList.size >= 3) {
-             showNotification('Comparison list is full (max 3)', 'warning', 2000);
-             return;
-         }
-
-         compareList.add(diagnosisId);
-         showNotification('Added to comparison', 'success', 2000);
-         
-         // Auto-switch to compare view if this is the second item
-         if (compareList.size === 2) {
-             setTimeout(() => {
-                 switchTab('compare-view');
-             }, 1000);
-         }
-     }
-
-     // URL parameter handling for deep linking
-     function handleUrlParameters() {
-         const params = new URLSearchParams(window.location.search);
-         const findingParam = params.get('finding');
-         
-         if (findingParam) {
-             // Find matching finding
-             for (const [key, data] of processedFindingsMap) {
-                 if (data.displayFindingName === findingParam) {
-                     document.getElementById('finding-select').value = key;
-                     selectFinding(key);
-                     break;
-                 }
-             }
-         }
-     }
-
-     // Initialize the application
-     document.addEventListener('DOMContentLoaded', () => {
-         console.log('Initializing Dermatopathology Navigator Pro...');
-         console.log('DOM loaded, checking script availability...');
-        console.log('dermDifferentialData available:', typeof window.dermDifferentialData !== 'undefined');
-        if (typeof window.dermDifferentialData !== 'undefined') {
-            console.log('Data length:', window.dermDifferentialData.length);
         }
-         initializeApplication();
-     });
+        
+        // --- VIEW RENDERERS ---
+        function renderListView(diagnoses) {
+            if (!diagnoses || diagnoses.length === 0) {
+                dom.resultsContent.innerHTML = `<div class="text-center p-8 text-gray-500">No diagnoses found for this finding.</div>`;
+                return;
+            }
 
-     // Global error handling
-     window.addEventListener('error', (event) => {
-         console.error('Application error:', event.error);
-         showNotification('An unexpected error occurred', 'error');
-     });
+            const html = diagnoses.map(dx => {
+                const isFavorite = !!state.favorites[dx.name];
+                const hasNote = !!state.notes[dx.name];
+                return `
+                <div class="diagnosis-card bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 mb-4" data-diagnosis-name="${dx.name}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">${dx.name}</h4>
+                            <p class="text-xs font-mono text-gray-500 dark:text-gray-400">Source: ${dx.sources.join(', ')}</p>
+                        </div>
+                        <div class="flex items-center gap-1 flex-shrink-0 ml-2">
+                             ${hasNote ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>` : ''}
+                            <button data-action="note" class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
+                            </button>
+                            <button data-action="favorite" class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ${isFavorite ? 'text-amber-500' : 'text-gray-400'}" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                        <p><strong>Key Features:</strong> ${dx.keyFeatures}</p>
+                        ${state.notes[dx.name] ? `<div class="mt-2 p-2 bg-blue-50 dark:bg-blue-900/50 border-l-4 border-blue-400 text-sm"><p class="font-semibold">My Note:</p><p>${state.notes[dx.name].replace(/\n/g, '<br>')}</p></div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+            dom.resultsContent.innerHTML = html;
+        }
 
-     // Expose useful functions globally for debugging
-     window.dermPathDebug = {
-         processedFindingsMap,
-         userFavorites,
-         userNotes,
-         learningAnalytics,
-         showNotification,
-         switchTab,
-         selectFinding
-     };
+        function renderTableView(diagnoses) {
+            if (!diagnoses || diagnoses.length === 0) {
+                 dom.resultsContent.innerHTML = `<div class="text-center p-8 text-gray-500">No diagnoses found for this finding.</div>`;
+                return;
+            }
+            const html = `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">Diagnosis</th>
+                                <th scope="col" class="px-4 py-3">Key Features</th>
+                                <th scope="col" class="px-4 py-3">Source(s)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${diagnoses.map(dx => `
+                                <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    <th scope="row" class="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">${dx.name}</th>
+                                    <td class="px-4 py-4">${dx.keyFeatures}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap">${dx.sources.join(', ')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            dom.resultsContent.innerHTML = html;
+        }
 
- })();
+        function renderFavoritesView() {
+            dom.resultsTitle.textContent = "My Favorites";
+            dom.actionButtons.classList.add('hidden');
+
+            const favoriteNames = Object.keys(state.favorites);
+            if (favoriteNames.length === 0) {
+                dom.resultsContent.innerHTML = `<div class="text-center p-8 text-gray-500">You haven't favorited any diagnoses yet.</div>`;
+                return;
+            }
+            
+            const allDiagnoses = [];
+            state.dataMap.forEach(findingData => {
+                findingData.diagnoses.forEach(dx => {
+                    if (favoriteNames.includes(dx.name)) {
+                        allDiagnoses.push(dx);
+                    }
+                });
+            });
+
+            renderListView(allDiagnoses);
+        }
+
+        function renderFlashcardsView(diagnoses) {
+             if (!diagnoses || diagnoses.length === 0) {
+                 dom.resultsContent.innerHTML = `<div class="text-center p-8 text-gray-500">No diagnoses to create flashcards for.</div>`;
+                return;
+            }
+            
+            const flashcardHTML = diagnoses.map((dx, index) => `
+                <div class="flashcard-scene w-full h-64 mb-6">
+                    <div class="flashcard relative w-full h-full" id="flashcard-${index}">
+                        <!-- Front Face -->
+                        <div class="flashcard-face absolute w-full h-full p-6 flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-lg shadow-md border dark:border-gray-700">
+                            <h3 class="text-xl font-bold text-center">${dx.name}</h3>
+                            <p class="text-sm text-gray-500 mt-2">Click to flip</p>
+                        </div>
+                        <!-- Back Face -->
+                        <div class="flashcard-back absolute w-full h-full p-6 flex flex-col justify-center bg-blue-100 dark:bg-blue-900/50 rounded-lg shadow-md border border-blue-300 dark:border-blue-700">
+                            <p class="text-sm text-gray-800 dark:text-gray-200"><strong class="font-semibold">Key Features:</strong> ${dx.keyFeatures}</p>
+                            <p class="text-xs font-mono text-gray-600 dark:text-gray-400 mt-3">Source: ${dx.sources.join(', ')}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            dom.resultsContent.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${flashcardHTML}</div>`;
+            
+            diagnoses.forEach((_, index) => {
+                const card = document.getElementById(`flashcard-${index}`);
+                if (card) {
+                    card.addEventListener('click', () => card.classList.toggle('is-flipped'));
+                }
+            });
+        }
+        
+        function renderNetworkView(findingData) {
+            dom.resultsContent.innerHTML = '<div id="network-svg-container" class="w-full h-[60vh] flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md"></div>';
+            const container = document.getElementById('network-svg-container');
+            
+            const nodes = [
+                { id: findingData.finding, group: 0, r: 30 },
+                ...findingData.diagnoses.map(dx => ({ id: dx.name, group: 1, r: 15 }))
+            ];
+            const links = findingData.diagnoses.map(dx => ({ source: findingData.finding, target: dx.name }));
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            const svg = d3.select(container).append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", [-width / 2, -height / 2, width, height])
+                .style("font", "10px sans-serif");
+            
+            const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+                .force("charge", d3.forceManyBody().strength(-200))
+                .force("center", d3.forceCenter());
+
+            const link = svg.append("g")
+                .attr("stroke", "var(--color-text-muted)")
+                .attr("stroke-opacity", 0.6)
+                .selectAll("line")
+                .data(links)
+                .join("line");
+
+            const node = svg.append("g")
+                .selectAll("g")
+                .data(nodes)
+                .join("g")
+                .call(drag(simulation));
+
+            node.append("circle")
+                .attr("r", d => d.r)
+                .attr("fill", d => d.group === 0 ? "var(--color-primary)" : "var(--color-accent)");
+
+            node.append("text")
+                .text(d => d.id)
+                .attr("x", d => d.r + 5)
+                .attr("y", 3)
+                .attr("fill", "var(--color-text)")
+                .style("pointer-events", "none");
+                
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+                node
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+            
+            function drag(simulation) {
+              return d3.drag()
+                  .on("start", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                  })
+                  .on("drag", (event, d) => {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                  })
+                  .on("end", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                  });
+            }
+        }
+        
+        function renderAnalyticsView() {
+            dom.resultsTitle.textContent = "My Learning Analytics";
+            dom.actionButtons.classList.add('hidden');
+            
+            const totalTime = ((Date.now() - state.analytics.startTime) / 60000).toFixed(1);
+            const viewedFindingsCount = Object.keys(state.analytics.views).length;
+            
+            const topViewed = Object.entries(state.analytics.views)
+                .sort(([,a],[,b]) => b.count - a.count)
+                .slice(0, 5)
+                .map(([name, data]) => `<li>${name} (${data.count} views)</li>`)
+                .join('');
+            
+            const topTabs = Object.entries(state.analytics.tabUsage)
+                .sort(([,a],[,b]) => b - a)
+                .slice(0, 3)
+                .map(([name, count]) => `<li>${name} (${count} uses)</li>`)
+                .join('');
+
+            const html = `
+                <div class="space-y-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"><div class="text-2xl font-bold">${totalTime}</div><div class="text-sm text-gray-500">Mins Studied</div></div>
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"><div class="text-2xl font-bold">${viewedFindingsCount}</div><div class="text-sm text-gray-500">Findings Viewed</div></div>
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"><div class="text-2xl font-bold">${state.analytics.actions.favorites}</div><div class="text-sm text-gray-500">Favorites Added</div></div>
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"><div class="text-2xl font-bold">${state.analytics.actions.notes}</div><div class="text-sm text-gray-500">Notes Taken</div></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+                            <h4 class="font-semibold mb-2">Most Viewed Findings</h4>
+                            <ul class="list-disc list-inside text-sm space-y-1">${topViewed || '<li>None yet</li>'}</ul>
+                        </div>
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+                            <h4 class="font-semibold mb-2">Most Used Features</h4>
+                            <ul class="list-disc list-inside text-sm space-y-1">${topTabs || '<li>None yet</li>'}</ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            dom.resultsContent.innerHTML = html;
+        }
+
+        // --- UTILITY FUNCTIONS ---
+        function toggleFavorite(diagnosisName, findingName) {
+            if (state.favorites[diagnosisName]) {
+                delete state.favorites[diagnosisName];
+                showToast(`${diagnosisName} removed from favorites.`, "info");
+            } else {
+                state.favorites[diagnosisName] = findingName;
+                showToast(`${diagnosisName} added to favorites!`, "success");
+                trackEvent('action', { type: 'favorite_add' });
+            }
+            dom.favoritesCount.textContent = Object.keys(state.favorites).length;
+            saveStateToLocalStorage();
+            render();
+        }
+
+        function openNoteModal(diagnosisName) {
+            dom.noteModal.title.textContent = `Add/Edit Note for ${diagnosisName}`;
+            dom.noteModal.textarea.value = state.notes[diagnosisName] || '';
+            dom.noteModal.saveBtn.dataset.diagnosisName = diagnosisName;
+            dom.noteModal.el.classList.remove('hidden');
+            dom.noteModal.textarea.focus();
+        }
+        
+        function generateDeepLink() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('finding', encodeURIComponent(state.selectedFinding));
+            return url.toString();
+        }
+        
+        function updateURL(findingName) {
+            if (history.pushState) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('finding', encodeURIComponent(findingName));
+                history.pushState({path: url.href}, '', url.href);
+            }
+        }
+
+        function checkURLParameters() {
+            const params = new URLSearchParams(window.location.search);
+            const finding = params.get('finding');
+            if (finding) {
+                const decodedFinding = decodeURIComponent(finding);
+                if (state.dataMap.has(decodedFinding)) {
+                    renderFinding(decodedFinding);
+                }
+            }
+        }
+        
+        function showToast(message, type = "info") {
+            const colors = {
+                info: 'bg-blue-500',
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+            };
+            const toast = document.createElement('div');
+            toast.className = `toast text-white px-6 py-3 rounded-md shadow-lg ${colors[type]}`;
+            toast.textContent = message;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        // --- EXPORT FUNCTIONS ---
+        function handleExportPDF() {
+            if (!state.selectedFinding) return;
+            trackEvent('action', { type: 'export_pdf' });
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const data = state.dataMap.get(state.selectedFinding);
+
+            doc.setFontSize(18);
+            doc.text(`Differential Diagnosis for: ${data.finding}`, 14, 22);
+
+            const tableData = data.diagnoses.map(dx => [
+                dx.name,
+                dx.keyFeatures,
+                dx.sources.join(', ')
+            ]);
+            
+            doc.autoTable({
+                head: [['Diagnosis', 'Key Features', 'Source(s)']],
+                body: tableData,
+                startY: 30,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [41, 128, 185] },
+            });
+            
+            doc.save(`${data.finding.replace(/ /g, '_')}_DDx.pdf`);
+        }
+        
+        function handleExportExcel() {
+            if (!state.selectedFinding) return;
+            trackEvent('action', { type: 'export_excel' });
+
+            const data = state.dataMap.get(state.selectedFinding);
+            const worksheet = XLSX.utils.json_to_sheet(data.diagnoses);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Differentials");
+            
+            const meta = [{
+                Finding: data.finding,
+                'Export Date': new Date().toISOString(),
+                'Number of Diagnoses': data.diagnoses.length
+            }];
+            const metaSheet = XLSX.utils.json_to_sheet(meta);
+            XLSX.utils.book_append_sheet(workbook, metaSheet, "Metadata");
+
+            XLSX.writeFile(workbook, `${data.finding.replace(/ /g, '_')}_DDx.xlsx`);
+        }
+
+        // --- LOCAL STORAGE & PERSISTENCE ---
+        function saveStateToLocalStorage() {
+            try {
+                const persistentState = {
+                    favorites: state.favorites,
+                    notes: state.notes,
+                    analytics: state.analytics
+                };
+                localStorage.setItem('dermpathNavigatorState', JSON.stringify(persistentState));
+            } catch (e) {
+                console.error("Failed to save state to localStorage", e);
+            }
+        }
+        
+        function loadStateFromLocalStorage() {
+            try {
+                const savedState = localStorage.getItem('dermpathNavigatorState');
+                if (savedState) {
+                    const parsed = JSON.parse(savedState);
+                    state.favorites = parsed.favorites || {};
+                    state.notes = parsed.notes || {};
+                    state.analytics = parsed.analytics || state.analytics;
+                    // Restore start time if it exists, otherwise it gets reset on every load
+                    state.analytics.startTime = parsed.analytics.startTime || Date.now();
+                }
+                dom.favoritesCount.textContent = Object.keys(state.favorites).length;
+            } catch (e) {
+                console.error("Failed to load state from localStorage", e);
+                state.favorites = {};
+                state.notes = {};
+            }
+        }
+        
+        // --- ANALYTICS ---
+        function trackEvent(eventName, eventData) {
+            const now = Date.now();
+            switch(eventName) {
+                case 'view_finding':
+                    const view = state.analytics.views[eventData.finding] || { count: 0 };
+                    view.count++;
+                    view.lastViewed = now;
+                    state.analytics.views[eventData.finding] = view;
+                    break;
+                case 'tab_view':
+                    state.analytics.tabUsage[eventData.tab] = (state.analytics.tabUsage[eventData.tab] || 0) + 1;
+                    break;
+                case 'action':
+                    if (eventData.type === 'favorite_add') state.analytics.actions.favorites++;
+                    if (eventData.type === 'note_add_edit') state.analytics.actions.notes++;
+                    if (eventData.type.startsWith('export')) state.analytics.actions.exports++;
+                    break;
+            }
+            saveStateToLocalStorage();
+        }
+
+        // --- THEME TOGGLE ---
+        function toggleTheme() {
+            const currentTheme = localStorage.getItem('theme') || 'system';
+            let newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            updateThemeUI(newTheme);
+        }
+
+        function updateThemeUI(theme) {
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (theme === 'dark' || (theme === 'system' && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+                dom.themeIconDark.classList.remove('hidden');
+                dom.themeIconLight.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                dom.themeIconLight.classList.remove('hidden');
+                dom.themeIconDark.classList.add('hidden');
+            }
+        }
+
+        // --- KICK OFF THE APP ---
+        initializeApplication();
+    });
+    </script>
+
+</body>
+</html>
