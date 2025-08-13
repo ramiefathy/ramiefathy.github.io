@@ -1116,3 +1116,8 @@ console.log('Loading dermpathDifferentialsData.js...');
 console.log('differentialsData array length:', differentialsData.length);
 window.dermDifferentialData = differentialsData;
 console.log('window.dermDifferentialData assigned successfully');
+
+// Start the application now that the data is ready
+if (typeof window !== 'undefined' && typeof window.initializeApplication === 'function') {
+    window.initializeApplication();
+}
