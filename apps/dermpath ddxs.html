@@ -1594,11 +1594,11 @@
         return new Promise((resolve) => {
             setTimeout(() => {
                 try {
-                    if (typeof window.dermDifferentialData === 'undefined') {
+                    if (typeof differentialsData === 'undefined') {
                         throw new Error('Differential diagnosis data not found');
                     }
 
-                    const findingsData = window.dermDifferentialData;
+                    const findingsData = differentialsData;
                     console.log('Processing', findingsData.length, 'findings...');
                     processedFindingsMap.clear();
 
@@ -2637,10 +2637,10 @@
      document.addEventListener('DOMContentLoaded', () => {
          console.log('Initializing Dermatopathology Navigator Pro...');
          console.log('DOM loaded, checking script availability...');
-         console.log('dermDifferentialData available:', typeof window.dermDifferentialData !== 'undefined');
-         if (typeof window.dermDifferentialData !== 'undefined') {
-             console.log('Data length:', window.dermDifferentialData.length);
-         }
+        console.log('dermDifferentialData available:', typeof differentialsData !== 'undefined');
+        if (typeof differentialsData !== 'undefined') {
+            console.log('Data length:', differentialsData.length);
+        }
          initializeApplication();
      });
 
