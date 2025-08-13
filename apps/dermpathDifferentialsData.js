@@ -744,7 +744,7 @@ const differentialsData = [
                     { name: "Necrosis (EM, TEN)", keyFeatures: "Extensive keratinocyte death leads to pale/eosinophilic appearance." }
                 ]
             },
-            // --- Jackson Data ---
+            // --- Jackson Data (Existing) ---
             {
                 finding: "Acantholysis (Jackson)",
                 sources: ["Jackson p.245"],
@@ -814,7 +814,6 @@ const differentialsData = [
                     { name: "Metastatic renal cell cancer", keyFeatures: "Nests/cords of clear cells, prominent vasculature." },
                     { name: "Pilomatrixoma", keyFeatures: "Ghost cells appear pale/pink centrally." },
                     { name: "Sebaceous carcinoma", keyFeatures: "Contains sebocytes with clear, bubbly cytoplasm, atypia." },
-                    // { name: "Squamous cell carcinoma", keyFeatures: "Can have clear cell change." }, // Duplicate name, different source Jackson p.249 vs Rapini p.7 (1.22)
                     { name: "Trichilemmal carcinoma", keyFeatures: "Cytologically atypical clear cells with trichilemmal keratinization." },
                     { name: "Trichilemmoma", keyFeatures: "Lobules of clear (glycogenated) cells with peripheral palisading." }
                 ]
@@ -1107,14 +1106,92 @@ const differentialsData = [
                     { name: "Calcinosis cutis / Gout / Pseudoxanthoma elasticum", keyFeatures: "Elimination of calcium, urate crystals, or calcified elastic fibers." },
                     { name: "Perforating pilomatrixoma / Nevus / Melanoma", keyFeatures: "Rare elimination of tumor components." }
                 ]
-                
             },
-                         // --- Bullous Disorders (Comprehensive) ---
+
+            // --- Bullous Disorders (Deconstructed & Comprehensive) ---
+            {
+                finding: "Vesicles, Subcorneal/Intracorneal",
+                sources: ["Jackson p.277", "Ref Sheet (Box 7-3)"],
+                diagnoses: [
+                    { name: "Staphylococcal scalded-skin syndrome", keyFeatures: "Cleavage at the granular layer with minimal to no inflammation or acantholysis." },
+                    { name: "Bullous impetigo", keyFeatures: "Subcorneal pustule containing neutrophils and gram-positive cocci, minor acantholysis." },
+                    { name: "Pemphigus foliaceus", keyFeatures: "Acantholysis high in the epidermis, typically in the granular or subgranular layer, with 'cling-on' acantholytic cells on the blister roof." },
+                    { name: "Subcorneal pustular dermatosis (Sneddon-Wilkinson)", keyFeatures: "Subcorneal pustule with neutrophils, minimal acantholysis. DIF is negative." },
+                    { name: "IgA pemphigus, subcorneal type", keyFeatures: "Histologically similar to Sneddon-Wilkinson, but DIF shows intercellular IgA deposits in the upper epidermis." },
+                    { name: "Erythema toxicum neonatorum", keyFeatures: "Subcorneal or intraepidermal pustules rich in eosinophils, often centered on a follicle." },
+                    { name: "Miliaria crystallina", keyFeatures: "Intracorneal or subcorneal vesicle associated with an eccrine duct, minimal inflammation." }
+                ]
+            },
+            {
+                finding: "Vesicles, Intraepidermal Spongiotic",
+                sources: ["Jackson p.275", "Lipoff - HAPPIE FD"],
+                diagnoses: [
+                    { name: "Allergic contact dermatitis", keyFeatures: "Prominent intercellular edema (spongiosis) forming vesicles, with exocytosis of lymphocytes and often numerous eosinophils." },
+                    { name: "Nummular / Dyshidrotic eczema", keyFeatures: "Marked spongiosis leading to large intraepidermal vesicles ('spongiotic vesicles'), often with acanthosis and parakeratosis." },
+                    { name: "Incontinentia pigmenti (Stage 1)", keyFeatures: "Eosinophilic spongiosis with scattered dyskeratotic/necrotic keratinocytes." }
+                ]
+            },
+            {
+                finding: "Vesicles, Intraepidermal Acantholytic",
+                sources: ["Jackson p.245", "Alikhan T7.26", "Ko Ch 4, p238-247"],
+                diagnoses: [
+                    { name: "Pemphigus vulgaris", keyFeatures: "Suprabasal acantholysis with remaining basal cells aligned in a 'tombstone' pattern. Often involves adnexal structures." },
+                    { name: "Hailey-Hailey disease", keyFeatures: "Extensive, often full-thickness acantholysis giving a 'dilapidated brick wall' appearance. Less dyskeratosis than Darier's." },
+                    { name: "Darier's disease", keyFeatures: "Suprabasal acantholysis with prominent dyskeratosis (corps ronds and grains)." },
+                    { name: "Grover's disease", keyFeatures: "Focal acantholysis that can mimic Pemphigus, Hailey-Hailey, or Darier's patterns." }
+                ]
+            },
+            {
+                finding: "Vesicles, Intraepidermal Ballooning",
+                sources: ["Jackson p.245", "Ko Ch 4, p238-247"],
+                diagnoses: [
+                    { name: "Herpes virus infection (HSV, VZV)", keyFeatures: "Viral cytopathic changes: ballooning degeneration of keratinocytes, acantholysis, multinucleation, nuclear molding, and chromatin margination." }
+                ]
+            },
+            {
+                finding: "Bullae, Subepidermal with Eosinophils",
+                sources: ["Jackson p.278", "Rapini p.11 (1.36B)"],
+                diagnoses: [
+                    { name: "Bullous pemphigoid", keyFeatures: "Subepidermal split with a superficial dermal infiltrate rich in eosinophils. Eosinophils may line the blister base and be present in the cavity. Urticarial phase shows eosinophilic spongiosis." },
+                    { name: "Pemphigoid gestationis", keyFeatures: "Similar to bullous pemphigoid, with subepidermal edema, eosinophils at the DEJ and in the blister. Eosinophilic spongiosis is a key clue." },
+                    { name: "Arthropod bite reaction", keyFeatures: "Subepidermal edema or bulla with a wedge-shaped, mixed dermal infiltrate containing numerous eosinophils." }
+                ]
+            },
+            {
+                finding: "Bullae, Subepidermal with Neutrophils",
+                sources: ["Jackson p.278", "Rapini p.26-27 (1.89A)"],
+                diagnoses: [
+                    { name: "Dermatitis herpetiformis", keyFeatures: "Subepidermal vesicles forming over dermal papillae containing neutrophils ('papillary microabscesses')." },
+                    { name: "Linear IgA bullous dermatosis", keyFeatures: "Subepidermal blister with a continuous line of neutrophils along the basement membrane zone." },
+                    { name: "Bullous lupus erythematosus", keyFeatures: "Subepidermal blister with a neutrophilic infiltrate similar to dermatitis herpetiformis, but with other features of lupus (interface change, mucin)." },
+                    { name: "Cicatricial pemphigoid", keyFeatures: "Subepidermal split with a mixed inflammatory infiltrate, often with neutrophils, and subsequent papillary dermal fibrosis/scarring." },
+                    { name: "Epidermolysis bullosa acquisita (inflammatory)", keyFeatures: "Subepidermal split with a dense neutrophilic infiltrate that can mimic DH or bullous pemphigoid." }
+                ]
+            },
+            {
+                finding: "Bullae, Subepidermal with Lymphocytes",
+                sources: ["Jackson p.278", "Alikhan T7.14"],
+                diagnoses: [
+                    { name: "Erythema multiforme", keyFeatures: "Subepidermal or intraepidermal blister with a superficial lymphocytic infiltrate, vacuolar interface change, and scattered necrotic keratinocytes." },
+                    { name: "Bullous lichen planus", keyFeatures: "Subepidermal separation (Max-Joseph space) in the setting of classic lichen planus (lichenoid infiltrate, saw-toothed rete, hypergranulosis)." },
+                    { name: "Fixed drug eruption", keyFeatures: "Subepidermal blister with vacuolar interface change, necrotic keratinocytes, and a mixed dermal infiltrate with lymphocytes, eosinophils, and deep pigment incontinence." }
+                ]
+            },
+            {
+                finding: "Bullae, Subepidermal Pauci-inflammatory",
+                sources: ["Jackson p.278", "Ko Ch 4, p248-254"],
+                diagnoses: [
+                    { name: "Porphyria cutanea tarda / Pseudoporphyria", keyFeatures: "Non-inflammatory subepidermal blister with 'festooning' of the dermal papillae, caterpillar bodies in the epidermis, and thickened, hyalinized papillary dermal vessels." },
+                    { name: "Toxic epidermal necrolysis (TEN)", keyFeatures: "Subepidermal split beneath confluent, full-thickness epidermal necrosis. Dermal infiltrate is sparse." },
+                    { name: "Bullosis diabeticorum", keyFeatures: "Non-inflammatory subepidermal blister in a diabetic patient, resembling a friction blister or PCT but without vascular changes." },
+                    { name: "Friction blister", keyFeatures: "Intraepidermal or subepidermal split due to shearing forces, with associated keratinocyte necrosis." },
+                    { name: "Coma bullae", keyFeatures: "Subepidermal blister with extensive necrosis of the epidermis and eccrine glands." }
+                ]
+            },
             {
                 finding: "Vesicles/Bullae (Comprehensive DDx)",
                 sources: ["Jackson p.277-279", "Alikhan T7.26", "Rapini p.2 (1.2)"],
                 diagnoses: [
-                    // --- Subcorneal / Intracorneal ---
                     { name: "Staphylococcal scalded-skin syndrome", keyFeatures: "(Subcorneal) Cleavage at the granular layer with minimal to no inflammation or acantholysis." },
                     { name: "Bullous impetigo", keyFeatures: "(Subcorneal) Subcorneal pustule containing neutrophils and gram-positive cocci, minor acantholysis." },
                     { name: "Pemphigus foliaceus", keyFeatures: "(Subcorneal) Acantholysis high in the epidermis, typically in the granular or subgranular layer, with 'cling-on' acantholytic cells on the blister roof." },
@@ -1122,39 +1199,25 @@ const differentialsData = [
                     { name: "IgA pemphigus, subcorneal type", keyFeatures: "(Subcorneal) Histologically similar to Sneddon-Wilkinson, but DIF shows intercellular IgA deposits in the upper epidermis." },
                     { name: "Erythema toxicum neonatorum", keyFeatures: "(Subcorneal) Subcorneal or intraepidermal pustules rich in eosinophils, often centered on a follicle." },
                     { name: "Miliaria crystallina", keyFeatures: "(Intracorneal) Intracorneal or subcorneal vesicle associated with an eccrine duct, minimal inflammation." },
-
-                    // --- Intraepidermal Spongiotic ---
                     { name: "Allergic contact dermatitis", keyFeatures: "(Intraepidermal - Spongiotic) Prominent intercellular edema (spongiosis) forming vesicles, with exocytosis of lymphocytes and often numerous eosinophils." },
                     { name: "Nummular / Dyshidrotic eczema", keyFeatures: "(Intraepidermal - Spongiotic) Marked spongiosis leading to large intraepidermal vesicles ('spongiotic vesicles'), often with acanthosis and parakeratosis." },
                     { name: "Incontinentia pigmenti (Stage 1)", keyFeatures: "(Intraepidermal - Spongiotic) Eosinophilic spongiosis with scattered dyskeratotic/necrotic keratinocytes." },
-
-                    // --- Intraepidermal Acantholytic ---
                     { name: "Pemphigus vulgaris", keyFeatures: "(Intraepidermal - Acantholytic) Suprabasal acantholysis with remaining basal cells aligned in a 'tombstone' pattern. Often involves adnexal structures." },
                     { name: "Hailey-Hailey disease", keyFeatures: "(Intraepidermal - Acantholytic) Extensive, often full-thickness acantholysis giving a 'dilapidated brick wall' appearance. Less dyskeratosis than Darier's." },
                     { name: "Darier's disease", keyFeatures: "(Intraepidermal - Acantholytic) Suprabasal acantholysis with prominent dyskeratosis (corps ronds and grains)." },
                     { name: "Grover's disease", keyFeatures: "(Intraepidermal - Acantholytic) Focal acantholysis that can mimic Pemphigus, Hailey-Hailey, or Darier's patterns." },
-
-                    // --- Intraepidermal Ballooning ---
                     { name: "Herpes virus infection (HSV, VZV)", keyFeatures: "(Intraepidermal - Ballooning) Viral cytopathic changes: ballooning degeneration of keratinocytes, acantholysis, multinucleation, nuclear molding, and chromatin margination." },
-
-                    // --- Subepidermal with Eosinophils ---
                     { name: "Bullous pemphigoid", keyFeatures: "(Subepidermal - Eosinophilic) Subepidermal split with a superficial dermal infiltrate rich in eosinophils. Eosinophils may line the blister base and be present in the cavity. Urticarial phase shows eosinophilic spongiosis." },
                     { name: "Pemphigoid gestationis", keyFeatures: "(Subepidermal - Eosinophilic) Similar to bullous pemphigoid, with subepidermal edema, eosinophils at the DEJ and in the blister. Eosinophilic spongiosis is a key clue." },
                     { name: "Arthropod bite reaction", keyFeatures: "(Subepidermal - Eosinophilic) Subepidermal edema or bulla with a wedge-shaped, mixed dermal infiltrate containing numerous eosinophils." },
-
-                    // --- Subepidermal with Neutrophils ---
                     { name: "Dermatitis herpetiformis", keyFeatures: "(Subepidermal - Neutrophilic) Subepidermal vesicles forming over dermal papillae containing neutrophils ('papillary microabscesses')." },
                     { name: "Linear IgA bullous dermatosis", keyFeatures: "(Subepidermal - Neutrophilic) Subepidermal blister with a continuous line of neutrophils along the basement membrane zone." },
                     { name: "Bullous lupus erythematosus", keyFeatures: "(Subepidermal - Neutrophilic) Subepidermal blister with a neutrophilic infiltrate similar to dermatitis herpetiformis, but with other features of lupus (interface change, mucin)." },
                     { name: "Cicatricial pemphigoid", keyFeatures: "(Subepidermal - Neutrophilic) Subepidermal split with a mixed inflammatory infiltrate, often with neutrophils, and subsequent papillary dermal fibrosis/scarring." },
                     { name: "Epidermolysis bullosa acquisita (inflammatory)", keyFeatures: "(Subepidermal - Neutrophilic) Subepidermal split with a dense neutrophilic infiltrate that can mimic DH or bullous pemphigoid." },
-
-                    // --- Subepidermal with Lymphocytes ---
                     { name: "Erythema multiforme", keyFeatures: "(Subepidermal - Lymphocytic) Subepidermal or intraepidermal blister with a superficial lymphocytic infiltrate, vacuolar interface change, and scattered necrotic keratinocytes." },
                     { name: "Bullous lichen planus", keyFeatures: "(Subepidermal - Lymphocytic) Subepidermal separation (Max-Joseph space) in the setting of classic lichen planus (lichenoid infiltrate, saw-toothed rete, hypergranulosis)." },
                     { name: "Fixed drug eruption", keyFeatures: "(Subepidermal - Lymphocytic) Subepidermal blister with vacuolar interface change, necrotic keratinocytes, and a mixed dermal infiltrate with lymphocytes, eosinophils, and deep pigment incontinence." },
-
-                    // --- Subepidermal Pauci-inflammatory (Cell-Poor) ---
                     { name: "Porphyria cutanea tarda / Pseudoporphyria", keyFeatures: "(Subepidermal - Pauci-inflammatory) Non-inflammatory subepidermal blister with 'festooning' of the dermal papillae, caterpillar bodies in the epidermis, and thickened, hyalinized papillary dermal vessels." },
                     { name: "Toxic epidermal necrolysis (TEN)", keyFeatures: "(Subepidermal - Pauci-inflammatory) Subepidermal split beneath confluent, full-thickness epidermal necrosis. Dermal infiltrate is sparse." },
                     { name: "Bullosis diabeticorum", keyFeatures: "(Subepidermal - Pauci-inflammatory) Non-inflammatory subepidermal blister in a diabetic patient, resembling a friction blister or PCT but without vascular changes." },
@@ -1169,8 +1232,3 @@ console.log('Loading dermpathDifferentialsData.js...');
 console.log('differentialsData array length:', differentialsData.length);
 window.dermDifferentialData = differentialsData;
 console.log('window.dermDifferentialData assigned successfully');
-
-// Start the application now that the data is ready
-if (typeof window !== 'undefined' && typeof window.initializeApplication === 'function') {
-    window.initializeApplication();
-}
