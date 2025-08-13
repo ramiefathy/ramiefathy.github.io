@@ -1023,7 +1023,6 @@
     <link href="../../site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
     <script src="../../site_libs/highlightjs-9.12.0/highlight.js"></script>
     <link rel="stylesheet" href="../../style.css" type="text/css" />
-    <script src="data.js"></script>
 </head>
 <body>
     <!-- Professional Header -->
@@ -1852,17 +1851,12 @@
 
          // Initialize application on data load
      function initializeApplication() {
-         console.log('Checking for dermDifferentialData...', typeof window.dermDifferentialData);
-         if (typeof window.dermDifferentialData !== 'undefined' && window.dermDifferentialData.length > 0) {
-             console.log('Data found, processing...', window.dermDifferentialData.length, 'findings');
-             processData().then(() => {
-                 console.log('Application initialized successfully');
-             });
-         } else {
-             // Wait for data to load
-             console.log('Data not ready, waiting...');
-             setTimeout(initializeApplication, 100);
-         }
+         console.log('Data is ready, processing...');
+         processData().then(() => {
+             console.log('Application initialized successfully');
+             // Handle URL parameters after data loads
+             handleUrlParameters();
+         });
      }
 
      // Enhanced finding selection with analytics
@@ -2648,9 +2642,6 @@
              console.log('Data length:', window.dermDifferentialData.length);
          }
          initializeApplication();
-         
-         // Handle URL parameters after data loads
-         setTimeout(handleUrlParameters, 1000);
      });
 
      // Global error handling
