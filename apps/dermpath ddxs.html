@@ -564,7 +564,7 @@
                     <div class="flex justify-between items-start">
                         <div>
                             <h4 class="text-lg font-bold text-gray-900 dark:text-white">${dx.name}</h4>
-                            <p class="text-xs font-mono text-gray-500 dark:text-gray-400">Source: ${dx.sources.join(', ')}</p>
+                            <p class="text-xs font-mono text-gray-500 dark:text-gray-400">Source: ${formatSources(dx.sources)}</p>
                         </div>
                         <div class="flex items-center gap-1 flex-shrink-0 ml-2">
                              ${hasNote ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>` : ''}
@@ -607,7 +607,7 @@
                                 <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <th scope="row" class="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">${dx.name}</th>
                                     <td class="px-4 py-4">${dx.keyFeatures}</td>
-                                    <td class="px-4 py-4 whitespace-nowrap">${dx.sources.join(', ')}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap">${formatSources(dx.sources)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -656,7 +656,7 @@
                         <!-- Back Face -->
                         <div class="flashcard-back absolute w-full h-full p-6 flex flex-col justify-center bg-blue-100 dark:bg-blue-900/50 rounded-lg shadow-md border border-blue-300 dark:border-blue-700">
                             <p class="text-sm text-gray-800 dark:text-gray-200"><strong class="font-semibold">Key Features:</strong> ${dx.keyFeatures}</p>
-                            <p class="text-xs font-mono text-gray-600 dark:text-gray-400 mt-3">Source: ${dx.sources.join(', ')}</p>
+                            <p class="text-xs font-mono text-gray-600 dark:text-gray-400 mt-3">Source: ${formatSources(dx.sources)}</p>
                         </div>
                     </div>
                 </div>
@@ -792,6 +792,12 @@
         }
 
         // --- UTILITY FUNCTIONS ---
+        function formatSources(sources) {
+            if (Array.isArray(sources)) return sources.join(', ');
+            if (typeof sources === 'string') return sources;
+            return 'Unknown';
+        }
+        
         function toggleFavorite(diagnosisName, findingName) {
             if (state.favorites[diagnosisName]) {
                 delete state.favorites[diagnosisName];
@@ -816,14 +822,14 @@
         
         function generateDeepLink() {
             const url = new URL(window.location.href);
-            url.searchParams.set('finding', encodeURIComponent(state.selectedFinding));
+            url.searchParams.set('finding', state.selectedFinding);
             return url.toString();
         }
         
         function updateURL(findingName) {
             if (history.pushState) {
                 const url = new URL(window.location.href);
-                url.searchParams.set('finding', encodeURIComponent(findingName));
+                url.searchParams.set('finding', findingName);
                 history.pushState({path: url.href}, '', url.href);
             }
         }
@@ -832,10 +838,25 @@
             const params = new URLSearchParams(window.location.search);
             const finding = params.get('finding');
             if (finding) {
-                const decodedFinding = decodeURIComponent(finding);
-                if (state.dataMap.has(decodedFinding)) {
-                    renderFinding(decodedFinding);
+                // Try raw
+                if (state.dataMap.has(finding)) {
+                    renderFinding(finding);
+                    return;
                 }
+                // Try single decode
+                try {
+                    const decoded1 = decodeURIComponent(finding);
+                    if (state.dataMap.has(decoded1)) {
+                        renderFinding(decoded1);
+                        return;
+                    }
+                    // Try double decode (handles legacy double-encoded links)
+                    const decoded2 = decodeURIComponent(decoded1);
+                    if (state.dataMap.has(decoded2)) {
+                        renderFinding(decoded2);
+                        return;
+                    }
+                } catch (e) {}
             }
         }
         
@@ -871,7 +892,7 @@
             const tableData = data.diagnoses.map(dx => [
                 dx.name,
                 dx.keyFeatures,
-                dx.sources.join(', ')
+                formatSources(dx.sources)
             ]);
             
             doc.autoTable({
