@@ -480,6 +480,9 @@
         // --- CORE LOGIC & RENDERING ---
         function render() {
             updateActiveTab();
+            
+            // Clean up any existing tooltips when switching views
+            d3.selectAll(".tooltip").remove();
 
             if (state.activeTab === 'favorites') {
                 renderFavoritesView();
@@ -741,9 +744,15 @@
             dom.resultsContent.innerHTML = '<div id="network-svg-container" class="w-full h-[60vh] flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md"></div>';
             const container = document.getElementById('network-svg-container');
             
+            // Create nodes with keyFeatures data for tooltips
             const nodes = [
-                { id: findingData.finding, group: 0, r: 30 },
-                ...findingData.diagnoses.map(dx => ({ id: dx.name, group: 1, r: 15 }))
+                { id: findingData.finding, group: 0, r: 30, keyFeatures: "Central finding node" },
+                ...findingData.diagnoses.map(dx => ({ 
+                    id: dx.name, 
+                    group: 1, 
+                    r: 15,
+                    keyFeatures: dx.keyFeatures || "No additional information available"
+                }))
             ];
             const links = findingData.diagnoses.map(dx => ({ source: findingData.finding, target: dx.name }));
 
@@ -755,6 +764,21 @@
                 .attr("height", height)
                 .attr("viewBox", [-width / 2, -height / 2, width, height])
                 .style("font", "10px sans-serif");
+            
+            // Create a tooltip div
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("position", "absolute")
+                .style("visibility", "hidden")
+                .style("background-color", "rgba(0, 0, 0, 0.9)")
+                .style("color", "white")
+                .style("padding", "10px")
+                .style("border-radius", "6px")
+                .style("font-size", "12px")
+                .style("max-width", "300px")
+                .style("z-index", "1000")
+                .style("pointer-events", "none")
+                .style("box-shadow", "0 4px 6px rgba(0, 0, 0, 0.1)");
             
             const simulation = d3.forceSimulation(nodes)
                 .force("link", d3.forceLink(links).id(d => d.id).distance(100))
@@ -772,11 +796,69 @@
                 .selectAll("g")
                 .data(nodes)
                 .join("g")
+                .style("cursor", "pointer")
                 .call(drag(simulation));
 
             node.append("circle")
                 .attr("r", d => d.r)
-                .attr("fill", d => d.group === 0 ? "var(--color-primary)" : "var(--color-accent)");
+                .attr("fill", d => d.group === 0 ? "var(--color-primary)" : "var(--color-accent)")
+                .on("mouseover", function(event, d) {
+                    // Show tooltip on hover
+                    tooltip.style("visibility", "visible")
+                        .html(`<strong>${d.id}</strong><br/><br/>${d.keyFeatures}`);
+                    
+                    // Highlight the node
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr("r", d => d.r * 1.2)
+                        .style("opacity", 0.8);
+                })
+                .on("mousemove", function(event) {
+                    // Position tooltip near cursor
+                    tooltip.style("top", (event.pageY - 10) + "px")
+                        .style("left", (event.pageX + 10) + "px");
+                })
+                .on("mouseout", function(event, d) {
+                    // Hide tooltip
+                    tooltip.style("visibility", "hidden");
+                    
+                    // Reset node size
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr("r", d.r)
+                        .style("opacity", 1);
+                })
+                .on("click", function(event, d) {
+                    // Show tooltip on click for touch devices
+                    event.stopPropagation();
+                    tooltip.style("visibility", "visible")
+                        .html(`<strong>${d.id}</strong><br/><br/>${d.keyFeatures}`)
+                        .style("top", (event.pageY - 10) + "px")
+                        .style("left", (event.pageX + 10) + "px");
+                    
+                    // Hide tooltip after 3 seconds
+                    setTimeout(() => {
+                        tooltip.style("visibility", "hidden");
+                    }, 3000);
+                })
+                .on("touchstart", function(event, d) {
+                    // Handle touch events for mobile devices
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const touch = event.touches[0];
+                    tooltip.style("visibility", "visible")
+                        .html(`<strong>${d.id}</strong><br/><br/>${d.keyFeatures}`)
+                        .style("top", (touch.pageY - 10) + "px")
+                        .style("left", (touch.pageX + 10) + "px");
+                    
+                    // Hide tooltip after 3 seconds
+                    setTimeout(() => {
+                        tooltip.style("visibility", "hidden");
+                    }, 3000);
+                });
 
             node.append("text")
                 .text(d => d.id)
@@ -795,12 +877,22 @@
                     .attr("transform", d => `translate(${d.x},${d.y})`);
             });
             
+            // Click anywhere on SVG to hide tooltip
+            svg.on("click", function() {
+                tooltip.style("visibility", "hidden");
+            });
+            
+            // Store tooltip reference for cleanup
+            container.tooltipElement = tooltip;
+            
             function drag(simulation) {
               return d3.drag()
                   .on("start", (event, d) => {
                     if (!event.active) simulation.alphaTarget(0.3).restart();
                     d.fx = d.x;
                     d.fy = d.y;
+                    // Hide tooltip when dragging starts
+                    tooltip.style("visibility", "hidden");
                   })
                   .on("drag", (event, d) => {
                     d.fx = event.x;
