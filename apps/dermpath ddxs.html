@@ -12,6 +12,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Spaced Repetition System -->
+    <script src="spacedRepetition.js"></script>
 
     <!-- Custom CSS -->
     <style>
@@ -202,6 +205,114 @@
                 justify-content: center;
             }
         }
+
+        /* Spaced Repetition Styles */
+        .srs-stats-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 1rem;
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .srs-stat {
+            text-align: center;
+        }
+
+        .srs-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--color-primary);
+        }
+
+        .srs-stat-label {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .srs-difficulty-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .srs-difficulty-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .srs-difficulty-btn.again {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .srs-difficulty-btn.hard {
+            background-color: #f97316;
+            color: white;
+        }
+
+        .srs-difficulty-btn.good {
+            background-color: #22c55e;
+            color: white;
+        }
+
+        .srs-difficulty-btn.easy {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .srs-difficulty-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        .srs-card-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: var(--color-bg);
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+        }
+
+        .srs-review-mode-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+        }
+
+        .srs-mode-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .srs-mode-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .srs-forecast-chart {
+            height: 200px;
+            margin-top: 1rem;
+        }
         
         /* Toast Notifications */
         #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; }
@@ -293,9 +404,13 @@
                 <nav id="tab-nav" class="flex flex-wrap -mb-px px-4" aria-label="Tabs" role="tablist">
                     <button role="tab" data-tab="list" class="tab-button active text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">List</button>
                     <button role="tab" data-tab="table" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Table</button>
-                    <button role="tab" data-tab="flashcards" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Flashcards</button>
+                    <button role="tab" data-tab="flashcards" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 flex items-center gap-1">
+                        Flashcards 
+                        <span id="due-cards-badge" class="hidden bg-red-500 text-white text-xs font-medium px-1.5 py-0.5 rounded-full"></span>
+                    </button>
                     <button role="tab" data-tab="network" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Network</button>
                     <button role="tab" data-tab="favorites" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 flex items-center gap-1">Favorites <span id="favorites-count" class="bg-blue-100 text-blue-800 text-xs font-medium px-1.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">0</span></button>
+                    <button role="tab" data-tab="statistics" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Statistics</button>
                     <button role="tab" data-tab="compare" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 disabled:opacity-50" disabled>Compare</button>
                     <button role="tab" data-tab="quiz" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 disabled:opacity-50" disabled>Quiz</button>
                     <button role="tab" data-tab="analytics" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Analytics</button>
@@ -373,11 +488,16 @@
             flashcard: {
                 deck: [],
                 currentIndex: 0,
-                isShuffled: false
+                isShuffled: false,
+                reviewMode: 'normal', // 'normal' or 'srs'
+                srsSystem: null // Will be initialized after page load
             }
         };
 
         let fuse;
+
+        // Initialize Spaced Repetition System
+        state.flashcard.srsSystem = new SpacedRepetitionSystem();
 
         // --- DOM ELEMENT SELECTORS ---
         const dom = {
@@ -411,6 +531,30 @@
             themeToggleBtn: document.getElementById('theme-toggle-btn'),
             themeIconLight: document.getElementById('theme-icon-light'),
             themeIconDark: document.getElementById('theme-icon-dark'),
+        };
+
+        // --- SRS UTILITY FUNCTIONS ---
+        window.exportSRSData = function() {
+            const data = state.flashcard.srsSystem.exportData();
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dermpath_srs_progress_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Progress exported successfully!', 'success');
+        };
+        
+        window.resetSRSData = function() {
+            if (confirm('Are you sure you want to reset all your spaced repetition progress? This cannot be undone.')) {
+                state.flashcard.srsSystem.cards.clear();
+                state.flashcard.srsSystem.saveToStorage();
+                showToast('All progress has been reset.', 'info');
+                render();
+            }
         };
 
         // --- INITIALIZATION ---
@@ -599,6 +743,7 @@
         // --- CORE LOGIC & RENDERING ---
         function render() {
             updateActiveTab();
+            updateDueCardsBadge();
             
             // Clean up any existing tooltips when switching views
             d3.selectAll(".tooltip").remove();
@@ -631,6 +776,7 @@
                 case 'table': renderTableView(findingData.diagnoses); break;
                 case 'flashcards': renderFlashcardsView(findingData.diagnoses); break;
                 case 'network': renderNetworkView(findingData); break;
+                case 'statistics': renderStatisticsView(); break;
                 default:
                     dom.resultsContent.innerHTML = `<div class="p-8 text-center text-gray-500">This feature is coming soon!</div>`;
             }
@@ -662,6 +808,20 @@
                     btn.setAttribute('aria-selected', 'false');
                 }
             });
+        }
+        
+        function updateDueCardsBadge() {
+            const badge = document.getElementById('due-cards-badge');
+            if (!badge) return;
+            
+            const dueCount = state.flashcard.srsSystem.getDueCards(state.selectedFinding).length;
+            
+            if (dueCount > 0) {
+                badge.textContent = dueCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
         }
         
         // --- VIEW RENDERERS ---
@@ -760,11 +920,65 @@
                 return;
             }
 
-            // Initialize or update flashcard deck
-            if (state.flashcard.deck.length === 0 || state.flashcard.deck[0].finding !== state.selectedFinding) {
-                state.flashcard.deck = diagnoses.map(dx => ({...dx, finding: state.selectedFinding}));
+            // Initialize cards in SRS system
+            if (state.flashcard.reviewMode === 'srs') {
+                diagnoses.forEach(dx => {
+                    state.flashcard.srsSystem.createCard(state.selectedFinding, dx.name);
+                });
+            }
+
+            // Get statistics for SRS mode
+            const stats = state.flashcard.srsSystem.getStatistics(state.selectedFinding);
+
+            // Initialize or update flashcard deck based on mode
+            if (state.flashcard.reviewMode === 'srs') {
+                // Get due cards and new cards for SRS mode
+                const dueCards = state.flashcard.srsSystem.getDueCards(state.selectedFinding);
+                const newCards = state.flashcard.srsSystem.getNewCards(state.selectedFinding, 5);
+                
+                // Combine due cards and new cards
+                const srsCards = [...dueCards, ...newCards];
+                
+                if (srsCards.length === 0) {
+                    dom.resultsContent.innerHTML = `
+                        <div class="text-center p-8">
+                            <h3 class="text-xl font-bold mb-4">No cards due for review!</h3>
+                            <p class="text-gray-500 mb-4">Great job! You've reviewed all your cards for now.</p>
+                            <div class="srs-stats-bar">
+                                <div class="srs-stat">
+                                    <div class="srs-stat-value">${stats.totalCards}</div>
+                                    <div class="srs-stat-label">Total Cards</div>
+                                </div>
+                                <div class="srs-stat">
+                                    <div class="srs-stat-value">${stats.retention}</div>
+                                    <div class="srs-stat-label">Retention</div>
+                                </div>
+                                <div class="srs-stat">
+                                    <div class="srs-stat-value">${stats.averageEase}</div>
+                                    <div class="srs-stat-label">Avg Ease</div>
+                                </div>
+                            </div>
+                            <button onclick="state.flashcard.reviewMode = 'normal'; render();" class="btn-primary px-4 py-2 rounded-md mt-4">
+                                Switch to Normal Mode
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Map SRS cards to full diagnosis data
+                state.flashcard.deck = srsCards.map(srsCard => {
+                    const dx = diagnoses.find(d => d.name === srsCard.diagnosis);
+                    return {...dx, finding: state.selectedFinding, srsData: srsCard};
+                });
                 state.flashcard.currentIndex = 0;
-                state.flashcard.isShuffled = false;
+            } else {
+                // Normal mode - use all diagnoses
+                if (state.flashcard.deck.length === 0 || state.flashcard.deck[0].finding !== state.selectedFinding) {
+                    state.flashcard.deck = diagnoses.map(dx => ({...dx, finding: state.selectedFinding}));
+                    state.flashcard.currentIndex = 0;
+                    state.flashcard.isShuffled = false;
+                }
             }
 
             const currentCard = state.flashcard.deck[state.flashcard.currentIndex];
@@ -775,13 +989,92 @@
                 difDisplay = `<p class="text-sm text-gray-800 dark:text-gray-200 mt-2"><strong class="font-semibold">DIF:</strong> ${currentCard.dif}</p>`;
             }
 
+            // Build SRS info if in SRS mode
+            let srsInfo = '';
+            let srsDifficultyButtons = '';
+            let srsStatsBar = '';
+            
+            if (state.flashcard.reviewMode === 'srs' && currentCard.srsData) {
+                const card = currentCard.srsData;
+                const statusColor = {
+                    'new': 'text-blue-500',
+                    'learning': 'text-yellow-500',
+                    'review': 'text-green-500',
+                    'relearning': 'text-red-500'
+                }[card.status] || 'text-gray-500';
+                
+                srsInfo = `
+                    <div class="srs-card-info">
+                        <span>Status: <span class="${statusColor} font-semibold">${card.status}</span></span>
+                        <span>Ease: ${card.easeFactor.toFixed(2)}</span>
+                        <span>Interval: ${card.interval} days</span>
+                        <span>Reviews: ${card.repetitions}</span>
+                    </div>
+                `;
+                
+                srsDifficultyButtons = `
+                    <div class="srs-difficulty-buttons">
+                        <button class="srs-difficulty-btn again" data-quality="1">
+                            <div>Again</div>
+                            <div class="text-xs">10min</div>
+                        </button>
+                        <button class="srs-difficulty-btn hard" data-quality="3">
+                            <div>Hard</div>
+                            <div class="text-xs">${card.interval > 0 ? Math.round(card.interval * 1.2) : 1}d</div>
+                        </button>
+                        <button class="srs-difficulty-btn good" data-quality="4">
+                            <div>Good</div>
+                            <div class="text-xs">${card.interval > 0 ? Math.round(card.interval * card.easeFactor) : 1}d</div>
+                        </button>
+                        <button class="srs-difficulty-btn easy" data-quality="5">
+                            <div>Easy</div>
+                            <div class="text-xs">${card.interval > 0 ? Math.round(card.interval * card.easeFactor * 1.3) : 4}d</div>
+                        </button>
+                    </div>
+                `;
+                
+                srsStatsBar = `
+                    <div class="srs-stats-bar">
+                        <div class="srs-stat">
+                            <div class="srs-stat-value">${stats.newCards}</div>
+                            <div class="srs-stat-label">New</div>
+                        </div>
+                        <div class="srs-stat">
+                            <div class="srs-stat-value">${stats.learningCards}</div>
+                            <div class="srs-stat-label">Learning</div>
+                        </div>
+                        <div class="srs-stat">
+                            <div class="srs-stat-value">${stats.dueCards}</div>
+                            <div class="srs-stat-label">Due</div>
+                        </div>
+                        <div class="srs-stat">
+                            <div class="srs-stat-value">${stats.retention}</div>
+                            <div class="srs-stat-label">Retention</div>
+                        </div>
+                    </div>
+                `;
+            }
+
             const html = `
                 <div class="flashcard-container">
+                    <div class="srs-review-mode-toggle">
+                        <button class="srs-mode-btn ${state.flashcard.reviewMode === 'normal' ? 'active' : ''}" data-mode="normal">
+                            Normal Mode
+                        </button>
+                        <button class="srs-mode-btn ${state.flashcard.reviewMode === 'srs' ? 'active' : ''}" data-mode="srs">
+                            Spaced Repetition
+                        </button>
+                    </div>
+                    
+                    ${srsStatsBar}
+                    
                     <div class="flashcard-nav">
                         <button id="flashcard-prev" class="btn-secondary px-3 py-1 rounded-md" ${state.flashcard.currentIndex === 0 ? 'disabled' : ''}>&larr; Prev</button>
                         <div class="flashcard-progress">${state.flashcard.currentIndex + 1} / ${state.flashcard.deck.length}</div>
                         <button id="flashcard-next" class="btn-secondary px-3 py-1 rounded-md" ${state.flashcard.currentIndex === state.flashcard.deck.length - 1 ? 'disabled' : ''}>Next &rarr;</button>
                     </div>
+
+                    ${srsInfo}
 
                     <div class="flashcard-scene">
                         <div class="flashcard" id="flashcard-active">
@@ -797,11 +1090,17 @@
                     </div>
 
                     <div class="flashcard-actions">
-                        <button id="flashcard-flip" class="btn-primary px-4 py-2 rounded-md">Flip</button>
-                        <button id="flashcard-shuffle" class="btn-secondary px-4 py-2 rounded-md">
-                            ${state.flashcard.isShuffled ? 'Unshuffle' : 'Shuffle'}
-                        </button>
+                        ${state.flashcard.reviewMode === 'normal' ? `
+                            <button id="flashcard-flip" class="btn-primary px-4 py-2 rounded-md">Flip</button>
+                            <button id="flashcard-shuffle" class="btn-secondary px-4 py-2 rounded-md">
+                                ${state.flashcard.isShuffled ? 'Unshuffle' : 'Shuffle'}
+                            </button>
+                        ` : `
+                            <button id="flashcard-flip" class="btn-primary px-4 py-2 rounded-md">Show Answer</button>
+                        `}
                     </div>
+                    
+                    ${srsDifficultyButtons}
                 </div>
             `;
 
@@ -816,23 +1115,96 @@
             document.getElementById('flashcard-shuffle')?.addEventListener('click', shuffleFlashcards);
             document.getElementById('flashcard-active')?.addEventListener('click', flipFlashcard);
             
+            // Add SRS mode toggle listeners
+            document.querySelectorAll('.srs-mode-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const mode = e.target.closest('.srs-mode-btn').dataset.mode;
+                    state.flashcard.reviewMode = mode;
+                    state.flashcard.deck = []; // Reset deck when switching modes
+                    render();
+                });
+            });
+            
+            // Add SRS difficulty button listeners
+            if (state.flashcard.reviewMode === 'srs') {
+                document.querySelectorAll('.srs-difficulty-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const quality = parseInt(e.target.closest('.srs-difficulty-btn').dataset.quality);
+                        handleSRSReview(quality);
+                    });
+                });
+            }
+            
             // Add keyboard listeners only when flashcard view is active
             document.onkeydown = handleFlashcardKeyPress;
         }
 
         function handleFlashcardKeyPress(e) {
             if (state.activeTab !== 'flashcards') return;
-            switch (e.key) {
-                case 'ArrowLeft':
-                    navigateFlashcard(-1);
-                    break;
-                case 'ArrowRight':
-                    navigateFlashcard(1);
-                    break;
-                case ' ': // Space bar
-                    e.preventDefault(); // Prevent page scroll
-                    flipFlashcard();
-                    break;
+            
+            if (state.flashcard.reviewMode === 'srs') {
+                // SRS mode keyboard shortcuts
+                const card = document.getElementById('flashcard-active');
+                const isFlipped = card && card.classList.contains('is-flipped');
+                
+                switch (e.key) {
+                    case ' ': // Space bar - flip card
+                        e.preventDefault();
+                        flipFlashcard();
+                        break;
+                    case '1': // Again
+                        if (isFlipped) handleSRSReview(1);
+                        break;
+                    case '2': // Hard
+                        if (isFlipped) handleSRSReview(3);
+                        break;
+                    case '3': // Good
+                        if (isFlipped) handleSRSReview(4);
+                        break;
+                    case '4': // Easy
+                        if (isFlipped) handleSRSReview(5);
+                        break;
+                }
+            } else {
+                // Normal mode keyboard shortcuts
+                switch (e.key) {
+                    case 'ArrowLeft':
+                        navigateFlashcard(-1);
+                        break;
+                    case 'ArrowRight':
+                        navigateFlashcard(1);
+                        break;
+                    case ' ': // Space bar
+                        e.preventDefault(); // Prevent page scroll
+                        flipFlashcard();
+                        break;
+                }
+            }
+        }
+        
+        function handleSRSReview(quality) {
+            const currentCard = state.flashcard.deck[state.flashcard.currentIndex];
+            if (!currentCard || !currentCard.srsData) return;
+            
+            // Review the card with the given quality
+            const cardId = currentCard.srsData.id;
+            state.flashcard.srsSystem.reviewCard(cardId, quality);
+            
+            // Move to next card or finish
+            if (state.flashcard.currentIndex < state.flashcard.deck.length - 1) {
+                state.flashcard.currentIndex++;
+                // Reset flip state
+                const card = document.getElementById('flashcard-active');
+                if (card && card.classList.contains('is-flipped')) {
+                    card.classList.remove('is-flipped');
+                }
+                render();
+            } else {
+                // Finished all cards - show completion message
+                showToast('Review session complete! Great job!', 'success');
+                // Refresh the deck to get new due cards
+                state.flashcard.deck = [];
+                render();
             }
         }
 
@@ -869,6 +1241,135 @@
             state.flashcard.isShuffled = !state.flashcard.isShuffled;
             state.flashcard.currentIndex = 0;
             render();
+        }
+        
+        function renderStatisticsView() {
+            const srs = state.flashcard.srsSystem;
+            const overallStats = srs.getStatistics();
+            const findingStats = state.selectedFinding ? srs.getStatistics(state.selectedFinding) : null;
+            const forecast = srs.getForecast(14, state.selectedFinding);
+            
+            // Calculate streak and other metrics
+            let currentStreak = 0;
+            let bestStreak = 0;
+            let tempStreak = 0;
+            const today = new Date().toDateString();
+            
+            // Get all cards and calculate streaks
+            const allCards = Array.from(srs.cards.values());
+            allCards.forEach(card => {
+                if (card.reviewHistory.length > 0) {
+                    const lastReview = new Date(card.reviewHistory[card.reviewHistory.length - 1].date);
+                    if (lastReview.toDateString() === today) {
+                        tempStreak++;
+                    }
+                }
+            });
+            currentStreak = tempStreak;
+            
+            // Build forecast chart data
+            const forecastChartData = forecast.map(f => ({
+                date: new Date(f.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                due: f.due
+            }));
+            
+            const html = `
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold mb-6">Spaced Repetition Statistics</h2>
+                    
+                    <!-- Overall Statistics -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">Overall Progress</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="text-2xl font-bold text-blue-500">${overallStats.totalCards}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Total Cards</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="text-2xl font-bold text-green-500">${overallStats.reviewCards}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Mature Cards</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="text-2xl font-bold text-yellow-500">${overallStats.learningCards}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Learning</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="text-2xl font-bold text-purple-500">${overallStats.retention}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Retention Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${state.selectedFinding && findingStats ? `
+                        <!-- Current Finding Statistics -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold mb-4">Statistics for: ${state.selectedFinding}</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <div class="text-2xl font-bold text-blue-500">${findingStats.totalCards}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">Cards</div>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <div class="text-2xl font-bold text-orange-500">${findingStats.dueCards}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">Due Now</div>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <div class="text-2xl font-bold text-cyan-500">${findingStats.newCards}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">New</div>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <div class="text-2xl font-bold text-indigo-500">${findingStats.averageEase}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">Avg Ease</div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Review Forecast -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">14-Day Review Forecast</h3>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div class="overflow-x-auto">
+                                <div class="flex gap-2 min-w-max">
+                                    ${forecastChartData.map((day, idx) => `
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-12 bg-gray-200 dark:bg-gray-700 rounded-t" style="height: ${Math.max(20, day.due * 10)}px; margin-top: ${100 - Math.max(20, day.due * 10)}px">
+                                                <div class="text-xs text-center mt-1">${day.due || ''}</div>
+                                            </div>
+                                            <div class="text-xs mt-1 ${idx === 0 ? 'font-bold' : ''}">${day.date}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Study Tips -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">Study Tips</h3>
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                            <ul class="space-y-2 text-sm">
+                                <li>• Review cards daily for best retention</li>
+                                <li>• Use keyboard shortcuts: Space to flip, 1-4 for difficulty ratings</li>
+                                <li>• Cards will appear less frequently as you master them</li>
+                                <li>• Be honest with difficulty ratings for optimal spacing</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex gap-4">
+                        <button onclick="exportSRSData()" class="btn-primary px-4 py-2 rounded-md">
+                            Export Progress
+                        </button>
+                        <button onclick="resetSRSData()" class="btn-secondary px-4 py-2 rounded-md text-red-500">
+                            Reset All Progress
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            dom.resultsContent.innerHTML = html;
         }
         
         function renderNetworkView(findingData) {
