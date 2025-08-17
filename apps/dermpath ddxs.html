@@ -14,7 +14,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/apps/dermatology-study-system/css/flashcards.css">
     <style>
         /* Design System using CSS Variables */
         :root {
@@ -83,6 +82,126 @@
         .btn-primary:hover { background-color: var(--color-primary-hover); }
         .btn-secondary { background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
         .btn-secondary:hover { background-color: var(--color-bg); }
+        
+        /* Flashcard Styles */
+        .flashcard-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .flashcard-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .flashcard-progress {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--color-text-muted);
+        }
+
+        .flashcard-scene {
+            width: 100%;
+            height: 300px;
+            perspective: 1000px;
+            margin-bottom: 2rem;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            border-radius: 12px;
+            background: var(--color-bg-alt);
+            border: 2px solid var(--color-border);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .flashcard-front {
+            z-index: 2;
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--color-text);
+        }
+
+        .flashcard-back {
+            align-items: flex-start;
+            justify-content: flex-start;
+            overflow-y: auto;
+        }
+
+        .flashcard-back p {
+            width: 100%;
+            line-height: 1.6;
+        }
+
+        .flashcard-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .flashcard-actions button {
+            min-width: 100px;
+        }
+
+        /* Disabled button styles */
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive design for flashcards */
+        @media (max-width: 640px) {
+            .flashcard-scene {
+                height: 250px;
+            }
+            
+            .flashcard-face {
+                padding: 1.5rem;
+            }
+            
+            .flashcard-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
         
         /* Toast Notifications */
         #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; }
@@ -649,6 +768,12 @@
             }
 
             const currentCard = state.flashcard.deck[state.flashcard.currentIndex];
+            
+            // Format DIF properly
+            let difDisplay = '';
+            if (currentCard.dif) {
+                difDisplay = `<p class="text-sm text-gray-800 dark:text-gray-200 mt-2"><strong class="font-semibold">DIF:</strong> ${currentCard.dif}</p>`;
+            }
 
             const html = `
                 <div class="flashcard-container">
@@ -665,6 +790,7 @@
                             </div>
                             <div class="flashcard-face flashcard-back">
                                 <p class="text-sm text-gray-800 dark:text-gray-200"><strong class="font-semibold">Key Features:</strong> ${currentCard.keyFeatures}</p>
+                                ${difDisplay}
                                 <p class="text-xs font-mono text-gray-600 dark:text-gray-400 mt-3">Source: ${formatSources(currentCard.sources)}</p>
                             </div>
                         </div>
@@ -714,6 +840,11 @@
             const newIndex = state.flashcard.currentIndex + direction;
             if (newIndex >= 0 && newIndex < state.flashcard.deck.length) {
                 state.flashcard.currentIndex = newIndex;
+                // Reset flip state when navigating to a new card
+                const card = document.getElementById('flashcard-active');
+                if (card && card.classList.contains('is-flipped')) {
+                    card.classList.remove('is-flipped');
+                }
                 render(); // Re-render the flashcard view
             }
         }
