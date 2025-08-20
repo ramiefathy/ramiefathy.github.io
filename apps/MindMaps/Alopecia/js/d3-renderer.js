@@ -72,9 +72,8 @@ function MindMapRenderer(container, data, options = {}) {
         return null;
     }
     
-    // Run initial tree layout to set proper coordinates
-    const initialTree = d3.tree().size([2 * Math.PI, treeRadius]);
-    initialTree(root);
+    // *** Apply initial fixed sector positioning ***
+    applyFixedSectorPositioning(root);
     
     // Set initial positions for all nodes
     root.descendants().forEach(d => {
@@ -87,14 +86,62 @@ function MindMapRenderer(container, data, options = {}) {
         root.children.forEach(collapse);
     }
     
-    const treeLayout = d3.tree()
-        .size([2 * Math.PI, treeRadius])
-        .separation((a, b) => (a.parent === b.parent ? 1 : 2) / (a.depth || 1));
+    // *** FIXED ANGULAR SECTORS: Custom positioning to prevent redistribution ***
+    function applyFixedSectorPositioning(rootNode) {
+        // Get main branches (direct children of root)
+        const mainBranches = rootNode.children || [];
+        const sectorSize = (2 * Math.PI) / mainBranches.length;
+        const padding = 0.1; // Small padding between sectors
+        
+        console.log('Applying fixed sectors for', mainBranches.length, 'main branches');
+        
+        // Position root at center
+        rootNode.x = 0;
+        rootNode.y = 0;
+        
+        // Assign fixed sectors to main branches
+        mainBranches.forEach((branch, index) => {
+            const sectorStart = index * sectorSize + padding;
+            const sectorEnd = (index + 1) * sectorSize - padding;
+            const sectorCenter = (sectorStart + sectorEnd) / 2;
+            
+            // Position main branch at fixed angle
+            branch.x = sectorCenter;
+            branch.y = treeRadius * 0.4; // Position at 40% of radius
+            
+            console.log(`Branch ${branch.data.id}: sector ${sectorStart.toFixed(2)} to ${sectorEnd.toFixed(2)}, center ${sectorCenter.toFixed(2)}`);
+            
+            // Position children within the branch's sector
+            if (branch.children && branch.children.length > 0) {
+                const childSectorSize = (sectorEnd - sectorStart) / branch.children.length;
+                
+                branch.children.forEach((child, childIndex) => {
+                    const childAngle = sectorStart + (childIndex + 0.5) * childSectorSize;
+                    child.x = childAngle;
+                    child.y = treeRadius * 0.8; // Position at 80% of radius
+                    
+                    // Position grandchildren if they exist
+                    if (child.children && child.children.length > 0) {
+                        const grandChildSectorSize = childSectorSize / child.children.length;
+                        child.children.forEach((grandChild, grandIndex) => {
+                            const grandChildAngle = childAngle - childSectorSize/2 + (grandIndex + 0.5) * grandChildSectorSize;
+                            grandChild.x = grandChildAngle;
+                            grandChild.y = treeRadius * 1.0; // Position at full radius
+                        });
+                    }
+                });
+            }
+        });
+        
+        return rootNode;
+    }
 
     // --- Render Function ---
     function update(source) {
         const duration = CONFIG.animation.duration;
-        const treeData = treeLayout(root);
+        
+        // *** Use custom fixed sector positioning instead of D3 tree layout ***
+        const treeData = applyFixedSectorPositioning(root);
         const nodes = treeData.descendants().reverse();
         const links = treeData.links();
 
