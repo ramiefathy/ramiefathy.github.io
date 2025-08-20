@@ -1,0 +1,154 @@
+/* css/main.css */
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8fafc;
+    color: #334155;
+}
+
+/* --- Tab and Dropdown Styles --- */
+.tab-container {
+    overflow-x: auto;
+    white-space: nowrap;
+}
+/* MODIFIED: Replaced padding hack with flex-wrap for better responsiveness */
+#tab-bar {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Allows tabs to wrap to the next line on smaller screens */
+}
+.tab {
+    cursor: pointer;
+    padding: 10px 16px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+    display: inline-block;
+    position: relative;
+    border-radius: 6px 6px 0 0;
+}
+.tab-group-teal { color: #0d9488; }
+.tab-group-amber { color: #d97706; }
+.tab-group-rose { color: #be123c; }
+
+.tab-group-teal.active { font-weight: 600; background-color: #ccfbf1; border-color: #0d9488; }
+.tab-group-amber.active { font-weight: 600; background-color: #fef3c7; border-color: #d97706; }
+.tab-group-rose.active { font-weight: 600; background-color: #ffe4e6; border-color: #be123c; }
+
+.dropdown {
+    display: none; position: absolute; background-color: white;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 10;
+    top: 100%; left: 0; border-radius: 0 0 8px 8px; overflow: hidden;
+}
+.dropdown-item {
+    color: #334155; padding: 12px 16px; text-decoration: none;
+    display: block; text-align: left; white-space: nowrap;
+}
+.dropdown-item:hover { background-color: #f1f5f9; }
+.tab.dropdown-active .dropdown { display: block; }
+@media (hover: hover) { .tab:hover .dropdown { display: block; } }
+
+/* --- Mind Map View Styles --- */
+.mind-map-view { 
+    display: none; 
+}
+.mind-map-view.active { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+.loading-indicator { 
+    color: #64748b; 
+    font-size: 1.25rem; 
+}
+
+/* --- D3-specific styles --- */
+.node { 
+    cursor: pointer; 
+}
+.node-text { 
+    font-weight: 500; 
+    pointer-events: none; 
+    text-anchor: middle; 
+    dominant-baseline: central; 
+    fill: #1e293b; 
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none; /* Standard */
+}
+.link {
+    fill: none;
+    stroke: #cbd5e1;
+    stroke-width: 2px;
+    opacity: 0.6;
+}
+.node circle {
+    stroke: #4c1d95;
+    stroke-width: 1.5px;
+    transition: stroke-width 0.2s ease, stroke 0.2s ease, fill 0.2s ease;
+}
+.node .collapsible {
+    stroke: #3730a3;
+    stroke-width: 3px;
+}
+.node:focus {
+    outline: none;
+}
+.node:focus > circle {
+    stroke: #8b5cf6;
+    stroke-width: 4px;
+}
+
+/* --- Tooltip Styles --- */
+.tooltip {
+    position: absolute; background-color: rgba(0, 0, 0, 0.85); color: white;
+    padding: 10px 15px; border-radius: 8px; font-size: 14px; line-height: 1.5;
+    max-width: 450px; visibility: hidden; opacity: 0;
+    transition: opacity 0.3s, visibility 0.3s; pointer-events: none; z-index: 20;
+}
+.tooltip-title { font-weight: 700; margin-bottom: 5px; color: #a5b4fc; }
+.tooltip-content ul { list-style-position: inside; padding-left: 0; margin: 0; }
+.tooltip-content li { margin-bottom: 5px; }
+.tooltip-content strong { color: #facc15; }
+
+/* --- Search Highlight & Results Styles --- */
+.search-highlight circle {
+    stroke: #f59e0b !important;
+    stroke-width: 4px !important;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+    0%, 100% { fill-opacity: 1; }
+    50% { fill-opacity: 0.7; }
+}
+
+.search-results-list {
+    background-color: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+}
+.search-result-item {
+    display: block;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #334155;
+    border-bottom: 1px solid #e2e8f0;
+    cursor: pointer;
+    text-align: left;
+}
+.search-result-item:last-child {
+    border-bottom: none;
+}
+.search-result-item:hover {
+    background-color: #f1f5f9;
+}
+.search-result-item .tab-name {
+    font-size: 12px;
+    color: #64748b;
+    margin-left: 8px;
+}
+.search-result-item .match-text {
+    font-weight: 600;
+}
