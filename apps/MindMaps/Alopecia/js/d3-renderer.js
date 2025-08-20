@@ -8,8 +8,8 @@ function MindMapRenderer(container, data, options = {}) {
     const CONFIG = {
         animation: { duration: 500 },
         sizing: {
-            mobile: { minRadius: 14, maxRadius: 30, minFont: 5, maxFont: 9 },
-            desktop: { minRadius: 17, maxRadius: 36, minFont: 6, maxFont: 11 }
+            mobile: { minRadius: 20, maxRadius: 38, minFont: 5, maxFont: 9 },
+            desktop: { minRadius: 25, maxRadius: 45, minFont: 6, maxFont: 11 }
         },
         colors: {
             nodes: ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5ff'],
@@ -107,7 +107,7 @@ function MindMapRenderer(container, data, options = {}) {
             
             // Position main branch at fixed angle
             branch.x = sectorCenter;
-            branch.y = treeRadius * 0.4; // Position at 40% of radius
+            branch.y = treeRadius * 0.3; // Position at 30% of radius
             
             console.log(`Branch ${branch.data.id}: sector ${sectorStart.toFixed(2)} to ${sectorEnd.toFixed(2)}, center ${sectorCenter.toFixed(2)}`);
             
@@ -118,7 +118,7 @@ function MindMapRenderer(container, data, options = {}) {
                 branch.children.forEach((child, childIndex) => {
                     const childAngle = sectorStart + (childIndex + 0.5) * childSectorSize;
                     child.x = childAngle;
-                    child.y = treeRadius * 0.8; // Position at 80% of radius
+                    child.y = treeRadius * 0.65; // Position at 65% of radius for better spacing
                     
                     // Position grandchildren if they exist
                     if (child.children && child.children.length > 0) {
@@ -126,7 +126,7 @@ function MindMapRenderer(container, data, options = {}) {
                         child.children.forEach((grandChild, grandIndex) => {
                             const grandChildAngle = childAngle - childSectorSize/2 + (grandIndex + 0.5) * grandChildSectorSize;
                             grandChild.x = grandChildAngle;
-                            grandChild.y = treeRadius * 1.0; // Position at full radius
+                            grandChild.y = treeRadius * 0.95; // Position at 95% of radius for better spacing
                         });
                     }
                 });
@@ -234,7 +234,7 @@ function MindMapRenderer(container, data, options = {}) {
         else if (visibleNodeCount > 20) sizeMultiplier = 0.9;
         
         const config = isMobile ? CONFIG.sizing.mobile : CONFIG.sizing.desktop;
-        const baseRadii = [config.maxRadius, 28, 24, 20, config.minRadius];
+        const baseRadii = [config.maxRadius, 38, 32, 28, config.minRadius];
         const radii = baseRadii.map(r => Math.round(r * sizeMultiplier));
         return { radii };
     }
