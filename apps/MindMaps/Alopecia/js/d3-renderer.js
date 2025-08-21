@@ -107,7 +107,7 @@ function MindMapRenderer(container, data, options = {}) {
             
             // Position main branch at fixed angle
             branch.x = sectorCenter;
-            branch.y = treeRadius * 0.3; // Position at 30% of radius
+            branch.y = treeRadius * 0.45; // Position at 45% of radius for more spacing from center
             
             console.log(`Branch ${branch.data.id}: sector ${sectorStart.toFixed(2)} to ${sectorEnd.toFixed(2)}, center ${sectorCenter.toFixed(2)}`);
             
@@ -118,7 +118,7 @@ function MindMapRenderer(container, data, options = {}) {
                 branch.children.forEach((child, childIndex) => {
                     const childAngle = sectorStart + (childIndex + 0.5) * childSectorSize;
                     child.x = childAngle;
-                    child.y = treeRadius * 0.65; // Position at 65% of radius for better spacing
+                    child.y = treeRadius * 0.75; // Position at 75% of radius for better spacing
                     
                     // Position grandchildren if they exist
                     if (child.children && child.children.length > 0) {
