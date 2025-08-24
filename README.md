@@ -6,7 +6,7 @@ This repository contains the personal website and professional portfolio of Dr. 
 
 ## About Dr. Fathy
 
-PGY-3 Dermatology Resident Physician at Johns Hopkins University, with expertise in:
+PGY-4 Dermatology Resident Physician at Johns Hopkins University, with expertise in:
 - Dermatology and dermatopathology
 - AI applications in medicine
 - Medical research and education
