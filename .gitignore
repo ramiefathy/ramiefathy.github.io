@@ -80,7 +80,6 @@ server/
 # === DISABLED BUILD TOOLS (No longer needed for GitHub Pages) ===
 webpack.config.js.disabled
 netlify.toml.disabled
-package-lock.json
 
 # === GitHub Pages Specific ===
 # GitHub Pages automatically ignores these, but good to be explicit
@@ -100,12 +99,7 @@ apps/*/config/*.json
 !apps/dermatology-study-system/index.html
 !apps/dermatology-study-system/README.md
 
-# === Public HTML Analysis Files (Explicitly allow these) ===
-!20200625_AAD-Modules-Analysis_RAF.html
-!20200102_r_dermatology_analysis_RAF.html
-!20191121_WoundCareWebpages2.html
-!20191121_WoundCareWebpages.html
-!20191028_CTCL.nb2.html
+# (Legacy analysis files removed; keep default ignore behavior)
 
 # === Security ===
 *.key

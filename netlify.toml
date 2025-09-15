@@ -1,0 +1,119 @@
+[build]
+  command = "vite build"
+  publish = "dist"
+  [build.environment]
+    NODE_VERSION = "20"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["google-generativeai", "@netlify/blobs"]
+
+[[redirects]]
+  from = "/about.html"
+  to = "/about"
+  status = 301
+
+[[redirects]]
+  from = "/apps/DermaScribe.html"
+  to = "/apps/dermascribe"
+  status = 302
+
+[[redirects]]
+  from = "/apps"
+  to = "/apps/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/apps/dermpath-differentials"
+  to = "/apps/dermpath%20ddxs.html"
+  status = 200
+
+[[redirects]]
+  from = "/apps/pdf-merger"
+  to = "/apps/PDF%20Merger.html"
+  status = 200
+
+[[redirects]]
+  from = "/apps/pdf-splitter"
+  to = "/apps/PDF%20Splitter.html"
+  status = 200
+
+[[redirects]]
+  from = "/apps/text-extractor"
+  to = "/apps/textExtractor.html"
+  status = 200
+
+[[redirects]]
+  from = "/apps/coding-tutor"
+  to = "/apps/codingTutor.html"
+  status = 200
+
+[[redirects]]
+  from = "/apps/study-system"
+  to = "/apps/dermatology-study-system/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/apps/mindmaps/alopecia"
+  to = "/apps/MindMaps/Alopecia/AlopeciaMindMaps.html"
+  status = 200
+
+# Ensure static files in /apps are served even with SPA fallback
+[[redirects]]
+  from = "/apps/*"
+  to = "/apps/:splat"
+  status = 200
+
+# Legacy prototypes moved under /legacy
+[[redirects]]
+  from = "/apps/SecretSurgicalAgent.html"
+  to = "/legacy/apps/SecretSurgicalAgent.html"
+  status = 301
+
+[[redirects]]
+  from = "/apps/debug.html"
+  to = "/legacy/apps/debug.html"
+  status = 301
+
+[[redirects]]
+  from = "/apps/BetaEvolve.html"
+  to = "/legacy/apps/BetaEvolve.html"
+  status = 301
+
+# Serve legacy static files directly
+[[redirects]]
+  from = "/legacy/*"
+  to = "/legacy/:splat"
+  status = 200
+
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"
+
+# Allow legacy static apps to load their CDN styles/scripts while we migrate them
+[[headers]]
+  for = "/apps/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"
+
+[[headers]]
+  for = "/legacy/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"

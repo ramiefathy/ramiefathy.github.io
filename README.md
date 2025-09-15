@@ -1,120 +1,74 @@
-# Dr. Ramie Fathy - Personal Website
+# Dr. Ramie Fathy — Modern Website
 
-This repository contains the personal website and professional portfolio of Dr. Ramie Fathy, MD, hosted on GitHub Pages.
+Modernized site powered by Vite + React + TypeScript and deployed on Netlify. Legacy RMarkdown pages and libraries have been removed. Interactive apps remain accessible under `/apps/` while React rewrites are added progressively.
 
-🌐 **Live Site**: [https://ramiefathy.github.io](https://ramiefathy.github.io)
+🌐 Live: https://ramiefathy.github.io
 
-## About Dr. Fathy
+## Tech Stack
 
-PGY-4 Dermatology Resident Physician at Johns Hopkins University, with expertise in:
-- Dermatology and dermatopathology
-- AI applications in medicine
-- Medical research and education
-- Clinical innovation
+- Frontend: React 19 + TypeScript, Vite 6
+- UI: MUI 7 + Tailwind (compiled)
+- Routing: React Router 6
+- Backend: Netlify Functions (Node 20) using Google Generative AI
+- Testing: Vitest + React Testing Library
 
-## Repository Structure
+## Structure
 
 ```
 .
-├── index.html                # Main website homepage
-├── about.html               # About page
-├── apps/                    # Interactive applications
-│   ├── dermpath ddxs.html  # Dermatopathology Navigator Pro
-│   ├── dermascore.html     # DermaScore Calculator
-│   ├── Scheduler.html      # Clinic Scheduler
-│   └── ...                 # Other medical applications
-├── assets/                 # Static assets
-│   ├── public/            # Public assets
-│   └── private/           # Private assets (not served)
-├── site_libs/             # Website dependencies
-└── docs/                  # Documentation
+├── index.html                 # Vite entry
+├── netlify.toml               # Build, headers, redirects, functions
+├── src/
+│   ├── App.tsx                # App shell + theme
+│   ├── main.tsx               # Router
+│   ├── index.css              # Tailwind entry
+│   ├── theme.ts               # MUI theme builder
+│   ├── data/                  # Static data (apps list, etc.)
+│   ├── components/            # Header/Footer
+│   └── pages/
+│       ├── HomePage.tsx
+│       ├── AboutPage.tsx
+│       └── apps/DermaScribePage.tsx
+├── netlify/functions/         # Serverless endpoints
+│   ├── finalize.js            # Create note/analysis from transcript
+│   └── image-analyze.js       # Describe dermatology images
+├── apps/                      # Legacy apps (kept public)
+├── assets/public/             # Public assets (docs, images)
+└── tests/                     # Vitest tests
 ```
 
-## Features
+## Develop
 
-### Interactive Medical Applications
-- **Dermatopathology Navigator Pro**: Advanced differential diagnosis tool
-- **DermaScore**: Comprehensive medical scoring calculators
-- **Clinic Scheduler**: Multi-functional scheduling system
-- **Study Tools**: Educational resources and tools
-
-### Professional Portfolio
-- Research publications and projects
-- Clinical experience and expertise
-- Leadership and writing contributions
-- Educational content and resources
-
-## Technology Stack
-
-- **Hosting**: GitHub Pages (Static hosting)
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Styling**: Tailwind CSS via CDN
-- **Icons**: Font Awesome
-- **Analytics**: Built-in engagement tracking
-
-## GitHub Pages Setup
-
-This site is optimized for GitHub Pages static hosting:
-
-- ✅ No build process required
-- ✅ Direct HTML/CSS/JS serving
-- ✅ CDN-based dependencies
-- ✅ Mobile-responsive design
-- ✅ Professional accessibility features
-
-### Previous Build Issues Resolved
-
-The repository previously had Netlify and Node.js build configurations that caused deployment issues with GitHub Pages. These have been resolved:
-
-- `netlify.toml` → `netlify.toml.disabled`
-- `webpack.config.js` → `webpack.config.js.disabled`
-- Simplified `package.json` for GitHub Pages compatibility
-
-## Development
-
-### Local Development
 ```bash
-# Simple HTTP server (Python)
-python -m http.server 8000
-
-# Or with Node.js (if you have live-server installed)
-npx live-server
+npm i
+npm run dev
 ```
 
-### File Organization
-- **Public Content**: All HTML, CSS, JS files in root and `/apps/`
-- **Private Content**: Stored in `/private/`, `/assets/private/`, `/server/` (gitignored)
-- **Large Files**: Research data and analysis files (gitignored)
+## Build & Deploy (Netlify)
 
-## Privacy & Content
+- Build: `npm run build` (Vite → `dist/`)
+- Netlify builds via `netlify.toml` (`command = vite build`, `publish = dist`)
+- SPA fallback and security headers configured
 
-This repository contains both public and private content:
+## Environment Variables (Netlify)
 
-- **Public**: Website files, applications, and general documentation
-- **Private**: Research data, analysis files, and sensitive materials (properly gitignored)
+- `GEMINI_API_KEY` (required)
+- `GEMINI_DEFAULT_MODEL` (optional, defaults to `models/gemini-2.0-flash-exp`)
+- `GEMINI_VISION_MODEL` (optional)
 
-**Security Measures**:
-- Private folders are gitignored
-- No sensitive data in public directories
-- Proper access controls maintained
+Do not commit secrets. Client-exposed values must be prefixed `VITE_`.
 
-## Contributing
+## Notes
 
-For contributions or suggestions, please contact Dr. Fathy directly.
+- RMarkdown outputs and `site_libs/` have been removed from the main branch. If any binary remnants remain (e.g., `*_files/` PNGs), remove them with `git rm` in a follow-up commit.
+- The legacy Python `server/` backend has been removed; Netlify Functions are the supported backend.
+
+## Testing
+
+```bash
+npm run test
+```
 
 ## License
 
-- **Public Content**: MIT License
-- **Private Content**: All rights reserved
-
-## Recent Updates
-
-- ✅ Implemented comprehensive design system
-- ✅ Enhanced accessibility features
-- ✅ Mobile-optimized responsive design
-- ✅ Professional UI/UX improvements
-- ✅ GitHub Pages deployment optimization
-
----
-
-**Contact**: [Dr. Ramie Fathy](https://ramiefathy.github.io) | Johns Hopkins University School of Medicine
+MIT
