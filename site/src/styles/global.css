@@ -196,12 +196,12 @@ main {
 .hero-stage {
   position: relative;
   min-height: calc(100vh - 96px);
-  background: #edfaff;
+  background: #020b1f;
   overflow: hidden;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6rem 1.75rem 5rem;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 5.5rem 1.75rem 4.5rem;
 }
 
 .hero-background {
@@ -213,9 +213,9 @@ main {
 .hero-gradient-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 18% 32%, rgba(125, 211, 252, 0.35), transparent 65%),
-    radial-gradient(circle at 80% 12%, rgba(167, 243, 208, 0.28), transparent 60%),
-    linear-gradient(120deg, rgba(203, 250, 240, 0.45), rgba(236, 253, 245, 0.65));
+  background: radial-gradient(circle at 20% 25%, rgba(37, 99, 235, 0.35), transparent 60%),
+    radial-gradient(circle at 75% 12%, rgba(59, 130, 246, 0.25), transparent 60%),
+    linear-gradient(135deg, rgba(3, 17, 36, 0.8), rgba(4, 23, 54, 0.92));
   mix-blend-mode: screen;
   pointer-events: none;
 }
@@ -227,36 +227,36 @@ main {
   max-width: 1180px;
   margin: 0 auto;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .hero-copy {
   max-width: 520px;
-  color: rgba(6, 47, 73, 0.94);
-  text-align: center;
+  color: rgba(231, 242, 254, 0.95);
+  text-align: left;
   padding: 2.4rem 2rem;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(6, 15, 30, 0.72);
   border-radius: var(--radius-xl);
-  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.22);
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 40px 80px rgba(2, 6, 23, 0.45);
+  border: 1px solid rgba(56, 118, 194, 0.35);
 }
 
 .hero-title {
   font-size: clamp(2.8rem, 4.8vw, 4.6rem);
   line-height: 1.05;
   margin: 0 0 1.25rem;
-  color: #f8fafc;
+  color: #f0f6ff;
 }
 
 .hero-emphasis {
   font-family: var(--font-emphasis);
-  color: #fde68a;
+  color: #7dd3fc;
   font-size: 1.05em;
-  text-shadow: 0 12px 25px rgba(253, 230, 138, 0.3);
+  text-shadow: 0 16px 32px rgba(59, 130, 246, 0.45);
 }
 
 .hero-subtitle {
-  color: rgba(15, 60, 82, 0.75);
+  color: rgba(221, 233, 246, 0.78);
   font-size: 1.08rem;
   margin-bottom: 2.2rem;
 }
@@ -265,7 +265,7 @@ main {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .button {
@@ -746,19 +746,19 @@ html[data-theme='dark'] .header-logo img {
 }
 
 html[data-theme='dark'] .hero-stage {
-  background: #03101b;
+  background: #02091b;
 }
 
 html[data-theme='dark'] .hero-gradient-overlay {
-  background: radial-gradient(circle at 18% 32%, rgba(56, 189, 248, 0.3), transparent 65%),
-    radial-gradient(circle at 80% 12%, rgba(45, 212, 191, 0.28), transparent 60%),
-    linear-gradient(120deg, rgba(8, 47, 73, 0.78), rgba(9, 16, 28, 0.9));
+  background: radial-gradient(circle at 18% 32%, rgba(30, 64, 255, 0.32), transparent 65%),
+    radial-gradient(circle at 80% 12%, rgba(71, 164, 255, 0.25), transparent 60%),
+    linear-gradient(120deg, rgba(5, 19, 43, 0.8), rgba(4, 13, 30, 0.92));
 }
 
 html[data-theme='dark'] .hero-copy {
-  background: rgba(9, 23, 35, 0.88);
-  border-color: rgba(59, 130, 246, 0.18);
-  box-shadow: 0 40px 80px rgba(2, 6, 23, 0.5);
+  background: rgba(6, 15, 30, 0.86);
+  border-color: rgba(30, 64, 255, 0.25);
+  box-shadow: 0 40px 80px rgba(2, 6, 23, 0.55);
 }
 
 html[data-theme='dark'] .section__title {

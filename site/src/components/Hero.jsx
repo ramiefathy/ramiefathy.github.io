@@ -1,8 +1,7 @@
 import { MeshGradient } from '@paper-design/shaders-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-
-const colors = ['#e6f7ff', '#c6f4ed', '#a5def5', '#ffffff'];
+const colors = ['#041020', '#0b2750', '#123d78', '#1c5aa2'];
 
 const Hero = ({ profile }) => {
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
@@ -16,9 +15,9 @@ const Hero = ({ profile }) => {
 
   const handleMouseMove = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 40;
-    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 40;
-    setParallax({ x, y });
+    const relativeX = (event.clientX - rect.left) / rect.width - 0.5;
+    const relativeY = (event.clientY - rect.top) / rect.height - 0.5;
+    setParallax({ x: relativeX * 35, y: relativeY * 35 });
   };
 
   const handleMouseLeave = () => setParallax({ x: 0, y: 0 });
@@ -30,20 +29,23 @@ const Hero = ({ profile }) => {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="hero-background" style={{ transform: `translate3d(${parallax.x}px, ${parallax.y}px, 0)` }}>
+      <div
+        className="hero-background"
+        style={{ transform: `translate3d(${parallax.x}px, ${parallax.y}px, 0)` }}
+      >
         <MeshGradient
           colors={colors}
-          speed={0.3}
-          distortion={0.85}
-          swirl={0.18}
-          style={{ position: 'absolute', inset: 0, opacity: 0.7 }}
+          speed={0.25}
+          distortion={1.15}
+          swirl={0.22}
+          style={{ position: 'absolute', inset: 0, opacity: 0.65 }}
         />
         <MeshGradient
           colors={colors}
-          speed={0.2}
-          distortion={0.4}
-          swirl={0.32}
-          style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.35 }}
+          speed={0.18}
+          distortion={0.7}
+          swirl={0.4}
+          style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.28 }}
         />
         <div className="hero-gradient-overlay" />
       </div>

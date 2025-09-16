@@ -4,7 +4,9 @@ import Header from '../components/Header.jsx';
 import Hero from '../components/Hero.jsx';
 import profile from '../data/profile.json';
 import apps from '../data/apps.json';
-const featuredApps = apps.filter((app) => app.status === 'active').slice(0, 3);
+const featuredApps = apps
+  .filter((app) => app.status === 'active' && app.slug !== 'dermatology-scribe')
+  .slice(0, 3);
 ---
 <MainLayout title="Ramie Fathy, MD – Dermatology & AI" description={profile.summary}>
   <Header client:load />
