@@ -1,0 +1,40 @@
+---
+import '../styles/global.css';
+const {
+  title = 'Ramie Fathy, MD',
+  description = 'Dermatology resident physician, researcher, and writer with a focus on human-centered AI and complex medical dermatology.',
+  canonical = 'https://ramiefathy.github.io'
+} = Astro.props;
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <title>{title}</title>
+    <link rel="canonical" href={canonical} />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2958059905874922" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <slot />
+    <footer class="layout-footer">
+      <p>© {new Date().getFullYear()} Ramie Fathy, MD. All rights reserved.</p>
+      <p>
+        Built with Astro. Questions? <a href="mailto:hello@ramiefathy.com">Email Dr. Fathy</a>.
+      </p>
+    </footer>
+    <script>
+      const adSlots = document.querySelectorAll('.adsbygoogle');
+      adSlots.forEach((slot) => {
+        if (!slot.dataset.slotInitialized && slot.dataset.adSlot && slot.dataset.adSlot !== 'REPLACE_WITH_TOP_BANNER_SLOT' && slot.dataset.adSlot !== 'REPLACE_WITH_INLINE_APPS_SLOT') {
+          slot.dataset.slotInitialized = 'true';
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        }
+      });
+    </script>
+  </body>
+</html>

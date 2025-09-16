@@ -1,0 +1,88 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import apps from '../../data/apps.json';
+const active = apps.filter((app) => app.status === 'active');
+const beta = apps.filter((app) => app.status === 'beta');
+const archived = apps.filter((app) => app.status === 'legacy');
+---
+<MainLayout title="Applications – Ramie Fathy, MD" description="Interactive dermatology tools and prototypes developed by Dr. Ramie Fathy.">
+  <header class="navbar">
+    <div class="navbar__inner">
+      <div style="font-weight:700;font-size:1.1rem;color:var(--secondary-900)">Applications</div>
+      <nav class="navbar__links">
+        <a class="navbar__link" href="/">Home</a>
+        <a class="navbar__link" href="/legacy">Legacy</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" style="padding-top:4rem">
+      <div class="section__inner">
+        <div class="section__intro">
+          <h1 class="section__title">Active Tools</h1>
+          <p class="section__subtitle">Web-based applications designed to be self-contained and privacy-preserving—no accounts or server storage required.</p>
+        </div>
+        <div class="card-grid">
+          {active.map((app) => (
+            <a class="card" href={app.href}>
+              <h2 class="card__title">{app.name}</h2>
+              <p>{app.description}</p>
+              <div class="card__meta">
+                {app.stack.map((tag) => (
+                  <span class="tag">{tag}</span>
+                ))}
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {beta.length ? (
+      <section class="section" style="background:linear-gradient(180deg, rgba(244, 246, 255, 0.72), rgba(255,255,255,0.92))">
+        <div class="section__inner">
+          <div class="section__intro">
+            <h2 class="section__title">In Beta</h2>
+            <p class="section__subtitle">Experiments that are functional today but still evolving. Feedback is very welcome.</p>
+          </div>
+          <div class="card-grid">
+            {beta.map((app) => (
+              <a class="card" href={app.href}>
+                <h3 class="card__title">{app.name}</h3>
+                <p>{app.description}</p>
+                <div class="card__meta">
+                  {app.stack.map((tag) => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    ) : null}
+
+    {archived.length ? (
+      <section class="section">
+        <div class="section__inner">
+          <div class="section__intro">
+            <h2 class="section__title">Archived Experiments</h2>
+            <p class="section__subtitle">Maintained for historical reference. Features may be limited or require manual setup.</p>
+          </div>
+          <div class="card-grid">
+            {archived.map((app) => (
+              <a class="card" href={app.href}>
+                <h3 class="card__title">{app.name}</h3>
+                <p>{app.description || 'Experimental project archived for reference.'}</p>
+                <div class="card__meta">
+                  <span class="tag">Legacy</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    ) : null}
+  </main>
+</MainLayout>

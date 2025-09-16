@@ -1,0 +1,131 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import profile from '../data/profile.json';
+import apps from '../data/apps.json';
+const activeApps = apps.filter((app) => app.status !== 'legacy');
+const betaApps = apps.filter((app) => app.status === 'beta');
+---
+<MainLayout title="Ramie Fathy, MD – Dermatology & AI" description={profile.summary}>
+  <header class="navbar">
+    <div class="navbar__inner">
+      <div style="font-weight:700;font-size:1.1rem;color:var(--secondary-900)">Ramie Fathy, MD</div>
+      <nav class="navbar__links">
+        <a class="navbar__link" href="#about">About</a>
+        <a class="navbar__link" href="#apps">Applications</a>
+        <a class="navbar__link" href="#research">Research</a>
+        <a class="navbar__link" href="#contact">Contact</a>
+        <a class="navbar__link" href="/legacy">Legacy</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" id="home">
+    <div class="paper-shader" aria-hidden="true"></div>
+    <div class="hero__content">
+      <div>
+        <span class="badge">Dermatology × Artificial Intelligence</span>
+        <h1 style="font-size:clamp(2.5rem,4vw,3.75rem);margin:0.75rem 0;color:var(--secondary-900)">{profile.name}</h1>
+        <p style="font-size:1.1rem;color:var(--secondary-600);max-width:540px">{profile.summary}</p>
+        <div class="cta-group">
+          {profile.callToActions.map((cta) => (
+            <a class={`button ${cta.href === '#contact' ? 'button--secondary' : 'button--primary'}`} href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noreferrer' : undefined}>
+              {cta.label}
+            </a>
+          ))}
+        </div>
+      </div>
+      <div style="position:relative">
+        <div style="background:rgba(255,255,255,0.88);border-radius:var(--radius-xl);padding:2rem;box-shadow:var(--shadow-md);border:1px solid rgba(148,163,184,0.18);">
+          <h2 style="margin-top:0;color:var(--secondary-900);font-size:1.35rem">Current Focus</h2>
+          <ul style="margin:0;padding-left:1.2rem;color:var(--secondary-600);font-size:0.98rem">
+            <li>LLM-enabled documentation and safety frameworks for dermatology clinics.</li>
+            <li>Mixed-reality and 3D data capture for teledermatology assessments.</li>
+            <li>Health equity analytics for inflammatory and autoimmune skin disease.</li>
+          </ul>
+          <p style="margin-top:1.2rem;font-weight:600;color:var(--primary-700)">Based in {profile.location}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ad-slot" aria-label="Sponsored banner">
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2958059905874922" data-ad-slot="1498241199" data-ad-format="auto" data-full-width-responsive="true"></ins>
+  </div>
+
+  <section id="about" class="section">
+    <div class="section__inner">
+      <div class="section__intro">
+        <h2 class="section__title">About</h2>
+        <p class="section__subtitle">{profile.about.intro}</p>
+      </div>
+      <div class="card-grid">
+        {profile.about.highlights.map((item) => (
+          <div class="card" style="min-height:180px">
+            <p style="margin:0">{item}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="apps" class="section" style="background:linear-gradient(180deg, rgba(239,246,255,0.8), rgba(255,255,255,0.92))">
+    <div class="section__inner">
+      <div class="section__intro">
+        <h2 class="section__title">Applications</h2>
+        <p class="section__subtitle">Clinical tools and prototypes designed to accelerate dermatology workflows, learning, and documentation.</p>
+      </div>
+      <div class="card-grid">
+        {activeApps.map((app) => (
+          <a class="card" href={app.href}>
+            <h3 class="card__title">{app.name}</h3>
+            <p>{app.description}</p>
+            <div class="card__meta">
+              {app.stack.map((tag) => (
+                <span class="tag">{tag}</span>
+              ))}
+            </div>
+          </a>
+        ))}
+      </div>
+      {betaApps.length ? (
+        <div style="margin-top:2.5rem">
+          <h3 style="margin-bottom:0.75rem;color:var(--secondary-700)">In Beta</h3>
+          <div class="card-grid">
+            {betaApps.map((app) => (
+              <a class="card" href={app.href}>
+                <h3 class="card__title">{app.name}</h3>
+                <p>{app.description}</p>
+                <div class="card__meta">
+                  {app.stack.map((tag) => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  </section>
+
+  <div class="ad-slot" aria-label="Sponsored content">
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2958059905874922" data-ad-slot="1442400877" data-ad-format="rectangle" data-full-width-responsive="true"></ins>
+  </div>
+
+  <section id="contact" class="section" style="background:linear-gradient(180deg, rgba(248,250,252,0.95), rgba(255,255,255,1))">
+    <div class="section__inner" style="max-width:720px">
+      <div class="section__intro">
+        <h2 class="section__title">Connect</h2>
+        <p class="section__subtitle">Collaborations, speaking invitations, and media inquiries are welcome.</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:1rem">
+          <a class="button button--primary" href={profile.contact.email}>Email</a>
+          <a class="button button--secondary" href={profile.contact.scholar} target="_blank" rel="noreferrer">Google Scholar</a>
+          <a class="button button--secondary" href={profile.contact.researchgate} target="_blank" rel="noreferrer">ResearchGate</a>
+          <a class="button button--secondary" href={profile.contact.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>
