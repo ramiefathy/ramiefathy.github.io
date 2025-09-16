@@ -103,3 +103,29 @@ The `/legacy` route lists archived HTML reports and application prototypes. Thes
 - Harden the AI Scribe client with authentication and rate limiting as the deployment plan evolves.
 
 For any questions, contact **hello@ramiefathy.com**.
+
+## Landing UI Upgrade
+
+Files touched:
+
+- `site/astro.config.mjs`, `site/package.json` – enabled the React integration and added UI dependencies.
+- `site/src/styles/global.css`, `site/src/layouts/MainLayout.astro` – added premium typography tokens and font loading.
+- `site/src/components/Header.jsx`, `site/src/components/Hero.jsx` – new interactive header and hero experiences.
+- `site/src/pages/index.astro` – renders the new header/hero pair while preserving existing sections.
+
+Libraries introduced:
+
+- `@astrojs/react` to render React components inside Astro.
+- `framer-motion` for the gooey login morph animation and subtle hero entrance.
+- `@paper-design/shaders-react` for the layered mesh gradient background effect without hand-rolled shaders.
+
+How to run:
+
+```bash
+PATH=/tmp/node20/bin:$PATH npm --prefix site install
+npm run site:dev
+```
+
+Open [http://localhost:4321](http://localhost:4321) to preview the landing refinement.
+
+Responsive notes: the hero keeps text anchored bottom-left on desktop, gracefully stacking content on tablets/phones. Keyboard focus states remain visible on header links and buttons with the gooey morph interaction honoring reduced-motion preferences.
