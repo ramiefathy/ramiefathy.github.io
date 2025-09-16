@@ -129,3 +129,20 @@ npm run site:dev
 Open [http://localhost:4321](http://localhost:4321) to preview the landing refinement.
 
 Responsive notes: the hero keeps text anchored bottom-left on desktop, gracefully stacking content on tablets/phones. Keyboard focus states remain visible on header links and buttons with the gooey morph interaction honoring reduced-motion preferences.
+
+## Future Enhancements
+
+### Additional Functionality Ideas
+- Patient-friendly education hub with downloadable aftercare PDFs and automated email summaries.
+- Secure note export pipeline that pushes finalized AI scribe output directly into institutional EMRs via FHIR integration.
+- Resident analytics dashboard aggregating usage metrics, note turnaround times, and quality indicators.
+
+### Potential Application Expansions
+- Dermoscopy pattern recognizer using de-identified sample images to triage lesions.
+- Inflammatory disease tracker that pairs patient-reported outcomes with photography timelines.
+- Procedural consent builder that assembles tailored, printable consent forms for common dermatologic surgeries.
+
+### Ways to Increase Overall Impact
+- Story-driven case studies with imagery and long-form articles similar to the Richard Mattka portfolio reference.
+- Cinematic scrolling interactions highlighting the research pipelines powering each tool.
+- Integrated testimonial/video section featuring collaborators and mentors discussing the technology in practice.

@@ -1,74 +1,59 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
+import Header from '../../components/Header.jsx';
 import apps from '../../data/apps.json';
 const active = apps.filter((app) => app.status === 'active');
 const beta = apps.filter((app) => app.status === 'beta');
 const archived = apps.filter((app) => app.status === 'legacy');
 ---
 <MainLayout title="Applications – Ramie Fathy, MD" description="Interactive dermatology tools and prototypes developed by Dr. Ramie Fathy.">
-  <header class="navbar">
-    <div class="navbar__inner">
-      <div style="font-weight:700;font-size:1.1rem;color:var(--secondary-900)">Applications</div>
-      <nav class="navbar__links">
-        <a class="navbar__link" href="/">Home</a>
-        <a class="navbar__link" href="/legacy">Legacy</a>
-      </nav>
-    </div>
-  </header>
-
+  <Header client:load />
   <main>
     <section class="section" style="padding-top:4rem">
       <div class="section__inner">
-        <div class="section__intro">
-          <h1 class="section__title">Active Tools</h1>
-          <p class="section__subtitle">Web-based applications designed to be self-contained and privacy-preserving—no accounts or server storage required.</p>
+        <div class="section__intro" style="margin-bottom:3.5rem">
+          <h1 class="section__title">Modern Dermatology Workflows</h1>
+          <p class="section__subtitle">Each application below is built for resident clinics, dermatology education, or translational research—and runs directly in the browser with no account required.</p>
         </div>
-        <div class="card-grid">
-          {active.map((app) => (
-            <a class="card" href={app.href}>
-              <h2 class="card__title">{app.name}</h2>
-              <p>{app.description}</p>
-              <div class="card__meta">
-                {app.stack.map((tag) => (
-                  <span class="tag">{tag}</span>
-                ))}
+
+        <div class="app-showcase">
+          {active.concat(beta).map((app, index) => (
+            <div class={`app-showcase-row ${index % 2 === 1 ? 'app-showcase-row--reverse' : ''}`}>
+              <div class="app-showcase-media">
+                <div class="app-showcase-frame">
+                  <iframe
+                    src={app.preview ?? app.href}
+                    title={`${app.name} preview`}
+                    loading="lazy"
+                    sandbox="allow-same-origin allow-scripts"
+                  ></iframe>
+                </div>
               </div>
-            </a>
+              <div class="app-showcase-body">
+                <span class={`app-showcase-badge app-showcase-badge--${app.status}`}>{app.status === 'beta' ? 'In Beta' : 'Active'}</span>
+                <h2 class="app-showcase-title">{app.name}</h2>
+                <p class="app-showcase-description">{app.description}</p>
+                <div class="app-showcase-tags">
+                  {app.stack.map((tag) => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </div>
+                <a class="button button--primary" href={app.href} target={app.href.startsWith('http') ? '_blank' : undefined} rel={app.href.startsWith('http') ? 'noreferrer' : undefined}>
+                  Visit the App
+                </a>
+              </div>
+            </div>
           ))}
         </div>
       </div>
     </section>
 
-    {beta.length ? (
-      <section class="section" style="background:linear-gradient(180deg, rgba(244, 246, 255, 0.72), rgba(255,255,255,0.92))">
-        <div class="section__inner">
-          <div class="section__intro">
-            <h2 class="section__title">In Beta</h2>
-            <p class="section__subtitle">Experiments that are functional today but still evolving. Feedback is very welcome.</p>
-          </div>
-          <div class="card-grid">
-            {beta.map((app) => (
-              <a class="card" href={app.href}>
-                <h3 class="card__title">{app.name}</h3>
-                <p>{app.description}</p>
-                <div class="card__meta">
-                  {app.stack.map((tag) => (
-                    <span class="tag">{tag}</span>
-                  ))}
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-    ) : null}
-
     {archived.length ? (
-      <section class="section">
+      <section class="section" style="background:linear-gradient(180deg, rgba(236,253,245,0.6), rgba(255,255,255,0.94))">
         <div class="section__inner">
           <div class="section__intro">
             <h2 class="section__title">Archived Experiments</h2>
-            <p class="section__subtitle">Maintained for historical reference. Features may be limited or require manual setup.</p>
+            <p class="section__subtitle">Legacy prototypes and documentation retained for historical context and reproducibility.</p>
           </div>
           <div class="card-grid">
             {archived.map((app) => (

@@ -1,19 +1,10 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
+import Header from '../components/Header.jsx';
 import profile from '../data/profile.json';
 ---
 <MainLayout title="About – Ramie Fathy, MD" description="Biography, training, leadership, and interests for Dr. Ramie Fathy.">
-  <header class="navbar">
-    <div class="navbar__inner">
-      <div style="font-weight:700;font-size:1.1rem;color:var(--secondary-900)">About</div>
-      <nav class="navbar__links">
-        <a class="navbar__link" href="/">Home</a>
-        <a class="navbar__link" href="/apps">Applications</a>
-        <a class="navbar__link" href="/legacy">Legacy</a>
-      </nav>
-    </div>
-  </header>
-
+  <Header client:load />
   <main>
     <section class="section" style="padding-top:4.5rem">
       <div class="section__inner" style="max-width:880px">
