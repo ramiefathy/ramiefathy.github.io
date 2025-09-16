@@ -1,19 +1,10 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
+import Header from '../components/Header.jsx';
 import profile from '../data/profile.json';
 ---
 <MainLayout title="About – Ramie Fathy, MD" description="Biography, training, leadership, and interests for Dr. Ramie Fathy.">
-  <header class="navbar">
-    <div class="navbar__inner">
-      <div style="font-weight:700;font-size:1.1rem;color:var(--secondary-900)">About</div>
-      <nav class="navbar__links">
-        <a class="navbar__link" href="/">Home</a>
-        <a class="navbar__link" href="/apps">Applications</a>
-        <a class="navbar__link" href="/legacy">Legacy</a>
-      </nav>
-    </div>
-  </header>
-
+  <Header client:load />
   <main>
     <section class="section" style="padding-top:4.5rem">
       <div class="section__inner" style="max-width:880px">
@@ -48,6 +39,25 @@ import profile from '../data/profile.json';
             I love mentoring future physician-innovators, producing radio and podcast stories, and exploring Baltimore’s culinary community. When traveling, you’ll find me sketching architectural textures and searching for the best espresso shot in town.
           </p>
         </article>
+      </div>
+    </section>
+
+    <section class="section is-hidden" aria-hidden="true">
+      <div class="section__inner" style="max-width:900px">
+        <div class="section__intro">
+          <h2 class="section__title">Career Timeline</h2>
+          <p class="section__subtitle">Interactive timeline coming soon. Milestones will cover formative research, residency highlights, and upcoming fellowship work.</p>
+        </div>
+        <div class="timeline-placeholder"></div>
+      </div>
+    </section>
+
+    <section class="section is-hidden" aria-hidden="true">
+      <div class="section__inner" style="max-width:760px">
+        <div class="section__intro">
+          <h2 class="section__title">Personal Philosophy</h2>
+          <p class="section__subtitle">A forthcoming essay reflecting on empathy-driven dermatology, equitable AI design, and mentored translational science.</p>
+        </div>
       </div>
     </section>
   </main>

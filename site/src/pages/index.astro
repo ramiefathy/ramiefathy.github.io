@@ -4,8 +4,7 @@ import Header from '../components/Header.jsx';
 import Hero from '../components/Hero.jsx';
 import profile from '../data/profile.json';
 import apps from '../data/apps.json';
-const activeApps = apps.filter((app) => app.status !== 'legacy');
-const betaApps = apps.filter((app) => app.status === 'beta');
+const featuredApps = apps.filter((app) => app.status === 'active').slice(0, 3);
 ---
 <MainLayout title="Ramie Fathy, MD – Dermatology & AI" description={profile.summary}>
   <Header client:load />
@@ -17,7 +16,7 @@ const betaApps = apps.filter((app) => app.status === 'beta');
   </div>
 
   <section id="about" class="section">
-    <div class="section__inner">
+    <div class="section__inner scroll-fade" data-scroll-fade>
       <div class="section__intro">
         <h2 class="section__title">About</h2>
         <p class="section__subtitle">{profile.about.intro}</p>
@@ -33,42 +32,37 @@ const betaApps = apps.filter((app) => app.status === 'beta');
   </section>
 
   <section id="apps" class="section" style="background:linear-gradient(180deg, rgba(239,246,255,0.8), rgba(255,255,255,0.92))">
-    <div class="section__inner">
+    <div class="section__inner scroll-fade" data-scroll-fade>
       <div class="section__intro">
-        <h2 class="section__title">Applications</h2>
-        <p class="section__subtitle">Clinical tools and prototypes designed to accelerate dermatology workflows, learning, and documentation.</p>
+        <h2 class="section__title">Featured Applications</h2>
+        <p class="section__subtitle">A sampling of browser-based tools currently supporting dermatology trainees and clinical workflows. Explore the full catalog for interactive demos and documentation.</p>
       </div>
-      <div class="card-grid">
-        {activeApps.map((app) => (
-          <a class="card" href={app.href}>
-            <h3 class="card__title">{app.name}</h3>
-            <p>{app.description}</p>
-            <div class="card__meta">
-              {app.stack.map((tag) => (
-                <span class="tag">{tag}</span>
-              ))}
+      <div class="app-showcase">
+        {featuredApps.map((app, index) => (
+          <div class={`app-showcase-row scroll-fade ${index % 2 === 1 ? 'app-showcase-row--reverse' : ''}`} data-scroll-fade>
+            <div class="app-showcase-media">
+              <div class="app-showcase-frame">
+                <iframe src={app.preview ?? app.href} title={`${app.name} preview`} loading="lazy" sandbox="allow-same-origin allow-scripts"></iframe>
+              </div>
             </div>
-          </a>
+            <div class="app-showcase-body">
+              <h3 class="app-showcase-title">{app.name}</h3>
+              <p class="app-showcase-description">{app.description}</p>
+              <div class="app-showcase-tags">
+                {app.stack.map((tag) => (
+                  <span class="tag">{tag}</span>
+                ))}
+              </div>
+              <a class="button button--primary" href={app.href} target={app.href.startsWith('http') ? '_blank' : undefined} rel={app.href.startsWith('http') ? 'noreferrer' : undefined}>
+                Visit the App
+              </a>
+            </div>
+          </div>
         ))}
       </div>
-      {betaApps.length ? (
-        <div style="margin-top:2.5rem">
-          <h3 style="margin-bottom:0.75rem;color:var(--secondary-700)">In Beta</h3>
-          <div class="card-grid">
-            {betaApps.map((app) => (
-              <a class="card" href={app.href}>
-                <h3 class="card__title">{app.name}</h3>
-                <p>{app.description}</p>
-                <div class="card__meta">
-                  {app.stack.map((tag) => (
-                    <span class="tag">{tag}</span>
-                  ))}
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      <div style="margin-top:2.5rem;text-align:center">
+        <a class="button button--secondary" href="/apps">View Full Applications Directory</a>
+      </div>
     </div>
   </section>
 
@@ -76,19 +70,50 @@ const betaApps = apps.filter((app) => app.status === 'beta');
     <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2958059905874922" data-ad-slot="1442400877" data-ad-format="rectangle" data-full-width-responsive="true"></ins>
   </div>
 
-  <section id="contact" class="section" style="background:linear-gradient(180deg, rgba(248,250,252,0.95), rgba(255,255,255,1))">
-    <div class="section__inner" style="max-width:720px">
+  <section class="section is-hidden">
+    <div class="section__inner">
       <div class="section__intro">
-        <h2 class="section__title">Connect</h2>
-        <p class="section__subtitle">Collaborations, speaking invitations, and media inquiries are welcome.</p>
+        <h2 class="section__title">Trusted Collaborators</h2>
+        <p class="section__subtitle">Logos, testimonials, and media kit forthcoming.</p>
       </div>
-      <div class="card" style="text-align:center">
-        <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:1rem">
-          <a class="button button--primary" href={profile.contact.email}>Email</a>
-          <a class="button button--secondary" href={profile.contact.scholar} target="_blank" rel="noreferrer">Google Scholar</a>
-          <a class="button button--secondary" href={profile.contact.researchgate} target="_blank" rel="noreferrer">ResearchGate</a>
-          <a class="button button--secondary" href={profile.contact.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
-        </div>
+    </div>
+  </section>
+
+  <section id="contact" class="section" style="background:linear-gradient(180deg, rgba(248,250,252,0.95), rgba(255,255,255,1))">
+    <div class="section__inner scroll-fade" data-scroll-fade style="max-width:780px">
+      <div class="section__intro">
+        <h2 class="section__title">Get in Touch</h2>
+        <p class="section__subtitle">Collaborations, speaking invitations, and media inquiries are welcome. Leave a note and I’ll respond as soon as possible.</p>
+      </div>
+      <div class="card">
+        <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="contact-form">
+          <input type="hidden" name="form-name" value="contact" />
+          <p class="is-hidden">
+            <label>
+              Don’t fill this out if you’re human:
+              <input name="bot-field" />
+            </label>
+          </p>
+          <div class="form-row">
+            <label>
+              Name
+              <input type="text" name="name" required />
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" required />
+            </label>
+          </div>
+          <label>
+            Subject
+            <input type="text" name="subject" />
+          </label>
+          <label>
+            Message
+            <textarea name="message" rows="5" required></textarea>
+          </label>
+          <button class="button button--primary" type="submit">Send Message</button>
+        </form>
       </div>
     </div>
   </section>

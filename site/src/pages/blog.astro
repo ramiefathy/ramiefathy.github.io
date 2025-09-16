@@ -1,0 +1,36 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Header from '../components/Header.jsx';
+import posts from '../data/blog.json';
+const sorted = posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+---
+<MainLayout title="Blog – Ramie Fathy, MD" description="Insights on dermatology, medical education, and human-centered AI.">
+  <Header client:load />
+  <main>
+    <section class="section">
+      <div class="section__inner scroll-fade" data-scroll-fade>
+        <div class="section__intro">
+          <h1 class="section__title">Insights & Updates</h1>
+          <p class="section__subtitle">Periodic essays and media features covering clinical dermatology, translational AI, and the design of digital tools for resident workflows.</p>
+        </div>
+        <div class="post-grid">
+          {sorted.map((post) => (
+            <article class="post-card" data-scroll-fade>
+              <div class="post-meta">
+                <time datetime={post.date}>{new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</time>
+                <div class="post-tags">
+                  {post.tags.map((tag) => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <h2 class="post-title">{post.title}</h2>
+              <p class="post-summary">{post.summary}</p>
+              <a class="button button--secondary" href={post.href} target="_blank" rel="noreferrer">Read More</a>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+</MainLayout>
