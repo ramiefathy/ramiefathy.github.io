@@ -1,9 +1,11 @@
 import { MeshGradient } from '@paper-design/shaders-react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 const colors = ['#e6f7ff', '#c6f4ed', '#a5def5', '#ffffff'];
 
 const Hero = ({ profile }) => {
+  const [parallax, setParallax] = useState({ x: 0, y: 0 });
   const [primaryCta, secondaryCta] = profile.callToActions.slice(0, 2);
   const headline = `${profile.name}`;
   const emphasisWord = profile.name.split(' ')[0];
@@ -12,9 +14,23 @@ const Hero = ({ profile }) => {
     `<span class="hero-emphasis">${emphasisWord}</span>`
   );
 
+  const handleMouseMove = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 40;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 40;
+    setParallax({ x, y });
+  };
+
+  const handleMouseLeave = () => setParallax({ x: 0, y: 0 });
+
   return (
-    <section className="hero-stage" aria-labelledby="hero-title">
-      <div className="hero-background">
+    <section
+      className="hero-stage"
+      aria-labelledby="hero-title"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="hero-background" style={{ transform: `translate3d(${parallax.x}px, ${parallax.y}px, 0)` }}>
         <MeshGradient
           colors={colors}
           speed={0.3}
@@ -33,10 +49,11 @@ const Hero = ({ profile }) => {
       </div>
       <div className="hero-content">
         <motion.div
-          className="hero-copy"
+          className="hero-copy scroll-fade"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: 'easeOut' }}
+          data-scroll-fade
         >
           <h1
             id="hero-title"

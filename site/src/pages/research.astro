@@ -1,0 +1,28 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Header from '../components/Header.jsx';
+import ScholarFeed from '../components/ScholarFeed.jsx';
+---
+<MainLayout title="Research – Ramie Fathy, MD" description="Recent publications, presentations, and scholarly projects.">
+  <Header client:load />
+  <main>
+    <section class="section">
+      <div class="section__inner scroll-fade" data-scroll-fade>
+        <div class="section__intro">
+          <h1 class="section__title">Publications & Scholarship</h1>
+          <p class="section__subtitle">
+            Selected research spanning inflammatory dermatoses, autoimmune disease, dermatopathology, and the responsible application of generative AI in clinical workflows.
+          </p>
+        </div>
+        <p class="muted-callout">
+          Data is pulled directly from Google Scholar. Use the search and year filters to focus on specific topics or timeframes.
+        </p>
+      </div>
+    </section>
+    <section class="section" style="padding-top:0">
+      <div class="section__inner">
+        <ScholarFeed client:load />
+      </div>
+    </section>
+  </main>
+</MainLayout>

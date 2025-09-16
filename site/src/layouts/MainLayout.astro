@@ -15,6 +15,20 @@ const {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/style.css" />
+    <script>
+      {`
+        (function() {
+          try {
+            const stored = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = stored || (prefersDark ? 'dark' : 'light');
+            document.documentElement.dataset.theme = theme;
+          } catch (err) {
+            document.documentElement.dataset.theme = 'light';
+          }
+        })();
+      `}
+    </script>
     <title>{title}</title>
     <link rel="canonical" href={canonical} />
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2958059905874922" crossorigin="anonymous"></script>
@@ -35,6 +49,24 @@ const {
           (window.adsbygoogle = window.adsbygoogle || []).push({});
         }
       });
+    </script>
+    <script>
+      (function(){
+        const elements = document.querySelectorAll('[data-scroll-fade]');
+        if (!('IntersectionObserver' in window) || !elements.length) {
+          elements.forEach((el) => el.classList.add('is-visible'));
+          return;
+        }
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.15 });
+        elements.forEach((el) => observer.observe(el));
+      })();
     </script>
   </body>
 </html>
