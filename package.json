@@ -10,7 +10,10 @@
   "homepage": "https://ramiefathy.github.io",
   "scripts": {
     "serve": "python -m http.server 8000",
-    "test": "echo \"GitHub Pages static hosting - no build process needed\" && exit 0"
+    "test": "echo \"GitHub Pages static hosting - no build process needed\" && exit 0",
+    "site:dev": "npm --prefix site run dev",
+    "site:build": "npm --prefix site run build",
+    "site:preview": "npm --prefix site run preview"
   },
   "keywords": ["dermatology", "medical", "personal-website", "github-pages"],
   "author": "Dr. Ramie Fathy",
@@ -19,6 +22,6 @@
     "live-server": "^1.2.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "^18.19.0 || ^20.11.0"
   }
-} 
+}

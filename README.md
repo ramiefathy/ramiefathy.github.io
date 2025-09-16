@@ -1,120 +1,105 @@
-# Dr. Ramie Fathy - Personal Website
+# Dr. Ramie Fathy – Personal & Professional Portfolio
 
-This repository contains the personal website and professional portfolio of Dr. Ramie Fathy, MD, hosted on GitHub Pages.
+This repository powers [ramiefathy.github.io](https://ramiefathy.github.io) and its Netlify mirror. It combines:
 
-🌐 **Live Site**: [https://ramiefathy.github.io](https://ramiefathy.github.io)
+- **Astro static site** (`/site`) for the primary pages and navigation
+- **Interactive tools** (`/site/public/apps`) including the AI Dermatology Scribe, Dermatopathology Navigator, DermaScore calculators, and PDF utilities
+- **AI Scribe backend** (`/services/ai-scribe`) for websocket-driven transcription and Gemini-powered note generation
+- **Legacy archives** (`/legacy`) for historical research reports and prototypes
 
-## About Dr. Fathy
-
-PGY-4 Dermatology Resident Physician at Johns Hopkins University, with expertise in:
-- Dermatology and dermatopathology
-- AI applications in medicine
-- Medical research and education
-- Clinical innovation
-
-## Repository Structure
+## Repository Layout
 
 ```
 .
-├── index.html                # Main website homepage
-├── about.html               # About page
-├── apps/                    # Interactive applications
-│   ├── dermpath ddxs.html  # Dermatopathology Navigator Pro
-│   ├── dermascore.html     # DermaScore Calculator
-│   ├── Scheduler.html      # Clinic Scheduler
-│   └── ...                 # Other medical applications
-├── assets/                 # Static assets
-│   ├── public/            # Public assets
-│   └── private/           # Private assets (not served)
-├── site_libs/             # Website dependencies
-└── docs/                  # Documentation
+├── site/                     # Astro project
+│   ├── public/               # Static assets + interactive apps
+│   └── src/
+│       ├── data/             # Structured content (profile, apps, research, legacy)
+│       ├── layouts/          # Shared layouts
+│       ├── pages/            # Astro routes (/, /about, /apps, /legacy)
+│       └── styles/           # Global design system
+├── services/
+│   └── ai-scribe/            # Python websocket service for the AI Dermatology Scribe
+├── legacy/                   # Archived analyses and prototypes
+├── docs/                     # Additional documentation (to be expanded)
+└── scripts/                  # Utility scripts (reserved)
 ```
 
-## Features
+## Prerequisites
 
-### Interactive Medical Applications
-- **Dermatopathology Navigator Pro**: Advanced differential diagnosis tool
-- **DermaScore**: Comprehensive medical scoring calculators
-- **Clinic Scheduler**: Multi-functional scheduling system
-- **Study Tools**: Educational resources and tools
+- Node.js **20.x** (Astro build) – download a local copy if your global installation is newer/older.
+- Python **3.11+** (for the AI Scribe backend) if you intend to run the websocket service locally.
+- Google AdSense publisher ID `ca-pub-2958059905874922` (already configured). Individual ad slots are intentionally left blank—see [Ads Setup](#ads-setup) for instructions on obtaining IDs.
 
-### Professional Portfolio
-- Research publications and projects
-- Clinical experience and expertise
-- Leadership and writing contributions
-- Educational content and resources
+## Getting Started
 
-## Technology Stack
+### Install Dependencies
 
-- **Hosting**: GitHub Pages (Static hosting)
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Styling**: Tailwind CSS via CDN
-- **Icons**: Font Awesome
-- **Analytics**: Built-in engagement tracking
+```bash
+# (Optional) Fetch portable Node 20 and esbuild binary into /tmp if not already present
+curl -L https://nodejs.org/dist/v20.17.0/node-v20.17.0-darwin-arm64.tar.gz -o /tmp/node20.tar.gz
+mkdir -p /tmp/node20 && tar -xzf /tmp/node20.tar.gz -C /tmp/node20 --strip-components=1
+mkdir -p /tmp/esbuild-0259 && curl -L https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.25.9.tgz | tar -xz -C /tmp/esbuild-0259
 
-## GitHub Pages Setup
+# Install static site dependencies (uses the portable binaries above)
+PATH=/tmp/node20/bin:$PATH ESBUILD_BINARY_PATH=/tmp/esbuild-0259/package/bin/esbuild npm --prefix site install
 
-This site is optimized for GitHub Pages static hosting:
+# Install AI Scribe backend dependencies
+pip install -r services/ai-scribe/requirements.txt
+```
 
-- ✅ No build process required
-- ✅ Direct HTML/CSS/JS serving
-- ✅ CDN-based dependencies
-- ✅ Mobile-responsive design
-- ✅ Professional accessibility features
-
-### Previous Build Issues Resolved
-
-The repository previously had Netlify and Node.js build configurations that caused deployment issues with GitHub Pages. These have been resolved:
-
-- `netlify.toml` → `netlify.toml.disabled`
-- `webpack.config.js` → `webpack.config.js.disabled`
-- Simplified `package.json` for GitHub Pages compatibility
-
-## Development
+> **Note:** If `/tmp/node20` or `/tmp/esbuild-0259` are cleared, download them again following the commands in this README or switch to a native Node 20 environment before running `npm --prefix site install`.
 
 ### Local Development
-```bash
-# Simple HTTP server (Python)
-python -m http.server 8000
 
-# Or with Node.js (if you have live-server installed)
-npx live-server
+```bash
+# Start the Astro dev server on http://localhost:4321
+npm run site:dev
+
+# Build production assets
+npm run site:build
+
+# Preview the production build
+npm run site:preview
+
+# Run the AI Dermatology Scribe websocket server
+cd services/ai-scribe
+python app.py
 ```
 
-### File Organization
-- **Public Content**: All HTML, CSS, JS files in root and `/apps/`
-- **Private Content**: Stored in `/private/`, `/assets/private/`, `/server/` (gitignored)
-- **Large Files**: Research data and analysis files (gitignored)
+In development the AI Scribe client looks for the shared token stored in `localStorage.dermascribe.sessionToken`. Use the **Set Access Token** button inside the UI or pre-populate the value so it matches `SESSION_SECRET` in the backend `.env` file (default `development-token`).
 
-## Privacy & Content
+Configure the AI Scribe service with environment variables in `services/ai-scribe/.env` (see the sample keys in `config.py`).
 
-This repository contains both public and private content:
+## Ads Setup
 
-- **Public**: Website files, applications, and general documentation
-- **Private**: Research data, analysis files, and sensitive materials (properly gitignored)
+1. Sign in to [Google AdSense](https://adsense.google.com).
+2. Navigate to **Ads > Overview > By ad unit** and create two ad units:
+   - Responsive banner for the homepage hero (recommended size 970×90 / 728×90 fallback).
+   - Rectangle/inline unit for the Applications section (recommended size 336×280 or responsive).
+3. Copy each ad unit’s **Ad unit code** – the numeric value listed as `data-ad-slot`.
+4. Update the placeholders in `site/src/pages/index.astro`:
+   - Replace `REPLACE_WITH_TOP_BANNER_SLOT` with the banner slot ID.
+   - Replace `REPLACE_WITH_INLINE_APPS_SLOT` with the inline rectangle slot ID.
+5. Deploy the updated site. Once AdSense approves the new placements, ads will render automatically.
 
-**Security Measures**:
-- Private folders are gitignored
-- No sensitive data in public directories
-- Proper access controls maintained
+To temporarily disable ads without editing code, comment out or remove the `<ins class="adsbygoogle">` elements.
 
-## Contributing
+## Legacy Content
 
-For contributions or suggestions, please contact Dr. Fathy directly.
+The `/legacy` route lists archived HTML reports and application prototypes. These files remain untouched to preserve historical context; please add disclaimers when sharing them externally.
 
-## License
+## Reporting Issues & Contributing
 
-- **Public Content**: MIT License
-- **Private Content**: All rights reserved
+1. Open an issue describing the change or bug.
+2. Create a feature branch referencing the issue.
+3. Run linting/tests (lint tasks forthcoming) before submitting a pull request.
+4. Include screenshots or recording snippets for UI/UX updates.
 
-## Recent Updates
+## Roadmap Snippets
 
-- ✅ Implemented comprehensive design system
-- ✅ Enhanced accessibility features
-- ✅ Mobile-optimized responsive design
-- ✅ Professional UI/UX improvements
-- ✅ GitHub Pages deployment optimization
+- Expand structured data sources (publications, leadership timeline) and render them via Astro components.
+- Add automated lint/test/CI workflows for the Astro site and AI Scribe backend.
+- Harden the AI Scribe client with authentication and rate limiting as the deployment plan evolves.
 
----
-
-**Contact**: [Dr. Ramie Fathy](https://ramiefathy.github.io) | Johns Hopkins University School of Medicine
+For any questions, contact **hello@ramiefathy.com**.
