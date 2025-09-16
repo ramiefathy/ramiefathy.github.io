@@ -1,3 +1,27 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:3ed168b5e3754e008f0b2bdb5f839ffd8560347c6c06538136ff64fc4c04595b
-size 857
+{
+  "name": "ramie-fathy-personal-website",
+  "version": "1.0.0",
+  "description": "Personal website for Dr. Ramie Fathy - hosted on GitHub Pages",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ramiefathy/ramiefathy.github.io"
+  },
+  "homepage": "https://ramiefathy.github.io",
+  "scripts": {
+    "serve": "python -m http.server 8000",
+    "test": "echo \"GitHub Pages static hosting - no build process needed\" && exit 0",
+    "site:dev": "npm --prefix site run dev",
+    "site:build": "npm --prefix site run build",
+    "site:preview": "npm --prefix site run preview"
+  },
+  "keywords": ["dermatology", "medical", "personal-website", "github-pages"],
+  "author": "Dr. Ramie Fathy",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "engines": {
+    "node": "^18.19.0 || ^20.11.0"
+  }
+}
