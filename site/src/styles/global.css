@@ -82,6 +82,18 @@ a:hover {
   color: var(--primary-600);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 main {
   overflow: hidden;
 }
@@ -157,6 +169,82 @@ main {
 .header-link:focus-visible::after {
   opacity: 1;
   transform: translateY(0);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-menu {
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--text-color);
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.header-menu:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.15);
+}
+
+.header-menu__icon {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.header-menu__icon span {
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--text-color);
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.header-menu[aria-expanded='true'] .header-menu__icon span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.header-menu[aria-expanded='true'] .header-menu__icon span:nth-child(2) {
+  opacity: 0;
+}
+
+.header-menu[aria-expanded='true'] .header-menu__icon span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.header-drawer {
+  display: none;
+}
+
+.header-drawer__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.header-drawer__link {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.header-drawer__link:hover,
+.header-drawer__link:focus-visible {
+  color: var(--accent-end);
+}
+
+.header-drawer__backdrop {
+  display: none;
 }
 
 .theme-toggle {
@@ -490,27 +578,6 @@ main {
   position: relative;
 }
 
-.app-showcase-frame {
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  border: 1px solid var(--surface-border);
-  box-shadow: 0 30px 50px rgba(15, 23, 42, 0.2);
-  background: var(--surface-bg);
-}
-
-.app-showcase-frame iframe {
-  width: 100%;
-  height: 360px;
-  border: none;
-  pointer-events: none;
-  transform: scale(1);
-  transform-origin: top left;
-}
-
-.app-showcase-frame:hover iframe {
-  transform: scale(1.06);
-}
-
 .app-showcase-body {
   display: flex;
   flex-direction: column;
@@ -706,6 +773,44 @@ main {
   .header-nav {
     display: none;
   }
+  .header-menu {
+    display: inline-flex;
+  }
+  .header-drawer {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(320px, 80vw);
+    height: 100vh;
+    padding: 5.5rem 1.75rem 2.75rem;
+    background: rgba(255, 255, 255, 0.96);
+    border-left: 1px solid var(--surface-border);
+    box-shadow: -16px 0 40px rgba(15, 23, 42, 0.16);
+    transform: translateX(100%);
+    transition: transform 200ms ease;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  html[data-theme='dark'] .header-drawer {
+    background: rgba(9, 23, 35, 0.95);
+    border-color: rgba(59, 130, 246, 0.18);
+    box-shadow: -16px 0 40px rgba(2, 6, 23, 0.45);
+  }
+  .header-drawer.is-open {
+    transform: translateX(0);
+  }
+  .header-drawer__backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(4px);
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: block;
+    z-index: 55;
+  }
   .app-showcase-row {
     grid-template-columns: 1fr;
   }
@@ -732,8 +837,8 @@ main {
   .card {
     padding: 1.4rem;
   }
-  .app-showcase-frame iframe {
-    height: 240px;
+  .app-preview {
+    aspect-ratio: 4 / 3;
   }
 }
 
@@ -779,7 +884,7 @@ html[data-theme='dark'] .card:hover {
   border-color: rgba(56, 189, 248, 0.25);
 }
 
-html[data-theme='dark'] .app-showcase-frame {
+html[data-theme='dark'] .app-preview {
   background: rgba(9, 23, 35, 0.9);
   border-color: rgba(59, 130, 246, 0.18);
 }

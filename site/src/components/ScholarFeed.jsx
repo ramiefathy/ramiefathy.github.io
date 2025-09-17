@@ -1,70 +1,27 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { publications } from '../data/publications.js';
 
-const SCHOLAR_URL = 'https://r.jina.ai/https://scholar.google.com/citations?user=Pb_Ht9cAAAAJ&hl=en&view_op=list_works&sortby=pubdate';
-
-const parseEntries = (html) => {
-  if (typeof window === 'undefined') return [];
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  const rows = Array.from(doc.querySelectorAll('.gsc_a_tr'));
-  return rows.map((row) => {
-    const titleNode = row.querySelector('.gsc_a_at');
-    const authorsNode = row.querySelector('.gsc_a_at')?.parentElement?.nextElementSibling;
-    const journalNode = row.querySelector('.gsc_a_at')?.parentElement?.nextElementSibling?.nextElementSibling;
-    const yearNode = row.querySelector('.gsc_a_y');
-    return {
-      title: titleNode?.textContent?.trim() ?? 'Untitled',
-      url: titleNode ? `https://scholar.google.com${titleNode.getAttribute('href')}` : '#',
-      authors: authorsNode?.textContent?.trim() ?? '',
-      journal: journalNode?.textContent?.trim() ?? '',
-      year: parseInt(yearNode?.textContent ?? '0', 10) || null,
-      raw: row.textContent ?? ''
-    };
+const sortPublications = (items) =>
+  [...items].sort((a, b) => {
+    if (b.year !== a.year) return b.year - a.year;
+    return a.title.localeCompare(b.title);
   });
-};
+
+const allPublications = sortPublications(publications);
 
 const ScholarFeed = () => {
-  const [entries, setEntries] = useState([]);
   const [query, setQuery] = useState('');
   const [year, setYear] = useState('');
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchScholar() {
-      try {
-        setLoading(true);
-        const response = await fetch(SCHOLAR_URL);
-        const text = await response.text();
-        if (!cancelled) {
-          setEntries(parseEntries(text));
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError('Unable to load publications from Google Scholar right now.');
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-    fetchScholar();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const filtered = useMemo(() => {
-    return entries.filter((entry) => {
+    return allPublications.filter((entry) => {
       const matchesQuery = query
-        ? entry.title.toLowerCase().includes(query.toLowerCase()) || entry.authors.toLowerCase().includes(query.toLowerCase())
+        ? `${entry.title} ${entry.authors} ${entry.venue}`.toLowerCase().includes(query.toLowerCase())
         : true;
       const matchesYear = year ? String(entry.year || '').startsWith(year) : true;
       return matchesQuery && matchesYear;
     });
-  }, [entries, query, year]);
+  }, [query, year]);
 
   return (
     <section className="scholar-feed" data-scroll-fade>
@@ -90,9 +47,7 @@ const ScholarFeed = () => {
           />
         </label>
       </div>
-      {loading && <p className="scholar-status">Fetching publications…</p>}
-      {error && <p className="scholar-status scholar-status--error">{error}</p>}
-      {!loading && !error && (
+      {filtered.length ? (
         <ul className="scholar-list">
           {filtered.map((entry) => (
             <li key={`${entry.title}-${entry.year}`} className="scholar-item">
@@ -101,13 +56,21 @@ const ScholarFeed = () => {
                   {entry.title}
                 </a>
                 {entry.authors && <p className="scholar-authors">{entry.authors}</p>}
-                {entry.journal && <p className="scholar-journal">{entry.journal}</p>}
+                {entry.venue && <p className="scholar-journal">{entry.venue}</p>}
+                {entry.tags?.length ? (
+                  <div className="scholar-tags">
+                    {entry.tags.map((tag) => (
+                      <span key={`${entry.title}-${tag}`} className="tag tag--muted">{tag}</span>
+                    ))}
+                  </div>
+                ) : null}
               </div>
               {entry.year && <span className="scholar-year">{entry.year}</span>}
             </li>
           ))}
-          {!filtered.length && <li className="scholar-status">No publications match the current filters.</li>}
         </ul>
+      ) : (
+        <p className="scholar-status">No publications match the current filters.</p>
       )}
     </section>
   );
