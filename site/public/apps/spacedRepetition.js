@@ -3,7 +3,7 @@
  * Implements SM-2 algorithm similar to Anki
  */
 
-class SpacedRepetitionSystem {
+export class SpacedRepetitionSystem {
     constructor() {
         this.cards = new Map(); // Map of cardId -> CardData
         this.loadFromStorage();
@@ -368,6 +368,3 @@ class SpacedRepetitionSystem {
         }
     }
 }
-
-// Export for use in main application
-window.SpacedRepetitionSystem = SpacedRepetitionSystem;
