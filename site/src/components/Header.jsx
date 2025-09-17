@@ -60,7 +60,7 @@ const Header = () => {
     <header className="header-shell" data-scroll-fade>
       <div className="header-inner">
         <a href="/" aria-label="Ramie Fathy home" className="header-logo">
-          <img src="/favicon.svg" width="36" height="36" alt="Ramie Fathy logo" />
+          <img src="/favicon.ico" width="32" height="32" alt="Ramie Fathy logo" />
           <span>Ramie Fathy, MD</span>
         </a>
         <nav className="header-nav" aria-label="Primary navigation">
