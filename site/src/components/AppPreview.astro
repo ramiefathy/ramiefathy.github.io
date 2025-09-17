@@ -1,0 +1,70 @@
+---
+const {
+  name,
+  previewImage,
+  accent = ['#0f172a', '#1f2937']
+} = Astro.props;
+const accentColors = Array.isArray(accent) && accent.length ? accent : ['#0f172a', '#1f2937'];
+const initials = name
+  .split(/\s+/)
+  .map((word) => word.charAt(0))
+  .join('')
+  .slice(0, 3)
+  .toUpperCase();
+const gradientStyle = `background: linear-gradient(135deg, ${accentColors[0]}, ${accentColors[accentColors.length - 1]});`;
+---
+<div
+  class:list={{
+    'app-preview': true,
+    'app-preview--image': Boolean(previewImage),
+    'app-preview--gradient': !previewImage
+  }}
+  style={!previewImage ? gradientStyle : undefined}
+>
+  {previewImage ? (
+    <img src={previewImage} alt={`${name} interface preview`} loading="lazy" decoding="async" />
+  ) : (
+    <span class="app-preview__initials" aria-hidden="true">{initials}</span>
+  )}
+</div>
+<style is:global>
+  .app-preview {
+    position: relative;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    border: 1px solid var(--surface-border);
+    box-shadow: 0 30px 50px rgba(15, 23, 42, 0.2);
+    background: var(--surface-bg);
+    aspect-ratio: 16 / 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    isolation: isolate;
+  }
+
+  .app-preview--image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .app-preview__initials {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    letter-spacing: 0.2em;
+    color: rgba(255, 255, 255, 0.92);
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .app-preview {
+      aspect-ratio: 4 / 3;
+    }
+  }
+
+  html[data-theme='dark'] .app-preview {
+    background: rgba(9, 23, 35, 0.9);
+    border-color: rgba(59, 130, 246, 0.18);
+  }
+</style>
