@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 const colors = ['#041020', '#0b2750', '#123d78', '#1c5aa2'];
 
 const Hero = ({ profile }) => {
-  const [parallax, setParallax] = useState({ x: 0, y: 0 });
-  const animationFrame = useRef(0);
+  const [ripple, setRipple] = useState({ x: 50, y: 50, token: 0 });
+  const frameRef = useRef(0);
   const [primaryCta, secondaryCta] = profile.callToActions.slice(0, 2);
   const headline = `${profile.name}`;
   const emphasisWord = profile.name.split(' ')[0];
@@ -15,33 +15,29 @@ const Hero = ({ profile }) => {
   );
 
   const handleMouseMove = (event) => {
-    if (animationFrame.current) {
-      return;
-    }
+    if (frameRef.current) return;
 
-    const { clientX, clientY, currentTarget } = event;
-    const rect = currentTarget.getBoundingClientRect();
-    const relativeX = (clientX - rect.left) / rect.width - 0.5;
-    const relativeY = (clientY - rect.top) / rect.height - 0.5;
-    const nextParallax = { x: relativeX * 35, y: relativeY * 35 };
-
-    animationFrame.current = requestAnimationFrame(() => {
-      animationFrame.current = 0;
-      setParallax(nextParallax);
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = 0;
+      const { clientX, clientY, currentTarget } = event;
+      const rect = currentTarget.getBoundingClientRect();
+      const x = ((clientX - rect.left) / rect.width) * 100;
+      const y = ((clientY - rect.top) / rect.height) * 100;
+      setRipple({ x, y, token: performance.now() });
     });
   };
 
   const handleMouseLeave = () => {
-    if (animationFrame.current) {
-      cancelAnimationFrame(animationFrame.current);
-      animationFrame.current = 0;
+    if (frameRef.current) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = 0;
     }
-    setParallax({ x: 0, y: 0 });
+    setRipple({ x: 50, y: 50, token: performance.now() });
   };
 
   useEffect(() => () => {
-    if (animationFrame.current) {
-      cancelAnimationFrame(animationFrame.current);
+    if (frameRef.current) {
+      cancelAnimationFrame(frameRef.current);
     }
   }, []);
 
@@ -52,23 +48,25 @@ const Hero = ({ profile }) => {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <div
-        className="hero-background"
-        style={{ transform: `translate3d(${parallax.x}px, ${parallax.y}px, 0)` }}
-      >
+      <div className="hero-background">
         <MeshGradient
           colors={colors}
-          speed={0.25}
+          speed={0.6}
           distortion={1.15}
-          swirl={0.22}
+          swirl={0.24}
           style={{ position: 'absolute', inset: 0, opacity: 0.65 }}
         />
         <MeshGradient
           colors={colors}
-          speed={0.18}
-          distortion={0.7}
-          swirl={0.4}
+          speed={0.35}
+          distortion={0.9}
+          swirl={0.52}
           style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.28 }}
+        />
+        <span
+          key={ripple.token}
+          className="hero-ripple"
+          style={{ '--ripple-x': `${ripple.x}%`, '--ripple-y': `${ripple.y}%` }}
         />
         <div className="hero-gradient-overlay" />
       </div>

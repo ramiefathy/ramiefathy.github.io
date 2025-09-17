@@ -301,6 +301,45 @@ main {
   overflow: hidden;
 }
 
+.hero-ripple {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --ripple-x: 50%;
+  --ripple-y: 50%;
+  background: radial-gradient(
+      circle at var(--ripple-x) var(--ripple-y),
+      rgba(148, 197, 255, 0.42) 0%,
+      rgba(59, 130, 246, 0.28) 17%,
+      rgba(15, 23, 42, 0.05) 42%,
+      rgba(2, 12, 32, 0) 70%
+    );
+  mix-blend-mode: screen;
+  animation: heroRipple 1.15s ease-out;
+  transform-origin: var(--ripple-x) var(--ripple-y);
+}
+
+@keyframes heroRipple {
+  from {
+    opacity: 0.55;
+    transform: scale(0.88);
+  }
+  60% {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.32);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-ripple {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 .hero-gradient-overlay {
   position: absolute;
   inset: 0;
