@@ -22,7 +22,7 @@ const archived = apps.filter((app) => app.status === 'legacy');
             <div class="app-showcase-card" data-app-tilt>
               <div class={`app-showcase-row ${index % 2 === 1 ? 'app-showcase-row--reverse' : ''}`} data-app-tilt-target>
                 <div class="app-showcase-media">
-                  <AppPreview name={app.name} previewImage={app.previewImage} accent={app.accent} />
+                  <AppPreview name={app.name} previewImage={app.previewImage} previewUrl={app.preview} accent={app.accent} />
                 </div>
                 <div class="app-showcase-body">
                   <span class={`app-showcase-badge app-showcase-badge--${app.status}`}>{app.status === 'beta' ? 'In Beta' : 'Active'}</span>
