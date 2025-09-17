@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
@@ -6,17 +6,40 @@ const NAV_LINKS = [
   { label: 'Apps & Projects', href: '/apps' },
   { label: 'Research', href: '/research' },
   { label: 'Blog', href: '/blog' },
-  { label: 'Contact', href: '#contact' }
+  { label: 'Contact', href: '/#contact' }
 ];
 
 const Header = () => {
   const [theme, setTheme] = useState('light');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const previousOverflow = useRef('');
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const current = document.documentElement.dataset.theme || 'light';
     setTheme(current);
   }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    if (menuOpen) {
+      previousOverflow.current = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = previousOverflow.current || '';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow.current || '';
+    };
+  }, [menuOpen]);
 
   const toggleTheme = () => {
     if (typeof document === 'undefined') return;
@@ -30,6 +53,9 @@ const Header = () => {
     }
   };
 
+  const toggleMenu = () => setMenuOpen((value) => !value);
+  const closeMenu = () => setMenuOpen(false);
+
   return (
     <header className="header-shell" data-scroll-fade>
       <div className="header-inner">
@@ -40,7 +66,7 @@ const Header = () => {
         <nav className="header-nav" aria-label="Primary navigation">
           {NAV_LINKS.map((link) => (
             <a
-              key={link.label}
+              key={`desktop-${link.label}`}
               href={link.href}
               className="header-link"
               target={link.href.startsWith('http') ? '_blank' : undefined}
@@ -50,16 +76,50 @@ const Header = () => {
             </a>
           ))}
         </nav>
-        <button
-          type="button"
-          className="theme-toggle"
-          onClick={toggleTheme}
-          aria-label="Toggle dark mode"
-          aria-pressed={theme === 'dark'}
-        >
-          <span aria-hidden="true">{theme === 'dark' ? '☾' : '☀︎'}</span>
-        </button>
+        <div className="header-actions">
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label="Toggle dark mode"
+            aria-pressed={theme === 'dark'}
+          >
+            <span aria-hidden="true">{theme === 'dark' ? '☾' : '☀︎'}</span>
+          </button>
+          <button
+            type="button"
+            className="header-menu"
+            aria-label="Toggle navigation"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
+            onClick={toggleMenu}
+          >
+            <span className="header-menu__icon" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span className="sr-only">Menu</span>
+          </button>
+        </div>
       </div>
+      <div className={`header-drawer ${menuOpen ? 'is-open' : ''}`} id="mobile-navigation">
+        <nav className="header-drawer__nav" aria-label="Mobile navigation">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={`mobile-${link.label}`}
+              href={link.href}
+              className="header-drawer__link"
+              target={link.href.startsWith('http') ? '_blank' : undefined}
+              rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
+              onClick={closeMenu}
+            >
+              {link.label}
+            </a>
+          ))}
+        </nav>
+      </div>
+      {menuOpen && <button type="button" className="header-drawer__backdrop" aria-label="Close navigation" onClick={closeMenu}></button>}
     </header>
   );
 };

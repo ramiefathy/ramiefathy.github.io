@@ -29,7 +29,32 @@ logger = logging.getLogger(__name__)
 
 # Initialize services
 session_manager = SessionManager()
-gemini_service = GeminiService(api_key=config.GEMINI_API_KEY)
+gemini_service = None
+
+
+def get_gemini_service():
+    """Lazily construct the GeminiService when an API key is present."""
+    global gemini_service
+    if gemini_service is not None:
+        return gemini_service
+
+    if not config.GEMINI_API_KEY:
+        logger.warning("GEMINI_API_KEY not configured; AI responses are disabled.")
+        return None
+
+    gemini_service = GeminiService(api_key=config.GEMINI_API_KEY)
+    return gemini_service
+
+
+async def ensure_gemini_service(websocket):
+    """Ensure the Gemini client is available, otherwise notify the caller."""
+    service = get_gemini_service()
+    if service is None:
+        await websocket.send(json.dumps({
+            "type": "error",
+            "message": "Gemini API key is not configured on the server. AI features are unavailable."
+        }))
+    return service
 
 # --- Custom HTTP Request Processing for Health Checks ---
 async def process_http_request(path, request_headers):
@@ -131,10 +156,14 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                 logger.info(f"Finalizing recording for session {current_session_id_to_use}")
                 session.stop_timer() 
                 await websocket.send(json.dumps({"type": "status", "message": "Finalizing note and analysis..."}))
+                service = await ensure_gemini_service(websocket)
+                if not service:
+                    continue
+
                 prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
                 try:
-                    response_text = await gemini_service.call_gemini_api(prompt, model_name=data.get("modelName", config.GEMINI_DEFAULT_MODEL))
-                    note_text, analysis_text = gemini_service.parse_initial_generation(response_text)
+                    response_text = await service.call_gemini_api(prompt, model_name=data.get("modelName", config.GEMINI_DEFAULT_MODEL))
+                    note_text, analysis_text = service.parse_initial_generation(response_text)
                     session.update_draft_note(note_text)
                     session.update_ai_analysis(analysis_text)
                     await websocket.send(json.dumps({
@@ -156,9 +185,13 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                     continue
 
                 await websocket.send(json.dumps({"type": "status", "message": "Analyzing image..."}))
+                service = await ensure_gemini_service(websocket)
+                if not service:
+                    continue
+
                 prompt_text = IMAGE_ANALYSIS_PROMPT_TEMPLATE 
                 try:
-                    description = await gemini_service.call_gemini_api(prompt_text, model_name=model_name, image_base64=image_base64, image_mime_type=image_mime_type)
+                    description = await service.call_gemini_api(prompt_text, model_name=model_name, image_base64=image_base64, image_mime_type=image_mime_type)
                     await websocket.send(json.dumps({
                         "type": "image_analysis_result",
                         "description": description
@@ -173,10 +206,14 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                     session.add_image_description_to_transcript(description)
                     logger.info(f"Image description integrated for session {current_session_id_to_use}. Triggering regeneration.")
                     await websocket.send(json.dumps({"type": "status", "message": "Regenerating note and analysis with image info..."}))
+                    service = await ensure_gemini_service(websocket)
+                    if not service:
+                        continue
+
                     prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
                     try:
-                        response_text = await gemini_service.call_gemini_api(prompt, model_name=data.get("modelName", config.GEMINI_DEFAULT_MODEL))
-                        note_text, analysis_text = gemini_service.parse_initial_generation(response_text)
+                        response_text = await service.call_gemini_api(prompt, model_name=data.get("modelName", config.GEMINI_DEFAULT_MODEL))
+                        note_text, analysis_text = service.parse_initial_generation(response_text)
                         session.update_draft_note(note_text)
                         session.update_ai_analysis(analysis_text)
                         await websocket.send(json.dumps({
@@ -194,8 +231,12 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                 physician_input = data.get("text", "")
                 model_name_pref = data.get("modelName", config.GEMINI_DEFAULT_MODEL)
                 session.add_discussion_entry("physician", physician_input)
-                
+
                 await websocket.send(json.dumps({"type": "status", "message": "AI is processing your input..."}))
+
+                service = await ensure_gemini_service(websocket)
+                if not service:
+                    continue
 
                 conv_prompt = CONVERSATIONAL_CASE_DISCUSSION_PROMPT_TEMPLATE(
                     session.full_transcript,
@@ -204,7 +245,7 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                     physician_input
                 )
                 try:
-                    ai_response_text = await gemini_service.call_gemini_api(conv_prompt, model_name=model_name_pref)
+                    ai_response_text = await service.call_gemini_api(conv_prompt, model_name=model_name_pref)
                     session.add_discussion_entry("ai", ai_response_text)
                     await websocket.send(json.dumps({
                         "type": "discussion_response",
@@ -228,8 +269,8 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                         session.add_transcript_segment(f"\n\n--- PHYSICIAN INPUT (DISCUSSION LEADING TO REGEN) ---\n{physician_input}\n--- END PHYSICIAN INPUT ---\n", True)
                         
                         regen_prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
-                        regen_response_text = await gemini_service.call_gemini_api(regen_prompt, model_name=model_name_pref)
-                        new_note, new_analysis = gemini_service.parse_initial_generation(regen_response_text)
+                        regen_response_text = await service.call_gemini_api(regen_prompt, model_name=model_name_pref)
+                        new_note, new_analysis = service.parse_initial_generation(regen_response_text)
                         session.update_draft_note(new_note)
                         session.update_ai_analysis(new_analysis)
                         await websocket.send(json.dumps({
@@ -241,7 +282,7 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                     elif should_update_note_only:
                         logger.info(f"Discussion triggered note refinement for session {current_session_id_to_use}")
                         ref_prompt = NOTE_REFINEMENT_PROMPT_TEMPLATE(session.full_transcript, session.current_draft_note, physician_input)
-                        refined_note = await gemini_service.call_gemini_api(ref_prompt, model_name=model_name_pref)
+                        refined_note = await service.call_gemini_api(ref_prompt, model_name=model_name_pref)
                         session.update_draft_note(refined_note)
                         await websocket.send(json.dumps({
                             "type": "note_updated",
@@ -289,7 +330,7 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
 
 async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=None):
     session = session_manager.get_session(session_id)
-    if not session or not session.full_transcript.strip() or not config.GEMINI_API_KEY:
+    if not session or not session.full_transcript.strip():
         return
 
     recent_context_chars = 1000 
@@ -297,14 +338,23 @@ async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=
 
     if not transcript_segment.strip():
         return
-        
+
+    service = get_gemini_service()
+    if service is None:
+        await websocket.send(json.dumps({
+            "type": "error",
+            "area": "suggestions",
+            "message": "Gemini API key is not configured on the server. Suggestions unavailable."
+        }))
+        return
+
     logger.info(f"Triggering real-time suggestion for session {session_id}")
     await websocket.send(json.dumps({"type": "status", "area": "suggestions", "message": "AI thinking of suggestions..."}))
     
     prompt = REALTIME_SUGGESTION_PROMPT_TEMPLATE(transcript_segment, list(session.shown_suggestion_texts))
     try:
         suggestion_model = client_model_pref if client_model_pref else config.GEMINI_SUGGESTION_MODEL
-        suggestions_text = await gemini_service.call_gemini_api(prompt, model_name=suggestion_model)
+        suggestions_text = await service.call_gemini_api(prompt, model_name=suggestion_model)
         
         if suggestions_text and suggestions_text.strip().lower() != "no specific suggestions at this moment.":
             new_suggestions = [s.strip() for s in suggestions_text.split('\n') if s.strip()]
@@ -347,8 +397,8 @@ async def main():
         await asyncio.Future()
 
 if __name__ == "__main__":
-    if not config.GEMINI_API_KEY: 
-        logger.error("GEMINI_API_KEY not found in environment variables or .env file. Please set it.")
-    else:
-        os.environ['PYTHONUNBUFFERED'] = '1' 
-        asyncio.run(main())
+    if not config.GEMINI_API_KEY:
+        logger.warning("GEMINI_API_KEY not found; AI functionality will be disabled until it is provided.")
+
+    os.environ['PYTHONUNBUFFERED'] = '1'
+    asyncio.run(main())
