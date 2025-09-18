@@ -1,4 +1,4 @@
-const differentialsData = [
+export const dermDifferentialData = [
             // --- Ko Data ---
             {
                 finding: "Regular acanthosis (Ko)",
@@ -1225,10 +1225,4 @@ const differentialsData = [
                     { name: "Coma bullae", keyFeatures: "(Subepidermal - Pauci-inflammatory) Subepidermal blister with extensive necrosis of the epidermis and eccrine glands." }
                 ]
             }
-        ];
-
-// Assign data to global window object for the dermpath ddxs app
-console.log('Loading dermpathDifferentialsData.js...');
-console.log('differentialsData array length:', differentialsData.length);
-window.dermDifferentialData = differentialsData;
-console.log('window.dermDifferentialData assigned successfully');
+];

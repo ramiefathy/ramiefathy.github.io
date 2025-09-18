@@ -2,9 +2,33 @@
 
 // --- Configuration ---
 const websocketUrlInput = document.getElementById('websocketUrlInput');
-const DEFAULT_WEBSOCKET_URL =
-    window.localStorage.getItem('dermascribe.websocketUrl') ||
-    (window.ENV_WEBSOCKET_URL ?? 'ws://localhost:8765');
+let storedWebsocketPreference = null;
+try {
+    storedWebsocketPreference = window.localStorage.getItem('dermascribe.websocketUrl');
+} catch (err) {
+    console.warn('Unable to read websocket URL preference from localStorage', err);
+}
+
+const computeAutomaticWebsocketUrl = () => {
+    if (typeof window === 'undefined') {
+        return 'ws://localhost:8765';
+    }
+
+    if (window.ENV_WEBSOCKET_URL) {
+        return window.ENV_WEBSOCKET_URL;
+    }
+
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'ws://localhost:8765';
+    }
+
+    const port = window.location.port ? `:${window.location.port}` : '';
+    const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${scheme}://${window.location.hostname}${port}`;
+};
+
+const DEFAULT_WEBSOCKET_URL = storedWebsocketPreference || computeAutomaticWebsocketUrl();
 
 if (websocketUrlInput) {
     websocketUrlInput.value = DEFAULT_WEBSOCKET_URL;

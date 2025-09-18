@@ -3,18 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dermatopathology Navigator Pro</title>
+    <title>Dermatopathology Differentials</title>
 
     <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <!-- Spaced Repetition System -->
-    <script src="spacedRepetition.js"></script>
 
     <!-- Custom CSS -->
     <style>
@@ -347,7 +339,7 @@
         <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
         <div class="z-10 flex flex-col items-center">
             <div class="spinner h-12 w-12 rounded-full border-4 border-gray-300"></div>
-            <p class="mt-4 text-white text-lg font-semibold">Initializing Navigator...</p>
+            <p class="mt-4 text-white text-lg font-semibold">Loading Differential Explorer...</p>
         </div>
     </div>
 
@@ -355,8 +347,8 @@
     <header class="p-4 shadow-md bg-white dark:bg-gray-800 no-print">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Dermatopathology Navigator Pro</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">An Advanced Learning & Reference Tool</p>
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Dermatopathology Differentials</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Interactive differential diagnoses, visualization, and spaced repetition</p>
             </div>
              <button id="theme-toggle-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
                 <svg id="theme-icon-light" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
@@ -466,8 +458,35 @@
     <div id="toast-container"></div>
     
     <!-- Data and App Logic -->
-    <script src="dermpathDifferentialsData.js"></script>
-    <script>
+    <script type="module">
+    import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.8.5/+esm';
+    import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/+esm';
+    import { SpacedRepetitionSystem } from './spacedRepetition.js';
+    import { dermDifferentialData } from './dermatopathology-differentials-data.js';
+
+    const STORAGE_KEY = 'dermatopathologyDifferentialsState';
+    const LEGACY_STORAGE_KEY = 'dermpathNavigatorState';
+
+    let pdfLibPromise;
+    let xlsxLibPromise;
+
+    const loadPdfLib = () => {
+        if (!pdfLibPromise) {
+            pdfLibPromise = Promise.all([
+                import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm'),
+                import('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.23/+esm')
+            ]);
+        }
+        return pdfLibPromise;
+    };
+
+    const loadXlsxLib = () => {
+        if (!xlsxLibPromise) {
+            xlsxLibPromise = import('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm');
+        }
+        return xlsxLibPromise;
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
         'use strict';
 
@@ -534,13 +553,13 @@
         };
 
         // --- SRS UTILITY FUNCTIONS ---
-        window.exportSRSData = function() {
+        const exportSRSData = () => {
             const data = state.flashcard.srsSystem.exportData();
             const blob = new Blob([data], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `dermpath_srs_progress_${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `dermatopathology_srs_progress_${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -548,7 +567,7 @@
             showToast('Progress exported successfully!', 'success');
         };
         
-        window.resetSRSData = function() {
+        const resetSRSData = () => {
             if (confirm('Are you sure you want to reset all your spaced repetition progress? This cannot be undone.')) {
                 state.flashcard.srsSystem.cards.clear();
                 state.flashcard.srsSystem.saveToStorage();
@@ -584,13 +603,13 @@
         };
 
         function processData() {
-            if (!window.dermDifferentialData || window.dermDifferentialData.length === 0) {
+            if (!dermDifferentialData || dermDifferentialData.length === 0) {
                 console.error("Differential data not found or is empty.");
                 showToast("Error: Could not load differential data.", "error");
                 return;
             }
 
-            window.dermDifferentialData.forEach(item => {
+            dermDifferentialData.forEach(item => {
                 state.dataMap.set(item.finding, item);
             });
             
@@ -958,11 +977,15 @@
                                     <div class="srs-stat-label">Avg Ease</div>
                                 </div>
                             </div>
-                            <button onclick="state.flashcard.reviewMode = 'normal'; render();" class="btn-primary px-4 py-2 rounded-md mt-4">
+                            <button id="srs-switch-to-normal" class="btn-primary px-4 py-2 rounded-md mt-4">
                                 Switch to Normal Mode
                             </button>
                         </div>
                     `;
+                    document.getElementById('srs-switch-to-normal')?.addEventListener('click', () => {
+                        state.flashcard.reviewMode = 'normal';
+                        render();
+                    });
                     return;
                 }
                 
@@ -1359,10 +1382,10 @@
                     
                     <!-- Actions -->
                     <div class="flex gap-4">
-                        <button onclick="exportSRSData()" class="btn-primary px-4 py-2 rounded-md">
+                        <button class="btn-primary px-4 py-2 rounded-md" data-action="export-srs">
                             Export Progress
                         </button>
-                        <button onclick="resetSRSData()" class="btn-secondary px-4 py-2 rounded-md text-red-500">
+                        <button class="btn-secondary px-4 py-2 rounded-md text-red-500" data-action="reset-srs">
                             Reset All Progress
                         </button>
                     </div>
@@ -1370,6 +1393,8 @@
             `;
             
             dom.resultsContent.innerHTML = html;
+            dom.resultsContent.querySelector('[data-action="export-srs"]')?.addEventListener('click', exportSRSData);
+            dom.resultsContent.querySelector('[data-action="reset-srs"]')?.addEventListener('click', resetSRSData);
         }
         
         function renderNetworkView(findingData) {
@@ -1664,12 +1689,15 @@
         }
 
         // --- EXPORT FUNCTIONS ---
-        function handleExportPDF() {
+        async function handleExportPDF() {
             if (!state.selectedFinding) return;
             trackEvent('action', { type: 'export_pdf' });
 
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            try {
+                const [jsPDFModule, autoTableModule] = await loadPdfLib();
+                const { jsPDF } = jsPDFModule;
+                const autoTable = autoTableModule.default || autoTableModule;
+                const doc = new jsPDF();
             const data = state.dataMap.get(state.selectedFinding);
 
             doc.setFontSize(18);
@@ -1681,7 +1709,7 @@
                 formatSources(dx.sources)
             ]);
             
-            doc.autoTable({
+            autoTable(doc, {
                 head: [['Diagnosis', 'Key Features', 'Source(s)']],
                 body: tableData,
                 startY: 30,
@@ -1690,16 +1718,23 @@
             });
             
             doc.save(`${data.finding.replace(/ /g, '_')}_DDx.pdf`);
+            } catch (error) {
+                console.error('Failed to export PDF', error);
+                showToast('Unable to export PDF. Please try again.', 'error');
+            }
         }
-        
-        function handleExportExcel() {
+
+        async function handleExportExcel() {
             if (!state.selectedFinding) return;
             trackEvent('action', { type: 'export_excel' });
 
-            const data = state.dataMap.get(state.selectedFinding);
-            const worksheet = XLSX.utils.json_to_sheet(data.diagnoses);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Differentials");
+            try {
+                const XLSXModule = await loadXlsxLib();
+                const XLSX = XLSXModule.default || XLSXModule;
+                const data = state.dataMap.get(state.selectedFinding);
+                const worksheet = XLSX.utils.json_to_sheet(data.diagnoses);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Differentials");
             
             const meta = [{
                 Finding: data.finding,
@@ -1710,6 +1745,10 @@
             XLSX.utils.book_append_sheet(workbook, metaSheet, "Metadata");
 
             XLSX.writeFile(workbook, `${data.finding.replace(/ /g, '_')}_DDx.xlsx`);
+            } catch (error) {
+                console.error('Failed to export Excel', error);
+                showToast('Unable to export Excel file. Please try again.', 'error');
+            }
         }
 
         // --- LOCAL STORAGE & PERSISTENCE ---
@@ -1720,7 +1759,7 @@
                     notes: state.notes,
                     analytics: state.analytics
                 };
-                localStorage.setItem('dermpathNavigatorState', JSON.stringify(persistentState));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(persistentState));
             } catch (e) {
                 console.error("Failed to save state to localStorage", e);
             }
@@ -1728,7 +1767,14 @@
         
         function loadStateFromLocalStorage() {
             try {
-                const savedState = localStorage.getItem('dermpathNavigatorState');
+                let savedState = localStorage.getItem(STORAGE_KEY);
+                if (!savedState) {
+                    savedState = localStorage.getItem(LEGACY_STORAGE_KEY);
+                    if (savedState) {
+                        localStorage.setItem(STORAGE_KEY, savedState);
+                        localStorage.removeItem(LEGACY_STORAGE_KEY);
+                    }
+                }
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     state.favorites = parsed.favorites || {};

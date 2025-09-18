@@ -1111,7 +1111,7 @@ const differentialsData = [
     }
 ];
 
-// Compatibility shim for Dermatopathology Navigator Pro
+// Compatibility shim for Dermatopathology Navigator
 // Expose data under window.dermDifferentialData and normalize sources
 (function() {
   try {
