@@ -159,9 +159,11 @@ const RippleMeshGradient = memo(
 );
 
 const Hero = ({ profile }) => {
+
   const [ripple, setRipple] = useState({ x: 0.5, y: 0.5, strength: 0.12 });
   const frameRef = useRef(0);
   const lastPointer = useRef({ x: 0.5, y: 0.5, time: performance.now() });
+
   const [primaryCta, secondaryCta] = profile.callToActions.slice(0, 2);
   const headline = `${profile.name}`;
   const emphasisWord = profile.name.split(' ')[0];
@@ -177,6 +179,7 @@ const Hero = ({ profile }) => {
       frameRef.current = 0;
       const { clientX, clientY, currentTarget } = event;
       const rect = currentTarget.getBoundingClientRect();
+
       const x = (clientX - rect.left) / rect.width;
       const y = (clientY - rect.top) / rect.height;
       const now = performance.now();
@@ -188,6 +191,7 @@ const Hero = ({ profile }) => {
       const strength = Math.min(0.55, Math.max(0.12, velocity * 0.6));
       lastPointer.current = { x, y, time: now };
       setRipple({ x, y, strength });
+
     });
   };
 
@@ -196,8 +200,10 @@ const Hero = ({ profile }) => {
       cancelAnimationFrame(frameRef.current);
       frameRef.current = 0;
     }
+
     lastPointer.current = { x: 0.5, y: 0.5, time: performance.now() };
     setRipple({ x: 0.5, y: 0.5, strength: 0.12 });
+
   };
 
   useEffect(() => () => {
@@ -215,12 +221,15 @@ const Hero = ({ profile }) => {
     >
       <div className="hero-background">
         <MeshGradient
+
           colors={heroColors}
+
           speed={0.6}
           distortion={1.15}
           swirl={0.24}
           style={{ position: 'absolute', inset: 0, opacity: 0.65 }}
         />
+
         <RippleMeshGradient
           colors={heroColors}
           speed={1.55}
@@ -230,6 +239,12 @@ const Hero = ({ profile }) => {
           rippleStrength={ripple.strength}
           rippleFrequency={32}
           style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.45 }}
+
+        />
+        <span
+          key={ripple.token}
+          className="hero-ripple"
+          style={{ '--ripple-x': `${ripple.x}%`, '--ripple-y': `${ripple.y}%` }}
         />
         <div className="hero-gradient-overlay" />
       </div>
