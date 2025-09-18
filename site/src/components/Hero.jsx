@@ -166,11 +166,7 @@ const Hero = ({ profile }) => {
 
   const [primaryCta, secondaryCta] = profile.callToActions.slice(0, 2);
   const headline = `${profile.name}`;
-  const emphasisWord = profile.name.split(' ')[0];
-  const emphasisWrapped = headline.replace(
-    emphasisWord,
-    `<span class="hero-emphasis">${emphasisWord}</span>`
-  );
+  const emphasisWrapped = `<span class="hero-emphasis">${headline}</span>`;
 
   const handleMouseMove = (event) => {
     if (frameRef.current) return;
