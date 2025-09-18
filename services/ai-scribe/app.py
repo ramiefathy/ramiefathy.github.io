@@ -63,20 +63,17 @@ async def process_http_request(path, request_headers):
     Responds to Render's health checks (often GET or HEAD on /)
     to prevent WebSocket handshake errors from these pings.
     """
-    method = request_headers.get_method()
-    logger.debug(f"process_http_request received: Path='{path}', Method='{method}'")
+    upgrade_header = request_headers.get('Upgrade')
+    logger.debug(f"process_http_request received: Path='{path}', Upgrade='{upgrade_header}'")
 
     # If it's a WebSocket upgrade request, let the library handle it
-    if "Upgrade" in request_headers and request_headers["Upgrade"].lower() == "websocket":
+    if upgrade_header and upgrade_header.lower() == "websocket":
         logger.debug("Request is a WebSocket upgrade. Passing to WebSocket handler.")
         return None  # Let the WebSocket handshake proceed
 
-    # Handle Render health checks (typically GET or HEAD, often to root path or no specific path)
-    # Render's default health check path is typically `/` but let's be flexible.
-    # The logs showed client connections sometimes have `Path: None`.
-    # We will respond with 200 OK if it's a GET or HEAD to common health check paths.
-    if (path is None or path == "" or path == "/") and (method == "GET" or method == "HEAD"):
-        logger.info(f"Responding to HTTP {method} health check (path: '{path}').")
+    # Treat requests to the root path (or missing path) as health checks regardless of method.
+    if path in (None, '', '/'):
+        logger.info(f"Responding to HTTP health check (path: '{path}').")
         response_headers_list = [
             ("Content-Type", "text/plain"),
             ("Content-Length", "2"),
@@ -85,7 +82,7 @@ async def process_http_request(path, request_headers):
         # The websockets library expects a tuple: (status_code, headers, body_bytes)
         return (200, response_headers_list, b"OK")
     
-    logger.warning(f"Unhandled HTTP {method} request for path: '{path}'. Returning 404.")
+    logger.warning(f"Unhandled HTTP request for path: '{path}'. Returning 404.")
     response_headers_list = [
         ("Content-Type", "text/plain"),
         ("Content-Length", "9"),

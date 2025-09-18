@@ -6,12 +6,14 @@ This service powers the live transcription, note generation, and analysis featur
 
 ```bash
 cd services/ai-scribe
-cp .env.example .env   # populate with your Gemini API key and session token
+cp .env.example .env   # then populate with your Gemini API key, session secret, and allowed origins
 pip install -r requirements.txt
 python app.py
 ```
 
 By default the server listens on `ws://0.0.0.0:8765`. Clients must supply the `token` query parameter or `X-Auth-Token` header that matches `SESSION_SECRET` in `.env`.
+
+> **Tip:** generate a long random `SESSION_SECRET` for production deployments and update `ALLOWED_ORIGINS` to include trusted frontends (e.g., `https://ramiefathy.github.io`).
 
 ## Configuration
 
