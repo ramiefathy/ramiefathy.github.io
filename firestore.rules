@@ -1,0 +1,91 @@
+// Firestore Security Rules for Clinic Scheduler Pro
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isInstitutionMember(institutionId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid));
+    }
+
+    function isInstitutionAdmin(institutionId) {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid)).data.role in ['admin', 'program_admin', 'chief_resident'];
+    }
+
+    function isScheduler(institutionId) {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid)).data.role in ['admin', 'program_admin', 'chief_resident', 'scheduler'];
+    }
+
+    // Institution rules
+    match /institutions/{institutionId} {
+      allow read: if isInstitutionMember(institutionId);
+      allow create: if isSignedIn();
+      allow update: if isInstitutionAdmin(institutionId);
+      allow delete: if false; // Never allow deletion of institutions
+
+      // Institution members subcollection
+      match /members/{userId} {
+        allow read: if isInstitutionMember(institutionId);
+        allow write: if isInstitutionAdmin(institutionId) || request.auth.uid == userId;
+      }
+
+      // Attendings subcollection
+      match /attendings/{attendingId} {
+        allow read: if isInstitutionMember(institutionId);
+        allow write: if isScheduler(institutionId);
+      }
+
+      // Residents subcollection
+      match /residents/{residentId} {
+        allow read: if isInstitutionMember(institutionId);
+        allow write: if isScheduler(institutionId);
+      }
+
+      // Schedule assignments subcollection
+      match /assignments/{assignmentId} {
+        allow read: if isInstitutionMember(institutionId);
+        allow write: if isScheduler(institutionId);
+      }
+
+      // Rules subcollection
+      match /rules/{ruleId} {
+        allow read: if isInstitutionMember(institutionId);
+        allow write: if isScheduler(institutionId);
+      }
+
+      // Audit logs subcollection
+      match /auditLogs/{logId} {
+        allow read: if isInstitutionAdmin(institutionId);
+        allow create: if isInstitutionMember(institutionId);
+        allow update, delete: if false; // Audit logs are immutable
+      }
+    }
+
+    // User profiles (global)
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if request.auth.uid == userId;
+    }
+
+    // Institution invites
+    match /invites/{inviteCode} {
+      allow read: if true; // Anyone with the code can read
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource.data.createdBy == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
+    }
+
+    // Backups (for Cloud Functions)
+    match /backups/{backupId} {
+      allow read: if false; // Only Cloud Functions can access
+      allow write: if false; // Only Cloud Functions can write
+    }
+  }
+}

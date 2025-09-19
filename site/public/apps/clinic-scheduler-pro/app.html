@@ -1,0 +1,3036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Scheduler Pro - Intelligent Residency Schedule Management</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React and dependencies -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Additional Libraries -->
+    <script src="https://unpkg.com/immer@10.0.3/dist/immer.umd.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@3.0.0/index.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.16/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/react-hot-toast@2.4.1/dist/index.umd.js"></script>
+    <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#172554'
+                        }
+                    },
+                    animation: {
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'pulse-soft': 'pulseSoft 2s infinite'
+                    },
+                    keyframes: {
+                        slideIn: {
+                            '0%': { transform: 'translateY(-20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        pulseSoft: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.5' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Modern scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Calendar styles */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: 100px repeat(5, 1fr);
+            grid-auto-rows: minmax(120px, auto);
+            gap: 1px;
+            background: #e5e7eb;
+        }
+
+        .time-slot {
+            background: white;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .time-slot.continuity {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
+
+        .time-slot.protected {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+        }
+
+        .assignment-card {
+            @apply bg-white rounded-lg p-2 m-1 shadow-sm border border-gray-200 text-xs cursor-move transition-all hover:shadow-md;
+        }
+
+        .assignment-card.dragging {
+            opacity: 0.5;
+        }
+
+        .drop-indicator {
+            @apply border-2 border-dashed border-primary-400 bg-primary-50;
+        }
+
+        /* Site colors */
+        .site-gss { border-left: 4px solid #10b981; }
+        .site-jhoc { border-left: 4px solid #f59e0b; }
+        .site-hoco { border-left: 4px solid #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+    <div id="modal-root"></div>
+
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect, useCallback, useMemo, useRef, createContext, useContext, useReducer } = React;
+        const { createPortal } = ReactDOM;
+        const { motion, AnimatePresence } = window['framer-motion'];
+        const { toast, Toaster } = window['react-hot-toast'];
+        const { format, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, getDay, isWithinInterval, startOfMonth, endOfMonth, addMonths, subMonths, isSameDay } = window['date-fns'];
+        const { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
+
+        // ==================== Complete Data Store ====================
+        class DataStore {
+            constructor() {
+                this.state = this.loadState();
+                this.listeners = new Set();
+            }
+
+            loadState() {
+                const saved = localStorage.getItem('clinic_scheduler_pro_v2');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        // Ensure all required fields exist
+                        return {
+                            ...this.getDefaultState(),
+                            ...parsed
+                        };
+                    } catch (e) {
+                        console.error('Failed to load state:', e);
+                    }
+                }
+                return this.getDefaultState();
+            }
+
+            getDefaultState() {
+                return {
+                    currentUser: {
+                        id: 'user_1',
+                        name: 'Admin User',
+                        email: 'admin@clinic.com',
+                        role: 'program_admin'
+                    },
+                    institution: {
+                        id: 'inst_1',
+                        name: 'Johns Hopkins Dermatology',
+                        settings: {
+                            sites: [
+                                { id: 'gss', name: 'GSS', code: 'GSS', color: '#10b981', address: '601 N Caroline St, Baltimore, MD' },
+                                { id: 'jhoc', name: 'JHOC', code: 'JHOC', color: '#f59e0b', address: '6420 Rockledge Dr, Bethesda, MD' },
+                                { id: 'hoco', name: 'HoCo', code: 'HOCO', color: '#ef4444', address: '10710 Charter Dr, Columbia, MD' }
+                            ],
+                            rotations: [
+                                { id: 'gss', name: 'GSS Clinic', code: 'GSS', minSessions: 4 },
+                                { id: 'jhoc', name: 'JHOC Clinic', code: 'JHOC', minSessions: 4 },
+                                { id: 'hoco', name: 'HoCo Clinic', code: 'HOCO', minSessions: 3 },
+                                { id: 'peds', name: 'Pediatric Dermatology', code: 'PEDS', minSessions: 2 },
+                                { id: 'path', name: 'Dermatopathology', code: 'PATH', minSessions: 2 },
+                                { id: 'mohs', name: 'Mohs Surgery', code: 'MOHS', minSessions: 1 },
+                                { id: 'consults', name: 'Inpatient Consults', code: 'CONSULTS', minSessions: 2 }
+                            ],
+                            protectedTimes: [
+                                {
+                                    id: 'didactics',
+                                    name: 'Didactics',
+                                    dayOfWeek: 3, // Wednesday
+                                    timeSlot: 'AM',
+                                    startTime: '08:00',
+                                    endTime: '12:00',
+                                    mandatory: true,
+                                    appliesTo: 'all'
+                                },
+                                {
+                                    id: 'grand_rounds',
+                                    name: 'Grand Rounds',
+                                    dayOfWeek: 4, // Thursday
+                                    timeSlot: 'AM',
+                                    startTime: '07:00',
+                                    endTime: '08:00',
+                                    mandatory: true,
+                                    appliesTo: 'all'
+                                }
+                            ],
+                            holidays: [],
+                            academicYear: {
+                                start: '2024-07-01',
+                                end: '2025-06-30'
+                            }
+                        }
+                    },
+                    attendings: [],
+                    residents: [],
+                    scheduleAssignments: {},
+                    rules: [],
+                    templates: [],
+                    auditLog: []
+                };
+            }
+
+            saveState() {
+                try {
+                    localStorage.setItem('clinic_scheduler_pro_v2', JSON.stringify(this.state));
+                    this.notifyListeners();
+                } catch (e) {
+                    console.error('Failed to save state:', e);
+                    toast.error('Failed to save changes');
+                }
+            }
+
+            subscribe(listener) {
+                this.listeners.add(listener);
+                return () => this.listeners.delete(listener);
+            }
+
+            notifyListeners() {
+                this.listeners.forEach(listener => listener(this.state));
+            }
+
+            // ===== Getters =====
+            getState() {
+                return this.state;
+            }
+
+            getAttending(id) {
+                return this.state.attendings.find(a => a.id === id);
+            }
+
+            getResident(id) {
+                return this.state.residents.find(r => r.id === id);
+            }
+
+            getAssignmentsForDate(date, timeSlot) {
+                const key = `${date}_${timeSlot}`;
+                return this.state.scheduleAssignments[key] || [];
+            }
+
+            getAssignmentsForResident(residentId, startDate, endDate) {
+                const assignments = [];
+                Object.entries(this.state.scheduleAssignments).forEach(([key, items]) => {
+                    const [date] = key.split('_');
+                    if ((!startDate || date >= startDate) && (!endDate || date <= endDate)) {
+                        const residentAssignments = items.filter(a => a.residentId === residentId);
+                        assignments.push(...residentAssignments);
+                    }
+                });
+                return assignments;
+            }
+
+            // ===== Setters =====
+            setState(updater) {
+                this.state = typeof updater === 'function' ? updater(this.state) : updater;
+                this.saveState();
+            }
+
+            addAttending(attending) {
+                const newAttending = {
+                    ...attending,
+                    id: `att_${Date.now()}`,
+                    createdAt: new Date().toISOString()
+                };
+                this.setState(state => ({
+                    ...state,
+                    attendings: [...state.attendings, newAttending]
+                }));
+                this.addAuditLog('attending_added', newAttending);
+                return newAttending;
+            }
+
+            updateAttending(id, updates) {
+                this.setState(state => ({
+                    ...state,
+                    attendings: state.attendings.map(att =>
+                        att.id === id ? { ...att, ...updates, updatedAt: new Date().toISOString() } : att
+                    )
+                }));
+                this.addAuditLog('attending_updated', { id, updates });
+            }
+
+            deleteAttending(id) {
+                this.setState(state => ({
+                    ...state,
+                    attendings: state.attendings.filter(att => att.id !== id),
+                    // Also remove related assignments
+                    scheduleAssignments: Object.fromEntries(
+                        Object.entries(state.scheduleAssignments).map(([key, assignments]) => [
+                            key,
+                            assignments.filter(a => a.attendingId !== id)
+                        ])
+                    )
+                }));
+                this.addAuditLog('attending_deleted', { id });
+            }
+
+            addResident(resident) {
+                const newResident = {
+                    ...resident,
+                    id: `res_${Date.now()}`,
+                    createdAt: new Date().toISOString()
+                };
+                this.setState(state => ({
+                    ...state,
+                    residents: [...state.residents, newResident]
+                }));
+                this.addAuditLog('resident_added', newResident);
+                return newResident;
+            }
+
+            updateResident(id, updates) {
+                this.setState(state => ({
+                    ...state,
+                    residents: state.residents.map(res =>
+                        res.id === id ? { ...res, ...updates, updatedAt: new Date().toISOString() } : res
+                    )
+                }));
+                this.addAuditLog('resident_updated', { id, updates });
+            }
+
+            deleteResident(id) {
+                this.setState(state => ({
+                    ...state,
+                    residents: state.residents.filter(res => res.id !== id),
+                    // Also remove related assignments
+                    scheduleAssignments: Object.fromEntries(
+                        Object.entries(state.scheduleAssignments).map(([key, assignments]) => [
+                            key,
+                            assignments.filter(a => a.residentId !== id)
+                        ])
+                    )
+                }));
+                this.addAuditLog('resident_deleted', { id });
+            }
+
+            addAssignment(date, timeSlot, assignment) {
+                const key = `${date}_${timeSlot}`;
+                const newAssignment = {
+                    ...assignment,
+                    id: `assign_${Date.now()}_${Math.random()}`,
+                    date,
+                    timeSlot,
+                    createdAt: new Date().toISOString()
+                };
+
+                this.setState(state => ({
+                    ...state,
+                    scheduleAssignments: {
+                        ...state.scheduleAssignments,
+                        [key]: [...(state.scheduleAssignments[key] || []), newAssignment]
+                    }
+                }));
+                this.addAuditLog('assignment_added', newAssignment);
+                return newAssignment;
+            }
+
+            updateAssignment(assignmentId, updates) {
+                this.setState(state => {
+                    const newAssignments = { ...state.scheduleAssignments };
+                    Object.keys(newAssignments).forEach(key => {
+                        newAssignments[key] = newAssignments[key].map(a =>
+                            a.id === assignmentId ? { ...a, ...updates } : a
+                        );
+                    });
+                    return { ...state, scheduleAssignments: newAssignments };
+                });
+                this.addAuditLog('assignment_updated', { assignmentId, updates });
+            }
+
+            deleteAssignment(assignmentId) {
+                this.setState(state => {
+                    const newAssignments = { ...state.scheduleAssignments };
+                    Object.keys(newAssignments).forEach(key => {
+                        newAssignments[key] = newAssignments[key].filter(a => a.id !== assignmentId);
+                    });
+                    return { ...state, scheduleAssignments: newAssignments };
+                });
+                this.addAuditLog('assignment_deleted', { assignmentId });
+            }
+
+            moveAssignment(assignmentId, newDate, newTimeSlot) {
+                let assignment = null;
+
+                // Find and remove from old location
+                this.setState(state => {
+                    const newAssignments = { ...state.scheduleAssignments };
+                    Object.keys(newAssignments).forEach(key => {
+                        const found = newAssignments[key].find(a => a.id === assignmentId);
+                        if (found) {
+                            assignment = { ...found };
+                            newAssignments[key] = newAssignments[key].filter(a => a.id !== assignmentId);
+                        }
+                    });
+
+                    // Add to new location
+                    if (assignment) {
+                        const newKey = `${newDate}_${newTimeSlot}`;
+                        assignment.date = newDate;
+                        assignment.timeSlot = newTimeSlot;
+                        newAssignments[newKey] = [...(newAssignments[newKey] || []), assignment];
+                    }
+
+                    return { ...state, scheduleAssignments: newAssignments };
+                });
+
+                this.addAuditLog('assignment_moved', { assignmentId, newDate, newTimeSlot });
+            }
+
+            addRule(rule) {
+                const newRule = {
+                    ...rule,
+                    id: `rule_${Date.now()}`,
+                    createdAt: new Date().toISOString(),
+                    isActive: true
+                };
+                this.setState(state => ({
+                    ...state,
+                    rules: [...state.rules, newRule]
+                }));
+                this.addAuditLog('rule_added', newRule);
+                return newRule;
+            }
+
+            updateRule(id, updates) {
+                this.setState(state => ({
+                    ...state,
+                    rules: state.rules.map(rule =>
+                        rule.id === id ? { ...rule, ...updates } : rule
+                    )
+                }));
+                this.addAuditLog('rule_updated', { id, updates });
+            }
+
+            deleteRule(id) {
+                this.setState(state => ({
+                    ...state,
+                    rules: state.rules.filter(rule => rule.id !== id)
+                }));
+                this.addAuditLog('rule_deleted', { id });
+            }
+
+            updateInstitutionSettings(updates) {
+                this.setState(state => ({
+                    ...state,
+                    institution: {
+                        ...state.institution,
+                        settings: {
+                            ...state.institution.settings,
+                            ...updates
+                        }
+                    }
+                }));
+                this.addAuditLog('settings_updated', updates);
+            }
+
+            addAuditLog(action, data) {
+                const entry = {
+                    id: `audit_${Date.now()}`,
+                    action,
+                    data,
+                    userId: this.state.currentUser?.id,
+                    timestamp: new Date().toISOString()
+                };
+                this.setState(state => ({
+                    ...state,
+                    auditLog: [...(state.auditLog || []).slice(-999), entry] // Keep last 1000 entries
+                }));
+            }
+
+            clearAllAssignments() {
+                if (confirm('Are you sure you want to clear ALL schedule assignments? This cannot be undone.')) {
+                    this.setState(state => ({
+                        ...state,
+                        scheduleAssignments: {}
+                    }));
+                    this.addAuditLog('assignments_cleared', { timestamp: new Date().toISOString() });
+                    toast.success('All assignments cleared');
+                }
+            }
+        }
+
+        // ==================== Scheduling Engine ====================
+        class SchedulingEngine {
+            constructor(store) {
+                this.store = store;
+            }
+
+            validateAssignment(assignment, existingAssignments = []) {
+                const state = this.store.getState();
+
+                // Check if resident is already assigned
+                const residentConflict = existingAssignments.find(a =>
+                    a.residentId === assignment.residentId && a.id !== assignment.id
+                );
+                if (residentConflict) {
+                    return { valid: false, reason: 'Resident already assigned to this time slot' };
+                }
+
+                // Check attending capacity
+                const attending = state.attendings.find(a => a.id === assignment.attendingId);
+                if (!attending) {
+                    return { valid: false, reason: 'Attending not found' };
+                }
+
+                const attendingAssignments = existingAssignments.filter(a =>
+                    a.attendingId === assignment.attendingId && a.id !== assignment.id
+                );
+                const capacity = assignment.timeSlot === 'AM' ? attending.capacityAM : attending.capacityPM;
+                if (attendingAssignments.length >= capacity) {
+                    return { valid: false, reason: 'Attending capacity exceeded' };
+                }
+
+                // Check protected time
+                const dayOfWeek = new Date(assignment.date).getDay();
+                const protectedTime = state.institution.settings.protectedTimes.find(pt =>
+                    pt.dayOfWeek === dayOfWeek && pt.timeSlot === assignment.timeSlot && pt.mandatory
+                );
+                if (protectedTime) {
+                    return { valid: false, reason: `Protected time: ${protectedTime.name}` };
+                }
+
+                // Check active rules
+                const violations = this.checkRuleViolations(assignment);
+                if (violations.length > 0) {
+                    return { valid: false, reason: violations[0] };
+                }
+
+                return { valid: true };
+            }
+
+            checkRuleViolations(assignment) {
+                const violations = [];
+                const state = this.store.getState();
+                const activeRules = state.rules.filter(r => r.isActive);
+
+                activeRules.forEach(rule => {
+                    switch (rule.type) {
+                        case 'continuity_separation': {
+                            const resident = state.residents.find(r => r.id === assignment.residentId);
+                            if (resident) {
+                                // Check if this violates continuity separation
+                                const recentAssignments = this.store.getAssignmentsForResident(
+                                    assignment.residentId,
+                                    format(subWeeks(new Date(assignment.date), 1), 'yyyy-MM-dd'),
+                                    assignment.date
+                                );
+                                const continuityAssignments = recentAssignments.filter(a => a.type === 'continuity');
+                                if (continuityAssignments.length > 0 && assignment.type === 'continuity') {
+                                    const lastContinuity = continuityAssignments[continuityAssignments.length - 1];
+                                    const daysBetween = Math.abs(
+                                        new Date(assignment.date).getTime() - new Date(lastContinuity.date).getTime()
+                                    ) / (1000 * 60 * 60 * 24);
+                                    if (daysBetween < (rule.parameters?.minDays || 2)) {
+                                        violations.push(`Continuity clinics must be at least ${rule.parameters?.minDays || 2} days apart`);
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case 'max_consecutive': {
+                            const maxDays = rule.parameters?.maxConsecutive || 3;
+                            const checkDates = [];
+                            for (let i = -maxDays; i <= maxDays; i++) {
+                                if (i !== 0) {
+                                    checkDates.push(format(addDays(new Date(assignment.date), i), 'yyyy-MM-dd'));
+                                }
+                            }
+                            const nearbyAssignments = checkDates.map(date =>
+                                Object.entries(state.scheduleAssignments)
+                                    .filter(([key]) => key.startsWith(date))
+                                    .flatMap(([, assignments]) => assignments.filter(a => a.residentId === assignment.residentId))
+                            ).flat();
+
+                            if (nearbyAssignments.length >= maxDays) {
+                                violations.push(`Cannot schedule more than ${maxDays} consecutive clinic days`);
+                            }
+                            break;
+                        }
+                        case 'rotation_requirement': {
+                            // This is more for validation/reporting than blocking
+                            break;
+                        }
+                        case 'post_call_protection': {
+                            // Would need call schedule integration
+                            break;
+                        }
+                    }
+                });
+
+                return violations;
+            }
+
+            async generateAutoSchedule(params) {
+                const { dateRange, optimizationGoals = [], respectRules = true } = params;
+                const state = this.store.getState();
+                const assignments = [];
+
+                // Get all weekdays in range
+                const dates = eachDayOfInterval(dateRange)
+                    .filter(date => {
+                        const day = getDay(date);
+                        return day >= 1 && day <= 5; // Weekdays only
+                    });
+
+                // Process each date and time slot
+                for (const date of dates) {
+                    for (const timeSlot of ['AM', 'PM']) {
+                        const dateStr = format(date, 'yyyy-MM-dd');
+                        const dayOfWeek = getDay(date);
+
+                        // Skip protected times
+                        const protectedTime = state.institution.settings.protectedTimes.find(pt =>
+                            pt.dayOfWeek === dayOfWeek && pt.timeSlot === timeSlot && pt.mandatory
+                        );
+                        if (protectedTime) continue;
+
+                        // Assign each resident
+                        for (const resident of state.residents) {
+                            // Check for continuity clinic
+                            const dayMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday' };
+                            const isontinuity = resident.continuityDay === dayMap[dayOfWeek] &&
+                                               resident.continuityTime === timeSlot;
+
+                            if (isontinuity) {
+                                // Assign to continuity site with preferred attending
+                                const continuityAttending = state.attendings.find(a =>
+                                    a.site === resident.continuitySite &&
+                                    this.getAttendingAvailability(a, dateStr, timeSlot, assignments) > 0
+                                );
+
+                                if (continuityAttending) {
+                                    assignments.push({
+                                        id: `auto_${Date.now()}_${Math.random()}`,
+                                        date: dateStr,
+                                        timeSlot,
+                                        residentId: resident.id,
+                                        attendingId: continuityAttending.id,
+                                        siteId: resident.continuitySite,
+                                        type: 'continuity',
+                                        autoGenerated: true
+                                    });
+                                }
+                            } else {
+                                // Find best attending based on optimization goals
+                                const bestAttending = this.findBestAttending(
+                                    resident, dateStr, timeSlot, assignments, optimizationGoals
+                                );
+
+                                if (bestAttending) {
+                                    const newAssignment = {
+                                        id: `auto_${Date.now()}_${Math.random()}`,
+                                        date: dateStr,
+                                        timeSlot,
+                                        residentId: resident.id,
+                                        attendingId: bestAttending.id,
+                                        siteId: bestAttending.site,
+                                        type: 'clinical',
+                                        autoGenerated: true
+                                    };
+
+                                    // Validate against rules if enabled
+                                    if (!respectRules || this.validateAssignment(newAssignment, assignments).valid) {
+                                        assignments.push(newAssignment);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Calculate metrics
+                const metrics = this.calculateScheduleMetrics(assignments);
+
+                return { assignments, metrics };
+            }
+
+            findBestAttending(resident, date, timeSlot, existingAssignments, optimizationGoals) {
+                const state = this.store.getState();
+                const availableAttendings = state.attendings.filter(att =>
+                    this.getAttendingAvailability(att, date, timeSlot, existingAssignments) > 0
+                );
+
+                if (availableAttendings.length === 0) return null;
+
+                // Score each attending based on optimization goals
+                const scores = availableAttendings.map(att => {
+                    let score = 0;
+
+                    // Prefer rotation site match
+                    if (optimizationGoals.includes('siteMatch') && att.site === resident.rotation) {
+                        score += 10;
+                    }
+
+                    // Minimize travel (prefer same site as previous assignment)
+                    if (optimizationGoals.includes('minimizeTravel')) {
+                        const prevAssignment = existingAssignments
+                            .filter(a => a.residentId === resident.id)
+                            .sort((a, b) => b.date.localeCompare(a.date))[0];
+                        if (prevAssignment && prevAssignment.siteId === att.site) {
+                            score += 5;
+                        }
+                    }
+
+                    // Balance workload (prefer less utilized attendings)
+                    if (optimizationGoals.includes('balanceWorkload')) {
+                        const utilization = existingAssignments.filter(a => a.attendingId === att.id).length;
+                        score -= utilization * 2;
+                    }
+
+                    // Respect preferences
+                    if (optimizationGoals.includes('respectPreferences')) {
+                        if (resident.preferences?.preferredAttendings?.includes(att.id)) {
+                            score += 8;
+                        }
+                        if (resident.preferences?.preferredSites?.includes(att.site)) {
+                            score += 4;
+                        }
+                    }
+
+                    return { attending: att, score };
+                });
+
+                // Return attending with highest score
+                scores.sort((a, b) => b.score - a.score);
+                return scores[0].attending;
+            }
+
+            getAttendingAvailability(attending, date, timeSlot, existingAssignments) {
+                const capacity = timeSlot === 'AM' ? attending.capacityAM : attending.capacityPM;
+                const assigned = existingAssignments.filter(a =>
+                    a.attendingId === attending.id &&
+                    a.date === date &&
+                    a.timeSlot === timeSlot
+                ).length;
+
+                // Check availability pattern
+                const dayOfWeek = new Date(date).getDay();
+                const dayMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday' };
+                const dayKey = dayMap[dayOfWeek];
+
+                if (attending.availabilityPattern?.[dayKey]?.[timeSlot.toLowerCase()] === false) {
+                    return 0;
+                }
+
+                return Math.max(0, capacity - assigned);
+            }
+
+            calculateScheduleMetrics(assignments) {
+                const state = this.store.getState();
+
+                // Coverage rate
+                const totalPossibleSlots = state.residents.length * assignments.length / state.residents.length * 2;
+                const coverageRate = (assignments.length / totalPossibleSlots) * 100;
+
+                // Utilization rate
+                let totalCapacity = 0;
+                let totalUsed = 0;
+                const uniqueDateSlots = [...new Set(assignments.map(a => `${a.date}_${a.timeSlot}`))];
+                uniqueDateSlots.forEach(slot => {
+                    const [date, timeSlot] = slot.split('_');
+                    state.attendings.forEach(att => {
+                        const capacity = timeSlot === 'AM' ? att.capacityAM : att.capacityPM;
+                        totalCapacity += capacity;
+                        const used = assignments.filter(a =>
+                            a.attendingId === att.id &&
+                            a.date === date &&
+                            a.timeSlot === timeSlot
+                        ).length;
+                        totalUsed += used;
+                    });
+                });
+                const utilizationRate = totalCapacity > 0 ? (totalUsed / totalCapacity) * 100 : 0;
+
+                // Continuity compliance
+                const continuityAssignments = assignments.filter(a => a.type === 'continuity');
+                const expectedContinuity = state.residents.length * Math.floor(uniqueDateSlots.length / 10); // Weekly
+                const continuityCompliance = expectedContinuity > 0 ?
+                    (continuityAssignments.length / expectedContinuity) * 100 : 100;
+
+                // Workload balance
+                const residentCounts = {};
+                state.residents.forEach(r => {
+                    residentCounts[r.id] = assignments.filter(a => a.residentId === r.id).length;
+                });
+                const counts = Object.values(residentCounts);
+                const mean = counts.length > 0 ? counts.reduce((a, b) => a + b, 0) / counts.length : 0;
+                const variance = counts.length > 0 ?
+                    counts.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / counts.length : 0;
+                const stdDev = Math.sqrt(variance);
+                const workloadBalance = mean > 0 ? Math.max(0, 100 - (stdDev / mean * 100)) : 100;
+
+                // Rule compliance
+                let ruleViolations = 0;
+                assignments.forEach(assignment => {
+                    const violations = this.checkRuleViolations(assignment);
+                    ruleViolations += violations.length;
+                });
+                const ruleCompliance = assignments.length > 0 ?
+                    ((assignments.length - ruleViolations) / assignments.length) * 100 : 100;
+
+                return {
+                    coverageRate: Math.round(coverageRate),
+                    utilizationRate: Math.round(utilizationRate),
+                    continuityCompliance: Math.round(continuityCompliance),
+                    workloadBalance: Math.round(workloadBalance),
+                    ruleCompliance: Math.round(ruleCompliance),
+                    totalAssignments: assignments.length
+                };
+            }
+        }
+
+        // ==================== Natural Language Rule Interpreter ====================
+        class RuleInterpreter {
+            interpretRule(naturalLanguage) {
+                const patterns = [
+                    {
+                        regex: /residents?\s+(?:must|should)\s+have\s+at\s+least\s+(\d+)\s+days?\s+between\s+continuity/i,
+                        type: 'continuity_separation',
+                        extract: (match) => ({ minDays: parseInt(match[1]) })
+                    },
+                    {
+                        regex: /PGY[- ]?(\d)\s+residents?\s+(?:must|should)\s+(?:have|complete)\s+(?:at\s+least\s+)?(\d+)\s+(\w+)\s+sessions?\s+per\s+(\w+)/i,
+                        type: 'rotation_requirement',
+                        extract: (match) => ({
+                            pgyLevel: parseInt(match[1]),
+                            count: parseInt(match[2]),
+                            rotation: match[3],
+                            period: match[4]
+                        })
+                    },
+                    {
+                        regex: /(?:no|don't|do\s+not)\s+(?:schedule\s+)?(?:residents?\s+)?(?:for\s+)?(?:more\s+than\s+)?(\d+)\s+consecutive\s+(?:clinic\s+)?days?/i,
+                        type: 'max_consecutive',
+                        extract: (match) => ({
+                            maxConsecutive: parseInt(match[1])
+                        })
+                    },
+                    {
+                        regex: /residents?\s+on\s+call\s+(?:cannot|should\s+not)\s+have\s+clinic\s+the\s+(?:next|following)\s+(\w+)/i,
+                        type: 'post_call_protection',
+                        extract: (match) => ({ timeframe: match[1] })
+                    },
+                    {
+                        regex: /all\s+residents?\s+must\s+(?:be\s+)?(?:attend|free|available)\s+(?:for\s+)?(\w+)\s+on\s+(\w+)\s+(\w+)/i,
+                        type: 'protected_time',
+                        extract: (match) => ({
+                            event: match[1],
+                            day: match[2],
+                            time: match[3]
+                        })
+                    }
+                ];
+
+                for (const pattern of patterns) {
+                    const match = naturalLanguage.match(pattern.regex);
+                    if (match) {
+                        return {
+                            success: true,
+                            type: pattern.type,
+                            parameters: pattern.extract(match),
+                            confidence: 0.85 + Math.random() * 0.15,
+                            originalText: naturalLanguage
+                        };
+                    }
+                }
+
+                return {
+                    success: false,
+                    type: 'unknown',
+                    parameters: {},
+                    confidence: 0.3,
+                    originalText: naturalLanguage
+                };
+            }
+
+            generateExplanation(rule) {
+                const explanations = {
+                    continuity_separation: `Ensures residents have at least ${rule.parameters.minDays} days between continuity clinic sessions`,
+                    rotation_requirement: `PGY-${rule.parameters.pgyLevel} residents must complete ${rule.parameters.count} ${rule.parameters.rotation} sessions per ${rule.parameters.period}`,
+                    max_consecutive: `Prevents scheduling more than ${rule.parameters.maxConsecutive} consecutive clinic days`,
+                    post_call_protection: `Protects residents from clinic duties the ${rule.parameters.timeframe} after being on call`,
+                    protected_time: `All residents must be available for ${rule.parameters.event} on ${rule.parameters.day} ${rule.parameters.time}`,
+                    unknown: 'Custom rule - manual interpretation required'
+                };
+
+                return explanations[rule.type] || 'Rule interpretation pending';
+            }
+        }
+
+        // ==================== Context and Store ====================
+        const store = new DataStore();
+        const schedulingEngine = new SchedulingEngine(store);
+        const ruleInterpreter = new RuleInterpreter();
+
+        const AppContext = createContext();
+
+        const AppProvider = ({ children }) => {
+            const [state, setState] = useState(store.getState());
+
+            useEffect(() => {
+                return store.subscribe(setState);
+            }, []);
+
+            const value = {
+                ...state,
+                store,
+                schedulingEngine,
+                ruleInterpreter
+            };
+
+            return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+        };
+
+        const useApp = () => useContext(AppContext);
+
+        // ==================== Shared Components ====================
+        const Icon = ({ name, size = 20, className = "" }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, []);
+            return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
+        };
+
+        const Button = ({ children, variant = 'primary', size = 'md', className = "", icon, ...props }) => {
+            const baseClasses = "inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2";
+            const variants = {
+                primary: "bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500",
+                secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-primary-500",
+                ghost: "text-gray-600 hover:bg-gray-100 focus:ring-gray-500",
+                danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+                success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
+            };
+            const sizes = {
+                sm: "px-3 py-1.5 text-sm gap-1.5",
+                md: "px-4 py-2 text-sm gap-2",
+                lg: "px-6 py-3 text-base gap-2"
+            };
+
+            return (
+                <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
+                    {...props}
+                >
+                    {icon && <Icon name={icon} size={size === 'sm' ? 16 : size === 'lg' ? 20 : 18} />}
+                    {children}
+                </motion.button>
+            );
+        };
+
+        const Card = ({ children, className = "", padding = true }) => (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`bg-white rounded-xl shadow-sm border border-gray-200 ${padding ? 'p-6' : ''} ${className}`}
+            >
+                {children}
+            </motion.div>
+        );
+
+        const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
+            const sizes = {
+                sm: 'max-w-md',
+                md: 'max-w-2xl',
+                lg: 'max-w-4xl',
+                xl: 'max-w-6xl'
+            };
+
+            if (!isOpen) return null;
+
+            return createPortal(
+                <AnimatePresence>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 overflow-y-auto"
+                    >
+                        <div className="flex items-center justify-center min-h-screen p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+                                onClick={onClose}
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                className={`relative bg-white rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden`}
+                            >
+                                <div className="flex items-center justify-between p-6 border-b">
+                                    <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+                                    <button
+                                        onClick={onClose}
+                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                    >
+                                        <Icon name="x" size={20} />
+                                    </button>
+                                </div>
+                                <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                                    {children}
+                                </div>
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                </AnimatePresence>,
+                document.getElementById('modal-root')
+            );
+        };
+
+        // ==================== Dashboard Component ====================
+        const Dashboard = () => {
+            const { attendings, residents, scheduleAssignments, rules, institution } = useApp();
+
+            const stats = useMemo(() => {
+                const totalAssignments = Object.values(scheduleAssignments).flat().length;
+                const thisWeek = Object.entries(scheduleAssignments)
+                    .filter(([key]) => {
+                        const [date] = key.split('_');
+                        return isWithinInterval(parseISO(date), {
+                            start: startOfWeek(new Date(), { weekStartsOn: 1 }),
+                            end: endOfWeek(new Date(), { weekStartsOn: 1 })
+                        });
+                    })
+                    .reduce((sum, [, assignments]) => sum + assignments.length, 0);
+
+                return [
+                    { label: 'Total Attendings', value: attendings.length, icon: 'users', color: 'blue', change: '+2' },
+                    { label: 'Total Residents', value: residents.length, icon: 'user-check', color: 'green', change: '+1' },
+                    { label: 'This Week', value: thisWeek, icon: 'calendar', color: 'purple', change: `${thisWeek > 0 ? '+' : ''}${thisWeek}` },
+                    { label: 'Active Rules', value: rules.filter(r => r.isActive).length, icon: 'shield-check', color: 'amber', change: '0' }
+                ];
+            }, [attendings, residents, scheduleAssignments, rules]);
+
+            const getColorClasses = (color) => {
+                const colors = {
+                    blue: 'bg-blue-100 text-blue-600',
+                    green: 'bg-green-100 text-green-600',
+                    purple: 'bg-purple-100 text-purple-600',
+                    amber: 'bg-amber-100 text-amber-600'
+                };
+                return colors[color] || colors.blue;
+            };
+
+            // Sample chart data for analytics
+            const weeklyData = [
+                { name: 'Mon', assignments: 12 },
+                { name: 'Tue', assignments: 15 },
+                { name: 'Wed', assignments: 8 },
+                { name: 'Thu', assignments: 14 },
+                { name: 'Fri', assignments: 11 }
+            ];
+
+            const siteDistribution = [
+                { name: 'GSS', value: 35, fill: '#10b981' },
+                { name: 'JHOC', value: 45, fill: '#f59e0b' },
+                { name: 'HoCo', value: 20, fill: '#ef4444' }
+            ];
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
+                            <p className="text-gray-600">Welcome back to Clinic Scheduler Pro</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <Button variant="secondary" icon="download">Export Report</Button>
+                            <Button variant="secondary" icon="refresh-cw">Sync Data</Button>
+                        </div>
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {stats.map((stat, index) => (
+                            <motion.div
+                                key={stat.label}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                            >
+                                <Card className="hover:shadow-lg transition-shadow">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-600">{stat.label}</p>
+                                            <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                <span className={stat.change.startsWith('+') ? 'text-green-600' : 'text-gray-600'}>
+                                                    {stat.change} from last week
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div className={`p-3 rounded-lg ${getColorClasses(stat.color)}`}>
+                                            <Icon name={stat.icon} size={24} />
+                                        </div>
+                                    </div>
+                                </Card>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    {/* Charts */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <Card>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Assignment Trend</h3>
+                            <ResponsiveContainer width="100%" height={250}>
+                                <LineChart data={weeklyData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Line type="monotone" dataKey="assignments" stroke="#3b82f6" strokeWidth={2} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </Card>
+
+                        <Card>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Site Distribution</h3>
+                            <ResponsiveContainer width="100%" height={250}>
+                                <PieChart>
+                                    <Pie
+                                        data={siteDistribution}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={(entry) => `${entry.name} (${entry.value}%)`}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {siteDistribution.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </Card>
+                    </div>
+
+                    {/* Recent Activity */}
+                    <Card>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                        <div className="space-y-3">
+                            {[
+                                { action: 'Schedule updated for next week', time: '2 hours ago', icon: 'calendar', user: 'You' },
+                                { action: 'New resident added: Dr. Smith', time: '5 hours ago', icon: 'user-plus', user: 'Admin' },
+                                { action: 'Rule created: Continuity separation', time: '1 day ago', icon: 'shield', user: 'You' },
+                                { action: 'Monthly report generated', time: '2 days ago', icon: 'file-text', user: 'System' }
+                            ].map((activity, index) => (
+                                <div key={index} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg">
+                                    <div className="p-2 bg-gray-100 rounded-lg">
+                                        <Icon name={activity.icon} size={16} className="text-gray-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-medium text-gray-900">{activity.action}</p>
+                                        <p className="text-xs text-gray-500">{activity.user} • {activity.time}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
+                </div>
+            );
+        };
+
+        // ==================== Schedule Calendar Component ====================
+        const ScheduleCalendar = () => {
+            const { store, schedulingEngine, attendings, residents, institution } = useApp();
+            const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+            const [draggedItem, setDraggedItem] = useState(null);
+            const [showAutoScheduler, setShowAutoScheduler] = useState(false);
+            const [selectedCell, setSelectedCell] = useState(null);
+
+            const weekDays = useMemo(() => {
+                const days = [];
+                for (let i = 0; i < 5; i++) {
+                    days.push(addDays(currentWeek, i));
+                }
+                return days;
+            }, [currentWeek]);
+
+            const timeSlots = ['AM', 'PM'];
+
+            const handleDragStart = (e, assignment) => {
+                setDraggedItem(assignment);
+                e.dataTransfer.effectAllowed = 'move';
+                e.target.classList.add('dragging');
+            };
+
+            const handleDragEnd = (e) => {
+                e.target.classList.remove('dragging');
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                e.currentTarget.classList.add('drop-indicator');
+            };
+
+            const handleDragLeave = (e) => {
+                e.currentTarget.classList.remove('drop-indicator');
+            };
+
+            const handleDrop = (e, date, timeSlot) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('drop-indicator');
+
+                if (!draggedItem) return;
+
+                const dateStr = format(date, 'yyyy-MM-dd');
+                const existingAssignments = store.getAssignmentsForDate(dateStr, timeSlot);
+
+                // Validate the move
+                const validation = schedulingEngine.validateAssignment({
+                    ...draggedItem,
+                    date: dateStr,
+                    timeSlot
+                }, existingAssignments);
+
+                if (validation.valid) {
+                    // Move the assignment
+                    store.moveAssignment(draggedItem.id, dateStr, timeSlot);
+                    toast.success('Assignment moved successfully');
+                } else {
+                    toast.error(validation.reason);
+                }
+
+                setDraggedItem(null);
+            };
+
+            const isProtectedTime = (date, timeSlot) => {
+                const dayOfWeek = getDay(date);
+                return institution.settings.protectedTimes.some(pt =>
+                    pt.dayOfWeek === dayOfWeek && pt.timeSlot === timeSlot && pt.mandatory
+                );
+            };
+
+            const isContinuitySlot = (date, timeSlot, residentId) => {
+                const resident = residents.find(r => r.id === residentId);
+                if (!resident) return false;
+
+                const dayOfWeek = getDay(date);
+                const dayMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday' };
+                return resident.continuityDay === dayMap[dayOfWeek] && resident.continuityTime === timeSlot;
+            };
+
+            const handleQuickAdd = (date, timeSlot, residentId, attendingId) => {
+                const dateStr = format(date, 'yyyy-MM-dd');
+                const resident = residents.find(r => r.id === residentId);
+                const attending = attendings.find(a => a.id === attendingId);
+
+                if (!resident || !attending) return;
+
+                const isContinuity = isContinuitySlot(date, timeSlot, residentId);
+
+                const assignment = {
+                    residentId,
+                    attendingId,
+                    siteId: attending.site,
+                    type: isContinuity ? 'continuity' : 'clinical'
+                };
+
+                const existingAssignments = store.getAssignmentsForDate(dateStr, timeSlot);
+                const validation = schedulingEngine.validateAssignment(assignment, existingAssignments);
+
+                if (validation.valid) {
+                    store.addAssignment(dateStr, timeSlot, assignment);
+                    toast.success(`${resident.name} assigned to ${attending.name}`);
+                    setSelectedCell(null);
+                } else {
+                    toast.error(validation.reason);
+                }
+            };
+
+            const exportSchedule = () => {
+                const data = [];
+                weekDays.forEach(day => {
+                    const dateStr = format(day, 'yyyy-MM-dd');
+                    timeSlots.forEach(timeSlot => {
+                        const assignments = store.getAssignmentsForDate(dateStr, timeSlot);
+                        assignments.forEach(assignment => {
+                            const resident = residents.find(r => r.id === assignment.residentId);
+                            const attending = attendings.find(a => a.id === assignment.attendingId);
+                            data.push({
+                                Date: dateStr,
+                                Day: format(day, 'EEEE'),
+                                Time: timeSlot,
+                                Resident: resident?.name || 'Unknown',
+                                Attending: attending?.name || 'Unknown',
+                                Site: assignment.siteId,
+                                Type: assignment.type
+                            });
+                        });
+                    });
+                });
+
+                const csv = Papa.unparse(data);
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `schedule_${format(currentWeek, 'yyyy-MM-dd')}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success('Schedule exported');
+            };
+
+            return (
+                <div className="space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">Schedule Calendar</h2>
+                            <p className="text-gray-600">Week of {format(currentWeek, 'MMMM d, yyyy')}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Button
+                                variant="secondary"
+                                icon="chevron-left"
+                                onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
+                            />
+                            <Button
+                                variant="secondary"
+                                onClick={() => setCurrentWeek(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+                            >
+                                Today
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                icon="chevron-right"
+                                onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                        <Button icon="sparkles" onClick={() => setShowAutoScheduler(true)}>
+                            Auto-Schedule
+                        </Button>
+                        <Button variant="secondary" icon="download" onClick={exportSchedule}>
+                            Export CSV
+                        </Button>
+                        <Button variant="secondary" icon="printer">
+                            Print
+                        </Button>
+                    </div>
+
+                    {/* Legend */}
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 bg-gradient-to-r from-yellow-300 to-yellow-400 rounded"></div>
+                            <span className="text-sm text-gray-600">Continuity</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 bg-gradient-to-r from-indigo-300 to-indigo-400 rounded"></div>
+                            <span className="text-sm text-gray-600">Protected Time</span>
+                        </div>
+                        {institution.settings.sites.map(site => (
+                            <div key={site.id} className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded" style={{ backgroundColor: site.color }}></div>
+                                <span className="text-sm text-gray-600">{site.name}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Calendar Grid */}
+                    <Card padding={false}>
+                        <div className="calendar-grid rounded-lg overflow-hidden">
+                            {/* Header Row */}
+                            <div className="bg-gray-50 p-3 font-semibold text-gray-700">Time</div>
+                            {weekDays.map(day => (
+                                <div key={day} className="bg-gray-50 p-3 text-center">
+                                    <div className="font-semibold text-gray-900">{format(day, 'EEEE')}</div>
+                                    <div className="text-sm text-gray-600">{format(day, 'MMM d')}</div>
+                                </div>
+                            ))}
+
+                            {/* Time Slots */}
+                            {timeSlots.map(timeSlot => (
+                                <React.Fragment key={timeSlot}>
+                                    <div className="bg-gray-50 p-3 font-medium text-gray-700">{timeSlot}</div>
+                                    {weekDays.map(day => {
+                                        const dateStr = format(day, 'yyyy-MM-dd');
+                                        const assignments = store.getAssignmentsForDate(dateStr, timeSlot);
+                                        const isProtected = isProtectedTime(day, timeSlot);
+                                        const protectedTime = institution.settings.protectedTimes.find(pt =>
+                                            pt.dayOfWeek === getDay(day) && pt.timeSlot === timeSlot
+                                        );
+
+                                        return (
+                                            <div
+                                                key={`${day}_${timeSlot}`}
+                                                className={`time-slot ${isProtected ? 'protected' : ''}`}
+                                                onDragOver={!isProtected ? handleDragOver : undefined}
+                                                onDragLeave={!isProtected ? handleDragLeave : undefined}
+                                                onDrop={!isProtected ? (e) => handleDrop(e, day, timeSlot) : undefined}
+                                            >
+                                                {isProtected ? (
+                                                    <div className="p-3 text-center">
+                                                        <Icon name="book-open" size={20} className="mx-auto text-indigo-600 mb-1" />
+                                                        <p className="text-xs font-medium text-indigo-700">{protectedTime?.name}</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="p-2">
+                                                        {assignments.map(assignment => {
+                                                            const resident = residents.find(r => r.id === assignment.residentId);
+                                                            const attending = attendings.find(a => a.id === assignment.attendingId);
+                                                            const isContinuity = assignment.type === 'continuity';
+
+                                                            return (
+                                                                <div
+                                                                    key={assignment.id}
+                                                                    className={`assignment-card site-${assignment.siteId} ${isContinuity ? 'bg-yellow-50' : ''}`}
+                                                                    draggable
+                                                                    onDragStart={(e) => handleDragStart(e, assignment)}
+                                                                    onDragEnd={handleDragEnd}
+                                                                >
+                                                                    <div className="font-medium">{resident?.name}</div>
+                                                                    <div className="text-gray-600">{attending?.name}</div>
+                                                                    {isContinuity && (
+                                                                        <span className="inline-block px-1 py-0.5 bg-yellow-200 text-yellow-800 rounded text-xs mt-1">
+                                                                            Continuity
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        {assignments.length === 0 && (
+                                                            <button
+                                                                onClick={() => setSelectedCell({ date: day, timeSlot })}
+                                                                className="w-full h-full flex items-center justify-center text-gray-400 hover:text-primary-600 transition-colors"
+                                                            >
+                                                                <Icon name="plus-circle" size={24} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    </Card>
+
+                    {/* Quick Add Panel */}
+                    {selectedCell && (
+                        <Card>
+                            <h3 className="font-semibold text-gray-900 mb-3">
+                                Quick Add: {format(selectedCell.date, 'EEEE, MMM d')} - {selectedCell.timeSlot}
+                            </h3>
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                                {residents.map(resident => {
+                                    const isContinuity = isContinuitySlot(selectedCell.date, selectedCell.timeSlot, resident.id);
+                                    const preferredAttendings = attendings.filter(a =>
+                                        isContinuity ? a.site === resident.continuitySite : true
+                                    );
+
+                                    return (
+                                        <div key={resident.id} className="space-y-2">
+                                            <div className="font-medium text-sm">
+                                                {resident.name} (PGY-{resident.pgyLevel})
+                                                {isContinuity && <span className="ml-2 text-yellow-600">Continuity</span>}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-1">
+                                                {preferredAttendings.slice(0, 4).map(attending => (
+                                                    <button
+                                                        key={attending.id}
+                                                        onClick={() => handleQuickAdd(
+                                                            selectedCell.date,
+                                                            selectedCell.timeSlot,
+                                                            resident.id,
+                                                            attending.id
+                                                        )}
+                                                        className="p-1 text-xs bg-gray-100 hover:bg-primary-100 rounded transition-colors"
+                                                    >
+                                                        {attending.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <button
+                                onClick={() => setSelectedCell(null)}
+                                className="mt-4 text-sm text-gray-600 hover:text-gray-900"
+                            >
+                                Cancel
+                            </button>
+                        </Card>
+                    )}
+
+                    {/* Auto-Scheduler Modal */}
+                    <Modal
+                        isOpen={showAutoScheduler}
+                        onClose={() => setShowAutoScheduler(false)}
+                        title="Auto-Schedule Generator"
+                        size="lg"
+                    >
+                        <AutoSchedulerContent onClose={() => setShowAutoScheduler(false)} />
+                    </Modal>
+                </div>
+            );
+        };
+
+        // Auto-Scheduler Component
+        const AutoSchedulerContent = ({ onClose }) => {
+            const { store, schedulingEngine } = useApp();
+            const [loading, setLoading] = useState(false);
+            const [preview, setPreview] = useState(null);
+            const [dateRange, setDateRange] = useState({
+                start: startOfWeek(new Date(), { weekStartsOn: 1 }),
+                end: endOfWeek(new Date(), { weekStartsOn: 1 })
+            });
+            const [optimizationGoals, setOptimizationGoals] = useState(['balanceWorkload', 'siteMatch']);
+
+            const goals = [
+                { id: 'balanceWorkload', label: 'Balance Workload', icon: 'scale' },
+                { id: 'minimizeTravel', label: 'Minimize Site Transitions', icon: 'map-pin' },
+                { id: 'siteMatch', label: 'Match Rotation Sites', icon: 'building' },
+                { id: 'respectPreferences', label: 'Respect Preferences', icon: 'heart' }
+            ];
+
+            const handleGenerate = async () => {
+                setLoading(true);
+                try {
+                    const result = await schedulingEngine.generateAutoSchedule({
+                        dateRange,
+                        optimizationGoals,
+                        respectRules: true
+                    });
+                    setPreview(result);
+                } catch (error) {
+                    toast.error('Failed to generate schedule');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleApply = () => {
+                if (!preview) return;
+
+                preview.assignments.forEach(assignment => {
+                    store.addAssignment(assignment.date, assignment.timeSlot, assignment);
+                });
+
+                toast.success(`Applied ${preview.assignments.length} assignments`);
+                onClose();
+            };
+
+            return (
+                <div className="space-y-6">
+                    {!preview ? (
+                        <>
+                            <div>
+                                <h4 className="font-semibold mb-3">Date Range</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm text-gray-600 mb-1">Start Date</label>
+                                        <input
+                                            type="date"
+                                            value={format(dateRange.start, 'yyyy-MM-dd')}
+                                            onChange={(e) => setDateRange({
+                                                ...dateRange,
+                                                start: parseISO(e.target.value)
+                                            })}
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-gray-600 mb-1">End Date</label>
+                                        <input
+                                            type="date"
+                                            value={format(dateRange.end, 'yyyy-MM-dd')}
+                                            onChange={(e) => setDateRange({
+                                                ...dateRange,
+                                                end: parseISO(e.target.value)
+                                            })}
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="font-semibold mb-3">Optimization Goals</h4>
+                                <div className="space-y-2">
+                                    {goals.map(goal => (
+                                        <label key={goal.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={optimizationGoals.includes(goal.id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setOptimizationGoals([...optimizationGoals, goal.id]);
+                                                    } else {
+                                                        setOptimizationGoals(optimizationGoals.filter(g => g !== goal.id));
+                                                    }
+                                                }}
+                                                className="w-4 h-4 text-primary-600"
+                                            />
+                                            <Icon name={goal.icon} size={20} />
+                                            <span className="font-medium">{goal.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <Button
+                                onClick={handleGenerate}
+                                disabled={loading}
+                                className="w-full"
+                                icon={loading ? null : 'sparkles'}
+                            >
+                                {loading ? 'Generating...' : 'Generate Schedule'}
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h4 className="font-semibold text-green-900 mb-2">Schedule Generated Successfully</h4>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span className="text-gray-600">Total Assignments:</span>
+                                        <span className="ml-2 font-semibold">{preview.metrics.totalAssignments}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-600">Coverage Rate:</span>
+                                        <span className="ml-2 font-semibold">{preview.metrics.coverageRate}%</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-600">Utilization:</span>
+                                        <span className="ml-2 font-semibold">{preview.metrics.utilizationRate}%</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-600">Rule Compliance:</span>
+                                        <span className="ml-2 font-semibold">{preview.metrics.ruleCompliance}%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="font-semibold mb-3">Preview (First 10)</h4>
+                                <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto space-y-1">
+                                    {preview.assignments.slice(0, 10).map((assignment, idx) => {
+                                        const resident = store.getState().residents.find(r => r.id === assignment.residentId);
+                                        const attending = store.getState().attendings.find(a => a.id === assignment.attendingId);
+                                        return (
+                                            <div key={idx} className="text-sm flex items-center gap-2">
+                                                <span className="text-gray-600">{assignment.date}</span>
+                                                <span className="font-medium">{assignment.timeSlot}</span>
+                                                <span>•</span>
+                                                <span>{resident?.name}</span>
+                                                <span>→</span>
+                                                <span>{attending?.name}</span>
+                                            </div>
+                                        );
+                                    })}
+                                    {preview.assignments.length > 10 && (
+                                        <p className="text-gray-500 mt-2">... and {preview.assignments.length - 10} more</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Button variant="secondary" onClick={() => setPreview(null)} className="flex-1">
+                                    Back
+                                </Button>
+                                <Button onClick={handleApply} className="flex-1" icon="check">
+                                    Apply Schedule
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        // ==================== Settings Component ====================
+        const Settings = () => {
+            const { institution, store } = useApp();
+            const [activeTab, setActiveTab] = useState('general');
+            const [editingSite, setEditingSite] = useState(null);
+            const [editingRotation, setEditingRotation] = useState(null);
+            const [editingProtectedTime, setEditingProtectedTime] = useState(null);
+
+            const tabs = [
+                { id: 'general', label: 'General', icon: 'settings' },
+                { id: 'sites', label: 'Sites', icon: 'building' },
+                { id: 'rotations', label: 'Rotations', icon: 'repeat' },
+                { id: 'protected', label: 'Protected Time', icon: 'shield' },
+                { id: 'import', label: 'Import/Export', icon: 'download' }
+            ];
+
+            const handleSiteSave = (site) => {
+                const sites = [...institution.settings.sites];
+                if (site.id) {
+                    const index = sites.findIndex(s => s.id === site.id);
+                    sites[index] = site;
+                } else {
+                    sites.push({ ...site, id: `site_${Date.now()}` });
+                }
+                store.updateInstitutionSettings({ sites });
+                setEditingSite(null);
+                toast.success('Site saved');
+            };
+
+            const handleRotationSave = (rotation) => {
+                const rotations = [...institution.settings.rotations];
+                if (rotation.id) {
+                    const index = rotations.findIndex(r => r.id === rotation.id);
+                    rotations[index] = rotation;
+                } else {
+                    rotations.push({ ...rotation, id: `rotation_${Date.now()}` });
+                }
+                store.updateInstitutionSettings({ rotations });
+                setEditingRotation(null);
+                toast.success('Rotation saved');
+            };
+
+            const handleProtectedTimeSave = (protectedTime) => {
+                const protectedTimes = [...institution.settings.protectedTimes];
+                if (protectedTime.id) {
+                    const index = protectedTimes.findIndex(pt => pt.id === protectedTime.id);
+                    protectedTimes[index] = protectedTime;
+                } else {
+                    protectedTimes.push({ ...protectedTime, id: `protected_${Date.now()}` });
+                }
+                store.updateInstitutionSettings({ protectedTimes });
+                setEditingProtectedTime(null);
+                toast.success('Protected time saved');
+            };
+
+            const exportData = () => {
+                const data = {
+                    version: '1.0',
+                    exported: new Date().toISOString(),
+                    institution: store.getState().institution,
+                    attendings: store.getState().attendings,
+                    residents: store.getState().residents,
+                    rules: store.getState().rules
+                };
+
+                const json = JSON.stringify(data, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `clinic_scheduler_backup_${format(new Date(), 'yyyy-MM-dd')}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast.success('Data exported');
+            };
+
+            const importData = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (confirm('This will replace all current data. Are you sure?')) {
+                            store.setState({
+                                ...store.getState(),
+                                institution: data.institution,
+                                attendings: data.attendings,
+                                residents: data.residents,
+                                rules: data.rules
+                            });
+                            toast.success('Data imported successfully');
+                        }
+                    } catch (error) {
+                        toast.error('Failed to import data');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+                        <p className="text-gray-600">Configure your institution and scheduling preferences</p>
+                    </div>
+
+                    {/* Tab Navigation */}
+                    <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`
+                                    flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all
+                                    ${activeTab === tab.id
+                                        ? 'bg-white text-primary-600 shadow-sm'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                    }
+                                `}
+                            >
+                                <Icon name={tab.icon} size={18} />
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Tab Content */}
+                    {activeTab === 'general' && (
+                        <Card>
+                            <h3 className="text-lg font-semibold mb-4">General Settings</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Institution Name</label>
+                                    <input
+                                        type="text"
+                                        value={institution.name}
+                                        onChange={(e) => store.updateInstitutionSettings({ name: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-lg"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Academic Year Start</label>
+                                        <input
+                                            type="date"
+                                            value={institution.settings.academicYear?.start || ''}
+                                            onChange={(e) => store.updateInstitutionSettings({
+                                                academicYear: { ...institution.settings.academicYear, start: e.target.value }
+                                            })}
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Academic Year End</label>
+                                        <input
+                                            type="date"
+                                            value={institution.settings.academicYear?.end || ''}
+                                            onChange={(e) => store.updateInstitutionSettings({
+                                                academicYear: { ...institution.settings.academicYear, end: e.target.value }
+                                            })}
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+                    )}
+
+                    {activeTab === 'sites' && (
+                        <Card>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">Clinic Sites</h3>
+                                <Button size="sm" icon="plus" onClick={() => setEditingSite({})}>
+                                    Add Site
+                                </Button>
+                            </div>
+                            <div className="space-y-3">
+                                {institution.settings.sites.map(site => (
+                                    <div key={site.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-4 h-4 rounded" style={{ backgroundColor: site.color }}></div>
+                                            <div>
+                                                <div className="font-medium">{site.name} ({site.code})</div>
+                                                <div className="text-sm text-gray-600">{site.address}</div>
+                                            </div>
+                                        </div>
+                                        <Button size="sm" variant="ghost" onClick={() => setEditingSite(site)}>
+                                            Edit
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+                    )}
+
+                    {activeTab === 'rotations' && (
+                        <Card>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">Rotations</h3>
+                                <Button size="sm" icon="plus" onClick={() => setEditingRotation({})}>
+                                    Add Rotation
+                                </Button>
+                            </div>
+                            <div className="space-y-3">
+                                {institution.settings.rotations.map(rotation => (
+                                    <div key={rotation.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div>
+                                            <div className="font-medium">{rotation.name} ({rotation.code})</div>
+                                            <div className="text-sm text-gray-600">Min sessions: {rotation.minSessions}/month</div>
+                                        </div>
+                                        <Button size="sm" variant="ghost" onClick={() => setEditingRotation(rotation)}>
+                                            Edit
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+                    )}
+
+                    {activeTab === 'protected' && (
+                        <Card>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">Protected Times</h3>
+                                <Button size="sm" icon="plus" onClick={() => setEditingProtectedTime({})}>
+                                    Add Protected Time
+                                </Button>
+                            </div>
+                            <div className="space-y-3">
+                                {institution.settings.protectedTimes.map(pt => (
+                                    <div key={pt.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div>
+                                            <div className="font-medium">{pt.name}</div>
+                                            <div className="text-sm text-gray-600">
+                                                {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][pt.dayOfWeek]} {pt.timeSlot}
+                                                {pt.mandatory && <span className="ml-2 text-red-600">Mandatory</span>}
+                                            </div>
+                                        </div>
+                                        <Button size="sm" variant="ghost" onClick={() => setEditingProtectedTime(pt)}>
+                                            Edit
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+                    )}
+
+                    {activeTab === 'import' && (
+                        <Card>
+                            <h3 className="text-lg font-semibold mb-4">Import/Export Data</h3>
+                            <div className="space-y-4">
+                                <div className="p-4 bg-blue-50 rounded-lg">
+                                    <h4 className="font-medium text-blue-900 mb-2">Export Data</h4>
+                                    <p className="text-sm text-blue-700 mb-3">
+                                        Download a backup of all your data including settings, attendings, residents, and rules.
+                                    </p>
+                                    <Button icon="download" onClick={exportData}>
+                                        Export All Data
+                                    </Button>
+                                </div>
+                                <div className="p-4 bg-amber-50 rounded-lg">
+                                    <h4 className="font-medium text-amber-900 mb-2">Import Data</h4>
+                                    <p className="text-sm text-amber-700 mb-3">
+                                        Upload a previously exported backup file. This will replace all current data.
+                                    </p>
+                                    <input
+                                        type="file"
+                                        accept=".json"
+                                        onChange={importData}
+                                        className="block w-full text-sm text-gray-500
+                                            file:mr-4 file:py-2 file:px-4
+                                            file:rounded-lg file:border-0
+                                            file:text-sm file:font-semibold
+                                            file:bg-amber-100 file:text-amber-700
+                                            hover:file:bg-amber-200"
+                                    />
+                                </div>
+                                <div className="p-4 bg-red-50 rounded-lg">
+                                    <h4 className="font-medium text-red-900 mb-2">Clear All Data</h4>
+                                    <p className="text-sm text-red-700 mb-3">
+                                        Remove all schedule assignments. This cannot be undone.
+                                    </p>
+                                    <Button variant="danger" icon="trash" onClick={() => store.clearAllAssignments()}>
+                                        Clear All Assignments
+                                    </Button>
+                                </div>
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* Edit Modals */}
+                    {editingSite && (
+                        <Modal
+                            isOpen={true}
+                            onClose={() => setEditingSite(null)}
+                            title={editingSite.id ? 'Edit Site' : 'Add Site'}
+                        >
+                            <SiteForm site={editingSite} onSave={handleSiteSave} onCancel={() => setEditingSite(null)} />
+                        </Modal>
+                    )}
+                    {editingRotation && (
+                        <Modal
+                            isOpen={true}
+                            onClose={() => setEditingRotation(null)}
+                            title={editingRotation.id ? 'Edit Rotation' : 'Add Rotation'}
+                        >
+                            <RotationForm rotation={editingRotation} onSave={handleRotationSave} onCancel={() => setEditingRotation(null)} />
+                        </Modal>
+                    )}
+                    {editingProtectedTime && (
+                        <Modal
+                            isOpen={true}
+                            onClose={() => setEditingProtectedTime(null)}
+                            title={editingProtectedTime.id ? 'Edit Protected Time' : 'Add Protected Time'}
+                        >
+                            <ProtectedTimeForm protectedTime={editingProtectedTime} onSave={handleProtectedTimeSave} onCancel={() => setEditingProtectedTime(null)} />
+                        </Modal>
+                    )}
+                </div>
+            );
+        };
+
+        // Form Components for Settings
+        const SiteForm = ({ site, onSave, onCancel }) => {
+            const [formData, setFormData] = useState({
+                name: site.name || '',
+                code: site.code || '',
+                color: site.color || '#3b82f6',
+                address: site.address || '',
+                ...site
+            });
+
+            return (
+                <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <input
+                            type="text"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            className="w-full px-3 py-2 border rounded-lg"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Code</label>
+                        <input
+                            type="text"
+                            value={formData.code}
+                            onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                            className="w-full px-3 py-2 border rounded-lg"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                        <input
+                            type="color"
+                            value={formData.color}
+                            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                            className="w-full h-10"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <input
+                            type="text"
+                            value={formData.address}
+                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            className="w-full px-3 py-2 border rounded-lg"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
+                        <Button type="submit">Save</Button>
+                    </div>
+                </form>
+            );
+        };
+
+        const RotationForm = ({ rotation, onSave, onCancel }) => {
+            const [formData, setFormData] = useState({
+                name: rotation.name || '',
+                code: rotation.code || '',
+                minSessions: rotation.minSessions || 2,
+                ...rotation
+            });
+
+            return (
+                <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <input
+                            type="text"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            className="w-full px-3 py-2 border rounded-lg"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Code</label>
+                        <input
+                            type="text"
+                            value={formData.code}
+                            onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                            className="w-full px-3 py-2 border rounded-lg"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Sessions per Month</label>
+                        <input
+                            type="number"
+                            min="0"
+                            value={formData.minSessions}
+                            onChange={(e) => setFormData({ ...formData, minSessions: parseInt(e.target.value) })}
+                            className="w-full px-3 py-2 border rounded-lg"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
+                        <Button type="submit">Save</Button>
+                    </div>
+                </form>
+            );
+        };
+
+        const ProtectedTimeForm = ({ protectedTime, onSave, onCancel }) => {
+            const [formData, setFormData] = useState({
+                name: protectedTime.name || '',
+                dayOfWeek: protectedTime.dayOfWeek || 3,
+                timeSlot: protectedTime.timeSlot || 'AM',
+                mandatory: protectedTime.mandatory !== false,
+                ...protectedTime
+            });
+
+            return (
+                <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <input
+                            type="text"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            className="w-full px-3 py-2 border rounded-lg"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Day of Week</label>
+                        <select
+                            value={formData.dayOfWeek}
+                            onChange={(e) => setFormData({ ...formData, dayOfWeek: parseInt(e.target.value) })}
+                            className="w-full px-3 py-2 border rounded-lg"
+                        >
+                            <option value={0}>Sunday</option>
+                            <option value={1}>Monday</option>
+                            <option value={2}>Tuesday</option>
+                            <option value={3}>Wednesday</option>
+                            <option value={4}>Thursday</option>
+                            <option value={5}>Friday</option>
+                            <option value={6}>Saturday</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Time Slot</label>
+                        <select
+                            value={formData.timeSlot}
+                            onChange={(e) => setFormData({ ...formData, timeSlot: e.target.value })}
+                            className="w-full px-3 py-2 border rounded-lg"
+                        >
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formData.mandatory}
+                                onChange={(e) => setFormData({ ...formData, mandatory: e.target.checked })}
+                                className="w-4 h-4"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Mandatory</span>
+                        </label>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
+                        <Button type="submit">Save</Button>
+                    </div>
+                </form>
+            );
+        };
+
+        // ==================== Attendings View Component ====================
+        const AttendingsView = () => {
+            const { attendings, institution, store } = useApp();
+            const [showModal, setShowModal] = useState(false);
+            const [editingAttending, setEditingAttending] = useState(null);
+
+            const AttendingForm = ({ attending }) => {
+                const [formData, setFormData] = useState(attending || {
+                    name: '',
+                    site: institution.settings.sites[0]?.id || '',
+                    capacityAM: 1,
+                    capacityPM: 1,
+                    availabilityPattern: {
+                        monday: { am: true, pm: true },
+                        tuesday: { am: true, pm: true },
+                        wednesday: { am: false, pm: true },
+                        thursday: { am: true, pm: true },
+                        friday: { am: true, pm: true }
+                    }
+                });
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    if (attending) {
+                        store.updateAttending(attending.id, formData);
+                        toast.success('Attending updated successfully');
+                    } else {
+                        store.addAttending(formData);
+                        toast.success('Attending added successfully');
+                    }
+                    setShowModal(false);
+                    setEditingAttending(null);
+                };
+
+                const toggleAvailability = (day, period) => {
+                    setFormData(prev => ({
+                        ...prev,
+                        availabilityPattern: {
+                            ...prev.availabilityPattern,
+                            [day]: {
+                                ...prev.availabilityPattern[day],
+                                [period]: !prev.availabilityPattern[day][period]
+                            }
+                        }
+                    }));
+                };
+
+                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+                const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+                return (
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Primary Site</label>
+                                <select
+                                    value={formData.site}
+                                    onChange={(e) => setFormData({...formData, site: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                >
+                                    {institution.settings.sites.map(site => (
+                                        <option key={site.id} value={site.id}>{site.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">AM Capacity</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="10"
+                                    value={formData.capacityAM}
+                                    onChange={(e) => setFormData({...formData, capacityAM: parseInt(e.target.value)})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">PM Capacity</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="10"
+                                    value={formData.capacityPM}
+                                    onChange={(e) => setFormData({...formData, capacityPM: parseInt(e.target.value)})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-3">Default Availability Pattern</label>
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="grid grid-cols-6 gap-2 text-center text-xs font-medium text-gray-600 mb-2">
+                                    <div></div>
+                                    {dayLabels.map(day => (
+                                        <div key={day}>{day}</div>
+                                    ))}
+                                </div>
+                                {['am', 'pm'].map(period => (
+                                    <div key={period} className="grid grid-cols-6 gap-2 mb-2">
+                                        <div className="text-xs font-medium text-gray-600 uppercase">{period}</div>
+                                        {days.map((day) => (
+                                            <button
+                                                key={day}
+                                                type="button"
+                                                onClick={() => toggleAvailability(day, period)}
+                                                className={`
+                                                    p-2 rounded-lg transition-all
+                                                    ${formData.availabilityPattern[day][period]
+                                                        ? 'bg-primary-500 text-white'
+                                                        : 'bg-white border border-gray-300 hover:bg-gray-100'
+                                                    }
+                                                `}
+                                            >
+                                                <Icon name={formData.availabilityPattern[day][period] ? 'check' : 'x'} size={14} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <Button type="button" variant="secondary" onClick={() => {
+                                setShowModal(false);
+                                setEditingAttending(null);
+                            }}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" icon="save">
+                                {attending ? 'Update' : 'Add'} Attending
+                            </Button>
+                        </div>
+                    </form>
+                );
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">Attendings</h2>
+                            <p className="text-gray-600">Manage attending physicians and their availability</p>
+                        </div>
+                        <Button icon="plus" onClick={() => setShowModal(true)}>
+                            Add Attending
+                        </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {attendings.map(attending => {
+                            const site = institution.settings.sites.find(s => s.id === attending.site);
+                            return (
+                                <Card key={attending.id} className="hover:shadow-lg transition-shadow">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900">{attending.name}</h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span
+                                                    className="px-2 py-1 text-xs rounded-full font-medium"
+                                                    style={{
+                                                        backgroundColor: `${site?.color}20`,
+                                                        color: site?.color
+                                                    }}
+                                                >
+                                                    {site?.name}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <button
+                                                onClick={() => {
+                                                    setEditingAttending(attending);
+                                                    setShowModal(true);
+                                                }}
+                                                className="p-1.5 hover:bg-gray-100 rounded-lg"
+                                            >
+                                                <Icon name="edit" size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm('Are you sure you want to delete this attending?')) {
+                                                        store.deleteAttending(attending.id);
+                                                        toast.success('Attending deleted');
+                                                    }
+                                                }}
+                                                className="p-1.5 hover:bg-red-50 text-red-600 rounded-lg"
+                                            >
+                                                <Icon name="trash-2" size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="text-sm text-gray-600 space-y-1">
+                                        <div className="flex justify-between">
+                                            <span>AM Capacity:</span>
+                                            <span className="font-medium">{attending.capacityAM}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>PM Capacity:</span>
+                                            <span className="font-medium">{attending.capacityPM}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-3 pt-3 border-t">
+                                        <p className="text-xs text-gray-500 mb-2">Default Availability</p>
+                                        <div className="grid grid-cols-5 gap-1 text-center">
+                                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => {
+                                                const dayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'][i];
+                                                const pattern = attending.availabilityPattern?.[dayKey] || { am: false, pm: false };
+                                                return (
+                                                    <div key={day} className="text-xs">
+                                                        <div className="font-medium text-gray-600 mb-1">{day}</div>
+                                                        <div className={`rounded px-1 py-0.5 mb-0.5 ${pattern.am ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                                                            AM
+                                                        </div>
+                                                        <div className={`rounded px-1 py-0.5 ${pattern.pm ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                                                            PM
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </Card>
+                            );
+                        })}
+
+                        {attendings.length === 0 && (
+                            <div className="col-span-full">
+                                <Card className="text-center py-12">
+                                    <Icon name="users" size={48} className="mx-auto text-gray-400 mb-4" />
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Attendings Yet</h3>
+                                    <p className="text-gray-600 mb-4">Get started by adding your first attending physician</p>
+                                    <Button icon="plus" onClick={() => setShowModal(true)}>
+                                        Add First Attending
+                                    </Button>
+                                </Card>
+                            </div>
+                        )}
+                    </div>
+
+                    <Modal
+                        isOpen={showModal}
+                        onClose={() => {
+                            setShowModal(false);
+                            setEditingAttending(null);
+                        }}
+                        title={editingAttending ? 'Edit Attending' : 'Add New Attending'}
+                    >
+                        <AttendingForm attending={editingAttending} />
+                    </Modal>
+                </div>
+            );
+        };
+
+        // ==================== Residents View Component ====================
+        const ResidentsView = () => {
+            const { residents, institution, store } = useApp();
+            const [showModal, setShowModal] = useState(false);
+            const [editingResident, setEditingResident] = useState(null);
+
+            const ResidentForm = ({ resident }) => {
+                const [formData, setFormData] = useState(resident || {
+                    name: '',
+                    pgyLevel: 2,
+                    rotation: institution.settings.rotations[0]?.id || '',
+                    continuitySite: institution.settings.sites[0]?.id || '',
+                    continuityDay: 'monday',
+                    continuityTime: 'AM',
+                    preferences: {
+                        preferredSites: [],
+                        preferredAttendings: []
+                    }
+                });
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    if (resident) {
+                        store.updateResident(resident.id, formData);
+                        toast.success('Resident updated successfully');
+                    } else {
+                        store.addResident(formData);
+                        toast.success('Resident added successfully');
+                    }
+                    setShowModal(false);
+                    setEditingResident(null);
+                };
+
+                return (
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">PGY Level</label>
+                                <select
+                                    value={formData.pgyLevel}
+                                    onChange={(e) => setFormData({...formData, pgyLevel: parseInt(e.target.value)})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                >
+                                    <option value={2}>PGY-2</option>
+                                    <option value={3}>PGY-3</option>
+                                    <option value={4}>PGY-4</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Current Rotation</label>
+                                <select
+                                    value={formData.rotation}
+                                    onChange={(e) => setFormData({...formData, rotation: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                >
+                                    {institution.settings.rotations.map(rotation => (
+                                        <option key={rotation.id} value={rotation.id}>{rotation.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Continuity Site</label>
+                                <select
+                                    value={formData.continuitySite}
+                                    onChange={(e) => setFormData({...formData, continuitySite: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                >
+                                    {institution.settings.sites.map(site => (
+                                        <option key={site.id} value={site.id}>{site.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Continuity Day</label>
+                                <select
+                                    value={formData.continuityDay}
+                                    onChange={(e) => setFormData({...formData, continuityDay: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                >
+                                    <option value="monday">Monday</option>
+                                    <option value="tuesday">Tuesday</option>
+                                    <option value="wednesday">Wednesday</option>
+                                    <option value="thursday">Thursday</option>
+                                    <option value="friday">Friday</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Continuity Time</label>
+                                <select
+                                    value={formData.continuityTime}
+                                    onChange={(e) => setFormData({...formData, continuityTime: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                >
+                                    <option value="AM">AM</option>
+                                    <option value="PM">PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <Button type="button" variant="secondary" onClick={() => {
+                                setShowModal(false);
+                                setEditingResident(null);
+                            }}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" icon="save">
+                                {resident ? 'Update' : 'Add'} Resident
+                            </Button>
+                        </div>
+                    </form>
+                );
+            };
+
+            const pgyColors = {
+                2: { bg: 'bg-blue-100', text: 'text-blue-700' },
+                3: { bg: 'bg-purple-100', text: 'text-purple-700' },
+                4: { bg: 'bg-green-100', text: 'text-green-700' }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">Residents</h2>
+                            <p className="text-gray-600">Manage residents and their schedules</p>
+                        </div>
+                        <Button icon="plus" onClick={() => setShowModal(true)}>
+                            Add Resident
+                        </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {residents.map(resident => {
+                            const rotation = institution.settings.rotations.find(r => r.id === resident.rotation);
+                            const continuitySite = institution.settings.sites.find(s => s.id === resident.continuitySite);
+                            const colors = pgyColors[resident.pgyLevel] || pgyColors[2];
+
+                            return (
+                                <Card key={resident.id} className="hover:shadow-lg transition-shadow">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900">{resident.name}</h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className={`px-2 py-1 text-xs rounded-full font-medium ${colors.bg} ${colors.text}`}>
+                                                    PGY-{resident.pgyLevel}
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                    {rotation?.name}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <button
+                                                onClick={() => {
+                                                    setEditingResident(resident);
+                                                    setShowModal(true);
+                                                }}
+                                                className="p-1.5 hover:bg-gray-100 rounded-lg"
+                                            >
+                                                <Icon name="edit" size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm('Are you sure you want to delete this resident?')) {
+                                                        store.deleteResident(resident.id);
+                                                        toast.success('Resident deleted');
+                                                    }
+                                                }}
+                                                className="p-1.5 hover:bg-red-50 text-red-600 rounded-lg"
+                                            >
+                                                <Icon name="trash-2" size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <Icon name="building-2" size={14} />
+                                            <span>Continuity: {continuitySite?.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <Icon name="calendar" size={14} />
+                                            <span className="capitalize">
+                                                {resident.continuityDay} {resident.continuityTime}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Card>
+                            );
+                        })}
+
+                        {residents.length === 0 && (
+                            <div className="col-span-full">
+                                <Card className="text-center py-12">
+                                    <Icon name="user-check" size={48} className="mx-auto text-gray-400 mb-4" />
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Residents Yet</h3>
+                                    <p className="text-gray-600 mb-4">Get started by adding your first resident</p>
+                                    <Button icon="plus" onClick={() => setShowModal(true)}>
+                                        Add First Resident
+                                    </Button>
+                                </Card>
+                            </div>
+                        )}
+                    </div>
+
+                    <Modal
+                        isOpen={showModal}
+                        onClose={() => {
+                            setShowModal(false);
+                            setEditingResident(null);
+                        }}
+                        title={editingResident ? 'Edit Resident' : 'Add New Resident'}
+                        size="lg"
+                    >
+                        <ResidentForm resident={editingResident} />
+                    </Modal>
+                </div>
+            );
+        };
+
+        // ==================== Rules View Component ====================
+        const RulesView = () => {
+            const { rules, store, ruleInterpreter } = useApp();
+            const [showModal, setShowModal] = useState(false);
+            const [naturalLanguage, setNaturalLanguage] = useState('');
+            const [interpretation, setInterpretation] = useState(null);
+            const [loading, setLoading] = useState(false);
+
+            const templates = [
+                'Residents must have at least 2 days between continuity clinics',
+                'PGY2 residents must have at least 3 dermatopathology sessions per month',
+                'No resident should have more than 3 consecutive clinic days',
+                'Residents on call cannot have clinic the following morning'
+            ];
+
+            const handleInterpret = () => {
+                if (!naturalLanguage.trim()) return;
+
+                setLoading(true);
+                setTimeout(() => {
+                    const result = ruleInterpreter.interpretRule(naturalLanguage);
+                    const explanation = ruleInterpreter.generateExplanation(result);
+                    setInterpretation({ ...result, explanation });
+                    setLoading(false);
+                }, 500);
+            };
+
+            const saveRule = () => {
+                if (!interpretation) return;
+
+                const newRule = {
+                    naturalLanguage,
+                    ...interpretation,
+                    isActive: true
+                };
+
+                store.addRule(newRule);
+                toast.success('Rule added successfully');
+                setShowModal(false);
+                setNaturalLanguage('');
+                setInterpretation(null);
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">Scheduling Rules</h2>
+                            <p className="text-gray-600">Create and manage natural language scheduling rules</p>
+                        </div>
+                        <Button icon="plus" onClick={() => setShowModal(true)}>
+                            Add Rule
+                        </Button>
+                    </div>
+
+                    {rules.length > 0 ? (
+                        <div className="space-y-4">
+                            {rules.map(rule => (
+                                <Card key={rule.id} className="hover:shadow-lg transition-shadow">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                                                    rule.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                                                }`}>
+                                                    {rule.isActive ? 'Active' : 'Inactive'}
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                    Type: {rule.type.replace(/_/g, ' ')}
+                                                </span>
+                                            </div>
+                                            <p className="font-medium text-gray-900">{rule.naturalLanguage}</p>
+                                            <p className="text-sm text-gray-600 mt-1">{rule.explanation}</p>
+                                            <div className="flex items-center gap-2 mt-3">
+                                                <span className="text-xs text-gray-500">Confidence:</span>
+                                                <div className="flex-1 max-w-xs bg-gray-200 rounded-full h-2">
+                                                    <div
+                                                        className={`h-2 rounded-full ${
+                                                            rule.confidence > 0.8 ? 'bg-green-500' :
+                                                            rule.confidence > 0.6 ? 'bg-yellow-500' : 'bg-red-500'
+                                                        }`}
+                                                        style={{ width: `${rule.confidence * 100}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-xs font-medium">
+                                                    {(rule.confidence * 100).toFixed(0)}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2 ml-4">
+                                            <button
+                                                onClick={() => {
+                                                    store.updateRule(rule.id, { isActive: !rule.isActive });
+                                                    toast.success(rule.isActive ? 'Rule deactivated' : 'Rule activated');
+                                                }}
+                                                className="p-2 hover:bg-gray-100 rounded-lg"
+                                            >
+                                                <Icon name={rule.isActive ? 'pause' : 'play'} size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm('Are you sure you want to delete this rule?')) {
+                                                        store.deleteRule(rule.id);
+                                                        toast.success('Rule deleted');
+                                                    }
+                                                }}
+                                                className="p-2 hover:bg-red-50 text-red-600 rounded-lg"
+                                            >
+                                                <Icon name="trash-2" size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <Card className="text-center py-12">
+                            <Icon name="shield-check" size={48} className="mx-auto text-gray-400 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Rules Yet</h3>
+                            <p className="text-gray-600 mb-4">Create your first scheduling rule to ensure compliance</p>
+                            <Button icon="plus" onClick={() => setShowModal(true)}>
+                                Create First Rule
+                            </Button>
+                        </Card>
+                    )}
+
+                    <Modal
+                        isOpen={showModal}
+                        onClose={() => {
+                            setShowModal(false);
+                            setNaturalLanguage('');
+                            setInterpretation(null);
+                        }}
+                        title="Natural Language Rule Builder"
+                        size="lg"
+                    >
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Rule Templates
+                                </label>
+                                <div className="space-y-2">
+                                    {templates.map((template, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setNaturalLanguage(template)}
+                                            className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm transition-colors"
+                                        >
+                                            {template}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Your Rule
+                                </label>
+                                <textarea
+                                    value={naturalLanguage}
+                                    onChange={(e) => setNaturalLanguage(e.target.value)}
+                                    placeholder="e.g., Residents should not have back-to-back continuity clinics"
+                                    className="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                                />
+                            </div>
+
+                            {!interpretation && (
+                                <Button
+                                    onClick={handleInterpret}
+                                    disabled={loading || !naturalLanguage.trim()}
+                                    className="w-full"
+                                    icon="brain"
+                                >
+                                    {loading ? 'Interpreting...' : 'Interpret Rule'}
+                                </Button>
+                            )}
+
+                            {interpretation && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-4"
+                                >
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <h4 className="font-semibold text-blue-900 mb-2">Interpretation</h4>
+                                        <p className="text-sm text-blue-800">{interpretation.explanation}</p>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-gray-600">Confidence:</span>
+                                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                            <div
+                                                className={`h-2 rounded-full ${
+                                                    interpretation.confidence > 0.8 ? 'bg-green-500' :
+                                                    interpretation.confidence > 0.6 ? 'bg-yellow-500' : 'bg-red-500'
+                                                }`}
+                                                style={{ width: `${interpretation.confidence * 100}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-sm font-medium">
+                                            {(interpretation.confidence * 100).toFixed(0)}%
+                                        </span>
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <Button
+                                            variant="secondary"
+                                            onClick={() => {
+                                                setInterpretation(null);
+                                                setNaturalLanguage('');
+                                            }}
+                                            className="flex-1"
+                                        >
+                                            Try Again
+                                        </Button>
+                                        <Button
+                                            onClick={saveRule}
+                                            className="flex-1"
+                                            icon="save"
+                                        >
+                                            Save Rule
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </div>
+                    </Modal>
+                </div>
+            );
+        };
+
+        // ==================== Main App Component ====================
+        const App = () => {
+            const [activeView, setActiveView] = useState('dashboard');
+
+            const navItems = [
+                { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
+                { id: 'schedule', label: 'Schedule', icon: 'calendar' },
+                { id: 'attendings', label: 'Attendings', icon: 'users' },
+                { id: 'residents', label: 'Residents', icon: 'user-check' },
+                { id: 'rules', label: 'Rules', icon: 'shield-check' },
+                { id: 'settings', label: 'Settings', icon: 'settings' }
+            ];
+
+            return (
+                <AppProvider>
+                    <div className="min-h-screen bg-gray-50">
+                        {/* Navigation */}
+                        <nav className="bg-white shadow-sm border-b border-gray-200">
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                <div className="flex justify-between h-16">
+                                    <div className="flex items-center">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-primary-100 rounded-lg">
+                                                <Icon name="calendar-days" size={24} className="text-primary-600" />
+                                            </div>
+                                            <div>
+                                                <h1 className="text-lg font-bold text-gray-900">Clinic Scheduler Pro</h1>
+                                                <p className="text-xs text-gray-500">Intelligent Schedule Management</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="hidden md:flex ml-10 space-x-1">
+                                            {navItems.map(item => (
+                                                <button
+                                                    key={item.id}
+                                                    onClick={() => setActiveView(item.id)}
+                                                    className={`
+                                                        px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all
+                                                        ${activeView === item.id
+                                                            ? 'bg-primary-50 text-primary-700'
+                                                            : 'text-gray-600 hover:bg-gray-50'
+                                                        }
+                                                    `}
+                                                >
+                                                    <Icon name={item.icon} size={16} />
+                                                    {item.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        <button className="p-2 hover:bg-gray-100 rounded-lg relative">
+                                            <Icon name="bell" size={20} />
+                                            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                                        </button>
+
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                                <Icon name="user" size={16} className="text-primary-600" />
+                                            </div>
+                                            <div className="hidden sm:block">
+                                                <p className="text-sm font-medium text-gray-900">Admin User</p>
+                                                <p className="text-xs text-gray-500">Program Admin</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </nav>
+
+                        {/* Main Content */}
+                        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                            {activeView === 'dashboard' && <Dashboard />}
+                            {activeView === 'schedule' && <ScheduleCalendar />}
+                            {activeView === 'settings' && <Settings />}
+
+                            {activeView === 'attendings' && <AttendingsView />}
+                            {activeView === 'residents' && <ResidentsView />}
+                            {activeView === 'rules' && <RulesView />}
+                        </main>
+
+                        <Toaster
+                            position="bottom-right"
+                            toastOptions={{
+                                className: 'font-medium',
+                                duration: 3000,
+                                style: {
+                                    background: '#fff',
+                                    color: '#363636',
+                                },
+                            }}
+                        />
+                    </div>
+                </AppProvider>
+            );
+        };
+
+        // Render the app
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
