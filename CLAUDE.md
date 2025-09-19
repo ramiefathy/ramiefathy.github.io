@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Personal and professional portfolio website for Dr. Ramie Fathy, combining:
 - **Astro static site** with React components for interactive UI
-- **Interactive medical tools** including AI Dermatology Scribe, Dermatopathology Navigator, and clinical calculators
+- **RAMIE (Realtime Articulate Medical Intelligence Explorer)** - Modern AI-powered dermatology assistant with dark navy UI
+- **Interactive medical tools** including Dermatopathology Navigator and clinical calculators
 - **Python websocket backend** for AI-powered transcription and note generation
 - **Legacy archives** preserving historical research and prototypes
 
@@ -27,7 +28,7 @@ npm run site:build
 npm run site:preview
 ```
 
-### AI Scribe Backend
+### RAMIE/AI Scribe Backend
 ```bash
 # Install Python dependencies
 pip install -r services/ai-scribe/requirements.txt
@@ -51,7 +52,7 @@ python app.py
 - **Session Management**: Token-based authentication with configurable session secrets
 
 ### Key Integration Points
-- AI Scribe client connects to WebSocket backend using session tokens stored in localStorage
+- RAMIE client connects to WebSocket backend using session tokens stored in localStorage
 - Static apps are embedded via iframe or linked directly from the main Astro site
 - Google AdSense integration with publisher ID `ca-pub-2958059905874922`
 
@@ -62,6 +63,11 @@ python app.py
 
 ## Development Notes
 - Portable Node.js 20 binaries can be used from `/tmp/node20` if system Node version differs
-- AI Scribe requires `.env` configuration in `services/ai-scribe/` with Gemini API credentials
+- RAMIE requires `.env` configuration in `services/ai-scribe/` with Gemini API credentials
 - Ad unit slots in `site/src/pages/index.astro` need replacement with actual AdSense unit IDs
 - Legacy content in `/legacy` is preserved as-is for historical reference
+
+## Recent Updates (January 18, 2025)
+- **RAMIE Launch**: AI Dermatology Scribe rebranded as RAMIE with modern dark navy UI
+- **UI/UX Enhancements**: Added command palette, focus mode, accessibility features, and export options
+- **Production Deployment**: Modern RAMIE interface is now the default at `/apps/dermatology-scribe/`
