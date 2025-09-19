@@ -225,7 +225,8 @@
     <script type="text/babel" data-type="module">
         const { useState, useEffect, useCallback, useMemo, useRef, createContext, useContext } = React;
         const { createPortal } = ReactDOM;
-        const { motion, AnimatePresence } = window['framer-motion'];
+        const motion = ({ children }) => children; // Placeholder since framer-motion not loading
+        const AnimatePresence = ({ children }) => children;
         const { toast, Toaster } = window['react-hot-toast'];
         const { format, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, getDay, addDays } = window['date-fns'];
         const { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
@@ -1144,9 +1145,9 @@
                                 <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
                                     {children}
                                 </div>
-                            </motion.div>
+                            </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </AnimatePresence>,
                 document.getElementById('modal-root')
             );
@@ -1326,7 +1327,7 @@
                         <p className="text-center text-xs text-gray-500 mt-4">
                             Protected by Firebase Authentication • Real-time Sync Enabled
                         </p>
-                    </motion.div>
+                    </div>
                 </div>
             );
         };
@@ -1452,7 +1453,7 @@
                                         </div>
                                     </div>
                                 </Card>
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
                 </div>
