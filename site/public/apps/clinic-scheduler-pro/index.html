@@ -15,7 +15,7 @@
 
     <!-- Additional Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/date-fns@3.0.0/index.min.js"></script>
-    <script src="https://unpkg.com/framer-motion@10.16.16/dist/framer-motion.js"></script>
+    <!-- Framer Motion removed - not needed -->
     <script src="https://unpkg.com/react-hot-toast@2.4.1/dist/index.umd.js"></script>
     <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
     <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
@@ -1076,7 +1076,7 @@
             };
 
             return (
-                <motion.button
+                <button
                     whileHover={{ scale: loading ? 1 : 1.02 }}
                     whileTap={{ scale: loading ? 1 : 0.98 }}
                     className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
@@ -1089,18 +1089,16 @@
                         <Icon name={icon} size={size === 'sm' ? 16 : size === 'lg' ? 20 : 18} />
                     ) : null}
                     {children}
-                </motion.button>
+                </button>
             );
         };
 
         const Card = ({ children, className = "", padding = true }) => (
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+            <div
                 className={`bg-white rounded-xl shadow-sm border border-gray-200 ${padding ? 'p-6' : ''} ${className}`}
             >
                 {children}
-            </motion.div>
+            </div>
         );
 
         const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
@@ -1114,23 +1112,13 @@
             if (!isOpen) return null;
 
             return createPortal(
-                <AnimatePresence>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 overflow-y-auto"
-                    >
+                <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div className="flex items-center justify-center min-h-screen p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
+                            <div
                                 className="fixed inset-0 bg-black/50 backdrop-blur-sm"
                                 onClick={onClose}
                             />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                            <div
                                 className={`relative bg-white rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden`}
                             >
                                 <div className="flex items-center justify-between p-6 border-b">
@@ -1148,7 +1136,7 @@
                             </div>
                         </div>
                     </div>
-                </AnimatePresence>,
+,
                 document.getElementById('modal-root')
             );
         };
@@ -1222,11 +1210,7 @@
 
             return (
                 <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="w-full max-w-md"
-                    >
+                    <div className="w-full max-w-md">
                         <Card>
                             <div className="text-center mb-8">
                                 <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-xl mb-4">
@@ -1436,12 +1420,7 @@
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {stats.map((stat, index) => (
-                            <motion.div
-                                key={stat.label}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                            >
+                            <div key={stat.label}>
                                 <Card className="hover:shadow-lg transition-shadow">
                                     <div className="flex items-center justify-between">
                                         <div>
