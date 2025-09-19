@@ -1,7 +1,12 @@
-# Modern UI Redesign - AI Dermatology Scribe
+# Modern UI Redesign - RAMIE (Realtime Articulate Medical Intelligence Explorer)
 
 ## Overview
-Complete UI redesign of the AI Dermatology Scribe application to match the modern RAMIE (Realtime Articulate Medical Intelligence Explorer) design aesthetic. The new interface features a sophisticated dark navy theme with cyan accents, improved information architecture, and enhanced user experience.
+Complete UI redesign of the AI Dermatology Scribe application, now rebranded as **RAMIE** (Realtime Articulate Medical Intelligence Explorer). The modern interface features a sophisticated dark navy theme with cyan accents, improved information architecture, and enhanced user experience.
+
+### Implementation Status: ✅ COMPLETE
+- **PR #37**: Initial modern UI implementation (Merged)
+- **PR #38**: RAMIE rebranding and production deployment (Merged)
+- **Live Status**: Modern RAMIE UI is now the default production experience
 
 ## 🎯 Design Goals
 
@@ -44,7 +49,7 @@ Complete UI redesign of the AI Dermatology Scribe application to match the moder
 New onboarding experience with three main sections:
 
 1. **Welcome Section**
-   - DERMIE branding with logo
+   - RAMIE branding with logo
    - Clear value proposition
    - Professional medical disclaimer
 
@@ -54,7 +59,7 @@ New onboarding experience with three main sections:
    - Visual feedback for saved credentials
 
 3. **Mode Selection Cards**
-   - Chat with DERMIE
+   - Chat with RAMIE
    - Live Transcription & DDx
    - View Saved Sessions
    - Each with descriptive text and icons
@@ -138,14 +143,16 @@ New onboarding experience with three main sections:
 
 ## 💻 Technical Implementation
 
-### File Structure
+### File Structure (Production)
 ```
 /site/public/apps/dermatology-scribe/
-├── index.html           # Original design
-├── index-modern.html    # New RAMIE design
+├── index.html           # Modern RAMIE design (DEFAULT)
+├── index-original.html  # Original design (archived)
+├── index-modern.html    # Modern design source
 ├── style.css           # Original styles
 ├── style-modern.css    # Modern design styles
 ├── design-comparison.html # Side-by-side comparison
+├── ui-enhancements.js  # UI enhancement features
 └── script.js           # Shared JavaScript (compatible)
 ```
 
@@ -329,6 +336,32 @@ The redesign maintains full backward compatibility while providing a clear upgra
 
 ---
 
-**Version:** 2.0.0
+**Version:** 3.0.0
 **Last Updated:** January 2025
-**Status:** ✅ Complete and Production Ready
+**Status:** ✅ Complete and Live in Production
+
+## Recent Changes (January 18, 2025)
+
+### Completed Implementations
+1. **UI/UX Enhancements** (PR #36)
+   - Dark mode with system preference detection
+   - Command palette (Ctrl/Cmd+K)
+   - Quick actions bar
+   - Focus mode for distraction-free documentation
+   - Accessibility features (screen reader, high contrast)
+   - Multiple export formats (PDF, DOCX, Markdown, JSON)
+   - Auto-save functionality
+   - Comprehensive keyboard shortcuts
+
+2. **Modern RAMIE Redesign** (PR #37)
+   - Complete UI overhaul with dark navy theme
+   - 4-panel grid layout for better workflow
+   - Professional landing page with mode selection
+   - Card-based component architecture
+   - Responsive design for all devices
+
+3. **RAMIE Rebranding** (PR #38)
+   - Changed from DERMIE to RAMIE
+   - Updated all branding elements
+   - Replaced original with modern design as default
+   - Updated site metadata and app listings
