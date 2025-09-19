@@ -1,0 +1,489 @@
+/* Enhanced Styles for AI Dermatology Scribe */
+
+/* ========== CSS Variables for Theming ========== */
+:root {
+  /* Light Theme Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f1f5f9;
+  --bg-hover: #e2e8f0;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+  --text-muted: #9ca3af;
+
+  --border-primary: #e5e7eb;
+  --border-secondary: #d1d5db;
+  --border-focus: #3b82f6;
+
+  --accent-primary: #3b82f6;
+  --accent-secondary: #60a5fa;
+  --accent-hover: #2563eb;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+
+  /* Component Specific */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout */
+  --header-height: 72px;
+  --sidebar-width: 320px;
+  --border-radius: 0.5rem;
+  --border-radius-sm: 0.25rem;
+  --border-radius-lg: 0.75rem;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #262626;
+  --bg-hover: #333333;
+
+  --text-primary: #e5e5e5;
+  --text-secondary: #a1a1a1;
+  --text-tertiary: #8a8a8a;
+  --text-muted: #6a6a6a;
+
+  --border-primary: #2a2a2a;
+  --border-secondary: #3a3a3a;
+  --border-focus: #60a5fa;
+
+  --accent-primary: #60a5fa;
+  --accent-secondary: #3b82f6;
+  --accent-hover: #93bbfc;
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #f87171;
+  --info: #60a5fa;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6);
+}
+
+/* High Contrast Theme */
+[data-theme="high-contrast"] {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --text-primary: #ffffff;
+  --text-secondary: #f0f0f0;
+  --border-primary: #ffffff;
+  --accent-primary: #ffff00;
+}
+
+/* ========== Base Styles with Theme Support ========== */
+body {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* ========== Theme Toggle Button ========== */
+.theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  z-index: 1000;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-xl);
+}
+
+.theme-toggle .material-symbols-outlined {
+  font-size: 24px;
+  color: var(--text-primary);
+}
+
+/* ========== Focus Mode Styles ========== */
+body.focus-mode {
+  overflow: hidden;
+}
+
+body.focus-mode .header,
+body.focus-mode .patient-info-bar,
+body.focus-mode .footer,
+body.focus-mode .sidebar {
+  display: none !important;
+}
+
+body.focus-mode .main-content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: 100% !important;
+  padding: 2rem;
+  background-color: var(--bg-primary);
+}
+
+.focus-mode-controls {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 1001;
+  animation: slideIn var(--transition-normal);
+}
+
+.focus-mode-controls button {
+  padding: 8px 16px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.focus-mode-controls button:hover {
+  background-color: var(--accent-primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* ========== Quick Actions Bar ========== */
+.quick-actions-bar {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--border-radius-lg);
+  padding: 8px;
+  box-shadow: var(--shadow-xl);
+  z-index: 999;
+  transition: all var(--transition-normal);
+}
+
+.quick-actions-bar.dragging {
+  opacity: 0.8;
+  cursor: move;
+}
+
+.quick-actions-container {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.qa-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-secondary);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.qa-btn:hover:not(:disabled) {
+  background-color: var(--accent-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.qa-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qa-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.qa-separator {
+  width: 1px;
+  height: 30px;
+  background-color: var(--border-primary);
+  margin: 0 8px;
+}
+
+/* ========== Command Palette ========== */
+.command-palette-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  animation: fadeIn var(--transition-fast);
+}
+
+.command-palette {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  z-index: 2001;
+  animation: slideDown var(--transition-normal);
+}
+
+#command-input {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 16px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border: none;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+#command-input:focus {
+  outline: none;
+  border-bottom-color: var(--accent-primary);
+}
+
+#command-suggestions {
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: var(--bg-secondary);
+}
+
+.command-suggestion {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.command-suggestion:hover,
+.command-suggestion.selected {
+  background-color: var(--bg-hover);
+}
+
+.command-suggestion .icon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+.command-suggestion .text {
+  flex: 1;
+  color: var(--text-primary);
+}
+
+.command-suggestion .shortcut {
+  font-size: 12px;
+  color: var(--text-muted);
+  background-color: var(--bg-primary);
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+}
+
+/* ========== Enhanced Panels ========== */
+.panel {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--border-radius-lg);
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.panel.draggable {
+  cursor: move;
+}
+
+.panel.dragging {
+  opacity: 0.5;
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+}
+
+.panel-header {
+  padding: 12px 16px;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.panel-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.panel-action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--border-radius-sm);
+  background-color: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.panel-action-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ========== Accessibility Features ========== */
+.skip-links {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 8px;
+  z-index: 1000;
+  text-decoration: none;
+  border-radius: var(--border-radius);
+}
+
+.skip-links:focus {
+  top: 0;
+}
+
+/* Keyboard Focus Indicators */
+*:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Screen Reader Only Text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ========== Animations ========== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ========== Responsive Design ========== */
+@media (max-width: 768px) {
+  .quick-actions-bar {
+    bottom: 60px;
+    width: calc(100% - 20px);
+    left: 10px;
+    right: 10px;
+    transform: none;
+  }
+
+  .command-palette {
+    width: 95%;
+    top: 10%;
+  }
+
+  .theme-toggle {
+    bottom: 10px;
+    right: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========== Print Styles ========== */
+@media print {
+  .no-print,
+  .theme-toggle,
+  .quick-actions-bar,
+  .command-palette,
+  .focus-mode-controls {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .panel {
+    border: 1px solid #ddd;
+    page-break-inside: avoid;
+  }
+}
