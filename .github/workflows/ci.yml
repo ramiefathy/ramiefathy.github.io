@@ -28,6 +28,7 @@ jobs:
           curl -f --connect-timeout 10 "https://esm.sh/recharts@2.5.0?bundle" || (echo "❌ recharts CDN failed" && exit 1)
           curl -f --connect-timeout 10 "https://esm.sh/papaparse@5.4.1?bundle" || (echo "❌ papaparse CDN failed" && exit 1)
           curl -f --connect-timeout 10 "https://esm.sh/lucide@0.462.0?bundle" || (echo "❌ lucide CDN failed" && exit 1)
+          curl -f --connect-timeout 10 "https://esm.sh/framer-motion@11.0.3?bundle" || (echo "❌ framer-motion CDN failed" && exit 1)
           curl -f --connect-timeout 10 https://cdn.tailwindcss.com || (echo "❌ tailwindcss CDN failed" && exit 1)
           echo "✅ All CDN links verified"
       # Removed Playwright console regression checks; they are run locally as needed
