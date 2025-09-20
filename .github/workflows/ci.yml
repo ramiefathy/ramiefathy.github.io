@@ -24,11 +24,11 @@ jobs:
       - name: Check CDN Links
         run: |
           echo "Checking CDN URLs used in clinic-scheduler-pro..."
-          curl -f --connect-timeout 10 https://unpkg.com/react-hot-toast@2.4.1/dist/react-hot-toast.umd.js || (echo "❌ react-hot-toast CDN failed" && exit 1)
-          curl -f --connect-timeout 10 https://unpkg.com/date-fns@2.30.0/index.umd.min.js || (echo "❌ date-fns CDN failed" && exit 1)
-          curl -f --connect-timeout 10 https://unpkg.com/recharts@2.5.0/dist/Recharts.js || (echo "❌ recharts CDN failed" && exit 1)
-          curl -f --connect-timeout 10 https://unpkg.com/papaparse@5.4.1/papaparse.min.js || (echo "❌ papaparse CDN failed" && exit 1)
-          curl -f --connect-timeout 10 https://unpkg.com/lucide@latest/dist/umd/lucide.js || (echo "❌ lucide CDN failed" && exit 1)
+          curl -f --connect-timeout 10 "https://esm.sh/react-hot-toast@2.4.1?bundle" || (echo "❌ react-hot-toast CDN failed" && exit 1)
+          curl -f --connect-timeout 10 "https://esm.sh/date-fns@2.30.0?bundle" || (echo "❌ date-fns CDN failed" && exit 1)
+          curl -f --connect-timeout 10 "https://esm.sh/recharts@2.5.0?bundle" || (echo "❌ recharts CDN failed" && exit 1)
+          curl -f --connect-timeout 10 "https://esm.sh/papaparse@5.4.1?bundle" || (echo "❌ papaparse CDN failed" && exit 1)
+          curl -f --connect-timeout 10 "https://esm.sh/lucide@0.462.0?bundle" || (echo "❌ lucide CDN failed" && exit 1)
           curl -f --connect-timeout 10 https://unpkg.com/tailwindcss@3.4.0/dist/tailwind.min.css || (echo "❌ tailwindcss CDN failed" && exit 1)
           echo "✅ All CDN links verified"
       - name: Install Playwright
