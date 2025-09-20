@@ -36,14 +36,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Test for Console Errors
-        run: |
-          npm run site:preview &
-          SERVER_PID=$!
-          sleep 8
-          npx playwright test tests/console-errors.spec.js --reporter=line
-          TEST_RESULT=$?
-          kill $SERVER_PID
-          exit $TEST_RESULT
+        run: npx playwright test tests/console-errors.spec.js --reporter=line
 
   ai-scribe-lint:
     runs-on: ubuntu-latest
