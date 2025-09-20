@@ -1,8 +1,11 @@
 // Source for Clinic Scheduler Pro browser bundle. Run `npm run clinic:scheduler:build` after editing.
 const { useState, useEffect, useCallback, useMemo, useRef, createContext, useContext } = React;
 const { createPortal } = ReactDOM;
-const motion = ({ children }) => children; // Placeholder since framer-motion not loading
-const AnimatePresence = ({ children }) => children;
+// Framer Motion Integration
+const { motion, AnimatePresence } = window['framer-motion'] || {
+    motion: { div: 'div', button: 'button' },
+    AnimatePresence: ({ children }) => children
+};
 const ToastDispatchContext = createContext(null);
 const ToastStateContext = createContext([]);
 
@@ -942,12 +945,13 @@ const Icon = ({ name, size = 20, className = "" }) => {
 };
 
 const Button = ({ children, variant = 'primary', size = 'md', className = "", icon, loading = false, ...props }) => {
-    const baseClasses = "inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2";
+    const baseClasses = "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 ease-in-out focus-ring transform";
     const variants = {
-        primary: "bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500",
-        secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-primary-500",
-        ghost: "text-gray-600 hover:bg-gray-100 focus:ring-gray-500",
-        danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+        primary: "bg-primary-600 text-white hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-600/20 hover:-translate-y-0.5 active:scale-95 focus:ring-primary-500",
+        secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md hover:-translate-y-0.5 active:scale-95 focus:ring-primary-500",
+        ghost: "text-gray-600 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm hover:-translate-y-0.5 active:scale-95 focus:ring-gray-500",
+        danger: "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/20 hover:-translate-y-0.5 active:scale-95 focus:ring-red-500",
+        success: "bg-green-600 text-white hover:bg-green-700 hover:shadow-lg hover:shadow-green-600/20 hover:-translate-y-0.5 active:scale-95 focus:ring-green-500"
     };
     const sizes = {
         sm: "px-3 py-1.5 text-sm gap-1.5",
@@ -956,10 +960,10 @@ const Button = ({ children, variant = 'primary', size = 'md', className = "", ic
     };
 
     return (
-        <button
+        <motion.button
             whileHover={{ scale: loading ? 1 : 1.02 }}
             whileTap={{ scale: loading ? 1 : 0.98 }}
-            className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+            className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} ${className}`}
             disabled={loading}
             {...props}
         >
@@ -969,15 +973,55 @@ const Button = ({ children, variant = 'primary', size = 'md', className = "", ic
                 <Icon name={icon} size={size === 'sm' ? 16 : size === 'lg' ? 20 : 18} />
             ) : null}
             {children}
-        </button>
+        </motion.button>
     );
 };
 
-const Card = ({ children, className = "", padding = true }) => (
-    <div
-        className={`bg-white rounded-xl shadow-sm border border-gray-200 ${padding ? 'p-6' : ''} ${className}`}
+const Card = ({ children, className = "", padding = true, hover = false, ...motionProps }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={hover ? { scale: 1.02, y: -4 } : undefined}
+        className={`bg-white rounded-xl card-shadow border border-gray-200 transition-all duration-200 ease-in-out ${
+            hover ? 'hover:card-shadow-hover' : ''
+        } ${padding ? 'p-6' : ''} ${className}`}
+        {...motionProps}
     >
         {children}
+    </motion.div>
+);
+
+// Enhanced Loading Components
+const LoadingSpinner = ({ size = 'md', className = "" }) => {
+    const sizes = {
+        sm: 'h-4 w-4',
+        md: 'h-8 w-8',
+        lg: 'h-12 w-12'
+    };
+
+    return (
+        <div className={`flex justify-center py-8 ${className}`}>
+            <div className={`animate-spin rounded-full border-b-2 border-primary-600 ${sizes[size]}`}></div>
+        </div>
+    );
+};
+
+const SkeletonCard = ({ lines = 3, className = "" }) => (
+    <Card className={`animate-pulse ${className}`}>
+        <div className="space-y-3">
+            <div className="h-4 bg-gray-200 rounded shimmer"></div>
+            {Array.from({ length: lines - 1 }).map((_, i) => (
+                <div key={i} className={`h-4 bg-gray-200 rounded shimmer ${i === lines - 2 ? 'w-3/4' : ''}`}></div>
+            ))}
+        </div>
+    </Card>
+);
+
+const SkeletonText = ({ lines = 2, className = "" }) => (
+    <div className={`space-y-2 ${className}`}>
+        {Array.from({ length: lines }).map((_, i) => (
+            <div key={i} className={`h-4 bg-gray-200 rounded shimmer ${i === lines - 1 ? 'w-3/4' : ''}`}></div>
+        ))}
     </div>
 );
 
@@ -992,31 +1036,46 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <AnimatePresence>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 overflow-y-auto"
+            >
                 <div className="flex items-center justify-center min-h-screen p-4">
-                    <div
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
                         onClick={onClose}
                     />
-                    <div
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
                         className={`relative bg-white rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden`}
                     >
                         <div className="flex items-center justify-between p-6 border-b">
                             <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
-                            <button
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
                                 onClick={onClose}
                                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                             >
                                 <Icon name="x" size={20} />
-                            </button>
+                            </motion.button>
                         </div>
                         <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
                             {children}
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
-            </div>
-,
+            </motion.div>
+        </AnimatePresence>,
         document.getElementById('modal-root')
     );
 };
@@ -1300,8 +1359,14 @@ const Dashboard = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, index) => (
-                    <div key={stat.label}>
-                        <Card className="hover:shadow-lg transition-shadow">
+                    <motion.div
+                        key={stat.label}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02 }}
+                    >
+                        <Card hover className="card-shadow-hover">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-gray-600">{stat.label}</p>
@@ -1312,7 +1377,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
                         </Card>
-                    </div>
+                    </motion.div>
                 ))}
             </div>
         </div>
@@ -1416,11 +1481,7 @@ const ScheduleCalendar = () => {
     };
 
     if (loading) {
-        return (
-            <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            </div>
-        );
+        return <LoadingSpinner size="lg" className="py-12" />;
     }
 
     return (
@@ -1654,11 +1715,7 @@ const AttendingsList = () => {
     };
 
     if (loading) {
-        return (
-            <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            </div>
-        );
+        return <LoadingSpinner size="lg" className="py-12" />;
     }
 
     return (
@@ -1830,11 +1887,7 @@ const ResidentsList = () => {
     };
 
     if (loading) {
-        return (
-            <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            </div>
-        );
+        return <LoadingSpinner size="lg" className="py-12" />;
     }
 
     return (
@@ -2021,11 +2074,7 @@ const RulesList = () => {
     };
 
     if (loading) {
-        return (
-            <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            </div>
-        );
+        return <LoadingSpinner size="lg" className="py-12" />;
     }
 
     return (
@@ -2401,7 +2450,7 @@ const App = () => {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                    <LoadingSpinner size="lg" />
                     <p className="mt-4 text-gray-600">Loading...</p>
                 </div>
             </div>
@@ -2469,6 +2518,21 @@ const App = () => {
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                 <span className="text-sm text-green-700 font-medium">Live</span>
                             </div>
+
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="p-2 hover:bg-gray-100 rounded-lg relative transition-colors"
+                            >
+                                <Icon name="bell" size={20} className="text-gray-600" />
+                                <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center"
+                                >
+                                    <span className="text-xs text-white font-bold">3</span>
+                                </motion.span>
+                            </motion.button>
 
                             <div className="flex items-center gap-2">
                                 <div className="text-right">
