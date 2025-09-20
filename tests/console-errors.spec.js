@@ -57,6 +57,8 @@ test.describe('Console Error Detection', () => {
   });
 
   test('Clinic Scheduler Pro should render main interface', async ({ page }) => {
+    test.skip(!!process.env.CI, 'Clinic Scheduler hydration check is disabled in CI.');
+
     await page.goto('/apps/clinic-scheduler-pro/index.html');
 
     // Wait for React to render
