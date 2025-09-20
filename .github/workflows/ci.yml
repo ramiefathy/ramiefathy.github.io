@@ -29,7 +29,7 @@ jobs:
           curl -f --connect-timeout 10 "https://esm.sh/recharts@2.5.0?bundle" || (echo "❌ recharts CDN failed" && exit 1)
           curl -f --connect-timeout 10 "https://esm.sh/papaparse@5.4.1?bundle" || (echo "❌ papaparse CDN failed" && exit 1)
           curl -f --connect-timeout 10 "https://esm.sh/lucide@0.462.0?bundle" || (echo "❌ lucide CDN failed" && exit 1)
-          curl -f --connect-timeout 10 https://cdn.jsdelivr.net/npm/tailwindcss@3.4.0/tailwind.min.css || (echo "❌ tailwindcss CDN failed" && exit 1)
+          curl -f --connect-timeout 10 https://cdn.tailwindcss.com || (echo "❌ tailwindcss CDN failed" && exit 1)
           echo "✅ All CDN links verified"
       - name: Install Playwright
         run: npm install @playwright/test

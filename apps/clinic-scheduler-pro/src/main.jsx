@@ -832,7 +832,10 @@ const useApp = () => useContext(AppContext);
 // ==================== Shared Components ====================
 const Icon = ({ name, size = 20, className = "" }) => {
     useEffect(() => {
-        lucide.createIcons();
+        if (lucide?.createIcons) {
+            const icons = lucide.icons;
+            icons ? lucide.createIcons({ icons }) : lucide.createIcons();
+        }
     }, []);
     return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
 };
@@ -2421,4 +2424,3 @@ const Root = () => {
 
 // Render the app
 ReactDOM.createRoot(document.getElementById('root')).render(<Root />);
-

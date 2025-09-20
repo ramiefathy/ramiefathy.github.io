@@ -857,7 +857,12 @@ const Icon = ({
   className = ""
 }) => {
   useEffect(() => {
-    lucide.createIcons();
+    if (lucide?.createIcons) {
+      const icons = lucide.icons;
+      icons ? lucide.createIcons({
+        icons
+      }) : lucide.createIcons();
+    }
   }, []);
   return /*#__PURE__*/React.createElement("i", {
     "data-lucide": name,
