@@ -18,10 +18,107 @@ const motion = ({
 const AnimatePresence = ({
   children
 }) => children;
-const {
+const ToastDispatchContext = createContext(null);
+const ToastStateContext = createContext([]);
+let externalToastDispatch = null;
+const toast = {
+  success: message => externalToastDispatch?.({
+    type: 'success',
+    message
+  }),
+  error: message => externalToastDispatch?.({
+    type: 'error',
+    message
+  })
+};
+const ToastProvider = ({
+  children
+}) => {
+  const [toasts, setToasts] = useState([]);
+  const removeToast = useCallback(id => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+  const publish = useCallback(({
+    type,
+    message
+  }) => {
+    if (!message) return;
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setToasts(prev => [...prev, {
+      id,
+      type,
+      message
+    }]);
+  }, []);
+  useEffect(() => {
+    externalToastDispatch = publish;
+    return () => {
+      if (externalToastDispatch === publish) {
+        externalToastDispatch = null;
+      }
+    };
+  }, [publish]);
+  return /*#__PURE__*/React.createElement(ToastDispatchContext.Provider, {
+    value: removeToast
+  }, /*#__PURE__*/React.createElement(ToastStateContext.Provider, {
+    value: toasts
+  }, children, /*#__PURE__*/React.createElement(ToastViewport, null)));
+};
+const ToastViewport = () => {
+  const toasts = useContext(ToastStateContext);
+  const dismiss = useContext(ToastDispatchContext);
+  return /*#__PURE__*/React.createElement("div", {
+    role: "status",
+    "aria-live": "polite",
+    style: {
+      position: 'fixed',
+      bottom: '1.5rem',
+      right: '1.5rem',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.75rem',
+      zIndex: 9999,
+      maxWidth: '20rem'
+    }
+  }, toasts.map(toast => /*#__PURE__*/React.createElement(ToastItem, {
+    key: toast.id,
+    toast: toast,
+    onDismiss: dismiss
+  })));
+};
+const ToastItem = ({
   toast,
-  Toaster
-} = window['react-hot-toast'];
+  onDismiss
+}) => {
+  useEffect(() => {
+    const timer = setTimeout(() => onDismiss(toast.id), 3500);
+    return () => clearTimeout(timer);
+  }, [toast.id, onDismiss]);
+  const palette = toast.type === 'success' ? {
+    bg: '#dcfce7',
+    border: '#86efac',
+    text: '#065f46'
+  } : {
+    bg: '#fee2e2',
+    border: '#fca5a5',
+    text: '#991b1b'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    role: "alert",
+    onClick: () => onDismiss(toast.id),
+    style: {
+      borderRadius: '1rem',
+      padding: '0.85rem 1rem',
+      background: palette.bg,
+      border: `1px solid ${palette.border}`,
+      color: palette.text,
+      fontWeight: 600,
+      boxShadow: '0 12px 30px rgba(15, 23, 42, 0.15)',
+      cursor: 'pointer'
+    }
+  }, toast.message);
+};
+const Toaster = () => null;
 const {
   format,
   parseISO,
@@ -2446,7 +2543,7 @@ const App = () => {
 
 // ==================== Root Component ====================
 const Root = () => {
-  return /*#__PURE__*/React.createElement(AppProvider, null, /*#__PURE__*/React.createElement(App, null));
+  return /*#__PURE__*/React.createElement(ToastProvider, null, /*#__PURE__*/React.createElement(AppProvider, null, /*#__PURE__*/React.createElement(App, null)));
 };
 
 // Render the app
