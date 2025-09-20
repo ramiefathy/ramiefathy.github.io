@@ -16,10 +16,12 @@
         import * as Recharts from 'https://esm.sh/recharts@2.5.0?bundle';
         import Papa from 'https://esm.sh/papaparse@5.4.1?bundle';
         import * as lucide from 'https://esm.sh/lucide@0.462.0?bundle';
+        import * as framerMotion from 'https://esm.sh/framer-motion@11.0.3?bundle';
         window['date-fns'] = dateFns;
         window.Recharts = Recharts;
         window.Papa = Papa;
         window.lucide = lucide;
+        window['framer-motion'] = framerMotion;
     </script>
 
     <!-- Additional Libraries -->
@@ -92,19 +94,21 @@
 
         .assignment-card {
             background-color: #ffffff;
-            border-radius: 0.5rem;
-            padding: 0.5rem;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
             margin: 0.25rem;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             border: 1px solid #e5e7eb;
             font-size: 0.75rem;
             line-height: 1rem;
             cursor: move;
-            transition: all 0.2s ease-in-out;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .assignment-card:hover {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+            border-color: #d1d5db;
         }
 
         .assignment-card.dragging {
@@ -131,6 +135,104 @@
             animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
             background-color: #e5e7eb;
             border-radius: 0.25rem;
+        }
+
+        /* Modern glass morphism effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Enhanced animations */
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        .animate-pulse-soft {
+            animation: pulseSoft 2s infinite;
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateY(-20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulseSoft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Loading shimmer effect */
+        .shimmer {
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.2) 20%,
+                rgba(255, 255, 255, 0.5) 60%,
+                rgba(255, 255, 255, 0)
+            );
+            animation: shimmer 2s infinite;
+            background-size: 200% 100%;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Modern focus styles */
+        .focus-ring {
+            transition: box-shadow 0.2s ease-in-out;
+        }
+
+        .focus-ring:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Enhanced transitions */
+        .transition-all {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Improved card shadows */
+        .card-shadow {
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        .card-shadow-hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-shadow-lg {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
     </style>
 </head>
