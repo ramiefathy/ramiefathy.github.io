@@ -61,6 +61,9 @@ class FirebaseService {
             const userCredential = await window.firebase.auth.createUserWithEmailAndPassword(this.auth, email, password);
             const user = userCredential.user;
 
+            // Ensure current user is available immediately for subsequent operations
+            this.currentUser = user;
+
             // Create user profile
             await window.firebase.firestore.setDoc(
                 window.firebase.firestore.doc(this.db, 'users', user.uid),
