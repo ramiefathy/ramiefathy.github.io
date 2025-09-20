@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Biologic Monitoring Dashboard</title>
+    <meta
+      name="description"
+      content="Interactive reference for baseline screening, follow-up laboratories, and safety monitoring for systemic dermatology regimens."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-view="cards">
+    <main class="page">
+      <section class="hero">
+        <h1>Biologic Monitoring Dashboard</h1>
+        <p>
+          Searchable, filterable monitoring guidance for dermatology biologics and systemic immunomodulators. Built from
+          FDA prescribing information and consensus guidelines updated September&nbsp;19,&nbsp;2025. Use it to double-check baseline labs,
+          follow-up cadence, and safety counseling before initiating or refilling therapy.
+        </p>
+      </section>
+
+      <section class="controls" aria-label="Filters">
+        <div class="control-card">
+          <label for="search-input">Quick search</label>
+          <div class="search-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input id="search-input" type="search" placeholder="Search by drug, lab, or caution" autocomplete="off" />
+          </div>
+          <small>Matches drug names, class, monitoring pearls, and baseline tasks.</small>
+        </div>
+
+        <div class="control-card">
+          <span class="label">Categories</span>
+          <div class="category-pills">
+            <button class="category-btn" type="button" data-category="Biologics">Biologics</button>
+            <button class="category-btn" type="button" data-category="Targeted & Conventional">Targeted &amp; Conventional</button>
+          </div>
+          <small>Toggle to focus on biologics or small molecules/traditional immunosuppressants.</small>
+        </div>
+
+        <div class="control-card">
+          <span class="label">Actions</span>
+          <div class="action-buttons">
+            <button class="primary-btn" type="button" id="view-toggle">Switch to table view</button>
+            <button class="secondary-btn" type="button" id="reset-filters">Reset filters</button>
+          </div>
+          <small>Switch views or clear filters to return to the full dataset.</small>
+        </div>
+      </section>
+
+      <p id="result-count"></p>
+      <section id="results" class="entries" aria-live="polite"></section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

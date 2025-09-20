@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dermatopathology Navigator - Modern UI</title>
+
+    <!-- External Dependencies -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/framer-motion@11.0.3/dist/framer-motion.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+
+    <!-- Modern Font Stack -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Berkeley+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom Tailwind Config */
+        :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: 'Berkeley Mono', 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+        }
+
+        /* Glassmorphism Base */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-dark {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Gradient Background */
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .gradient-bg-alt {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        /* Loading Animation */
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            80%, 100% {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Command Palette Styles */
+        .command-palette {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Card Hover Effects */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Smooth Transitions */
+        * {
+            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+
+        /* Network Graph Container */
+        .network-container {
+            width: 100%;
+            height: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Swipe Indicator */
+        .swipe-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .swipe-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s;
+        }
+
+        .swipe-dot.active {
+            width: 24px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        /* Category Colors */
+        .category-inflammatory { border-left: 4px solid #ef4444; }
+        .category-neoplastic { border-left: 4px solid #8b5cf6; }
+        .category-infectious { border-left: 4px solid #f59e0b; }
+        .category-metabolic { border-left: 4px solid #10b981; }
+        .category-genetic { border-left: 4px solid #3b82f6; }
+        .category-other { border-left: 4px solid #6b7280; }
+
+        /* Achievement Badge */
+        .achievement-badge {
+            animation: badge-pop 0.5s ease-out;
+        }
+
+        @keyframes badge-pop {
+            0% {
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2) rotate(10deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        /* Study Streak Fire */
+        .fire-animation {
+            animation: fire-flicker 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes fire-flicker {
+            0% { transform: scale(1) rotate(-2deg); }
+            100% { transform: scale(1.1) rotate(2deg); }
+        }
+
+        /* 3D Card Flip */
+        .preserve-3d {
+            transform-style: preserve-3d;
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+
+        /* Simple fade transitions */
+        .fade-enter {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+    </style>
+
+    <script type="text/tailwind-config">
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'mono': ['Berkeley Mono', 'SF Mono', 'Monaco', 'monospace'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'slide-up': 'slide-up 0.3s ease-out',
+                        'slide-down': 'slide-down 0.3s ease-out',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        'slide-up': {
+                            '0%': { transform: 'translateY(10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        'slide-down': {
+                            '0%': { transform: 'translateY(-10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <!-- React Root -->
+    <div id="root"></div>
+
+    <!-- Load data -->
+    <script type="module" src="./data-loader.js"></script>
+
+    <!-- Main App Component -->
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useCallback, createContext, useContext, useReducer } = React;
+        const { motion, AnimatePresence } = window.FramerMotion || {
+            motion: {
+                div: (props) => React.createElement('div', props),
+                button: (props) => React.createElement('button', props)
+            },
+            AnimatePresence: ({children}) => children
+        };
+
+        // Simple state management using useReducer
+        const initialState = {
+            findings: [],
+            selectedFinding: null,
+            diagnoses: [],
+            searchQuery: '',
+            commandPaletteOpen: false,
+            favorites: new Set(),
+            notes: {},
+            filters: {
+                category: 'all',
+                difficulty: 'all',
+            },
+            studyStats: {
+                streak: 1,
+                totalReviews: 0,
+                achievements: [],
+            },
+            theme: 'light',
+        };
+
+        const stateReducer = (state, action) => {
+            switch (action.type) {
+                case 'SET_FINDINGS':
+                    return { ...state, findings: action.payload };
+                case 'SET_SELECTED_FINDING':
+                    const diagnoses = action.payload ?
+                        (window.dermDifferentialData?.find(f => f.finding === action.payload)?.diagnoses || []) : [];
+                    return { ...state, selectedFinding: action.payload, diagnoses };
+                case 'SET_SEARCH_QUERY':
+                    return { ...state, searchQuery: action.payload };
+                case 'TOGGLE_COMMAND_PALETTE':
+                    return { ...state, commandPaletteOpen: !state.commandPaletteOpen };
+                case 'TOGGLE_FAVORITE':
+                    const newFavorites = new Set(state.favorites);
+                    if (newFavorites.has(action.payload)) {
+                        newFavorites.delete(action.payload);
+                    } else {
+                        newFavorites.add(action.payload);
+                    }
+                    return { ...state, favorites: newFavorites };
+                case 'SET_NOTE':
+                    return {
+                        ...state,
+                        notes: { ...state.notes, [action.payload.diagnosis]: action.payload.note }
+                    };
+                case 'TOGGLE_THEME':
+                    const newTheme = state.theme === 'light' ? 'dark' : 'light';
+                    document.documentElement.classList.toggle('dark');
+                    return { ...state, theme: newTheme };
+                default:
+                    return state;
+            }
+        };
+
+        // Create context for global state
+        const StateContext = createContext();
+        const StateProvider = ({ children }) => {
+            const [state, dispatch] = useReducer(stateReducer, initialState);
+            return (
+                <StateContext.Provider value={{ state, dispatch }}>
+                    {children}
+                </StateContext.Provider>
+            );
+        };
+        const useGlobalState = () => useContext(StateContext);
+
+        // Lucide Icons Component
+        const Icon = ({ name, className = "w-4 h-4" }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, []);
+            return <i data-lucide={name} className={className}></i>;
+        };
+
+        // Loading Component
+        const LoadingScreen = () => (
+            <div className="fixed inset-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center z-50">
+                <div className="relative">
+                    <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center">
+                        <Icon name="microscope" className="w-10 h-10 text-white" />
+                    </div>
+                    <div className="absolute inset-0 w-20 h-20 rounded-full bg-white/20 pulse-ring"></div>
+                </div>
+                <div className="absolute bottom-10 text-white text-lg font-medium">
+                    Loading Dermatopathology Navigator...
+                </div>
+            </div>
+        );
+
+        // Command Palette Component
+        const CommandPalette = () => {
+            const { state, dispatch } = useGlobalState();
+            const { commandPaletteOpen, searchQuery } = state;
+            const [searchResults, setSearchResults] = useState([]);
+            const inputRef = useRef(null);
+
+            useEffect(() => {
+                if (commandPaletteOpen && inputRef.current) {
+                    inputRef.current.focus();
+                }
+            }, [commandPaletteOpen]);
+
+            useEffect(() => {
+                if (!searchQuery || !window.dermDifferentialData) {
+                    setSearchResults([]);
+                    return;
+                }
+
+                // Create search data
+                const searchData = [];
+                window.dermDifferentialData.forEach(item => {
+                    searchData.push({ type: 'finding', ...item });
+                    item.diagnoses.forEach(dx => {
+                        searchData.push({
+                            type: 'diagnosis',
+                            ...dx,
+                            parentFinding: item.finding
+                        });
+                    });
+                });
+
+                const fuseOptions = {
+                    includeScore: true,
+                    keys: ['finding', 'name', 'keyFeatures'],
+                    threshold: 0.3,
+                };
+
+                const fuse = new Fuse(searchData, fuseOptions);
+                const results = fuse.search(searchQuery).slice(0, 10);
+                setSearchResults(results);
+            }, [searchQuery]);
+
+            const handleSelect = (result) => {
+                if (result.item.type === 'finding') {
+                    dispatch({ type: 'SET_SELECTED_FINDING', payload: result.item.finding });
+                } else {
+                    dispatch({ type: 'SET_SELECTED_FINDING', payload: result.item.parentFinding });
+                }
+                dispatch({ type: 'SET_SEARCH_QUERY', payload: '' });
+                dispatch({ type: 'TOGGLE_COMMAND_PALETTE' });
+            };
+
+            if (!commandPaletteOpen) return null;
+
+            return (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-20"
+                     onClick={() => dispatch({ type: 'TOGGLE_COMMAND_PALETTE' })}>
+                    <div className="w-full max-w-2xl glass dark:glass-dark rounded-2xl shadow-2xl"
+                         onClick={(e) => e.stopPropagation()}>
+                        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center space-x-3">
+                                <Icon name="search" className="w-5 h-5 text-gray-400" />
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => dispatch({ type: 'SET_SEARCH_QUERY', payload: e.target.value })}
+                                    placeholder="Search findings, diagnoses, or features..."
+                                    className="flex-1 bg-transparent outline-none text-lg"
+                                />
+                                <kbd className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded">ESC</kbd>
+                            </div>
+                        </div>
+
+                        <div className="command-palette p-2">
+                            {searchResults.length > 0 ? (
+                                searchResults.map((result, index) => (
+                                    <div
+                                        key={index}
+                                        onClick={() => handleSelect(result)}
+                                        className="p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer group fade-enter-active"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <div className="flex items-center space-x-2">
+                                                    <Icon
+                                                        name={result.item.type === 'finding' ? 'folder' : 'file-text'}
+                                                        className="w-4 h-4 text-gray-400"
+                                                    />
+                                                    <span className="font-medium">
+                                                        {result.item.type === 'finding' ? result.item.finding : result.item.name}
+                                                    </span>
+                                                    {result.item.type === 'diagnosis' && (
+                                                        <span className="text-xs text-gray-500">
+                                                            in {result.item.parentFinding}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {result.item.keyFeatures && (
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
+                                                        {result.item.keyFeatures}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <Icon name="arrow-right" className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100" />
+                                        </div>
+                                    </div>
+                                ))
+                            ) : searchQuery ? (
+                                <div className="p-8 text-center text-gray-500">
+                                    No results found for "{searchQuery}"
+                                </div>
+                            ) : (
+                                <div className="p-8 text-center text-gray-500">
+                                    Start typing to search...
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Header Component
+        const Header = () => {
+            const { state, dispatch } = useGlobalState();
+            const { theme, studyStats } = state;
+
+            return (
+                <header className="glass dark:glass-dark sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700">
+                    <div className="container mx-auto px-4 py-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                                        <Icon name="microscope" className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl font-semibold">Dermatopathology Navigator</h1>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Modern Learning Experience</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-4">
+                                {studyStats.streak > 0 && (
+                                    <div className="flex items-center space-x-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                                        <span className="text-2xl fire-animation">🔥</span>
+                                        <span className="text-sm font-medium">{studyStats.streak} day streak!</span>
+                                    </div>
+                                )}
+
+                                <button
+                                    onClick={() => dispatch({ type: 'TOGGLE_COMMAND_PALETTE' })}
+                                    className="flex items-center space-x-2 px-4 py-2 glass dark:glass-dark rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                    <Icon name="search" className="w-4 h-4" />
+                                    <span className="text-sm">Search</span>
+                                    <kbd className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded">⌘K</kbd>
+                                </button>
+
+                                <button
+                                    onClick={() => dispatch({ type: 'TOGGLE_THEME' })}
+                                    className="p-2 glass dark:glass-dark rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                    <Icon name={theme === 'light' ? 'moon' : 'sun'} className="w-5 h-5" />
+                                </button>
+
+                                <button className="p-2 glass dark:glass-dark rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                                    <Icon name="user" className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            );
+        };
+
+        // Diagnosis Card Component
+        const DiagnosisCard = ({ diagnosis, category = 'other' }) => {
+            const { state, dispatch } = useGlobalState();
+            const { favorites, notes } = state;
+            const [isNoteOpen, setIsNoteOpen] = useState(false);
+            const [noteText, setNoteText] = useState(notes[diagnosis.name] || '');
+
+            const isFavorite = favorites.has(diagnosis.name);
+
+            const handleSaveNote = () => {
+                dispatch({ type: 'SET_NOTE', payload: { diagnosis: diagnosis.name, note: noteText } });
+                setIsNoteOpen(false);
+            };
+
+            const categoryClasses = {
+                inflammatory: 'category-inflammatory',
+                neoplastic: 'category-neoplastic',
+                infectious: 'category-infectious',
+                metabolic: 'category-metabolic',
+                genetic: 'category-genetic',
+                other: 'category-other',
+            };
+
+            return (
+                <div className={`glass dark:glass-dark rounded-xl p-6 card-hover ${categoryClasses[category]} fade-enter-active`}>
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                            <h3 className="text-lg font-semibold mb-1">{diagnosis.name}</h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                                {Array.isArray(diagnosis.sources) ? diagnosis.sources.join(', ') : diagnosis.sources}
+                            </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={() => dispatch({ type: 'TOGGLE_FAVORITE', payload: diagnosis.name })}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            >
+                                <Icon
+                                    name="star"
+                                    className={`w-5 h-5 ${isFavorite ? 'fill-yellow-500 text-yellow-500' : 'text-gray-400'}`}
+                                />
+                            </button>
+                            <button
+                                onClick={() => setIsNoteOpen(true)}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            >
+                                <Icon
+                                    name="edit-3"
+                                    className={`w-5 h-5 ${notes[diagnosis.name] ? 'text-blue-500' : 'text-gray-400'}`}
+                                />
+                            </button>
+                        </div>
+                    </div>
+
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <strong className="font-medium">Key Features:</strong> {diagnosis.keyFeatures}
+                    </p>
+
+                    {diagnosis.dif && (
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
+                            <strong className="font-medium">DIF:</strong> {diagnosis.dif}
+                        </p>
+                    )}
+
+                    {notes[diagnosis.name] && (
+                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <p className="text-sm">
+                                <strong className="font-medium">Your Note:</strong> {notes[diagnosis.name]}
+                            </p>
+                        </div>
+                    )}
+
+                    {isNoteOpen && (
+                        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+                             onClick={() => setIsNoteOpen(false)}>
+                            <div className="glass dark:glass-dark rounded-xl p-6 max-w-md w-full"
+                                 onClick={(e) => e.stopPropagation()}>
+                                <h3 className="text-lg font-semibold mb-4">Add Note for {diagnosis.name}</h3>
+                                <textarea
+                                    value={noteText}
+                                    onChange={(e) => setNoteText(e.target.value)}
+                                    placeholder="Add your personal notes here..."
+                                    className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 resize-none"
+                                    rows={4}
+                                />
+                                <div className="flex justify-end space-x-3 mt-4">
+                                    <button
+                                        onClick={() => setIsNoteOpen(false)}
+                                        className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSaveNote}
+                                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                                    >
+                                        Save Note
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Swipeable Flashcard Component
+        const FlashcardDeck = ({ diagnoses }) => {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [isFlipped, setIsFlipped] = useState(false);
+            const [touchStart, setTouchStart] = useState(null);
+            const [touchEnd, setTouchEnd] = useState(null);
+
+            const minSwipeDistance = 50;
+
+            const onTouchStart = (e) => {
+                setTouchEnd(null);
+                setTouchStart(e.targetTouches[0].clientX);
+            };
+
+            const onTouchMove = (e) => {
+                setTouchEnd(e.targetTouches[0].clientX);
+            };
+
+            const onTouchEnd = () => {
+                if (!touchStart || !touchEnd) return;
+                const distance = touchStart - touchEnd;
+                const isLeftSwipe = distance > minSwipeDistance;
+                const isRightSwipe = distance < -minSwipeDistance;
+
+                if (isLeftSwipe && currentIndex < diagnoses.length - 1) {
+                    setCurrentIndex(currentIndex + 1);
+                    setIsFlipped(false);
+                }
+                if (isRightSwipe && currentIndex > 0) {
+                    setCurrentIndex(currentIndex - 1);
+                    setIsFlipped(false);
+                }
+            };
+
+            const currentCard = diagnoses[currentIndex];
+
+            return (
+                <div className="relative h-96 flex items-center justify-center">
+                    <div
+                        className="w-full max-w-md"
+                        onTouchStart={onTouchStart}
+                        onTouchMove={onTouchMove}
+                        onTouchEnd={onTouchEnd}
+                    >
+                        <div
+                            className="relative h-80 preserve-3d cursor-pointer"
+                            style={{ transform: `rotateY(${isFlipped ? 180 : 0}deg)`, transition: 'transform 0.6s' }}
+                            onClick={() => setIsFlipped(!isFlipped)}
+                        >
+                            {/* Front of card */}
+                            <div className="absolute inset-0 backface-hidden">
+                                <div className="h-full glass dark:glass-dark rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+                                    <Icon name="help-circle" className="w-12 h-12 mb-4 text-gray-400" />
+                                    <h2 className="text-2xl font-bold mb-2">{currentCard.name}</h2>
+                                    <p className="text-gray-500 dark:text-gray-400">Tap to reveal details</p>
+                                </div>
+                            </div>
+
+                            {/* Back of card */}
+                            <div className="absolute inset-0 backface-hidden" style={{ transform: 'rotateY(180deg)' }}>
+                                <div className="h-full glass dark:glass-dark rounded-2xl p-8 overflow-y-auto">
+                                    <h3 className="font-semibold mb-2">Key Features</h3>
+                                    <p className="text-sm mb-4">{currentCard.keyFeatures}</p>
+
+                                    {currentCard.dif && (
+                                        <>
+                                            <h3 className="font-semibold mb-2">DIF</h3>
+                                            <p className="text-sm mb-4">{currentCard.dif}</p>
+                                        </>
+                                    )}
+
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                                        Sources: {Array.isArray(currentCard.sources) ? currentCard.sources.join(', ') : currentCard.sources}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Swipe Indicators */}
+                    <div className="swipe-indicator">
+                        {diagnoses.map((_, index) => (
+                            <div
+                                key={index}
+                                className={`swipe-dot ${index === currentIndex ? 'active' : ''}`}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Navigation Buttons */}
+                    <button
+                        className="absolute left-4 p-2 glass dark:glass-dark rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                        onClick={() => {
+                            if (currentIndex > 0) {
+                                setCurrentIndex(currentIndex - 1);
+                                setIsFlipped(false);
+                            }
+                        }}
+                        disabled={currentIndex === 0}
+                    >
+                        <Icon name="arrow-left" className="w-5 h-5" />
+                    </button>
+
+                    <button
+                        className="absolute right-4 p-2 glass dark:glass-dark rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                        onClick={() => {
+                            if (currentIndex < diagnoses.length - 1) {
+                                setCurrentIndex(currentIndex + 1);
+                                setIsFlipped(false);
+                            }
+                        }}
+                        disabled={currentIndex === diagnoses.length - 1}
+                    >
+                        <Icon name="arrow-right" className="w-5 h-5" />
+                    </button>
+
+                    {/* Navigation Hints */}
+                    <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4 text-sm text-gray-500">
+                        <span className="flex items-center">
+                            <Icon name="arrow-left" className="w-4 h-4 mr-1" />
+                            Swipe or click arrows
+                        </span>
+                        <span className="flex items-center">
+                            Tap to flip
+                            <Icon name="rotate-3d" className="w-4 h-4 ml-1" />
+                        </span>
+                    </div>
+                </div>
+            );
+        };
+
+        // Network Visualization Component
+        const NetworkGraph = ({ finding, diagnoses }) => {
+            const svgRef = useRef(null);
+            const [selectedNode, setSelectedNode] = useState(null);
+
+            useEffect(() => {
+                if (!svgRef.current || !diagnoses.length) return;
+
+                const width = svgRef.current.clientWidth;
+                const height = 600;
+
+                // Clear previous graph
+                d3.select(svgRef.current).selectAll("*").remove();
+
+                const svg = d3.select(svgRef.current)
+                    .attr("width", width)
+                    .attr("height", height);
+
+                // Create gradient definitions
+                const defs = svg.append("defs");
+
+                const gradient = defs.append("radialGradient")
+                    .attr("id", "node-gradient")
+                    .attr("cx", "50%")
+                    .attr("cy", "50%")
+                    .attr("r", "50%");
+
+                gradient.append("stop")
+                    .attr("offset", "0%")
+                    .attr("stop-color", "#8b5cf6")
+                    .attr("stop-opacity", 0.8);
+
+                gradient.append("stop")
+                    .attr("offset", "100%")
+                    .attr("stop-color", "#6366f1")
+                    .attr("stop-opacity", 0.6);
+
+                // Create nodes
+                const nodes = [
+                    { id: finding, group: 0, r: 40 },
+                    ...diagnoses.map((dx, i) => ({
+                        id: dx.name,
+                        group: 1 + (i % 5),
+                        r: 25,
+                        keyFeatures: dx.keyFeatures
+                    }))
+                ];
+
+                // Create links
+                const links = diagnoses.map(dx => ({
+                    source: finding,
+                    target: dx.name
+                }));
+
+                // Create simulation
+                const simulation = d3.forceSimulation(nodes)
+                    .force("link", d3.forceLink(links).id(d => d.id).distance(150))
+                    .force("charge", d3.forceManyBody().strength(-300))
+                    .force("center", d3.forceCenter(width / 2, height / 2))
+                    .force("collision", d3.forceCollide().radius(d => d.r + 10));
+
+                // Create links
+                const link = svg.append("g")
+                    .selectAll("line")
+                    .data(links)
+                    .join("line")
+                    .attr("stroke", "#e5e7eb")
+                    .attr("stroke-width", 2)
+                    .attr("opacity", 0.6);
+
+                // Create nodes
+                const node = svg.append("g")
+                    .selectAll("g")
+                    .data(nodes)
+                    .join("g")
+                    .call(drag(simulation));
+
+                // Add circles
+                node.append("circle")
+                    .attr("r", d => d.r)
+                    .attr("fill", d => d.group === 0 ? "url(#node-gradient)" : "#e0e7ff")
+                    .attr("stroke", d => d.group === 0 ? "#7c3aed" : "#6366f1")
+                    .attr("stroke-width", 2)
+                    .style("cursor", "pointer")
+                    .on("click", (event, d) => {
+                        setSelectedNode(d);
+                    })
+                    .on("mouseenter", function(event, d) {
+                        d3.select(this)
+                            .transition()
+                            .duration(200)
+                            .attr("r", d.r * 1.2);
+                    })
+                    .on("mouseleave", function(event, d) {
+                        d3.select(this)
+                            .transition()
+                            .duration(200)
+                            .attr("r", d.r);
+                    });
+
+                // Add labels
+                node.append("text")
+                    .text(d => d.id)
+                    .attr("font-size", d => d.group === 0 ? "14px" : "12px")
+                    .attr("font-weight", d => d.group === 0 ? "600" : "400")
+                    .attr("text-anchor", "middle")
+                    .attr("dy", d => d.r + 15)
+                    .style("pointer-events", "none");
+
+                // Update positions on tick
+                simulation.on("tick", () => {
+                    link
+                        .attr("x1", d => d.source.x)
+                        .attr("y1", d => d.source.y)
+                        .attr("x2", d => d.target.x)
+                        .attr("y2", d => d.target.y);
+
+                    node.attr("transform", d => `translate(${d.x},${d.y})`);
+                });
+
+                // Drag functionality
+                function drag(simulation) {
+                    function dragstarted(event, d) {
+                        if (!event.active) simulation.alphaTarget(0.3).restart();
+                        d.fx = d.x;
+                        d.fy = d.y;
+                    }
+
+                    function dragged(event, d) {
+                        d.fx = event.x;
+                        d.fy = event.y;
+                    }
+
+                    function dragended(event, d) {
+                        if (!event.active) simulation.alphaTarget(0);
+                        d.fx = null;
+                        d.fy = null;
+                    }
+
+                    return d3.drag()
+                        .on("start", dragstarted)
+                        .on("drag", dragged)
+                        .on("end", dragended);
+                }
+
+                return () => {
+                    simulation.stop();
+                };
+            }, [finding, diagnoses]);
+
+            return (
+                <div className="network-container glass dark:glass-dark rounded-xl p-4">
+                    <svg ref={svgRef} className="w-full h-full"></svg>
+
+                    {selectedNode && selectedNode.keyFeatures && (
+                        <div className="absolute top-4 right-4 w-80 glass dark:glass-dark rounded-lg p-4 fade-enter-active">
+                            <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-semibold">{selectedNode.id}</h4>
+                                <button
+                                    onClick={() => setSelectedNode(null)}
+                                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                    <Icon name="x" className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {selectedNode.keyFeatures}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // AI Recommendations Component
+        const AIRecommendations = ({ currentFinding, diagnoses }) => {
+            const recommendations = useMemo(() => {
+                // Mock AI recommendations
+                const related = [
+                    "Consider reviewing similar patterns in psoriasiform dermatitis",
+                    "This finding often co-occurs with interface dermatitis patterns",
+                    "Review immunofluorescence patterns for better differentiation"
+                ];
+                return related.slice(0, 2 + Math.floor(Math.random() * 2));
+            }, [currentFinding]);
+
+            return (
+                <div className="glass dark:glass-dark rounded-xl p-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
+                            <Icon name="sparkles" className="w-4 h-4 text-white" />
+                        </div>
+                        <h3 className="text-lg font-semibold">AI Insights</h3>
+                    </div>
+
+                    <div className="space-y-3">
+                        {recommendations.map((rec, index) => (
+                            <div
+                                key={index}
+                                className="flex items-start space-x-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg fade-enter-active"
+                            >
+                                <Icon name="lightbulb" className="w-4 h-4 text-blue-500 mt-0.5" />
+                                <p className="text-sm">{rec}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button className="mt-4 w-full p-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all">
+                        Generate Study Plan
+                    </button>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [isLoading, setIsLoading] = useState(true);
+            const [activeView, setActiveView] = useState('grid');
+            const { state, dispatch } = useGlobalState();
+            const { findings, selectedFinding, diagnoses, favorites } = state;
+
+            useEffect(() => {
+                // Wait for data to load
+                const handleDataLoaded = () => {
+                    if (window.dermDifferentialData) {
+                        const findingsList = window.dermDifferentialData.map(item => item.finding);
+                        dispatch({ type: 'SET_FINDINGS', payload: findingsList });
+
+                        // Set initial finding
+                        if (findingsList.length > 0) {
+                            dispatch({ type: 'SET_SELECTED_FINDING', payload: findingsList[0] });
+                        }
+                    }
+                    setIsLoading(false);
+                };
+
+                // Check if data is already loaded
+                if (window.dermDifferentialData) {
+                    handleDataLoaded();
+                } else {
+                    // Wait for data to load
+                    window.addEventListener('dermDataLoaded', handleDataLoaded);
+                }
+
+                // Apply theme
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                }
+
+                // Setup keyboard shortcuts
+                const handleKeyDown = (e) => {
+                    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                        e.preventDefault();
+                        dispatch({ type: 'TOGGLE_COMMAND_PALETTE' });
+                    }
+                };
+
+                document.addEventListener('keydown', handleKeyDown);
+
+                return () => {
+                    window.removeEventListener('dermDataLoaded', handleDataLoaded);
+                    document.removeEventListener('keydown', handleKeyDown);
+                };
+            }, [dispatch]);
+
+            if (isLoading) {
+                return <LoadingScreen />;
+            }
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+                    <CommandPalette />
+                    <Header />
+
+                    <main className="container mx-auto px-4 py-8">
+                        {/* Finding Selector */}
+                        <div className="mb-8">
+                            <label className="block text-sm font-medium mb-2">Current Finding</label>
+                            <select
+                                value={selectedFinding || ''}
+                                onChange={(e) => dispatch({ type: 'SET_SELECTED_FINDING', payload: e.target.value })}
+                                className="w-full max-w-md px-4 py-3 glass dark:glass-dark rounded-lg border border-gray-200 dark:border-gray-700"
+                            >
+                                <option value="">Select a finding...</option>
+                                {findings.map(finding => (
+                                    <option key={finding} value={finding}>{finding}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {selectedFinding && diagnoses.length > 0 && (
+                            <>
+                                {/* View Selector */}
+                                <div className="flex space-x-2 mb-6">
+                                    {['grid', 'flashcards', 'network'].map(view => (
+                                        <button
+                                            key={view}
+                                            onClick={() => setActiveView(view)}
+                                            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                                                activeView === view
+                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                                                    : 'glass dark:glass-dark hover:bg-gray-100 dark:hover:bg-gray-800'
+                                            }`}
+                                        >
+                                            <Icon
+                                                name={view === 'grid' ? 'grid' : view === 'flashcards' ? 'layers' : 'share-2'}
+                                                className="w-4 h-4 inline mr-2"
+                                            />
+                                            {view.charAt(0).toUpperCase() + view.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Main Content Area */}
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div className="lg:col-span-2">
+                                        {activeView === 'grid' && (
+                                            <div className="grid gap-4">
+                                                {diagnoses.map((diagnosis, index) => (
+                                                    <DiagnosisCard
+                                                        key={diagnosis.name}
+                                                        diagnosis={diagnosis}
+                                                        category={index % 6 === 0 ? 'inflammatory' :
+                                                                 index % 6 === 1 ? 'neoplastic' :
+                                                                 index % 6 === 2 ? 'infectious' :
+                                                                 index % 6 === 3 ? 'metabolic' :
+                                                                 index % 6 === 4 ? 'genetic' : 'other'}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {activeView === 'flashcards' && (
+                                            <FlashcardDeck diagnoses={diagnoses} />
+                                        )}
+
+                                        {activeView === 'network' && (
+                                            <NetworkGraph finding={selectedFinding} diagnoses={diagnoses} />
+                                        )}
+                                    </div>
+
+                                    {/* Sidebar */}
+                                    <div className="space-y-6">
+                                        {/* Stats Card */}
+                                        <div className="glass dark:glass-dark rounded-xl p-6">
+                                            <h3 className="text-lg font-semibold mb-4">Progress Overview</h3>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Total Diagnoses</span>
+                                                    <span className="font-medium">{diagnoses.length}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Favorites</span>
+                                                    <span className="font-medium">{favorites.size}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Study Progress</span>
+                                                    <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                                        <div
+                                                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
+                                                            style={{ width: '65%' }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* AI Recommendations */}
+                                        <AIRecommendations currentFinding={selectedFinding} diagnoses={diagnoses} />
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </main>
+
+                    {/* Floating Action Button */}
+                    <button className="fab bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                        <Icon name="plus" className="w-6 h-6" />
+                    </button>
+                </div>
+            );
+        };
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(
+            <StateProvider>
+                <App />
+            </StateProvider>
+        );
+    </script>
+</body>
+</html>

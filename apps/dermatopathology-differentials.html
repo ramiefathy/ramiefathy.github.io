@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dermatopathology Differentials</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom CSS -->
+    <style>
+        /* Design System using CSS Variables */
+        :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            --font-mono: 'Fira Code', 'Courier New', monospace;
+
+            /* Light Theme */
+            --color-bg: #f3f4f6; /* gray-100 */
+            --color-bg-alt: #ffffff; /* white */
+            --color-text: #1f2937; /* gray-800 */
+            --color-text-muted: #6b7280; /* gray-500 */
+            --color-border: #d1d5db; /* gray-300 */
+            --color-primary: #3b82f6; /* blue-500 */
+            --color-primary-hover: #2563eb; /* blue-600 */
+            --color-accent: #f59e0b; /* amber-500 */
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        /* Dark Theme Logic */
+        html.dark {
+                --color-bg: #111827;
+                --color-bg-alt: #1f2937;
+                --color-text: #f9fafb;
+                --color-text-muted: #9ca3af;
+                --color-border: #374151;
+                --color-primary: #60a5fa;
+                --color-primary-hover: #3b82f6;
+                --color-accent: #fcd34d;
+        }
+
+        /* Base Styles */
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Loading Spinner */
+        #loading-overlay {
+            background-color: rgba(0,0,0,0.7);
+        }
+        .spinner {
+            border-top-color: var(--color-primary);
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--color-bg-alt); }
+        ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+        /* Component Styles */
+        .main-card { background-color: var(--color-bg-alt); border: 1px solid var(--color-border); }
+        .tab-button { color: var(--color-text-muted); }
+        .tab-button.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+        .tab-button:hover { color: var(--color-primary); }
+        .btn-primary { background-color: var(--color-primary); color: white; }
+        .btn-primary:hover { background-color: var(--color-primary-hover); }
+        .btn-secondary { background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
+        .btn-secondary:hover { background-color: var(--color-bg); }
+        
+        /* Flashcard Styles */
+        .flashcard-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .flashcard-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .flashcard-progress {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--color-text-muted);
+        }
+
+        .flashcard-scene {
+            width: 100%;
+            height: 300px;
+            perspective: 1000px;
+            margin-bottom: 2rem;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            border-radius: 12px;
+            background: var(--color-bg-alt);
+            border: 2px solid var(--color-border);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .flashcard-front {
+            z-index: 2;
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--color-text);
+        }
+
+        .flashcard-back {
+            align-items: flex-start;
+            justify-content: flex-start;
+            overflow-y: auto;
+        }
+
+        .flashcard-back p {
+            width: 100%;
+            line-height: 1.6;
+        }
+
+        .flashcard-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .flashcard-actions button {
+            min-width: 100px;
+        }
+
+        /* Disabled button styles */
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive design for flashcards */
+        @media (max-width: 640px) {
+            .flashcard-scene {
+                height: 250px;
+            }
+            
+            .flashcard-face {
+                padding: 1.5rem;
+            }
+            
+            .flashcard-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        /* Spaced Repetition Styles */
+        .srs-stats-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 1rem;
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .srs-stat {
+            text-align: center;
+        }
+
+        .srs-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--color-primary);
+        }
+
+        .srs-stat-label {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .srs-difficulty-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .srs-difficulty-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .srs-difficulty-btn.again {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .srs-difficulty-btn.hard {
+            background-color: #f97316;
+            color: white;
+        }
+
+        .srs-difficulty-btn.good {
+            background-color: #22c55e;
+            color: white;
+        }
+
+        .srs-difficulty-btn.easy {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .srs-difficulty-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        .srs-card-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: var(--color-bg);
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+        }
+
+        .srs-review-mode-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+        }
+
+        .srs-mode-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .srs-mode-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .srs-forecast-chart {
+            height: 200px;
+            margin-top: 1rem;
+        }
+        
+        /* Toast Notifications */
+        #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; }
+        .toast {
+            animation: toast-in 0.5s, toast-out 0.5s 4.5s;
+        }
+        @keyframes toast-in {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes toast-out {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        /* Print Styles */
+        @media print {
+            body { background-color: white; color: black; }
+            .no-print { display: none !important; }
+            main { margin: 0; padding: 0; }
+            .main-card { border: none; box-shadow: none; }
+            #results-content { max-height: none !important; }
+            a { text-decoration: none; color: inherit; }
+            .diagnosis-card, .table { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300">
+        <div class="absolute inset-0 bg-gray-900 bg-opacity-75"></div>
+        <div class="z-10 flex flex-col items-center">
+            <div class="spinner h-12 w-12 rounded-full border-4 border-gray-300"></div>
+            <p class="mt-4 text-white text-lg font-semibold">Loading Differential Explorer...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="p-4 shadow-md bg-white dark:bg-gray-800 no-print">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Dermatopathology Differentials</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Interactive differential diagnoses, visualization, and spaced repetition</p>
+            </div>
+             <button id="theme-toggle-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                <svg id="theme-icon-light" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <svg id="theme-icon-dark" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 md:p-6">
+        <!-- Search and Filter Section -->
+        <div class="mb-6 p-4 rounded-lg bg-white dark:bg-gray-800 shadow-md no-print">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Fuzzy Search -->
+                <div class="relative">
+                    <label for="finding-search-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Search Histologic Findings</label>
+                    <input type="text" id="finding-search-input" placeholder="e.g., 'spindle cell', 'acantholysis'..." class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                    <div id="search-suggestions" class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 rounded-md shadow-lg hidden max-h-60 overflow-y-auto"></div>
+                </div>
+                <!-- Dropdown Selector -->
+                <div>
+                    <label for="finding-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Or Select a Finding</label>
+                    <select id="finding-selector" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">-- Select a Finding --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Results Container -->
+        <div id="results-container" class="main-card rounded-lg shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-wrap justify-between items-center gap-4">
+                <h2 id="results-title" class="text-xl font-bold text-gray-800 dark:text-white flex-shrink-0">Welcome! Select a finding to begin.</h2>
+                <div id="action-buttons" class="flex-shrink-0 flex flex-wrap gap-2 no-print hidden">
+                    <button id="export-pdf-btn" class="btn-secondary text-xs px-3 py-1.5 rounded-md flex items-center gap-1">PDF <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm5 1a1 1 0 00-1 1v1a1 1 0 001 1h2a1 1 0 001-1V6a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg></button>
+                    <button id="export-excel-btn" class="btn-secondary text-xs px-3 py-1.5 rounded-md flex items-center gap-1">Excel <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.5 1a.5.5 0 00-.5.5v2.5a.5.5 0 00.5.5h2.5a.5.5 0 00.5-.5V6.5a.5.5 0 00-.5-.5h-2.5zM14.5 6a.5.5 0 00-.5.5v2.5a.5.5 0 00.5.5h.5a.5.5 0 00.5-.5V6.5a.5.5 0 00-.5-.5h-.5zM5.5 11a.5.5 0 00-.5.5v2.5a.5.5 0 00.5.5h2.5a.5.5 0 00.5-.5v-2.5a.5.5 0 00-.5-.5h-2.5zM11 11.5a.5.5 0 00-.5.5v2.5a.5.5 0 00.5.5h2.5a.5.5 0 00.5-.5v-2.5a.5.5 0 00-.5-.5h-2.5z" /></svg></button>
+                    <button id="print-btn" class="btn-secondary text-xs px-3 py-1.5 rounded-md flex items-center gap-1">Print <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" /></svg></button>
+                    <button id="share-btn" class="btn-secondary text-xs px-3 py-1.5 rounded-md flex items-center gap-1">Share <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" /></svg></button>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="border-b border-gray-200 dark:border-gray-700 no-print">
+                <nav id="tab-nav" class="flex flex-wrap -mb-px px-4" aria-label="Tabs" role="tablist">
+                    <button role="tab" data-tab="list" class="tab-button active text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">List</button>
+                    <button role="tab" data-tab="table" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Table</button>
+                    <button role="tab" data-tab="flashcards" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 flex items-center gap-1">
+                        Flashcards 
+                        <span id="due-cards-badge" class="hidden bg-red-500 text-white text-xs font-medium px-1.5 py-0.5 rounded-full"></span>
+                    </button>
+                    <button role="tab" data-tab="network" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Network</button>
+                    <button role="tab" data-tab="favorites" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 flex items-center gap-1">Favorites <span id="favorites-count" class="bg-blue-100 text-blue-800 text-xs font-medium px-1.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">0</span></button>
+                    <button role="tab" data-tab="statistics" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Statistics</button>
+                    <button role="tab" data-tab="compare" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 disabled:opacity-50" disabled>Compare</button>
+                    <button role="tab" data-tab="quiz" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 disabled:opacity-50" disabled>Quiz</button>
+                    <button role="tab" data-tab="analytics" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Analytics</button>
+                </nav>
+            </div>
+            
+            <!-- Content -->
+            <div id="results-content" class="p-4 md:p-6 bg-gray-50 dark:bg-gray-900/50 max-h-[65vh] overflow-y-auto">
+                <!-- Welcome message -->
+                <div id="welcome-message" class="text-center py-16">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                    </svg>
+                    <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">No Finding Selected</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Use the search or dropdown above to view differential diagnoses.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Note Modal -->
+    <div id="note-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black bg-opacity-50">
+        <div class="main-card rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3">
+            <div class="p-4 border-b dark:border-gray-700">
+                <h3 id="note-modal-title" class="text-lg font-semibold">Add/Edit Note</h3>
+            </div>
+            <div class="p-4">
+                <textarea id="note-textarea" rows="6" class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Your personal notes..."></textarea>
+            </div>
+            <div class="p-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3">
+                <button id="note-cancel-btn" class="btn-secondary px-4 py-2 rounded-md">Cancel</button>
+                <button id="note-save-btn" class="btn-primary px-4 py-2 rounded-md">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="share-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black bg-opacity-50">
+        <div class="main-card rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3">
+            <h3 class="p-4 text-lg font-semibold border-b dark:border-gray-700">Share Link</h3>
+            <div class="p-4">
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Copy this link to share the current view:</p>
+                <input id="share-link-input" type="text" readonly class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm dark:bg-gray-700 dark:text-white">
+            </div>
+            <div class="p-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3">
+                 <button id="share-close-btn" class="btn-secondary px-4 py-2 rounded-md">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+    
+    <!-- Data and App Logic -->
+    <script type="module">
+    import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.8.5/+esm';
+    import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/+esm';
+    import { SpacedRepetitionSystem } from './spacedRepetition.js';
+    import { dermDifferentialData } from './dermatopathology-differentials-data.js';
+
+    const STORAGE_KEY = 'dermatopathologyDifferentialsState';
+    const LEGACY_STORAGE_KEY = 'dermpathNavigatorState';
+
+    let pdfLibPromise;
+    let xlsxLibPromise;
+
+    const loadPdfLib = () => {
+        if (!pdfLibPromise) {
+            pdfLibPromise = Promise.all([
+                import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm'),
+                import('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.23/+esm')
+            ]);
+        }
+        return pdfLibPromise;
+    };
+
+    const loadXlsxLib = () => {
+        if (!xlsxLibPromise) {
+            xlsxLibPromise = import('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm');
+        }
+        return xlsxLibPromise;
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        'use strict';
+
+        // --- STATE MANAGEMENT ---
+        const state = {
+            dataMap: new Map(),
+            findings: [],
+            selectedFinding: null,
+            activeTab: 'list',
+            favorites: {}, // { "diagnosisName": "findingName" }
+            notes: {}, // { "diagnosisName": "note text" }
+            analytics: {
+                startTime: Date.now(),
+                views: {}, // { "findingName": { count: 1, lastViewed: timestamp } }
+                tabUsage: {},
+                actions: { favorites: 0, notes: 0, exports: 0 }
+            },
+            flashcard: {
+                deck: [],
+                currentIndex: 0,
+                isShuffled: false,
+                reviewMode: 'normal', // 'normal' or 'srs'
+                srsSystem: null // Will be initialized after page load
+            }
+        };
+
+        let fuse;
+
+        // Initialize Spaced Repetition System
+        state.flashcard.srsSystem = new SpacedRepetitionSystem();
+
+        // --- DOM ELEMENT SELECTORS ---
+        const dom = {
+            loadingOverlay: document.getElementById('loading-overlay'),
+            findingSearchInput: document.getElementById('finding-search-input'),
+            searchSuggestions: document.getElementById('search-suggestions'),
+            findingSelector: document.getElementById('finding-selector'),
+            resultsContainer: document.getElementById('results-container'),
+            resultsTitle: document.getElementById('results-title'),
+            actionButtons: document.getElementById('action-buttons'),
+            resultsContent: document.getElementById('results-content'),
+            tabNav: document.getElementById('tab-nav'),
+            favoritesCount: document.getElementById('favorites-count'),
+            welcomeMessage: document.getElementById('welcome-message'),
+            noteModal: {
+                el: document.getElementById('note-modal'),
+                title: document.getElementById('note-modal-title'),
+                textarea: document.getElementById('note-textarea'),
+                saveBtn: document.getElementById('note-save-btn'),
+                cancelBtn: document.getElementById('note-cancel-btn')
+            },
+            shareModal: {
+                el: document.getElementById('share-modal'),
+                input: document.getElementById('share-link-input'),
+                closeBtn: document.getElementById('share-close-btn')
+            },
+            exportPdfBtn: document.getElementById('export-pdf-btn'),
+            exportExcelBtn: document.getElementById('export-excel-btn'),
+            printBtn: document.getElementById('print-btn'),
+            shareBtn: document.getElementById('share-btn'),
+            themeToggleBtn: document.getElementById('theme-toggle-btn'),
+            themeIconLight: document.getElementById('theme-icon-light'),
+            themeIconDark: document.getElementById('theme-icon-dark'),
+        };
+
+        // --- SRS UTILITY FUNCTIONS ---
+        const exportSRSData = () => {
+            const data = state.flashcard.srsSystem.exportData();
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dermatopathology_srs_progress_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Progress exported successfully!', 'success');
+        };
+        
+        const resetSRSData = () => {
+            if (confirm('Are you sure you want to reset all your spaced repetition progress? This cannot be undone.')) {
+                state.flashcard.srsSystem.cards.clear();
+                state.flashcard.srsSystem.saveToStorage();
+                showToast('All progress has been reset.', 'info');
+                render();
+            }
+        };
+
+        // --- INITIALIZATION ---
+        function initializeApplication() {
+            console.log("Starting application initialization...");
+            
+            loadStateFromLocalStorage();
+            processData();
+            setupEventListeners();
+            initializeFuse();
+            populateDropdown();
+            checkURLParameters();
+            
+            // Initial theme setup
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            updateThemeUI(savedTheme);
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if (localStorage.getItem('theme') === 'system') {
+                    updateThemeUI('system');
+                }
+            });
+
+            dom.loadingOverlay.style.opacity = '0';
+            setTimeout(() => dom.loadingOverlay.style.display = 'none', 300);
+            
+            console.log("Application initialized successfully.");
+        };
+
+        function processData() {
+            if (!dermDifferentialData || dermDifferentialData.length === 0) {
+                console.error("Differential data not found or is empty.");
+                showToast("Error: Could not load differential data.", "error");
+                return;
+            }
+
+            dermDifferentialData.forEach(item => {
+                state.dataMap.set(item.finding, item);
+            });
+            
+            state.findings = Array.from(state.dataMap.keys()).sort((a, b) => a.localeCompare(b));
+            console.log(`Processed ${state.dataMap.size} findings.`);
+        }
+
+        function initializeFuse() {
+            const options = {
+                includeScore: true,
+                keys: ['finding'],
+                threshold: 0.4
+            };
+            const fuseData = state.findings.map(f => ({ finding: f }));
+            fuse = new Fuse(fuseData, options);
+        }
+
+        function populateDropdown() {
+            state.findings.forEach(finding => {
+                const option = document.createElement('option');
+                option.value = finding;
+                option.textContent = finding;
+                dom.findingSelector.appendChild(option);
+            });
+        }
+        
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            dom.findingSelector.addEventListener('change', handleFindingSelect);
+            dom.findingSearchInput.addEventListener('input', handleFuzzySearch);
+            dom.findingSearchInput.addEventListener('blur', () => setTimeout(() => dom.searchSuggestions.classList.add('hidden'), 200));
+            dom.tabNav.addEventListener('click', handleTabClick);
+            dom.resultsContent.addEventListener('click', handleCardActions);
+            
+            // Modals
+            dom.noteModal.saveBtn.addEventListener('click', handleSaveNote);
+            dom.noteModal.cancelBtn.addEventListener('click', () => dom.noteModal.el.classList.add('hidden'));
+            dom.shareModal.closeBtn.addEventListener('click', () => dom.shareModal.el.classList.add('hidden'));
+            dom.shareModal.input.addEventListener('click', e => e.target.select());
+
+            // Action Buttons
+            dom.exportPdfBtn.addEventListener('click', handleExportPDF);
+            dom.exportExcelBtn.addEventListener('click', handleExportExcel);
+            dom.printBtn.addEventListener('click', () => window.print());
+            dom.shareBtn.addEventListener('click', handleShare);
+
+            // Theme Toggle
+            dom.themeToggleBtn.addEventListener('click', toggleTheme);
+        }
+
+        // --- EVENT HANDLERS ---
+        function handleFindingSelect(event) {
+            const findingName = event.target.value;
+            if (findingName) {
+                renderFinding(findingName);
+                dom.findingSearchInput.value = '';
+                dom.searchSuggestions.classList.add('hidden');
+            }
+        }
+        
+        function handleFuzzySearch(event) {
+            const query = event.target.value;
+            if (query.length < 2) {
+                dom.searchSuggestions.innerHTML = '';
+                dom.searchSuggestions.classList.add('hidden');
+                return;
+            }
+            
+            const results = fuse.search(query).slice(0, 5);
+            dom.searchSuggestions.innerHTML = '';
+            
+            if (results.length > 0) {
+                results.forEach(result => {
+                    const item = document.createElement('div');
+                    item.textContent = result.item.finding;
+                    item.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer';
+                    item.addEventListener('click', () => {
+                        renderFinding(result.item.finding);
+                        dom.findingSearchInput.value = result.item.finding;
+                        dom.searchSuggestions.classList.add('hidden');
+                    });
+                    dom.searchSuggestions.appendChild(item);
+                });
+                dom.searchSuggestions.classList.remove('hidden');
+            } else {
+                dom.searchSuggestions.classList.add('hidden');
+            }
+        }
+
+        function handleTabClick(event) {
+            const button = event.target.closest('button[role="tab"]');
+            if (button && !button.disabled) {
+                const tab = button.dataset.tab;
+                if (tab !== state.activeTab) {
+                    state.activeTab = tab;
+                    trackEvent('tab_view', { tab });
+                    render();
+                }
+            }
+        }
+
+        function handleCardActions(event) {
+            const button = event.target.closest('button');
+            if (!button) return;
+
+            const diagnosisCard = button.closest('[data-diagnosis-name]');
+            if (!diagnosisCard) return;
+
+            const diagnosisName = diagnosisCard.dataset.diagnosisName;
+
+            if (button.dataset.action === 'favorite') {
+                toggleFavorite(diagnosisName, state.selectedFinding || state.favorites[diagnosisName]);
+            } else if (button.dataset.action === 'note') {
+                openNoteModal(diagnosisName);
+            }
+        }
+
+        function handleSaveNote() {
+            const diagnosisName = dom.noteModal.saveBtn.dataset.diagnosisName;
+            const noteText = dom.noteModal.textarea.value.trim();
+
+            if (noteText) {
+                state.notes[diagnosisName] = noteText;
+                showToast("Note saved successfully.", "success");
+                trackEvent('action', { type: 'note_add_edit' });
+            } else {
+                delete state.notes[diagnosisName];
+                showToast("Note removed.", "info");
+            }
+            saveStateToLocalStorage();
+            dom.noteModal.el.classList.add('hidden');
+            render(); // Re-render to show note indicator
+        }
+        
+        function handleShare() {
+            if (!state.selectedFinding) return;
+            const link = generateDeepLink();
+            dom.shareModal.input.value = link;
+            dom.shareModal.el.classList.remove('hidden');
+            dom.shareModal.input.focus();
+            dom.shareModal.input.select();
+            try {
+                navigator.clipboard.writeText(link);
+                showToast("Share link copied to clipboard!", "success");
+            } catch (err) {
+                console.warn("Could not copy to clipboard:", err);
+            }
+        }
+
+        // --- CORE LOGIC & RENDERING ---
+        function render() {
+            updateActiveTab();
+            updateDueCardsBadge();
+            
+            // Clean up any existing tooltips when switching views
+            d3.selectAll(".tooltip").remove();
+
+            if (state.activeTab === 'favorites') {
+                renderFavoritesView();
+                return;
+            }
+             if (state.activeTab === 'analytics') {
+                renderAnalyticsView();
+                return;
+            }
+
+            const findingData = state.dataMap.get(state.selectedFinding);
+            if (!findingData) {
+                dom.welcomeMessage.classList.remove('hidden');
+                dom.actionButtons.classList.add('hidden');
+                dom.resultsTitle.textContent = "Welcome! Select a finding to begin.";
+                dom.resultsContent.innerHTML = '';
+                dom.resultsContent.appendChild(dom.welcomeMessage);
+                return;
+            }
+            
+            dom.welcomeMessage.classList.add('hidden');
+            dom.actionButtons.classList.remove('hidden');
+            dom.resultsTitle.textContent = findingData.finding;
+
+            switch (state.activeTab) {
+                case 'list': renderListView(findingData.diagnoses); break;
+                case 'table': renderTableView(findingData.diagnoses); break;
+                case 'flashcards': renderFlashcardsView(findingData.diagnoses); break;
+                case 'network': renderNetworkView(findingData); break;
+                case 'statistics': renderStatisticsView(); break;
+                default:
+                    dom.resultsContent.innerHTML = `<div class="p-8 text-center text-gray-500">This feature is coming soon!</div>`;
+            }
+        }
+
+        function renderFinding(findingName) {
+            if (!state.dataMap.has(findingName)) return;
+
+            state.selectedFinding = findingName;
+            dom.findingSelector.value = findingName;
+            trackEvent('view_finding', { finding: findingName });
+            
+            if (state.activeTab === 'favorites' || state.activeTab === 'analytics') {
+                state.activeTab = 'list';
+            }
+            
+            render();
+        }
+
+        function updateActiveTab() {
+            dom.tabNav.querySelectorAll('button').forEach(btn => {
+                if (btn.dataset.tab === state.activeTab) {
+                    btn.classList.add('active', 'border-blue-500', 'dark:border-blue-400', 'text-blue-600', 'dark:text-blue-400');
+                    btn.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                    btn.setAttribute('aria-selected', 'true');
+                } else {
+                    btn.classList.remove('active', 'border-blue-500', 'dark:border-blue-400', 'text-blue-600', 'dark:text-blue-400');
+                    btn.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                    btn.setAttribute('aria-selected', 'false');
+                }
+            });
+        }
+        
+        function updateDueCardsBadge() {
+            const badge = document.getElementById('due-cards-badge');
+            if (!badge) return;
+            
+            const dueCount = state.flashcard.srsSystem.getDueCards(state.selectedFinding).length;
+            
+            if (dueCount > 0) {
+                badge.textContent = dueCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+        
+        // --- VIEW RENDERERS ---
+        function renderListView(diagnoses) {
+            if (!diagnoses || diagnoses.length === 0) {
+                dom.resultsContent.innerHTML = `<div class="text-center p-8 text-gray-500">No diagnoses found for this finding.</div>`;
+                return;
+            }
+
+            const html = diagnoses.map(dx => {
+                const isFavorite = !!state.favorites[dx.name];
+                const hasNote = !!state.notes[dx.name];
+                return `
+                <div class="diagnosis-card bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 mb-4" data-diagnosis-name="${dx.name}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">${dx.name}</h4>
+                            <p class="text-xs font-mono text-gray-500 dark:text-gray-400">Source: ${formatSources(dx.sources)}</p>
+                        </div>
+                        <div class="flex items-center gap-1 flex-shrink-0 ml-2">
+                             ${hasNote ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>` : ''}
+                            <button data-action="note" class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
+                            </button>
+                            <button data-action="favorite" class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ${isFavorite ? 'text-amber-500' : 'text-gray-400'}" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                        <p><strong>Key Features:</strong> ${dx.keyFeatures}</p>
+                        ${state.notes[dx.name] ? `<div class="mt-2 p-2 bg-blue-50 dark:bg-blue-900/50 border-l-4 border-blue-400 text-sm"><p class="font-semibold">My Note:</p><p>${state.notes[dx.name].replace(/\n/g, '<br>')}</p></div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+            dom.resultsContent.innerHTML = html;
+        }
+
+        function renderTableView(diagnoses) {
+            if (!diagnoses || diagnoses.length === 0) {
+                 dom.resultsContent.innerHTML = `<div class="text-center p-8 text-gray-500">No diagnoses found for this finding.</div>`;
+                return;
+            }
+            const html = `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">Diagnosis</th>
+                                <th scope="col" class="px-4 py-3">Key Features</th>
+                                <th scope="col" class="px-4 py-3">Source(s)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${diagnoses.map(dx => `
+                                <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    <th scope="row" class="px-4 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">${dx.name}</th>
+                                    <td class="px-4 py-4">${dx.keyFeatures}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap">${formatSources(dx.sources)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            dom.resultsContent.innerHTML = html;
+        }
+
+        function renderFavoritesView() {
+            dom.resultsTitle.textContent = "My Favorites";
+            dom.actionButtons.classList.add('hidden');
+
+            const favoriteNames = Object.keys(state.favorites);
+            if (favoriteNames.length === 0) {
+                dom.resultsContent.innerHTML = `<div class="text-center p-8 text-gray-500">You haven't favorited any diagnoses yet.</div>`;
+                return;
+            }
+            
+            const allDiagnoses = [];
+            state.dataMap.forEach(findingData => {
+                findingData.diagnoses.forEach(dx => {
+                    if (favoriteNames.includes(dx.name)) {
+                        allDiagnoses.push(dx);
+                    }
+                });
+            });
+
+            renderListView(allDiagnoses);
+        }
+
+        function renderFlashcardsView(diagnoses) {
+            if (!diagnoses || diagnoses.length === 0) {
+                dom.resultsContent.innerHTML = `<div class="text-center p-8 text-gray-500">No diagnoses to create flashcards for.</div>`;
+                return;
+            }
+
+            // Initialize cards in SRS system
+            if (state.flashcard.reviewMode === 'srs') {
+                diagnoses.forEach(dx => {
+                    state.flashcard.srsSystem.createCard(state.selectedFinding, dx.name);
+                });
+            }
+
+            // Get statistics for SRS mode
+            const stats = state.flashcard.srsSystem.getStatistics(state.selectedFinding);
+
+            // Initialize or update flashcard deck based on mode
+            if (state.flashcard.reviewMode === 'srs') {
+                // Get due cards and new cards for SRS mode
+                const dueCards = state.flashcard.srsSystem.getDueCards(state.selectedFinding);
+                const newCards = state.flashcard.srsSystem.getNewCards(state.selectedFinding, 5);
+                
+                // Combine due cards and new cards
+                const srsCards = [...dueCards, ...newCards];
+                
+                if (srsCards.length === 0) {
+                    dom.resultsContent.innerHTML = `
+                        <div class="text-center p-8">
+                            <h3 class="text-xl font-bold mb-4">No cards due for review!</h3>
+                            <p class="text-gray-500 mb-4">Great job! You've reviewed all your cards for now.</p>
+                            <div class="srs-stats-bar">
+                                <div class="srs-stat">
+                                    <div class="srs-stat-value">${stats.totalCards}</div>
+                                    <div class="srs-stat-label">Total Cards</div>
+                                </div>
+                                <div class="srs-stat">
+                                    <div class="srs-stat-value">${stats.retention}</div>
+                                    <div class="srs-stat-label">Retention</div>
+                                </div>
+                                <div class="srs-stat">
+                                    <div class="srs-stat-value">${stats.averageEase}</div>
+                                    <div class="srs-stat-label">Avg Ease</div>
+                                </div>
+                            </div>
+                            <button id="srs-switch-to-normal" class="btn-primary px-4 py-2 rounded-md mt-4">
+                                Switch to Normal Mode
+                            </button>
+                        </div>
+                    `;
+                    document.getElementById('srs-switch-to-normal')?.addEventListener('click', () => {
+                        state.flashcard.reviewMode = 'normal';
+                        render();
+                    });
+                    return;
+                }
+                
+                // Map SRS cards to full diagnosis data
+                state.flashcard.deck = srsCards.map(srsCard => {
+                    const dx = diagnoses.find(d => d.name === srsCard.diagnosis);
+                    return {...dx, finding: state.selectedFinding, srsData: srsCard};
+                });
+                state.flashcard.currentIndex = 0;
+            } else {
+                // Normal mode - use all diagnoses
+                if (state.flashcard.deck.length === 0 || state.flashcard.deck[0].finding !== state.selectedFinding) {
+                    state.flashcard.deck = diagnoses.map(dx => ({...dx, finding: state.selectedFinding}));
+                    state.flashcard.currentIndex = 0;
+                    state.flashcard.isShuffled = false;
+                }
+            }
+
+            const currentCard = state.flashcard.deck[state.flashcard.currentIndex];
+            
+            // Format DIF properly
+            let difDisplay = '';
+            if (currentCard.dif) {
+                difDisplay = `<p class="text-sm text-gray-800 dark:text-gray-200 mt-2"><strong class="font-semibold">DIF:</strong> ${currentCard.dif}</p>`;
+            }
+
+            // Build SRS info if in SRS mode
+            let srsInfo = '';
+            let srsDifficultyButtons = '';
+            let srsStatsBar = '';
+            
+            if (state.flashcard.reviewMode === 'srs' && currentCard.srsData) {
+                const card = currentCard.srsData;
+                const statusColor = {
+                    'new': 'text-blue-500',
+                    'learning': 'text-yellow-500',
+                    'review': 'text-green-500',
+                    'relearning': 'text-red-500'
+                }[card.status] || 'text-gray-500';
+                
+                srsInfo = `
+                    <div class="srs-card-info">
+                        <span>Status: <span class="${statusColor} font-semibold">${card.status}</span></span>
+                        <span>Ease: ${card.easeFactor.toFixed(2)}</span>
+                        <span>Interval: ${card.interval} days</span>
+                        <span>Reviews: ${card.repetitions}</span>
+                    </div>
+                `;
+                
+                srsDifficultyButtons = `
+                    <div class="srs-difficulty-buttons">
+                        <button class="srs-difficulty-btn again" data-quality="1">
+                            <div>Again</div>
+                            <div class="text-xs">10min</div>
+                        </button>
+                        <button class="srs-difficulty-btn hard" data-quality="3">
+                            <div>Hard</div>
+                            <div class="text-xs">${card.interval > 0 ? Math.round(card.interval * 1.2) : 1}d</div>
+                        </button>
+                        <button class="srs-difficulty-btn good" data-quality="4">
+                            <div>Good</div>
+                            <div class="text-xs">${card.interval > 0 ? Math.round(card.interval * card.easeFactor) : 1}d</div>
+                        </button>
+                        <button class="srs-difficulty-btn easy" data-quality="5">
+                            <div>Easy</div>
+                            <div class="text-xs">${card.interval > 0 ? Math.round(card.interval * card.easeFactor * 1.3) : 4}d</div>
+                        </button>
+                    </div>
+                `;
+                
+                srsStatsBar = `
+                    <div class="srs-stats-bar">
+                        <div class="srs-stat">
+                            <div class="srs-stat-value">${stats.newCards}</div>
+                            <div class="srs-stat-label">New</div>
+                        </div>
+                        <div class="srs-stat">
+                            <div class="srs-stat-value">${stats.learningCards}</div>
+                            <div class="srs-stat-label">Learning</div>
+                        </div>
+                        <div class="srs-stat">
+                            <div class="srs-stat-value">${stats.dueCards}</div>
+                            <div class="srs-stat-label">Due</div>
+                        </div>
+                        <div class="srs-stat">
+                            <div class="srs-stat-value">${stats.retention}</div>
+                            <div class="srs-stat-label">Retention</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const html = `
+                <div class="flashcard-container">
+                    <div class="srs-review-mode-toggle">
+                        <button class="srs-mode-btn ${state.flashcard.reviewMode === 'normal' ? 'active' : ''}" data-mode="normal">
+                            Normal Mode
+                        </button>
+                        <button class="srs-mode-btn ${state.flashcard.reviewMode === 'srs' ? 'active' : ''}" data-mode="srs">
+                            Spaced Repetition
+                        </button>
+                    </div>
+                    
+                    ${srsStatsBar}
+                    
+                    <div class="flashcard-nav">
+                        <button id="flashcard-prev" class="btn-secondary px-3 py-1 rounded-md" ${state.flashcard.currentIndex === 0 ? 'disabled' : ''}>&larr; Prev</button>
+                        <div class="flashcard-progress">${state.flashcard.currentIndex + 1} / ${state.flashcard.deck.length}</div>
+                        <button id="flashcard-next" class="btn-secondary px-3 py-1 rounded-md" ${state.flashcard.currentIndex === state.flashcard.deck.length - 1 ? 'disabled' : ''}>Next &rarr;</button>
+                    </div>
+
+                    ${srsInfo}
+
+                    <div class="flashcard-scene">
+                        <div class="flashcard" id="flashcard-active">
+                            <div class="flashcard-face flashcard-front">
+                                <h3 class="text-xl font-bold text-center">${currentCard.name}</h3>
+                            </div>
+                            <div class="flashcard-face flashcard-back">
+                                <p class="text-sm text-gray-800 dark:text-gray-200"><strong class="font-semibold">Key Features:</strong> ${currentCard.keyFeatures}</p>
+                                ${difDisplay}
+                                <p class="text-xs font-mono text-gray-600 dark:text-gray-400 mt-3">Source: ${formatSources(currentCard.sources)}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flashcard-actions">
+                        ${state.flashcard.reviewMode === 'normal' ? `
+                            <button id="flashcard-flip" class="btn-primary px-4 py-2 rounded-md">Flip</button>
+                            <button id="flashcard-shuffle" class="btn-secondary px-4 py-2 rounded-md">
+                                ${state.flashcard.isShuffled ? 'Unshuffle' : 'Shuffle'}
+                            </button>
+                        ` : `
+                            <button id="flashcard-flip" class="btn-primary px-4 py-2 rounded-md">Show Answer</button>
+                        `}
+                    </div>
+                    
+                    ${srsDifficultyButtons}
+                </div>
+            `;
+
+            dom.resultsContent.innerHTML = html;
+            setupFlashcardEventListeners();
+        }
+
+        function setupFlashcardEventListeners() {
+            document.getElementById('flashcard-prev')?.addEventListener('click', () => navigateFlashcard(-1));
+            document.getElementById('flashcard-next')?.addEventListener('click', () => navigateFlashcard(1));
+            document.getElementById('flashcard-flip')?.addEventListener('click', flipFlashcard);
+            document.getElementById('flashcard-shuffle')?.addEventListener('click', shuffleFlashcards);
+            document.getElementById('flashcard-active')?.addEventListener('click', flipFlashcard);
+            
+            // Add SRS mode toggle listeners
+            document.querySelectorAll('.srs-mode-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const mode = e.target.closest('.srs-mode-btn').dataset.mode;
+                    state.flashcard.reviewMode = mode;
+                    state.flashcard.deck = []; // Reset deck when switching modes
+                    render();
+                });
+            });
+            
+            // Add SRS difficulty button listeners
+            if (state.flashcard.reviewMode === 'srs') {
+                document.querySelectorAll('.srs-difficulty-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const quality = parseInt(e.target.closest('.srs-difficulty-btn').dataset.quality);
+                        handleSRSReview(quality);
+                    });
+                });
+            }
+            
+            // Add keyboard listeners only when flashcard view is active
+            document.onkeydown = handleFlashcardKeyPress;
+        }
+
+        function handleFlashcardKeyPress(e) {
+            if (state.activeTab !== 'flashcards') return;
+            
+            if (state.flashcard.reviewMode === 'srs') {
+                // SRS mode keyboard shortcuts
+                const card = document.getElementById('flashcard-active');
+                const isFlipped = card && card.classList.contains('is-flipped');
+                
+                switch (e.key) {
+                    case ' ': // Space bar - flip card
+                        e.preventDefault();
+                        flipFlashcard();
+                        break;
+                    case '1': // Again
+                        if (isFlipped) handleSRSReview(1);
+                        break;
+                    case '2': // Hard
+                        if (isFlipped) handleSRSReview(3);
+                        break;
+                    case '3': // Good
+                        if (isFlipped) handleSRSReview(4);
+                        break;
+                    case '4': // Easy
+                        if (isFlipped) handleSRSReview(5);
+                        break;
+                }
+            } else {
+                // Normal mode keyboard shortcuts
+                switch (e.key) {
+                    case 'ArrowLeft':
+                        navigateFlashcard(-1);
+                        break;
+                    case 'ArrowRight':
+                        navigateFlashcard(1);
+                        break;
+                    case ' ': // Space bar
+                        e.preventDefault(); // Prevent page scroll
+                        flipFlashcard();
+                        break;
+                }
+            }
+        }
+        
+        function handleSRSReview(quality) {
+            const currentCard = state.flashcard.deck[state.flashcard.currentIndex];
+            if (!currentCard || !currentCard.srsData) return;
+            
+            // Review the card with the given quality
+            const cardId = currentCard.srsData.id;
+            state.flashcard.srsSystem.reviewCard(cardId, quality);
+            
+            // Move to next card or finish
+            if (state.flashcard.currentIndex < state.flashcard.deck.length - 1) {
+                state.flashcard.currentIndex++;
+                // Reset flip state
+                const card = document.getElementById('flashcard-active');
+                if (card && card.classList.contains('is-flipped')) {
+                    card.classList.remove('is-flipped');
+                }
+                render();
+            } else {
+                // Finished all cards - show completion message
+                showToast('Review session complete! Great job!', 'success');
+                // Refresh the deck to get new due cards
+                state.flashcard.deck = [];
+                render();
+            }
+        }
+
+        function navigateFlashcard(direction) {
+            const newIndex = state.flashcard.currentIndex + direction;
+            if (newIndex >= 0 && newIndex < state.flashcard.deck.length) {
+                state.flashcard.currentIndex = newIndex;
+                // Reset flip state when navigating to a new card
+                const card = document.getElementById('flashcard-active');
+                if (card && card.classList.contains('is-flipped')) {
+                    card.classList.remove('is-flipped');
+                }
+                render(); // Re-render the flashcard view
+            }
+        }
+
+        function flipFlashcard() {
+            document.getElementById('flashcard-active')?.classList.toggle('is-flipped');
+        }
+
+        function shuffleFlashcards() {
+            if (state.flashcard.isShuffled) {
+                // Unshuffle: restore original order
+                const findingData = state.dataMap.get(state.selectedFinding);
+                state.flashcard.deck = findingData.diagnoses.map(dx => ({...dx, finding: state.selectedFinding}));
+            } else {
+                // Shuffle
+                let deck = state.flashcard.deck;
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+            }
+            state.flashcard.isShuffled = !state.flashcard.isShuffled;
+            state.flashcard.currentIndex = 0;
+            render();
+        }
+        
+        function renderStatisticsView() {
+            const srs = state.flashcard.srsSystem;
+            const overallStats = srs.getStatistics();
+            const findingStats = state.selectedFinding ? srs.getStatistics(state.selectedFinding) : null;
+            const forecast = srs.getForecast(14, state.selectedFinding);
+            
+            // Calculate streak and other metrics
+            let currentStreak = 0;
+            let bestStreak = 0;
+            let tempStreak = 0;
+            const today = new Date().toDateString();
+            
+            // Get all cards and calculate streaks
+            const allCards = Array.from(srs.cards.values());
+            allCards.forEach(card => {
+                if (card.reviewHistory.length > 0) {
+                    const lastReview = new Date(card.reviewHistory[card.reviewHistory.length - 1].date);
+                    if (lastReview.toDateString() === today) {
+                        tempStreak++;
+                    }
+                }
+            });
+            currentStreak = tempStreak;
+            
+            // Build forecast chart data
+            const forecastChartData = forecast.map(f => ({
+                date: new Date(f.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                due: f.due
+            }));
+            
+            const html = `
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold mb-6">Spaced Repetition Statistics</h2>
+                    
+                    <!-- Overall Statistics -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">Overall Progress</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="text-2xl font-bold text-blue-500">${overallStats.totalCards}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Total Cards</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="text-2xl font-bold text-green-500">${overallStats.reviewCards}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Mature Cards</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="text-2xl font-bold text-yellow-500">${overallStats.learningCards}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Learning</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="text-2xl font-bold text-purple-500">${overallStats.retention}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Retention Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${state.selectedFinding && findingStats ? `
+                        <!-- Current Finding Statistics -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold mb-4">Statistics for: ${state.selectedFinding}</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <div class="text-2xl font-bold text-blue-500">${findingStats.totalCards}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">Cards</div>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <div class="text-2xl font-bold text-orange-500">${findingStats.dueCards}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">Due Now</div>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <div class="text-2xl font-bold text-cyan-500">${findingStats.newCards}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">New</div>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <div class="text-2xl font-bold text-indigo-500">${findingStats.averageEase}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">Avg Ease</div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Review Forecast -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">14-Day Review Forecast</h3>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div class="overflow-x-auto">
+                                <div class="flex gap-2 min-w-max">
+                                    ${forecastChartData.map((day, idx) => `
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-12 bg-gray-200 dark:bg-gray-700 rounded-t" style="height: ${Math.max(20, day.due * 10)}px; margin-top: ${100 - Math.max(20, day.due * 10)}px">
+                                                <div class="text-xs text-center mt-1">${day.due || ''}</div>
+                                            </div>
+                                            <div class="text-xs mt-1 ${idx === 0 ? 'font-bold' : ''}">${day.date}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Study Tips -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-4">Study Tips</h3>
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                            <ul class="space-y-2 text-sm">
+                                <li>• Review cards daily for best retention</li>
+                                <li>• Use keyboard shortcuts: Space to flip, 1-4 for difficulty ratings</li>
+                                <li>• Cards will appear less frequently as you master them</li>
+                                <li>• Be honest with difficulty ratings for optimal spacing</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex gap-4">
+                        <button class="btn-primary px-4 py-2 rounded-md" data-action="export-srs">
+                            Export Progress
+                        </button>
+                        <button class="btn-secondary px-4 py-2 rounded-md text-red-500" data-action="reset-srs">
+                            Reset All Progress
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            dom.resultsContent.innerHTML = html;
+            dom.resultsContent.querySelector('[data-action="export-srs"]')?.addEventListener('click', exportSRSData);
+            dom.resultsContent.querySelector('[data-action="reset-srs"]')?.addEventListener('click', resetSRSData);
+        }
+        
+        function renderNetworkView(findingData) {
+            dom.resultsContent.innerHTML = '<div id="network-svg-container" class="w-full h-[60vh] flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md"></div>';
+            const container = document.getElementById('network-svg-container');
+            
+            // Create nodes with keyFeatures data for tooltips
+            const nodes = [
+                { id: findingData.finding, group: 0, r: 30, keyFeatures: "Central finding node" },
+                ...findingData.diagnoses.map(dx => ({ 
+                    id: dx.name, 
+                    group: 1, 
+                    r: 15,
+                    keyFeatures: dx.keyFeatures || "No additional information available"
+                }))
+            ];
+            const links = findingData.diagnoses.map(dx => ({ source: findingData.finding, target: dx.name }));
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            const svg = d3.select(container).append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", [-width / 2, -height / 2, width, height])
+                .style("font", "10px sans-serif");
+            
+            // Create a tooltip div
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("position", "absolute")
+                .style("visibility", "hidden")
+                .style("background-color", "rgba(0, 0, 0, 0.9)")
+                .style("color", "white")
+                .style("padding", "10px")
+                .style("border-radius", "6px")
+                .style("font-size", "12px")
+                .style("max-width", "300px")
+                .style("z-index", "1000")
+                .style("pointer-events", "none")
+                .style("box-shadow", "0 4px 6px rgba(0, 0, 0, 0.1)");
+            
+            const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+                .force("charge", d3.forceManyBody().strength(-200))
+                .force("center", d3.forceCenter());
+
+            const link = svg.append("g")
+                .attr("stroke", "var(--color-text-muted)")
+                .attr("stroke-opacity", 0.6)
+                .selectAll("line")
+                .data(links)
+                .join("line");
+
+            const node = svg.append("g")
+                .selectAll("g")
+                .data(nodes)
+                .join("g")
+                .style("cursor", "pointer")
+                .call(drag(simulation));
+
+            node.append("circle")
+                .attr("r", d => d.r)
+                .attr("fill", d => d.group === 0 ? "var(--color-primary)" : "var(--color-accent)")
+                .on("mouseover", function(event, d) {
+                    // Show tooltip on hover
+                    tooltip.style("visibility", "visible")
+                        .html(`<strong>${d.id}</strong><br/><br/>${d.keyFeatures}`);
+                    
+                    // Highlight the node
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr("r", d => d.r * 1.2)
+                        .style("opacity", 0.8);
+                })
+                .on("mousemove", function(event) {
+                    // Position tooltip near cursor
+                    tooltip.style("top", (event.pageY - 10) + "px")
+                        .style("left", (event.pageX + 10) + "px");
+                })
+                .on("mouseout", function(event, d) {
+                    // Hide tooltip
+                    tooltip.style("visibility", "hidden");
+                    
+                    // Reset node size
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr("r", d.r)
+                        .style("opacity", 1);
+                })
+                .on("click", function(event, d) {
+                    // Show tooltip on click for touch devices
+                    event.stopPropagation();
+                    tooltip.style("visibility", "visible")
+                        .html(`<strong>${d.id}</strong><br/><br/>${d.keyFeatures}`)
+                        .style("top", (event.pageY - 10) + "px")
+                        .style("left", (event.pageX + 10) + "px");
+                    
+                    // Hide tooltip after 3 seconds
+                    setTimeout(() => {
+                        tooltip.style("visibility", "hidden");
+                    }, 3000);
+                })
+                .on("touchstart", function(event, d) {
+                    // Handle touch events for mobile devices
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const touch = event.touches[0];
+                    tooltip.style("visibility", "visible")
+                        .html(`<strong>${d.id}</strong><br/><br/>${d.keyFeatures}`)
+                        .style("top", (touch.pageY - 10) + "px")
+                        .style("left", (touch.pageX + 10) + "px");
+                    
+                    // Hide tooltip after 3 seconds
+                    setTimeout(() => {
+                        tooltip.style("visibility", "hidden");
+                    }, 3000);
+                });
+
+            node.append("text")
+                .text(d => d.id)
+                .attr("x", d => d.r + 5)
+                .attr("y", 3)
+                .attr("fill", "var(--color-text)")
+                .style("pointer-events", "none");
+                
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+                node
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+            
+            // Click anywhere on SVG to hide tooltip
+            svg.on("click", function() {
+                tooltip.style("visibility", "hidden");
+            });
+            
+            // Store tooltip reference for cleanup
+            container.tooltipElement = tooltip;
+            
+            function drag(simulation) {
+              return d3.drag()
+                  .on("start", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                    // Hide tooltip when dragging starts
+                    tooltip.style("visibility", "hidden");
+                  })
+                  .on("drag", (event, d) => {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                  })
+                  .on("end", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                  });
+            }
+        }
+        
+        function renderAnalyticsView() {
+            dom.resultsTitle.textContent = "My Learning Analytics";
+            dom.actionButtons.classList.add('hidden');
+            
+            const totalTime = ((Date.now() - state.analytics.startTime) / 60000).toFixed(1);
+            const viewedFindingsCount = Object.keys(state.analytics.views).length;
+            
+            const topViewed = Object.entries(state.analytics.views)
+                .sort(([,a],[,b]) => b.count - a.count)
+                .slice(0, 5)
+                .map(([name, data]) => `<li>${name} (${data.count} views)</li>`)
+                .join('');
+            
+            const topTabs = Object.entries(state.analytics.tabUsage)
+                .sort(([,a],[,b]) => b - a)
+                .slice(0, 3)
+                .map(([name, count]) => `<li>${name} (${count} uses)</li>`)
+                .join('');
+
+            const html = `
+                <div class="space-y-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"><div class="text-2xl font-bold">${totalTime}</div><div class="text-sm text-gray-500">Mins Studied</div></div>
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"><div class="text-2xl font-bold">${viewedFindingsCount}</div><div class="text-sm text-gray-500">Findings Viewed</div></div>
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"><div class="text-2xl font-bold">${state.analytics.actions.favorites}</div><div class="text-sm text-gray-500">Favorites Added</div></div>
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"><div class="text-2xl font-bold">${state.analytics.actions.notes}</div><div class="text-sm text-gray-500">Notes Taken</div></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+                            <h4 class="font-semibold mb-2">Most Viewed Findings</h4>
+                            <ul class="list-disc list-inside text-sm space-y-1">${topViewed || '<li>None yet</li>'}</ul>
+                        </div>
+                        <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+                            <h4 class="font-semibold mb-2">Most Used Features</h4>
+                            <ul class="list-disc list-inside text-sm space-y-1">${topTabs || '<li>None yet</li>'}</ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            dom.resultsContent.innerHTML = html;
+        }
+
+        // --- UTILITY FUNCTIONS ---
+        function formatSources(sources) {
+            if (Array.isArray(sources)) return sources.join(', ');
+            if (typeof sources === 'string') return sources;
+            return 'Unknown';
+        }
+        
+        function toggleFavorite(diagnosisName, findingName) {
+            if (state.favorites[diagnosisName]) {
+                delete state.favorites[diagnosisName];
+                showToast(`${diagnosisName} removed from favorites.`, "info");
+            } else {
+                state.favorites[diagnosisName] = findingName;
+                showToast(`${diagnosisName} added to favorites!`, "success");
+                trackEvent('action', { type: 'favorite_add' });
+            }
+            dom.favoritesCount.textContent = Object.keys(state.favorites).length;
+            saveStateToLocalStorage();
+            render();
+        }
+
+        function openNoteModal(diagnosisName) {
+            dom.noteModal.title.textContent = `Add/Edit Note for ${diagnosisName}`;
+            dom.noteModal.textarea.value = state.notes[diagnosisName] || '';
+            dom.noteModal.saveBtn.dataset.diagnosisName = diagnosisName;
+            dom.noteModal.el.classList.remove('hidden');
+            dom.noteModal.textarea.focus();
+        }
+        
+        function generateDeepLink() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('finding', state.selectedFinding);
+            return url.toString();
+        }
+        
+        // URL updates disabled to keep URL stable during navigation
+        function updateURL(findingName) {
+            return; // no-op
+        }
+
+        function checkURLParameters() {
+            const params = new URLSearchParams(window.location.search);
+            const finding = params.get('finding');
+            if (finding) {
+                // Try raw
+                if (state.dataMap.has(finding)) {
+                    renderFinding(finding);
+                    return;
+                }
+                // Try single decode
+                try {
+                    const decoded1 = decodeURIComponent(finding);
+                    if (state.dataMap.has(decoded1)) {
+                        renderFinding(decoded1);
+                        return;
+                    }
+                    // Try double decode (handles legacy double-encoded links)
+                    const decoded2 = decodeURIComponent(decoded1);
+                    if (state.dataMap.has(decoded2)) {
+                        renderFinding(decoded2);
+                        return;
+                    }
+                } catch (e) {}
+            }
+        }
+        
+        function showToast(message, type = "info") {
+            const colors = {
+                info: 'bg-blue-500',
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+            };
+            const toast = document.createElement('div');
+            toast.className = `toast text-white px-6 py-3 rounded-md shadow-lg ${colors[type]}`;
+            toast.textContent = message;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        // --- EXPORT FUNCTIONS ---
+        async function handleExportPDF() {
+            if (!state.selectedFinding) return;
+            trackEvent('action', { type: 'export_pdf' });
+
+            try {
+                const [jsPDFModule, autoTableModule] = await loadPdfLib();
+                const { jsPDF } = jsPDFModule;
+                const autoTable = autoTableModule.default || autoTableModule;
+                const doc = new jsPDF();
+            const data = state.dataMap.get(state.selectedFinding);
+
+            doc.setFontSize(18);
+            doc.text(`Differential Diagnosis for: ${data.finding}`, 14, 22);
+
+            const tableData = data.diagnoses.map(dx => [
+                dx.name,
+                dx.keyFeatures,
+                formatSources(dx.sources)
+            ]);
+            
+            autoTable(doc, {
+                head: [['Diagnosis', 'Key Features', 'Source(s)']],
+                body: tableData,
+                startY: 30,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [41, 128, 185] },
+            });
+            
+            doc.save(`${data.finding.replace(/ /g, '_')}_DDx.pdf`);
+            } catch (error) {
+                console.error('Failed to export PDF', error);
+                showToast('Unable to export PDF. Please try again.', 'error');
+            }
+        }
+
+        async function handleExportExcel() {
+            if (!state.selectedFinding) return;
+            trackEvent('action', { type: 'export_excel' });
+
+            try {
+                const XLSXModule = await loadXlsxLib();
+                const XLSX = XLSXModule.default || XLSXModule;
+                const data = state.dataMap.get(state.selectedFinding);
+                const worksheet = XLSX.utils.json_to_sheet(data.diagnoses);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Differentials");
+            
+            const meta = [{
+                Finding: data.finding,
+                'Export Date': new Date().toISOString(),
+                'Number of Diagnoses': data.diagnoses.length
+            }];
+            const metaSheet = XLSX.utils.json_to_sheet(meta);
+            XLSX.utils.book_append_sheet(workbook, metaSheet, "Metadata");
+
+            XLSX.writeFile(workbook, `${data.finding.replace(/ /g, '_')}_DDx.xlsx`);
+            } catch (error) {
+                console.error('Failed to export Excel', error);
+                showToast('Unable to export Excel file. Please try again.', 'error');
+            }
+        }
+
+        // --- LOCAL STORAGE & PERSISTENCE ---
+        function saveStateToLocalStorage() {
+            try {
+                const persistentState = {
+                    favorites: state.favorites,
+                    notes: state.notes,
+                    analytics: state.analytics
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(persistentState));
+            } catch (e) {
+                console.error("Failed to save state to localStorage", e);
+            }
+        }
+        
+        function loadStateFromLocalStorage() {
+            try {
+                let savedState = localStorage.getItem(STORAGE_KEY);
+                if (!savedState) {
+                    savedState = localStorage.getItem(LEGACY_STORAGE_KEY);
+                    if (savedState) {
+                        localStorage.setItem(STORAGE_KEY, savedState);
+                        localStorage.removeItem(LEGACY_STORAGE_KEY);
+                    }
+                }
+                if (savedState) {
+                    const parsed = JSON.parse(savedState);
+                    state.favorites = parsed.favorites || {};
+                    state.notes = parsed.notes || {};
+                    state.analytics = parsed.analytics || state.analytics;
+                    // Restore start time if it exists, otherwise it gets reset on every load
+                    state.analytics.startTime = parsed.analytics.startTime || Date.now();
+                }
+                dom.favoritesCount.textContent = Object.keys(state.favorites).length;
+            } catch (e) {
+                console.error("Failed to load state from localStorage", e);
+                state.favorites = {};
+                state.notes = {};
+            }
+        }
+        
+        // --- ANALYTICS ---
+        function trackEvent(eventName, eventData) {
+            const now = Date.now();
+            switch(eventName) {
+                case 'view_finding':
+                    const view = state.analytics.views[eventData.finding] || { count: 0 };
+                    view.count++;
+                    view.lastViewed = now;
+                    state.analytics.views[eventData.finding] = view;
+                    break;
+                case 'tab_view':
+                    state.analytics.tabUsage[eventData.tab] = (state.analytics.tabUsage[eventData.tab] || 0) + 1;
+                    break;
+                case 'action':
+                    if (eventData.type === 'favorite_add') state.analytics.actions.favorites++;
+                    if (eventData.type === 'note_add_edit') state.analytics.actions.notes++;
+                    if (eventData.type.startsWith('export')) state.analytics.actions.exports++;
+                    break;
+            }
+            saveStateToLocalStorage();
+        }
+
+        // --- THEME TOGGLE ---
+        function toggleTheme() {
+            const currentTheme = localStorage.getItem('theme') || 'system';
+            let newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            updateThemeUI(newTheme);
+        }
+
+        function updateThemeUI(theme) {
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (theme === 'dark' || (theme === 'system' && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+                dom.themeIconDark.classList.remove('hidden');
+                dom.themeIconLight.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                dom.themeIconLight.classList.remove('hidden');
+                dom.themeIconDark.classList.add('hidden');
+            }
+        }
+
+        // --- KICK OFF THE APP ---
+        initializeApplication();
+    });
+    </script>
+
+</body>
+</html>

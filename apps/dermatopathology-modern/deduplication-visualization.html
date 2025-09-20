@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dermatopathology Data Deduplication Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Dermatopathology Data Deduplication Analysis
+        </h1>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h3 class="text-gray-400 text-sm mb-2">Total Findings</h3>
+                <p class="text-3xl font-bold">89</p>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h3 class="text-gray-400 text-sm mb-2">After Deduplication</h3>
+                <p class="text-3xl font-bold text-green-400">~65-70</p>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h3 class="text-gray-400 text-sm mb-2">Redundant Groups</h3>
+                <p class="text-3xl font-bold text-yellow-400">12</p>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <h3 class="text-gray-400 text-sm mb-2">Space Saved</h3>
+                <p class="text-3xl font-bold text-blue-400">~22%</p>
+            </div>
+        </div>
+
+        <!-- Redundant Groups -->
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">Identified Redundant Groups</h2>
+
+            <!-- Exact Duplicates -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold mb-4 text-purple-400">Exact Duplicates from Different Sources</h3>
+                <div class="space-y-4">
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h4 class="font-bold text-lg mb-2">Spongiosis</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-gray-700 rounded p-3">
+                                <p class="font-medium text-yellow-300">Spongiosis (Ko)</p>
+                                <p class="text-sm text-gray-400">3 diagnoses</p>
+                                <ul class="text-xs mt-2 text-gray-300">
+                                    <li>• Allergic contact dermatitis</li>
+                                    <li>• Arthropod assault</li>
+                                    <li>• Pityriasis rosea</li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-700 rounded p-3">
+                                <p class="font-medium text-yellow-300">Spongiosis (Jackson)</p>
+                                <p class="text-sm text-gray-400">8 diagnoses</p>
+                                <ul class="text-xs mt-2 text-gray-300">
+                                    <li>• Eczematous Dermatitis</li>
+                                    <li>• Seborrheic dermatitis</li>
+                                    <li>• Id reaction</li>
+                                    <li>• + 5 more...</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-3 p-2 bg-green-900/30 rounded text-sm">
+                            <span class="text-green-400">→ Merge Result:</span> Combined list with 11 unique diagnoses
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h4 class="font-bold text-lg mb-2">Acantholysis</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">Acantholysis (Ko)</span>
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">Acantholysis (Jackson)</span>
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">Acantholysis (Rapini)</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h4 class="font-bold text-lg mb-2">Pseudoepitheliomatous Hyperplasia (PEH)</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">PEH (Jackson)</span>
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">PEH (Lipoff)</span>
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">peh (Rapini) <span class="text-yellow-400">[case]</span></span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h4 class="font-bold text-lg mb-2">Spindle Cells</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">Spindle cells (Ko)</span>
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">Spindle Cells (Jackson)</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-2">Related: Spindle cell neoplasms (Rapini), SLAM DDx (Alikhan)</p>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h4 class="font-bold text-lg mb-2">Basaloid Cells</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">Basaloid Cells (Jackson)</span>
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">basaloid cells (Rapini) <span class="text-yellow-400">[case]</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Findings -->
+            <div>
+                <h3 class="text-xl font-semibold mb-4 text-blue-400">Related Findings to Group</h3>
+                <div class="space-y-4">
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h4 class="font-bold text-lg mb-2">Interface Dermatitis Complex</h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <p class="font-medium text-blue-300 mb-1">Lichenoid Pattern</p>
+                                <ul class="text-sm text-gray-400">
+                                    <li>• Interface (lichenoid) (Ko)</li>
+                                    <li>• Lichenoid Interface Dermatitis (Alikhan)</li>
+                                    <li>• Lichenoid Reaction Pattern (Jackson)</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="font-medium text-blue-300 mb-1">Vacuolar Pattern</p>
+                                <ul class="text-sm text-gray-400">
+                                    <li>• Interface dermatitis (vacuolar) (Rapini)</li>
+                                    <li>• Vacuolar Interface Dermatitis (Alikhan)</li>
+                                    <li>• Interface Dermatitis (Lichenoid/Vacuolar) (Lipoff)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h4 class="font-bold text-lg mb-2">Pagetoid Pattern</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">Pagetoid Cells (Jackson)</span>
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">Pagetoid Scatter Pattern (Alikhan)</span>
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">Pagetoid Spread (Lipoff)</span>
+                            <span class="px-3 py-1 bg-gray-700 rounded text-sm">Epidermotropism and pagetoid cells (Rapini)</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h4 class="font-bold text-lg mb-2">Vesiculobullous Patterns</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="font-medium text-blue-300 mb-1">Intraepidermal Vesicles</p>
+                                <ul class="text-sm text-gray-400">
+                                    <li>• Vesicles, Intraepidermal Spongiotic</li>
+                                    <li>• Vesicles, Intraepidermal Ballooning</li>
+                                    <li>• Vesicles, Intraepidermal Acantholytic</li>
+                                    <li>• Vesicles, Subcorneal/Intracorneal</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="font-medium text-blue-300 mb-1">Subepidermal Bullae</p>
+                                <ul class="text-sm text-gray-400">
+                                    <li>• Bullae, Subepidermal Pauci-inflammatory</li>
+                                    <li>• Bullae, Subepidermal with Eosinophils</li>
+                                    <li>• Bullae, Subepidermal with Lymphocytes</li>
+                                    <li>• Bullae, Subepidermal with Neutrophils</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-lg p-6 border border-green-700/50">
+            <h2 class="text-2xl font-bold mb-4">Benefits of Deduplication</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-semibold text-green-400 mb-2">For Users:</h3>
+                    <ul class="space-y-1 text-gray-300">
+                        <li>✓ More comprehensive differential diagnoses</li>
+                        <li>✓ Reduced confusion from duplicate entries</li>
+                        <li>✓ Better organized by category</li>
+                        <li>✓ Cross-referenced related findings</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-blue-400 mb-2">For the System:</h3>
+                    <ul class="space-y-1 text-gray-300">
+                        <li>✓ ~22% reduction in data size</li>
+                        <li>✓ Improved search performance</li>
+                        <li>✓ Easier maintenance and updates</li>
+                        <li>✓ Scalable structure for future additions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Chart -->
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold mb-6">Proposed Category Distribution</h2>
+            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <canvas id="categoryChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create category distribution chart
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    'Epidermal Changes',
+                    'Inflammatory Patterns',
+                    'Vesiculobullous',
+                    'Cellular Patterns',
+                    'Neoplastic Patterns',
+                    'Other'
+                ],
+                datasets: [{
+                    data: [15, 18, 12, 10, 8, 7],
+                    backgroundColor: [
+                        '#8b5cf6',
+                        '#3b82f6',
+                        '#10b981',
+                        '#f59e0b',
+                        '#ef4444',
+                        '#6b7280'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: 'white',
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

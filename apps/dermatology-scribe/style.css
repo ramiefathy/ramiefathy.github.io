@@ -1,0 +1,213 @@
+/* client/style.css */
+
+/* Base body styles */
+body {
+    font-family: 'Inter', sans-serif; /* Uses Google Font 'Inter' */
+    background-color: #f8f9fa; /* Light gray background for a clean look */
+    color: #374151; /* Default text color (Tailwind gray-700) */
+    line-height: 1.6; /* Default line height */
+}
+
+/* Material Symbols Outlined default settings */
+.material-symbols-outlined {
+    font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+    vertical-align: middle; /* Align icons nicely with text */
+}
+
+/* Custom scrollbar for a cleaner look in scrollable areas */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Light gray track */
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1; /* Tailwind gray-300 for the thumb */
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; /* Tailwind gray-400 on hover */
+}
+
+/* Styling for real-time suggestion items */
+.note-item {
+    border-left: 3px solid #2563eb; /* Tailwind blue-600 */
+    padding-left: 0.75rem; /* Equivalent to pl-3 */
+    margin-bottom: 0.75rem; /* Equivalent to mb-3 */
+    background-color: #eff6ff; /* Tailwind blue-50 */
+    padding: 0.5rem; /* Equivalent to p-2 */
+    border-radius: 0.25rem; /* Equivalent to rounded-sm or rounded */
+}
+.note-item strong { /* For "Suggestion:" text within a note item */
+    color: #1d4ed8; /* Tailwind blue-700 */
+    font-weight: 600; /* semibold */
+}
+
+/* Styling for sections in AI-generated notes and analysis */
+.ai-note-section {
+    margin-bottom: 1.75rem; /* Increased space between sections */
+}
+.ai-note-section-title {
+    font-weight: 700; /* bold */
+    color: #1e3a8a; /* Tailwind blue-800 */
+    margin-bottom: 0.6rem; /* Space after title */
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid #d1d5db; /* Tailwind gray-300 */
+    font-size: 1.1em; /* Slightly larger title */
+}
+.ai-note-content ul, .ai-note-content ol {
+    margin-left: 1.5rem; /* Indentation for lists */
+    margin-bottom: 0.75rem; /* Space after list block */
+    list-style-position: outside; /* Standard list marker position */
+}
+.ai-note-content li {
+    margin-bottom: 0.4rem; /* Space between list items */
+    padding-left: 0.25rem;
+    line-height: 1.6;
+}
+.ai-note-content p {
+    margin-bottom: 0.75rem; /* Space between paragraphs within a section */
+    line-height: 1.6;
+}
+.empty-section-text { /* For placeholder text in empty AI note sections */
+    color: #6b7280; /* Tailwind gray-500 */
+    font-style: italic;
+    margin-left: 0.5rem; /* Indent placeholder text slightly */
+    font-size: 0.9em;
+}
+
+/* Blinking cursor effect for live transcription simulation */
+.blinking-cursor {
+    font-weight: bold;
+    animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+    from, to { color: transparent; }
+    50% { color: black; } /* Or a theme-appropriate color */
+}
+
+/* Error message styling */
+.error-message {
+    color: #dc2626; /* Tailwind red-600 */
+    background-color: #fee2e2; /* Tailwind red-100 */
+    border-left: 3px solid #b91c1c; /* Tailwind red-700 */
+    padding: 0.75rem; /* p-3 */
+    margin-top: 0.5rem; /* mt-2 */
+    border-radius: 0.375rem; /* rounded-md */
+    font-size: 0.9em;
+}
+
+/* Tab button styling */
+.tab-button {
+    padding: 0.5rem 1rem; /* py-2 px-4 */
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: #4b5563; /* Tailwind gray-600 */
+    font-size: 0.875rem; /* text-sm */
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+.tab-button:hover {
+    color: #3b82f6; /* Tailwind blue-500 */
+}
+.tab-button.active {
+    border-bottom-color: #3b82f6; /* Tailwind blue-500 */
+    color: #3b82f6; /* Tailwind blue-500 */
+    font-weight: 600; /* semibold */
+}
+
+/* Tab content visibility */
+.tab-content {
+    display: none; /* Hidden by default */
+}
+.tab-content.active {
+    display: block; /* Shown when active */
+}
+
+/* Chat bubble styling for discussion tab */
+.chat-bubble {
+    padding: 0.5rem 0.75rem; /* p-2 px-3 */
+    border-radius: 0.5rem; /* rounded-lg */
+    margin-bottom: 0.5rem; /* mb-2 */
+    max-width: 80%;
+    word-wrap: break-word;
+    line-height: 1.5;
+}
+.chat-bubble-physician {
+    background-color: #dbeafe; /* Tailwind blue-100 */
+    color: #1e40af; /* Tailwind blue-800 */
+    align-self: flex-end;
+    margin-left: auto;
+}
+.chat-bubble-ai {
+    background-color: #e0e7ff; /* Tailwind indigo-100 */
+    color: #3730a3; /* Tailwind indigo-800 */
+    align-self: flex-start;
+}
+
+/* Simple fade-in animation for new elements like suggestions */
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Modal styles for image upload */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; /* Ensure it's on top */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-content {
+    background-color: white;
+    padding: 2rem; /* p-8 */
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* Standard shadow */
+    width: 90%;
+    max-width: 600px; /* Max width for the modal */
+    max-height: 90vh; /* Max height, allows scrolling for content */
+    overflow-y: auto; /* Enable scroll if content overflows */
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+.modal-overlay.active .modal-content {
+    transform: scale(1); /* Animate in */
+}
+
+/* Additional specific element styling if not covered by Tailwind and needed */
+/* For example, if you have specific needs for input fields beyond Tailwind defaults: */
+/*
+input[type="text"], input[type="password"], input[type="date"], input[type="file"] {
+    font-size: 0.9rem;
+}
+*/
+
+/* Ensure buttons have a consistent feel */
+button {
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+button:active {
+    transform: scale(0.98);
+}
+

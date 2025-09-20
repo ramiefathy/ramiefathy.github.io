@@ -25,7 +25,6 @@
     </script>
 
     <!-- Additional Libraries -->
-fix/clinic-scheduler-cdn-loading
 
     <!-- Tailwind Config -->
     <script>
@@ -45,36 +44,6 @@ fix/clinic-scheduler-cdn-loading
                             800: '#1e40af',
                             900: '#1e3a8a',
                             950: '#172554'
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-in-out',
-                        'slide-up': 'slideUp 0.3s ease-out',
-                        'scale-in': 'scaleIn 0.2s ease-out',
-                        'gradient': 'gradient 15s ease infinite',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        scaleIn: {
-                            '0%': { transform: 'scale(0.95)', opacity: '0' },
-                            '100%': { transform: 'scale(1)', opacity: '1' },
-                        },
-                        gradient: {
-                            '0%, 100%': {
-                                'background-size': '200% 200%',
-                                'background-position': 'left center'
-                            },
-                            '50%': {
-                                'background-size': '200% 200%',
-                                'background-position': 'right center'
-                            }
                         }
                     }
                 }
@@ -98,25 +67,6 @@ fix/clinic-scheduler-cdn-loading
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
-        }
-
-        /* Animated gradient background */
-        .animated-gradient {
-            background: linear-gradient(-45deg, #eff6ff, #dbeafe, #bfdbfe, #93c5fd);
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
-        }
-
-        @keyframes gradient {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
         }
 
         /* Calendar styles */
@@ -168,27 +118,25 @@ fix/clinic-scheduler-cdn-loading
             background-color: #eff6ff;
         }
 
-        /* Smooth transitions for all interactive elements */
-        button, a, .card, .assignment-card {
-            transition: all 0.2s ease;
-        }
+        /* Site colors */
+        .site-gss { border-left: 4px solid #10b981; }
+        .site-jhoc { border-left: 4px solid #f59e0b; }
+        .site-hoco { border-left: 4px solid #ef4444; }
 
-        /* Pulse animation for live indicator */
+
         @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
-
-        .animate-pulse {
+        /* Loading skeleton */
+        .skeleton {
             animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            background-color: #e5e7eb;
+            border-radius: 0.25rem;
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-50">
     <div id="root"></div>
     <div id="modal-root"></div>
 
@@ -233,14 +181,14 @@ fix/clinic-scheduler-cdn-loading
             connectFunctionsEmulator
         } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js';
 
-        // Your Firebase configuration
+        // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyAbXy67A6-YqAvpVTlNpEmUGLSmg7sveKU",
-            authDomain: "ramie-89f9f.firebaseapp.com",
-            projectId: "ramie-89f9f",
-            storageBucket: "ramie-89f9f.firebasestorage.app",
-            messagingSenderId: "945513436571",
-            appId: "1:945513436571:web:b821a821e29bc52f63c9f6",
+            apiKey: "AIzaSyC-f7H_RLTbwaKOhwDiYPfF3knzPMKWVeQ",
+            authDomain: "autoclinicscheduler.firebaseapp.com",
+            projectId: "autoclinicscheduler",
+            storageBucket: "autoclinicscheduler.firebasestorage.app",
+            messagingSenderId: "1032685115214",
+            appId: "1:1032685115214:web:fec2c2ed4999a8eb84701f",
             measurementId: "G-JHWKCQNPNR"
         };
 
@@ -303,6 +251,6 @@ fix/clinic-scheduler-cdn-loading
         };
     </script>
 
-        <script src="./assets/main-animated.js" defer></script>
+        <script src="./assets/main.js" defer></script>
 </body>
 </html>
