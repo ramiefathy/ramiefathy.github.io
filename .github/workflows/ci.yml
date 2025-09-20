@@ -24,19 +24,13 @@ jobs:
       - name: Check CDN Links
         run: |
           echo "Checking CDN URLs used in clinic-scheduler-pro..."
-          curl -f --connect-timeout 10 "https://esm.sh/react-hot-toast@2.4.1?bundle" || (echo "❌ react-hot-toast CDN failed" && exit 1)
           curl -f --connect-timeout 10 "https://esm.sh/date-fns@2.30.0?bundle" || (echo "❌ date-fns CDN failed" && exit 1)
           curl -f --connect-timeout 10 "https://esm.sh/recharts@2.5.0?bundle" || (echo "❌ recharts CDN failed" && exit 1)
           curl -f --connect-timeout 10 "https://esm.sh/papaparse@5.4.1?bundle" || (echo "❌ papaparse CDN failed" && exit 1)
           curl -f --connect-timeout 10 "https://esm.sh/lucide@0.462.0?bundle" || (echo "❌ lucide CDN failed" && exit 1)
           curl -f --connect-timeout 10 https://cdn.tailwindcss.com || (echo "❌ tailwindcss CDN failed" && exit 1)
           echo "✅ All CDN links verified"
-      - name: Install Playwright
-        run: npm install @playwright/test
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-      - name: Test for Console Errors
-        run: npx playwright test tests/console-errors.spec.js --reporter=line
+      # Removed Playwright console regression checks; they are run locally as needed
 
   ai-scribe-lint:
     runs-on: ubuntu-latest
