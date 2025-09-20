@@ -1,0 +1,2447 @@
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+// Source for Clinic Scheduler Pro browser bundle. Run `npm run clinic:scheduler:build` after editing.
+const {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  createContext,
+  useContext
+} = React;
+const {
+  createPortal
+} = ReactDOM;
+const motion = ({
+  children
+}) => children; // Placeholder since framer-motion not loading
+const AnimatePresence = ({
+  children
+}) => children;
+const {
+  toast,
+  Toaster
+} = window['react-hot-toast'];
+const {
+  format,
+  parseISO,
+  startOfWeek,
+  endOfWeek,
+  addWeeks,
+  subWeeks,
+  eachDayOfInterval,
+  getDay,
+  addDays
+} = window['date-fns'];
+const {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} = window.Recharts;
+
+// Wait for Firebase to be available
+const waitForFirebase = () => {
+  return new Promise(resolve => {
+    const checkFirebase = () => {
+      if (window.firebase) {
+        resolve();
+      } else {
+        setTimeout(checkFirebase, 100);
+      }
+    };
+    checkFirebase();
+  });
+};
+
+// ==================== Firebase Service ====================
+class FirebaseService {
+  constructor() {
+    this.auth = null;
+    this.db = null;
+    this.currentUser = null;
+    this.currentInstitution = null;
+    this.listeners = [];
+    this.unsubscribers = [];
+  }
+  async initialize() {
+    await waitForFirebase();
+    this.auth = window.firebaseAuth;
+    this.db = window.firebaseDb;
+
+    // Set up auth listener
+    window.firebase.auth.onAuthStateChanged(this.auth, async user => {
+      this.currentUser = user;
+      if (user) {
+        await this.loadUserProfile();
+      } else {
+        this.currentInstitution = null;
+        this.cleanup();
+      }
+    });
+  }
+  cleanup() {
+    // Unsubscribe from all listeners
+    this.unsubscribers.forEach(unsub => unsub());
+    this.unsubscribers = [];
+  }
+
+  // ===== Authentication =====
+  async signUp(email, password, name) {
+    try {
+      const userCredential = await window.firebase.auth.createUserWithEmailAndPassword(this.auth, email, password);
+      const user = userCredential.user;
+
+      // Create user profile
+      await window.firebase.firestore.setDoc(window.firebase.firestore.doc(this.db, 'users', user.uid), {
+        email,
+        name,
+        createdAt: window.firebase.firestore.serverTimestamp(),
+        institutions: []
+      });
+      return {
+        success: true,
+        user
+      };
+    } catch (error) {
+      console.error('Sign up error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async signIn(email, password) {
+    try {
+      const userCredential = await window.firebase.auth.signInWithEmailAndPassword(this.auth, email, password);
+      return {
+        success: true,
+        user: userCredential.user
+      };
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async signOut() {
+    try {
+      this.cleanup();
+      await window.firebase.auth.signOut(this.auth);
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Sign out error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async resetPassword(email) {
+    try {
+      await window.firebase.auth.sendPasswordResetEmail(this.auth, email);
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Password reset error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // ===== User Management =====
+  async loadUserProfile() {
+    if (!this.currentUser) return null;
+    try {
+      const userDoc = await window.firebase.firestore.getDoc(window.firebase.firestore.doc(this.db, 'users', this.currentUser.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        // Load first institution if available
+        if (userData.institutions && userData.institutions.length > 0) {
+          await this.loadInstitution(userData.institutions[0]);
+        }
+        return userData;
+      }
+      return null;
+    } catch (error) {
+      console.error('Load user profile error:', error);
+      return null;
+    }
+  }
+
+  // ===== Institution Management =====
+  async createInstitution(name, userData) {
+    if (!this.currentUser) throw new Error('Not authenticated');
+    try {
+      const institutionRef = window.firebase.firestore.doc(window.firebase.firestore.collection(this.db, 'institutions'));
+      const institutionData = {
+        name,
+        createdBy: this.currentUser.uid,
+        createdAt: window.firebase.firestore.serverTimestamp(),
+        settings: {
+          sites: [{
+            id: 'site_1',
+            name: 'Main Clinic',
+            code: 'MAIN',
+            color: '#10b981'
+          }],
+          rotations: [{
+            id: 'rot_1',
+            name: 'General',
+            code: 'GEN',
+            minSessions: 4
+          }],
+          protectedTimes: [{
+            id: 'pt_1',
+            name: 'Didactics',
+            dayOfWeek: 3,
+            timeSlot: 'AM',
+            mandatory: true
+          }],
+          academicYear: {
+            start: format(new Date(), 'yyyy-07-01'),
+            end: format(addDays(new Date(), 365), 'yyyy-06-30')
+          }
+        }
+      };
+
+      // Create institution
+      await window.firebase.firestore.setDoc(institutionRef, institutionData);
+
+      // Add user as admin member
+      await window.firebase.firestore.setDoc(window.firebase.firestore.doc(this.db, 'institutions', institutionRef.id, 'members', this.currentUser.uid), {
+        userId: this.currentUser.uid,
+        name: userData.name,
+        email: userData.email,
+        role: 'program_admin',
+        joinedAt: window.firebase.firestore.serverTimestamp()
+      });
+
+      // Update user's institutions list
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'users', this.currentUser.uid), {
+        institutions: window.firebase.firestore.arrayUnion(institutionRef.id)
+      });
+      this.currentInstitution = institutionRef.id;
+      return {
+        success: true,
+        institutionId: institutionRef.id
+      };
+    } catch (error) {
+      console.error('Create institution error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async loadInstitution(institutionId) {
+    if (!this.currentUser) return null;
+    try {
+      // Check if user is a member
+      const memberDoc = await window.firebase.firestore.getDoc(window.firebase.firestore.doc(this.db, 'institutions', institutionId, 'members', this.currentUser.uid));
+      if (!memberDoc.exists()) {
+        throw new Error('Not a member of this institution');
+      }
+      this.currentInstitution = institutionId;
+      this.setupRealtimeListeners();
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Load institution error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  setupRealtimeListeners() {
+    if (!this.currentInstitution) return;
+    this.cleanup();
+
+    // Listen to institution settings
+    const institutionUnsub = window.firebase.firestore.onSnapshot(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution), doc => {
+      if (doc.exists()) {
+        this.notifyListeners('institution', doc.data());
+      }
+    });
+    this.unsubscribers.push(institutionUnsub);
+
+    // Listen to attendings
+    const attendingsUnsub = window.firebase.firestore.onSnapshot(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'attendings'), snapshot => {
+      const attendings = [];
+      snapshot.forEach(doc => {
+        attendings.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      this.notifyListeners('attendings', attendings);
+    });
+    this.unsubscribers.push(attendingsUnsub);
+
+    // Listen to residents
+    const residentsUnsub = window.firebase.firestore.onSnapshot(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'residents'), snapshot => {
+      const residents = [];
+      snapshot.forEach(doc => {
+        residents.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      this.notifyListeners('residents', residents);
+    });
+    this.unsubscribers.push(residentsUnsub);
+
+    // Listen to assignments
+    const assignmentsUnsub = window.firebase.firestore.onSnapshot(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments'), snapshot => {
+      const assignments = {};
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const key = `${data.date}_${data.timeSlot}`;
+        if (!assignments[key]) assignments[key] = [];
+        assignments[key].push({
+          id: doc.id,
+          ...data
+        });
+      });
+      this.notifyListeners('assignments', assignments);
+    });
+    this.unsubscribers.push(assignmentsUnsub);
+
+    // Listen to rules
+    const rulesUnsub = window.firebase.firestore.onSnapshot(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'rules'), snapshot => {
+      const rules = [];
+      snapshot.forEach(doc => {
+        rules.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      this.notifyListeners('rules', rules);
+    });
+    this.unsubscribers.push(rulesUnsub);
+  }
+  subscribe(callback) {
+    this.listeners.push(callback);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== callback);
+    };
+  }
+  notifyListeners(type, data) {
+    this.listeners.forEach(listener => listener(type, data));
+  }
+
+  // ===== CRUD Operations =====
+  async addAttending(attending) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      const docRef = await window.firebase.firestore.addDoc(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'attendings'), {
+        ...attending,
+        createdAt: window.firebase.firestore.serverTimestamp(),
+        createdBy: this.currentUser.uid
+      });
+      await this.addAuditLog('attending_added', {
+        id: docRef.id,
+        ...attending
+      });
+      return {
+        success: true,
+        id: docRef.id
+      };
+    } catch (error) {
+      console.error('Add attending error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async updateAttending(id, updates) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution, 'attendings', id), {
+        ...updates,
+        updatedAt: window.firebase.firestore.serverTimestamp()
+      });
+      await this.addAuditLog('attending_updated', {
+        id,
+        updates
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Update attending error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async deleteAttending(id) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      await window.firebase.firestore.deleteDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution, 'attendings', id));
+      await this.addAuditLog('attending_deleted', {
+        id
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Delete attending error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async addResident(resident) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      const docRef = await window.firebase.firestore.addDoc(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'residents'), {
+        ...resident,
+        createdAt: window.firebase.firestore.serverTimestamp(),
+        createdBy: this.currentUser.uid
+      });
+      await this.addAuditLog('resident_added', {
+        id: docRef.id,
+        ...resident
+      });
+      return {
+        success: true,
+        id: docRef.id
+      };
+    } catch (error) {
+      console.error('Add resident error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async updateResident(id, updates) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution, 'residents', id), {
+        ...updates,
+        updatedAt: window.firebase.firestore.serverTimestamp()
+      });
+      await this.addAuditLog('resident_updated', {
+        id,
+        updates
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Update resident error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async deleteResident(id) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      await window.firebase.firestore.deleteDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution, 'residents', id));
+      await this.addAuditLog('resident_deleted', {
+        id
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Delete resident error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async addAssignment(assignment) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      const docRef = await window.firebase.firestore.addDoc(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments'), {
+        ...assignment,
+        createdAt: window.firebase.firestore.serverTimestamp(),
+        createdBy: this.currentUser.uid
+      });
+      await this.addAuditLog('assignment_added', {
+        id: docRef.id,
+        ...assignment
+      });
+      return {
+        success: true,
+        id: docRef.id
+      };
+    } catch (error) {
+      console.error('Add assignment error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async updateAssignment(id, updates) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution, 'assignments', id), {
+        ...updates,
+        updatedAt: window.firebase.firestore.serverTimestamp()
+      });
+      await this.addAuditLog('assignment_updated', {
+        id,
+        updates
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Update assignment error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async deleteAssignment(id) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      await window.firebase.firestore.deleteDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution, 'assignments', id));
+      await this.addAuditLog('assignment_deleted', {
+        id
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Delete assignment error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async addRule(rule) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      const docRef = await window.firebase.firestore.addDoc(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'rules'), {
+        ...rule,
+        createdAt: window.firebase.firestore.serverTimestamp(),
+        createdBy: this.currentUser.uid
+      });
+      await this.addAuditLog('rule_added', {
+        id: docRef.id,
+        ...rule
+      });
+      return {
+        success: true,
+        id: docRef.id
+      };
+    } catch (error) {
+      console.error('Add rule error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async updateRule(id, updates) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution, 'rules', id), {
+        ...updates,
+        updatedAt: window.firebase.firestore.serverTimestamp()
+      });
+      await this.addAuditLog('rule_updated', {
+        id,
+        updates
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Update rule error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async deleteRule(id) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      await window.firebase.firestore.deleteDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution, 'rules', id));
+      await this.addAuditLog('rule_deleted', {
+        id
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Delete rule error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async updateInstitutionSettings(updates) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution), {
+        settings: updates,
+        updatedAt: window.firebase.firestore.serverTimestamp()
+      });
+      await this.addAuditLog('settings_updated', updates);
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Update settings error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async addAuditLog(action, data) {
+    if (!this.currentInstitution) return;
+    try {
+      await window.firebase.firestore.addDoc(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'auditLogs'), {
+        action,
+        data,
+        userId: this.currentUser?.uid,
+        timestamp: window.firebase.firestore.serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Add audit log error:', error);
+    }
+  }
+
+  // Batch operations for efficiency
+  async batchAddAssignments(assignments) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      const batch = window.firebase.firestore.writeBatch(this.db);
+      assignments.forEach(assignment => {
+        const docRef = window.firebase.firestore.doc(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments'));
+        batch.set(docRef, {
+          ...assignment,
+          createdAt: window.firebase.firestore.serverTimestamp(),
+          createdBy: this.currentUser.uid
+        });
+      });
+      await batch.commit();
+      await this.addAuditLog('batch_assignments_added', {
+        count: assignments.length
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Batch add assignments error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async clearAllAssignments() {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      const snapshot = await window.firebase.firestore.getDocs(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments'));
+      const batch = window.firebase.firestore.writeBatch(this.db);
+      snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      await this.addAuditLog('all_assignments_cleared', {
+        count: snapshot.size
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Clear assignments error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Real-time listeners
+  listenToAttendings(callback) {
+    if (!this.currentInstitution) {
+      callback([]);
+      return () => {};
+    }
+    const query = window.firebase.firestore.query(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'attendings'), window.firebase.firestore.orderBy('name'));
+    const unsubscribe = window.firebase.firestore.onSnapshot(query, snapshot => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      callback(data);
+    }, error => {
+      console.error('Attendings listener error:', error);
+      callback([]);
+    });
+    return unsubscribe;
+  }
+  listenToResidents(callback) {
+    if (!this.currentInstitution) {
+      callback([]);
+      return () => {};
+    }
+    const query = window.firebase.firestore.query(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'residents'), window.firebase.firestore.orderBy('name'));
+    const unsubscribe = window.firebase.firestore.onSnapshot(query, snapshot => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      callback(data);
+    }, error => {
+      console.error('Residents listener error:', error);
+      callback([]);
+    });
+    return unsubscribe;
+  }
+  listenToAssignments(callback) {
+    if (!this.currentInstitution) {
+      callback([]);
+      return () => {};
+    }
+    const query = window.firebase.firestore.query(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments'), window.firebase.firestore.orderBy('date'));
+    const unsubscribe = window.firebase.firestore.onSnapshot(query, snapshot => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      callback(data);
+    }, error => {
+      console.error('Assignments listener error:', error);
+      callback([]);
+    });
+    return unsubscribe;
+  }
+  listenToRules(callback) {
+    if (!this.currentInstitution) {
+      callback([]);
+      return () => {};
+    }
+    const query = window.firebase.firestore.query(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'rules'), window.firebase.firestore.orderBy('name'));
+    const unsubscribe = window.firebase.firestore.onSnapshot(query, snapshot => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      callback(data);
+    }, error => {
+      console.error('Rules listener error:', error);
+      callback([]);
+    });
+    return unsubscribe;
+  }
+  listenToInstitution(callback) {
+    if (!this.currentInstitution) {
+      callback(null);
+      return () => {};
+    }
+    const unsubscribe = window.firebase.firestore.onSnapshot(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution), doc => {
+      if (doc.exists) {
+        callback({
+          id: doc.id,
+          ...doc.data()
+        });
+      } else {
+        callback(null);
+      }
+    }, error => {
+      console.error('Institution listener error:', error);
+      callback(null);
+    });
+    return unsubscribe;
+  }
+}
+
+// ==================== App Context ====================
+const firebaseService = new FirebaseService();
+const AppContext = createContext();
+const AppProvider = ({
+  children
+}) => {
+  const [state, setState] = useState({
+    user: null,
+    institution: null,
+    attendings: [],
+    residents: [],
+    assignments: {},
+    rules: [],
+    loading: true
+  });
+  useEffect(() => {
+    const initFirebase = async () => {
+      await firebaseService.initialize();
+
+      // Subscribe to Firebase updates
+      firebaseService.subscribe((type, data) => {
+        setState(prev => ({
+          ...prev,
+          [type === 'institution' ? 'institution' : type]: data
+        }));
+      });
+
+      // Listen to auth state
+      window.firebase.auth.onAuthStateChanged(window.firebaseAuth, async user => {
+        if (user) {
+          const profile = await firebaseService.loadUserProfile();
+          setState(prev => ({
+            ...prev,
+            user: {
+              ...user,
+              ...profile
+            },
+            loading: false
+          }));
+        } else {
+          setState(prev => ({
+            ...prev,
+            user: null,
+            institution: null,
+            attendings: [],
+            residents: [],
+            assignments: {},
+            rules: [],
+            loading: false
+          }));
+        }
+      });
+    };
+    initFirebase();
+  }, []);
+  const value = {
+    ...state,
+    firebaseService
+  };
+  return /*#__PURE__*/React.createElement(AppContext.Provider, {
+    value: value
+  }, children);
+};
+const useApp = () => useContext(AppContext);
+
+// ==================== Shared Components ====================
+const Icon = ({
+  name,
+  size = 20,
+  className = ""
+}) => {
+  useEffect(() => {
+    lucide.createIcons();
+  }, []);
+  return /*#__PURE__*/React.createElement("i", {
+    "data-lucide": name,
+    className: className,
+    style: {
+      width: size,
+      height: size
+    }
+  });
+};
+const Button = ({
+  children,
+  variant = 'primary',
+  size = 'md',
+  className = "",
+  icon,
+  loading = false,
+  ...props
+}) => {
+  const baseClasses = "inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const variants = {
+    primary: "bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500",
+    secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-primary-500",
+    ghost: "text-gray-600 hover:bg-gray-100 focus:ring-gray-500",
+    danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+  };
+  const sizes = {
+    sm: "px-3 py-1.5 text-sm gap-1.5",
+    md: "px-4 py-2 text-sm gap-2",
+    lg: "px-6 py-3 text-base gap-2"
+  };
+  return /*#__PURE__*/React.createElement("button", _extends({
+    whileHover: {
+      scale: loading ? 1 : 1.02
+    },
+    whileTap: {
+      scale: loading ? 1 : 0.98
+    },
+    className: `${baseClasses} ${variants[variant]} ${sizes[size]} ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${className}`,
+    disabled: loading
+  }, props), loading ? /*#__PURE__*/React.createElement("div", {
+    className: "animate-spin rounded-full h-4 w-4 border-b-2 border-current"
+  }) : icon ? /*#__PURE__*/React.createElement(Icon, {
+    name: icon,
+    size: size === 'sm' ? 16 : size === 'lg' ? 20 : 18
+  }) : null, children);
+};
+const Card = ({
+  children,
+  className = "",
+  padding = true
+}) => /*#__PURE__*/React.createElement("div", {
+  className: `bg-white rounded-xl shadow-sm border border-gray-200 ${padding ? 'p-6' : ''} ${className}`
+}, children);
+const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = 'md'
+}) => {
+  const sizes = {
+    sm: 'max-w-md',
+    md: 'max-w-2xl',
+    lg: 'max-w-4xl',
+    xl: 'max-w-6xl'
+  };
+  if (!isOpen) return null;
+  return createPortal(/*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-center min-h-screen p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 bg-black/50 backdrop-blur-sm",
+    onClick: onClose
+  }), /*#__PURE__*/React.createElement("div", {
+    className: `relative bg-white rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between p-6 border-b"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-semibold text-gray-900"
+  }, title), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "p-2 hover:bg-gray-100 rounded-lg transition-colors"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "x",
+    size: 20
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 overflow-y-auto max-h-[calc(90vh-80px)]"
+  }, children)))), document.getElementById('modal-root'));
+};
+
+// ==================== Auth Components ====================
+const LoginPage = () => {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    name: '',
+    confirmPassword: ''
+  });
+  const {
+    firebaseService
+  } = useApp();
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (isSignUp) {
+        if (formData.password !== formData.confirmPassword) {
+          toast.error('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+        const result = await firebaseService.signUp(formData.email, formData.password, formData.name);
+        if (result.success) {
+          toast.success('Account created successfully!');
+          // Create first institution
+          const instResult = await firebaseService.createInstitution(`${formData.name}'s Institution`, {
+            name: formData.name,
+            email: formData.email
+          });
+          if (instResult.success) {
+            toast.success('Institution created!');
+          }
+        } else {
+          toast.error(result.error);
+        }
+      } else {
+        const result = await firebaseService.signIn(formData.email, formData.password);
+        if (result.success) {
+          toast.success('Welcome back!');
+        } else {
+          toast.error(result.error);
+        }
+      }
+    } catch (error) {
+      toast.error('An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleResetPassword = async () => {
+    if (!formData.email) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    const result = await firebaseService.resetPassword(formData.email);
+    if (result.success) {
+      toast.success('Password reset email sent!');
+    } else {
+      toast.error(result.error);
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-md"
+  }, /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    className: "text-center mb-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-xl mb-4"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "calendar-days",
+    size: 32,
+    className: "text-primary-600"
+  })), /*#__PURE__*/React.createElement("h1", {
+    className: "text-2xl font-bold text-gray-900"
+  }, "Clinic Scheduler Pro"), /*#__PURE__*/React.createElement("p", {
+    className: "text-gray-600 mt-2"
+  }, isSignUp ? 'Create your account' : 'Sign in to continue')), /*#__PURE__*/React.createElement("form", {
+    onSubmit: handleSubmit,
+    className: "space-y-4"
+  }, isSignUp && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-1"
+  }, "Full Name"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.name,
+    onChange: e => setFormData({
+      ...formData,
+      name: e.target.value
+    }),
+    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-1"
+  }, "Email Address"), /*#__PURE__*/React.createElement("input", {
+    type: "email",
+    value: formData.email,
+    onChange: e => setFormData({
+      ...formData,
+      email: e.target.value
+    }),
+    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-1"
+  }, "Password"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: formData.password,
+    onChange: e => setFormData({
+      ...formData,
+      password: e.target.value
+    }),
+    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent",
+    required: true
+  })), isSignUp && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-1"
+  }, "Confirm Password"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: formData.confirmPassword,
+    onChange: e => setFormData({
+      ...formData,
+      confirmPassword: e.target.value
+    }),
+    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent",
+    required: true
+  })), /*#__PURE__*/React.createElement(Button, {
+    type: "submit",
+    className: "w-full",
+    loading: loading
+  }, isSignUp ? 'Create Account' : 'Sign In'), !isSignUp && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: handleResetPassword,
+    className: "w-full text-sm text-primary-600 hover:text-primary-700"
+  }, "Forgot Password?"), /*#__PURE__*/React.createElement("div", {
+    className: "text-center pt-4 border-t"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600"
+  }, isSignUp ? 'Already have an account?' : "Don't have an account?", /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setIsSignUp(!isSignUp),
+    className: "ml-1 text-primary-600 hover:text-primary-700 font-medium"
+  }, isSignUp ? 'Sign In' : 'Sign Up'))))), /*#__PURE__*/React.createElement("p", {
+    className: "text-center text-xs text-gray-500 mt-4"
+  }, "Protected by Firebase Authentication \u2022 Real-time Sync Enabled")));
+};
+
+// ==================== Dashboard Component ====================
+const Dashboard = () => {
+  const {
+    attendings,
+    residents,
+    assignments,
+    rules,
+    institution
+  } = useApp();
+  const stats = useMemo(() => {
+    const totalAssignments = Object.values(assignments).flat().length;
+    const thisWeek = Object.entries(assignments).filter(([key]) => {
+      const [date] = key.split('_');
+      const weekStart = startOfWeek(new Date(), {
+        weekStartsOn: 1
+      });
+      const weekEnd = endOfWeek(new Date(), {
+        weekStartsOn: 1
+      });
+      const assignmentDate = parseISO(date);
+      return assignmentDate >= weekStart && assignmentDate <= weekEnd;
+    }).reduce((sum, [, items]) => sum + items.length, 0);
+    return [{
+      label: 'Total Attendings',
+      value: attendings.length,
+      icon: 'users',
+      color: 'blue'
+    }, {
+      label: 'Total Residents',
+      value: residents.length,
+      icon: 'user-check',
+      color: 'green'
+    }, {
+      label: 'This Week',
+      value: thisWeek,
+      icon: 'calendar',
+      color: 'purple'
+    }, {
+      label: 'Active Rules',
+      value: rules.filter(r => r.isActive).length,
+      icon: 'shield-check',
+      color: 'amber'
+    }];
+  }, [attendings, residents, assignments, rules]);
+  const getColorClasses = color => {
+    const colors = {
+      blue: 'bg-blue-100 text-blue-600',
+      green: 'bg-green-100 text-green-600',
+      purple: 'bg-purple-100 text-purple-600',
+      amber: 'bg-amber-100 text-amber-600'
+    };
+    return colors[color] || colors.blue;
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl font-bold text-gray-900"
+  }, "Dashboard"), /*#__PURE__*/React.createElement("p", {
+    className: "text-gray-600"
+  }, "Real-time overview of your scheduling system")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    size: "sm",
+    onClick: async () => {
+      try {
+        const calculateAnalytics = window.firebase.functions.httpsCallable('calculateAnalytics');
+        const startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 1);
+        const result = await calculateAnalytics({
+          institutionId: useApp().firebaseService.currentInstitution,
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: new Date().toISOString().split('T')[0]
+        });
+        console.log('Analytics:', result.data);
+        toast.success('Analytics calculated - check console');
+      } catch (error) {
+        toast.error('Failed to calculate analytics');
+      }
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "bar-chart",
+    size: 16,
+    className: "mr-2"
+  }), "Analytics"), /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    size: "sm",
+    onClick: async () => {
+      try {
+        const generatePDF = window.firebase.functions.httpsCallable('generateSchedulePDF');
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + 30);
+        const result = await generatePDF({
+          institutionId: useApp().firebaseService.currentInstitution,
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0]
+        });
+        // Download the PDF
+        const blob = new Blob([atob(result.data.pdf)], {
+          type: 'application/pdf'
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = result.data.filename;
+        a.click();
+        toast.success('PDF generated and downloaded');
+      } catch (error) {
+        toast.error('Failed to generate PDF');
+      }
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "download",
+    size: 16,
+    className: "mr-2"
+  }), "Export PDF"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 px-3 py-1 bg-green-100 rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 bg-green-500 rounded-full animate-pulse"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-green-700 font-medium"
+  }, "Live Sync")))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+  }, stats.map((stat, index) => /*#__PURE__*/React.createElement("div", {
+    key: stat.label
+  }, /*#__PURE__*/React.createElement(Card, {
+    className: "hover:shadow-lg transition-shadow"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600"
+  }, stat.label), /*#__PURE__*/React.createElement("p", {
+    className: "text-3xl font-bold text-gray-900 mt-1"
+  }, stat.value)), /*#__PURE__*/React.createElement("div", {
+    className: `p-3 rounded-lg ${getColorClasses(stat.color)}`
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: stat.icon,
+    size: 24
+  }))))))));
+};
+
+// ==================== Schedule Calendar Component ====================
+const ScheduleCalendar = () => {
+  const {
+    firebaseService,
+    institution
+  } = useApp();
+  const [currentWeek, setCurrentWeek] = useState(() => {
+    const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
+    return startOfWeekFunc(new Date(), {
+      weekStartsOn: 1
+    });
+  });
+  const [assignments, setAssignments] = useState([]);
+  const [attendings, setAttendings] = useState([]);
+  const [residents, setResidents] = useState([]);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [showAutoScheduler, setShowAutoScheduler] = useState(false);
+  const [selectedCell, setSelectedCell] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!firebaseService.currentInstitution) return;
+
+    // Set up real-time listeners
+    const unsubscribeAssignments = firebaseService.listenToAssignments(data => {
+      setAssignments(data);
+      setLoading(false);
+    });
+    const unsubscribeAttendings = firebaseService.listenToAttendings(data => {
+      setAttendings(data);
+    });
+    const unsubscribeResidents = firebaseService.listenToResidents(data => {
+      setResidents(data);
+    });
+    return () => {
+      unsubscribeAssignments();
+      unsubscribeAttendings();
+      unsubscribeResidents();
+    };
+  }, [firebaseService.currentInstitution]);
+  const weekDays = useMemo(() => {
+    const days = [];
+    const addDaysFunc = window.dateFns ? window.dateFns.addDays : (d, n) => new Date(d.getTime() + n * 86400000);
+    for (let i = 0; i < 5; i++) {
+      days.push(addDaysFunc(currentWeek, i));
+    }
+    return days;
+  }, [currentWeek]);
+  const timeSlots = ['AM', 'PM'];
+  const getAssignmentsForSlot = (date, timeSlot) => {
+    const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
+    return assignments.filter(a => a.date === dateStr && a.timeSlot === timeSlot);
+  };
+  const handleDragStart = (e, assignment) => {
+    setDraggedItem(assignment);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+  const handleDragOver = e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+  const handleDrop = async (e, date, timeSlot) => {
+    e.preventDefault();
+    if (!draggedItem) return;
+    const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
+    await firebaseService.updateAssignment(draggedItem.id, {
+      date: dateStr,
+      timeSlot
+    });
+    toast.success('Assignment moved successfully');
+    setDraggedItem(null);
+  };
+  const handleQuickAdd = async (date, timeSlot) => {
+    const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
+    setSelectedCell({
+      date: dateStr,
+      timeSlot
+    });
+  };
+  const handleDeleteAssignment = async assignmentId => {
+    if (!confirm('Delete this assignment?')) return;
+    await firebaseService.deleteAssignment(assignmentId);
+    toast.success('Assignment deleted');
+  };
+  const navigateWeek = direction => {
+    const addWeeksFunc = window.dateFns ? window.dateFns.addWeeks : (d, n) => new Date(d.getTime() + n * 7 * 86400000);
+    setCurrentWeek(prev => addWeeksFunc(prev, direction));
+  };
+  if (loading) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-center py-12"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"
+    }));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl font-bold text-gray-900"
+  }, "Schedule Calendar"), /*#__PURE__*/React.createElement("p", {
+    className: "text-gray-600"
+  }, "Drag and drop to manage assignments")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    size: "sm",
+    onClick: () => navigateWeek(-1)
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "chevron-left",
+    size: 16
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "font-medium text-gray-700"
+  }, window.dateFns ? window.dateFns.format(currentWeek, 'MMM d, yyyy') : currentWeek.toLocaleDateString()), /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    size: "sm",
+    onClick: () => navigateWeek(1)
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "chevron-right",
+    size: 16
+  })), /*#__PURE__*/React.createElement(Button, {
+    onClick: () => setShowAutoScheduler(true)
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "sparkles",
+    size: 16,
+    className: "mr-2"
+  }), "Auto-Schedule"))), /*#__PURE__*/React.createElement(Card, {
+    className: "overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "calendar-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-gray-50 p-4 font-medium text-gray-700"
+  }, "Time"), weekDays.map(day => /*#__PURE__*/React.createElement("div", {
+    key: day,
+    className: "bg-gray-50 p-4 font-medium text-gray-700"
+  }, window.dateFns ? window.dateFns.format(day, 'EEE, MMM d') : day.toLocaleDateString())), timeSlots.map(timeSlot => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: timeSlot
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-gray-50 p-4 font-medium text-gray-700"
+  }, timeSlot), weekDays.map(day => {
+    const slotAssignments = getAssignmentsForSlot(day, timeSlot);
+    return /*#__PURE__*/React.createElement("div", {
+      key: `${day}-${timeSlot}`,
+      className: "time-slot",
+      onDragOver: handleDragOver,
+      onDrop: e => handleDrop(e, day, timeSlot),
+      onClick: () => handleQuickAdd(day, timeSlot)
+    }, slotAssignments.map(assignment => {
+      const resident = residents.find(r => r.id === assignment.residentId);
+      const attending = attendings.find(a => a.id === assignment.attendingId);
+      return /*#__PURE__*/React.createElement("div", {
+        key: assignment.id,
+        draggable: true,
+        onDragStart: e => handleDragStart(e, assignment),
+        className: "assignment-card"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center justify-between"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex-1"
+      }, /*#__PURE__*/React.createElement("p", {
+        className: "font-medium text-gray-900"
+      }, resident?.name || 'Unknown Resident'), /*#__PURE__*/React.createElement("p", {
+        className: "text-gray-600"
+      }, attending?.name || 'Unknown Attending'), assignment.type === 'continuity' && /*#__PURE__*/React.createElement("span", {
+        className: "inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700"
+      }, "Continuity")), /*#__PURE__*/React.createElement("button", {
+        onClick: e => {
+          e.stopPropagation();
+          handleDeleteAssignment(assignment.id);
+        },
+        className: "text-gray-400 hover:text-red-600"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "x",
+        size: 14
+      }))));
+    }));
+  }))))), selectedCell && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setSelectedCell(null),
+    title: "Add Assignment"
+  }, /*#__PURE__*/React.createElement(AssignmentForm, {
+    date: selectedCell.date,
+    timeSlot: selectedCell.timeSlot,
+    residents: residents,
+    attendings: attendings,
+    onSave: async data => {
+      await firebaseService.addAssignment(data);
+      toast.success('Assignment added');
+      setSelectedCell(null);
+    },
+    onCancel: () => setSelectedCell(null)
+  })), showAutoScheduler && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setShowAutoScheduler(false),
+    title: "Auto-Schedule Assignments"
+  }, /*#__PURE__*/React.createElement(AutoScheduler, {
+    onClose: () => setShowAutoScheduler(false)
+  })));
+};
+
+// Assignment Form Component
+const AssignmentForm = ({
+  date,
+  timeSlot,
+  residents,
+  attendings,
+  onSave,
+  onCancel
+}) => {
+  const [formData, setFormData] = useState({
+    date,
+    timeSlot,
+    residentId: '',
+    attendingId: '',
+    type: 'clinical'
+  });
+  return /*#__PURE__*/React.createElement("form", {
+    onSubmit: e => {
+      e.preventDefault();
+      onSave(formData);
+    },
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Resident"), /*#__PURE__*/React.createElement("select", {
+    value: formData.residentId,
+    onChange: e => setFormData({
+      ...formData,
+      residentId: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Select Resident"), residents.map(r => /*#__PURE__*/React.createElement("option", {
+    key: r.id,
+    value: r.id
+  }, r.name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Attending"), /*#__PURE__*/React.createElement("select", {
+    value: formData.attendingId,
+    onChange: e => setFormData({
+      ...formData,
+      attendingId: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Select Attending"), attendings.map(a => /*#__PURE__*/React.createElement("option", {
+    key: a.id,
+    value: a.id
+  }, a.name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Type"), /*#__PURE__*/React.createElement("select", {
+    value: formData.type,
+    onChange: e => setFormData({
+      ...formData,
+      type: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "clinical"
+  }, "Clinical"), /*#__PURE__*/React.createElement("option", {
+    value: "continuity"
+  }, "Continuity"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-3"
+  }, /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "secondary",
+    onClick: onCancel
+  }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    type: "submit"
+  }, "Save")));
+};
+
+// ==================== Attendings List Component ====================
+const AttendingsList = () => {
+  const {
+    firebaseService
+  } = useApp();
+  const [attendings, setAttendings] = useState([]);
+  const [editingAttending, setEditingAttending] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!firebaseService.currentInstitution) return;
+    const unsubscribe = firebaseService.listenToAttendings(data => {
+      setAttendings(data);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, [firebaseService.currentInstitution]);
+  const handleSave = async attendingData => {
+    if (attendingData.id) {
+      await firebaseService.updateAttending(attendingData.id, attendingData);
+      toast.success('Attending updated');
+    } else {
+      await firebaseService.addAttending(attendingData);
+      toast.success('Attending added');
+    }
+    setEditingAttending(null);
+  };
+  const handleDelete = async id => {
+    if (!confirm('Delete this attending?')) return;
+    await firebaseService.deleteAttending(id);
+    toast.success('Attending deleted');
+  };
+  if (loading) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-center py-12"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"
+    }));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl font-bold text-gray-900"
+  }, "Attendings"), /*#__PURE__*/React.createElement("p", {
+    className: "text-gray-600"
+  }, "Manage attending physicians")), /*#__PURE__*/React.createElement(Button, {
+    onClick: () => setEditingAttending({})
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 16,
+    className: "mr-2"
+  }), "Add Attending")), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    className: "overflow-x-auto"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "w-full"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+    className: "border-b"
+  }, /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-3 px-4"
+  }, "Name"), /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-3 px-4"
+  }, "Specialty"), /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-3 px-4"
+  }, "Site"), /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-3 px-4"
+  }, "Max Residents"), /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-3 px-4"
+  }, "Actions"))), /*#__PURE__*/React.createElement("tbody", null, attendings.map(attending => /*#__PURE__*/React.createElement("tr", {
+    key: attending.id,
+    className: "border-b hover:bg-gray-50"
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "py-3 px-4"
+  }, attending.name), /*#__PURE__*/React.createElement("td", {
+    className: "py-3 px-4"
+  }, attending.specialty), /*#__PURE__*/React.createElement("td", {
+    className: "py-3 px-4"
+  }, attending.site), /*#__PURE__*/React.createElement("td", {
+    className: "py-3 px-4"
+  }, attending.maxResidents || 2), /*#__PURE__*/React.createElement("td", {
+    className: "py-3 px-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditingAttending(attending),
+    className: "text-primary-600 hover:text-primary-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "pencil",
+    size: 16
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleDelete(attending.id),
+    className: "text-red-600 hover:text-red-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash",
+    size: 16
+  })))))))))), editingAttending && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setEditingAttending(null),
+    title: editingAttending.id ? 'Edit Attending' : 'Add Attending'
+  }, /*#__PURE__*/React.createElement(AttendingForm, {
+    attending: editingAttending,
+    onSave: handleSave,
+    onCancel: () => setEditingAttending(null)
+  })));
+};
+
+// Attending Form Component
+const AttendingForm = ({
+  attending,
+  onSave,
+  onCancel
+}) => {
+  const [formData, setFormData] = useState({
+    name: attending.name || '',
+    specialty: attending.specialty || '',
+    site: attending.site || '',
+    maxResidents: attending.maxResidents || 2,
+    ...attending
+  });
+  return /*#__PURE__*/React.createElement("form", {
+    onSubmit: e => {
+      e.preventDefault();
+      onSave(formData);
+    },
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Name"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.name,
+    onChange: e => setFormData({
+      ...formData,
+      name: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Specialty"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.specialty,
+    onChange: e => setFormData({
+      ...formData,
+      specialty: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Site"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.site,
+    onChange: e => setFormData({
+      ...formData,
+      site: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Max Residents"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: formData.maxResidents,
+    onChange: e => setFormData({
+      ...formData,
+      maxResidents: parseInt(e.target.value)
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    min: "1",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-3"
+  }, /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "secondary",
+    onClick: onCancel
+  }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    type: "submit"
+  }, "Save")));
+};
+
+// ==================== Residents List Component ====================
+const ResidentsList = () => {
+  const {
+    firebaseService
+  } = useApp();
+  const [residents, setResidents] = useState([]);
+  const [editingResident, setEditingResident] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!firebaseService.currentInstitution) return;
+    const unsubscribe = firebaseService.listenToResidents(data => {
+      setResidents(data);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, [firebaseService.currentInstitution]);
+  const handleSave = async residentData => {
+    if (residentData.id) {
+      await firebaseService.updateResident(residentData.id, residentData);
+      toast.success('Resident updated');
+    } else {
+      await firebaseService.addResident(residentData);
+      toast.success('Resident added');
+    }
+    setEditingResident(null);
+  };
+  const handleDelete = async id => {
+    if (!confirm('Delete this resident?')) return;
+    await firebaseService.deleteResident(id);
+    toast.success('Resident deleted');
+  };
+  if (loading) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-center py-12"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"
+    }));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl font-bold text-gray-900"
+  }, "Residents"), /*#__PURE__*/React.createElement("p", {
+    className: "text-gray-600"
+  }, "Manage resident physicians")), /*#__PURE__*/React.createElement(Button, {
+    onClick: () => setEditingResident({})
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 16,
+    className: "mr-2"
+  }), "Add Resident")), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    className: "overflow-x-auto"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "w-full"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+    className: "border-b"
+  }, /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-3 px-4"
+  }, "Name"), /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-3 px-4"
+  }, "Year"), /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-3 px-4"
+  }, "Continuity Day"), /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-3 px-4"
+  }, "Continuity Time"), /*#__PURE__*/React.createElement("th", {
+    className: "text-left py-3 px-4"
+  }, "Actions"))), /*#__PURE__*/React.createElement("tbody", null, residents.map(resident => /*#__PURE__*/React.createElement("tr", {
+    key: resident.id,
+    className: "border-b hover:bg-gray-50"
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "py-3 px-4"
+  }, resident.name), /*#__PURE__*/React.createElement("td", {
+    className: "py-3 px-4"
+  }, "PGY-", resident.year), /*#__PURE__*/React.createElement("td", {
+    className: "py-3 px-4"
+  }, resident.continuityDay || '-'), /*#__PURE__*/React.createElement("td", {
+    className: "py-3 px-4"
+  }, resident.continuityTime || '-'), /*#__PURE__*/React.createElement("td", {
+    className: "py-3 px-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditingResident(resident),
+    className: "text-primary-600 hover:text-primary-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "pencil",
+    size: 16
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleDelete(resident.id),
+    className: "text-red-600 hover:text-red-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash",
+    size: 16
+  })))))))))), editingResident && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setEditingResident(null),
+    title: editingResident.id ? 'Edit Resident' : 'Add Resident'
+  }, /*#__PURE__*/React.createElement(ResidentForm, {
+    resident: editingResident,
+    onSave: handleSave,
+    onCancel: () => setEditingResident(null)
+  })));
+};
+
+// Resident Form Component
+const ResidentForm = ({
+  resident,
+  onSave,
+  onCancel
+}) => {
+  const [formData, setFormData] = useState({
+    name: resident.name || '',
+    year: resident.year || 1,
+    continuityDay: resident.continuityDay || '',
+    continuityTime: resident.continuityTime || '',
+    ...resident
+  });
+  return /*#__PURE__*/React.createElement("form", {
+    onSubmit: e => {
+      e.preventDefault();
+      onSave(formData);
+    },
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Name"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.name,
+    onChange: e => setFormData({
+      ...formData,
+      name: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Year"), /*#__PURE__*/React.createElement("select", {
+    value: formData.year,
+    onChange: e => setFormData({
+      ...formData,
+      year: parseInt(e.target.value)
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "1"
+  }, "PGY-1"), /*#__PURE__*/React.createElement("option", {
+    value: "2"
+  }, "PGY-2"), /*#__PURE__*/React.createElement("option", {
+    value: "3"
+  }, "PGY-3"), /*#__PURE__*/React.createElement("option", {
+    value: "4"
+  }, "PGY-4"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Continuity Day"), /*#__PURE__*/React.createElement("select", {
+    value: formData.continuityDay,
+    onChange: e => setFormData({
+      ...formData,
+      continuityDay: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "None"), /*#__PURE__*/React.createElement("option", {
+    value: "monday"
+  }, "Monday"), /*#__PURE__*/React.createElement("option", {
+    value: "tuesday"
+  }, "Tuesday"), /*#__PURE__*/React.createElement("option", {
+    value: "wednesday"
+  }, "Wednesday"), /*#__PURE__*/React.createElement("option", {
+    value: "thursday"
+  }, "Thursday"), /*#__PURE__*/React.createElement("option", {
+    value: "friday"
+  }, "Friday"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Continuity Time"), /*#__PURE__*/React.createElement("select", {
+    value: formData.continuityTime,
+    onChange: e => setFormData({
+      ...formData,
+      continuityTime: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "None"), /*#__PURE__*/React.createElement("option", {
+    value: "AM"
+  }, "AM"), /*#__PURE__*/React.createElement("option", {
+    value: "PM"
+  }, "PM"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-3"
+  }, /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "secondary",
+    onClick: onCancel
+  }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    type: "submit"
+  }, "Save")));
+};
+
+// ==================== Rules List Component ====================
+const RulesList = () => {
+  const {
+    firebaseService
+  } = useApp();
+  const [rules, setRules] = useState([]);
+  const [editingRule, setEditingRule] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!firebaseService.currentInstitution) return;
+    const unsubscribe = firebaseService.listenToRules(data => {
+      setRules(data);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, [firebaseService.currentInstitution]);
+  const handleSave = async ruleData => {
+    if (ruleData.id) {
+      await firebaseService.updateRule(ruleData.id, ruleData);
+      toast.success('Rule updated');
+    } else {
+      await firebaseService.addRule(ruleData);
+      toast.success('Rule added');
+    }
+    setEditingRule(null);
+  };
+  const handleDelete = async id => {
+    if (!confirm('Delete this rule?')) return;
+    await firebaseService.deleteRule(id);
+    toast.success('Rule deleted');
+  };
+  const handleToggleActive = async rule => {
+    await firebaseService.updateRule(rule.id, {
+      active: !rule.active
+    });
+    toast.success(`Rule ${rule.active ? 'disabled' : 'enabled'}`);
+  };
+  if (loading) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-center py-12"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"
+    }));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl font-bold text-gray-900"
+  }, "Scheduling Rules"), /*#__PURE__*/React.createElement("p", {
+    className: "text-gray-600"
+  }, "Configure automatic scheduling constraints")), /*#__PURE__*/React.createElement(Button, {
+    onClick: () => setEditingRule({})
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 16,
+    className: "mr-2"
+  }), "Add Rule")), /*#__PURE__*/React.createElement("div", {
+    className: "grid gap-4"
+  }, rules.map(rule => /*#__PURE__*/React.createElement(Card, {
+    key: rule.id,
+    className: "hover:shadow-lg transition-shadow"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start justify-between"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-medium text-gray-900"
+  }, rule.name), /*#__PURE__*/React.createElement("span", {
+    className: `px-2 py-1 rounded-full text-xs ${rule.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`
+  }, rule.active ? 'Active' : 'Inactive'), /*#__PURE__*/React.createElement("span", {
+    className: `px-2 py-1 rounded-full text-xs ${rule.type === 'hard' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`
+  }, rule.type === 'hard' ? 'Hard Rule' : 'Soft Rule')), /*#__PURE__*/React.createElement("p", {
+    className: "text-gray-600 mt-2"
+  }, rule.description), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-500 mt-2"
+  }, "Conditions: ", rule.conditions)), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleToggleActive(rule),
+    className: "text-gray-600 hover:text-primary-600"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: rule.active ? 'toggle-right' : 'toggle-left',
+    size: 20
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditingRule(rule),
+    className: "text-primary-600 hover:text-primary-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "pencil",
+    size: 16
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleDelete(rule.id),
+    className: "text-red-600 hover:text-red-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash",
+    size: 16
+  }))))))), editingRule && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setEditingRule(null),
+    title: editingRule.id ? 'Edit Rule' : 'Add Rule'
+  }, /*#__PURE__*/React.createElement(RuleForm, {
+    rule: editingRule,
+    onSave: handleSave,
+    onCancel: () => setEditingRule(null)
+  })));
+};
+
+// Rule Form Component
+const RuleForm = ({
+  rule,
+  onSave,
+  onCancel
+}) => {
+  const [formData, setFormData] = useState({
+    name: rule.name || '',
+    description: rule.description || '',
+    type: rule.type || 'soft',
+    conditions: rule.conditions || '',
+    active: rule.active !== false,
+    ...rule
+  });
+  return /*#__PURE__*/React.createElement("form", {
+    onSubmit: e => {
+      e.preventDefault();
+      onSave(formData);
+    },
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Name"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.name,
+    onChange: e => setFormData({
+      ...formData,
+      name: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Description"), /*#__PURE__*/React.createElement("textarea", {
+    value: formData.description,
+    onChange: e => setFormData({
+      ...formData,
+      description: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    rows: "3",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Type"), /*#__PURE__*/React.createElement("select", {
+    value: formData.type,
+    onChange: e => setFormData({
+      ...formData,
+      type: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "soft"
+  }, "Soft Rule (Preference)"), /*#__PURE__*/React.createElement("option", {
+    value: "hard"
+  }, "Hard Rule (Constraint)"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Conditions"), /*#__PURE__*/React.createElement("textarea", {
+    value: formData.conditions,
+    onChange: e => setFormData({
+      ...formData,
+      conditions: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    rows: "3",
+    placeholder: "e.g., Residents must not work more than 3 days in a row",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: formData.active,
+    onChange: e => setFormData({
+      ...formData,
+      active: e.target.checked
+    }),
+    className: "rounded"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-medium text-gray-700"
+  }, "Active"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-3"
+  }, /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "secondary",
+    onClick: onCancel
+  }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    type: "submit"
+  }, "Save")));
+};
+
+// ==================== Settings View Component ====================
+const SettingsView = () => {
+  const {
+    firebaseService,
+    institution
+  } = useApp();
+  const [settings, setSettings] = useState({
+    institutionName: institution?.name || '',
+    timezone: institution?.settings?.timezone || 'America/New_York',
+    workDays: institution?.settings?.workDays || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+    autoScheduleEnabled: institution?.settings?.autoScheduleEnabled !== false,
+    notificationsEnabled: institution?.settings?.notificationsEnabled !== false
+  });
+  const [saving, setSaving] = useState(false);
+  const handleSave = async () => {
+    setSaving(true);
+    await firebaseService.updateInstitutionSettings(settings);
+    toast.success('Settings saved');
+    setSaving(false);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl font-bold text-gray-900"
+  }, "Settings"), /*#__PURE__*/React.createElement("p", {
+    className: "text-gray-600"
+  }, "Configure institution preferences")), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-medium text-gray-900 mb-4"
+  }, "Institution Settings"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Institution Name"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: settings.institutionName,
+    onChange: e => setSettings({
+      ...settings,
+      institutionName: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Timezone"), /*#__PURE__*/React.createElement("select", {
+    value: settings.timezone,
+    onChange: e => setSettings({
+      ...settings,
+      timezone: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "America/New_York"
+  }, "Eastern Time"), /*#__PURE__*/React.createElement("option", {
+    value: "America/Chicago"
+  }, "Central Time"), /*#__PURE__*/React.createElement("option", {
+    value: "America/Denver"
+  }, "Mountain Time"), /*#__PURE__*/React.createElement("option", {
+    value: "America/Los_Angeles"
+  }, "Pacific Time"))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-medium text-gray-900 mb-4"
+  }, "Schedule Preferences"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Work Days"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => /*#__PURE__*/React.createElement("label", {
+    key: day,
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: settings.workDays.includes(day),
+    onChange: e => {
+      if (e.target.checked) {
+        setSettings({
+          ...settings,
+          workDays: [...settings.workDays, day]
+        });
+      } else {
+        setSettings({
+          ...settings,
+          workDays: settings.workDays.filter(d => d !== day)
+        });
+      }
+    },
+    className: "rounded"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm capitalize"
+  }, day))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: settings.autoScheduleEnabled,
+    onChange: e => setSettings({
+      ...settings,
+      autoScheduleEnabled: e.target.checked
+    }),
+    className: "rounded"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-medium text-gray-700"
+  }, "Enable Auto-Scheduling"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: settings.notificationsEnabled,
+    onChange: e => setSettings({
+      ...settings,
+      notificationsEnabled: e.target.checked
+    }),
+    className: "rounded"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-medium text-gray-700"
+  }, "Enable Notifications"))))), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end"
+  }, /*#__PURE__*/React.createElement(Button, {
+    onClick: handleSave,
+    disabled: saving
+  }, saving ? 'Saving...' : 'Save Settings')))));
+};
+
+// ==================== Auto-Scheduler Component ====================
+const AutoScheduler = ({
+  onClose
+}) => {
+  const {
+    firebaseService
+  } = useApp();
+  const [dateRange, setDateRange] = useState({
+    start: new Date().toISOString().split('T')[0],
+    end: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+  });
+  const [scheduling, setScheduling] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const handleAutoSchedule = async () => {
+    setScheduling(true);
+    setProgress(20);
+    try {
+      // Call the Cloud Function for auto-scheduling
+      const autoSchedule = window.firebase.functions.httpsCallable('autoSchedule');
+      setProgress(40);
+      const result = await autoSchedule({
+        institutionId: firebaseService.currentInstitution,
+        startDate: dateRange.start,
+        endDate: dateRange.end,
+        options: {
+          includeWeekends: false,
+          overwrite: false
+        }
+      });
+      setProgress(80);
+      if (result.data.success) {
+        toast.success(`Created ${result.data.assignmentsCreated} assignments!`);
+        setProgress(100);
+        setTimeout(onClose, 1500);
+      } else {
+        throw new Error('Auto-scheduling failed');
+      }
+    } catch (error) {
+      console.error('Auto-scheduling error:', error);
+      toast.error(error.message || 'Failed to auto-schedule');
+      setScheduling(false);
+      setProgress(0);
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Start Date"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dateRange.start,
+    onChange: e => setDateRange({
+      ...dateRange,
+      start: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    disabled: scheduling
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "End Date"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: dateRange.end,
+    onChange: e => setDateRange({
+      ...dateRange,
+      end: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    disabled: scheduling
+  })), scheduling && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between text-sm text-gray-600"
+  }, /*#__PURE__*/React.createElement("span", null, "Scheduling in progress..."), /*#__PURE__*/React.createElement("span", null, progress, "%")), /*#__PURE__*/React.createElement("div", {
+    className: "w-full bg-gray-200 rounded-full h-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-primary-600 h-2 rounded-full transition-all duration-300",
+    style: {
+      width: `${progress}%`
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-3"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: onClose,
+    disabled: scheduling
+  }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    onClick: handleAutoSchedule,
+    disabled: scheduling
+  }, scheduling ? 'Scheduling...' : 'Start Auto-Schedule')));
+};
+
+// ==================== Main App Component ====================
+const App = () => {
+  const {
+    user,
+    loading
+  } = useApp();
+  const [activeView, setActiveView] = useState('dashboard');
+  if (loading) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "min-h-screen flex items-center justify-center"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-center"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"
+    }), /*#__PURE__*/React.createElement("p", {
+      className: "mt-4 text-gray-600"
+    }, "Loading...")));
+  }
+  if (!user) {
+    return /*#__PURE__*/React.createElement(LoginPage, null);
+  }
+  const navItems = [{
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: 'layout-dashboard'
+  }, {
+    id: 'schedule',
+    label: 'Schedule',
+    icon: 'calendar'
+  }, {
+    id: 'attendings',
+    label: 'Attendings',
+    icon: 'users'
+  }, {
+    id: 'residents',
+    label: 'Residents',
+    icon: 'user-check'
+  }, {
+    id: 'rules',
+    label: 'Rules',
+    icon: 'shield-check'
+  }, {
+    id: 'settings',
+    label: 'Settings',
+    icon: 'settings'
+  }];
+  const handleSignOut = async () => {
+    const {
+      firebaseService
+    } = useApp();
+    await firebaseService.signOut();
+    toast.success('Signed out successfully');
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "min-h-screen bg-gray-50"
+  }, /*#__PURE__*/React.createElement("nav", {
+    className: "bg-white shadow-sm border-b border-gray-200"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between h-16"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-2 bg-primary-100 rounded-lg"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "calendar-days",
+    size: 24,
+    className: "text-primary-600"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    className: "text-lg font-bold text-gray-900"
+  }, "Clinic Scheduler Pro"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500"
+  }, "Firebase Edition"))), /*#__PURE__*/React.createElement("div", {
+    className: "hidden md:flex ml-10 space-x-1"
+  }, navItems.map(item => /*#__PURE__*/React.createElement("button", {
+    key: item.id,
+    onClick: () => setActiveView(item.id),
+    className: `
+                                            px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all
+                                            ${activeView === item.id ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50'}
+                                        `
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: item.icon,
+    size: 16
+  }), item.label)))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 px-3 py-1 bg-green-100 rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 bg-green-500 rounded-full animate-pulse"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-green-700 font-medium"
+  }, "Live")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-right"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-medium text-gray-900"
+  }, user.name || user.email), /*#__PURE__*/React.createElement("button", {
+    onClick: handleSignOut,
+    className: "text-xs text-gray-500 hover:text-gray-700"
+  }, "Sign Out")), /*#__PURE__*/React.createElement("div", {
+    className: "w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "user",
+    size: 16,
+    className: "text-primary-600"
+  }))))))), /*#__PURE__*/React.createElement("main", {
+    className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+  }, activeView === 'dashboard' && /*#__PURE__*/React.createElement(Dashboard, null), activeView === 'schedule' && /*#__PURE__*/React.createElement(ScheduleCalendar, null), activeView === 'attendings' && /*#__PURE__*/React.createElement(AttendingsList, null), activeView === 'residents' && /*#__PURE__*/React.createElement(ResidentsList, null), activeView === 'rules' && /*#__PURE__*/React.createElement(RulesList, null), activeView === 'settings' && /*#__PURE__*/React.createElement(SettingsView, null)), /*#__PURE__*/React.createElement(Toaster, {
+    position: "bottom-right",
+    toastOptions: {
+      className: 'font-medium',
+      duration: 3000,
+      style: {
+        background: '#fff',
+        color: '#363636'
+      }
+    }
+  }));
+};
+
+// ==================== Root Component ====================
+const Root = () => {
+  return /*#__PURE__*/React.createElement(AppProvider, null, /*#__PURE__*/React.createElement(App, null));
+};
+
+// Render the app
+ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(Root, null));
+
+//# sourceMappingURL=main.js.map

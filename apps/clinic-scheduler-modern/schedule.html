@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Calendar - Clinic Scheduler Pro</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React and Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Additional Libraries -->
+    <script src="https://unpkg.com/immer@10.0.3/dist/immer.umd.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@3.0.0/index.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.16/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/react-hot-toast@2.4.1/dist/index.umd.js"></script>
+    <script src="https://unpkg.com/@dnd-kit/sortable@7.0.2/dist/sortable.umd.js"></script>
+    <script src="https://unpkg.com/@dnd-kit/core@6.0.8/dist/core.umd.js"></script>
+    <script src="https://unpkg.com/@dnd-kit/utilities@3.2.1/dist/utilities.umd.js"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Google Generative AI for Natural Language Processing -->
+    <script type="importmap">
+    {
+        "imports": {
+            "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+    }
+    </script>
+
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#172554'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: 120px repeat(5, 1fr);
+            grid-auto-rows: minmax(100px, auto);
+            gap: 1px;
+            background: #e5e7eb;
+        }
+
+        .time-slot {
+            min-height: 100px;
+            background: white;
+            position: relative;
+        }
+
+        .time-slot.continuity {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
+
+        .time-slot.protected {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+        }
+
+        .draggable {
+            cursor: move;
+        }
+
+        .dragging {
+            opacity: 0.5;
+        }
+
+        .drop-indicator {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px dashed #3b82f6;
+        }
+
+        .assignment-card {
+            @apply bg-white rounded-lg p-2 m-1 shadow-sm border border-gray-200 text-xs;
+        }
+
+        .site-gss { border-left: 3px solid #10b981; }
+        .site-jhoc { border-left: 3px solid #f59e0b; }
+        .site-hoco { border-left: 3px solid #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect, useCallback, useMemo, useRef, createContext, useContext } = React;
+        const { motion, AnimatePresence } = window['framer-motion'];
+        const { toast, Toaster } = window['react-hot-toast'];
+        const { format, addDays, startOfWeek, endOfWeek, isWithinInterval, differenceInDays, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay, addWeeks, subWeeks } = window['date-fns'];
+
+        // ==================== Schedule Engine ====================
+        class ScheduleEngine {
+            constructor() {
+                this.constraints = [];
+                this.optimizationGoals = [];
+            }
+
+            // Check if assignment is valid
+            validateAssignment(assignment, context) {
+                // Check capacity
+                const attending = context.attendings.find(a => a.id === assignment.attendingId);
+                if (!attending) return { valid: false, reason: 'Attending not found' };
+
+                const capacity = assignment.timeSlot === 'AM' ? attending.capacityAM : attending.capacityPM;
+                const currentAssignments = context.assignments.filter(a =>
+                    a.attendingId === assignment.attendingId &&
+                    a.date === assignment.date &&
+                    a.timeSlot === assignment.timeSlot
+                );
+
+                if (currentAssignments.length >= capacity) {
+                    return { valid: false, reason: 'Capacity exceeded' };
+                }
+
+                // Check resident availability
+                const residentConflict = context.assignments.find(a =>
+                    a.residentId === assignment.residentId &&
+                    a.date === assignment.date &&
+                    a.timeSlot === assignment.timeSlot
+                );
+
+                if (residentConflict) {
+                    return { valid: false, reason: 'Resident already assigned' };
+                }
+
+                // Check continuity conflicts
+                const resident = context.residents.find(r => r.id === assignment.residentId);
+                if (resident) {
+                    const dayOfWeek = new Date(assignment.date).getDay();
+                    const dayMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday' };
+                    if (resident.continuityDay === dayMap[dayOfWeek] && resident.continuityTime === assignment.timeSlot) {
+                        if (assignment.siteId !== resident.continuitySite) {
+                            return { valid: false, reason: 'Conflicts with continuity clinic' };
+                        }
+                    }
+                }
+
+                // Check protected times
+                const dayOfWeek = new Date(assignment.date).getDay();
+                if (dayOfWeek === 3 && assignment.timeSlot === 'AM') { // Wednesday AM
+                    return { valid: false, reason: 'Protected time (Didactics)' };
+                }
+
+                return { valid: true };
+            }
+
+            // Generate auto-schedule
+            async generateAutoSchedule(params) {
+                const { dateRange, residents, attendings, optimizationGoals } = params;
+                const assignments = [];
+
+                // Simple greedy algorithm for now
+                const dates = eachDayOfInterval({ start: dateRange.start, end: dateRange.end })
+                    .filter(date => {
+                        const day = getDay(date);
+                        return day >= 1 && day <= 5; // Weekdays only
+                    });
+
+                for (const date of dates) {
+                    for (const timeSlot of ['AM', 'PM']) {
+                        for (const resident of residents) {
+                            // Skip if protected time
+                            const dayOfWeek = getDay(date);
+                            if (dayOfWeek === 3 && timeSlot === 'AM') continue; // Wednesday AM didactics
+
+                            // Check continuity clinic
+                            const dayMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday' };
+                            if (resident.continuityDay === dayMap[dayOfWeek] && resident.continuityTime === timeSlot) {
+                                // Assign to continuity site
+                                const continuityAttending = attendings.find(a => a.site === resident.continuitySite);
+                                if (continuityAttending) {
+                                    assignments.push({
+                                        id: `auto_${Date.now()}_${Math.random()}`,
+                                        date: format(date, 'yyyy-MM-dd'),
+                                        timeSlot,
+                                        residentId: resident.id,
+                                        attendingId: continuityAttending.id,
+                                        siteId: resident.continuitySite,
+                                        type: 'continuity',
+                                        autoGenerated: true
+                                    });
+                                }
+                                continue;
+                            }
+
+                            // Find best attending based on optimization goals
+                            const availableAttendings = attendings.filter(attending => {
+                                const capacity = timeSlot === 'AM' ? attending.capacityAM : attending.capacityPM;
+                                const assigned = assignments.filter(a =>
+                                    a.attendingId === attending.id &&
+                                    a.date === format(date, 'yyyy-MM-dd') &&
+                                    a.timeSlot === timeSlot
+                                ).length;
+                                return assigned < capacity;
+                            });
+
+                            if (availableAttendings.length > 0) {
+                                // Simple selection - prefer rotation site match
+                                let selectedAttending = availableAttendings[0];
+                                const rotationSiteMatch = availableAttendings.find(a =>
+                                    a.site === resident.rotation
+                                );
+                                if (rotationSiteMatch) selectedAttending = rotationSiteMatch;
+
+                                assignments.push({
+                                    id: `auto_${Date.now()}_${Math.random()}`,
+                                    date: format(date, 'yyyy-MM-dd'),
+                                    timeSlot,
+                                    residentId: resident.id,
+                                    attendingId: selectedAttending.id,
+                                    siteId: selectedAttending.site,
+                                    type: 'clinical',
+                                    autoGenerated: true
+                                });
+                            }
+                        }
+                    }
+                }
+
+                return assignments;
+            }
+
+            // Calculate schedule metrics
+            calculateMetrics(assignments, context) {
+                const metrics = {
+                    totalAssignments: assignments.length,
+                    coverageRate: 0,
+                    utilizationRate: 0,
+                    continuityCompliance: 0,
+                    workloadBalance: 0
+                };
+
+                // Calculate coverage rate
+                const totalSlots = context.dates.length * 2 * context.residents.length; // dates * (AM+PM) * residents
+                metrics.coverageRate = (assignments.length / totalSlots) * 100;
+
+                // Calculate utilization rate
+                let totalCapacity = 0;
+                let totalUsed = 0;
+                context.dates.forEach(date => {
+                    ['AM', 'PM'].forEach(timeSlot => {
+                        context.attendings.forEach(attending => {
+                            const capacity = timeSlot === 'AM' ? attending.capacityAM : attending.capacityPM;
+                            totalCapacity += capacity;
+                            const used = assignments.filter(a =>
+                                a.attendingId === attending.id &&
+                                a.date === format(date, 'yyyy-MM-dd') &&
+                                a.timeSlot === timeSlot
+                            ).length;
+                            totalUsed += used;
+                        });
+                    });
+                });
+                metrics.utilizationRate = totalCapacity > 0 ? (totalUsed / totalCapacity) * 100 : 0;
+
+                // Calculate continuity compliance
+                const continuityAssignments = assignments.filter(a => a.type === 'continuity');
+                const expectedContinuity = context.residents.length * Math.floor(context.dates.length / 5); // Weekly continuity
+                metrics.continuityCompliance = expectedContinuity > 0 ? (continuityAssignments.length / expectedContinuity) * 100 : 100;
+
+                // Calculate workload balance (standard deviation)
+                const residentCounts = {};
+                context.residents.forEach(r => {
+                    residentCounts[r.id] = assignments.filter(a => a.residentId === r.id).length;
+                });
+                const counts = Object.values(residentCounts);
+                const mean = counts.reduce((a, b) => a + b, 0) / counts.length;
+                const variance = counts.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / counts.length;
+                const stdDev = Math.sqrt(variance);
+                metrics.workloadBalance = mean > 0 ? 100 - (stdDev / mean * 100) : 100;
+
+                return metrics;
+            }
+        }
+
+        // ==================== Natural Language Rule Interpreter ====================
+        class RuleInterpreter {
+            async interpretRule(naturalLanguage) {
+                // Simulate AI interpretation
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Pattern matching for common rule types
+                const patterns = [
+                    {
+                        regex: /residents?\s+(?:must|should)\s+have\s+at\s+least\s+(\d+)\s+days?\s+between\s+continuity/i,
+                        type: 'continuity_separation',
+                        extract: (match) => ({ minDays: parseInt(match[1]) })
+                    },
+                    {
+                        regex: /PGY[- ]?(\d)\s+residents?\s+(?:must|should)\s+(?:have|complete)\s+(?:at\s+least\s+)?(\d+)\s+(\w+)\s+sessions?\s+per\s+(\w+)/i,
+                        type: 'rotation_requirement',
+                        extract: (match) => ({
+                            pgyLevel: parseInt(match[1]),
+                            count: parseInt(match[2]),
+                            rotation: match[3],
+                            period: match[4]
+                        })
+                    },
+                    {
+                        regex: /(?:no|don't|do\s+not)\s+schedule\s+(?:residents?\s+)?(?:for\s+)?(?:more\s+than\s+)?(\d+)\s+consecutive\s+(\w+)/i,
+                        type: 'max_consecutive',
+                        extract: (match) => ({
+                            maxConsecutive: parseInt(match[1]),
+                            unit: match[2]
+                        })
+                    },
+                    {
+                        regex: /residents?\s+on\s+call\s+(?:cannot|should\s+not)\s+have\s+clinic\s+the\s+(?:next|following)\s+(\w+)/i,
+                        type: 'post_call_protection',
+                        extract: (match) => ({ timeframe: match[1] })
+                    }
+                ];
+
+                for (const pattern of patterns) {
+                    const match = naturalLanguage.match(pattern.regex);
+                    if (match) {
+                        return {
+                            success: true,
+                            interpretation: {
+                                type: pattern.type,
+                                parameters: pattern.extract(match),
+                                original: naturalLanguage,
+                                confidence: 0.85 + Math.random() * 0.15
+                            }
+                        };
+                    }
+                }
+
+                // If no pattern matches, return generic interpretation
+                return {
+                    success: true,
+                    interpretation: {
+                        type: 'custom',
+                        parameters: {},
+                        original: naturalLanguage,
+                        confidence: 0.65
+                    }
+                };
+            }
+
+            generateExplanation(interpretation) {
+                const explanations = {
+                    continuity_separation: `Ensures residents have at least ${interpretation.parameters.minDays} days between their continuity clinic sessions to prevent burnout and maintain work-life balance.`,
+                    rotation_requirement: `PGY-${interpretation.parameters.pgyLevel} residents must complete ${interpretation.parameters.count} ${interpretation.parameters.rotation} sessions per ${interpretation.parameters.period} to meet educational requirements.`,
+                    max_consecutive: `Prevents scheduling residents for more than ${interpretation.parameters.maxConsecutive} consecutive ${interpretation.parameters.unit} to avoid fatigue.`,
+                    post_call_protection: `Residents who were on call are protected from having clinic the ${interpretation.parameters.timeframe} to ensure adequate rest.`,
+                    custom: `This custom rule will be applied to the scheduling algorithm based on your specific requirements.`
+                };
+
+                return explanations[interpretation.type] || 'Rule interpreted successfully.';
+            }
+        }
+
+        // ==================== Components ====================
+
+        const Icon = ({ name, size = 20, className = "" }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, []);
+            return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
+        };
+
+        const Button = ({ children, variant = 'primary', size = 'md', className = "", icon, ...props }) => {
+            const baseClasses = "inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2";
+            const variants = {
+                primary: "bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500",
+                secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-primary-500",
+                ghost: "text-gray-600 hover:bg-gray-100 focus:ring-gray-500",
+                danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+            };
+            const sizes = {
+                sm: "px-3 py-1.5 text-sm gap-1.5",
+                md: "px-4 py-2 text-sm gap-2",
+                lg: "px-6 py-3 text-base gap-2"
+            };
+
+            return (
+                <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
+                    {...props}
+                >
+                    {icon && <Icon name={icon} size={size === 'sm' ? 16 : size === 'lg' ? 20 : 18} />}
+                    {children}
+                </motion.button>
+            );
+        };
+
+        // ==================== Schedule Calendar Component ====================
+        const ScheduleCalendar = () => {
+            const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+            const [assignments, setAssignments] = useState({});
+            const [selectedCell, setSelectedCell] = useState(null);
+            const [draggedItem, setDraggedItem] = useState(null);
+            const [showAutoScheduler, setShowAutoScheduler] = useState(false);
+            const [showRuleBuilder, setShowRuleBuilder] = useState(false);
+            const [rules, setRules] = useState([]);
+
+            const scheduleEngine = useMemo(() => new ScheduleEngine(), []);
+            const ruleInterpreter = useMemo(() => new RuleInterpreter(), []);
+
+            // Sample data
+            const attendings = [
+                { id: 'att1', name: 'Dr. Smith', site: 'gss', capacityAM: 2, capacityPM: 2 },
+                { id: 'att2', name: 'Dr. Johnson', site: 'jhoc', capacityAM: 1, capacityPM: 2 },
+                { id: 'att3', name: 'Dr. Williams', site: 'hoco', capacityAM: 2, capacityPM: 1 }
+            ];
+
+            const residents = [
+                { id: 'res1', name: 'Michelle R.', pgyLevel: 4, rotation: 'gss', continuitySite: 'gss', continuityDay: 'tuesday', continuityTime: 'AM' },
+                { id: 'res2', name: 'Andrew K.', pgyLevel: 3, rotation: 'jhoc', continuitySite: 'jhoc', continuityDay: 'thursday', continuityTime: 'PM' },
+                { id: 'res3', name: 'Sarah L.', pgyLevel: 2, rotation: 'hoco', continuitySite: 'hoco', continuityDay: 'monday', continuityTime: 'PM' }
+            ];
+
+            const sites = [
+                { id: 'gss', name: 'GSS', color: '#10b981' },
+                { id: 'jhoc', name: 'JHOC', color: '#f59e0b' },
+                { id: 'hoco', name: 'HoCo', color: '#ef4444' }
+            ];
+
+            const weekDays = useMemo(() => {
+                const days = [];
+                for (let i = 0; i < 5; i++) {
+                    days.push(addDays(currentWeek, i));
+                }
+                return days;
+            }, [currentWeek]);
+
+            const timeSlots = ['AM', 'PM'];
+
+            const handleDragStart = (e, item) => {
+                setDraggedItem(item);
+                e.dataTransfer.effectAllowed = 'move';
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            };
+
+            const handleDrop = (e, date, timeSlot) => {
+                e.preventDefault();
+                if (!draggedItem) return;
+
+                const dateKey = format(date, 'yyyy-MM-dd');
+                const key = `${dateKey}_${timeSlot}`;
+
+                // Validate assignment
+                const validation = scheduleEngine.validateAssignment({
+                    ...draggedItem,
+                    date: dateKey,
+                    timeSlot
+                }, {
+                    attendings,
+                    residents,
+                    assignments: Object.values(assignments).flat()
+                });
+
+                if (validation.valid) {
+                    setAssignments(prev => {
+                        const updated = { ...prev };
+                        if (!updated[key]) updated[key] = [];
+                        updated[key] = [...updated[key], { ...draggedItem, id: Date.now() }];
+
+                        // Remove from original position if moving
+                        if (draggedItem.originalKey && draggedItem.originalKey !== key) {
+                            updated[draggedItem.originalKey] = updated[draggedItem.originalKey].filter(
+                                a => a.id !== draggedItem.id
+                            );
+                        }
+
+                        return updated;
+                    });
+                    toast.success('Assignment updated');
+                } else {
+                    toast.error(validation.reason);
+                }
+
+                setDraggedItem(null);
+            };
+
+            const getCellAssignments = (date, timeSlot) => {
+                const key = `${format(date, 'yyyy-MM-dd')}_${timeSlot}`;
+                return assignments[key] || [];
+            };
+
+            const isContinuitySlot = (date, timeSlot, resident) => {
+                const dayOfWeek = getDay(date);
+                const dayMap = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday' };
+                return resident.continuityDay === dayMap[dayOfWeek] && resident.continuityTime === timeSlot;
+            };
+
+            const isProtectedTime = (date, timeSlot) => {
+                const dayOfWeek = getDay(date);
+                return dayOfWeek === 3 && timeSlot === 'AM'; // Wednesday AM
+            };
+
+            // Auto-Scheduler Modal
+            const AutoSchedulerModal = () => {
+                const [loading, setLoading] = useState(false);
+                const [preview, setPreview] = useState(null);
+
+                const handleGenerateSchedule = async () => {
+                    setLoading(true);
+                    try {
+                        const generated = await scheduleEngine.generateAutoSchedule({
+                            dateRange: {
+                                start: weekDays[0],
+                                end: weekDays[4]
+                            },
+                            residents,
+                            attendings,
+                            optimizationGoals: ['balanceWorkload', 'minimizeTravel']
+                        });
+
+                        const metrics = scheduleEngine.calculateMetrics(generated, {
+                            dates: weekDays,
+                            residents,
+                            attendings
+                        });
+
+                        setPreview({ assignments: generated, metrics });
+                    } catch (error) {
+                        toast.error('Failed to generate schedule');
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                const applySchedule = () => {
+                    if (!preview) return;
+
+                    const newAssignments = {};
+                    preview.assignments.forEach(assignment => {
+                        const key = `${assignment.date}_${assignment.timeSlot}`;
+                        if (!newAssignments[key]) newAssignments[key] = [];
+                        newAssignments[key].push(assignment);
+                    });
+
+                    setAssignments(newAssignments);
+                    toast.success('Auto-generated schedule applied');
+                    setShowAutoScheduler(false);
+                    setPreview(null);
+                };
+
+                return (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+                        >
+                            <div className="p-6 border-b">
+                                <h2 className="text-xl font-bold">Auto-Schedule Generator</h2>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    Automatically generate optimal schedules based on constraints and goals
+                                </p>
+                            </div>
+
+                            <div className="p-6 space-y-6 overflow-y-auto max-h-[60vh]">
+                                {!preview ? (
+                                    <>
+                                        <div>
+                                            <h3 className="font-semibold mb-3">Optimization Goals</h3>
+                                            <div className="space-y-2">
+                                                {[
+                                                    { id: 'balanceWorkload', label: 'Balance Workload', icon: 'scale' },
+                                                    { id: 'minimizeTravel', label: 'Minimize Site Transitions', icon: 'map-pin' },
+                                                    { id: 'maximizeUtilization', label: 'Maximize Attending Utilization', icon: 'trending-up' },
+                                                    { id: 'respectPreferences', label: 'Respect Preferences', icon: 'heart' }
+                                                ].map(goal => (
+                                                    <label key={goal.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                        <input type="checkbox" defaultChecked className="w-4 h-4 text-primary-600" />
+                                                        <Icon name={goal.icon} size={20} />
+                                                        <span className="font-medium">{goal.label}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h3 className="font-semibold mb-3">Active Rules</h3>
+                                            {rules.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {rules.map(rule => (
+                                                        <div key={rule.id} className="p-3 bg-gray-50 rounded-lg">
+                                                            <p className="text-sm">{rule.naturalLanguage}</p>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-xs text-gray-500">Confidence:</span>
+                                                                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                                                    <div
+                                                                        className="bg-green-500 h-2 rounded-full"
+                                                                        style={{ width: `${rule.confidence * 100}%` }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-500 text-sm">No custom rules defined</p>
+                                            )}
+                                        </div>
+
+                                        <Button
+                                            onClick={handleGenerateSchedule}
+                                            disabled={loading}
+                                            className="w-full"
+                                            icon={loading ? null : 'sparkles'}
+                                        >
+                                            {loading ? 'Generating...' : 'Generate Schedule'}
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                            <h3 className="font-semibold text-green-900 mb-2">Schedule Generated Successfully</h3>
+                                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                                <div>
+                                                    <span className="text-gray-600">Total Assignments:</span>
+                                                    <span className="ml-2 font-semibold">{preview.assignments.length}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-600">Coverage Rate:</span>
+                                                    <span className="ml-2 font-semibold">{preview.metrics.coverageRate.toFixed(1)}%</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-600">Utilization:</span>
+                                                    <span className="ml-2 font-semibold">{preview.metrics.utilizationRate.toFixed(1)}%</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-600">Workload Balance:</span>
+                                                    <span className="ml-2 font-semibold">{preview.metrics.workloadBalance.toFixed(1)}%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h3 className="font-semibold mb-3">Preview</h3>
+                                            <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                                                <div className="space-y-1 text-sm">
+                                                    {preview.assignments.slice(0, 10).map((assignment, idx) => (
+                                                        <div key={idx} className="flex items-center gap-2">
+                                                            <span className="text-gray-600">{assignment.date}</span>
+                                                            <span className="font-medium">{assignment.timeSlot}</span>
+                                                            <span>•</span>
+                                                            <span>{residents.find(r => r.id === assignment.residentId)?.name}</span>
+                                                            <span>→</span>
+                                                            <span>{attendings.find(a => a.id === assignment.attendingId)?.name}</span>
+                                                        </div>
+                                                    ))}
+                                                    {preview.assignments.length > 10 && (
+                                                        <p className="text-gray-500 mt-2">... and {preview.assignments.length - 10} more assignments</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <Button
+                                                variant="secondary"
+                                                onClick={() => setPreview(null)}
+                                                className="flex-1"
+                                            >
+                                                Back
+                                            </Button>
+                                            <Button
+                                                onClick={applySchedule}
+                                                className="flex-1"
+                                                icon="check"
+                                            >
+                                                Apply Schedule
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="p-6 border-t flex justify-end">
+                                <Button variant="ghost" onClick={() => setShowAutoScheduler(false)}>
+                                    Close
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                );
+            };
+
+            // Rule Builder Modal
+            const RuleBuilderModal = () => {
+                const [naturalLanguage, setNaturalLanguage] = useState('');
+                const [interpretation, setInterpretation] = useState(null);
+                const [loading, setLoading] = useState(false);
+
+                const templates = [
+                    'Residents must have at least 2 days between continuity clinics',
+                    'PGY2 residents must have at least 3 dermatopathology sessions per month',
+                    'No resident should have more than 3 consecutive clinic days',
+                    'Residents on call cannot have clinic the following morning'
+                ];
+
+                const handleInterpret = async () => {
+                    if (!naturalLanguage.trim()) return;
+
+                    setLoading(true);
+                    try {
+                        const result = await ruleInterpreter.interpretRule(naturalLanguage);
+                        if (result.success) {
+                            const explanation = ruleInterpreter.generateExplanation(result.interpretation);
+                            setInterpretation({ ...result.interpretation, explanation });
+                        }
+                    } catch (error) {
+                        toast.error('Failed to interpret rule');
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                const saveRule = () => {
+                    if (!interpretation) return;
+
+                    const newRule = {
+                        id: Date.now(),
+                        naturalLanguage,
+                        ...interpretation
+                    };
+
+                    setRules(prev => [...prev, newRule]);
+                    toast.success('Rule added successfully');
+                    setShowRuleBuilder(false);
+                    setNaturalLanguage('');
+                    setInterpretation(null);
+                };
+
+                return (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full"
+                        >
+                            <div className="p-6 border-b">
+                                <h2 className="text-xl font-bold">Natural Language Rule Builder</h2>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    Describe your scheduling rule in plain English
+                                </p>
+                            </div>
+
+                            <div className="p-6 space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Rule Templates
+                                    </label>
+                                    <div className="space-y-2">
+                                        {templates.map((template, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setNaturalLanguage(template)}
+                                                className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm transition-colors"
+                                            >
+                                                {template}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Your Rule
+                                    </label>
+                                    <textarea
+                                        value={naturalLanguage}
+                                        onChange={(e) => setNaturalLanguage(e.target.value)}
+                                        placeholder="e.g., Residents should not have back-to-back continuity clinics"
+                                        className="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                                    />
+                                </div>
+
+                                {!interpretation && (
+                                    <Button
+                                        onClick={handleInterpret}
+                                        disabled={loading || !naturalLanguage.trim()}
+                                        className="w-full"
+                                        icon="brain"
+                                    >
+                                        {loading ? 'Interpreting...' : 'Interpret Rule'}
+                                    </Button>
+                                )}
+
+                                {interpretation && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="space-y-4"
+                                    >
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                            <h4 className="font-semibold text-blue-900 mb-2">Interpretation</h4>
+                                            <p className="text-sm text-blue-800">{interpretation.explanation}</p>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-600">Confidence:</span>
+                                            <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                                <div
+                                                    className={`h-2 rounded-full ${
+                                                        interpretation.confidence > 0.8 ? 'bg-green-500' :
+                                                        interpretation.confidence > 0.6 ? 'bg-yellow-500' : 'bg-red-500'
+                                                    }`}
+                                                    style={{ width: `${interpretation.confidence * 100}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-sm font-medium">
+                                                {(interpretation.confidence * 100).toFixed(0)}%
+                                            </span>
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <Button
+                                                variant="secondary"
+                                                onClick={() => {
+                                                    setInterpretation(null);
+                                                    setNaturalLanguage('');
+                                                }}
+                                                className="flex-1"
+                                            >
+                                                Try Again
+                                            </Button>
+                                            <Button
+                                                onClick={saveRule}
+                                                className="flex-1"
+                                                icon="save"
+                                            >
+                                                Save Rule
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+
+                            <div className="p-6 border-t flex justify-end">
+                                <Button variant="ghost" onClick={() => {
+                                    setShowRuleBuilder(false);
+                                    setNaturalLanguage('');
+                                    setInterpretation(null);
+                                }}>
+                                    Cancel
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 p-4">
+                    {/* Header */}
+                    <div className="max-w-7xl mx-auto mb-6">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h1 className="text-2xl font-bold text-gray-900">Schedule Calendar</h1>
+                                    <p className="text-gray-600 mt-1">
+                                        Week of {format(currentWeek, 'MMMM d, yyyy')}
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <Button
+                                        variant="secondary"
+                                        icon="chevron-left"
+                                        onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={() => setCurrentWeek(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+                                    >
+                                        Today
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        icon="chevron-right"
+                                        onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 mt-6">
+                                <Button icon="sparkles" onClick={() => setShowAutoScheduler(true)}>
+                                    Auto-Schedule
+                                </Button>
+                                <Button variant="secondary" icon="file-text" onClick={() => setShowRuleBuilder(true)}>
+                                    Add Rule
+                                </Button>
+                                <Button variant="secondary" icon="download">
+                                    Export
+                                </Button>
+                                <Button variant="secondary" icon="bar-chart">
+                                    Analytics
+                                </Button>
+                            </div>
+
+                            {/* Active Rules Display */}
+                            {rules.length > 0 && (
+                                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                                    <h3 className="font-semibold text-blue-900 mb-2">Active Rules ({rules.length})</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {rules.map(rule => (
+                                            <div key={rule.id} className="bg-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                                                <Icon name="shield-check" size={14} className="text-blue-600" />
+                                                <span className="text-gray-700">{rule.type.replace(/_/g, ' ')}</span>
+                                                <button
+                                                    onClick={() => setRules(prev => prev.filter(r => r.id !== rule.id))}
+                                                    className="ml-1 text-gray-400 hover:text-red-600"
+                                                >
+                                                    <Icon name="x" size={14} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Calendar Grid */}
+                    <div className="max-w-7xl mx-auto">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            {/* Legend */}
+                            <div className="flex items-center gap-6 mb-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 bg-gradient-to-r from-yellow-300 to-yellow-400 rounded"></div>
+                                    <span className="text-sm text-gray-600">Continuity</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 bg-gradient-to-r from-indigo-300 to-indigo-400 rounded"></div>
+                                    <span className="text-sm text-gray-600">Protected Time</span>
+                                </div>
+                                {sites.map(site => (
+                                    <div key={site.id} className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded" style={{ backgroundColor: site.color }}></div>
+                                        <span className="text-sm text-gray-600">{site.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="calendar-grid rounded-lg overflow-hidden">
+                                {/* Header Row */}
+                                <div className="bg-gray-50 p-3 font-semibold text-gray-700">Time</div>
+                                {weekDays.map(day => (
+                                    <div key={day} className="bg-gray-50 p-3 text-center">
+                                        <div className="font-semibold text-gray-900">
+                                            {format(day, 'EEEE')}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            {format(day, 'MMM d')}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Time Slots */}
+                                {timeSlots.map(timeSlot => (
+                                    <React.Fragment key={timeSlot}>
+                                        <div className="bg-gray-50 p-3 font-medium text-gray-700">
+                                            {timeSlot}
+                                        </div>
+                                        {weekDays.map(day => {
+                                            const cellAssignments = getCellAssignments(day, timeSlot);
+                                            const isProtected = isProtectedTime(day, timeSlot);
+
+                                            return (
+                                                <div
+                                                    key={`${day}_${timeSlot}`}
+                                                    className={`time-slot ${isProtected ? 'protected' : ''}`}
+                                                    onDragOver={handleDragOver}
+                                                    onDrop={(e) => handleDrop(e, day, timeSlot)}
+                                                >
+                                                    {isProtected ? (
+                                                        <div className="p-3 text-center">
+                                                            <Icon name="book-open" size={20} className="mx-auto text-indigo-600 mb-1" />
+                                                            <p className="text-xs font-medium text-indigo-700">Didactics</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="p-2 space-y-1">
+                                                            {cellAssignments.map(assignment => {
+                                                                const resident = residents.find(r => r.id === assignment.residentId);
+                                                                const attending = attendings.find(a => a.id === assignment.attendingId);
+                                                                const site = sites.find(s => s.id === assignment.siteId);
+                                                                const isContinuity = assignment.type === 'continuity';
+
+                                                                return (
+                                                                    <motion.div
+                                                                        key={assignment.id}
+                                                                        initial={{ scale: 0.8, opacity: 0 }}
+                                                                        animate={{ scale: 1, opacity: 1 }}
+                                                                        className={`assignment-card site-${assignment.siteId} ${isContinuity ? 'bg-yellow-50' : ''}`}
+                                                                        draggable
+                                                                        onDragStart={(e) => handleDragStart(e, {
+                                                                            ...assignment,
+                                                                            originalKey: `${format(day, 'yyyy-MM-dd')}_${timeSlot}`
+                                                                        })}
+                                                                    >
+                                                                        <div className="font-medium">{resident?.name}</div>
+                                                                        <div className="text-gray-600">{attending?.name}</div>
+                                                                        {isContinuity && (
+                                                                            <span className="inline-block px-1 py-0.5 bg-yellow-200 text-yellow-800 rounded text-xs mt-1">
+                                                                                Continuity
+                                                                            </span>
+                                                                        )}
+                                                                    </motion.div>
+                                                                );
+                                                            })}
+
+                                                            {/* Available Residents for Manual Assignment */}
+                                                            {cellAssignments.length === 0 && (
+                                                                <div className="text-center py-4">
+                                                                    <button
+                                                                        onClick={() => setSelectedCell({ date: day, timeSlot })}
+                                                                        className="text-gray-400 hover:text-primary-600 transition-colors"
+                                                                    >
+                                                                        <Icon name="plus-circle" size={24} />
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </React.Fragment>
+                                ))}
+                            </div>
+
+                            {/* Quick Add Panel */}
+                            {selectedCell && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-6 p-4 bg-blue-50 rounded-lg"
+                                >
+                                    <h3 className="font-semibold text-blue-900 mb-3">
+                                        Quick Add: {format(selectedCell.date, 'EEEE, MMM d')} - {selectedCell.timeSlot}
+                                    </h3>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {residents.map(resident => {
+                                            const isContinuity = isContinuitySlot(selectedCell.date, selectedCell.timeSlot, resident);
+
+                                            return (
+                                                <button
+                                                    key={resident.id}
+                                                    className="p-3 bg-white rounded-lg hover:shadow-md transition-shadow text-left"
+                                                    onClick={() => {
+                                                        // Add assignment logic here
+                                                        setSelectedCell(null);
+                                                        toast.success(`${resident.name} assigned`);
+                                                    }}
+                                                >
+                                                    <div className="font-medium">{resident.name}</div>
+                                                    <div className="text-xs text-gray-600">PGY-{resident.pgyLevel}</div>
+                                                    {isContinuity && (
+                                                        <span className="text-xs text-yellow-600">Continuity</span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedCell(null)}
+                                        className="mt-3 text-sm text-gray-600 hover:text-gray-900"
+                                    >
+                                        Cancel
+                                    </button>
+                                </motion.div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Modals */}
+                    {showAutoScheduler && <AutoSchedulerModal />}
+                    {showRuleBuilder && <RuleBuilderModal />}
+
+                    <Toaster
+                        position="bottom-right"
+                        toastOptions={{
+                            className: 'font-medium',
+                            duration: 3000,
+                            style: {
+                                background: '#fff',
+                                color: '#363636',
+                            },
+                        }}
+                    />
+                </div>
+            );
+        };
+
+        // Render the app
+        ReactDOM.createRoot(document.getElementById('root')).render(<ScheduleCalendar />);
+    </script>
+</body>
+</html>

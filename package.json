@@ -13,7 +13,8 @@
     "test": "echo \"GitHub Pages static hosting - no build process needed\" && exit 0",
     "site:dev": "npm --prefix site run dev",
     "site:build": "npm --prefix site run build",
-    "site:preview": "npm --prefix site run preview"
+    "site:preview": "npm --prefix site run preview",
+    "clinic:scheduler:build": "babel site/public/apps/clinic-scheduler-pro/src/main.jsx --out-file site/public/apps/clinic-scheduler-pro/assets/main.js --source-maps --presets @babel/preset-react && babel site/public/apps/clinic-scheduler-pro/src/main-animated.jsx --out-file site/public/apps/clinic-scheduler-pro/assets/main-animated.js --source-maps --presets @babel/preset-react"
   },
   "keywords": [
     "dermatology",
@@ -24,6 +25,9 @@
   "author": "Dr. Ramie Fathy",
   "license": "MIT",
   "devDependencies": {
+    "@babel/cli": "^7.28.3",
+    "@babel/core": "^7.28.4",
+    "@babel/preset-react": "^7.27.1",
     "@playwright/test": "^1.55.0",
     "live-server": "^1.2.2"
   },
