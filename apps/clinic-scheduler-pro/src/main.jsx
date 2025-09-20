@@ -3,7 +3,78 @@ const { useState, useEffect, useCallback, useMemo, useRef, createContext, useCon
 const { createPortal } = ReactDOM;
 const motion = ({ children }) => children; // Placeholder since framer-motion not loading
 const AnimatePresence = ({ children }) => children;
-const { toast, Toaster } = window['react-hot-toast'];
+const ensureToastContainer = () => {
+    let container = document.getElementById('csp-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'csp-toast-container';
+        Object.assign(container.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            zIndex: '9999',
+            pointerEvents: 'none'
+        });
+        document.body.appendChild(container);
+    }
+    return container;
+};
+
+const showToast = (message, type = 'info') => {
+    if (!message) return;
+    const container = ensureToastContainer();
+    const palette = type === 'success'
+        ? { bg: '#dcfce7', border: '#86efac', text: '#166534' }
+        : { bg: '#fee2e2', border: '#fca5a5', text: '#b91c1c' };
+
+    const toastEl = document.createElement('div');
+    Object.assign(toastEl.style, {
+        minWidth: '240px',
+        maxWidth: '320px',
+        padding: '12px 16px',
+        borderRadius: '16px',
+        border: `1px solid ${palette.border}`,
+        background: palette.bg,
+        color: palette.text,
+        fontWeight: '600',
+        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.18)',
+        opacity: '0',
+        transform: 'translateY(10px)',
+        transition: 'opacity 150ms ease, transform 150ms ease',
+        pointerEvents: 'auto'
+    });
+    toastEl.textContent = message;
+    container.appendChild(toastEl);
+
+    requestAnimationFrame(() => {
+        toastEl.style.opacity = '1';
+        toastEl.style.transform = 'translateY(0)';
+    });
+
+    const remove = () => {
+        toastEl.style.opacity = '0';
+        toastEl.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            if (toastEl.parentNode) {
+                toastEl.parentNode.removeChild(toastEl);
+            }
+        }, 180);
+    };
+
+    const autoClose = setTimeout(remove, 3200);
+    toastEl.addEventListener('mouseenter', () => clearTimeout(autoClose));
+    toastEl.addEventListener('mouseleave', () => setTimeout(remove, 1200));
+};
+
+const toast = {
+    success: (message) => showToast(message, 'success'),
+    error: (message) => showToast(message, 'error')
+};
+
+const Toaster = () => null;
 const { format, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, getDay, addDays } = window['date-fns'];
 const { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
 
