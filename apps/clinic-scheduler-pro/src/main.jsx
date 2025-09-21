@@ -1425,7 +1425,6 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     const generateVirtualAssignments = (residents, protectedTimes) => {
         const virtual = [];
         const today = new Date();
-        const thirtyDaysFromNow = new Date(today.getTime() + 30 * 86400000);
 
         // Generate continuity clinic assignments
         residents.forEach(resident => {
@@ -1441,14 +1440,23 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                 };
                 const targetDay = dayMap[resident.continuityDay];
 
-                // Generate for next 4 weeks
-                for (let week = 0; week < 4; week++) {
+                // Generate for next 52 weeks (1 year)
+                for (let week = 0; week < 52; week++) {
                     const weekStart = new Date(today);
                     weekStart.setDate(today.getDate() - today.getDay() + week * 7);
                     const targetDate = new Date(weekStart);
                     targetDate.setDate(weekStart.getDate() + targetDay);
 
-                    if (targetDate >= today && targetDate <= thirtyDaysFromNow) {
+                    // Check if this week is a vacation week
+                    const targetWeekStr = targetDate.toISOString().split('T')[0];
+                    const isVacationWeek = resident.vacationWeeks?.some(vw => {
+                        const vacationStart = new Date(vw);
+                        const vacationEnd = new Date(vacationStart);
+                        vacationEnd.setDate(vacationEnd.getDate() + 6);
+                        return targetDate >= vacationStart && targetDate <= vacationEnd;
+                    });
+
+                    if (targetDate >= today && !isVacationWeek) {
                         virtual.push({
                             id: `continuity_${resident.id}_${targetDate.toISOString().split('T')[0]}`,
                             residentId: resident.id,
@@ -1467,14 +1475,14 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
         // Generate protected time assignments
         if (protectedTimes) {
             protectedTimes.forEach(pt => {
-                // Generate for next 4 weeks
-                for (let week = 0; week < 4; week++) {
+                // Generate for next 52 weeks (1 year)
+                for (let week = 0; week < 52; week++) {
                     const weekStart = new Date(today);
                     weekStart.setDate(today.getDate() - today.getDay() + week * 7);
                     const targetDate = new Date(weekStart);
                     targetDate.setDate(weekStart.getDate() + pt.dayOfWeek);
 
-                    if (targetDate >= today && targetDate <= thirtyDaysFromNow) {
+                    if (targetDate >= today) {
                         // Create assignments for all applicable residents
                         residents.forEach(resident => {
                             const residentPGY = resident.pgyStatus || 'PGY-1';
@@ -2716,6 +2724,7 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
         continuitySiteId: resident.continuitySiteId || '',
         rotationAssignments: resident.rotationAssignments || [],
         halfDaysOff: resident.halfDaysOff || [],
+        vacationWeeks: resident.vacationWeeks || [],
         ...resident
     });
 
@@ -2858,13 +2867,11 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
                                 className="px-3 py-2 border rounded-lg"
                             >
                                 <option value="">Select Day</option>
-                                <option value="sunday">Sunday</option>
                                 <option value="monday">Monday</option>
                                 <option value="tuesday">Tuesday</option>
                                 <option value="wednesday">Wednesday</option>
                                 <option value="thursday">Thursday</option>
                                 <option value="friday">Friday</option>
-                                <option value="saturday">Saturday</option>
                             </select>
                             <select
                                 value={formData.continuityTime}
@@ -2875,6 +2882,58 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
                                 <option value="AM">AM</option>
                                 <option value="PM">PM</option>
                             </select>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Vacation Weeks</label>
+                <p className="text-xs text-gray-500 mb-2">Select weeks when this resident is on vacation (no continuity clinic)</p>
+                <div className="space-y-2">
+                    <div className="flex gap-2 items-center">
+                        <input
+                            type="date"
+                            placeholder="Select week start date"
+                            className="px-3 py-2 border rounded-lg"
+                            onChange={(e) => {
+                                if (e.target.value && !formData.vacationWeeks?.includes(e.target.value)) {
+                                    setFormData({
+                                        ...formData,
+                                        vacationWeeks: [...(formData.vacationWeeks || []), e.target.value]
+                                    });
+                                    e.target.value = '';
+                                }
+                            }}
+                        />
+                        <span className="text-sm text-gray-600">Add vacation week starting on this date</span>
+                    </div>
+                    {formData.vacationWeeks?.length > 0 && (
+                        <div className="space-y-1 max-h-32 overflow-y-auto border rounded-lg p-2">
+                            {formData.vacationWeeks.sort().map((weekStart, idx) => {
+                                const startDate = new Date(weekStart);
+                                const endDate = new Date(weekStart);
+                                endDate.setDate(endDate.getDate() + 6);
+                                return (
+                                    <div key={idx} className="flex items-center justify-between p-1 hover:bg-gray-50 rounded">
+                                        <span className="text-sm">
+                                            {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setFormData({
+                                                    ...formData,
+                                                    vacationWeeks: formData.vacationWeeks.filter(w => w !== weekStart)
+                                                });
+                                            }}
+                                            className="text-red-600 hover:text-red-700"
+                                        >
+                                            <Icon name="x" size={14} />
+                                        </button>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
