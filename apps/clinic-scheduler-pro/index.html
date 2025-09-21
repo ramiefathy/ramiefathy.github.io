@@ -13,43 +13,64 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- React and dependencies - Load first -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Map bare module specifiers for shared React runtime -->
+    <script type="importmap">
+        {
+            "imports": {
+                "react": "https://esm.sh/react@18?bundle",
+                "react-dom": "https://esm.sh/react-dom@18?bundle",
+                "react-dom/client": "https://esm.sh/react-dom@18/client?bundle"
+            }
+        }
+    </script>
 
     <!-- Load dependencies after React is available -->
     <script type="module">
-        // Wait for React to be available globally
-        function waitForReact() {
-            return new Promise((resolve) => {
-                if (window.React && window.ReactDOM) {
-                    resolve();
-                } else {
-                    setTimeout(() => waitForReact().then(resolve), 50);
+        const mergeModule = (mod) => {
+            const base = mod?.default ?? mod;
+            return Object.assign(base, mod);
+        };
+
+        async function loadDependencies() {
+            try {
+                const [reactMod, reactDomMod, reactDomClientMod, dateFns, Recharts, Papa, lucide, framerMotion] = await Promise.all([
+                    import('react'),
+                    import('react-dom'),
+                    import('react-dom/client'),
+                    import('https://esm.sh/date-fns@2.30.0?bundle'),
+                    import('https://esm.sh/recharts@2.5.0?bundle&external=react,react-dom'),
+                    import('https://esm.sh/papaparse@5.4.1?bundle'),
+                    import('https://esm.sh/lucide@0.462.0?bundle'),
+                    import('https://esm.sh/framer-motion@11.0.3?bundle&external=react,react-dom')
+                ]);
+
+                const React = mergeModule(reactMod);
+                const ReactDOM = mergeModule(reactDomMod);
+                const ReactDOMClient = mergeModule(reactDomClientMod);
+
+                if (!ReactDOM.createRoot && ReactDOMClient?.createRoot) {
+                    ReactDOM.createRoot = ReactDOMClient.createRoot.bind(ReactDOMClient);
                 }
-            });
+                if (!ReactDOM.hydrateRoot && ReactDOMClient?.hydrateRoot) {
+                    ReactDOM.hydrateRoot = ReactDOMClient.hydrateRoot.bind(ReactDOMClient);
+                }
+
+                window.React = React;
+                window.ReactDOM = ReactDOM;
+                window['date-fns'] = dateFns;
+                window.Recharts = Recharts;
+                window.Papa = Papa;
+                window.lucide = lucide;
+                window['framer-motion'] = framerMotion;
+
+                window.depsLoaded = true;
+                window.dispatchEvent(new Event('depsLoaded'));
+            } catch (error) {
+                console.error('Failed to load dependencies', error);
+            }
         }
 
-        waitForReact().then(async () => {
-            // Now import ESM modules - let them bundle their own React
-            const [dateFns, Recharts, Papa, lucide, framerMotion] = await Promise.all([
-                import('https://esm.sh/date-fns@2.30.0?bundle'),
-                import('https://esm.sh/recharts@2.5.0?bundle&external=react,react-dom&deps=react@18,react-dom@18'),
-                import('https://esm.sh/papaparse@5.4.1?bundle'),
-                import('https://esm.sh/lucide@0.462.0?bundle'),
-                import('https://esm.sh/framer-motion@11.0.3?bundle&external=react,react-dom&deps=react@18,react-dom@18')
-            ]);
-
-            window['date-fns'] = dateFns;
-            window.Recharts = Recharts;
-            window.Papa = Papa;
-            window.lucide = lucide;
-            window['framer-motion'] = framerMotion;
-
-            // Signal that all dependencies are loaded
-            window.depsLoaded = true;
-            window.dispatchEvent(new Event('depsLoaded'));
-        });
+        loadDependencies();
     </script>
 
     <!-- Additional Libraries -->
