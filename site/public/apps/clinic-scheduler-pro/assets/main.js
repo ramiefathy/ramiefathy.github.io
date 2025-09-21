@@ -12,16 +12,19 @@ const {
 const {
   createPortal
 } = ReactDOM;
-// Use framer-motion if it successfully shares the React runtime
-const useFramerMotion = window.depsIdentity?.framerMotionSharesWindowReact ||
-                       (window['framer-motion']?.React === window.React) ||
-                       window.__framerMotionReact === window.React;
-const motion = useFramerMotion && window['framer-motion']?.motion ?
-               window['framer-motion'].motion :
-               ({ children }) => children;
-const AnimatePresence = useFramerMotion && window['framer-motion']?.AnimatePresence ?
-                       window['framer-motion'].AnimatePresence :
-                       ({ children }) => children;
+// Framer Motion Integration
+const {
+  motion,
+  AnimatePresence
+} = window['framer-motion'] || {
+  motion: {
+    div: 'div',
+    button: 'button'
+  },
+  AnimatePresence: ({
+    children
+  }) => children
+};
 const ToastDispatchContext = createContext(null);
 const ToastStateContext = createContext([]);
 let externalToastDispatch = null;
@@ -986,26 +989,27 @@ const Button = ({
   loading = false,
   ...props
 }) => {
-  const baseClasses = "inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2";
+  const baseClasses = "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 ease-in-out focus-ring transform";
   const variants = {
-    primary: "bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500",
-    secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-primary-500",
-    ghost: "text-gray-600 hover:bg-gray-100 focus:ring-gray-500",
-    danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+    primary: "bg-primary-600 text-white hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-600/20 hover:-translate-y-0.5 active:scale-95 focus:ring-primary-500",
+    secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md hover:-translate-y-0.5 active:scale-95 focus:ring-primary-500",
+    ghost: "text-gray-600 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm hover:-translate-y-0.5 active:scale-95 focus:ring-gray-500",
+    danger: "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/20 hover:-translate-y-0.5 active:scale-95 focus:ring-red-500",
+    success: "bg-green-600 text-white hover:bg-green-700 hover:shadow-lg hover:shadow-green-600/20 hover:-translate-y-0.5 active:scale-95 focus:ring-green-500"
   };
   const sizes = {
     sm: "px-3 py-1.5 text-sm gap-1.5",
     md: "px-4 py-2 text-sm gap-2",
     lg: "px-6 py-3 text-base gap-2"
   };
-  return /*#__PURE__*/React.createElement("button", _extends({
+  return /*#__PURE__*/React.createElement(motion.button, _extends({
     whileHover: {
       scale: loading ? 1 : 1.02
     },
     whileTap: {
       scale: loading ? 1 : 0.98
     },
-    className: `${baseClasses} ${variants[variant]} ${sizes[size]} ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${className}`,
+    className: `${baseClasses} ${variants[variant]} ${sizes[size]} ${loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} ${className}`,
     disabled: loading
   }, props), loading ? /*#__PURE__*/React.createElement("div", {
     className: "animate-spin rounded-full h-4 w-4 border-b-2 border-current"
@@ -1017,10 +1021,67 @@ const Button = ({
 const Card = ({
   children,
   className = "",
-  padding = true
+  padding = true,
+  hover = false,
+  ...motionProps
+}) => /*#__PURE__*/React.createElement(motion.div, _extends({
+  initial: {
+    opacity: 0,
+    y: 20
+  },
+  animate: {
+    opacity: 1,
+    y: 0
+  },
+  whileHover: hover ? {
+    scale: 1.02,
+    y: -4
+  } : undefined,
+  className: `bg-white rounded-xl card-shadow border border-gray-200 transition-all duration-200 ease-in-out ${hover ? 'hover:card-shadow-hover' : ''} ${padding ? 'p-6' : ''} ${className}`
+}, motionProps), children);
+
+// Enhanced Loading Components
+const LoadingSpinner = ({
+  size = 'md',
+  className = ""
+}) => {
+  const sizes = {
+    sm: 'h-4 w-4',
+    md: 'h-8 w-8',
+    lg: 'h-12 w-12'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: `flex justify-center py-8 ${className}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `animate-spin rounded-full border-b-2 border-primary-600 ${sizes[size]}`
+  }));
+};
+const SkeletonCard = ({
+  lines = 3,
+  className = ""
+}) => /*#__PURE__*/React.createElement(Card, {
+  className: `animate-pulse ${className}`
+}, /*#__PURE__*/React.createElement("div", {
+  className: "space-y-3"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "h-4 bg-gray-200 rounded shimmer"
+}), Array.from({
+  length: lines - 1
+}).map((_, i) => /*#__PURE__*/React.createElement("div", {
+  key: i,
+  className: `h-4 bg-gray-200 rounded shimmer ${i === lines - 2 ? 'w-3/4' : ''}`
+}))));
+const SkeletonText = ({
+  lines = 2,
+  className = ""
 }) => /*#__PURE__*/React.createElement("div", {
-  className: `bg-white rounded-xl shadow-sm border border-gray-200 ${padding ? 'p-6' : ''} ${className}`
-}, children);
+  className: `space-y-2 ${className}`
+}, Array.from({
+  length: lines
+}).map((_, i) => /*#__PURE__*/React.createElement("div", {
+  key: i,
+  className: `h-4 bg-gray-200 rounded shimmer ${i === lines - 1 ? 'w-3/4' : ''}`
+})));
 const Modal = ({
   isOpen,
   onClose,
@@ -1035,20 +1096,63 @@ const Modal = ({
     xl: 'max-w-6xl'
   };
   if (!isOpen) return null;
-  return createPortal(/*#__PURE__*/React.createElement("div", {
+  return createPortal(/*#__PURE__*/React.createElement(AnimatePresence, null, /*#__PURE__*/React.createElement(motion.div, {
+    initial: {
+      opacity: 0
+    },
+    animate: {
+      opacity: 1
+    },
+    exit: {
+      opacity: 0
+    },
     className: "fixed inset-0 z-50 overflow-y-auto"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center min-h-screen p-4"
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(motion.div, {
+    initial: {
+      opacity: 0
+    },
+    animate: {
+      opacity: 1
+    },
+    exit: {
+      opacity: 0
+    },
     className: "fixed inset-0 bg-black/50 backdrop-blur-sm",
     onClick: onClose
-  }), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement(motion.div, {
+    initial: {
+      opacity: 0,
+      scale: 0.95,
+      y: 20
+    },
+    animate: {
+      opacity: 1,
+      scale: 1,
+      y: 0
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      y: 20
+    },
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    },
     className: `relative bg-white rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden`
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between p-6 border-b"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "text-xl font-semibold text-gray-900"
-  }, title), /*#__PURE__*/React.createElement("button", {
+  }, title), /*#__PURE__*/React.createElement(motion.button, {
+    whileHover: {
+      scale: 1.1
+    },
+    whileTap: {
+      scale: 0.9
+    },
     onClick: onClose,
     className: "p-2 hover:bg-gray-100 rounded-lg transition-colors"
   }, /*#__PURE__*/React.createElement(Icon, {
@@ -1056,7 +1160,7 @@ const Modal = ({
     size: 20
   }))), /*#__PURE__*/React.createElement("div", {
     className: "p-6 overflow-y-auto max-h-[calc(90vh-80px)]"
-  }, children)))), document.getElementById('modal-root'));
+  }, children))))), document.getElementById('modal-root'));
 };
 
 // ==================== Auth Components ====================
@@ -1271,7 +1375,7 @@ const Dashboard = () => {
     className: "flex items-center gap-3"
   }, /*#__PURE__*/React.createElement(Button, {
     variant: "secondary",
-    size: "sm",
+    size: "md",
     onClick: async () => {
       try {
         const calculateAnalytics = window.firebase.functions.httpsCallable('calculateAnalytics');
@@ -1294,7 +1398,7 @@ const Dashboard = () => {
     className: "mr-2"
   }), "Analytics"), /*#__PURE__*/React.createElement(Button, {
     variant: "secondary",
-    size: "sm",
+    size: "md",
     onClick: async () => {
       try {
         const generatePDF = window.firebase.functions.httpsCallable('generateSchedulePDF');
@@ -1332,10 +1436,25 @@ const Dashboard = () => {
     className: "text-sm text-green-700 font-medium"
   }, "Live Sync")))), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-  }, stats.map((stat, index) => /*#__PURE__*/React.createElement("div", {
-    key: stat.label
+  }, stats.map((stat, index) => /*#__PURE__*/React.createElement(motion.div, {
+    key: stat.label,
+    initial: {
+      opacity: 0,
+      y: 20
+    },
+    animate: {
+      opacity: 1,
+      y: 0
+    },
+    transition: {
+      delay: index * 0.1
+    },
+    whileHover: {
+      scale: 1.02
+    }
   }, /*#__PURE__*/React.createElement(Card, {
-    className: "hover:shadow-lg transition-shadow"
+    hover: true,
+    className: "card-shadow-hover"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
@@ -1356,11 +1475,15 @@ const ScheduleCalendar = () => {
     firebaseService,
     institution
   } = useApp();
-  const [currentWeek, setCurrentWeek] = useState(() => {
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem('scheduleViewMode') || 'month';
+  });
+  const [currentDate, setCurrentDate] = useState(() => {
     const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
-    return startOfWeekFunc(new Date(), {
+    const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
+    return viewMode === 'week' ? startOfWeekFunc(new Date(), {
       weekStartsOn: 1
-    });
+    }) : startOfMonthFunc(new Date());
   });
   const [assignments, setAssignments] = useState([]);
   const [attendings, setAttendings] = useState([]);
@@ -1369,6 +1492,11 @@ const ScheduleCalendar = () => {
   const [showAutoScheduler, setShowAutoScheduler] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Save view mode preference
+  useEffect(() => {
+    localStorage.setItem('scheduleViewMode', viewMode);
+  }, [viewMode]);
   useEffect(() => {
     if (!firebaseService.currentInstitution) return;
 
@@ -1392,11 +1520,40 @@ const ScheduleCalendar = () => {
   const weekDays = useMemo(() => {
     const days = [];
     const addDaysFunc = window.dateFns ? window.dateFns.addDays : (d, n) => new Date(d.getTime() + n * 86400000);
+    const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
+    const weekStart = viewMode === 'week' ? currentDate : startOfWeekFunc(currentDate, {
+      weekStartsOn: 1
+    });
     for (let i = 0; i < 5; i++) {
-      days.push(addDaysFunc(currentWeek, i));
+      days.push(addDaysFunc(weekStart, i));
     }
     return days;
-  }, [currentWeek]);
+  }, [currentDate, viewMode]);
+  const monthDays = useMemo(() => {
+    if (viewMode !== 'month') return [];
+    const days = [];
+    const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
+    const endOfMonthFunc = window.dateFns ? window.dateFns.endOfMonth : d => new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
+    const endOfWeekFunc = window.dateFns ? window.dateFns.endOfWeek : d => d;
+    const eachDayOfIntervalFunc = window.dateFns ? window.dateFns.eachDayOfInterval : interval => {
+      const days = [];
+      const current = new Date(interval.start);
+      while (current <= interval.end) {
+        days.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      }
+      return days;
+    };
+    const monthStart = startOfMonthFunc(currentDate);
+    const monthEnd = endOfMonthFunc(currentDate);
+    const calendarStart = startOfWeekFunc(monthStart);
+    const calendarEnd = endOfWeekFunc(monthEnd);
+    return eachDayOfIntervalFunc({
+      start: calendarStart,
+      end: calendarEnd
+    });
+  }, [currentDate, viewMode]);
   const timeSlots = ['AM', 'PM'];
   const getAssignmentsForSlot = (date, timeSlot) => {
     const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
@@ -1433,16 +1590,47 @@ const ScheduleCalendar = () => {
     await firebaseService.deleteAssignment(assignmentId);
     toast.success('Assignment deleted');
   };
-  const navigateWeek = direction => {
-    const addWeeksFunc = window.dateFns ? window.dateFns.addWeeks : (d, n) => new Date(d.getTime() + n * 7 * 86400000);
-    setCurrentWeek(prev => addWeeksFunc(prev, direction));
+  const navigate = direction => {
+    if (viewMode === 'week') {
+      const addWeeksFunc = window.dateFns ? window.dateFns.addWeeks : (d, n) => new Date(d.getTime() + n * 7 * 86400000);
+      setCurrentDate(prev => addWeeksFunc(prev, direction));
+    } else {
+      const addMonthsFunc = window.dateFns ? window.dateFns.addMonths : (d, n) => {
+        const newDate = new Date(d);
+        newDate.setMonth(newDate.getMonth() + n);
+        return newDate;
+      };
+      setCurrentDate(prev => addMonthsFunc(prev, direction));
+    }
+  };
+  const switchViewMode = mode => {
+    setViewMode(mode);
+    if (mode === 'week') {
+      const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
+      setCurrentDate(startOfWeekFunc(currentDate, {
+        weekStartsOn: 1
+      }));
+    } else {
+      const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
+      setCurrentDate(startOfMonthFunc(currentDate));
+    }
+  };
+  const getAssignmentCount = date => {
+    const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
+    return assignments.filter(a => a.date === dateStr).length;
+  };
+  const isToday = date => {
+    const today = new Date();
+    return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+  };
+  const isCurrentMonth = date => {
+    return date.getMonth() === currentDate.getMonth();
   };
   if (loading) {
-    return /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-center py-12"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"
-    }));
+    return /*#__PURE__*/React.createElement(LoadingSpinner, {
+      size: "lg",
+      className: "py-12"
+    });
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
@@ -1454,19 +1642,29 @@ const ScheduleCalendar = () => {
     className: "text-gray-600"
   }, "Drag and drop to manage assignments")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3"
-  }, /*#__PURE__*/React.createElement(Button, {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "inline-flex rounded-lg border border-gray-200 p-0.5 bg-white"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => switchViewMode('month'),
+    className: `px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'month' ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:text-gray-900'}`
+  }, "Month"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => switchViewMode('week'),
+    className: `px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'week' ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:text-gray-900'}`
+  }, "Week")), /*#__PURE__*/React.createElement(Button, {
     variant: "secondary",
     size: "sm",
-    onClick: () => navigateWeek(-1)
+    onClick: () => navigate(-1)
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "chevron-left",
     size: 16
   })), /*#__PURE__*/React.createElement("span", {
-    className: "font-medium text-gray-700"
-  }, window.dateFns ? window.dateFns.format(currentWeek, 'MMM d, yyyy') : currentWeek.toLocaleDateString()), /*#__PURE__*/React.createElement(Button, {
+    className: "font-medium text-gray-700 min-w-[150px] text-center"
+  }, viewMode === 'month' ? window.dateFns ? window.dateFns.format(currentDate, 'MMMM yyyy') : `${currentDate.toLocaleString('default', {
+    month: 'long'
+  })} ${currentDate.getFullYear()}` : window.dateFns ? window.dateFns.format(currentDate, 'MMM d, yyyy') : currentDate.toLocaleDateString()), /*#__PURE__*/React.createElement(Button, {
     variant: "secondary",
     size: "sm",
-    onClick: () => navigateWeek(1)
+    onClick: () => navigate(1)
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "chevron-right",
     size: 16
@@ -1478,7 +1676,10 @@ const ScheduleCalendar = () => {
     className: "mr-2"
   }), "Auto-Schedule"))), /*#__PURE__*/React.createElement(Card, {
     className: "overflow-hidden"
-  }, /*#__PURE__*/React.createElement("div", {
+  }, viewMode === 'week' ?
+  /*#__PURE__*/
+  /* Week View */
+  React.createElement("div", {
     className: "calendar-grid"
   }, /*#__PURE__*/React.createElement("div", {
     className: "bg-gray-50 p-4 font-medium text-gray-700"
@@ -1526,7 +1727,78 @@ const ScheduleCalendar = () => {
         size: 14
       }))));
     }));
-  }))))), selectedCell && /*#__PURE__*/React.createElement(Modal, {
+  })))) :
+  /*#__PURE__*/
+  /* Month View */
+  React.createElement("div", {
+    className: "calendar-grid-month"
+  }, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => /*#__PURE__*/React.createElement("div", {
+    key: day,
+    className: "bg-gray-50 p-2 text-center font-medium text-gray-700 text-sm"
+  }, day)), monthDays.map(day => {
+    const dateStr = window.dateFns ? window.dateFns.format(day, 'yyyy-MM-dd') : day.toISOString().split('T')[0];
+    const dayAssignments = assignments.filter(a => a.date === dateStr);
+    const amAssignments = dayAssignments.filter(a => a.timeSlot === 'AM');
+    const pmAssignments = dayAssignments.filter(a => a.timeSlot === 'PM');
+    return /*#__PURE__*/React.createElement("div", {
+      key: dateStr,
+      className: `month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''}`,
+      onClick: () => {
+        if (isCurrentMonth(day)) {
+          // Switch to week view for this day
+          const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
+          setCurrentDate(startOfWeekFunc(day, {
+            weekStartsOn: 1
+          }));
+          setViewMode('week');
+        }
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-between items-start mb-1"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `text-sm font-medium ${!isCurrentMonth(day) ? 'text-gray-400' : 'text-gray-700'}`
+    }, day.getDate()), dayAssignments.length > 0 && /*#__PURE__*/React.createElement("span", {
+      className: "bg-primary-100 text-primary-700 text-xs px-1.5 py-0.5 rounded-full"
+    }, dayAssignments.length)), /*#__PURE__*/React.createElement("div", {
+      className: `mb-1 ${amAssignments.length > 0 ? '' : 'min-h-[30px]'}`,
+      onDragOver: handleDragOver,
+      onDrop: e => handleDrop(e, day, 'AM')
+    }, amAssignments.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      className: "text-xs font-medium text-gray-500"
+    }, "AM"), /*#__PURE__*/React.createElement("div", {
+      className: "space-y-0.5"
+    }, amAssignments.slice(0, 2).map(assignment => {
+      const resident = residents.find(r => r.id === assignment.residentId);
+      return /*#__PURE__*/React.createElement("div", {
+        key: assignment.id,
+        draggable: true,
+        onDragStart: e => handleDragStart(e, assignment),
+        className: "text-xs bg-blue-50 rounded px-1 py-0.5 truncate cursor-move hover:bg-blue-100",
+        title: resident?.name
+      }, resident?.name?.split(' ').map(n => n[0]).join('') || '??');
+    }), amAssignments.length > 2 && /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-gray-500"
+    }, "+", amAssignments.length - 2)))), /*#__PURE__*/React.createElement("div", {
+      className: `${pmAssignments.length > 0 ? '' : 'min-h-[30px]'}`,
+      onDragOver: handleDragOver,
+      onDrop: e => handleDrop(e, day, 'PM')
+    }, pmAssignments.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      className: "text-xs font-medium text-gray-500"
+    }, "PM"), /*#__PURE__*/React.createElement("div", {
+      className: "space-y-0.5"
+    }, pmAssignments.slice(0, 2).map(assignment => {
+      const resident = residents.find(r => r.id === assignment.residentId);
+      return /*#__PURE__*/React.createElement("div", {
+        key: assignment.id,
+        draggable: true,
+        onDragStart: e => handleDragStart(e, assignment),
+        className: "text-xs bg-green-50 rounded px-1 py-0.5 truncate cursor-move hover:bg-green-100",
+        title: resident?.name
+      }, resident?.name?.split(' ').map(n => n[0]).join('') || '??');
+    }), pmAssignments.length > 2 && /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-gray-500"
+    }, "+", pmAssignments.length - 2)))));
+  }))), selectedCell && /*#__PURE__*/React.createElement(Modal, {
     isOpen: true,
     onClose: () => setSelectedCell(null),
     title: "Add Assignment"
@@ -1658,11 +1930,10 @@ const AttendingsList = () => {
     toast.success('Attending deleted');
   };
   if (loading) {
-    return /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-center py-12"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"
-    }));
+    return /*#__PURE__*/React.createElement(LoadingSpinner, {
+      size: "lg",
+      className: "py-12"
+    });
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
@@ -1839,11 +2110,10 @@ const ResidentsList = () => {
     toast.success('Resident deleted');
   };
   if (loading) {
-    return /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-center py-12"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"
-    }));
+    return /*#__PURE__*/React.createElement(LoadingSpinner, {
+      size: "lg",
+      className: "py-12"
+    });
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
@@ -2046,11 +2316,10 @@ const RulesList = () => {
     toast.success(`Rule ${rule.active ? 'disabled' : 'enabled'}`);
   };
   if (loading) {
-    return /*#__PURE__*/React.createElement("div", {
-      className: "flex justify-center py-12"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"
-    }));
+    return /*#__PURE__*/React.createElement(LoadingSpinner, {
+      size: "lg",
+      className: "py-12"
+    });
   }
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
@@ -2432,8 +2701,8 @@ const App = () => {
       className: "min-h-screen flex items-center justify-center"
     }, /*#__PURE__*/React.createElement("div", {
       className: "text-center"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"
+    }, /*#__PURE__*/React.createElement(LoadingSpinner, {
+      size: "lg"
     }), /*#__PURE__*/React.createElement("p", {
       className: "mt-4 text-gray-600"
     }, "Loading...")));
@@ -2474,64 +2743,122 @@ const App = () => {
     toast.success('Signed out successfully');
   };
   return /*#__PURE__*/React.createElement("div", {
-    className: "min-h-screen bg-gray-50"
-  }, /*#__PURE__*/React.createElement("nav", {
-    className: "bg-white shadow-sm border-b border-gray-200"
+    className: "min-h-screen font-body",
+    style: {
+      background: 'linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 100%)'
+    }
+  }, /*#__PURE__*/React.createElement(motion.nav, {
+    initial: {
+      y: -100
+    },
+    animate: {
+      y: 0
+    },
+    className: "sticky top-0 z-50 glass-card border-b border-medical-200/20 backdrop-blur-xl",
+    style: {
+      background: 'rgba(255, 255, 255, 0.82)'
+    }
   }, /*#__PURE__*/React.createElement("div", {
     className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "flex justify-between h-16"
+    className: "flex justify-between h-20"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-3"
+    className: "flex items-center gap-4"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "p-2 bg-primary-100 rounded-lg"
+    className: "p-3 bg-gradient-to-br from-medical-400 to-medical-600 rounded-2xl shadow-lg shadow-medical-500/20"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "calendar-days",
-    size: 24,
-    className: "text-primary-600"
+    size: 26,
+    className: "text-white"
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
-    className: "text-lg font-bold text-gray-900"
+    className: "text-xl font-display font-bold text-medical-900"
   }, "Clinic Scheduler Pro"), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs text-gray-500"
-  }, "Firebase Edition"))), /*#__PURE__*/React.createElement("div", {
-    className: "hidden md:flex ml-10 space-x-1"
-  }, navItems.map(item => /*#__PURE__*/React.createElement("button", {
+    className: "text-xs text-medical-600 font-medium"
+  }, "Premium Healthcare Edition"))), /*#__PURE__*/React.createElement("div", {
+    className: "hidden md:flex ml-12 space-x-2"
+  }, navItems.map(item => /*#__PURE__*/React.createElement(motion.button, {
     key: item.id,
     onClick: () => setActiveView(item.id),
+    whileHover: {
+      scale: 1.05
+    },
+    whileTap: {
+      scale: 0.95
+    },
     className: `
-                                            px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all
-                                            ${activeView === item.id ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50'}
+                                            px-4 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 transition-all relative
+                                            ${activeView === item.id ? 'bg-gradient-to-r from-medical-500 to-medical-600 text-white shadow-lg shadow-medical-500/25' : 'text-medical-700 hover:bg-medical-50 hover:text-medical-900'}
                                         `
   }, /*#__PURE__*/React.createElement(Icon, {
     name: item.icon,
     size: 16
-  }), item.label)))), /*#__PURE__*/React.createElement("div", {
+  }), item.label, activeView === item.id && /*#__PURE__*/React.createElement(motion.div, {
+    layoutId: "activeTab",
+    className: "absolute inset-0 bg-gradient-to-r from-medical-500 to-medical-600 rounded-full -z-10",
+    transition: {
+      type: "spring",
+      bounce: 0.2,
+      duration: 0.6
+    }
+  }))))), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-4"
+  }, /*#__PURE__*/React.createElement(motion.div, {
+    initial: {
+      scale: 0
+    },
+    animate: {
+      scale: 1
+    },
+    className: "badge-live flex items-center gap-2 px-4 py-2 rounded-full"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-2 px-3 py-1 bg-green-100 rounded-lg"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "w-2 h-2 bg-green-500 rounded-full animate-pulse"
+    className: "w-2 h-2 bg-white rounded-full animate-pulse"
   }), /*#__PURE__*/React.createElement("span", {
-    className: "text-sm text-green-700 font-medium"
-  }, "Live")), /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-2"
+    className: "text-sm text-white font-bold"
+  }, "Live Sync")), /*#__PURE__*/React.createElement(motion.button, {
+    whileHover: {
+      scale: 1.05,
+      rotate: 5
+    },
+    whileTap: {
+      scale: 0.95
+    },
+    className: "p-3 glass-card rounded-full relative transition-all hover:shadow-lg"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "bell",
+    size: 20,
+    className: "text-medical-700"
+  }), /*#__PURE__*/React.createElement(motion.span, {
+    initial: {
+      scale: 0
+    },
+    animate: {
+      scale: 1
+    },
+    className: "absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-white font-bold"
+  }, "3"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 pl-3 border-l border-medical-200"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-right"
   }, /*#__PURE__*/React.createElement("p", {
-    className: "text-sm font-medium text-gray-900"
+    className: "text-sm font-semibold text-medical-900"
   }, user.name || user.email), /*#__PURE__*/React.createElement("button", {
     onClick: handleSignOut,
-    className: "text-xs text-gray-500 hover:text-gray-700"
-  }, "Sign Out")), /*#__PURE__*/React.createElement("div", {
-    className: "w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center"
+    className: "text-xs text-medical-600 hover:text-medical-800 font-medium transition-colors"
+  }, "Sign Out")), /*#__PURE__*/React.createElement(motion.div, {
+    whileHover: {
+      scale: 1.1
+    },
+    className: "w-10 h-10 bg-gradient-to-br from-medical-400 to-medical-600 rounded-full flex items-center justify-center shadow-lg shadow-medical-500/20"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "user",
-    size: 16,
-    className: "text-primary-600"
+    size: 18,
+    className: "text-white"
   }))))))), /*#__PURE__*/React.createElement("main", {
-    className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative"
   }, activeView === 'dashboard' && /*#__PURE__*/React.createElement(Dashboard, null), activeView === 'schedule' && /*#__PURE__*/React.createElement(ScheduleCalendar, null), activeView === 'attendings' && /*#__PURE__*/React.createElement(AttendingsList, null), activeView === 'residents' && /*#__PURE__*/React.createElement(ResidentsList, null), activeView === 'rules' && /*#__PURE__*/React.createElement(RulesList, null), activeView === 'settings' && /*#__PURE__*/React.createElement(SettingsView, null)), /*#__PURE__*/React.createElement(Toaster, {
     position: "bottom-right",
     toastOptions: {

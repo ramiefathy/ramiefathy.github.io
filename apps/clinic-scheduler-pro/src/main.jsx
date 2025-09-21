@@ -1387,9 +1387,13 @@ const Dashboard = () => {
 // ==================== Schedule Calendar Component ====================
 const ScheduleCalendar = () => {
     const { firebaseService, institution } = useApp();
-    const [currentWeek, setCurrentWeek] = useState(() => {
+    const [viewMode, setViewMode] = useState(() => {
+        return localStorage.getItem('scheduleViewMode') || 'month';
+    });
+    const [currentDate, setCurrentDate] = useState(() => {
         const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
-        return startOfWeekFunc(new Date(), { weekStartsOn: 1 });
+        const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : (d) => new Date(d.getFullYear(), d.getMonth(), 1);
+        return viewMode === 'week' ? startOfWeekFunc(new Date(), { weekStartsOn: 1 }) : startOfMonthFunc(new Date());
     });
     const [assignments, setAssignments] = useState([]);
     const [attendings, setAttendings] = useState([]);
@@ -1398,6 +1402,11 @@ const ScheduleCalendar = () => {
     const [showAutoScheduler, setShowAutoScheduler] = useState(false);
     const [selectedCell, setSelectedCell] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // Save view mode preference
+    useEffect(() => {
+        localStorage.setItem('scheduleViewMode', viewMode);
+    }, [viewMode]);
 
     useEffect(() => {
         if (!firebaseService.currentInstitution) return;
@@ -1426,11 +1435,39 @@ const ScheduleCalendar = () => {
     const weekDays = useMemo(() => {
         const days = [];
         const addDaysFunc = window.dateFns ? window.dateFns.addDays : (d, n) => new Date(d.getTime() + n * 86400000);
+        const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
+        const weekStart = viewMode === 'week' ? currentDate : startOfWeekFunc(currentDate, { weekStartsOn: 1 });
         for (let i = 0; i < 5; i++) {
-            days.push(addDaysFunc(currentWeek, i));
+            days.push(addDaysFunc(weekStart, i));
         }
         return days;
-    }, [currentWeek]);
+    }, [currentDate, viewMode]);
+
+    const monthDays = useMemo(() => {
+        if (viewMode !== 'month') return [];
+
+        const days = [];
+        const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : (d) => new Date(d.getFullYear(), d.getMonth(), 1);
+        const endOfMonthFunc = window.dateFns ? window.dateFns.endOfMonth : (d) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
+        const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
+        const endOfWeekFunc = window.dateFns ? window.dateFns.endOfWeek : (d) => d;
+        const eachDayOfIntervalFunc = window.dateFns ? window.dateFns.eachDayOfInterval : (interval) => {
+            const days = [];
+            const current = new Date(interval.start);
+            while (current <= interval.end) {
+                days.push(new Date(current));
+                current.setDate(current.getDate() + 1);
+            }
+            return days;
+        };
+
+        const monthStart = startOfMonthFunc(currentDate);
+        const monthEnd = endOfMonthFunc(currentDate);
+        const calendarStart = startOfWeekFunc(monthStart);
+        const calendarEnd = endOfWeekFunc(monthEnd);
+
+        return eachDayOfIntervalFunc({ start: calendarStart, end: calendarEnd });
+    }, [currentDate, viewMode]);
 
     const timeSlots = ['AM', 'PM'];
 
@@ -1475,9 +1512,45 @@ const ScheduleCalendar = () => {
         toast.success('Assignment deleted');
     };
 
-    const navigateWeek = (direction) => {
-        const addWeeksFunc = window.dateFns ? window.dateFns.addWeeks : (d, n) => new Date(d.getTime() + n * 7 * 86400000);
-        setCurrentWeek(prev => addWeeksFunc(prev, direction));
+    const navigate = (direction) => {
+        if (viewMode === 'week') {
+            const addWeeksFunc = window.dateFns ? window.dateFns.addWeeks : (d, n) => new Date(d.getTime() + n * 7 * 86400000);
+            setCurrentDate(prev => addWeeksFunc(prev, direction));
+        } else {
+            const addMonthsFunc = window.dateFns ? window.dateFns.addMonths : (d, n) => {
+                const newDate = new Date(d);
+                newDate.setMonth(newDate.getMonth() + n);
+                return newDate;
+            };
+            setCurrentDate(prev => addMonthsFunc(prev, direction));
+        }
+    };
+
+    const switchViewMode = (mode) => {
+        setViewMode(mode);
+        if (mode === 'week') {
+            const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
+            setCurrentDate(startOfWeekFunc(currentDate, { weekStartsOn: 1 }));
+        } else {
+            const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : (d) => new Date(d.getFullYear(), d.getMonth(), 1);
+            setCurrentDate(startOfMonthFunc(currentDate));
+        }
+    };
+
+    const getAssignmentCount = (date) => {
+        const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
+        return assignments.filter(a => a.date === dateStr).length;
+    };
+
+    const isToday = (date) => {
+        const today = new Date();
+        return date.getDate() === today.getDate() &&
+               date.getMonth() === today.getMonth() &&
+               date.getFullYear() === today.getFullYear();
+    };
+
+    const isCurrentMonth = (date) => {
+        return date.getMonth() === currentDate.getMonth();
     };
 
     if (loading) {
@@ -1493,13 +1566,41 @@ const ScheduleCalendar = () => {
                     <p className="text-gray-600">Drag and drop to manage assignments</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Button variant="secondary" size="sm" onClick={() => navigateWeek(-1)}>
+                    {/* View Mode Toggle */}
+                    <div className="inline-flex rounded-lg border border-gray-200 p-0.5 bg-white">
+                        <button
+                            onClick={() => switchViewMode('month')}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                                viewMode === 'month'
+                                    ? 'bg-primary-100 text-primary-700'
+                                    : 'text-gray-600 hover:text-gray-900'
+                            }`}
+                        >
+                            Month
+                        </button>
+                        <button
+                            onClick={() => switchViewMode('week')}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                                viewMode === 'week'
+                                    ? 'bg-primary-100 text-primary-700'
+                                    : 'text-gray-600 hover:text-gray-900'
+                            }`}
+                        >
+                            Week
+                        </button>
+                    </div>
+
+                    {/* Navigation */}
+                    <Button variant="secondary" size="sm" onClick={() => navigate(-1)}>
                         <Icon name="chevron-left" size={16} />
                     </Button>
-                    <span className="font-medium text-gray-700">
-                        {window.dateFns ? window.dateFns.format(currentWeek, 'MMM d, yyyy') : currentWeek.toLocaleDateString()}
+                    <span className="font-medium text-gray-700 min-w-[150px] text-center">
+                        {viewMode === 'month'
+                            ? (window.dateFns ? window.dateFns.format(currentDate, 'MMMM yyyy') : `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`)
+                            : (window.dateFns ? window.dateFns.format(currentDate, 'MMM d, yyyy') : currentDate.toLocaleDateString())
+                        }
                     </span>
-                    <Button variant="secondary" size="sm" onClick={() => navigateWeek(1)}>
+                    <Button variant="secondary" size="sm" onClick={() => navigate(1)}>
                         <Icon name="chevron-right" size={16} />
                     </Button>
                     <Button onClick={() => setShowAutoScheduler(true)}>
@@ -1511,75 +1612,186 @@ const ScheduleCalendar = () => {
 
             {/* Calendar Grid */}
             <Card className="overflow-hidden">
-                <div className="calendar-grid">
-                    {/* Header Row */}
-                    <div className="bg-gray-50 p-4 font-medium text-gray-700">Time</div>
-                    {weekDays.map(day => (
-                        <div key={day} className="bg-gray-50 p-4 font-medium text-gray-700">
-                            {window.dateFns ? window.dateFns.format(day, 'EEE, MMM d') : day.toLocaleDateString()}
-                        </div>
-                    ))}
-
-                    {/* Time Slots */}
-                    {timeSlots.map(timeSlot => (
-                        <React.Fragment key={timeSlot}>
-                            <div className="bg-gray-50 p-4 font-medium text-gray-700">
-                                {timeSlot}
+                {viewMode === 'week' ? (
+                    /* Week View */
+                    <div className="calendar-grid">
+                        {/* Header Row */}
+                        <div className="bg-gray-50 p-4 font-medium text-gray-700">Time</div>
+                        {weekDays.map(day => (
+                            <div key={day} className="bg-gray-50 p-4 font-medium text-gray-700">
+                                {window.dateFns ? window.dateFns.format(day, 'EEE, MMM d') : day.toLocaleDateString()}
                             </div>
-                            {weekDays.map(day => {
-                                const slotAssignments = getAssignmentsForSlot(day, timeSlot);
-                                return (
-                                    <div
-                                        key={`${day}-${timeSlot}`}
-                                        className="time-slot"
-                                        onDragOver={handleDragOver}
-                                        onDrop={(e) => handleDrop(e, day, timeSlot)}
-                                        onClick={() => handleQuickAdd(day, timeSlot)}
-                                    >
-                                        {slotAssignments.map(assignment => {
-                                            const resident = residents.find(r => r.id === assignment.residentId);
-                                            const attending = attendings.find(a => a.id === assignment.attendingId);
+                        ))}
 
-                                            return (
-                                                <div
-                                                    key={assignment.id}
-                                                    draggable
-                                                    onDragStart={(e) => handleDragStart(e, assignment)}
-                                                    className="assignment-card"
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex-1">
-                                                            <p className="font-medium text-gray-900">
-                                                                {resident?.name || 'Unknown Resident'}
-                                                            </p>
-                                                            <p className="text-gray-600">
-                                                                {attending?.name || 'Unknown Attending'}
-                                                            </p>
-                                                            {assignment.type === 'continuity' && (
-                                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">
-                                                                    Continuity
-                                                                </span>
-                                                            )}
+                        {/* Time Slots */}
+                        {timeSlots.map(timeSlot => (
+                            <React.Fragment key={timeSlot}>
+                                <div className="bg-gray-50 p-4 font-medium text-gray-700">
+                                    {timeSlot}
+                                </div>
+                                {weekDays.map(day => {
+                                    const slotAssignments = getAssignmentsForSlot(day, timeSlot);
+                                    return (
+                                        <div
+                                            key={`${day}-${timeSlot}`}
+                                            className="time-slot"
+                                            onDragOver={handleDragOver}
+                                            onDrop={(e) => handleDrop(e, day, timeSlot)}
+                                            onClick={() => handleQuickAdd(day, timeSlot)}
+                                        >
+                                            {slotAssignments.map(assignment => {
+                                                const resident = residents.find(r => r.id === assignment.residentId);
+                                                const attending = attendings.find(a => a.id === assignment.attendingId);
+
+                                                return (
+                                                    <div
+                                                        key={assignment.id}
+                                                        draggable
+                                                        onDragStart={(e) => handleDragStart(e, assignment)}
+                                                        className="assignment-card"
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex-1">
+                                                                <p className="font-medium text-gray-900">
+                                                                    {resident?.name || 'Unknown Resident'}
+                                                                </p>
+                                                                <p className="text-gray-600">
+                                                                    {attending?.name || 'Unknown Attending'}
+                                                                </p>
+                                                                {assignment.type === 'continuity' && (
+                                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">
+                                                                        Continuity
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteAssignment(assignment.id);
+                                                                }}
+                                                                className="text-gray-400 hover:text-red-600"
+                                                            >
+                                                                <Icon name="x" size={14} />
+                                                            </button>
                                                         </div>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteAssignment(assignment.id);
-                                                            }}
-                                                            className="text-gray-400 hover:text-red-600"
-                                                        >
-                                                            <Icon name="x" size={14} />
-                                                        </button>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })}
+                            </React.Fragment>
+                        ))}
+                    </div>
+                ) : (
+                    /* Month View */
+                    <div className="calendar-grid-month">
+                        {/* Day Headers */}
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                            <div key={day} className="bg-gray-50 p-2 text-center font-medium text-gray-700 text-sm">
+                                {day}
+                            </div>
+                        ))}
+
+                        {/* Month Days */}
+                        {monthDays.map(day => {
+                            const dateStr = window.dateFns ? window.dateFns.format(day, 'yyyy-MM-dd') : day.toISOString().split('T')[0];
+                            const dayAssignments = assignments.filter(a => a.date === dateStr);
+                            const amAssignments = dayAssignments.filter(a => a.timeSlot === 'AM');
+                            const pmAssignments = dayAssignments.filter(a => a.timeSlot === 'PM');
+
+                            return (
+                                <div
+                                    key={dateStr}
+                                    className={`month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''}`}
+                                    onClick={() => {
+                                        if (isCurrentMonth(day)) {
+                                            // Switch to week view for this day
+                                            const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
+                                            setCurrentDate(startOfWeekFunc(day, { weekStartsOn: 1 }));
+                                            setViewMode('week');
+                                        }
+                                    }}
+                                >
+                                    <div className="flex justify-between items-start mb-1">
+                                        <span className={`text-sm font-medium ${!isCurrentMonth(day) ? 'text-gray-400' : 'text-gray-700'}`}>
+                                            {day.getDate()}
+                                        </span>
+                                        {dayAssignments.length > 0 && (
+                                            <span className="bg-primary-100 text-primary-700 text-xs px-1.5 py-0.5 rounded-full">
+                                                {dayAssignments.length}
+                                            </span>
+                                        )}
                                     </div>
-                                );
-                            })}
-                        </React.Fragment>
-                    ))}
-                </div>
+
+                                    {/* AM Slot */}
+                                    <div
+                                        className={`mb-1 ${amAssignments.length > 0 ? '' : 'min-h-[30px]'}`}
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, day, 'AM')}
+                                    >
+                                        {amAssignments.length > 0 && (
+                                            <>
+                                                <div className="text-xs font-medium text-gray-500">AM</div>
+                                                <div className="space-y-0.5">
+                                                    {amAssignments.slice(0, 2).map(assignment => {
+                                                        const resident = residents.find(r => r.id === assignment.residentId);
+                                                        return (
+                                                            <div
+                                                                key={assignment.id}
+                                                                draggable
+                                                                onDragStart={(e) => handleDragStart(e, assignment)}
+                                                                className="text-xs bg-blue-50 rounded px-1 py-0.5 truncate cursor-move hover:bg-blue-100"
+                                                                title={resident?.name}
+                                                            >
+                                                                {resident?.name?.split(' ').map(n => n[0]).join('') || '??'}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                    {amAssignments.length > 2 && (
+                                                        <div className="text-xs text-gray-500">+{amAssignments.length - 2}</div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* PM Slot */}
+                                    <div
+                                        className={`${pmAssignments.length > 0 ? '' : 'min-h-[30px]'}`}
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, day, 'PM')}
+                                    >
+                                        {pmAssignments.length > 0 && (
+                                            <>
+                                                <div className="text-xs font-medium text-gray-500">PM</div>
+                                                <div className="space-y-0.5">
+                                                    {pmAssignments.slice(0, 2).map(assignment => {
+                                                        const resident = residents.find(r => r.id === assignment.residentId);
+                                                        return (
+                                                            <div
+                                                                key={assignment.id}
+                                                                draggable
+                                                                onDragStart={(e) => handleDragStart(e, assignment)}
+                                                                className="text-xs bg-green-50 rounded px-1 py-0.5 truncate cursor-move hover:bg-green-100"
+                                                                title={resident?.name}
+                                                            >
+                                                                {resident?.name?.split(' ').map(n => n[0]).join('') || '??'}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                    {pmAssignments.length > 2 && (
+                                                        <div className="text-xs text-gray-500">+{pmAssignments.length - 2}</div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </Card>
 
             {/* Quick Add Modal */}

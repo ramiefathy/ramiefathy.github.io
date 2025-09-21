@@ -269,6 +269,49 @@
             position: relative;
         }
 
+        /* Month View Grid */
+        .calendar-grid-month {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0;
+            background: transparent;
+            padding: 1rem;
+            border-radius: 1.5rem;
+            position: relative;
+        }
+
+        .month-day-cell {
+            background: var(--surface-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--surface-border);
+            min-height: 100px;
+            margin: 2px;
+            padding: 8px;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .month-day-cell:hover {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+            border-color: rgba(20, 184, 166, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .calendar-grid-month {
+                grid-template-columns: repeat(1, 1fr);
+            }
+
+            .month-day-cell {
+                min-height: 80px;
+            }
+        }
+
         .time-slot {
             background: var(--surface-bg);
             backdrop-filter: blur(10px);
