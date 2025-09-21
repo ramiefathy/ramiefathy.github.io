@@ -13,43 +13,140 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- React and dependencies - Load first -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Map bare module specifiers for shared React runtime -->
+    <script type="importmap">
+        {
+            "imports": {
+                "react": "https://esm.sh/stable/react@18.3.1/es2022/react.mjs",
+                "react-dom": "https://esm.sh/stable/react-dom@18.3.1/es2022/react-dom.mjs",
+                "react-dom/client": "https://esm.sh/stable/react-dom@18.3.1/es2022/client.mjs",
+                "https://esm.sh/stable/react@18.2.0/es2022/react.mjs": "https://esm.sh/stable/react@18.3.1/es2022/react.mjs",
+                "https://esm.sh/v135/react-dom@18.2.0/es2022/react-dom.mjs": "https://esm.sh/stable/react-dom@18.3.1/es2022/react-dom.mjs",
+                "https://esm.sh/v135/react@18.2.0/es2022/react.mjs": "https://esm.sh/stable/react@18.3.1/es2022/react.mjs",
+                "https://esm.sh/react@18.2.0": "https://esm.sh/react@18.3.1",
+                "https://esm.sh/react-dom@18.2.0": "https://esm.sh/react-dom@18.3.1"
+            }
+        }
+    </script>
 
     <!-- Load dependencies after React is available -->
     <script type="module">
-        // Wait for React to be available globally
-        function waitForReact() {
-            return new Promise((resolve) => {
-                if (window.React && window.ReactDOM) {
-                    resolve();
-                } else {
-                    setTimeout(() => waitForReact().then(resolve), 50);
+        const supportsImportMap = typeof HTMLScriptElement !== 'undefined'
+            && typeof HTMLScriptElement.supports === 'function'
+            && HTMLScriptElement.supports('importmap');
+
+        const resolveSpec = (specifier, fallbackUrl) => supportsImportMap ? specifier : fallbackUrl;
+
+        const mergeModule = (mod) => {
+            if (!mod) return mod;
+            const base = mod?.default ?? mod;
+            if (typeof base === 'function') {
+                return Object.assign(base, mod);
+            }
+            if (typeof base === 'object' && base !== null) {
+                const merged = {};
+                for (const key of Object.keys(base)) {
+                    merged[key] = base[key];
                 }
-            });
+                for (const key of Object.keys(mod)) {
+                    merged[key] = mod[key];
+                }
+                if (!Object.prototype.hasOwnProperty.call(merged, 'default') && mod?.default) {
+                    merged.default = mod.default;
+                }
+                return merged;
+            }
+            return { ...mod };
+        };
+
+        async function loadDependencies() {
+            try {
+                const [reactMod, reactDomMod, reactDomClientMod, dateFns, Recharts, Papa, lucide, framerMotion] = await Promise.all([
+                    import(resolveSpec('react', 'https://esm.sh/stable/react@18.3.1/es2022/react.mjs')),
+                    import(resolveSpec('react-dom', 'https://esm.sh/stable/react-dom@18.3.1/es2022/react-dom.mjs')),
+                    import(resolveSpec('react-dom/client', 'https://esm.sh/stable/react-dom@18.3.1/es2022/client.mjs')),
+                    import('https://esm.sh/stable/date-fns@2.30.0/es2022/date-fns.bundle.mjs'),
+                    import('https://esm.sh/stable/recharts@2.5.0/es2022/recharts.mjs?external=react,react-dom'),
+                    import('https://esm.sh/stable/papaparse@5.4.1/es2022/papaparse.bundle.mjs'),
+                    import('https://esm.sh/stable/lucide@0.462.0/es2022/lucide.bundle.mjs'),
+                    import('https://esm.sh/stable/framer-motion@11.0.3/es2022/framer-motion.mjs?external=react,react-dom')
+                ]);
+
+                const React = mergeModule(reactMod);
+                const ReactDOM = mergeModule(reactDomMod);
+                const ReactDOMClient = mergeModule(reactDomClientMod);
+
+                if (!ReactDOM.createRoot && ReactDOMClient?.createRoot) {
+                    ReactDOM.createRoot = ReactDOMClient.createRoot.bind(ReactDOMClient);
+                }
+                if (!ReactDOM.hydrateRoot && ReactDOMClient?.hydrateRoot) {
+                    ReactDOM.hydrateRoot = ReactDOMClient.hydrateRoot.bind(ReactDOMClient);
+                }
+
+                window.React = React;
+                window.ReactDOM = ReactDOM;
+                window['date-fns'] = dateFns;
+                window.Recharts = Recharts;
+                window.Papa = Papa;
+                window.lucide = lucide;
+                window['framer-motion'] = framerMotion;
+
+                const ensureReactIdentity = (target, fallbackKey) => {
+                    if (!target) return;
+                    const hasReactProp = Object.prototype.hasOwnProperty.call(target, 'React');
+                    if (hasReactProp && target.React === React) {
+                        return;
+                    }
+                    try {
+                        if (!hasReactProp && Object.isExtensible(target)) {
+                            Object.defineProperty(target, 'React', {
+                                value: React,
+                                configurable: true,
+                                writable: false,
+                                enumerable: false
+                            });
+                            return;
+                        }
+                        if (hasReactProp) {
+                            Object.defineProperty(target, 'React', {
+                                value: React,
+                                configurable: true,
+                                writable: false
+                            });
+                            return;
+                        }
+                    } catch (error) {
+                        console.warn('Failed to tag React identity on dependency', fallbackKey, error);
+                    }
+                    if (fallbackKey) {
+                        window[fallbackKey] = React;
+                    }
+                };
+
+                ensureReactIdentity(window.Recharts, '__rechartsReact');
+                ensureReactIdentity(window['framer-motion'], '__framerMotionReact');
+
+                const identityChecks = {
+                    rechartsSharesWindowReact: window.Recharts?.React === React || window.__rechartsReact === React,
+                    framerMotionSharesWindowReact: window['framer-motion']?.React === React || window.__framerMotionReact === React
+                };
+                window.depsIdentity = identityChecks;
+
+                window.depsLoaded = true;
+                window.dispatchEvent(new Event('depsLoaded'));
+                console.info('[deps] Loaded', {
+                    supportsImportMap,
+                    reactVersion: React?.version,
+                    reactDomVersion: ReactDOM?.version,
+                    framerMotionHasReact: typeof framerMotion?.motion === 'function',
+                    identityChecks
+                });
+            } catch (error) {
+                console.error('Failed to load dependencies', error);
+            }
         }
 
-        waitForReact().then(async () => {
-            // Now import ESM modules - let them bundle their own React
-            const [dateFns, Recharts, Papa, lucide, framerMotion] = await Promise.all([
-                import('https://esm.sh/date-fns@2.30.0?bundle'),
-                import('https://esm.sh/recharts@2.5.0?bundle'),
-                import('https://esm.sh/papaparse@5.4.1?bundle'),
-                import('https://esm.sh/lucide@0.462.0?bundle'),
-                import('https://esm.sh/framer-motion@11.0.3?bundle')
-            ]);
-
-            window['date-fns'] = dateFns;
-            window.Recharts = Recharts;
-            window.Papa = Papa;
-            window.lucide = lucide;
-            window['framer-motion'] = framerMotion;
-
-            // Signal that all dependencies are loaded
-            window.depsLoaded = true;
-            window.dispatchEvent(new Event('depsLoaded'));
-        });
+        loadDependencies();
     </script>
 
     <!-- Additional Libraries -->
