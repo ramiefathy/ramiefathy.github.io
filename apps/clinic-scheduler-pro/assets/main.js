@@ -1240,7 +1240,7 @@ const LoginPage = () => {
     className: "text-primary-600"
   })), /*#__PURE__*/React.createElement("h1", {
     className: "text-2xl font-bold text-gray-900"
-  }, "Clinic Scheduler Pro"), /*#__PURE__*/React.createElement("p", {
+  }, "Clinic Scheduler"), /*#__PURE__*/React.createElement("p", {
     className: "text-gray-600 mt-2"
   }, isSignUp ? 'Create your account' : 'Sign in to continue')), /*#__PURE__*/React.createElement("form", {
     onSubmit: handleSubmit,
@@ -1324,10 +1324,10 @@ const Dashboard = () => {
     const thisWeek = Object.entries(assignments).filter(([key]) => {
       const [date] = key.split('_');
       const weekStart = startOfWeek(new Date(), {
-        weekStartsOn: 1
+        weekStartsOn: 0
       });
       const weekEnd = endOfWeek(new Date(), {
-        weekStartsOn: 1
+        weekStartsOn: 0
       });
       const assignmentDate = parseISO(date);
       return assignmentDate >= weekStart && assignmentDate <= weekEnd;
@@ -1485,7 +1485,7 @@ const ScheduleCalendar = ({
     const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
     const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
     return viewMode === 'week' ? startOfWeekFunc(new Date(), {
-      weekStartsOn: 1
+      weekStartsOn: 0
     }) : startOfMonthFunc(new Date());
   });
   const [assignments, setAssignments] = useState([]);
@@ -1538,7 +1538,7 @@ const ScheduleCalendar = ({
     const addDaysFunc = window.dateFns ? window.dateFns.addDays : (d, n) => new Date(d.getTime() + n * 86400000);
     const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
     const weekStart = viewMode === 'week' ? currentDate : startOfWeekFunc(currentDate, {
-      weekStartsOn: 1
+      weekStartsOn: 0
     });
     // Show full week (7 days) instead of just weekdays
     for (let i = 0; i < 7; i++) {
@@ -1634,7 +1634,7 @@ const ScheduleCalendar = ({
     if (mode === 'week') {
       const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
       setCurrentDate(startOfWeekFunc(currentDate, {
-        weekStartsOn: 1
+        weekStartsOn: 0
       }));
     } else {
       const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
@@ -1743,7 +1743,7 @@ const ScheduleCalendar = ({
     className: "inline mr-2"
   }), resident.name, /*#__PURE__*/React.createElement("span", {
     className: "text-xs text-gray-500 ml-1"
-  }, "(R", resident.year, ")")))), attendings.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "(", resident.pgyStatus || `PGY-${resident.year || 1}`, ")")))), attendings.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50"
   }, "ATTENDINGS"), attendings.map(attending => /*#__PURE__*/React.createElement("button", {
     key: attending.id,
@@ -1872,13 +1872,13 @@ const ScheduleCalendar = ({
     const pmAssignments = dayAssignments.filter(a => a.timeSlot === 'PM');
     return /*#__PURE__*/React.createElement("div", {
       key: dateStr,
-      className: `month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''}`,
+      className: `month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''} ${isWeekend(day) ? 'weekend-slot' : ''}`,
       onClick: () => {
         if (isCurrentMonth(day)) {
           // Switch to week view for this day
           const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
           setCurrentDate(startOfWeekFunc(day, {
-            weekStartsOn: 1
+            weekStartsOn: 0
           }));
           setViewMode('week');
         }
@@ -2091,49 +2091,49 @@ const AttendingsList = ({
     className: "text-left py-3 px-4"
   }, "Name"), /*#__PURE__*/React.createElement("th", {
     className: "text-left py-3 px-4"
-  }, "Specialty"), /*#__PURE__*/React.createElement("th", {
+  }, "Clinic Sessions"), /*#__PURE__*/React.createElement("th", {
     className: "text-left py-3 px-4"
-  }, "Site"), /*#__PURE__*/React.createElement("th", {
+  }, "Total Capacity"), /*#__PURE__*/React.createElement("th", {
     className: "text-left py-3 px-4"
-  }, "Max Residents"), /*#__PURE__*/React.createElement("th", {
-    className: "text-left py-3 px-4"
-  }, "Actions"))), /*#__PURE__*/React.createElement("tbody", null, attendings.map(attending => /*#__PURE__*/React.createElement("tr", {
-    key: attending.id,
-    className: "border-b hover:bg-gray-50"
-  }, /*#__PURE__*/React.createElement("td", {
-    className: "py-3 px-4"
-  }, attending.name), /*#__PURE__*/React.createElement("td", {
-    className: "py-3 px-4"
-  }, attending.specialty), /*#__PURE__*/React.createElement("td", {
-    className: "py-3 px-4"
-  }, attending.site), /*#__PURE__*/React.createElement("td", {
-    className: "py-3 px-4"
-  }, attending.maxResidents || 2), /*#__PURE__*/React.createElement("td", {
-    className: "py-3 px-4"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-2"
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => navigateToSchedule('attending', attending.id),
-    className: "text-blue-600 hover:text-blue-700",
-    title: "View Schedule"
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "calendar",
-    size: 16
-  })), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setEditingAttending(attending),
-    className: "text-primary-600 hover:text-primary-700",
-    title: "Edit"
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "pencil",
-    size: 16
-  })), /*#__PURE__*/React.createElement("button", {
-    onClick: () => handleDelete(attending.id),
-    className: "text-red-600 hover:text-red-700",
-    title: "Delete"
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "trash",
-    size: 16
-  })))))))))), editingAttending && /*#__PURE__*/React.createElement(Modal, {
+  }, "Actions"))), /*#__PURE__*/React.createElement("tbody", null, attendings.map(attending => {
+    const sessionCount = attending.clinicSchedule?.length || 0;
+    const totalCapacity = attending.clinicSchedule?.reduce((sum, s) => sum + (s.maxResidents || 0), 0) || 0;
+    return /*#__PURE__*/React.createElement("tr", {
+      key: attending.id,
+      className: "border-b hover:bg-gray-50"
+    }, /*#__PURE__*/React.createElement("td", {
+      className: "py-3 px-4"
+    }, attending.name), /*#__PURE__*/React.createElement("td", {
+      className: "py-3 px-4"
+    }, sessionCount, " sessions/week"), /*#__PURE__*/React.createElement("td", {
+      className: "py-3 px-4"
+    }, totalCapacity, " residents"), /*#__PURE__*/React.createElement("td", {
+      className: "py-3 px-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => navigateToSchedule('attending', attending.id),
+      className: "text-blue-600 hover:text-blue-700",
+      title: "View Schedule"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "calendar",
+      size: 16
+    })), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setEditingAttending(attending),
+      className: "text-primary-600 hover:text-primary-700",
+      title: "Edit"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "pencil",
+      size: 16
+    })), /*#__PURE__*/React.createElement("button", {
+      onClick: () => handleDelete(attending.id),
+      className: "text-red-600 hover:text-red-700",
+      title: "Delete"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "trash",
+      size: 16
+    })))));
+  }))))), editingAttending && /*#__PURE__*/React.createElement(Modal, {
     isOpen: true,
     onClose: () => setEditingAttending(null),
     title: editingAttending.id ? 'Edit Attending' : 'Add Attending'
@@ -2150,13 +2150,78 @@ const AttendingForm = ({
   onSave,
   onCancel
 }) => {
+  const {
+    institution
+  } = useApp();
+  const sites = institution?.settings?.sites || [];
   const [formData, setFormData] = useState({
     name: attending.name || '',
-    specialty: attending.specialty || '',
-    site: attending.site || '',
-    maxResidents: attending.maxResidents || 2,
+    clinicSchedule: attending.clinicSchedule || [],
     ...attending
   });
+  const daysOfWeek = [{
+    id: 0,
+    name: 'Sunday',
+    short: 'Sun'
+  }, {
+    id: 1,
+    name: 'Monday',
+    short: 'Mon'
+  }, {
+    id: 2,
+    name: 'Tuesday',
+    short: 'Tue'
+  }, {
+    id: 3,
+    name: 'Wednesday',
+    short: 'Wed'
+  }, {
+    id: 4,
+    name: 'Thursday',
+    short: 'Thu'
+  }, {
+    id: 5,
+    name: 'Friday',
+    short: 'Fri'
+  }, {
+    id: 6,
+    name: 'Saturday',
+    short: 'Sat'
+  }];
+  const timeSlots = ['AM', 'PM'];
+  const toggleClinicSession = (siteId, dayOfWeek, timeSlot) => {
+    const scheduleIndex = formData.clinicSchedule.findIndex(s => s.siteId === siteId && s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot);
+    if (scheduleIndex >= 0) {
+      // Remove session
+      setFormData({
+        ...formData,
+        clinicSchedule: formData.clinicSchedule.filter((_, i) => i !== scheduleIndex)
+      });
+    } else {
+      // Add session
+      setFormData({
+        ...formData,
+        clinicSchedule: [...formData.clinicSchedule, {
+          siteId,
+          dayOfWeek,
+          timeSlot,
+          maxResidents: 2
+        }]
+      });
+    }
+  };
+  const updateSessionResidents = (siteId, dayOfWeek, timeSlot, maxResidents) => {
+    setFormData({
+      ...formData,
+      clinicSchedule: formData.clinicSchedule.map(session => session.siteId === siteId && session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot ? {
+        ...session,
+        maxResidents: parseInt(maxResidents) || 1
+      } : session)
+    });
+  };
+  const getSession = (siteId, dayOfWeek, timeSlot) => {
+    return formData.clinicSchedule.find(s => s.siteId === siteId && s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot);
+  };
   return /*#__PURE__*/React.createElement("form", {
     onSubmit: e => {
       e.preventDefault();
@@ -2176,39 +2241,55 @@ const AttendingForm = ({
     required: true
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
-  }, "Specialty"), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    value: formData.specialty,
-    onChange: e => setFormData({
-      ...formData,
-      specialty: e.target.value
-    }),
-    className: "w-full px-3 py-2 border rounded-lg",
-    required: true
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "block text-sm font-medium text-gray-700 mb-2"
-  }, "Site"), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    value: formData.site,
-    onChange: e => setFormData({
-      ...formData,
-      site: e.target.value
-    }),
-    className: "w-full px-3 py-2 border rounded-lg",
-    required: true
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "block text-sm font-medium text-gray-700 mb-2"
-  }, "Max Residents"), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    value: formData.maxResidents,
-    onChange: e => setFormData({
-      ...formData,
-      maxResidents: parseInt(e.target.value)
-    }),
-    className: "w-full px-3 py-2 border rounded-lg",
-    min: "1",
-    required: true
-  })), /*#__PURE__*/React.createElement("div", {
+  }, "Clinic Schedule"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mb-3"
+  }, "Click cells to add/remove clinic sessions. Enter resident capacity for each session."), sites.map(site => /*#__PURE__*/React.createElement("div", {
+    key: site.id,
+    className: "mb-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 mb-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full",
+    style: {
+      backgroundColor: site.color
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "font-medium text-sm"
+  }, site.name)), /*#__PURE__*/React.createElement("div", {
+    className: "overflow-x-auto"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "min-w-full border-collapse"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+    className: "w-16"
+  }), daysOfWeek.map(day => /*#__PURE__*/React.createElement("th", {
+    key: day.id,
+    className: "text-xs font-medium text-gray-600 p-1"
+  }, day.short)))), /*#__PURE__*/React.createElement("tbody", null, timeSlots.map(timeSlot => /*#__PURE__*/React.createElement("tr", {
+    key: timeSlot
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "text-xs font-medium text-gray-600 p-1"
+  }, timeSlot), daysOfWeek.map(day => {
+    const session = getSession(site.id, day.id, timeSlot);
+    const isWeekend = day.id === 0 || day.id === 6;
+    return /*#__PURE__*/React.createElement("td", {
+      key: `${day.id}-${timeSlot}`,
+      className: "p-1"
+    }, /*#__PURE__*/React.createElement("div", {
+      onClick: () => toggleClinicSession(site.id, day.id, timeSlot),
+      className: `border rounded cursor-pointer transition-colors ${session ? 'bg-primary-100 border-primary-300' : isWeekend ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300 hover:bg-gray-50'} p-1`
+    }, session && /*#__PURE__*/React.createElement("input", {
+      type: "number",
+      value: session.maxResidents,
+      onChange: e => {
+        e.stopPropagation();
+        updateSessionResidents(site.id, day.id, timeSlot, e.target.value);
+      },
+      onClick: e => e.stopPropagation(),
+      className: "w-full text-center text-xs p-0 border-0 bg-transparent",
+      min: "1",
+      max: "9"
+    })));
+  }))))))))), /*#__PURE__*/React.createElement("div", {
     className: "flex justify-end gap-3"
   }, /*#__PURE__*/React.createElement(Button, {
     type: "button",
@@ -2295,7 +2376,7 @@ const ResidentsList = ({
     className: "py-3 px-4"
   }, resident.name), /*#__PURE__*/React.createElement("td", {
     className: "py-3 px-4"
-  }, "PGY-", resident.year), /*#__PURE__*/React.createElement("td", {
+  }, resident.pgyStatus || `PGY-${resident.year || 1}`), /*#__PURE__*/React.createElement("td", {
     className: "py-3 px-4"
   }, resident.continuityDay || '-'), /*#__PURE__*/React.createElement("td", {
     className: "py-3 px-4"
@@ -2341,13 +2422,60 @@ const ResidentForm = ({
   onSave,
   onCancel
 }) => {
+  const {
+    institution
+  } = useApp();
+  const sites = institution?.settings?.sites || [];
+  const rotations = institution?.settings?.rotations || [];
   const [formData, setFormData] = useState({
     name: resident.name || '',
-    year: resident.year || 1,
+    pgyStatus: resident.pgyStatus || 'PGY-1',
     continuityDay: resident.continuityDay || '',
     continuityTime: resident.continuityTime || '',
+    rotationAssignments: resident.rotationAssignments || [],
+    halfDaysOff: resident.halfDaysOff || [],
     ...resident
   });
+  const [editingMonth, setEditingMonth] = useState(null);
+  const getMonthName = monthStr => {
+    if (!monthStr) return '';
+    const date = new Date(monthStr + '-01');
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+  const getCurrentAndFutureMonths = () => {
+    const months = [];
+    const today = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth() + i, 1);
+      const monthStr = date.toISOString().slice(0, 7); // YYYY-MM format
+      months.push(monthStr);
+    }
+    return months;
+  };
+  const getRotationForMonth = month => {
+    return formData.rotationAssignments.find(ra => ra.month === month);
+  };
+  const setRotationForMonth = (month, rotationId, primarySiteId) => {
+    const existing = formData.rotationAssignments.filter(ra => ra.month !== month);
+    if (rotationId) {
+      setFormData({
+        ...formData,
+        rotationAssignments: [...existing, {
+          month,
+          rotationId,
+          primarySiteId
+        }]
+      });
+    } else {
+      setFormData({
+        ...formData,
+        rotationAssignments: existing
+      });
+    }
+  };
   return /*#__PURE__*/React.createElement("form", {
     onSubmit: e => {
       e.preventDefault();
@@ -2367,34 +2495,75 @@ const ResidentForm = ({
     required: true
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
-  }, "Year"), /*#__PURE__*/React.createElement("select", {
-    value: formData.year,
+  }, "PGY Status"), /*#__PURE__*/React.createElement("select", {
+    value: formData.pgyStatus,
     onChange: e => setFormData({
       ...formData,
-      year: parseInt(e.target.value)
+      pgyStatus: e.target.value
     }),
     className: "w-full px-3 py-2 border rounded-lg",
     required: true
   }, /*#__PURE__*/React.createElement("option", {
-    value: "1"
+    value: "PGY-1"
   }, "PGY-1"), /*#__PURE__*/React.createElement("option", {
-    value: "2"
+    value: "PGY-2"
   }, "PGY-2"), /*#__PURE__*/React.createElement("option", {
-    value: "3"
+    value: "PGY-3"
   }, "PGY-3"), /*#__PURE__*/React.createElement("option", {
-    value: "4"
-  }, "PGY-4"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    value: "PGY-4"
+  }, "PGY-4"), /*#__PURE__*/React.createElement("option", {
+    value: "PGY-5+"
+  }, "PGY-5+"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
-  }, "Continuity Day"), /*#__PURE__*/React.createElement("select", {
+  }, "Rotation Assignments"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mb-2"
+  }, "Assign rotations for each month"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2 max-h-60 overflow-y-auto"
+  }, getCurrentAndFutureMonths().map(month => {
+    const assignment = getRotationForMonth(month);
+    return /*#__PURE__*/React.createElement("div", {
+      key: month,
+      className: "flex items-center gap-2 p-2 border rounded"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "w-32 text-sm font-medium"
+    }, getMonthName(month)), /*#__PURE__*/React.createElement("select", {
+      value: assignment?.rotationId || '',
+      onChange: e => {
+        const rotation = rotations.find(r => r.id === e.target.value);
+        const primarySite = rotation?.siteIds?.[0] || sites[0]?.id;
+        setRotationForMonth(month, e.target.value, primarySite);
+      },
+      className: "flex-1 px-2 py-1 border rounded text-sm"
+    }, /*#__PURE__*/React.createElement("option", {
+      value: ""
+    }, "No Rotation"), rotations.map(r => /*#__PURE__*/React.createElement("option", {
+      key: r.id,
+      value: r.id
+    }, r.name))), assignment && /*#__PURE__*/React.createElement("select", {
+      value: assignment.primarySiteId || '',
+      onChange: e => setRotationForMonth(month, assignment.rotationId, e.target.value),
+      className: "w-32 px-2 py-1 border rounded text-sm"
+    }, sites.filter(s => {
+      const rotation = rotations.find(r => r.id === assignment.rotationId);
+      return rotation?.siteIds?.includes(s.id);
+    }).map(s => /*#__PURE__*/React.createElement("option", {
+      key: s.id,
+      value: s.id
+    }, s.name))));
+  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Continuity Clinic"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2"
+  }, /*#__PURE__*/React.createElement("select", {
     value: formData.continuityDay,
     onChange: e => setFormData({
       ...formData,
       continuityDay: e.target.value
     }),
-    className: "w-full px-3 py-2 border rounded-lg"
+    className: "px-3 py-2 border rounded-lg"
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "None"), /*#__PURE__*/React.createElement("option", {
+  }, "No Day"), /*#__PURE__*/React.createElement("option", {
     value: "monday"
   }, "Monday"), /*#__PURE__*/React.createElement("option", {
     value: "tuesday"
@@ -2404,22 +2573,20 @@ const ResidentForm = ({
     value: "thursday"
   }, "Thursday"), /*#__PURE__*/React.createElement("option", {
     value: "friday"
-  }, "Friday"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "block text-sm font-medium text-gray-700 mb-2"
-  }, "Continuity Time"), /*#__PURE__*/React.createElement("select", {
+  }, "Friday")), /*#__PURE__*/React.createElement("select", {
     value: formData.continuityTime,
     onChange: e => setFormData({
       ...formData,
       continuityTime: e.target.value
     }),
-    className: "w-full px-3 py-2 border rounded-lg"
+    className: "px-3 py-2 border rounded-lg"
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "None"), /*#__PURE__*/React.createElement("option", {
+  }, "No Time"), /*#__PURE__*/React.createElement("option", {
     value: "AM"
   }, "AM"), /*#__PURE__*/React.createElement("option", {
     value: "PM"
-  }, "PM"))), /*#__PURE__*/React.createElement("div", {
+  }, "PM")))), /*#__PURE__*/React.createElement("div", {
     className: "flex justify-end gap-3"
   }, /*#__PURE__*/React.createElement(Button, {
     type: "button",
@@ -2635,29 +2802,75 @@ const SettingsView = () => {
     firebaseService,
     institution
   } = useApp();
+  const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState({
     institutionName: institution?.name || '',
     timezone: institution?.settings?.timezone || 'America/New_York',
     workDays: institution?.settings?.workDays || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
     autoScheduleEnabled: institution?.settings?.autoScheduleEnabled !== false,
-    notificationsEnabled: institution?.settings?.notificationsEnabled !== false
+    notificationsEnabled: institution?.settings?.notificationsEnabled !== false,
+    sites: institution?.settings?.sites || [{
+      id: 'site_1',
+      name: 'Main Clinic',
+      code: 'MAIN',
+      color: '#10b981',
+      address: ''
+    }],
+    rotations: institution?.settings?.rotations || [{
+      id: 'rot_1',
+      name: 'General',
+      code: 'GEN',
+      siteIds: ['site_1'],
+      isMultiSite: false,
+      requirements: {}
+    }]
   });
   const [saving, setSaving] = useState(false);
+  const [editingSite, setEditingSite] = useState(null);
+  const [editingRotation, setEditingRotation] = useState(null);
   const handleSave = async () => {
     setSaving(true);
     await firebaseService.updateInstitutionSettings(settings);
     toast.success('Settings saved');
     setSaving(false);
   };
+  const tabs = [{
+    id: 'general',
+    name: 'General',
+    icon: 'settings'
+  }, {
+    id: 'sites',
+    name: 'Sites',
+    icon: 'map-pin'
+  }, {
+    id: 'rotations',
+    name: 'Rotations',
+    icon: 'repeat'
+  }, {
+    id: 'schedule',
+    name: 'Schedule',
+    icon: 'calendar'
+  }];
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
     className: "text-2xl font-bold text-gray-900"
   }, "Settings"), /*#__PURE__*/React.createElement("p", {
     className: "text-gray-600"
-  }, "Configure institution preferences")), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+  }, "Configure institution preferences")), /*#__PURE__*/React.createElement("div", {
+    className: "border-b border-gray-200"
+  }, /*#__PURE__*/React.createElement("nav", {
+    className: "-mb-px flex space-x-8"
+  }, tabs.map(tab => /*#__PURE__*/React.createElement("button", {
+    key: tab.id,
+    onClick: () => setActiveTab(tab.id),
+    className: `py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === tab.id ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: tab.icon,
+    size: 16
+  }), tab.name)))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+  }, activeTab === 'general' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
     className: "text-lg font-medium text-gray-900 mb-4"
   }, "Institution Settings"), /*#__PURE__*/React.createElement("div", {
     className: "space-y-4"
@@ -2688,7 +2901,92 @@ const SettingsView = () => {
     value: "America/Denver"
   }, "Mountain Time"), /*#__PURE__*/React.createElement("option", {
     value: "America/Los_Angeles"
-  }, "Pacific Time"))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+  }, "Pacific Time"))))), activeTab === 'sites' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center mb-4"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-medium text-gray-900"
+  }, "Clinical Sites"), /*#__PURE__*/React.createElement(Button, {
+    onClick: () => setEditingSite({}),
+    size: "sm"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 16,
+    className: "mr-1"
+  }), "Add Site")), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, settings.sites.map(site => /*#__PURE__*/React.createElement("div", {
+    key: site.id,
+    className: "flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full",
+    style: {
+      backgroundColor: site.color
+    }
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-medium"
+  }, site.name, " (", site.code, ")"), site.address && /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-gray-500"
+  }, site.address))), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditingSite(site),
+    className: "text-blue-600 hover:text-blue-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "pencil",
+    size: 16
+  })), settings.sites.length > 1 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setSettings({
+        ...settings,
+        sites: settings.sites.filter(s => s.id !== site.id)
+      });
+    },
+    className: "text-red-600 hover:text-red-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash-2",
+    size: 16
+  }))))))), activeTab === 'rotations' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center mb-4"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-medium text-gray-900"
+  }, "Rotation Types"), /*#__PURE__*/React.createElement(Button, {
+    onClick: () => setEditingRotation({}),
+    size: "sm"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 16,
+    className: "mr-1"
+  }), "Add Rotation")), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, settings.rotations.map(rotation => /*#__PURE__*/React.createElement("div", {
+    key: rotation.id,
+    className: "flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-medium"
+  }, rotation.name, " (", rotation.code, ")"), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-gray-500"
+  }, rotation.isMultiSite ? 'Multi-site' : 'Single site', " \u2022", rotation.siteIds?.length || 0, " site(s)")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditingRotation(rotation),
+    className: "text-blue-600 hover:text-blue-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "pencil",
+    size: 16
+  })), settings.rotations.length > 1 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setSettings({
+        ...settings,
+        rotations: settings.rotations.filter(r => r.id !== rotation.id)
+      });
+    },
+    className: "text-red-600 hover:text-red-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash-2",
+    size: 16
+  }))))))), activeTab === 'schedule' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
     className: "text-lg font-medium text-gray-900 mb-4"
   }, "Schedule Preferences"), /*#__PURE__*/React.createElement("div", {
     className: "space-y-4"
@@ -2747,7 +3045,237 @@ const SettingsView = () => {
   }, /*#__PURE__*/React.createElement(Button, {
     onClick: handleSave,
     disabled: saving
-  }, saving ? 'Saving...' : 'Save Settings')))));
+  }, saving ? 'Saving...' : 'Save Settings')))), editingSite && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setEditingSite(null),
+    title: editingSite.id ? 'Edit Site' : 'Add Site'
+  }, /*#__PURE__*/React.createElement(SiteForm, {
+    site: editingSite,
+    existingSites: settings.sites,
+    onSave: siteData => {
+      if (siteData.id) {
+        setSettings({
+          ...settings,
+          sites: settings.sites.map(s => s.id === siteData.id ? siteData : s)
+        });
+      } else {
+        const newSite = {
+          ...siteData,
+          id: `site_${Date.now()}`
+        };
+        setSettings({
+          ...settings,
+          sites: [...settings.sites, newSite]
+        });
+      }
+      setEditingSite(null);
+    },
+    onCancel: () => setEditingSite(null)
+  })), editingRotation && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setEditingRotation(null),
+    title: editingRotation.id ? 'Edit Rotation' : 'Add Rotation'
+  }, /*#__PURE__*/React.createElement(RotationForm, {
+    rotation: editingRotation,
+    sites: settings.sites,
+    existingRotations: settings.rotations,
+    onSave: rotationData => {
+      if (rotationData.id) {
+        setSettings({
+          ...settings,
+          rotations: settings.rotations.map(r => r.id === rotationData.id ? rotationData : r)
+        });
+      } else {
+        const newRotation = {
+          ...rotationData,
+          id: `rot_${Date.now()}`
+        };
+        setSettings({
+          ...settings,
+          rotations: [...settings.rotations, newRotation]
+        });
+      }
+      setEditingRotation(null);
+    },
+    onCancel: () => setEditingRotation(null)
+  })));
+};
+
+// Site Form Component
+const SiteForm = ({
+  site,
+  existingSites,
+  onSave,
+  onCancel
+}) => {
+  const [formData, setFormData] = useState({
+    name: site.name || '',
+    code: site.code || '',
+    address: site.address || '',
+    color: site.color || '#10b981',
+    ...site
+  });
+  return /*#__PURE__*/React.createElement("form", {
+    onSubmit: e => {
+      e.preventDefault();
+      onSave(formData);
+    },
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Site Name"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.name,
+    onChange: e => setFormData({
+      ...formData,
+      name: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    placeholder: "e.g., Main Hospital",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Code"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.code,
+    onChange: e => setFormData({
+      ...formData,
+      code: e.target.value.toUpperCase()
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    placeholder: "e.g., MAIN",
+    maxLength: "5",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Address"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.address,
+    onChange: e => setFormData({
+      ...formData,
+      address: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    placeholder: "123 Medical Center Dr, City, State 12345"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Color"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "color",
+    value: formData.color,
+    onChange: e => setFormData({
+      ...formData,
+      color: e.target.value
+    }),
+    className: "h-10 w-20"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-gray-600"
+  }, formData.color))), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-2"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: onCancel
+  }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    type: "submit"
+  }, "Save Site")));
+};
+
+// Rotation Form Component
+const RotationForm = ({
+  rotation,
+  sites,
+  existingRotations,
+  onSave,
+  onCancel
+}) => {
+  const [formData, setFormData] = useState({
+    name: rotation.name || '',
+    code: rotation.code || '',
+    siteIds: rotation.siteIds || [],
+    isMultiSite: rotation.isMultiSite || false,
+    requirements: rotation.requirements || {},
+    ...rotation
+  });
+  return /*#__PURE__*/React.createElement("form", {
+    onSubmit: e => {
+      e.preventDefault();
+      onSave(formData);
+    },
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Rotation Name"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.name,
+    onChange: e => setFormData({
+      ...formData,
+      name: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    placeholder: "e.g., Pediatrics",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Code"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.code,
+    onChange: e => setFormData({
+      ...formData,
+      code: e.target.value.toUpperCase()
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    placeholder: "e.g., PEDS",
+    maxLength: "10",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: formData.isMultiSite,
+    onChange: e => setFormData({
+      ...formData,
+      isMultiSite: e.target.checked
+    }),
+    className: "rounded"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-medium text-gray-700"
+  }, "Multi-site rotation")), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mt-1"
+  }, "Check if residents on this rotation work at multiple sites")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Associated Sites"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, sites.map(site => /*#__PURE__*/React.createElement("label", {
+    key: site.id,
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: formData.siteIds.includes(site.id),
+    onChange: e => {
+      if (e.target.checked) {
+        setFormData({
+          ...formData,
+          siteIds: [...formData.siteIds, site.id]
+        });
+      } else {
+        setFormData({
+          ...formData,
+          siteIds: formData.siteIds.filter(id => id !== site.id)
+        });
+      }
+    },
+    className: "rounded"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm"
+  }, site.name, " (", site.code, ")"))))), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-2"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: onCancel
+  }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    type: "submit"
+  }, "Save Rotation")));
 };
 
 // ==================== Auto-Scheduler Component ====================
@@ -2934,7 +3462,7 @@ const App = () => {
     className: "text-white"
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
     className: "text-xl font-display font-bold text-medical-900"
-  }, "Clinic Scheduler Pro"))), /*#__PURE__*/React.createElement("div", {
+  }, "Clinic Scheduler"))), /*#__PURE__*/React.createElement("div", {
     className: "hidden md:flex ml-12 space-x-2"
   }, navItems.map(item => /*#__PURE__*/React.createElement(motion.button, {
     key: item.id,
