@@ -31,13 +31,13 @@
         }
 
         waitForReact().then(async () => {
-            // Now import ESM modules that might depend on React
+            // Now import ESM modules - let them bundle their own React
             const [dateFns, Recharts, Papa, lucide, framerMotion] = await Promise.all([
                 import('https://esm.sh/date-fns@2.30.0?bundle'),
-                import('https://esm.sh/recharts@2.5.0?bundle&external=react,react-dom'),
+                import('https://esm.sh/recharts@2.5.0?bundle'),
                 import('https://esm.sh/papaparse@5.4.1?bundle'),
                 import('https://esm.sh/lucide@0.462.0?bundle'),
-                import('https://esm.sh/framer-motion@11.0.3?bundle&external=react,react-dom')
+                import('https://esm.sh/framer-motion@11.0.3?bundle')
             ]);
 
             window['date-fns'] = dateFns;
