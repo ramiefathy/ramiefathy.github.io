@@ -1155,7 +1155,7 @@ const LoginPage = () => {
                         <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-xl mb-4">
                             <Icon name="calendar-days" size={32} className="text-primary-600" />
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-900">Clinic Scheduler Pro</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Clinic Scheduler</h1>
                         <p className="text-gray-600 mt-2">
                             {isSignUp ? 'Create your account' : 'Sign in to continue'}
                         </p>
@@ -2909,7 +2909,7 @@ const App = () => {
                                     <Icon name="calendar-days" size={26} className="text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-xl font-display font-bold text-medical-900">Clinic Scheduler Pro</h1>
+                                    <h1 className="text-xl font-display font-bold text-medical-900">Clinic Scheduler</h1>
                                 </div>
                             </div>
 

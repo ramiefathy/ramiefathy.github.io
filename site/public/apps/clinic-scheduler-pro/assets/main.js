@@ -1240,7 +1240,7 @@ const LoginPage = () => {
     className: "text-primary-600"
   })), /*#__PURE__*/React.createElement("h1", {
     className: "text-2xl font-bold text-gray-900"
-  }, "Clinic Scheduler Pro"), /*#__PURE__*/React.createElement("p", {
+  }, "Clinic Scheduler"), /*#__PURE__*/React.createElement("p", {
     className: "text-gray-600 mt-2"
   }, isSignUp ? 'Create your account' : 'Sign in to continue')), /*#__PURE__*/React.createElement("form", {
     onSubmit: handleSubmit,
@@ -2934,7 +2934,7 @@ const App = () => {
     className: "text-white"
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
     className: "text-xl font-display font-bold text-medical-900"
-  }, "Clinic Scheduler Pro"))), /*#__PURE__*/React.createElement("div", {
+  }, "Clinic Scheduler"))), /*#__PURE__*/React.createElement("div", {
     className: "hidden md:flex ml-12 space-x-2"
   }, navItems.map(item => /*#__PURE__*/React.createElement(motion.button, {
     key: item.id,
