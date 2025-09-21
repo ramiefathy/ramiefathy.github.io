@@ -1421,12 +1421,96 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
         localStorage.setItem('scheduleViewMode', viewMode);
     }, [viewMode]);
 
+    // Generate virtual assignments for continuity clinics and protected times
+    const generateVirtualAssignments = (residents, protectedTimes) => {
+        const virtual = [];
+        const today = new Date();
+        const thirtyDaysFromNow = new Date(today.getTime() + 30 * 86400000);
+
+        // Generate continuity clinic assignments
+        residents.forEach(resident => {
+            if (resident.continuityDay && resident.continuityTime && resident.continuitySiteId) {
+                const dayMap = {
+                    sunday: 0,
+                    monday: 1,
+                    tuesday: 2,
+                    wednesday: 3,
+                    thursday: 4,
+                    friday: 5,
+                    saturday: 6
+                };
+                const targetDay = dayMap[resident.continuityDay];
+
+                // Generate for next 4 weeks
+                for (let week = 0; week < 4; week++) {
+                    const weekStart = new Date(today);
+                    weekStart.setDate(today.getDate() - today.getDay() + week * 7);
+                    const targetDate = new Date(weekStart);
+                    targetDate.setDate(weekStart.getDate() + targetDay);
+
+                    if (targetDate >= today && targetDate <= thirtyDaysFromNow) {
+                        virtual.push({
+                            id: `continuity_${resident.id}_${targetDate.toISOString().split('T')[0]}`,
+                            residentId: resident.id,
+                            attendingId: null,
+                            date: targetDate.toISOString().split('T')[0],
+                            timeSlot: resident.continuityTime,
+                            type: 'continuity',
+                            siteId: resident.continuitySiteId,
+                            virtual: true
+                        });
+                    }
+                }
+            }
+        });
+
+        // Generate protected time assignments
+        if (protectedTimes) {
+            protectedTimes.forEach(pt => {
+                // Generate for next 4 weeks
+                for (let week = 0; week < 4; week++) {
+                    const weekStart = new Date(today);
+                    weekStart.setDate(today.getDate() - today.getDay() + week * 7);
+                    const targetDate = new Date(weekStart);
+                    targetDate.setDate(weekStart.getDate() + pt.dayOfWeek);
+
+                    if (targetDate >= today && targetDate <= thirtyDaysFromNow) {
+                        // Create assignments for all applicable residents
+                        residents.forEach(resident => {
+                            const residentPGY = resident.pgyStatus || 'PGY-1';
+                            if (pt.appliesTo === 'all' || pt.appliesTo === residentPGY) {
+                                virtual.push({
+                                    id: `protected_${pt.id}_${resident.id}_${targetDate.toISOString().split('T')[0]}`,
+                                    residentId: resident.id,
+                                    attendingId: null,
+                                    date: targetDate.toISOString().split('T')[0],
+                                    timeSlot: pt.timeSlot,
+                                    type: 'protected',
+                                    eventName: pt.name,
+                                    eventType: pt.eventType,
+                                    siteId: pt.siteId,
+                                    mandatory: pt.mandatory,
+                                    virtual: true
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        return virtual;
+    };
+
     useEffect(() => {
         if (!firebaseService.currentInstitution) return;
 
         // Set up real-time listeners
         const unsubscribeAssignments = firebaseService.listenToAssignments((data) => {
-            setAssignments(data);
+            // Merge real assignments with virtual ones
+            const virtualAssignments = generateVirtualAssignments(residents, institution?.settings?.protectedTimes);
+            const mergedAssignments = [...data, ...virtualAssignments];
+            setAssignments(mergedAssignments);
             setLoading(false);
         });
 
@@ -1436,6 +1520,12 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
 
         const unsubscribeResidents = firebaseService.listenToResidents((data) => {
             setResidents(data);
+            // Regenerate assignments when residents change
+            const virtualAssignments = generateVirtualAssignments(data, institution?.settings?.protectedTimes);
+            setAssignments(prev => {
+                const realAssignments = prev.filter(a => !a.virtual);
+                return [...realAssignments, ...virtualAssignments];
+            });
         });
 
         return () => {
@@ -1443,7 +1533,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
             unsubscribeAttendings();
             unsubscribeResidents();
         };
-    }, [firebaseService.currentInstitution]);
+    }, [firebaseService.currentInstitution, institution?.settings?.protectedTimes]);
 
     const weekDays = useMemo(() => {
         const days = [];
@@ -1458,9 +1548,8 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     }, [currentDate, viewMode]);
 
     const getDayName = (date) => {
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        const dayIndex = (date.getDay() + 6) % 7; // Adjust for Monday start
-        return days[dayIndex];
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        return days[date.getDay()];
     };
 
     const isWeekend = (date) => {
@@ -1809,49 +1898,81 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                                                 return (
                                                     <div
                                                         key={assignment.id}
-                                                        draggable
+                                                        draggable={assignment.type !== 'protected'}
                                                         onDragStart={(e) => handleDragStart(e, assignment)}
-                                                        className="assignment-card"
+                                                        className={`assignment-card ${
+                                                            assignment.type === 'protected' ? 'bg-gray-100 border-gray-300 opacity-75' :
+                                                            assignment.type === 'continuity' ? 'bg-amber-50 border-amber-200' :
+                                                            ''
+                                                        }`}
                                                     >
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex-1">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        if (resident && onNavigateToPerson) {
-                                                                            onNavigateToPerson('resident', assignment.residentId);
-                                                                        }
-                                                                    }}
-                                                                    className="font-medium text-gray-900 hover:text-blue-600 text-left"
-                                                                >
-                                                                    {resident?.name || 'Unknown Resident'}
-                                                                </button>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        if (attending && onNavigateToPerson) {
-                                                                            onNavigateToPerson('attending', assignment.attendingId);
-                                                                        }
-                                                                    }}
-                                                                    className="text-gray-600 hover:text-blue-600 block text-left"
-                                                                >
-                                                                    {attending?.name || 'Unknown Attending'}
-                                                                </button>
-                                                                {assignment.type === 'continuity' && (
-                                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">
-                                                                        Continuity
-                                                                    </span>
+                                                                {assignment.type === 'protected' ? (
+                                                                    <>
+                                                                        <div className="font-medium text-gray-700">
+                                                                            {assignment.eventName || 'Protected Time'}
+                                                                        </div>
+                                                                        <div className="text-sm text-gray-500">
+                                                                            {resident?.name || 'All Residents'}
+                                                                        </div>
+                                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-200 text-gray-700">
+                                                                            <Icon name="shield" size={10} className="mr-1" />
+                                                                            Protected
+                                                                        </span>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                if (resident && onNavigateToPerson) {
+                                                                                    onNavigateToPerson('resident', assignment.residentId);
+                                                                                }
+                                                                            }}
+                                                                            className="font-medium text-gray-900 hover:text-blue-600 text-left"
+                                                                        >
+                                                                            {resident?.name || 'Unknown Resident'}
+                                                                        </button>
+                                                                        {assignment.type === 'continuity' ? (
+                                                                            <>
+                                                                                <div className="text-sm text-gray-600">
+                                                                                    Continuity Clinic
+                                                                                </div>
+                                                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">
+                                                                                    <Icon name="repeat" size={10} className="mr-1" />
+                                                                                    Continuity
+                                                                                </span>
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        if (attending && onNavigateToPerson) {
+                                                                                            onNavigateToPerson('attending', assignment.attendingId);
+                                                                                        }
+                                                                                    }}
+                                                                                    className="text-gray-600 hover:text-blue-600 block text-left"
+                                                                                >
+                                                                                    {attending?.name || 'Unknown Attending'}
+                                                                                </button>
+                                                                            </>
+                                                                        )}
+                                                                    </>
                                                                 )}
                                                             </div>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDeleteAssignment(assignment.id);
-                                                                }}
-                                                                className="text-gray-400 hover:text-red-600"
-                                                            >
-                                                                <Icon name="x" size={14} />
-                                                            </button>
+                                                            {!assignment.virtual && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteAssignment(assignment.id);
+                                                                    }}
+                                                                    className="text-gray-400 hover:text-red-600"
+                                                                >
+                                                                    <Icon name="x" size={14} />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 );
@@ -1866,8 +1987,12 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                     /* Month View */
                     <div className="calendar-grid-month">
                         {/* Day Headers */}
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                            <div key={day} className="bg-gray-50 p-2 text-center font-medium text-gray-700 text-sm">
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
+                            <div key={day} className={`p-2 text-center font-medium text-sm ${
+                                index === 0 || index === 6
+                                    ? 'bg-gray-100 text-gray-500'
+                                    : 'bg-gray-50 text-gray-700'
+                            }`}>
                                 {day}
                             </div>
                         ))}
@@ -2014,13 +2139,56 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
 
 // Assignment Form Component
 const AssignmentForm = ({ date, timeSlot, residents, attendings, onSave, onCancel }) => {
+    const { institution } = useApp();
+    const sites = institution?.settings?.sites || [];
+    const rotations = institution?.settings?.rotations || [];
+
     const [formData, setFormData] = useState({
         date,
         timeSlot,
         residentId: '',
         attendingId: '',
-        type: 'clinical'
+        type: 'clinical',
+        siteId: '',
+        rotationId: ''
     });
+
+    // Get resident's current rotation for the month
+    const getResidentRotation = (residentId) => {
+        if (!residentId) return null;
+        const resident = residents.find(r => r.id === residentId);
+        if (!resident) return null;
+
+        const monthStr = new Date(date).toISOString().slice(0, 7);
+        const assignment = resident.rotationAssignments?.find(ra => ra.month === monthStr);
+        if (!assignment) return null;
+
+        return rotations.find(r => r.id === assignment.rotationId);
+    };
+
+    // Get available attendings based on rotation and time slot
+    const getAvailableAttendings = () => {
+        if (!formData.residentId) return attendings;
+
+        const rotation = getResidentRotation(formData.residentId);
+        if (!rotation) return attendings;
+
+        const dayOfWeek = new Date(date).getDay();
+
+        // Filter attendings who:
+        // 1. Support this rotation
+        // 2. Have clinic sessions on this day/time
+        return attendings.filter(attending => {
+            const supportsRotation = attending.rotationIds?.includes(rotation.id);
+            const hasClinicSession = attending.clinicSchedule?.some(session =>
+                session.dayOfWeek === dayOfWeek &&
+                session.timeSlot === timeSlot
+            );
+            return supportsRotation && hasClinicSession;
+        });
+    };
+
+    const availableAttendings = getAvailableAttendings();
 
     return (
         <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="space-y-4">
@@ -2039,17 +2207,44 @@ const AssignmentForm = ({ date, timeSlot, residents, attendings, onSave, onCance
                 </select>
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Attending</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Attending
+                    {availableAttendings.length === 0 && formData.residentId && (
+                        <span className="text-red-500 text-xs ml-2">No attendings available for this rotation/time</span>
+                    )}
+                </label>
                 <select
                     value={formData.attendingId}
-                    onChange={(e) => setFormData({ ...formData, attendingId: e.target.value })}
+                    onChange={(e) => {
+                        const attendingId = e.target.value;
+                        const attending = attendings.find(a => a.id === attendingId);
+                        const dayOfWeek = new Date(date).getDay();
+                        const session = attending?.clinicSchedule?.find(s =>
+                            s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot
+                        );
+                        setFormData({
+                            ...formData,
+                            attendingId,
+                            siteId: session?.siteId || '',
+                            rotationId: getResidentRotation(formData.residentId)?.id || ''
+                        });
+                    }}
                     className="w-full px-3 py-2 border rounded-lg"
                     required
                 >
                     <option value="">Select Attending</option>
-                    {attendings.map(a => (
-                        <option key={a.id} value={a.id}>{a.name}</option>
-                    ))}
+                    {availableAttendings.map(a => {
+                        const dayOfWeek = new Date(date).getDay();
+                        const session = a.clinicSchedule?.find(s =>
+                            s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot
+                        );
+                        const site = sites.find(s => s.id === session?.siteId);
+                        return (
+                            <option key={a.id} value={a.id}>
+                                {a.name} {site && `(${site.name})`}
+                            </option>
+                        );
+                    })}
                 </select>
             </div>
             <div>
@@ -2197,10 +2392,12 @@ const AttendingsList = ({ navigateToSchedule }) => {
 const AttendingForm = ({ attending, onSave, onCancel }) => {
     const { institution } = useApp();
     const sites = institution?.settings?.sites || [];
+    const rotations = institution?.settings?.rotations || [];
 
     const [formData, setFormData] = useState({
         name: attending.name || '',
         clinicSchedule: attending.clinicSchedule || [],
+        rotationIds: attending.rotationIds || [],
         ...attending
     });
 
@@ -2269,6 +2466,41 @@ const AttendingForm = ({ attending, onSave, onCancel }) => {
                     className="w-full px-3 py-2 border rounded-lg"
                     required
                 />
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Supported Rotations</label>
+                <p className="text-xs text-gray-500 mb-2">Select rotations this attending supports</p>
+                <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+                    {rotations.map(rotation => (
+                        <label key={rotation.id} className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formData.rotationIds?.includes(rotation.id)}
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setFormData({
+                                            ...formData,
+                                            rotationIds: [...(formData.rotationIds || []), rotation.id]
+                                        });
+                                    } else {
+                                        setFormData({
+                                            ...formData,
+                                            rotationIds: formData.rotationIds?.filter(id => id !== rotation.id) || []
+                                        });
+                                    }
+                                }}
+                                className="rounded"
+                            />
+                            <span className="text-sm">
+                                {rotation.name} ({rotation.code})
+                                {rotation.isMultiSite && (
+                                    <span className="ml-1 text-xs text-gray-500">[Multi-site]</span>
+                                )}
+                            </span>
+                        </label>
+                    ))}
+                </div>
             </div>
 
             <div>
@@ -2481,6 +2713,7 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
         pgyStatus: resident.pgyStatus || 'PGY-1',
         continuityDay: resident.continuityDay || '',
         continuityTime: resident.continuityTime || '',
+        continuitySiteId: resident.continuitySiteId || '',
         rotationAssignments: resident.rotationAssignments || [],
         halfDaysOff: resident.halfDaysOff || [],
         ...resident
@@ -2566,32 +2799,36 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
                                     value={assignment?.rotationId || ''}
                                     onChange={(e) => {
                                         const rotation = rotations.find(r => r.id === e.target.value);
-                                        const primarySite = rotation?.siteIds?.[0] || sites[0]?.id;
+                                        const primarySite = rotation?.isMultiSite ? null : (rotation?.siteIds?.[0] || sites[0]?.id);
                                         setRotationForMonth(month, e.target.value, primarySite);
                                     }}
                                     className="flex-1 px-2 py-1 border rounded text-sm"
                                 >
                                     <option value="">No Rotation</option>
                                     {rotations.map(r => (
-                                        <option key={r.id} value={r.id}>{r.name}</option>
+                                        <option key={r.id} value={r.id}>
+                                            {r.name}
+                                            {r.isMultiSite && ' [Multi-site]'}
+                                        </option>
                                     ))}
                                 </select>
-                                {assignment && (
-                                    <select
-                                        value={assignment.primarySiteId || ''}
-                                        onChange={(e) => setRotationForMonth(month, assignment.rotationId, e.target.value)}
-                                        className="w-32 px-2 py-1 border rounded text-sm"
-                                    >
-                                        {sites
-                                            .filter(s => {
-                                                const rotation = rotations.find(r => r.id === assignment.rotationId);
-                                                return rotation?.siteIds?.includes(s.id);
-                                            })
-                                            .map(s => (
-                                                <option key={s.id} value={s.id}>{s.name}</option>
-                                            ))}
-                                    </select>
-                                )}
+                                {assignment && (() => {
+                                    const rotation = rotations.find(r => r.id === assignment.rotationId);
+                                    return !rotation?.isMultiSite && (
+                                        <select
+                                            value={assignment.primarySiteId || ''}
+                                            onChange={(e) => setRotationForMonth(month, assignment.rotationId, e.target.value)}
+                                            className="w-32 px-2 py-1 border rounded text-sm"
+                                        >
+                                            <option value="">Select Site</option>
+                                            {sites
+                                                .filter(s => rotation?.siteIds?.includes(s.id))
+                                                .map(s => (
+                                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                                ))}
+                                        </select>
+                                    );
+                                })()}
                             </div>
                         );
                     })}
@@ -2600,28 +2837,46 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
 
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Continuity Clinic</label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
                     <select
-                        value={formData.continuityDay}
-                        onChange={(e) => setFormData({ ...formData, continuityDay: e.target.value })}
-                        className="px-3 py-2 border rounded-lg"
+                        value={formData.continuitySiteId}
+                        onChange={(e) => setFormData({ ...formData, continuitySiteId: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg"
                     >
-                        <option value="">No Day</option>
-                        <option value="monday">Monday</option>
-                        <option value="tuesday">Tuesday</option>
-                        <option value="wednesday">Wednesday</option>
-                        <option value="thursday">Thursday</option>
-                        <option value="friday">Friday</option>
+                        <option value="">No Continuity Site</option>
+                        {sites.map(site => (
+                            <option key={site.id} value={site.id}>
+                                {site.name} ({site.code})
+                            </option>
+                        ))}
                     </select>
-                    <select
-                        value={formData.continuityTime}
-                        onChange={(e) => setFormData({ ...formData, continuityTime: e.target.value })}
-                        className="px-3 py-2 border rounded-lg"
-                    >
-                        <option value="">No Time</option>
-                        <option value="AM">AM</option>
-                        <option value="PM">PM</option>
-                    </select>
+                    {formData.continuitySiteId && (
+                        <div className="grid grid-cols-2 gap-2">
+                            <select
+                                value={formData.continuityDay}
+                                onChange={(e) => setFormData({ ...formData, continuityDay: e.target.value })}
+                                className="px-3 py-2 border rounded-lg"
+                            >
+                                <option value="">Select Day</option>
+                                <option value="sunday">Sunday</option>
+                                <option value="monday">Monday</option>
+                                <option value="tuesday">Tuesday</option>
+                                <option value="wednesday">Wednesday</option>
+                                <option value="thursday">Thursday</option>
+                                <option value="friday">Friday</option>
+                                <option value="saturday">Saturday</option>
+                            </select>
+                            <select
+                                value={formData.continuityTime}
+                                onChange={(e) => setFormData({ ...formData, continuityTime: e.target.value })}
+                                className="px-3 py-2 border rounded-lg"
+                            >
+                                <option value="">Select Time</option>
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -2842,11 +3097,13 @@ const SettingsView = () => {
         ],
         rotations: institution?.settings?.rotations || [
             { id: 'rot_1', name: 'General', code: 'GEN', siteIds: ['site_1'], isMultiSite: false, requirements: {} }
-        ]
+        ],
+        protectedTimes: institution?.settings?.protectedTimes || []
     });
     const [saving, setSaving] = useState(false);
     const [editingSite, setEditingSite] = useState(null);
     const [editingRotation, setEditingRotation] = useState(null);
+    const [editingProtectedTime, setEditingProtectedTime] = useState(null);
 
     const handleSave = async () => {
         setSaving(true);
@@ -2859,6 +3116,7 @@ const SettingsView = () => {
         { id: 'general', name: 'General', icon: 'settings' },
         { id: 'sites', name: 'Sites', icon: 'map-pin' },
         { id: 'rotations', name: 'Rotations', icon: 'repeat' },
+        { id: 'protected', name: 'Protected Times', icon: 'shield' },
         { id: 'schedule', name: 'Schedule', icon: 'calendar' }
     ];
 
@@ -3024,6 +3282,62 @@ const SettingsView = () => {
                         </div>
                     )}
 
+                    {activeTab === 'protected' && (
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-medium text-gray-900">Protected Times</h3>
+                                <Button
+                                    onClick={() => setEditingProtectedTime({})}
+                                    size="sm"
+                                >
+                                    <Icon name="plus" size={16} className="mr-1" />
+                                    Add Protected Time
+                                </Button>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Define recurring weekly events like Didactics, Grand Rounds, or protected educational time.
+                            </p>
+                            <div className="space-y-2">
+                                {settings.protectedTimes.map(pt => (
+                                    <div key={pt.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div>
+                                            <div className="font-medium">{pt.name}</div>
+                                            <div className="text-sm text-gray-500">
+                                                {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][pt.dayOfWeek]} {pt.timeSlot}
+                                                {pt.appliesTo && pt.appliesTo !== 'all' && ` • ${pt.appliesTo.toUpperCase()}`}
+                                                {pt.mandatory && ' • Mandatory'}
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => setEditingProtectedTime(pt)}
+                                                className="text-blue-600 hover:text-blue-700"
+                                            >
+                                                <Icon name="pencil" size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setSettings({
+                                                        ...settings,
+                                                        protectedTimes: settings.protectedTimes.filter(p => p.id !== pt.id)
+                                                    });
+                                                }}
+                                                className="text-red-600 hover:text-red-700"
+                                            >
+                                                <Icon name="trash-2" size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {settings.protectedTimes.length === 0 && (
+                                    <div className="text-center py-8 text-gray-500">
+                                        No protected times defined. Click "Add Protected Time" to create one.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'schedule' && (
                         <div>
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Schedule Preferences</h3>
@@ -3147,6 +3461,39 @@ const SettingsView = () => {
                             setEditingRotation(null);
                         }}
                         onCancel={() => setEditingRotation(null)}
+                    />
+                </Modal>
+            )}
+
+            {/* Protected Time Edit Modal */}
+            {editingProtectedTime && (
+                <Modal
+                    isOpen={true}
+                    onClose={() => setEditingProtectedTime(null)}
+                    title={editingProtectedTime.id ? 'Edit Protected Time' : 'Add Protected Time'}
+                >
+                    <ProtectedTimeForm
+                        protectedTime={editingProtectedTime}
+                        sites={settings.sites}
+                        onSave={(ptData) => {
+                            if (ptData.id) {
+                                setSettings({
+                                    ...settings,
+                                    protectedTimes: settings.protectedTimes.map(pt => pt.id === ptData.id ? ptData : pt)
+                                });
+                            } else {
+                                const newPT = {
+                                    ...ptData,
+                                    id: `pt_${Date.now()}`
+                                };
+                                setSettings({
+                                    ...settings,
+                                    protectedTimes: [...settings.protectedTimes, newPT]
+                                });
+                            }
+                            setEditingProtectedTime(null);
+                        }}
+                        onCancel={() => setEditingProtectedTime(null)}
                     />
                 </Modal>
             )}
@@ -3292,6 +3639,147 @@ const RotationForm = ({ rotation, sites, existingRotations, onSave, onCancel }) 
             <div className="flex justify-end gap-2">
                 <Button variant="secondary" onClick={onCancel}>Cancel</Button>
                 <Button type="submit">Save Rotation</Button>
+            </div>
+        </form>
+    );
+};
+
+// Protected Time Form Component
+const ProtectedTimeForm = ({ protectedTime, sites, onSave, onCancel }) => {
+    const [formData, setFormData] = useState({
+        name: protectedTime.name || '',
+        dayOfWeek: protectedTime.dayOfWeek ?? 3, // Default to Wednesday
+        timeSlot: protectedTime.timeSlot || 'AM',
+        appliesTo: protectedTime.appliesTo || 'all',
+        mandatory: protectedTime.mandatory ?? true,
+        eventType: protectedTime.eventType || 'didactics',
+        siteId: protectedTime.siteId || '',
+        ...protectedTime
+    });
+
+    const daysOfWeek = [
+        { value: 0, label: 'Sunday' },
+        { value: 1, label: 'Monday' },
+        { value: 2, label: 'Tuesday' },
+        { value: 3, label: 'Wednesday' },
+        { value: 4, label: 'Thursday' },
+        { value: 5, label: 'Friday' },
+        { value: 6, label: 'Saturday' }
+    ];
+
+    const pgyLevels = ['all', 'PGY-1', 'PGY-2', 'PGY-3', 'PGY-4', 'PGY-5+'];
+    const eventTypes = [
+        { value: 'didactics', label: 'Didactics' },
+        { value: 'grand-rounds', label: 'Grand Rounds' },
+        { value: 'meeting', label: 'Meeting' },
+        { value: 'protected', label: 'Protected Education' },
+        { value: 'other', label: 'Other' }
+    ];
+
+    return (
+        <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Event Name</label>
+                <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="e.g., Weekly Didactics"
+                    required
+                />
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Event Type</label>
+                <select
+                    value={formData.eventType}
+                    onChange={(e) => setFormData({ ...formData, eventType: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                >
+                    {eventTypes.map(type => (
+                        <option key={type.value} value={type.value}>{type.label}</option>
+                    ))}
+                </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Day of Week</label>
+                    <select
+                        value={formData.dayOfWeek}
+                        onChange={(e) => setFormData({ ...formData, dayOfWeek: parseInt(e.target.value) })}
+                        className="w-full px-3 py-2 border rounded-lg"
+                        required
+                    >
+                        {daysOfWeek.map(day => (
+                            <option key={day.value} value={day.value}>{day.label}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Time Slot</label>
+                    <select
+                        value={formData.timeSlot}
+                        onChange={(e) => setFormData({ ...formData, timeSlot: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg"
+                        required
+                    >
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Applies To</label>
+                <select
+                    value={formData.appliesTo}
+                    onChange={(e) => setFormData({ ...formData, appliesTo: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                >
+                    {pgyLevels.map(level => (
+                        <option key={level} value={level}>
+                            {level === 'all' ? 'All Residents' : level}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Site (Optional)</label>
+                <select
+                    value={formData.siteId}
+                    onChange={(e) => setFormData({ ...formData, siteId: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                >
+                    <option value="">All Sites</option>
+                    {sites.map(site => (
+                        <option key={site.id} value={site.id}>
+                            {site.name} ({site.code})
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div>
+                <label className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        checked={formData.mandatory}
+                        onChange={(e) => setFormData({ ...formData, mandatory: e.target.checked })}
+                        className="rounded"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Mandatory Attendance</span>
+                </label>
+                <p className="text-xs text-gray-500 mt-1">
+                    If checked, residents must attend unless explicitly excused
+                </p>
+            </div>
+
+            <div className="flex justify-end gap-2">
+                <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+                <Button type="submit">Save Protected Time</Button>
             </div>
         </form>
     );
