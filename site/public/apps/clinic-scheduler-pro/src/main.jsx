@@ -2706,7 +2706,6 @@ const App = () => {
                                 </div>
                                 <div>
                                     <h1 className="text-xl font-display font-bold text-medical-900">Clinic Scheduler Pro</h1>
-                                    <p className="text-xs text-medical-600 font-medium">Premium Healthcare Edition</p>
                                 </div>
                             </div>
 

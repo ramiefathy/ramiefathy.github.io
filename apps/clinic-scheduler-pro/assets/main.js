@@ -2774,9 +2774,7 @@ const App = () => {
     className: "text-white"
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
     className: "text-xl font-display font-bold text-medical-900"
-  }, "Clinic Scheduler Pro"), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs text-medical-600 font-medium"
-  }, "Premium Healthcare Edition"))), /*#__PURE__*/React.createElement("div", {
+  }, "Clinic Scheduler Pro"))), /*#__PURE__*/React.createElement("div", {
     className: "hidden md:flex ml-12 space-x-2"
   }, navItems.map(item => /*#__PURE__*/React.createElement(motion.button, {
     key: item.id,
