@@ -1470,7 +1470,10 @@ const Dashboard = () => {
 };
 
 // ==================== Schedule Calendar Component ====================
-const ScheduleCalendar = () => {
+const ScheduleCalendar = ({
+  initialFilter,
+  onNavigateToPerson
+}) => {
   const {
     firebaseService,
     institution
@@ -1492,6 +1495,19 @@ const ScheduleCalendar = () => {
   const [showAutoScheduler, setShowAutoScheduler] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Individual schedule view states
+  const [scheduleFilter, setScheduleFilter] = useState(initialFilter?.type || 'all');
+  const [selectedPersonId, setSelectedPersonId] = useState(initialFilter?.id || null);
+  const [showPersonSelector, setShowPersonSelector] = useState(false);
+
+  // Update filter when prop changes
+  useEffect(() => {
+    if (initialFilter) {
+      setScheduleFilter(initialFilter.type);
+      setSelectedPersonId(initialFilter.id);
+    }
+  }, [initialFilter]);
 
   // Save view mode preference
   useEffect(() => {
@@ -1524,11 +1540,21 @@ const ScheduleCalendar = () => {
     const weekStart = viewMode === 'week' ? currentDate : startOfWeekFunc(currentDate, {
       weekStartsOn: 1
     });
-    for (let i = 0; i < 5; i++) {
+    // Show full week (7 days) instead of just weekdays
+    for (let i = 0; i < 7; i++) {
       days.push(addDaysFunc(weekStart, i));
     }
     return days;
   }, [currentDate, viewMode]);
+  const getDayName = date => {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const dayIndex = (date.getDay() + 6) % 7; // Adjust for Monday start
+    return days[dayIndex];
+  };
+  const isWeekend = date => {
+    const day = date.getDay();
+    return day === 0 || day === 6; // Sunday or Saturday
+  };
   const monthDays = useMemo(() => {
     if (viewMode !== 'month') return [];
     const days = [];
@@ -1626,6 +1652,45 @@ const ScheduleCalendar = () => {
   const isCurrentMonth = date => {
     return date.getMonth() === currentDate.getMonth();
   };
+
+  // Filter assignments based on selected person
+  const getFilteredAssignments = () => {
+    if (scheduleFilter === 'all' || !selectedPersonId) {
+      return assignments;
+    }
+    if (scheduleFilter === 'resident') {
+      return assignments.filter(a => a.residentId === selectedPersonId);
+    }
+    if (scheduleFilter === 'attending') {
+      return assignments.filter(a => a.attendingId === selectedPersonId);
+    }
+    return assignments;
+  };
+  const getFilteredAssignmentsForSlot = (date, timeSlot) => {
+    const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
+    const filtered = getFilteredAssignments();
+    return filtered.filter(a => a.date === dateStr && a.timeSlot === timeSlot);
+  };
+  const selectPerson = (type, personId) => {
+    setScheduleFilter(type);
+    setSelectedPersonId(personId);
+    setShowPersonSelector(false);
+  };
+  const clearFilter = () => {
+    setScheduleFilter('all');
+    setSelectedPersonId(null);
+  };
+  const getSelectedPersonName = () => {
+    if (scheduleFilter === 'resident' && selectedPersonId) {
+      const resident = residents.find(r => r.id === selectedPersonId);
+      return resident?.name || 'Unknown';
+    }
+    if (scheduleFilter === 'attending' && selectedPersonId) {
+      const attending = attendings.find(a => a.id === selectedPersonId);
+      return attending?.name || 'Unknown';
+    }
+    return null;
+  };
   if (loading) {
     return /*#__PURE__*/React.createElement(LoadingSpinner, {
       size: "lg",
@@ -1638,11 +1703,57 @@ const ScheduleCalendar = () => {
     className: "flex items-center justify-between"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
     className: "text-2xl font-bold text-gray-900"
-  }, "Schedule Calendar"), /*#__PURE__*/React.createElement("p", {
+  }, "Schedule Calendar", getSelectedPersonName() && /*#__PURE__*/React.createElement("span", {
+    className: "ml-2 text-lg font-normal text-gray-600"
+  }, "- ", getSelectedPersonName())), /*#__PURE__*/React.createElement("p", {
     className: "text-gray-600"
-  }, "Drag and drop to manage assignments")), /*#__PURE__*/React.createElement("div", {
+  }, scheduleFilter === 'all' ? 'Drag and drop to manage assignments' : `Viewing ${scheduleFilter} schedule`)), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3"
   }, /*#__PURE__*/React.createElement("div", {
+    className: "relative"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: () => setShowPersonSelector(!showPersonSelector)
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "user",
+    size: 16,
+    className: "mr-2"
+  }), scheduleFilter === 'all' ? 'All Schedules' : getSelectedPersonName(), /*#__PURE__*/React.createElement(Icon, {
+    name: "chevron-down",
+    size: 16,
+    className: "ml-2"
+  })), showPersonSelector && /*#__PURE__*/React.createElement("div", {
+    className: "absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: clearFilter,
+    className: `w-full text-left px-4 py-2 hover:bg-gray-50 ${scheduleFilter === 'all' ? 'bg-primary-50 text-primary-700' : ''}`
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "users",
+    size: 16,
+    className: "inline mr-2"
+  }), "All Schedules"), residents.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50"
+  }, "RESIDENTS"), residents.map(resident => /*#__PURE__*/React.createElement("button", {
+    key: resident.id,
+    onClick: () => selectPerson('resident', resident.id),
+    className: `w-full text-left px-4 py-2 hover:bg-gray-50 ${scheduleFilter === 'resident' && selectedPersonId === resident.id ? 'bg-primary-50 text-primary-700' : ''}`
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "user",
+    size: 16,
+    className: "inline mr-2"
+  }), resident.name, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-gray-500 ml-1"
+  }, "(R", resident.year, ")")))), attendings.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50"
+  }, "ATTENDINGS"), attendings.map(attending => /*#__PURE__*/React.createElement("button", {
+    key: attending.id,
+    onClick: () => selectPerson('attending', attending.id),
+    className: `w-full text-left px-4 py-2 hover:bg-gray-50 ${scheduleFilter === 'attending' && selectedPersonId === attending.id ? 'bg-primary-50 text-primary-700' : ''}`
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "user-check",
+    size: 16,
+    className: "inline mr-2"
+  }), attending.name))))), /*#__PURE__*/React.createElement("div", {
     className: "inline-flex rounded-lg border border-gray-200 p-0.5 bg-white"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => switchViewMode('month'),
@@ -1680,21 +1791,27 @@ const ScheduleCalendar = () => {
   /*#__PURE__*/
   /* Week View */
   React.createElement("div", {
-    className: "calendar-grid"
+    className: "calendar-grid-week"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "bg-gray-50 p-4 font-medium text-gray-700"
+    className: "bg-gray-50 p-2 font-medium text-gray-700"
   }, "Time"), weekDays.map(day => /*#__PURE__*/React.createElement("div", {
     key: day,
-    className: "bg-gray-50 p-4 font-medium text-gray-700"
-  }, window.dateFns ? window.dateFns.format(day, 'EEE, MMM d') : day.toLocaleDateString())), timeSlots.map(timeSlot => /*#__PURE__*/React.createElement(React.Fragment, {
+    className: `p-2 font-medium text-center ${isWeekend(day) ? 'bg-gray-100' : 'bg-gray-50'} ${isToday(day) ? 'bg-primary-50 text-primary-700' : 'text-gray-700'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-semibold"
+  }, getDayName(day)), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs"
+  }, window.dateFns ? window.dateFns.format(day, 'MMM d') : day.toLocaleDateString()))), timeSlots.map(timeSlot => /*#__PURE__*/React.createElement(React.Fragment, {
     key: timeSlot
   }, /*#__PURE__*/React.createElement("div", {
     className: "bg-gray-50 p-4 font-medium text-gray-700"
   }, timeSlot), weekDays.map(day => {
-    const slotAssignments = getAssignmentsForSlot(day, timeSlot);
+    const slotAssignments = getFilteredAssignmentsForSlot(day, timeSlot);
+    const isWeekendDay = isWeekend(day);
+    const isTodaySlot = isToday(day);
     return /*#__PURE__*/React.createElement("div", {
       key: `${day}-${timeSlot}`,
-      className: "time-slot",
+      className: `time-slot ${isWeekendDay ? 'weekend-slot' : ''} ${isTodaySlot ? 'today-slot' : ''}`,
       onDragOver: handleDragOver,
       onDrop: e => handleDrop(e, day, timeSlot),
       onClick: () => handleQuickAdd(day, timeSlot)
@@ -1710,10 +1827,22 @@ const ScheduleCalendar = () => {
         className: "flex items-center justify-between"
       }, /*#__PURE__*/React.createElement("div", {
         className: "flex-1"
-      }, /*#__PURE__*/React.createElement("p", {
-        className: "font-medium text-gray-900"
-      }, resident?.name || 'Unknown Resident'), /*#__PURE__*/React.createElement("p", {
-        className: "text-gray-600"
+      }, /*#__PURE__*/React.createElement("button", {
+        onClick: e => {
+          e.stopPropagation();
+          if (resident && onNavigateToPerson) {
+            onNavigateToPerson('resident', assignment.residentId);
+          }
+        },
+        className: "font-medium text-gray-900 hover:text-blue-600 text-left"
+      }, resident?.name || 'Unknown Resident'), /*#__PURE__*/React.createElement("button", {
+        onClick: e => {
+          e.stopPropagation();
+          if (attending && onNavigateToPerson) {
+            onNavigateToPerson('attending', assignment.attendingId);
+          }
+        },
+        className: "text-gray-600 hover:text-blue-600 block text-left"
       }, attending?.name || 'Unknown Attending'), assignment.type === 'continuity' && /*#__PURE__*/React.createElement("span", {
         className: "inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700"
       }, "Continuity")), /*#__PURE__*/React.createElement("button", {
@@ -1737,7 +1866,8 @@ const ScheduleCalendar = () => {
     className: "bg-gray-50 p-2 text-center font-medium text-gray-700 text-sm"
   }, day)), monthDays.map(day => {
     const dateStr = window.dateFns ? window.dateFns.format(day, 'yyyy-MM-dd') : day.toISOString().split('T')[0];
-    const dayAssignments = assignments.filter(a => a.date === dateStr);
+    const filtered = getFilteredAssignments();
+    const dayAssignments = filtered.filter(a => a.date === dateStr);
     const amAssignments = dayAssignments.filter(a => a.timeSlot === 'AM');
     const pmAssignments = dayAssignments.filter(a => a.timeSlot === 'PM');
     return /*#__PURE__*/React.createElement("div", {
@@ -1899,7 +2029,9 @@ const AssignmentForm = ({
 };
 
 // ==================== Attendings List Component ====================
-const AttendingsList = () => {
+const AttendingsList = ({
+  navigateToSchedule
+}) => {
   const {
     firebaseService
   } = useApp();
@@ -1981,14 +2113,23 @@ const AttendingsList = () => {
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => navigateToSchedule('attending', attending.id),
+    className: "text-blue-600 hover:text-blue-700",
+    title: "View Schedule"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "calendar",
+    size: 16
+  })), /*#__PURE__*/React.createElement("button", {
     onClick: () => setEditingAttending(attending),
-    className: "text-primary-600 hover:text-primary-700"
+    className: "text-primary-600 hover:text-primary-700",
+    title: "Edit"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "pencil",
     size: 16
   })), /*#__PURE__*/React.createElement("button", {
     onClick: () => handleDelete(attending.id),
-    className: "text-red-600 hover:text-red-700"
+    className: "text-red-600 hover:text-red-700",
+    title: "Delete"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "trash",
     size: 16
@@ -2079,7 +2220,9 @@ const AttendingForm = ({
 };
 
 // ==================== Residents List Component ====================
-const ResidentsList = () => {
+const ResidentsList = ({
+  navigateToSchedule
+}) => {
   const {
     firebaseService
   } = useApp();
@@ -2161,14 +2304,23 @@ const ResidentsList = () => {
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => navigateToSchedule('resident', resident.id),
+    className: "text-blue-600 hover:text-blue-700",
+    title: "View Schedule"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "calendar",
+    size: 16
+  })), /*#__PURE__*/React.createElement("button", {
     onClick: () => setEditingResident(resident),
-    className: "text-primary-600 hover:text-primary-700"
+    className: "text-primary-600 hover:text-primary-700",
+    title: "Edit"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "pencil",
     size: 16
   })), /*#__PURE__*/React.createElement("button", {
     onClick: () => handleDelete(resident.id),
-    className: "text-red-600 hover:text-red-700"
+    className: "text-red-600 hover:text-red-700",
+    title: "Delete"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "trash",
     size: 16
@@ -2696,6 +2848,14 @@ const App = () => {
     loading
   } = useApp();
   const [activeView, setActiveView] = useState('dashboard');
+  const [scheduleFilterData, setScheduleFilterData] = useState(null);
+  const navigateToSchedule = (personType, personId) => {
+    setScheduleFilterData({
+      type: personType,
+      id: personId
+    });
+    setActiveView('schedule');
+  };
   if (loading) {
     return /*#__PURE__*/React.createElement("div", {
       className: "min-h-screen flex items-center justify-center"
@@ -2857,7 +3017,14 @@ const App = () => {
     className: "text-white"
   }))))))), /*#__PURE__*/React.createElement("main", {
     className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative"
-  }, activeView === 'dashboard' && /*#__PURE__*/React.createElement(Dashboard, null), activeView === 'schedule' && /*#__PURE__*/React.createElement(ScheduleCalendar, null), activeView === 'attendings' && /*#__PURE__*/React.createElement(AttendingsList, null), activeView === 'residents' && /*#__PURE__*/React.createElement(ResidentsList, null), activeView === 'rules' && /*#__PURE__*/React.createElement(RulesList, null), activeView === 'settings' && /*#__PURE__*/React.createElement(SettingsView, null)), /*#__PURE__*/React.createElement(Toaster, {
+  }, activeView === 'dashboard' && /*#__PURE__*/React.createElement(Dashboard, null), activeView === 'schedule' && /*#__PURE__*/React.createElement(ScheduleCalendar, {
+    initialFilter: scheduleFilterData,
+    onNavigateToPerson: navigateToSchedule
+  }), activeView === 'attendings' && /*#__PURE__*/React.createElement(AttendingsList, {
+    navigateToSchedule: navigateToSchedule
+  }), activeView === 'residents' && /*#__PURE__*/React.createElement(ResidentsList, {
+    navigateToSchedule: navigateToSchedule
+  }), activeView === 'rules' && /*#__PURE__*/React.createElement(RulesList, null), activeView === 'settings' && /*#__PURE__*/React.createElement(SettingsView, null)), /*#__PURE__*/React.createElement(Toaster, {
     position: "bottom-right",
     toastOptions: {
       className: 'font-medium',
