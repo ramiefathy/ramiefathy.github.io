@@ -13,20 +13,43 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- React and dependencies -->
+    <!-- React and dependencies - Load first -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Load dependencies after React is available -->
     <script type="module">
-        import * as dateFns from 'https://esm.sh/date-fns@2.30.0?bundle';
-        import * as Recharts from 'https://esm.sh/recharts@2.5.0?bundle';
-        import Papa from 'https://esm.sh/papaparse@5.4.1?bundle';
-        import * as lucide from 'https://esm.sh/lucide@0.462.0?bundle';
-        import * as framerMotion from 'https://esm.sh/framer-motion@11.0.3?bundle';
-        window['date-fns'] = dateFns;
-        window.Recharts = Recharts;
-        window.Papa = Papa;
-        window.lucide = lucide;
-        window['framer-motion'] = framerMotion;
+        // Wait for React to be available globally
+        function waitForReact() {
+            return new Promise((resolve) => {
+                if (window.React && window.ReactDOM) {
+                    resolve();
+                } else {
+                    setTimeout(() => waitForReact().then(resolve), 50);
+                }
+            });
+        }
+
+        waitForReact().then(async () => {
+            // Now import ESM modules that might depend on React
+            const [dateFns, Recharts, Papa, lucide, framerMotion] = await Promise.all([
+                import('https://esm.sh/date-fns@2.30.0?bundle'),
+                import('https://esm.sh/recharts@2.5.0?bundle&external=react,react-dom'),
+                import('https://esm.sh/papaparse@5.4.1?bundle'),
+                import('https://esm.sh/lucide@0.462.0?bundle'),
+                import('https://esm.sh/framer-motion@11.0.3?bundle&external=react,react-dom')
+            ]);
+
+            window['date-fns'] = dateFns;
+            window.Recharts = Recharts;
+            window.Papa = Papa;
+            window.lucide = lucide;
+            window['framer-motion'] = framerMotion;
+
+            // Signal that all dependencies are loaded
+            window.depsLoaded = true;
+            window.dispatchEvent(new Event('depsLoaded'));
+        });
     </script>
 
     <!-- Additional Libraries -->
@@ -658,6 +681,28 @@
         };
     </script>
 
-        <script src="./assets/main.js" defer></script>
+        <script>
+            // Wait for all dependencies before loading main.js
+            function loadMainApp() {
+                if (window.depsLoaded) {
+                    const script = document.createElement('script');
+                    script.src = './assets/main.js';
+                    document.body.appendChild(script);
+                } else {
+                    window.addEventListener('depsLoaded', () => {
+                        const script = document.createElement('script');
+                        script.src = './assets/main.js';
+                        document.body.appendChild(script);
+                    });
+                }
+            }
+
+            // Start loading after DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadMainApp);
+            } else {
+                loadMainApp();
+            }
+        </script>
 </body>
 </html>
