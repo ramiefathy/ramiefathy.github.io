@@ -12,12 +12,16 @@ const {
 const {
   createPortal
 } = ReactDOM;
-const motion = ({
-  children
-}) => children; // Placeholder since framer-motion not loading
-const AnimatePresence = ({
-  children
-}) => children;
+// Use framer-motion if it successfully shares the React runtime
+const useFramerMotion = window.depsIdentity?.framerMotionSharesWindowReact ||
+                       (window['framer-motion']?.React === window.React) ||
+                       window.__framerMotionReact === window.React;
+const motion = useFramerMotion && window['framer-motion']?.motion ?
+               window['framer-motion'].motion :
+               ({ children }) => children;
+const AnimatePresence = useFramerMotion && window['framer-motion']?.AnimatePresence ?
+                       window['framer-motion'].AnimatePresence :
+                       ({ children }) => children;
 const ToastDispatchContext = createContext(null);
 const ToastStateContext = createContext([]);
 let externalToastDispatch = null;

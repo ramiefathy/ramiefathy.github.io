@@ -17,9 +17,14 @@
     <script type="importmap">
         {
             "imports": {
-                "react": "https://esm.sh/react@18?bundle",
-                "react-dom": "https://esm.sh/react-dom@18?bundle",
-                "react-dom/client": "https://esm.sh/react-dom@18/client?bundle"
+                "react": "https://esm.sh/stable/react@18.3.1/es2022/react.mjs",
+                "react-dom": "https://esm.sh/stable/react-dom@18.3.1/es2022/react-dom.mjs",
+                "react-dom/client": "https://esm.sh/stable/react-dom@18.3.1/es2022/client.mjs",
+                "https://esm.sh/stable/react@18.2.0/es2022/react.mjs": "https://esm.sh/stable/react@18.3.1/es2022/react.mjs",
+                "https://esm.sh/v135/react-dom@18.2.0/es2022/react-dom.mjs": "https://esm.sh/stable/react-dom@18.3.1/es2022/react-dom.mjs",
+                "https://esm.sh/v135/react@18.2.0/es2022/react.mjs": "https://esm.sh/stable/react@18.3.1/es2022/react.mjs",
+                "https://esm.sh/react@18.2.0": "https://esm.sh/react@18.3.1",
+                "https://esm.sh/react-dom@18.2.0": "https://esm.sh/react-dom@18.3.1"
             }
         }
     </script>
@@ -33,21 +38,38 @@
         const resolveSpec = (specifier, fallbackUrl) => supportsImportMap ? specifier : fallbackUrl;
 
         const mergeModule = (mod) => {
+            if (!mod) return mod;
             const base = mod?.default ?? mod;
-            return Object.assign(base, mod);
+            if (typeof base === 'function') {
+                return Object.assign(base, mod);
+            }
+            if (typeof base === 'object' && base !== null) {
+                const merged = {};
+                for (const key of Object.keys(base)) {
+                    merged[key] = base[key];
+                }
+                for (const key of Object.keys(mod)) {
+                    merged[key] = mod[key];
+                }
+                if (!Object.prototype.hasOwnProperty.call(merged, 'default') && mod?.default) {
+                    merged.default = mod.default;
+                }
+                return merged;
+            }
+            return { ...mod };
         };
 
         async function loadDependencies() {
             try {
                 const [reactMod, reactDomMod, reactDomClientMod, dateFns, Recharts, Papa, lucide, framerMotion] = await Promise.all([
-                    import(resolveSpec('react', 'https://esm.sh/react@18.3.1?bundle')),
-                    import(resolveSpec('react-dom', 'https://esm.sh/react-dom@18.3.1?bundle')),
-                    import(resolveSpec('react-dom/client', 'https://esm.sh/react-dom@18.3.1/client?bundle')),
-                    import('https://esm.sh/date-fns@2.30.0?bundle'),
-                    import(`https://esm.sh/recharts@2.5.0?bundle${supportsImportMap ? '&external=react,react-dom' : ''}`),
-                    import('https://esm.sh/papaparse@5.4.1?bundle'),
-                    import('https://esm.sh/lucide@0.462.0?bundle'),
-                    import(`https://esm.sh/framer-motion@11.0.3?bundle${supportsImportMap ? '&external=react,react-dom' : ''}`)
+                    import(resolveSpec('react', 'https://esm.sh/stable/react@18.3.1/es2022/react.mjs')),
+                    import(resolveSpec('react-dom', 'https://esm.sh/stable/react-dom@18.3.1/es2022/react-dom.mjs')),
+                    import(resolveSpec('react-dom/client', 'https://esm.sh/stable/react-dom@18.3.1/es2022/client.mjs')),
+                    import('https://esm.sh/stable/date-fns@2.30.0/es2022/date-fns.bundle.mjs'),
+                    import('https://esm.sh/stable/recharts@2.5.0/es2022/recharts.mjs?external=react,react-dom'),
+                    import('https://esm.sh/stable/papaparse@5.4.1/es2022/papaparse.bundle.mjs'),
+                    import('https://esm.sh/stable/lucide@0.462.0/es2022/lucide.bundle.mjs'),
+                    import('https://esm.sh/stable/framer-motion@11.0.3/es2022/framer-motion.mjs?external=react,react-dom')
                 ]);
 
                 const React = mergeModule(reactMod);
@@ -69,13 +91,55 @@
                 window.lucide = lucide;
                 window['framer-motion'] = framerMotion;
 
+                const ensureReactIdentity = (target, fallbackKey) => {
+                    if (!target) return;
+                    const hasReactProp = Object.prototype.hasOwnProperty.call(target, 'React');
+                    if (hasReactProp && target.React === React) {
+                        return;
+                    }
+                    try {
+                        if (!hasReactProp && Object.isExtensible(target)) {
+                            Object.defineProperty(target, 'React', {
+                                value: React,
+                                configurable: true,
+                                writable: false,
+                                enumerable: false
+                            });
+                            return;
+                        }
+                        if (hasReactProp) {
+                            Object.defineProperty(target, 'React', {
+                                value: React,
+                                configurable: true,
+                                writable: false
+                            });
+                            return;
+                        }
+                    } catch (error) {
+                        console.warn('Failed to tag React identity on dependency', fallbackKey, error);
+                    }
+                    if (fallbackKey) {
+                        window[fallbackKey] = React;
+                    }
+                };
+
+                ensureReactIdentity(window.Recharts, '__rechartsReact');
+                ensureReactIdentity(window['framer-motion'], '__framerMotionReact');
+
+                const identityChecks = {
+                    rechartsSharesWindowReact: window.Recharts?.React === React || window.__rechartsReact === React,
+                    framerMotionSharesWindowReact: window['framer-motion']?.React === React || window.__framerMotionReact === React
+                };
+                window.depsIdentity = identityChecks;
+
                 window.depsLoaded = true;
                 window.dispatchEvent(new Event('depsLoaded'));
                 console.info('[deps] Loaded', {
                     supportsImportMap,
                     reactVersion: React?.version,
                     reactDomVersion: ReactDOM?.version,
-                    framerMotionHasReact: typeof framerMotion?.motion === 'function'
+                    framerMotionHasReact: typeof framerMotion?.motion === 'function',
+                    identityChecks
                 });
             } catch (error) {
                 console.error('Failed to load dependencies', error);
