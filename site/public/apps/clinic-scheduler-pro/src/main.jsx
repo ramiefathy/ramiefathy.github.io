@@ -1264,8 +1264,8 @@ const Dashboard = () => {
         const thisWeek = Object.entries(assignments)
             .filter(([key]) => {
                 const [date] = key.split('_');
-                const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-                const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+                const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
+                const weekEnd = endOfWeek(new Date(), { weekStartsOn: 0 });
                 const assignmentDate = parseISO(date);
                 return assignmentDate >= weekStart && assignmentDate <= weekEnd;
             })
@@ -1393,7 +1393,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     const [currentDate, setCurrentDate] = useState(() => {
         const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
         const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : (d) => new Date(d.getFullYear(), d.getMonth(), 1);
-        return viewMode === 'week' ? startOfWeekFunc(new Date(), { weekStartsOn: 1 }) : startOfMonthFunc(new Date());
+        return viewMode === 'week' ? startOfWeekFunc(new Date(), { weekStartsOn: 0 }) : startOfMonthFunc(new Date());
     });
     const [assignments, setAssignments] = useState([]);
     const [attendings, setAttendings] = useState([]);
@@ -1449,7 +1449,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
         const days = [];
         const addDaysFunc = window.dateFns ? window.dateFns.addDays : (d, n) => new Date(d.getTime() + n * 86400000);
         const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
-        const weekStart = viewMode === 'week' ? currentDate : startOfWeekFunc(currentDate, { weekStartsOn: 1 });
+        const weekStart = viewMode === 'week' ? currentDate : startOfWeekFunc(currentDate, { weekStartsOn: 0 });
         // Show full week (7 days) instead of just weekdays
         for (let i = 0; i < 7; i++) {
             days.push(addDaysFunc(weekStart, i));
@@ -1555,7 +1555,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
         setViewMode(mode);
         if (mode === 'week') {
             const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
-            setCurrentDate(startOfWeekFunc(currentDate, { weekStartsOn: 1 }));
+            setCurrentDate(startOfWeekFunc(currentDate, { weekStartsOn: 0 }));
         } else {
             const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : (d) => new Date(d.getFullYear(), d.getMonth(), 1);
             setCurrentDate(startOfMonthFunc(currentDate));
@@ -1883,12 +1883,12 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                             return (
                                 <div
                                     key={dateStr}
-                                    className={`month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''}`}
+                                    className={`month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''} ${isWeekend(day) ? 'weekend-slot' : ''}`}
                                     onClick={() => {
                                         if (isCurrentMonth(day)) {
                                             // Switch to week view for this day
                                             const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
-                                            setCurrentDate(startOfWeekFunc(day, { weekStartsOn: 1 }));
+                                            setCurrentDate(startOfWeekFunc(day, { weekStartsOn: 0 }));
                                             setViewMode('week');
                                         }
                                     }}
