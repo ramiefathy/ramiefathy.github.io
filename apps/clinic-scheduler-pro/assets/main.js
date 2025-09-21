@@ -1796,7 +1796,7 @@ const ScheduleCalendar = ({
     className: "bg-gray-50 p-2 font-medium text-gray-700"
   }, "Time"), weekDays.map(day => /*#__PURE__*/React.createElement("div", {
     key: day,
-    className: `p-2 font-medium text-center ${isWeekend(day) ? 'bg-gray-100' : 'bg-gray-50'} ${isToday(day) ? 'bg-primary-50 text-primary-700' : 'text-gray-700'}`
+    className: `p-2 font-medium text-center ${isWeekend(day) ? 'bg-gray-200 text-gray-500' : 'bg-gray-50'} ${isToday(day) ? 'bg-primary-50 text-primary-700' : isWeekend(day) ? 'text-gray-500' : 'text-gray-700'}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-sm font-semibold"
   }, getDayName(day)), /*#__PURE__*/React.createElement("div", {

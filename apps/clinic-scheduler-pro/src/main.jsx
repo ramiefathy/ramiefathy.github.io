@@ -1773,8 +1773,8 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                             <div
                                 key={day}
                                 className={`p-2 font-medium text-center ${
-                                    isWeekend(day) ? 'bg-gray-100' : 'bg-gray-50'
-                                } ${isToday(day) ? 'bg-primary-50 text-primary-700' : 'text-gray-700'}`}
+                                    isWeekend(day) ? 'bg-gray-200 text-gray-500' : 'bg-gray-50'
+                                } ${isToday(day) ? 'bg-primary-50 text-primary-700' : isWeekend(day) ? 'text-gray-500' : 'text-gray-700'}`}
                             >
                                 <div className="text-sm font-semibold">{getDayName(day)}</div>
                                 <div className="text-xs">
