@@ -1299,7 +1299,7 @@ const Dashboard = () => {
                 <div className="flex items-center gap-3">
                     <Button
                         variant="secondary"
-                        size="sm"
+                        size="md"
                         onClick={async () => {
                             try {
                                 const calculateAnalytics = window.firebase.functions.httpsCallable('calculateAnalytics');
@@ -1322,7 +1322,7 @@ const Dashboard = () => {
                     </Button>
                     <Button
                         variant="secondary"
-                        size="sm"
+                        size="md"
                         onClick={async () => {
                             try {
                                 const generatePDF = window.firebase.functions.httpsCallable('generateSchedulePDF');
@@ -2477,84 +2477,105 @@ const App = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Navigation */}
-            <nav className="bg-white shadow-sm border-b border-gray-200">
+        <div className="min-h-screen font-body" style={{ background: 'linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 100%)' }}>
+            {/* Premium Navigation Header */}
+            <motion.nav
+                initial={{ y: -100 }}
+                animate={{ y: 0 }}
+                className="sticky top-0 z-50 glass-card border-b border-medical-200/20 backdrop-blur-xl"
+                style={{ background: 'rgba(255, 255, 255, 0.82)' }}
+            >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
+                    <div className="flex justify-between h-20">
                         <div className="flex items-center">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-primary-100 rounded-lg">
-                                    <Icon name="calendar-days" size={24} className="text-primary-600" />
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-gradient-to-br from-medical-400 to-medical-600 rounded-2xl shadow-lg shadow-medical-500/20">
+                                    <Icon name="calendar-days" size={26} className="text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-lg font-bold text-gray-900">Clinic Scheduler Pro</h1>
-                                    <p className="text-xs text-gray-500">Firebase Edition</p>
+                                    <h1 className="text-xl font-display font-bold text-medical-900">Clinic Scheduler Pro</h1>
+                                    <p className="text-xs text-medical-600 font-medium">Premium Healthcare Edition</p>
                                 </div>
                             </div>
 
-                            <div className="hidden md:flex ml-10 space-x-1">
+                            <div className="hidden md:flex ml-12 space-x-2">
                                 {navItems.map(item => (
-                                    <button
+                                    <motion.button
                                         key={item.id}
                                         onClick={() => setActiveView(item.id)}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                         className={`
-                                            px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all
+                                            px-4 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 transition-all relative
                                             ${activeView === item.id
-                                                ? 'bg-primary-50 text-primary-700'
-                                                : 'text-gray-600 hover:bg-gray-50'
+                                                ? 'bg-gradient-to-r from-medical-500 to-medical-600 text-white shadow-lg shadow-medical-500/25'
+                                                : 'text-medical-700 hover:bg-medical-50 hover:text-medical-900'
                                             }
                                         `}
                                     >
                                         <Icon name={item.icon} size={16} />
                                         {item.label}
-                                    </button>
+                                        {activeView === item.id && (
+                                            <motion.div
+                                                layoutId="activeTab"
+                                                className="absolute inset-0 bg-gradient-to-r from-medical-500 to-medical-600 rounded-full -z-10"
+                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                            />
+                                        )}
+                                    </motion.button>
                                 ))}
                             </div>
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-lg">
-                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                <span className="text-sm text-green-700 font-medium">Live</span>
-                            </div>
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="badge-live flex items-center gap-2 px-4 py-2 rounded-full"
+                            >
+                                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                <span className="text-sm text-white font-bold">Live Sync</span>
+                            </motion.div>
 
                             <motion.button
-                                whileHover={{ scale: 1.05 }}
+                                whileHover={{ scale: 1.05, rotate: 5 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="p-2 hover:bg-gray-100 rounded-lg relative transition-colors"
+                                className="p-3 glass-card rounded-full relative transition-all hover:shadow-lg"
                             >
-                                <Icon name="bell" size={20} className="text-gray-600" />
+                                <Icon name="bell" size={20} className="text-medical-700" />
                                 <motion.span
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center"
+                                    className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg"
                                 >
                                     <span className="text-xs text-white font-bold">3</span>
                                 </motion.span>
                             </motion.button>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3 pl-3 border-l border-medical-200">
                                 <div className="text-right">
-                                    <p className="text-sm font-medium text-gray-900">{user.name || user.email}</p>
+                                    <p className="text-sm font-semibold text-medical-900">{user.name || user.email}</p>
                                     <button
                                         onClick={handleSignOut}
-                                        className="text-xs text-gray-500 hover:text-gray-700"
+                                        className="text-xs text-medical-600 hover:text-medical-800 font-medium transition-colors"
                                     >
                                         Sign Out
                                     </button>
                                 </div>
-                                <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                                    <Icon name="user" size={16} className="text-primary-600" />
-                                </div>
+                                <motion.div
+                                    whileHover={{ scale: 1.1 }}
+                                    className="w-10 h-10 bg-gradient-to-br from-medical-400 to-medical-600 rounded-full flex items-center justify-center shadow-lg shadow-medical-500/20"
+                                >
+                                    <Icon name="user" size={18} className="text-white" />
+                                </motion.div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </nav>
+            </motion.nav>
 
-            {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Main Content with Glass Background */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
                 {activeView === 'dashboard' && <Dashboard />}
                 {activeView === 'schedule' && <ScheduleCalendar />}
                 {activeView === 'attendings' && <AttendingsList />}
