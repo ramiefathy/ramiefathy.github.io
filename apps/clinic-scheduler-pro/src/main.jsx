@@ -2341,9 +2341,20 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     const weekDays = useMemo(() => {
         const days = [];
         const addDaysFunc = window.dateFns ? window.dateFns.addDays : (d, n) => new Date(d.getTime() + n * 86400000);
-        const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
-        const weekStart = viewMode === 'week' ? currentDate : startOfWeekFunc(currentDate, { weekStartsOn: 0 });
-        // Show full week (7 days) instead of just weekdays
+        const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => {
+            // Manual implementation to start week on Sunday
+            const date = new Date(d);
+            const day = date.getDay();
+            const diff = date.getDate() - day;
+            return new Date(date.setDate(diff));
+        };
+
+        // Always get the Sunday of the current week
+        const weekStart = window.dateFns
+            ? window.dateFns.startOfWeek(currentDate, { weekStartsOn: 0 })
+            : startOfWeekFunc(currentDate);
+
+        // Show full week (7 days) starting from Sunday
         for (let i = 0; i < 7; i++) {
             days.push(addDaysFunc(weekStart, i));
         }
