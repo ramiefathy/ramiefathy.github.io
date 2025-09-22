@@ -108,6 +108,107 @@ const Toaster = () => null;
 const { format, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, getDay, addDays } = window['date-fns'];
 const { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
 
+// ==================== Validation Utilities ====================
+const ValidationUtils = {
+    // Email validation using RFC 5322 compliant regex
+    validateEmail: (email) => {
+        if (!email) return { isValid: false, error: 'Email is required' };
+        const trimmedEmail = email.trim();
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        if (!emailRegex.test(trimmedEmail)) {
+            return { isValid: false, error: 'Please enter a valid email address' };
+        }
+        if (trimmedEmail.length > 255) {
+            return { isValid: false, error: 'Email must be less than 255 characters' };
+        }
+        return { isValid: true, value: trimmedEmail };
+    },
+
+    // Required field validation
+    validateRequired: (value, fieldName) => {
+        if (!value || (typeof value === 'string' && !value.trim())) {
+            return { isValid: false, error: `${fieldName} is required` };
+        }
+        return { isValid: true, value: typeof value === 'string' ? value.trim() : value };
+    },
+
+    // Trim and validate length
+    trimAndValidate: (value, maxLength, fieldName) => {
+        if (!value) return { isValid: true, value: '' };
+        const trimmed = value.trim();
+        if (trimmed.length > maxLength) {
+            return { isValid: false, error: `${fieldName} must be less than ${maxLength} characters` };
+        }
+        return { isValid: true, value: trimmed };
+    },
+
+    // Phone number validation (optional)
+    validatePhoneNumber: (phone, required = false) => {
+        if (!phone && !required) return { isValid: true, value: '' };
+        if (!phone && required) return { isValid: false, error: 'Phone number is required' };
+
+        const cleaned = phone.replace(/\D/g, '');
+        if (cleaned.length < 10) {
+            return { isValid: false, error: 'Phone number must be at least 10 digits' };
+        }
+        if (cleaned.length > 15) {
+            return { isValid: false, error: 'Phone number must be less than 15 digits' };
+        }
+
+        // Format as (XXX) XXX-XXXX for US numbers
+        let formatted = cleaned;
+        if (cleaned.length === 10) {
+            formatted = `(${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6)}`;
+        }
+        return { isValid: true, value: formatted };
+    },
+
+    // Name validation - no numbers or special characters except spaces, hyphens, apostrophes
+    validateName: (name, fieldName = 'Name') => {
+        if (!name) return { isValid: false, error: `${fieldName} is required` };
+        const trimmed = name.trim();
+        if (trimmed.length < 2) {
+            return { isValid: false, error: `${fieldName} must be at least 2 characters` };
+        }
+        if (trimmed.length > 100) {
+            return { isValid: false, error: `${fieldName} must be less than 100 characters` };
+        }
+        const nameRegex = /^[a-zA-Z\s'-]+$/;
+        if (!nameRegex.test(trimmed)) {
+            return { isValid: false, error: `${fieldName} can only contain letters, spaces, hyphens, and apostrophes` };
+        }
+        return { isValid: true, value: trimmed };
+    },
+
+    // PGY level validation
+    validatePGYLevel: (level) => {
+        const num = parseInt(level);
+        if (isNaN(num) || num < 1 || num > 10) {
+            return { isValid: false, error: 'PGY level must be between 1 and 10' };
+        }
+        return { isValid: true, value: num };
+    },
+
+    // Validate all fields in a form
+    validateForm: (fields) => {
+        const errors = {};
+        const values = {};
+        let isValid = true;
+
+        for (const [key, validation] of Object.entries(fields)) {
+            const result = validation();
+            if (!result.isValid) {
+                errors[key] = result.error;
+                isValid = false;
+            } else {
+                values[key] = result.value;
+            }
+        }
+
+        return { isValid, errors, values };
+    }
+};
+
 // Wait for Firebase to be available
 const waitForFirebase = () => {
     return new Promise((resolve) => {
@@ -1090,27 +1191,106 @@ const LoginPage = () => {
         name: '',
         confirmPassword: ''
     });
+    const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
     const { firebaseService } = useApp();
+
+    const validateField = (field, value) => {
+        let result = { isValid: true };
+
+        switch (field) {
+            case 'email':
+                result = ValidationUtils.validateEmail(value);
+                break;
+            case 'name':
+                if (isSignUp) {
+                    result = ValidationUtils.validateName(value, 'Full name');
+                }
+                break;
+            case 'password':
+                if (!value) {
+                    result = { isValid: false, error: 'Password is required' };
+                }
+                break;
+            case 'confirmPassword':
+                if (isSignUp) {
+                    if (!value) {
+                        result = { isValid: false, error: 'Please confirm your password' };
+                    } else if (value !== formData.password) {
+                        result = { isValid: false, error: 'Passwords do not match' };
+                    }
+                }
+                break;
+        }
+
+        return result;
+    };
+
+    const handleFieldChange = (field, value) => {
+        setFormData({ ...formData, [field]: value });
+
+        // Clear error when user starts typing
+        if (touched[field]) {
+            const validation = validateField(field, value);
+            setErrors(prev => ({
+                ...prev,
+                [field]: validation.isValid ? undefined : validation.error
+            }));
+        }
+    };
+
+    const handleFieldBlur = (field) => {
+        setTouched(prev => ({ ...prev, [field]: true }));
+        const validation = validateField(field, formData[field]);
+        setErrors(prev => ({
+            ...prev,
+            [field]: validation.isValid ? undefined : validation.error
+        }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
+        // Validate all fields
+        const fieldsToValidate = isSignUp
+            ? ['email', 'password', 'name', 'confirmPassword']
+            : ['email', 'password'];
+
+        const newErrors = {};
+        const validatedValues = {};
+        let isFormValid = true;
+
+        for (const field of fieldsToValidate) {
+            const validation = validateField(field, formData[field]);
+            if (!validation.isValid) {
+                newErrors[field] = validation.error;
+                isFormValid = false;
+            } else if (validation.value !== undefined) {
+                validatedValues[field] = validation.value;
+            }
+        }
+
+        if (!isFormValid) {
+            setErrors(newErrors);
+            setTouched(Object.fromEntries(fieldsToValidate.map(f => [f, true])));
+            setLoading(false);
+            return;
+        }
+
         try {
             if (isSignUp) {
-                if (formData.password !== formData.confirmPassword) {
-                    toast.error('Passwords do not match');
-                    setLoading(false);
-                    return;
-                }
-
-                const result = await firebaseService.signUp(formData.email, formData.password, formData.name);
+                const result = await firebaseService.signUp(
+                    validatedValues.email || formData.email,
+                    formData.password,
+                    validatedValues.name || formData.name
+                );
                 if (result.success) {
                     toast.success('Account created successfully!');
                     // Create first institution
                     const instResult = await firebaseService.createInstitution(
-                        `${formData.name}'s Institution`,
-                        { name: formData.name, email: formData.email }
+                        `${validatedValues.name || formData.name}'s Institution`,
+                        { name: validatedValues.name || formData.name, email: validatedValues.email || formData.email }
                     );
                     if (instResult.success) {
                         toast.success('Institution created!');
@@ -1119,7 +1299,10 @@ const LoginPage = () => {
                     toast.error(result.error);
                 }
             } else {
-                const result = await firebaseService.signIn(formData.email, formData.password);
+                const result = await firebaseService.signIn(
+                    validatedValues.email || formData.email,
+                    formData.password
+                );
                 if (result.success) {
                     toast.success('Welcome back!');
                 } else {
@@ -1127,19 +1310,21 @@ const LoginPage = () => {
                 }
             }
         } catch (error) {
-            toast.error('An error occurred');
+            toast.error('An error occurred. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
     const handleResetPassword = async () => {
-        if (!formData.email) {
-            toast.error('Please enter your email address');
+        const emailValidation = ValidationUtils.validateEmail(formData.email);
+        if (!emailValidation.isValid) {
+            setErrors({ email: emailValidation.error });
+            setTouched({ email: true });
             return;
         }
 
-        const result = await firebaseService.resetPassword(formData.email);
+        const result = await firebaseService.resetPassword(emailValidation.value);
         if (result.success) {
             toast.success('Password reset email sent!');
         } else {
@@ -1165,56 +1350,111 @@ const LoginPage = () => {
                         {isSignUp && (
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Full Name
+                                    Full Name <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                    required
+                                    onChange={(e) => handleFieldChange('name', e.target.value)}
+                                    onBlur={() => handleFieldBlur('name')}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                                        errors.name && touched.name
+                                            ? 'border-red-500 bg-red-50'
+                                            : touched.name && !errors.name
+                                            ? 'border-green-500'
+                                            : 'border-gray-300'
+                                    }`}
+                                    aria-invalid={errors.name && touched.name}
+                                    aria-describedby={errors.name && touched.name ? 'name-error' : undefined}
                                 />
+                                {errors.name && touched.name && (
+                                    <p id="name-error" className="mt-1 text-xs text-red-600">
+                                        {errors.name}
+                                    </p>
+                                )}
                             </div>
                         )}
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Email Address
+                                Email Address <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="email"
                                 value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                required
+                                onChange={(e) => handleFieldChange('email', e.target.value)}
+                                onBlur={() => handleFieldBlur('email')}
+                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                                    errors.email && touched.email
+                                        ? 'border-red-500 bg-red-50'
+                                        : touched.email && !errors.email
+                                        ? 'border-green-500'
+                                        : 'border-gray-300'
+                                }`}
+                                autoComplete="email"
+                                aria-invalid={errors.email && touched.email}
+                                aria-describedby={errors.email && touched.email ? 'email-error' : undefined}
                             />
+                            {errors.email && touched.email && (
+                                <p id="email-error" className="mt-1 text-xs text-red-600">
+                                    {errors.email}
+                                </p>
+                            )}
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Password
+                                Password <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="password"
                                 value={formData.password}
-                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                required
+                                onChange={(e) => handleFieldChange('password', e.target.value)}
+                                onBlur={() => handleFieldBlur('password')}
+                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                                    errors.password && touched.password
+                                        ? 'border-red-500 bg-red-50'
+                                        : touched.password && !errors.password
+                                        ? 'border-green-500'
+                                        : 'border-gray-300'
+                                }`}
+                                autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                                aria-invalid={errors.password && touched.password}
+                                aria-describedby={errors.password && touched.password ? 'password-error' : undefined}
                             />
+                            {errors.password && touched.password && (
+                                <p id="password-error" className="mt-1 text-xs text-red-600">
+                                    {errors.password}
+                                </p>
+                            )}
                         </div>
 
                         {isSignUp && (
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Confirm Password
+                                    Confirm Password <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="password"
                                     value={formData.confirmPassword}
-                                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                    required
+                                    onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
+                                    onBlur={() => handleFieldBlur('confirmPassword')}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                                        errors.confirmPassword && touched.confirmPassword
+                                            ? 'border-red-500 bg-red-50'
+                                            : touched.confirmPassword && !errors.confirmPassword && formData.confirmPassword
+                                            ? 'border-green-500'
+                                            : 'border-gray-300'
+                                    }`}
+                                    autoComplete="new-password"
+                                    aria-invalid={errors.confirmPassword && touched.confirmPassword}
+                                    aria-describedby={errors.confirmPassword && touched.confirmPassword ? 'confirm-password-error' : undefined}
                                 />
+                                {errors.confirmPassword && touched.confirmPassword && (
+                                    <p id="confirm-password-error" className="mt-1 text-xs text-red-600">
+                                        {errors.confirmPassword}
+                                    </p>
+                                )}
                             </div>
                         )}
 
@@ -3953,10 +4193,16 @@ const App = () => {
     const { user, loading, firebaseService } = useApp();
     const [activeView, setActiveView] = useState('dashboard');
     const [scheduleFilterData, setScheduleFilterData] = useState(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const navigateToSchedule = (personType, personId) => {
         setScheduleFilterData({ type: personType, id: personId });
         setActiveView('schedule');
+    };
+
+    const handleNavClick = (viewId) => {
+        setActiveView(viewId);
+        setMobileMenuOpen(false); // Close mobile menu on navigation
     };
 
     if (loading) {
@@ -4013,7 +4259,7 @@ const App = () => {
                                 {navItems.map(item => (
                                     <motion.button
                                         key={item.id}
-                                        onClick={() => setActiveView(item.id)}
+                                        onClick={() => handleNavClick(item.id)}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         className={`
@@ -4039,10 +4285,23 @@ const App = () => {
                         </div>
 
                         <div className="flex items-center gap-4">
+                            {/* Mobile menu button */}
+                            <button
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                className="md:hidden p-2 rounded-lg hover:bg-medical-50 transition-colors"
+                                aria-label="Toggle menu"
+                            >
+                                <Icon
+                                    name={mobileMenuOpen ? "x" : "menu"}
+                                    size={24}
+                                    className="text-medical-700"
+                                />
+                            </button>
+
                             <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className="badge-live flex items-center gap-2 px-4 py-2 rounded-full"
+                                className="hidden sm:flex badge-live items-center gap-2 px-4 py-2 rounded-full"
                             >
                                 <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                                 <span className="text-sm text-white font-bold">Live Sync</span>
@@ -4063,7 +4322,7 @@ const App = () => {
                                 </motion.span>
                             </motion.button>
 
-                            <div className="flex items-center gap-3 pl-3 border-l border-medical-200">
+                            <div className="hidden md:flex items-center gap-3 pl-3 border-l border-medical-200">
                                 <div className="text-right">
                                     <p className="text-sm font-semibold text-medical-900">{user.name || user.email}</p>
                                     <button
@@ -4084,6 +4343,97 @@ const App = () => {
                     </div>
                 </div>
             </motion.nav>
+
+            {/* Mobile Navigation Menu */}
+            <AnimatePresence>
+                {mobileMenuOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="md:hidden fixed inset-0 bg-black/50 z-40"
+                        />
+
+                        {/* Mobile Menu Panel */}
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                            className="md:hidden fixed right-0 top-0 h-full w-80 bg-white shadow-2xl z-50 overflow-y-auto"
+                        >
+                            <div className="flex flex-col h-full">
+                                {/* Header */}
+                                <div className="flex items-center justify-between p-4 border-b">
+                                    <h2 className="text-lg font-bold text-medical-900">Menu</h2>
+                                    <button
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                        aria-label="Close menu"
+                                    >
+                                        <Icon name="x" size={24} className="text-gray-600" />
+                                    </button>
+                                </div>
+
+                                {/* User Info */}
+                                <div className="p-4 bg-gradient-to-br from-medical-50 to-medical-100 border-b">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-medical-400 to-medical-600 rounded-full flex items-center justify-center">
+                                            <Icon name="user" size={20} className="text-white" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-medical-900">{user.name || 'User'}</p>
+                                            <p className="text-sm text-medical-600">{user.email}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Navigation Items */}
+                                <nav className="flex-1 p-4">
+                                    <ul className="space-y-2">
+                                        {navItems.map(item => (
+                                            <li key={item.id}>
+                                                <button
+                                                    onClick={() => handleNavClick(item.id)}
+                                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                                                        activeView === item.id
+                                                            ? 'bg-gradient-to-r from-medical-500 to-medical-600 text-white shadow-lg'
+                                                            : 'hover:bg-medical-50 text-medical-700'
+                                                    }`}
+                                                >
+                                                    <Icon name={item.icon} size={20} />
+                                                    <span className="font-medium">{item.label}</span>
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </nav>
+
+                                {/* Footer */}
+                                <div className="p-4 border-t">
+                                    <div className="flex items-center gap-2 px-3 py-2 bg-green-100 rounded-lg mb-3">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                        <span className="text-sm text-green-700 font-medium">Live Sync Active</span>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            handleSignOut();
+                                            setMobileMenuOpen(false);
+                                        }}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium"
+                                    >
+                                        <Icon name="log-out" size={20} />
+                                        Sign Out
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
 
             {/* Main Content with Glass Background */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
