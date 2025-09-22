@@ -869,24 +869,28 @@
     </script>
 
         <script>
+            const CACHE_VERSION = '20250922-1';
+
             // Wait for all dependencies before loading main.js
+            function appendMainBundle() {
+                const script = document.createElement('script');
+                script.src = `./assets/main.js?v=${CACHE_VERSION}`;
+                script.type = 'module';
+                script.crossOrigin = 'anonymous';
+                document.body.appendChild(script);
+            }
+
             function loadMainApp() {
                 if (window.depsLoaded) {
-                    const script = document.createElement('script');
-                    script.src = './assets/main.js';
-                    document.body.appendChild(script);
+                    appendMainBundle();
                 } else {
-                    window.addEventListener('depsLoaded', () => {
-                        const script = document.createElement('script');
-                        script.src = './assets/main.js';
-                        document.body.appendChild(script);
-                    });
+                    window.addEventListener('depsLoaded', appendMainBundle, { once: true });
                 }
             }
 
             // Start loading after DOM is ready
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', loadMainApp);
+                document.addEventListener('DOMContentLoaded', loadMainApp, { once: true });
             } else {
                 loadMainApp();
             }
