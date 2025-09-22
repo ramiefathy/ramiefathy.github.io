@@ -1588,8 +1588,12 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
 
         const monthStart = startOfMonthFunc(currentDate);
         const monthEnd = endOfMonthFunc(currentDate);
-        const calendarStart = startOfWeekFunc(monthStart);
-        const calendarEnd = endOfWeekFunc(monthEnd);
+        const calendarStart = window.dateFns
+            ? window.dateFns.startOfWeek(monthStart, { weekStartsOn: 0 })
+            : startOfWeekFunc(monthStart);
+        const calendarEnd = window.dateFns
+            ? window.dateFns.endOfWeek(monthEnd, { weekStartsOn: 0 })
+            : endOfWeekFunc(monthEnd);
 
         return eachDayOfIntervalFunc({ start: calendarStart, end: calendarEnd });
     }, [currentDate, viewMode]);
