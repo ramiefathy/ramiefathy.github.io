@@ -2805,7 +2805,10 @@ const ScheduleCalendar = ({
           friday: 5,
           saturday: 6
         };
-        const targetDay = dayMap[resident.continuityDay];
+        const targetDay = dayMap[resident.continuityDay?.toLowerCase?.()] ?? null;
+        if (targetDay === null) {
+          return;
+        }
 
         // Generate for next 52 weeks (1 year)
         for (let week = 0; week < 52; week++) {
