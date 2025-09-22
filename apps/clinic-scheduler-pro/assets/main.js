@@ -1513,12 +1513,101 @@ const ScheduleCalendar = ({
   useEffect(() => {
     localStorage.setItem('scheduleViewMode', viewMode);
   }, [viewMode]);
+
+  // Generate virtual assignments for continuity clinics and protected times
+  const generateVirtualAssignments = (residents, protectedTimes) => {
+    const virtual = [];
+    const today = new Date();
+
+    // Generate continuity clinic assignments
+    residents.forEach(resident => {
+      if (resident.continuityDay && resident.continuityTime && resident.continuitySiteId) {
+        const dayMap = {
+          sunday: 0,
+          monday: 1,
+          tuesday: 2,
+          wednesday: 3,
+          thursday: 4,
+          friday: 5,
+          saturday: 6
+        };
+        const targetDay = dayMap[resident.continuityDay];
+
+        // Generate for next 52 weeks (1 year)
+        for (let week = 0; week < 52; week++) {
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay() + week * 7);
+          const targetDate = new Date(weekStart);
+          targetDate.setDate(weekStart.getDate() + targetDay);
+
+          // Check if this week is a vacation week
+          const targetWeekStr = targetDate.toISOString().split('T')[0];
+          const isVacationWeek = resident.vacationWeeks?.some(vw => {
+            const vacationStart = new Date(vw);
+            const vacationEnd = new Date(vacationStart);
+            vacationEnd.setDate(vacationEnd.getDate() + 6);
+            return targetDate >= vacationStart && targetDate <= vacationEnd;
+          });
+          if (targetDate >= today && !isVacationWeek) {
+            virtual.push({
+              id: `continuity_${resident.id}_${targetDate.toISOString().split('T')[0]}`,
+              residentId: resident.id,
+              attendingId: null,
+              date: targetDate.toISOString().split('T')[0],
+              timeSlot: resident.continuityTime,
+              type: 'continuity',
+              siteId: resident.continuitySiteId,
+              virtual: true
+            });
+          }
+        }
+      }
+    });
+
+    // Generate protected time assignments
+    if (protectedTimes) {
+      protectedTimes.forEach(pt => {
+        // Generate for next 52 weeks (1 year)
+        for (let week = 0; week < 52; week++) {
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay() + week * 7);
+          const targetDate = new Date(weekStart);
+          targetDate.setDate(weekStart.getDate() + pt.dayOfWeek);
+          if (targetDate >= today) {
+            // Create assignments for all applicable residents
+            residents.forEach(resident => {
+              const residentPGY = resident.pgyStatus || 'PGY-1';
+              if (pt.appliesTo === 'all' || pt.appliesTo === residentPGY) {
+                virtual.push({
+                  id: `protected_${pt.id}_${resident.id}_${targetDate.toISOString().split('T')[0]}`,
+                  residentId: resident.id,
+                  attendingId: null,
+                  date: targetDate.toISOString().split('T')[0],
+                  timeSlot: pt.timeSlot,
+                  type: 'protected',
+                  eventName: pt.name,
+                  eventType: pt.eventType,
+                  siteId: pt.siteId,
+                  mandatory: pt.mandatory,
+                  virtual: true
+                });
+              }
+            });
+          }
+        }
+      });
+    }
+    return virtual;
+  };
   useEffect(() => {
     if (!firebaseService.currentInstitution) return;
 
     // Set up real-time listeners
     const unsubscribeAssignments = firebaseService.listenToAssignments(data => {
-      setAssignments(data);
+      // Merge real assignments with virtual ones
+      const virtualAssignments = generateVirtualAssignments(residents, institution?.settings?.protectedTimes);
+      const mergedAssignments = [...data, ...virtualAssignments];
+      setAssignments(mergedAssignments);
       setLoading(false);
     });
     const unsubscribeAttendings = firebaseService.listenToAttendings(data => {
@@ -1526,13 +1615,19 @@ const ScheduleCalendar = ({
     });
     const unsubscribeResidents = firebaseService.listenToResidents(data => {
       setResidents(data);
+      // Regenerate assignments when residents change
+      const virtualAssignments = generateVirtualAssignments(data, institution?.settings?.protectedTimes);
+      setAssignments(prev => {
+        const realAssignments = prev.filter(a => !a.virtual);
+        return [...realAssignments, ...virtualAssignments];
+      });
     });
     return () => {
       unsubscribeAssignments();
       unsubscribeAttendings();
       unsubscribeResidents();
     };
-  }, [firebaseService.currentInstitution]);
+  }, [firebaseService.currentInstitution, institution?.settings?.protectedTimes]);
   const weekDays = useMemo(() => {
     const days = [];
     const addDaysFunc = window.dateFns ? window.dateFns.addDays : (d, n) => new Date(d.getTime() + n * 86400000);
@@ -1547,9 +1642,8 @@ const ScheduleCalendar = ({
     return days;
   }, [currentDate, viewMode]);
   const getDayName = date => {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const dayIndex = (date.getDay() + 6) % 7; // Adjust for Monday start
-    return days[dayIndex];
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[date.getDay()];
   };
   const isWeekend = date => {
     const day = date.getDay();
@@ -1820,14 +1914,24 @@ const ScheduleCalendar = ({
       const attending = attendings.find(a => a.id === assignment.attendingId);
       return /*#__PURE__*/React.createElement("div", {
         key: assignment.id,
-        draggable: true,
+        draggable: assignment.type !== 'protected',
         onDragStart: e => handleDragStart(e, assignment),
-        className: "assignment-card"
+        className: `assignment-card ${assignment.type === 'protected' ? 'bg-gray-100 border-gray-300 opacity-75' : assignment.type === 'continuity' ? 'bg-amber-50 border-amber-200' : ''}`
       }, /*#__PURE__*/React.createElement("div", {
         className: "flex items-center justify-between"
       }, /*#__PURE__*/React.createElement("div", {
         className: "flex-1"
-      }, /*#__PURE__*/React.createElement("button", {
+      }, assignment.type === 'protected' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+        className: "font-medium text-gray-700"
+      }, assignment.eventName || 'Protected Time'), /*#__PURE__*/React.createElement("div", {
+        className: "text-sm text-gray-500"
+      }, resident?.name || 'All Residents'), /*#__PURE__*/React.createElement("span", {
+        className: "inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-200 text-gray-700"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "shield",
+        size: 10,
+        className: "mr-1"
+      }), "Protected")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
         onClick: e => {
           e.stopPropagation();
           if (resident && onNavigateToPerson) {
@@ -1835,7 +1939,15 @@ const ScheduleCalendar = ({
           }
         },
         className: "font-medium text-gray-900 hover:text-blue-600 text-left"
-      }, resident?.name || 'Unknown Resident'), /*#__PURE__*/React.createElement("button", {
+      }, resident?.name || 'Unknown Resident'), assignment.type === 'continuity' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+        className: "text-sm text-gray-600"
+      }, "Continuity Clinic"), /*#__PURE__*/React.createElement("span", {
+        className: "inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "repeat",
+        size: 10,
+        className: "mr-1"
+      }), "Continuity")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
         onClick: e => {
           e.stopPropagation();
           if (attending && onNavigateToPerson) {
@@ -1843,9 +1955,7 @@ const ScheduleCalendar = ({
           }
         },
         className: "text-gray-600 hover:text-blue-600 block text-left"
-      }, attending?.name || 'Unknown Attending'), assignment.type === 'continuity' && /*#__PURE__*/React.createElement("span", {
-        className: "inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700"
-      }, "Continuity")), /*#__PURE__*/React.createElement("button", {
+      }, attending?.name || 'Unknown Attending')))), !assignment.virtual && /*#__PURE__*/React.createElement("button", {
         onClick: e => {
           e.stopPropagation();
           handleDeleteAssignment(assignment.id);
@@ -1861,9 +1971,9 @@ const ScheduleCalendar = ({
   /* Month View */
   React.createElement("div", {
     className: "calendar-grid-month"
-  }, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => /*#__PURE__*/React.createElement("div", {
+  }, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => /*#__PURE__*/React.createElement("div", {
     key: day,
-    className: "bg-gray-50 p-2 text-center font-medium text-gray-700 text-sm"
+    className: `p-2 text-center font-medium text-sm ${index === 0 || index === 6 ? 'bg-gray-100 text-gray-500' : 'bg-gray-50 text-gray-700'}`
   }, day)), monthDays.map(day => {
     const dateStr = window.dateFns ? window.dateFns.format(day, 'yyyy-MM-dd') : day.toISOString().split('T')[0];
     const filtered = getFilteredAssignments();
@@ -1961,13 +2071,49 @@ const AssignmentForm = ({
   onSave,
   onCancel
 }) => {
+  const {
+    institution
+  } = useApp();
+  const sites = institution?.settings?.sites || [];
+  const rotations = institution?.settings?.rotations || [];
   const [formData, setFormData] = useState({
     date,
     timeSlot,
     residentId: '',
     attendingId: '',
-    type: 'clinical'
+    type: 'clinical',
+    siteId: '',
+    rotationId: ''
   });
+
+  // Get resident's current rotation for the month
+  const getResidentRotation = residentId => {
+    if (!residentId) return null;
+    const resident = residents.find(r => r.id === residentId);
+    if (!resident) return null;
+    const monthStr = new Date(date).toISOString().slice(0, 7);
+    const assignment = resident.rotationAssignments?.find(ra => ra.month === monthStr);
+    if (!assignment) return null;
+    return rotations.find(r => r.id === assignment.rotationId);
+  };
+
+  // Get available attendings based on rotation and time slot
+  const getAvailableAttendings = () => {
+    if (!formData.residentId) return attendings;
+    const rotation = getResidentRotation(formData.residentId);
+    if (!rotation) return attendings;
+    const dayOfWeek = new Date(date).getDay();
+
+    // Filter attendings who:
+    // 1. Support this rotation
+    // 2. Have clinic sessions on this day/time
+    return attendings.filter(attending => {
+      const supportsRotation = attending.rotationIds?.includes(rotation.id);
+      const hasClinicSession = attending.clinicSchedule?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot);
+      return supportsRotation && hasClinicSession;
+    });
+  };
+  const availableAttendings = getAvailableAttendings();
   return /*#__PURE__*/React.createElement("form", {
     onSubmit: e => {
       e.preventDefault();
@@ -1991,20 +2137,35 @@ const AssignmentForm = ({
     value: r.id
   }, r.name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
-  }, "Attending"), /*#__PURE__*/React.createElement("select", {
+  }, "Attending", availableAttendings.length === 0 && formData.residentId && /*#__PURE__*/React.createElement("span", {
+    className: "text-red-500 text-xs ml-2"
+  }, "No attendings available for this rotation/time")), /*#__PURE__*/React.createElement("select", {
     value: formData.attendingId,
-    onChange: e => setFormData({
-      ...formData,
-      attendingId: e.target.value
-    }),
+    onChange: e => {
+      const attendingId = e.target.value;
+      const attending = attendings.find(a => a.id === attendingId);
+      const dayOfWeek = new Date(date).getDay();
+      const session = attending?.clinicSchedule?.find(s => s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot);
+      setFormData({
+        ...formData,
+        attendingId,
+        siteId: session?.siteId || '',
+        rotationId: getResidentRotation(formData.residentId)?.id || ''
+      });
+    },
     className: "w-full px-3 py-2 border rounded-lg",
     required: true
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "Select Attending"), attendings.map(a => /*#__PURE__*/React.createElement("option", {
-    key: a.id,
-    value: a.id
-  }, a.name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+  }, "Select Attending"), availableAttendings.map(a => {
+    const dayOfWeek = new Date(date).getDay();
+    const session = a.clinicSchedule?.find(s => s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot);
+    const site = sites.find(s => s.id === session?.siteId);
+    return /*#__PURE__*/React.createElement("option", {
+      key: a.id,
+      value: a.id
+    }, a.name, " ", site && `(${site.name})`);
+  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Type"), /*#__PURE__*/React.createElement("select", {
     value: formData.type,
@@ -2154,9 +2315,11 @@ const AttendingForm = ({
     institution
   } = useApp();
   const sites = institution?.settings?.sites || [];
+  const rotations = institution?.settings?.rotations || [];
   const [formData, setFormData] = useState({
     name: attending.name || '',
     clinicSchedule: attending.clinicSchedule || [],
+    rotationIds: attending.rotationIds || [],
     ...attending
   });
   const daysOfWeek = [{
@@ -2240,6 +2403,36 @@ const AttendingForm = ({
     className: "w-full px-3 py-2 border rounded-lg",
     required: true
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Supported Rotations"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mb-2"
+  }, "Select rotations this attending supports"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3"
+  }, rotations.map(rotation => /*#__PURE__*/React.createElement("label", {
+    key: rotation.id,
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: formData.rotationIds?.includes(rotation.id),
+    onChange: e => {
+      if (e.target.checked) {
+        setFormData({
+          ...formData,
+          rotationIds: [...(formData.rotationIds || []), rotation.id]
+        });
+      } else {
+        setFormData({
+          ...formData,
+          rotationIds: formData.rotationIds?.filter(id => id !== rotation.id) || []
+        });
+      }
+    },
+    className: "rounded"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm"
+  }, rotation.name, " (", rotation.code, ")", rotation.isMultiSite && /*#__PURE__*/React.createElement("span", {
+    className: "ml-1 text-xs text-gray-500"
+  }, "[Multi-site]")))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Clinic Schedule"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-gray-500 mb-3"
@@ -2432,8 +2625,10 @@ const ResidentForm = ({
     pgyStatus: resident.pgyStatus || 'PGY-1',
     continuityDay: resident.continuityDay || '',
     continuityTime: resident.continuityTime || '',
+    continuitySiteId: resident.continuitySiteId || '',
     rotationAssignments: resident.rotationAssignments || [],
     halfDaysOff: resident.halfDaysOff || [],
+    vacationWeeks: resident.vacationWeeks || [],
     ...resident
   });
   const [editingMonth, setEditingMonth] = useState(null);
@@ -2530,7 +2725,7 @@ const ResidentForm = ({
       value: assignment?.rotationId || '',
       onChange: e => {
         const rotation = rotations.find(r => r.id === e.target.value);
-        const primarySite = rotation?.siteIds?.[0] || sites[0]?.id;
+        const primarySite = rotation?.isMultiSite ? null : rotation?.siteIds?.[0] || sites[0]?.id;
         setRotationForMonth(month, e.target.value, primarySite);
       },
       className: "flex-1 px-2 py-1 border rounded text-sm"
@@ -2539,20 +2734,36 @@ const ResidentForm = ({
     }, "No Rotation"), rotations.map(r => /*#__PURE__*/React.createElement("option", {
       key: r.id,
       value: r.id
-    }, r.name))), assignment && /*#__PURE__*/React.createElement("select", {
-      value: assignment.primarySiteId || '',
-      onChange: e => setRotationForMonth(month, assignment.rotationId, e.target.value),
-      className: "w-32 px-2 py-1 border rounded text-sm"
-    }, sites.filter(s => {
+    }, r.name, r.isMultiSite && ' [Multi-site]'))), assignment && (() => {
       const rotation = rotations.find(r => r.id === assignment.rotationId);
-      return rotation?.siteIds?.includes(s.id);
-    }).map(s => /*#__PURE__*/React.createElement("option", {
-      key: s.id,
-      value: s.id
-    }, s.name))));
+      return !rotation?.isMultiSite && /*#__PURE__*/React.createElement("select", {
+        value: assignment.primarySiteId || '',
+        onChange: e => setRotationForMonth(month, assignment.rotationId, e.target.value),
+        className: "w-32 px-2 py-1 border rounded text-sm"
+      }, /*#__PURE__*/React.createElement("option", {
+        value: ""
+      }, "Select Site"), sites.filter(s => rotation?.siteIds?.includes(s.id)).map(s => /*#__PURE__*/React.createElement("option", {
+        key: s.id,
+        value: s.id
+      }, s.name)));
+    })());
   }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Continuity Clinic"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: formData.continuitySiteId,
+    onChange: e => setFormData({
+      ...formData,
+      continuitySiteId: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "No Continuity Site"), sites.map(site => /*#__PURE__*/React.createElement("option", {
+    key: site.id,
+    value: site.id
+  }, site.name, " (", site.code, ")"))), formData.continuitySiteId && /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-2 gap-2"
   }, /*#__PURE__*/React.createElement("select", {
     value: formData.continuityDay,
@@ -2563,7 +2774,7 @@ const ResidentForm = ({
     className: "px-3 py-2 border rounded-lg"
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "No Day"), /*#__PURE__*/React.createElement("option", {
+  }, "Select Day"), /*#__PURE__*/React.createElement("option", {
     value: "monday"
   }, "Monday"), /*#__PURE__*/React.createElement("option", {
     value: "tuesday"
@@ -2582,11 +2793,58 @@ const ResidentForm = ({
     className: "px-3 py-2 border rounded-lg"
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "No Time"), /*#__PURE__*/React.createElement("option", {
+  }, "Select Time"), /*#__PURE__*/React.createElement("option", {
     value: "AM"
   }, "AM"), /*#__PURE__*/React.createElement("option", {
     value: "PM"
-  }, "PM")))), /*#__PURE__*/React.createElement("div", {
+  }, "PM"))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Vacation Weeks"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mb-2"
+  }, "Select weeks when this resident is on vacation (no continuity clinic)"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 items-center"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    placeholder: "Select week start date",
+    className: "px-3 py-2 border rounded-lg",
+    onChange: e => {
+      if (e.target.value && !formData.vacationWeeks?.includes(e.target.value)) {
+        setFormData({
+          ...formData,
+          vacationWeeks: [...(formData.vacationWeeks || []), e.target.value]
+        });
+        e.target.value = '';
+      }
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-gray-600"
+  }, "Add vacation week starting on this date")), formData.vacationWeeks?.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1 max-h-32 overflow-y-auto border rounded-lg p-2"
+  }, formData.vacationWeeks.sort().map((weekStart, idx) => {
+    const startDate = new Date(weekStart);
+    const endDate = new Date(weekStart);
+    endDate.setDate(endDate.getDate() + 6);
+    return /*#__PURE__*/React.createElement("div", {
+      key: idx,
+      className: "flex items-center justify-between p-1 hover:bg-gray-50 rounded"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-sm"
+    }, startDate.toLocaleDateString(), " - ", endDate.toLocaleDateString()), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => {
+        setFormData({
+          ...formData,
+          vacationWeeks: formData.vacationWeeks.filter(w => w !== weekStart)
+        });
+      },
+      className: "text-red-600 hover:text-red-700"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "x",
+      size: 14
+    })));
+  })))), /*#__PURE__*/React.createElement("div", {
     className: "flex justify-end gap-3"
   }, /*#__PURE__*/React.createElement(Button, {
     type: "button",
@@ -2823,11 +3081,13 @@ const SettingsView = () => {
       siteIds: ['site_1'],
       isMultiSite: false,
       requirements: {}
-    }]
+    }],
+    protectedTimes: institution?.settings?.protectedTimes || []
   });
   const [saving, setSaving] = useState(false);
   const [editingSite, setEditingSite] = useState(null);
   const [editingRotation, setEditingRotation] = useState(null);
+  const [editingProtectedTime, setEditingProtectedTime] = useState(null);
   const handleSave = async () => {
     setSaving(true);
     await firebaseService.updateInstitutionSettings(settings);
@@ -2846,6 +3106,10 @@ const SettingsView = () => {
     id: 'rotations',
     name: 'Rotations',
     icon: 'repeat'
+  }, {
+    id: 'protected',
+    name: 'Protected Times',
+    icon: 'shield'
   }, {
     id: 'schedule',
     name: 'Schedule',
@@ -2986,7 +3250,50 @@ const SettingsView = () => {
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "trash-2",
     size: 16
-  }))))))), activeTab === 'schedule' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+  }))))))), activeTab === 'protected' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center mb-4"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-medium text-gray-900"
+  }, "Protected Times"), /*#__PURE__*/React.createElement(Button, {
+    onClick: () => setEditingProtectedTime({}),
+    size: "sm"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 16,
+    className: "mr-1"
+  }), "Add Protected Time")), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600 mb-4"
+  }, "Define recurring weekly events like Didactics, Grand Rounds, or protected educational time."), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, settings.protectedTimes.map(pt => /*#__PURE__*/React.createElement("div", {
+    key: pt.id,
+    className: "flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-medium"
+  }, pt.name), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-gray-500"
+  }, ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][pt.dayOfWeek], " ", pt.timeSlot, pt.appliesTo && pt.appliesTo !== 'all' && ` • ${pt.appliesTo.toUpperCase()}`, pt.mandatory && ' • Mandatory')), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditingProtectedTime(pt),
+    className: "text-blue-600 hover:text-blue-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "pencil",
+    size: 16
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setSettings({
+        ...settings,
+        protectedTimes: settings.protectedTimes.filter(p => p.id !== pt.id)
+      });
+    },
+    className: "text-red-600 hover:text-red-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash-2",
+    size: 16
+  }))))), settings.protectedTimes.length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "text-center py-8 text-gray-500"
+  }, "No protected times defined. Click \"Add Protected Time\" to create one."))), activeTab === 'schedule' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
     className: "text-lg font-medium text-gray-900 mb-4"
   }, "Schedule Preferences"), /*#__PURE__*/React.createElement("div", {
     className: "space-y-4"
@@ -3098,6 +3405,32 @@ const SettingsView = () => {
       setEditingRotation(null);
     },
     onCancel: () => setEditingRotation(null)
+  })), editingProtectedTime && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setEditingProtectedTime(null),
+    title: editingProtectedTime.id ? 'Edit Protected Time' : 'Add Protected Time'
+  }, /*#__PURE__*/React.createElement(ProtectedTimeForm, {
+    protectedTime: editingProtectedTime,
+    sites: settings.sites,
+    onSave: ptData => {
+      if (ptData.id) {
+        setSettings({
+          ...settings,
+          protectedTimes: settings.protectedTimes.map(pt => pt.id === ptData.id ? ptData : pt)
+        });
+      } else {
+        const newPT = {
+          ...ptData,
+          id: `pt_${Date.now()}`
+        };
+        setSettings({
+          ...settings,
+          protectedTimes: [...settings.protectedTimes, newPT]
+        });
+      }
+      setEditingProtectedTime(null);
+    },
+    onCancel: () => setEditingProtectedTime(null)
   })));
 };
 
@@ -3278,6 +3611,172 @@ const RotationForm = ({
   }, "Save Rotation")));
 };
 
+// Protected Time Form Component
+const ProtectedTimeForm = ({
+  protectedTime,
+  sites,
+  onSave,
+  onCancel
+}) => {
+  const [formData, setFormData] = useState({
+    name: protectedTime.name || '',
+    dayOfWeek: protectedTime.dayOfWeek ?? 3,
+    // Default to Wednesday
+    timeSlot: protectedTime.timeSlot || 'AM',
+    appliesTo: protectedTime.appliesTo || 'all',
+    mandatory: protectedTime.mandatory ?? true,
+    eventType: protectedTime.eventType || 'didactics',
+    siteId: protectedTime.siteId || '',
+    ...protectedTime
+  });
+  const daysOfWeek = [{
+    value: 0,
+    label: 'Sunday'
+  }, {
+    value: 1,
+    label: 'Monday'
+  }, {
+    value: 2,
+    label: 'Tuesday'
+  }, {
+    value: 3,
+    label: 'Wednesday'
+  }, {
+    value: 4,
+    label: 'Thursday'
+  }, {
+    value: 5,
+    label: 'Friday'
+  }, {
+    value: 6,
+    label: 'Saturday'
+  }];
+  const pgyLevels = ['all', 'PGY-1', 'PGY-2', 'PGY-3', 'PGY-4', 'PGY-5+'];
+  const eventTypes = [{
+    value: 'didactics',
+    label: 'Didactics'
+  }, {
+    value: 'grand-rounds',
+    label: 'Grand Rounds'
+  }, {
+    value: 'meeting',
+    label: 'Meeting'
+  }, {
+    value: 'protected',
+    label: 'Protected Education'
+  }, {
+    value: 'other',
+    label: 'Other'
+  }];
+  return /*#__PURE__*/React.createElement("form", {
+    onSubmit: e => {
+      e.preventDefault();
+      onSave(formData);
+    },
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Event Name"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.name,
+    onChange: e => setFormData({
+      ...formData,
+      name: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    placeholder: "e.g., Weekly Didactics",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Event Type"), /*#__PURE__*/React.createElement("select", {
+    value: formData.eventType,
+    onChange: e => setFormData({
+      ...formData,
+      eventType: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, eventTypes.map(type => /*#__PURE__*/React.createElement("option", {
+    key: type.value,
+    value: type.value
+  }, type.label)))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Day of Week"), /*#__PURE__*/React.createElement("select", {
+    value: formData.dayOfWeek,
+    onChange: e => setFormData({
+      ...formData,
+      dayOfWeek: parseInt(e.target.value)
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  }, daysOfWeek.map(day => /*#__PURE__*/React.createElement("option", {
+    key: day.value,
+    value: day.value
+  }, day.label)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Time Slot"), /*#__PURE__*/React.createElement("select", {
+    value: formData.timeSlot,
+    onChange: e => setFormData({
+      ...formData,
+      timeSlot: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "AM"
+  }, "AM"), /*#__PURE__*/React.createElement("option", {
+    value: "PM"
+  }, "PM")))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Applies To"), /*#__PURE__*/React.createElement("select", {
+    value: formData.appliesTo,
+    onChange: e => setFormData({
+      ...formData,
+      appliesTo: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, pgyLevels.map(level => /*#__PURE__*/React.createElement("option", {
+    key: level,
+    value: level
+  }, level === 'all' ? 'All Residents' : level)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Site (Optional)"), /*#__PURE__*/React.createElement("select", {
+    value: formData.siteId,
+    onChange: e => setFormData({
+      ...formData,
+      siteId: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "All Sites"), sites.map(site => /*#__PURE__*/React.createElement("option", {
+    key: site.id,
+    value: site.id
+  }, site.name, " (", site.code, ")")))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: formData.mandatory,
+    onChange: e => setFormData({
+      ...formData,
+      mandatory: e.target.checked
+    }),
+    className: "rounded"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-medium text-gray-700"
+  }, "Mandatory Attendance")), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mt-1"
+  }, "If checked, residents must attend unless explicitly excused")), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-2"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: onCancel
+  }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    type: "submit"
+  }, "Save Protected Time")));
+};
+
 // ==================== Auto-Scheduler Component ====================
 const AutoScheduler = ({
   onClose
@@ -3373,7 +3872,8 @@ const AutoScheduler = ({
 const App = () => {
   const {
     user,
-    loading
+    loading,
+    firebaseService
   } = useApp();
   const [activeView, setActiveView] = useState('dashboard');
   const [scheduleFilterData, setScheduleFilterData] = useState(null);
@@ -3424,9 +3924,6 @@ const App = () => {
     icon: 'settings'
   }];
   const handleSignOut = async () => {
-    const {
-      firebaseService
-    } = useApp();
     await firebaseService.signOut();
     toast.success('Signed out successfully');
   };
