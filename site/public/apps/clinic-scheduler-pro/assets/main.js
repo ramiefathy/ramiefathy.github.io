@@ -36,6 +36,10 @@ const toast = {
   error: message => externalToastDispatch?.({
     type: 'error',
     message
+  }),
+  warning: message => externalToastDispatch?.({
+    type: 'warning',
+    message
   })
 };
 const ToastProvider = ({
@@ -101,15 +105,24 @@ const ToastItem = ({
     const timer = setTimeout(() => onDismiss(toast.id), 3500);
     return () => clearTimeout(timer);
   }, [toast.id, onDismiss]);
-  const palette = toast.type === 'success' ? {
-    bg: '#dcfce7',
-    border: '#86efac',
-    text: '#065f46'
-  } : {
-    bg: '#fee2e2',
-    border: '#fca5a5',
-    text: '#991b1b'
+  const paletteMap = {
+    success: {
+      bg: '#dcfce7',
+      border: '#86efac',
+      text: '#065f46'
+    },
+    error: {
+      bg: '#fee2e2',
+      border: '#fca5a5',
+      text: '#991b1b'
+    },
+    warning: {
+      bg: '#fef3c7',
+      border: '#fcd34d',
+      text: '#92400e'
+    }
   };
+  const palette = paletteMap[toast.type] || paletteMap.success;
   return /*#__PURE__*/React.createElement("div", {
     role: "alert",
     onClick: () => onDismiss(toast.id),
@@ -126,6 +139,125 @@ const ToastItem = ({
   }, toast.message);
 };
 const Toaster = () => null;
+
+// ==================== Error Boundary Component ====================
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null
+    };
+  }
+  static getDerivedStateFromError(error) {
+    return {
+      hasError: true
+    };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+    this.setState({
+      error: error,
+      errorInfo: errorInfo
+    });
+
+    // Log to Firebase Analytics if available
+    if (window.firebaseApp) {
+      try {
+        console.log('Logging error to Firebase:', error.toString());
+      } catch (logError) {
+        console.error('Failed to log error to Firebase:', logError);
+      }
+    }
+  }
+  handleReset = () => {
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null
+    });
+    // Optionally refresh the page
+    if (this.props.onReset) {
+      this.props.onReset();
+    }
+  };
+  render() {
+    if (this.state.hasError) {
+      return /*#__PURE__*/React.createElement("div", {
+        className: "min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100 p-4"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "max-w-2xl w-full bg-white rounded-xl shadow-xl p-8"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center justify-center w-16 h-16 bg-red-100 rounded-xl mb-6"
+      }, /*#__PURE__*/React.createElement("svg", {
+        className: "w-8 h-8 text-red-600",
+        fill: "none",
+        viewBox: "0 0 24 24",
+        stroke: "currentColor"
+      }, /*#__PURE__*/React.createElement("path", {
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        strokeWidth: 2,
+        d: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+      }))), /*#__PURE__*/React.createElement("h2", {
+        className: "text-2xl font-bold text-gray-900 mb-3"
+      }, this.props.title || 'Something went wrong'), /*#__PURE__*/React.createElement("p", {
+        className: "text-gray-600 mb-6"
+      }, this.props.message || 'An unexpected error occurred. The application has recovered, but you may need to refresh the page.'), window.location.hostname === 'localhost' && this.state.error && /*#__PURE__*/React.createElement("details", {
+        className: "mb-6 p-4 bg-gray-50 rounded-lg"
+      }, /*#__PURE__*/React.createElement("summary", {
+        className: "cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900"
+      }, "Error Details (Development Only)"), /*#__PURE__*/React.createElement("pre", {
+        className: "mt-3 text-xs text-gray-600 overflow-auto"
+      }, this.state.error.toString(), this.state.errorInfo && this.state.errorInfo.componentStack)), /*#__PURE__*/React.createElement("div", {
+        className: "flex gap-3"
+      }, /*#__PURE__*/React.createElement("button", {
+        onClick: this.handleReset,
+        className: "flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+      }, "Try Again"), /*#__PURE__*/React.createElement("button", {
+        onClick: () => window.location.reload(),
+        className: "flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+      }, "Refresh Page"))));
+    }
+    return this.props.children;
+  }
+}
+
+// Route-level error boundary with more specific error handling
+class RouteErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hasError: false
+    };
+  }
+  static getDerivedStateFromError(error) {
+    return {
+      hasError: true
+    };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error(`Error in ${this.props.routeName || 'route'}:`, error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return /*#__PURE__*/React.createElement("div", {
+        className: "p-6 bg-yellow-50 border border-yellow-200 rounded-lg"
+      }, /*#__PURE__*/React.createElement("h3", {
+        className: "text-lg font-semibold text-yellow-900 mb-2"
+      }, "Unable to load ", this.props.routeName || 'this section'), /*#__PURE__*/React.createElement("p", {
+        className: "text-yellow-700 mb-4"
+      }, "There was a problem loading this section. Please try refreshing the page."), /*#__PURE__*/React.createElement("button", {
+        onClick: () => this.setState({
+          hasError: false
+        }),
+        className: "px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+      }, "Retry"));
+    }
+    return this.props.children;
+  }
+}
 const {
   format,
   parseISO,
@@ -152,6 +284,597 @@ const {
   Legend,
   ResponsiveContainer
 } = window.Recharts;
+
+// ==================== Validation Utilities ====================
+const ValidationUtils = {
+  // Email validation using RFC 5322 compliant regex
+  validateEmail: email => {
+    if (!email) return {
+      isValid: false,
+      error: 'Email is required'
+    };
+    const trimmedEmail = email.trim();
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return {
+        isValid: false,
+        error: 'Please enter a valid email address'
+      };
+    }
+    if (trimmedEmail.length > 255) {
+      return {
+        isValid: false,
+        error: 'Email must be less than 255 characters'
+      };
+    }
+    return {
+      isValid: true,
+      value: trimmedEmail
+    };
+  },
+  // Required field validation
+  validateRequired: (value, fieldName) => {
+    if (!value || typeof value === 'string' && !value.trim()) {
+      return {
+        isValid: false,
+        error: `${fieldName} is required`
+      };
+    }
+    return {
+      isValid: true,
+      value: typeof value === 'string' ? value.trim() : value
+    };
+  },
+  // Trim and validate length
+  trimAndValidate: (value, maxLength, fieldName) => {
+    if (!value) return {
+      isValid: true,
+      value: ''
+    };
+    const trimmed = value.trim();
+    if (trimmed.length > maxLength) {
+      return {
+        isValid: false,
+        error: `${fieldName} must be less than ${maxLength} characters`
+      };
+    }
+    return {
+      isValid: true,
+      value: trimmed
+    };
+  },
+  // Phone number validation (optional)
+  validatePhoneNumber: (phone, required = false) => {
+    if (!phone && !required) return {
+      isValid: true,
+      value: ''
+    };
+    if (!phone && required) return {
+      isValid: false,
+      error: 'Phone number is required'
+    };
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length < 10) {
+      return {
+        isValid: false,
+        error: 'Phone number must be at least 10 digits'
+      };
+    }
+    if (cleaned.length > 15) {
+      return {
+        isValid: false,
+        error: 'Phone number must be less than 15 digits'
+      };
+    }
+
+    // Format as (XXX) XXX-XXXX for US numbers
+    let formatted = cleaned;
+    if (cleaned.length === 10) {
+      formatted = `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    return {
+      isValid: true,
+      value: formatted
+    };
+  },
+  // Name validation - no numbers or special characters except spaces, hyphens, apostrophes
+  validateName: (name, fieldName = 'Name') => {
+    if (!name) return {
+      isValid: false,
+      error: `${fieldName} is required`
+    };
+    const trimmed = name.trim();
+    if (trimmed.length < 2) {
+      return {
+        isValid: false,
+        error: `${fieldName} must be at least 2 characters`
+      };
+    }
+    if (trimmed.length > 100) {
+      return {
+        isValid: false,
+        error: `${fieldName} must be less than 100 characters`
+      };
+    }
+    const nameRegex = /^[a-zA-Z\s'-]+$/;
+    if (!nameRegex.test(trimmed)) {
+      return {
+        isValid: false,
+        error: `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`
+      };
+    }
+    return {
+      isValid: true,
+      value: trimmed
+    };
+  },
+  // PGY level validation
+  validatePGYLevel: level => {
+    const num = parseInt(level);
+    if (isNaN(num) || num < 1 || num > 10) {
+      return {
+        isValid: false,
+        error: 'PGY level must be between 1 and 10'
+      };
+    }
+    return {
+      isValid: true,
+      value: num
+    };
+  },
+  // Validate all fields in a form
+  validateForm: fields => {
+    const errors = {};
+    const values = {};
+    let isValid = true;
+    for (const [key, validation] of Object.entries(fields)) {
+      const result = validation();
+      if (!result.isValid) {
+        errors[key] = result.error;
+        isValid = false;
+      } else {
+        values[key] = result.value;
+      }
+    }
+    return {
+      isValid,
+      errors,
+      values
+    };
+  }
+};
+
+// ==================== Date Utilities ====================
+const normalizeDate = value => {
+  const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    const fallback = new Date();
+    fallback.setHours(0, 0, 0, 0);
+    return fallback;
+  }
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+const getStartOfWeekSunday = value => {
+  const date = normalizeDate(value);
+  const day = date.getDay();
+  if (day === 0) return date;
+  const start = new Date(date.getTime());
+  start.setDate(date.getDate() - day);
+  return normalizeDate(start);
+};
+const getEndOfWeekSaturday = value => {
+  const date = normalizeDate(value);
+  const day = date.getDay();
+  if (day === 6) return date;
+  const end = new Date(date.getTime());
+  end.setDate(date.getDate() + (6 - day));
+  return normalizeDate(end);
+};
+const getStartOfMonthDate = value => {
+  const date = normalizeDate(value);
+  date.setDate(1);
+  return normalizeDate(date);
+};
+const getEndOfMonthDate = value => {
+  const date = normalizeDate(value);
+  return normalizeDate(new Date(date.getFullYear(), date.getMonth() + 1, 0));
+};
+
+// ==================== Conflict Detection Utilities ====================
+const ConflictDetection = {
+  // Check if a person is already assigned at the same date/time
+  checkDoubleBooking: (assignments, newAssignment, excludeId = null) => {
+    const conflicts = [];
+    for (const assignment of assignments) {
+      // Skip if this is the assignment being edited
+      if (excludeId && assignment.id === excludeId) continue;
+
+      // Check if same person, same date, same time
+      if (assignment.date === newAssignment.date && assignment.timeSlot === newAssignment.timeSlot) {
+        if (assignment.residentId === newAssignment.residentId && newAssignment.residentId) {
+          conflicts.push({
+            type: 'double-booking',
+            severity: 'error',
+            message: `Resident is already assigned at ${newAssignment.timeSlot} on this date`,
+            conflictingAssignment: assignment
+          });
+        }
+        if (assignment.attendingId === newAssignment.attendingId && newAssignment.attendingId) {
+          conflicts.push({
+            type: 'double-booking',
+            severity: 'error',
+            message: `Attending is already assigned at ${newAssignment.timeSlot} on this date`,
+            conflictingAssignment: assignment
+          });
+        }
+      }
+    }
+    return conflicts;
+  },
+  // Check if person is on vacation
+  checkVacationConflict: (person, date) => {
+    if (!person || !person.vacationWeeks) return [];
+    const assignmentDate = new Date(date);
+    const conflicts = [];
+    for (const vacationWeek of person.vacationWeeks) {
+      const vacationStart = new Date(vacationWeek);
+      const vacationEnd = new Date(vacationStart);
+      vacationEnd.setDate(vacationEnd.getDate() + 6);
+      if (assignmentDate >= vacationStart && assignmentDate <= vacationEnd) {
+        conflicts.push({
+          type: 'vacation',
+          severity: 'warning',
+          message: `${person.name} is on vacation this week`,
+          vacationDates: {
+            start: vacationStart,
+            end: vacationEnd
+          }
+        });
+      }
+    }
+    return conflicts;
+  },
+  // Check continuity clinic conflicts
+  checkContinuityConflict: (resident, date, timeSlot) => {
+    if (!resident || !resident.continuityDay) return [];
+    const assignmentDate = new Date(date);
+    const dayOfWeek = assignmentDate.getDay();
+    const dayMap = {
+      'sunday': 0,
+      'monday': 1,
+      'tuesday': 2,
+      'wednesday': 3,
+      'thursday': 4,
+      'friday': 5,
+      'saturday': 6
+    };
+    const continuityDayNum = dayMap[resident.continuityDay.toLowerCase()];
+    if (dayOfWeek === continuityDayNum && timeSlot === resident.continuityTime) {
+      return [{
+        type: 'continuity-clinic',
+        severity: 'info',
+        message: `This is ${resident.name}'s continuity clinic time`,
+        isExpected: true
+      }];
+    }
+    return [];
+  },
+  // Check maximum assignments per day
+  checkMaxAssignments: (assignments, person, date, maxPerDay = 2) => {
+    const dayAssignments = assignments.filter(a => {
+      if (a.date !== date) return false;
+      if (person.role === 'resident' && a.residentId === person.id) return true;
+      if (person.role === 'attending' && a.attendingId === person.id) return true;
+      return false;
+    });
+    if (dayAssignments.length >= maxPerDay) {
+      return [{
+        type: 'max-assignments',
+        severity: 'warning',
+        message: `${person.name} already has ${dayAssignments.length} assignments on this date (max: ${maxPerDay})`,
+        currentCount: dayAssignments.length,
+        maximum: maxPerDay
+      }];
+    }
+    return [];
+  },
+  // Check protected time conflicts
+  checkProtectedTime: (protectedTimes, date, timeSlot, residentPGY) => {
+    if (!protectedTimes || !protectedTimes.length) return [];
+    const assignmentDate = new Date(date);
+    const dayOfWeek = assignmentDate.getDay();
+    const conflicts = [];
+    for (const pt of protectedTimes) {
+      if (pt.dayOfWeek === dayOfWeek && pt.timeSlot === timeSlot) {
+        // Check if this protected time applies to this resident
+        if (pt.appliesTo === 'all' || pt.appliesTo === residentPGY || pt.appliesTo === 'junior' && residentPGY && parseInt(residentPGY.replace('PGY', '')) <= 2 || pt.appliesTo === 'senior' && residentPGY && parseInt(residentPGY.replace('PGY', '')) >= 3) {
+          conflicts.push({
+            type: 'protected-time',
+            severity: pt.mandatory ? 'error' : 'warning',
+            message: `${pt.name} is scheduled at this time${pt.mandatory ? ' (mandatory)' : ''}`,
+            protectedTime: pt
+          });
+        }
+      }
+    }
+    return conflicts;
+  },
+  // Main conflict checking function
+  checkAllConflicts: ({
+    assignments,
+    newAssignment,
+    attendings,
+    residents,
+    institution,
+    excludeId = null
+  }) => {
+    const allConflicts = [];
+
+    // Check double booking
+    const doubleBooking = ConflictDetection.checkDoubleBooking(assignments, newAssignment, excludeId);
+    allConflicts.push(...doubleBooking);
+
+    // Check vacation conflicts
+    if (newAssignment.residentId) {
+      const resident = residents.find(r => r.id === newAssignment.residentId);
+      if (resident) {
+        const vacationConflicts = ConflictDetection.checkVacationConflict(resident, newAssignment.date);
+        allConflicts.push(...vacationConflicts);
+
+        // Check continuity clinic
+        const continuityConflicts = ConflictDetection.checkContinuityConflict(resident, newAssignment.date, newAssignment.timeSlot);
+        allConflicts.push(...continuityConflicts);
+
+        // Check max assignments
+        const maxConflicts = ConflictDetection.checkMaxAssignments(assignments, {
+          ...resident,
+          role: 'resident'
+        }, newAssignment.date, institution?.settings?.maxAssignmentsPerDay || 2);
+        allConflicts.push(...maxConflicts);
+
+        // Check protected time
+        const protectedConflicts = ConflictDetection.checkProtectedTime(institution?.settings?.protectedTimes, newAssignment.date, newAssignment.timeSlot, resident.pgyLevel);
+        allConflicts.push(...protectedConflicts);
+      }
+    }
+    if (newAssignment.attendingId) {
+      const attending = attendings.find(a => a.id === newAssignment.attendingId);
+      if (attending) {
+        const vacationConflicts = ConflictDetection.checkVacationConflict(attending, newAssignment.date);
+        allConflicts.push(...vacationConflicts);
+
+        // Check max assignments for attending
+        const maxConflicts = ConflictDetection.checkMaxAssignments(assignments, {
+          ...attending,
+          role: 'attending'
+        }, newAssignment.date, institution?.settings?.maxAttendingAssignmentsPerDay || 4);
+        allConflicts.push(...maxConflicts);
+      }
+    }
+    return {
+      hasConflicts: allConflicts.length > 0,
+      hasErrors: allConflicts.some(c => c.severity === 'error'),
+      hasWarnings: allConflicts.some(c => c.severity === 'warning'),
+      conflicts: allConflicts,
+      canProceed: !allConflicts.some(c => c.severity === 'error'),
+      summary: allConflicts.length > 0 ? `Found ${allConflicts.filter(c => c.severity === 'error').length} errors, ${allConflicts.filter(c => c.severity === 'warning').length} warnings` : 'No conflicts detected'
+    };
+  }
+};
+
+// ==================== Export Utilities ====================
+const ExportUtils = {
+  // Convert assignments to CSV format
+  assignmentsToCSV: (assignments, attendings, residents, startDate, endDate) => {
+    const headers = ['Date', 'Day', 'Time', 'Resident', 'Attending', 'Site', 'Rotation', 'Notes'];
+    const rows = [headers];
+
+    // Filter and sort assignments
+    const filtered = assignments.filter(a => {
+      if (startDate && a.date < startDate) return false;
+      if (endDate && a.date > endDate) return false;
+      return true;
+    }).sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return a.timeSlot === 'AM' ? -1 : 1;
+    });
+
+    // Convert to rows
+    for (const assignment of filtered) {
+      const resident = residents.find(r => r.id === assignment.residentId);
+      const attending = attendings.find(a => a.id === assignment.attendingId);
+      const assignmentDate = new Date(assignment.date);
+      const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][assignmentDate.getDay()];
+      rows.push([assignment.date, dayName, assignment.timeSlot, resident?.name || '', attending?.name || '', assignment.siteId || '', assignment.rotationId || '', assignment.notes || '']);
+    }
+
+    // Convert to CSV string
+    return rows.map(row => row.map(cell => {
+      // Escape quotes and wrap in quotes if contains comma
+      const escaped = String(cell).replace(/"/g, '""');
+      return escaped.includes(',') ? `"${escaped}"` : escaped;
+    }).join(',')).join('\n');
+  },
+  // Convert attendings list to CSV
+  attendingsToCSV: attendings => {
+    const headers = ['Name', 'Email', 'Phone', 'Sites', 'Rotations', 'Max Weekly'];
+    const rows = [headers];
+    for (const attending of attendings) {
+      rows.push([attending.name, attending.email || '', attending.phone || '', (attending.sites || []).join('; '), (attending.rotations || []).join('; '), attending.maxWeeklyAssignments || '']);
+    }
+    return rows.map(row => row.map(cell => {
+      const escaped = String(cell).replace(/"/g, '""');
+      return escaped.includes(',') ? `"${escaped}"` : escaped;
+    }).join(',')).join('\n');
+  },
+  // Export to JSON for backup
+  exportToJSON: data => {
+    return JSON.stringify({
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      data: data
+    }, null, 2);
+  },
+  // Download file utility
+  downloadFile: (content, filename, mimeType = 'text/csv') => {
+    const blob = new Blob([content], {
+      type: mimeType
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+  // Generate filename with timestamp
+  generateFilename: (prefix, extension) => {
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    return `${prefix}_${timestamp}.${extension}`;
+  },
+  // Validate imported data schema
+  validateImportData: data => {
+    const errors = [];
+    const warnings = [];
+
+    // Validate attendings
+    if (data.attendings) {
+      if (!Array.isArray(data.attendings)) {
+        errors.push('Attendings must be an array');
+      } else {
+        data.attendings.forEach((attending, index) => {
+          if (!attending.name) {
+            errors.push(`Attending at index ${index} is missing a name`);
+          }
+          if (attending.email && !ValidationUtils.validateEmail(attending.email).isValid) {
+            warnings.push(`Attending "${attending.name || index}" has invalid email`);
+          }
+          if (attending.maxWeeklyAssignments && (typeof attending.maxWeeklyAssignments !== 'number' || attending.maxWeeklyAssignments < 0)) {
+            warnings.push(`Attending "${attending.name || index}" has invalid maxWeeklyAssignments`);
+          }
+        });
+      }
+    }
+
+    // Validate residents
+    if (data.residents) {
+      if (!Array.isArray(data.residents)) {
+        errors.push('Residents must be an array');
+      } else {
+        data.residents.forEach((resident, index) => {
+          if (!resident.name) {
+            errors.push(`Resident at index ${index} is missing a name`);
+          }
+          if (resident.email && !ValidationUtils.validateEmail(resident.email).isValid) {
+            warnings.push(`Resident "${resident.name || index}" has invalid email`);
+          }
+          if (resident.pgyLevel) {
+            const pgyValidation = ValidationUtils.validatePGYLevel(resident.pgyLevel);
+            if (!pgyValidation.isValid) {
+              warnings.push(`Resident "${resident.name || index}" has invalid PGY level`);
+            }
+          }
+        });
+      }
+    }
+
+    // Validate assignments
+    if (data.assignments) {
+      if (!Array.isArray(data.assignments)) {
+        errors.push('Assignments must be an array');
+      } else {
+        data.assignments.forEach((assignment, index) => {
+          if (!assignment.date) {
+            errors.push(`Assignment at index ${index} is missing a date`);
+          } else {
+            // Validate date format (YYYY-MM-DD)
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!dateRegex.test(assignment.date)) {
+              errors.push(`Assignment at index ${index} has invalid date format (expected YYYY-MM-DD)`);
+            }
+          }
+          if (!assignment.timeSlot) {
+            errors.push(`Assignment at index ${index} is missing a time slot`);
+          } else if (!['AM', 'PM'].includes(assignment.timeSlot)) {
+            warnings.push(`Assignment at index ${index} has invalid time slot "${assignment.timeSlot}"`);
+          }
+        });
+      }
+    }
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      summary: {
+        attendings: data.attendings ? data.attendings.length : 0,
+        residents: data.residents ? data.residents.length : 0,
+        assignments: data.assignments ? data.assignments.length : 0
+      }
+    };
+  },
+  // Parse and validate imported JSON
+  parseImportedJSON: jsonString => {
+    try {
+      const parsed = JSON.parse(jsonString);
+
+      // Validate structure
+      if (!parsed.version || !parsed.data) {
+        throw new Error('Invalid backup file format');
+      }
+
+      // Check version compatibility
+      if (parsed.version !== '1.0') {
+        throw new Error(`Unsupported backup version: ${parsed.version}`);
+      }
+
+      // Validate data schema
+      const validation = ExportUtils.validateImportData(parsed.data);
+      if (!validation.isValid) {
+        return {
+          success: false,
+          error: 'Import data validation failed',
+          validationErrors: validation.errors,
+          validationWarnings: validation.warnings
+        };
+      }
+      return {
+        success: true,
+        data: parsed.data,
+        exportDate: parsed.exportDate,
+        validation: validation
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message || 'Failed to parse backup file'
+      };
+    }
+  },
+  // Create file input and handle selection
+  selectFile: (accept = '.json', onFileSelected) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = accept;
+    input.onchange = event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        onFileSelected(e.target.result, file.name);
+      };
+      reader.onerror = () => {
+        toast.error('Failed to read file');
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
+};
 
 // Wait for Firebase to be available
 const waitForFirebase = () => {
@@ -276,18 +999,56 @@ class FirebaseService {
   async loadUserProfile() {
     if (!this.currentUser) return null;
     try {
-      const userDoc = await window.firebase.firestore.getDoc(window.firebase.firestore.doc(this.db, 'users', this.currentUser.uid));
+      const userRef = window.firebase.firestore.doc(this.db, 'users', this.currentUser.uid);
+      const userDoc = await window.firebase.firestore.getDoc(userRef);
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        // Load first institution if available
-        if (userData.institutions && userData.institutions.length > 0) {
-          await this.loadInstitution(userData.institutions[0]);
+
+        // Normalize institutions array to simple string IDs
+        const rawInstitutions = Array.isArray(userData.institutions) ? userData.institutions : [];
+        const normalizedInstitutions = rawInstitutions.map(inst => typeof inst === 'string' ? inst : inst?.id).filter(id => typeof id === 'string' && id.length > 0);
+        if (normalizedInstitutions.length !== rawInstitutions.length) {
+          try {
+            await window.firebase.firestore.updateDoc(userRef, {
+              institutions: normalizedInstitutions
+            });
+          } catch (updateError) {
+            console.warn('Failed to normalize institutions array:', updateError);
+          }
+          userData.institutions = normalizedInstitutions;
+        } else {
+          userData.institutions = normalizedInstitutions;
+        }
+        const preferredInstitution = typeof userData.currentInstitution === 'string' && userData.currentInstitution ? userData.currentInstitution : normalizedInstitutions[0];
+        if (preferredInstitution) {
+          await this.loadInstitution(preferredInstitution);
         }
         return userData;
+      } else {
+        // Create user document if it doesn't exist
+        console.log('Creating new user profile...');
+        const newUserData = {
+          email: this.currentUser.email,
+          uid: this.currentUser.uid,
+          institutions: [],
+          createdAt: window.firebase.firestore.serverTimestamp(),
+          updatedAt: window.firebase.firestore.serverTimestamp()
+        };
+        await window.firebase.firestore.setDoc(userRef, newUserData);
+        console.log('User profile created successfully');
+        return newUserData;
       }
-      return null;
     } catch (error) {
       console.error('Load user profile error:', error);
+      // If permission denied, return minimal user data
+      if (error.code === 'permission-denied') {
+        console.warn('Permission denied - returning basic user data');
+        return {
+          email: this.currentUser.email,
+          uid: this.currentUser.uid,
+          institutions: []
+        };
+      }
       return null;
     }
   }
@@ -301,6 +1062,14 @@ class FirebaseService {
         name,
         createdBy: this.currentUser.uid,
         createdAt: window.firebase.firestore.serverTimestamp(),
+        // Initialize members array with the creating user
+        members: [{
+          userId: this.currentUser.uid,
+          name: userData.name,
+          email: userData.email,
+          role: 'program_admin',
+          joinedAt: new Date().toISOString()
+        }],
         settings: {
           sites: [{
             id: 'site_1',
@@ -749,18 +1518,24 @@ class FirebaseService {
   async batchAddAssignments(assignments) {
     if (!this.currentInstitution) throw new Error('No institution selected');
     try {
-      const batch = window.firebase.firestore.writeBatch(this.db);
-      assignments.forEach(assignment => {
-        const docRef = window.firebase.firestore.doc(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments'));
-        batch.set(docRef, {
-          ...assignment,
-          createdAt: window.firebase.firestore.serverTimestamp(),
-          createdBy: this.currentUser.uid
+      const CHUNK_SIZE = 450; // stay safely below Firestore's 500 op limit
+      let committed = 0;
+      for (let i = 0; i < assignments.length; i += CHUNK_SIZE) {
+        const batch = window.firebase.firestore.writeBatch(this.db);
+        const chunk = assignments.slice(i, i + CHUNK_SIZE);
+        chunk.forEach(assignment => {
+          const docRef = window.firebase.firestore.doc(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments'));
+          batch.set(docRef, {
+            ...assignment,
+            createdAt: window.firebase.firestore.serverTimestamp(),
+            createdBy: this.currentUser.uid
+          });
         });
-      });
-      await batch.commit();
+        await batch.commit();
+        committed += chunk.length;
+      }
       await this.addAuditLog('batch_assignments_added', {
-        count: assignments.length
+        count: committed
       });
       return {
         success: true
@@ -777,13 +1552,19 @@ class FirebaseService {
     if (!this.currentInstitution) throw new Error('No institution selected');
     try {
       const snapshot = await window.firebase.firestore.getDocs(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments'));
-      const batch = window.firebase.firestore.writeBatch(this.db);
-      snapshot.docs.forEach(doc => {
-        batch.delete(doc.ref);
-      });
-      await batch.commit();
+      const CHUNK_SIZE = 450;
+      let processed = 0;
+      for (let i = 0; i < snapshot.docs.length; i += CHUNK_SIZE) {
+        const batch = window.firebase.firestore.writeBatch(this.db);
+        const chunk = snapshot.docs.slice(i, i + CHUNK_SIZE);
+        chunk.forEach(docItem => {
+          batch.delete(docItem.ref);
+        });
+        await batch.commit();
+        processed += chunk.length;
+      }
       await this.addAuditLog('all_assignments_cleared', {
-        count: snapshot.size
+        count: processed
       });
       return {
         success: true
@@ -889,6 +1670,275 @@ class FirebaseService {
       callback(null);
     });
     return unsubscribe;
+  }
+
+  // ===== Member Management =====
+  async getInstitutionMembers() {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      const institutionDoc = await window.firebase.firestore.getDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution));
+      if (!institutionDoc.exists()) {
+        throw new Error('Institution not found');
+      }
+      const institutionData = institutionDoc.data();
+      const members = institutionData.members || [];
+
+      // Fetch user details for each member
+      const memberDetails = await Promise.all(members.map(async member => {
+        try {
+          const userDoc = await window.firebase.firestore.getDoc(window.firebase.firestore.doc(this.db, 'users', member.userId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            return {
+              id: member.userId,
+              name: userData.name || 'Unknown',
+              email: userData.email,
+              role: member.role || 'member',
+              joinedAt: member.joinedAt
+            };
+          }
+          return null;
+        } catch (error) {
+          console.error('Error fetching member details:', error);
+          return null;
+        }
+      }));
+
+      // Filter out null entries and return
+      return memberDetails.filter(member => member !== null);
+    } catch (error) {
+      console.error('Error fetching institution members:', error);
+      throw error;
+    }
+  }
+  async createInviteCode(inviteData) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      // Generate a unique invite code
+      const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+      // Store invite code in Firestore
+      await window.firebase.firestore.setDoc(window.firebase.firestore.doc(this.db, 'inviteCodes', code), {
+        institutionId: this.currentInstitution,
+        role: inviteData.role || 'member',
+        createdBy: this.currentUser.uid,
+        createdAt: window.firebase.firestore.serverTimestamp(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        // 7 days
+        used: false
+      });
+
+      // Add audit log
+      await this.addAuditLog('INVITE_CODE_CREATED', {
+        code,
+        role: inviteData.role
+      });
+      return {
+        success: true,
+        code
+      };
+    } catch (error) {
+      console.error('Error creating invite code:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async updateMemberRole(memberId, newRole) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      // Get current institution document
+      const institutionDoc = await window.firebase.firestore.getDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution));
+      if (!institutionDoc.exists()) {
+        throw new Error('Institution not found');
+      }
+      const institutionData = institutionDoc.data();
+      const members = institutionData.members || [];
+
+      // Find and update the member's role
+      const updatedMembers = members.map(member => {
+        if (member.userId === memberId) {
+          return {
+            ...member,
+            role: newRole
+          };
+        }
+        return member;
+      });
+
+      // Update the institution document
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution), {
+        members: updatedMembers,
+        updatedAt: window.firebase.firestore.serverTimestamp()
+      });
+
+      // Add audit log
+      await this.addAuditLog('MEMBER_ROLE_UPDATED', {
+        memberId,
+        newRole
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Error updating member role:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async removeMember(memberId) {
+    if (!this.currentInstitution) throw new Error('No institution selected');
+    try {
+      // Get current institution document
+      const institutionDoc = await window.firebase.firestore.getDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution));
+      if (!institutionDoc.exists()) {
+        throw new Error('Institution not found');
+      }
+      const institutionData = institutionDoc.data();
+      const members = institutionData.members || [];
+
+      // Remove the member
+      const updatedMembers = members.filter(member => member.userId !== memberId);
+
+      // Update the institution document
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution), {
+        members: updatedMembers,
+        updatedAt: window.firebase.firestore.serverTimestamp()
+      });
+
+      // Remove institution from user's institutions array
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'users', memberId), {
+        institutions: window.firebase.firestore.arrayRemove(this.currentInstitution, {
+          id: this.currentInstitution,
+          role: members.find(m => m.userId === memberId)?.role || 'member'
+        })
+      });
+
+      // Add audit log
+      await this.addAuditLog('MEMBER_REMOVED', {
+        memberId
+      });
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Error removing member:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+  async redeemInviteCode(code) {
+    if (!this.currentUser) {
+      return {
+        success: false,
+        error: 'Not authenticated'
+      };
+    }
+    try {
+      // Get the invite code document
+      const inviteDoc = await window.firebase.firestore.getDoc(window.firebase.firestore.doc(this.db, 'inviteCodes', code.toUpperCase()));
+      if (!inviteDoc.exists()) {
+        return {
+          success: false,
+          error: 'Invalid invite code'
+        };
+      }
+      const inviteData = inviteDoc.data();
+
+      // Check if invite code has expired
+      if (inviteData.expiresAt && inviteData.expiresAt.toDate() < new Date()) {
+        return {
+          success: false,
+          error: 'Invite code has expired'
+        };
+      }
+
+      // Check if invite code has already been used (if single-use)
+      if (inviteData.used) {
+        return {
+          success: false,
+          error: 'Invite code has already been used'
+        };
+      }
+
+      // Get institution details
+      const institutionDoc = await window.firebase.firestore.getDoc(window.firebase.firestore.doc(this.db, 'institutions', inviteData.institutionId));
+      if (!institutionDoc.exists()) {
+        return {
+          success: false,
+          error: 'Institution not found'
+        };
+      }
+      const institutionData = institutionDoc.data();
+
+      // Add user to institution members
+      const members = institutionData.members || [];
+      const userProfile = await this.loadUserProfile();
+
+      // Check if user is already a member
+      if (members.some(m => m.userId === this.currentUser.uid)) {
+        return {
+          success: false,
+          error: 'You are already a member of this institution'
+        };
+      }
+
+      // Add user as member
+      members.push({
+        userId: this.currentUser.uid,
+        name: userProfile.displayName || this.currentUser.email,
+        email: this.currentUser.email,
+        role: inviteData.role || 'member',
+        joinedAt: window.firebase.firestore.serverTimestamp()
+      });
+
+      // Update institution with new member
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'institutions', inviteData.institutionId), {
+        members: members,
+        updatedAt: window.firebase.firestore.serverTimestamp()
+      });
+
+      // Add institution to user's institutions array (store IDs consistently)
+      await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'users', this.currentUser.uid), {
+        institutions: window.firebase.firestore.arrayUnion(inviteData.institutionId),
+        currentInstitution: inviteData.institutionId
+      });
+
+      // Mark invite code as used (if single-use)
+      if (inviteData.singleUse !== false) {
+        await window.firebase.firestore.updateDoc(window.firebase.firestore.doc(this.db, 'inviteCodes', code.toUpperCase()), {
+          used: true,
+          usedBy: this.currentUser.uid,
+          usedAt: window.firebase.firestore.serverTimestamp()
+        });
+      }
+
+      // Set current institution
+      this.currentInstitution = inviteData.institutionId;
+      await this.loadInstitution(inviteData.institutionId);
+
+      // Add audit log
+      await this.addAuditLog('MEMBER_JOINED_VIA_INVITE', {
+        inviteCode: code,
+        role: inviteData.role || 'member'
+      });
+      return {
+        success: true,
+        institutionName: institutionData.name,
+        institutionId: inviteData.institutionId
+      };
+    } catch (error) {
+      console.error('Error redeeming invite code:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
 }
 
@@ -1095,6 +2145,61 @@ const Modal = ({
     lg: 'max-w-4xl',
     xl: 'max-w-6xl'
   };
+  const dialogRef = useRef(null);
+  const previousFocusRef = useRef(null);
+  const titleIdRef = useRef(`modal-title-${Math.random().toString(36).slice(2, 9)}`);
+  useEffect(() => {
+    if (!isOpen) return;
+    previousFocusRef.current = document.activeElement;
+    const focusFirstElement = () => {
+      const node = dialogRef.current;
+      if (!node) return;
+      const focusableSelectors = ['a[href]', 'button:not([disabled])', 'textarea:not([disabled])', 'input:not([disabled])', 'select:not([disabled])', '[tabindex]:not([tabindex="-1"])'];
+      const focusable = node.querySelectorAll(focusableSelectors.join(','));
+      if (focusable.length > 0) {
+        focusable[0].focus();
+      } else {
+        node.focus();
+      }
+    };
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose?.();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const node = dialogRef.current;
+      if (!node) return;
+      const focusableSelectors = ['a[href]', 'button:not([disabled])', 'textarea:not([disabled])', 'input:not([disabled])', 'select:not([disabled])', '[tabindex]:not([tabindex="-1"])'];
+      const focusable = node.querySelectorAll(focusableSelectors.join(','));
+      if (focusable.length === 0) {
+        event.preventDefault();
+        node.focus();
+        return;
+      }
+      const firstElement = focusable[0];
+      const lastElement = focusable[focusable.length - 1];
+      const activeElement = document.activeElement;
+      if (event.shiftKey) {
+        if (activeElement === firstElement || !node.contains(activeElement)) {
+          event.preventDefault();
+          lastElement.focus();
+        }
+      } else if (activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+    focusFirstElement();
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (previousFocusRef.current && typeof previousFocusRef.current.focus === 'function') {
+        previousFocusRef.current.focus();
+      }
+    };
+  }, [isOpen, onClose]);
   if (!isOpen) return null;
   return createPortal(/*#__PURE__*/React.createElement(AnimatePresence, null, /*#__PURE__*/React.createElement(motion.div, {
     initial: {
@@ -1141,10 +2246,16 @@ const Modal = ({
       duration: 0.2,
       ease: "easeOut"
     },
-    className: `relative bg-white rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden`
+    className: `relative bg-white rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden`,
+    role: "dialog",
+    "aria-modal": "true",
+    "aria-labelledby": titleIdRef.current,
+    ref: dialogRef,
+    tabIndex: -1
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between p-6 border-b"
   }, /*#__PURE__*/React.createElement("h3", {
+    id: titleIdRef.current,
     className: "text-xl font-semibold text-gray-900"
   }, title), /*#__PURE__*/React.createElement(motion.button, {
     whileHover: {
@@ -1154,7 +2265,8 @@ const Modal = ({
       scale: 0.9
     },
     onClick: onClose,
-    className: "p-2 hover:bg-gray-100 rounded-lg transition-colors"
+    className: "p-2 hover:bg-gray-100 rounded-lg transition-colors",
+    "aria-label": "Close dialog"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "x",
     size: 20
@@ -1171,37 +2283,151 @@ const LoginPage = () => {
     email: '',
     password: '',
     name: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    inviteCode: ''
   });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const {
     firebaseService
   } = useApp();
+  const validateField = (field, value) => {
+    let result = {
+      isValid: true
+    };
+    switch (field) {
+      case 'email':
+        result = ValidationUtils.validateEmail(value);
+        break;
+      case 'name':
+        if (isSignUp) {
+          result = ValidationUtils.validateName(value, 'Full name');
+        }
+        break;
+      case 'password':
+        if (!value) {
+          result = {
+            isValid: false,
+            error: 'Password is required'
+          };
+        }
+        break;
+      case 'confirmPassword':
+        if (isSignUp) {
+          if (!value) {
+            result = {
+              isValid: false,
+              error: 'Please confirm your password'
+            };
+          } else if (value !== formData.password) {
+            result = {
+              isValid: false,
+              error: 'Passwords do not match'
+            };
+          }
+        }
+        break;
+      case 'inviteCode':
+        // Invite code is optional, but if provided should be 6 characters
+        if (isSignUp && value) {
+          const trimmed = value.trim().toUpperCase();
+          if (trimmed.length !== 6) {
+            result = {
+              isValid: false,
+              error: 'Invite code must be 6 characters'
+            };
+          } else {
+            result = {
+              isValid: true,
+              value: trimmed
+            };
+          }
+        }
+        break;
+    }
+    return result;
+  };
+  const handleFieldChange = (field, value) => {
+    setFormData({
+      ...formData,
+      [field]: value
+    });
+
+    // Clear error when user starts typing
+    if (touched[field]) {
+      const validation = validateField(field, value);
+      setErrors(prev => ({
+        ...prev,
+        [field]: validation.isValid ? undefined : validation.error
+      }));
+    }
+  };
+  const handleFieldBlur = field => {
+    setTouched(prev => ({
+      ...prev,
+      [field]: true
+    }));
+    const validation = validateField(field, formData[field]);
+    setErrors(prev => ({
+      ...prev,
+      [field]: validation.isValid ? undefined : validation.error
+    }));
+  };
   const handleSubmit = async e => {
     e.preventDefault();
     setLoading(true);
+
+    // Validate all fields
+    const fieldsToValidate = isSignUp ? ['email', 'password', 'name', 'confirmPassword'] : ['email', 'password'];
+    const newErrors = {};
+    const validatedValues = {};
+    let isFormValid = true;
+    for (const field of fieldsToValidate) {
+      const validation = validateField(field, formData[field]);
+      if (!validation.isValid) {
+        newErrors[field] = validation.error;
+        isFormValid = false;
+      } else if (validation.value !== undefined) {
+        validatedValues[field] = validation.value;
+      }
+    }
+    if (!isFormValid) {
+      setErrors(newErrors);
+      setTouched(Object.fromEntries(fieldsToValidate.map(f => [f, true])));
+      setLoading(false);
+      return;
+    }
     try {
       if (isSignUp) {
-        if (formData.password !== formData.confirmPassword) {
-          toast.error('Passwords do not match');
-          setLoading(false);
-          return;
-        }
-        const result = await firebaseService.signUp(formData.email, formData.password, formData.name);
+        const result = await firebaseService.signUp(validatedValues.email || formData.email, formData.password, validatedValues.name || formData.name);
         if (result.success) {
           toast.success('Account created successfully!');
-          // Create first institution
-          const instResult = await firebaseService.createInstitution(`${formData.name}'s Institution`, {
-            name: formData.name,
-            email: formData.email
-          });
-          if (instResult.success) {
-            toast.success('Institution created!');
+
+          // Check if user has an invite code
+          const inviteCode = validatedValues.inviteCode || formData.inviteCode;
+          if (inviteCode) {
+            // Redeem invite code to join existing institution
+            const redeemResult = await firebaseService.redeemInviteCode(inviteCode);
+            if (redeemResult.success) {
+              toast.success(`Joined ${redeemResult.institutionName} successfully!`);
+            } else {
+              toast.error(`Failed to redeem invite code: ${redeemResult.error}`);
+            }
+          } else {
+            // Create first institution if no invite code
+            const instResult = await firebaseService.createInstitution(`${validatedValues.name || formData.name}'s Institution`, {
+              name: validatedValues.name || formData.name,
+              email: validatedValues.email || formData.email
+            });
+            if (instResult.success) {
+              toast.success('Institution created!');
+            }
           }
         } else {
           toast.error(result.error);
         }
       } else {
-        const result = await firebaseService.signIn(formData.email, formData.password);
+        const result = await firebaseService.signIn(validatedValues.email || formData.email, formData.password);
         if (result.success) {
           toast.success('Welcome back!');
         } else {
@@ -1209,17 +2435,23 @@ const LoginPage = () => {
         }
       }
     } catch (error) {
-      toast.error('An error occurred');
+      toast.error('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
   const handleResetPassword = async () => {
-    if (!formData.email) {
-      toast.error('Please enter your email address');
+    const emailValidation = ValidationUtils.validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      setErrors({
+        email: emailValidation.error
+      });
+      setTouched({
+        email: true
+      });
       return;
     }
-    const result = await firebaseService.resetPassword(formData.email);
+    const result = await firebaseService.resetPassword(emailValidation.value);
     if (result.success) {
       toast.success('Password reset email sent!');
     } else {
@@ -1247,49 +2479,90 @@ const LoginPage = () => {
     className: "space-y-4"
   }, isSignUp && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-1"
-  }, "Full Name"), /*#__PURE__*/React.createElement("input", {
+  }, "Full Name ", /*#__PURE__*/React.createElement("span", {
+    className: "text-red-500"
+  }, "*")), /*#__PURE__*/React.createElement("input", {
     type: "text",
     value: formData.name,
-    onChange: e => setFormData({
-      ...formData,
-      name: e.target.value
-    }),
-    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-    required: true
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    onChange: e => handleFieldChange('name', e.target.value),
+    onBlur: () => handleFieldBlur('name'),
+    className: `w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.name && touched.name ? 'border-red-500 bg-red-50' : touched.name && !errors.name ? 'border-green-500' : 'border-gray-300'}`,
+    "aria-invalid": errors.name && touched.name,
+    "aria-describedby": errors.name && touched.name ? 'name-error' : undefined
+  }), errors.name && touched.name && /*#__PURE__*/React.createElement("p", {
+    id: "name-error",
+    className: "mt-1 text-xs text-red-600"
+  }, errors.name)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-1"
-  }, "Email Address"), /*#__PURE__*/React.createElement("input", {
+  }, "Email Address ", /*#__PURE__*/React.createElement("span", {
+    className: "text-red-500"
+  }, "*")), /*#__PURE__*/React.createElement("input", {
     type: "email",
     value: formData.email,
-    onChange: e => setFormData({
-      ...formData,
-      email: e.target.value
-    }),
-    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-    required: true
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    onChange: e => handleFieldChange('email', e.target.value),
+    onBlur: () => handleFieldBlur('email'),
+    className: `w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.email && touched.email ? 'border-red-500 bg-red-50' : touched.email && !errors.email ? 'border-green-500' : 'border-gray-300'}`,
+    autoComplete: "email",
+    "aria-invalid": errors.email && touched.email,
+    "aria-describedby": errors.email && touched.email ? 'email-error' : undefined
+  }), errors.email && touched.email && /*#__PURE__*/React.createElement("p", {
+    id: "email-error",
+    className: "mt-1 text-xs text-red-600"
+  }, errors.email)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-1"
-  }, "Password"), /*#__PURE__*/React.createElement("input", {
+  }, "Password ", /*#__PURE__*/React.createElement("span", {
+    className: "text-red-500"
+  }, "*")), /*#__PURE__*/React.createElement("input", {
     type: "password",
     value: formData.password,
-    onChange: e => setFormData({
-      ...formData,
-      password: e.target.value
-    }),
-    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-    required: true
-  })), isSignUp && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    onChange: e => handleFieldChange('password', e.target.value),
+    onBlur: () => handleFieldBlur('password'),
+    className: `w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.password && touched.password ? 'border-red-500 bg-red-50' : touched.password && !errors.password ? 'border-green-500' : 'border-gray-300'}`,
+    autoComplete: isSignUp ? 'new-password' : 'current-password',
+    "aria-invalid": errors.password && touched.password,
+    "aria-describedby": errors.password && touched.password ? 'password-error' : undefined
+  }), errors.password && touched.password && /*#__PURE__*/React.createElement("p", {
+    id: "password-error",
+    className: "mt-1 text-xs text-red-600"
+  }, errors.password)), isSignUp && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-1"
-  }, "Confirm Password"), /*#__PURE__*/React.createElement("input", {
+  }, "Confirm Password ", /*#__PURE__*/React.createElement("span", {
+    className: "text-red-500"
+  }, "*")), /*#__PURE__*/React.createElement("input", {
     type: "password",
     value: formData.confirmPassword,
-    onChange: e => setFormData({
-      ...formData,
-      confirmPassword: e.target.value
-    }),
-    className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent",
-    required: true
-  })), /*#__PURE__*/React.createElement(Button, {
+    onChange: e => handleFieldChange('confirmPassword', e.target.value),
+    onBlur: () => handleFieldBlur('confirmPassword'),
+    className: `w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.confirmPassword && touched.confirmPassword ? 'border-red-500 bg-red-50' : touched.confirmPassword && !errors.confirmPassword && formData.confirmPassword ? 'border-green-500' : 'border-gray-300'}`,
+    autoComplete: "new-password",
+    "aria-invalid": errors.confirmPassword && touched.confirmPassword,
+    "aria-describedby": errors.confirmPassword && touched.confirmPassword ? 'confirm-password-error' : undefined
+  }), errors.confirmPassword && touched.confirmPassword && /*#__PURE__*/React.createElement("p", {
+    id: "confirm-password-error",
+    className: "mt-1 text-xs text-red-600"
+  }, errors.confirmPassword)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-1"
+  }, "Invite Code ", /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-400 text-xs"
+  }, "(optional)")), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.inviteCode,
+    onChange: e => handleFieldChange('inviteCode', e.target.value),
+    onBlur: () => handleFieldBlur('inviteCode'),
+    placeholder: "Enter 6-character code",
+    maxLength: 6,
+    className: `w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.inviteCode && touched.inviteCode ? 'border-red-500 bg-red-50' : touched.inviteCode && !errors.inviteCode && formData.inviteCode ? 'border-green-500' : 'border-gray-300'}`,
+    style: {
+      textTransform: 'uppercase'
+    },
+    "aria-invalid": errors.inviteCode && touched.inviteCode,
+    "aria-describedby": errors.inviteCode && touched.inviteCode ? 'invite-code-error' : undefined
+  }), errors.inviteCode && touched.inviteCode && /*#__PURE__*/React.createElement("p", {
+    id: "invite-code-error",
+    className: "mt-1 text-xs text-red-600"
+  }, errors.inviteCode), /*#__PURE__*/React.createElement("p", {
+    className: "mt-1 text-xs text-gray-500"
+  }, "Have an invite code? Enter it to join an existing institution."))), /*#__PURE__*/React.createElement(Button, {
     type: "submit",
     className: "w-full",
     loading: loading
@@ -1317,7 +2590,8 @@ const Dashboard = () => {
     residents,
     assignments,
     rules,
-    institution
+    institution,
+    firebaseService
   } = useApp();
   const stats = useMemo(() => {
     const totalAssignments = Object.values(assignments).flat().length;
@@ -1382,7 +2656,7 @@ const Dashboard = () => {
         const startDate = new Date();
         startDate.setMonth(startDate.getMonth() - 1);
         const result = await calculateAnalytics({
-          institutionId: useApp().firebaseService.currentInstitution,
+          institutionId: firebaseService.currentInstitution,
           startDate: startDate.toISOString().split('T')[0],
           endDate: new Date().toISOString().split('T')[0]
         });
@@ -1406,12 +2680,17 @@ const Dashboard = () => {
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + 30);
         const result = await generatePDF({
-          institutionId: useApp().firebaseService.currentInstitution,
+          institutionId: firebaseService.currentInstitution,
           startDate: startDate.toISOString().split('T')[0],
           endDate: endDate.toISOString().split('T')[0]
         });
         // Download the PDF
-        const blob = new Blob([atob(result.data.pdf)], {
+        const binaryPdf = atob(result.data.pdf);
+        const byteArray = new Uint8Array(binaryPdf.length);
+        for (let i = 0; i < binaryPdf.length; i++) {
+          byteArray[i] = binaryPdf.charCodeAt(i);
+        }
+        const blob = new Blob([byteArray], {
           type: 'application/pdf'
         });
         const url = URL.createObjectURL(blob);
@@ -1481,13 +2760,7 @@ const ScheduleCalendar = ({
   const [viewMode, setViewMode] = useState(() => {
     return localStorage.getItem('scheduleViewMode') || 'month';
   });
-  const [currentDate, setCurrentDate] = useState(() => {
-    const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
-    const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
-    return viewMode === 'week' ? startOfWeekFunc(new Date(), {
-      weekStartsOn: 0
-    }) : startOfMonthFunc(new Date());
-  });
+  const [activeDate, setActiveDate] = useState(() => normalizeDate(new Date()));
   const [assignments, setAssignments] = useState([]);
   const [attendings, setAttendings] = useState([]);
   const [residents, setResidents] = useState([]);
@@ -1495,6 +2768,7 @@ const ScheduleCalendar = ({
   const [showAutoScheduler, setShowAutoScheduler] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deletingIds, setDeletingIds] = useState(new Set());
 
   // Individual schedule view states
   const [scheduleFilter, setScheduleFilter] = useState(initialFilter?.type || 'all');
@@ -1513,12 +2787,104 @@ const ScheduleCalendar = ({
   useEffect(() => {
     localStorage.setItem('scheduleViewMode', viewMode);
   }, [viewMode]);
+
+  // Generate virtual assignments for continuity clinics and protected times
+  const generateVirtualAssignments = (residents, protectedTimes) => {
+    const virtual = [];
+    const today = new Date();
+
+    // Generate continuity clinic assignments
+    residents.forEach(resident => {
+      if (resident.continuityDay && resident.continuityTime && resident.continuitySiteId) {
+        const dayMap = {
+          sunday: 0,
+          monday: 1,
+          tuesday: 2,
+          wednesday: 3,
+          thursday: 4,
+          friday: 5,
+          saturday: 6
+        };
+        const targetDay = dayMap[resident.continuityDay];
+
+        // Generate for next 52 weeks (1 year)
+        for (let week = 0; week < 52; week++) {
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay() + week * 7);
+          const targetDate = new Date(weekStart);
+          targetDate.setDate(weekStart.getDate() + targetDay);
+
+          // Check if this week is a vacation week
+          const targetWeekStr = targetDate.toISOString().split('T')[0];
+          const isVacationWeek = resident.vacationWeeks?.some(vw => {
+            const vacationStart = new Date(vw);
+            const vacationEnd = new Date(vacationStart);
+            vacationEnd.setDate(vacationEnd.getDate() + 6);
+            return targetDate >= vacationStart && targetDate <= vacationEnd;
+          });
+          if (targetDate >= today && !isVacationWeek) {
+            virtual.push({
+              id: `continuity_${resident.id}_${targetDate.toISOString().split('T')[0]}`,
+              residentId: resident.id,
+              attendingId: null,
+              date: targetDate.toISOString().split('T')[0],
+              timeSlot: resident.continuityTime,
+              type: 'continuity',
+              siteId: resident.continuitySiteId,
+              virtual: true
+            });
+          }
+        }
+      }
+    });
+
+    // Generate protected time assignments
+    if (protectedTimes) {
+      protectedTimes.forEach(pt => {
+        // Generate for next 52 weeks (1 year)
+        for (let week = 0; week < 52; week++) {
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay() + week * 7);
+          const targetDate = new Date(weekStart);
+          targetDate.setDate(weekStart.getDate() + pt.dayOfWeek);
+          if (targetDate >= today) {
+            // Create assignments for all applicable residents
+            residents.forEach(resident => {
+              const residentPGY = resident.pgyStatus || 'PGY-1';
+              if (pt.appliesTo === 'all' || pt.appliesTo === residentPGY) {
+                virtual.push({
+                  id: `protected_${pt.id}_${resident.id}_${targetDate.toISOString().split('T')[0]}`,
+                  residentId: resident.id,
+                  attendingId: null,
+                  date: targetDate.toISOString().split('T')[0],
+                  timeSlot: pt.timeSlot,
+                  type: 'protected',
+                  eventName: pt.name,
+                  eventType: pt.eventType,
+                  siteId: pt.siteId,
+                  mandatory: pt.mandatory,
+                  virtual: true
+                });
+              }
+            });
+          }
+        }
+      });
+    }
+    return virtual;
+  };
   useEffect(() => {
-    if (!firebaseService.currentInstitution) return;
+    if (!firebaseService.currentInstitution) {
+      setLoading(false);
+      return;
+    }
 
     // Set up real-time listeners
     const unsubscribeAssignments = firebaseService.listenToAssignments(data => {
-      setAssignments(data);
+      // Merge real assignments with virtual ones
+      const virtualAssignments = generateVirtualAssignments(residents, institution?.settings?.protectedTimes);
+      const mergedAssignments = [...data, ...virtualAssignments];
+      setAssignments(mergedAssignments);
       setLoading(false);
     });
     const unsubscribeAttendings = firebaseService.listenToAttendings(data => {
@@ -1526,60 +2892,51 @@ const ScheduleCalendar = ({
     });
     const unsubscribeResidents = firebaseService.listenToResidents(data => {
       setResidents(data);
+      // Regenerate assignments when residents change
+      const virtualAssignments = generateVirtualAssignments(data, institution?.settings?.protectedTimes);
+      setAssignments(prev => {
+        const realAssignments = prev.filter(a => !a.virtual);
+        return [...realAssignments, ...virtualAssignments];
+      });
     });
     return () => {
       unsubscribeAssignments();
       unsubscribeAttendings();
       unsubscribeResidents();
     };
-  }, [firebaseService.currentInstitution]);
+  }, [firebaseService.currentInstitution, institution?.settings?.protectedTimes]);
+  const weekStart = useMemo(() => getStartOfWeekSunday(activeDate), [activeDate]);
+  const monthStart = useMemo(() => getStartOfMonthDate(activeDate), [activeDate]);
+  const monthEnd = useMemo(() => getEndOfMonthDate(activeDate), [activeDate]);
   const weekDays = useMemo(() => {
     const days = [];
-    const addDaysFunc = window.dateFns ? window.dateFns.addDays : (d, n) => new Date(d.getTime() + n * 86400000);
-    const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
-    const weekStart = viewMode === 'week' ? currentDate : startOfWeekFunc(currentDate, {
-      weekStartsOn: 0
-    });
-    // Show full week (7 days) instead of just weekdays
     for (let i = 0; i < 7; i++) {
-      days.push(addDaysFunc(weekStart, i));
+      const day = new Date(weekStart.getTime());
+      day.setDate(day.getDate() + i);
+      days.push(day);
     }
     return days;
-  }, [currentDate, viewMode]);
+  }, [weekStart]);
   const getDayName = date => {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const dayIndex = (date.getDay() + 6) % 7; // Adjust for Monday start
-    return days[dayIndex];
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[date.getDay()];
   };
   const isWeekend = date => {
     const day = date.getDay();
-    return day === 0 || day === 6; // Sunday or Saturday
+    return day === 0 || day === 6; // Sunday (0) or Saturday (6)
   };
   const monthDays = useMemo(() => {
     if (viewMode !== 'month') return [];
+    const calendarStart = getStartOfWeekSunday(monthStart);
+    const calendarEnd = getEndOfWeekSaturday(monthEnd);
     const days = [];
-    const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
-    const endOfMonthFunc = window.dateFns ? window.dateFns.endOfMonth : d => new Date(d.getFullYear(), d.getMonth() + 1, 0);
-    const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
-    const endOfWeekFunc = window.dateFns ? window.dateFns.endOfWeek : d => d;
-    const eachDayOfIntervalFunc = window.dateFns ? window.dateFns.eachDayOfInterval : interval => {
-      const days = [];
-      const current = new Date(interval.start);
-      while (current <= interval.end) {
-        days.push(new Date(current));
-        current.setDate(current.getDate() + 1);
-      }
-      return days;
-    };
-    const monthStart = startOfMonthFunc(currentDate);
-    const monthEnd = endOfMonthFunc(currentDate);
-    const calendarStart = startOfWeekFunc(monthStart);
-    const calendarEnd = endOfWeekFunc(monthEnd);
-    return eachDayOfIntervalFunc({
-      start: calendarStart,
-      end: calendarEnd
-    });
-  }, [currentDate, viewMode]);
+    const cursor = new Date(calendarStart.getTime());
+    while (cursor <= calendarEnd) {
+      days.push(new Date(cursor.getTime()));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return days;
+  }, [monthStart, monthEnd, viewMode]);
   const timeSlots = ['AM', 'PM'];
   const getAssignmentsForSlot = (date, timeSlot) => {
     const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
@@ -1597,6 +2954,26 @@ const ScheduleCalendar = ({
     e.preventDefault();
     if (!draggedItem) return;
     const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
+    const conflictCheck = ConflictDetection.checkAllConflicts({
+      assignments,
+      newAssignment: {
+        ...draggedItem,
+        date: dateStr,
+        timeSlot
+      },
+      attendings,
+      residents,
+      institution,
+      excludeId: draggedItem.id
+    });
+    if (conflictCheck.hasErrors) {
+      toast.error(conflictCheck.summary);
+      setDraggedItem(null);
+      return;
+    }
+    if (conflictCheck.hasWarnings) {
+      toast.warning(conflictCheck.summary);
+    }
     await firebaseService.updateAssignment(draggedItem.id, {
       date: dateStr,
       timeSlot
@@ -1613,33 +2990,41 @@ const ScheduleCalendar = ({
   };
   const handleDeleteAssignment = async assignmentId => {
     if (!confirm('Delete this assignment?')) return;
-    await firebaseService.deleteAssignment(assignmentId);
-    toast.success('Assignment deleted');
+
+    // Add to deleting set
+    setDeletingIds(prev => new Set(prev).add(assignmentId));
+    try {
+      await firebaseService.deleteAssignment(assignmentId);
+      toast.success('Assignment deleted');
+    } catch (error) {
+      console.error('Error deleting assignment:', error);
+      toast.error('Failed to delete assignment');
+    } finally {
+      // Remove from deleting set
+      setDeletingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(assignmentId);
+        return newSet;
+      });
+    }
   };
   const navigate = direction => {
-    if (viewMode === 'week') {
-      const addWeeksFunc = window.dateFns ? window.dateFns.addWeeks : (d, n) => new Date(d.getTime() + n * 7 * 86400000);
-      setCurrentDate(prev => addWeeksFunc(prev, direction));
-    } else {
-      const addMonthsFunc = window.dateFns ? window.dateFns.addMonths : (d, n) => {
-        const newDate = new Date(d);
-        newDate.setMonth(newDate.getMonth() + n);
-        return newDate;
-      };
-      setCurrentDate(prev => addMonthsFunc(prev, direction));
-    }
+    setActiveDate(prev => {
+      const next = new Date(prev.getTime());
+      if (viewMode === 'week') {
+        next.setDate(next.getDate() + direction * 7);
+      } else {
+        const currentDay = next.getDate();
+        next.setDate(1);
+        next.setMonth(next.getMonth() + direction);
+        const daysInMonth = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+        next.setDate(Math.min(currentDay, daysInMonth));
+      }
+      return normalizeDate(next);
+    });
   };
   const switchViewMode = mode => {
     setViewMode(mode);
-    if (mode === 'week') {
-      const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
-      setCurrentDate(startOfWeekFunc(currentDate, {
-        weekStartsOn: 0
-      }));
-    } else {
-      const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
-      setCurrentDate(startOfMonthFunc(currentDate));
-    }
   };
   const getAssignmentCount = date => {
     const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
@@ -1650,7 +3035,7 @@ const ScheduleCalendar = ({
     return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
   };
   const isCurrentMonth = date => {
-    return date.getMonth() === currentDate.getMonth();
+    return date.getMonth() === monthStart.getMonth() && date.getFullYear() === monthStart.getFullYear();
   };
 
   // Filter assignments based on selected person
@@ -1770,9 +3155,9 @@ const ScheduleCalendar = ({
     size: 16
   })), /*#__PURE__*/React.createElement("span", {
     className: "font-medium text-gray-700 min-w-[150px] text-center"
-  }, viewMode === 'month' ? window.dateFns ? window.dateFns.format(currentDate, 'MMMM yyyy') : `${currentDate.toLocaleString('default', {
+  }, viewMode === 'month' ? window.dateFns ? window.dateFns.format(monthStart, 'MMMM yyyy') : `${monthStart.toLocaleString('default', {
     month: 'long'
-  })} ${currentDate.getFullYear()}` : window.dateFns ? window.dateFns.format(currentDate, 'MMM d, yyyy') : currentDate.toLocaleDateString()), /*#__PURE__*/React.createElement(Button, {
+  })} ${monthStart.getFullYear()}` : window.dateFns ? window.dateFns.format(activeDate, 'MMM d, yyyy') : activeDate.toLocaleDateString()), /*#__PURE__*/React.createElement(Button, {
     variant: "secondary",
     size: "sm",
     onClick: () => navigate(1)
@@ -1780,6 +3165,20 @@ const ScheduleCalendar = ({
     name: "chevron-right",
     size: 16
   })), /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: () => {
+      const startDate = window.dateFns ? window.dateFns.format(monthStart, 'yyyy-MM-dd') : monthStart.toISOString().split('T')[0];
+      const endDate = window.dateFns ? window.dateFns.format(monthEnd, 'yyyy-MM-dd') : monthEnd.toISOString().split('T')[0];
+      const csv = ExportUtils.assignmentsToCSV(assignments, attendings, residents, startDate, endDate);
+      const filename = ExportUtils.generateFilename('schedule', 'csv');
+      ExportUtils.downloadFile(csv, filename);
+      toast.success('Schedule exported successfully');
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "download",
+    size: 16,
+    className: "mr-2"
+  }), "Export"), /*#__PURE__*/React.createElement(Button, {
     onClick: () => setShowAutoScheduler(true)
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "sparkles",
@@ -1794,24 +3193,32 @@ const ScheduleCalendar = ({
     className: "calendar-grid-week"
   }, /*#__PURE__*/React.createElement("div", {
     className: "bg-gray-50 p-2 font-medium text-gray-700"
-  }, "Time"), weekDays.map(day => /*#__PURE__*/React.createElement("div", {
-    key: day,
-    className: `p-2 font-medium text-center ${isWeekend(day) ? 'bg-gray-200 text-gray-500' : 'bg-gray-50'} ${isToday(day) ? 'bg-primary-50 text-primary-700' : isWeekend(day) ? 'text-gray-500' : 'text-gray-700'}`
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "text-sm font-semibold"
-  }, getDayName(day)), /*#__PURE__*/React.createElement("div", {
-    className: "text-xs"
-  }, window.dateFns ? window.dateFns.format(day, 'MMM d') : day.toLocaleDateString()))), timeSlots.map(timeSlot => /*#__PURE__*/React.createElement(React.Fragment, {
+  }, "Time"), weekDays.map(day => {
+    const dayOfWeek = day.getDay();
+    const dayName = getDayName(day);
+    const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6;
+    const isTodayDay = isToday(day);
+    const isActiveDay = day.getTime() === activeDate.getTime();
+    return /*#__PURE__*/React.createElement("div", {
+      key: day,
+      className: `p-2 font-medium text-center ${isWeekendDay ? 'bg-gray-100 text-gray-500' : 'bg-gray-50'} ${isTodayDay ? 'bg-primary-50 text-primary-700' : isWeekendDay ? 'text-gray-500' : 'text-gray-700'} ${isActiveDay ? 'ring-2 ring-primary-400/70' : ''}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-sm font-semibold"
+    }, dayName), /*#__PURE__*/React.createElement("div", {
+      className: "text-xs"
+    }, window.dateFns ? window.dateFns.format(day, 'MMM d') : day.toLocaleDateString()));
+  }), timeSlots.map(timeSlot => /*#__PURE__*/React.createElement(React.Fragment, {
     key: timeSlot
   }, /*#__PURE__*/React.createElement("div", {
     className: "bg-gray-50 p-4 font-medium text-gray-700"
   }, timeSlot), weekDays.map(day => {
     const slotAssignments = getFilteredAssignmentsForSlot(day, timeSlot);
-    const isWeekendDay = isWeekend(day);
+    const isWeekendDay = day.getDay() === 0 || day.getDay() === 6;
     const isTodaySlot = isToday(day);
+    const isActiveDay = day.getTime() === activeDate.getTime();
     return /*#__PURE__*/React.createElement("div", {
       key: `${day}-${timeSlot}`,
-      className: `time-slot ${isWeekendDay ? 'weekend-slot' : ''} ${isTodaySlot ? 'today-slot' : ''}`,
+      className: `time-slot ${isWeekendDay ? 'weekend-slot' : ''} ${isTodaySlot ? 'today-slot' : ''} ${isActiveDay ? 'border-2 border-primary-400/60' : ''}`,
       onDragOver: handleDragOver,
       onDrop: e => handleDrop(e, day, timeSlot),
       onClick: () => handleQuickAdd(day, timeSlot)
@@ -1820,14 +3227,24 @@ const ScheduleCalendar = ({
       const attending = attendings.find(a => a.id === assignment.attendingId);
       return /*#__PURE__*/React.createElement("div", {
         key: assignment.id,
-        draggable: true,
+        draggable: assignment.type !== 'protected',
         onDragStart: e => handleDragStart(e, assignment),
-        className: "assignment-card"
+        className: `assignment-card ${assignment.type === 'protected' ? 'bg-gray-100 border-gray-300 opacity-75' : assignment.type === 'continuity' ? 'bg-amber-50 border-amber-200' : ''}`
       }, /*#__PURE__*/React.createElement("div", {
         className: "flex items-center justify-between"
       }, /*#__PURE__*/React.createElement("div", {
         className: "flex-1"
-      }, /*#__PURE__*/React.createElement("button", {
+      }, assignment.type === 'protected' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+        className: "font-medium text-gray-700"
+      }, assignment.eventName || 'Protected Time'), /*#__PURE__*/React.createElement("div", {
+        className: "text-sm text-gray-500"
+      }, resident?.name || 'All Residents'), /*#__PURE__*/React.createElement("span", {
+        className: "inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-200 text-gray-700"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "shield",
+        size: 10,
+        className: "mr-1"
+      }), "Protected")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
         onClick: e => {
           e.stopPropagation();
           if (resident && onNavigateToPerson) {
@@ -1835,7 +3252,15 @@ const ScheduleCalendar = ({
           }
         },
         className: "font-medium text-gray-900 hover:text-blue-600 text-left"
-      }, resident?.name || 'Unknown Resident'), /*#__PURE__*/React.createElement("button", {
+      }, resident?.name || 'Unknown Resident'), assignment.type === 'continuity' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+        className: "text-sm text-gray-600"
+      }, "Continuity Clinic"), /*#__PURE__*/React.createElement("span", {
+        className: "inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700"
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: "repeat",
+        size: 10,
+        className: "mr-1"
+      }), "Continuity")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
         onClick: e => {
           e.stopPropagation();
           if (attending && onNavigateToPerson) {
@@ -1843,15 +3268,16 @@ const ScheduleCalendar = ({
           }
         },
         className: "text-gray-600 hover:text-blue-600 block text-left"
-      }, attending?.name || 'Unknown Attending'), assignment.type === 'continuity' && /*#__PURE__*/React.createElement("span", {
-        className: "inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700"
-      }, "Continuity")), /*#__PURE__*/React.createElement("button", {
+      }, attending?.name || 'Unknown Attending')))), !assignment.virtual && /*#__PURE__*/React.createElement("button", {
         onClick: e => {
           e.stopPropagation();
           handleDeleteAssignment(assignment.id);
         },
-        className: "text-gray-400 hover:text-red-600"
-      }, /*#__PURE__*/React.createElement(Icon, {
+        className: `text-gray-400 hover:text-red-600 ${deletingIds.has(assignment.id) ? 'animate-spin' : ''}`,
+        disabled: deletingIds.has(assignment.id)
+      }, deletingIds.has(assignment.id) ? /*#__PURE__*/React.createElement("div", {
+        className: "animate-spin h-3.5 w-3.5 border-2 border-red-600 border-t-transparent rounded-full"
+      }) : /*#__PURE__*/React.createElement(Icon, {
         name: "x",
         size: 14
       }))));
@@ -1861,25 +3287,25 @@ const ScheduleCalendar = ({
   /* Month View */
   React.createElement("div", {
     className: "calendar-grid-month"
-  }, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => /*#__PURE__*/React.createElement("div", {
+  }, ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => /*#__PURE__*/React.createElement("div", {
     key: day,
-    className: "bg-gray-50 p-2 text-center font-medium text-gray-700 text-sm"
+    className: `p-2 text-center font-medium text-sm ${index === 0 || index === 6 ? 'bg-gray-100 text-gray-500' : 'bg-gray-50 text-gray-700'}`
   }, day)), monthDays.map(day => {
     const dateStr = window.dateFns ? window.dateFns.format(day, 'yyyy-MM-dd') : day.toISOString().split('T')[0];
     const filtered = getFilteredAssignments();
     const dayAssignments = filtered.filter(a => a.date === dateStr);
     const amAssignments = dayAssignments.filter(a => a.timeSlot === 'AM');
     const pmAssignments = dayAssignments.filter(a => a.timeSlot === 'PM');
+    const dayOfWeek = day.getDay();
+    const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6;
+    const isActiveDay = day.getTime() === activeDate.getTime();
     return /*#__PURE__*/React.createElement("div", {
       key: dateStr,
-      className: `month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''} ${isWeekend(day) ? 'weekend-slot' : ''}`,
+      className: `month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''} ${isWeekendDay ? 'weekend-slot' : ''} ${isActiveDay ? 'border-primary-400 ring-2 ring-primary-400/60' : ''}`,
       onClick: () => {
         if (isCurrentMonth(day)) {
           // Switch to week view for this day
-          const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
-          setCurrentDate(startOfWeekFunc(day, {
-            weekStartsOn: 0
-          }));
+          setActiveDate(normalizeDate(day));
           setViewMode('week');
         }
       }
@@ -1937,7 +3363,30 @@ const ScheduleCalendar = ({
     timeSlot: selectedCell.timeSlot,
     residents: residents,
     attendings: attendings,
+    assignments: assignments,
+    institution: institution,
     onSave: async data => {
+      // Check for conflicts
+      const conflictCheck = ConflictDetection.checkAllConflicts({
+        assignments,
+        newAssignment: data,
+        attendings,
+        residents,
+        institution
+      });
+      if (conflictCheck.hasErrors) {
+        // Show conflicts and ask for confirmation
+        const errorMessages = conflictCheck.conflicts.filter(c => c.severity === 'error').map(c => c.message).join('\n');
+        if (!confirm(`Conflicts detected:\n\n${errorMessages}\n\nDo you want to override and continue?`)) {
+          return;
+        }
+      } else if (conflictCheck.hasWarnings) {
+        // Show warnings but allow to proceed
+        const warningMessages = conflictCheck.conflicts.filter(c => c.severity === 'warning').map(c => c.message).join('\n');
+        if (!confirm(`Warnings:\n\n${warningMessages}\n\nDo you want to continue?`)) {
+          return;
+        }
+      }
       await firebaseService.addAssignment(data);
       toast.success('Assignment added');
       setSelectedCell(null);
@@ -1958,16 +3407,72 @@ const AssignmentForm = ({
   timeSlot,
   residents,
   attendings,
+  assignments = [],
+  institution: institutionProp,
   onSave,
   onCancel
 }) => {
+  const {
+    institution: contextInstitution
+  } = useApp();
+  const institution = institutionProp || contextInstitution;
+  const sites = institution?.settings?.sites || [];
+  const rotations = institution?.settings?.rotations || [];
   const [formData, setFormData] = useState({
     date,
     timeSlot,
     residentId: '',
     attendingId: '',
-    type: 'clinical'
+    type: 'clinical',
+    siteId: '',
+    rotationId: ''
   });
+  const [conflicts, setConflicts] = useState([]);
+
+  // Get resident's current rotation for the month
+  const getResidentRotation = residentId => {
+    if (!residentId) return null;
+    const resident = residents.find(r => r.id === residentId);
+    if (!resident) return null;
+    const monthStr = new Date(date).toISOString().slice(0, 7);
+    const assignment = resident.rotationAssignments?.find(ra => ra.month === monthStr);
+    if (!assignment) return null;
+    return rotations.find(r => r.id === assignment.rotationId);
+  };
+
+  // Get available attendings based on rotation and time slot
+  const getAvailableAttendings = () => {
+    if (!formData.residentId) return attendings;
+    const rotation = getResidentRotation(formData.residentId);
+    if (!rotation) return attendings;
+    const dayOfWeek = new Date(date).getDay();
+
+    // Filter attendings who:
+    // 1. Support this rotation
+    // 2. Have clinic sessions on this day/time
+    return attendings.filter(attending => {
+      const supportsRotation = attending.rotationIds?.includes(rotation.id);
+      const hasClinicSession = attending.clinicSchedule?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot);
+      return supportsRotation && hasClinicSession;
+    });
+  };
+  const availableAttendings = getAvailableAttendings();
+
+  // Check for conflicts when form data changes
+  useEffect(() => {
+    if (!formData.residentId && !formData.attendingId) {
+      setConflicts([]);
+      return;
+    }
+    const conflictCheck = ConflictDetection.checkAllConflicts({
+      assignments,
+      newAssignment: formData,
+      attendings,
+      residents,
+      institution
+    });
+    setConflicts(conflictCheck.conflicts);
+  }, [formData.residentId, formData.attendingId, formData.date, formData.timeSlot]);
   return /*#__PURE__*/React.createElement("form", {
     onSubmit: e => {
       e.preventDefault();
@@ -1991,20 +3496,35 @@ const AssignmentForm = ({
     value: r.id
   }, r.name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
-  }, "Attending"), /*#__PURE__*/React.createElement("select", {
+  }, "Attending", availableAttendings.length === 0 && formData.residentId && /*#__PURE__*/React.createElement("span", {
+    className: "text-red-500 text-xs ml-2"
+  }, "No attendings available for this rotation/time")), /*#__PURE__*/React.createElement("select", {
     value: formData.attendingId,
-    onChange: e => setFormData({
-      ...formData,
-      attendingId: e.target.value
-    }),
+    onChange: e => {
+      const attendingId = e.target.value;
+      const attending = attendings.find(a => a.id === attendingId);
+      const dayOfWeek = new Date(date).getDay();
+      const session = attending?.clinicSchedule?.find(s => s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot);
+      setFormData({
+        ...formData,
+        attendingId,
+        siteId: session?.siteId || '',
+        rotationId: getResidentRotation(formData.residentId)?.id || ''
+      });
+    },
     className: "w-full px-3 py-2 border rounded-lg",
     required: true
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "Select Attending"), attendings.map(a => /*#__PURE__*/React.createElement("option", {
-    key: a.id,
-    value: a.id
-  }, a.name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+  }, "Select Attending"), availableAttendings.map(a => {
+    const dayOfWeek = new Date(date).getDay();
+    const session = a.clinicSchedule?.find(s => s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot);
+    const site = sites.find(s => s.id === session?.siteId);
+    return /*#__PURE__*/React.createElement("option", {
+      key: a.id,
+      value: a.id
+    }, a.name, " ", site && `(${site.name})`);
+  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Type"), /*#__PURE__*/React.createElement("select", {
     value: formData.type,
@@ -2017,7 +3537,22 @@ const AssignmentForm = ({
     value: "clinical"
   }, "Clinical"), /*#__PURE__*/React.createElement("option", {
     value: "continuity"
-  }, "Continuity"))), /*#__PURE__*/React.createElement("div", {
+  }, "Continuity"))), conflicts.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, conflicts.map((conflict, index) => /*#__PURE__*/React.createElement("div", {
+    key: index,
+    className: `p-3 rounded-lg border-l-4 ${conflict.severity === 'error' ? 'bg-red-50 border-red-500 text-red-800' : conflict.severity === 'warning' ? 'bg-yellow-50 border-yellow-500 text-yellow-800' : 'bg-blue-50 border-blue-500 text-blue-800'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start gap-2"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: conflict.severity === 'error' ? 'alert-circle' : conflict.severity === 'warning' ? 'alert-triangle' : 'info',
+    size: 16,
+    className: "mt-0.5 flex-shrink-0"
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-medium"
+  }, conflict.message), conflict.type === 'vacation' && conflict.vacationDates && /*#__PURE__*/React.createElement("p", {
+    className: "text-xs mt-1 opacity-75"
+  }, "Vacation: ", conflict.vacationDates.start.toLocaleDateString(), " - ", conflict.vacationDates.end.toLocaleDateString())))))), /*#__PURE__*/React.createElement("div", {
     className: "flex justify-end gap-3"
   }, /*#__PURE__*/React.createElement(Button, {
     type: "button",
@@ -2075,13 +3610,27 @@ const AttendingsList = ({
     className: "text-2xl font-bold text-gray-900"
   }, "Attendings"), /*#__PURE__*/React.createElement("p", {
     className: "text-gray-600"
-  }, "Manage attending physicians")), /*#__PURE__*/React.createElement(Button, {
+  }, "Manage attending physicians")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: () => {
+      const csv = ExportUtils.attendingsToCSV(attendings);
+      const filename = ExportUtils.generateFilename('attendings', 'csv');
+      ExportUtils.downloadFile(csv, filename);
+      toast.success('Attendings exported successfully');
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "download",
+    size: 16,
+    className: "mr-2"
+  }), "Export"), /*#__PURE__*/React.createElement(Button, {
     onClick: () => setEditingAttending({})
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "plus",
     size: 16,
     className: "mr-2"
-  }), "Add Attending")), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
+  }), "Add Attending"))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("div", {
     className: "overflow-x-auto"
   }, /*#__PURE__*/React.createElement("table", {
     className: "w-full"
@@ -2154,9 +3703,11 @@ const AttendingForm = ({
     institution
   } = useApp();
   const sites = institution?.settings?.sites || [];
+  const rotations = institution?.settings?.rotations || [];
   const [formData, setFormData] = useState({
     name: attending.name || '',
     clinicSchedule: attending.clinicSchedule || [],
+    rotationIds: attending.rotationIds || [],
     ...attending
   });
   const daysOfWeek = [{
@@ -2240,6 +3791,36 @@ const AttendingForm = ({
     className: "w-full px-3 py-2 border rounded-lg",
     required: true
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Supported Rotations"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mb-2"
+  }, "Select rotations this attending supports"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3"
+  }, rotations.map(rotation => /*#__PURE__*/React.createElement("label", {
+    key: rotation.id,
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: formData.rotationIds?.includes(rotation.id),
+    onChange: e => {
+      if (e.target.checked) {
+        setFormData({
+          ...formData,
+          rotationIds: [...(formData.rotationIds || []), rotation.id]
+        });
+      } else {
+        setFormData({
+          ...formData,
+          rotationIds: formData.rotationIds?.filter(id => id !== rotation.id) || []
+        });
+      }
+    },
+    className: "rounded"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm"
+  }, rotation.name, " (", rotation.code, ")", rotation.isMultiSite && /*#__PURE__*/React.createElement("span", {
+    className: "ml-1 text-xs text-gray-500"
+  }, "[Multi-site]")))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Clinic Schedule"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-gray-500 mb-3"
@@ -2432,8 +4013,10 @@ const ResidentForm = ({
     pgyStatus: resident.pgyStatus || 'PGY-1',
     continuityDay: resident.continuityDay || '',
     continuityTime: resident.continuityTime || '',
+    continuitySiteId: resident.continuitySiteId || '',
     rotationAssignments: resident.rotationAssignments || [],
     halfDaysOff: resident.halfDaysOff || [],
+    vacationWeeks: resident.vacationWeeks || [],
     ...resident
   });
   const [editingMonth, setEditingMonth] = useState(null);
@@ -2530,7 +4113,7 @@ const ResidentForm = ({
       value: assignment?.rotationId || '',
       onChange: e => {
         const rotation = rotations.find(r => r.id === e.target.value);
-        const primarySite = rotation?.siteIds?.[0] || sites[0]?.id;
+        const primarySite = rotation?.isMultiSite ? null : rotation?.siteIds?.[0] || sites[0]?.id;
         setRotationForMonth(month, e.target.value, primarySite);
       },
       className: "flex-1 px-2 py-1 border rounded text-sm"
@@ -2539,20 +4122,36 @@ const ResidentForm = ({
     }, "No Rotation"), rotations.map(r => /*#__PURE__*/React.createElement("option", {
       key: r.id,
       value: r.id
-    }, r.name))), assignment && /*#__PURE__*/React.createElement("select", {
-      value: assignment.primarySiteId || '',
-      onChange: e => setRotationForMonth(month, assignment.rotationId, e.target.value),
-      className: "w-32 px-2 py-1 border rounded text-sm"
-    }, sites.filter(s => {
+    }, r.name, r.isMultiSite && ' [Multi-site]'))), assignment && (() => {
       const rotation = rotations.find(r => r.id === assignment.rotationId);
-      return rotation?.siteIds?.includes(s.id);
-    }).map(s => /*#__PURE__*/React.createElement("option", {
-      key: s.id,
-      value: s.id
-    }, s.name))));
+      return !rotation?.isMultiSite && /*#__PURE__*/React.createElement("select", {
+        value: assignment.primarySiteId || '',
+        onChange: e => setRotationForMonth(month, assignment.rotationId, e.target.value),
+        className: "w-32 px-2 py-1 border rounded text-sm"
+      }, /*#__PURE__*/React.createElement("option", {
+        value: ""
+      }, "Select Site"), sites.filter(s => rotation?.siteIds?.includes(s.id)).map(s => /*#__PURE__*/React.createElement("option", {
+        key: s.id,
+        value: s.id
+      }, s.name)));
+    })());
   }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Continuity Clinic"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: formData.continuitySiteId,
+    onChange: e => setFormData({
+      ...formData,
+      continuitySiteId: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "No Continuity Site"), sites.map(site => /*#__PURE__*/React.createElement("option", {
+    key: site.id,
+    value: site.id
+  }, site.name, " (", site.code, ")"))), formData.continuitySiteId && /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-2 gap-2"
   }, /*#__PURE__*/React.createElement("select", {
     value: formData.continuityDay,
@@ -2563,7 +4162,7 @@ const ResidentForm = ({
     className: "px-3 py-2 border rounded-lg"
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "No Day"), /*#__PURE__*/React.createElement("option", {
+  }, "Select Day"), /*#__PURE__*/React.createElement("option", {
     value: "monday"
   }, "Monday"), /*#__PURE__*/React.createElement("option", {
     value: "tuesday"
@@ -2582,11 +4181,58 @@ const ResidentForm = ({
     className: "px-3 py-2 border rounded-lg"
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
-  }, "No Time"), /*#__PURE__*/React.createElement("option", {
+  }, "Select Time"), /*#__PURE__*/React.createElement("option", {
     value: "AM"
   }, "AM"), /*#__PURE__*/React.createElement("option", {
     value: "PM"
-  }, "PM")))), /*#__PURE__*/React.createElement("div", {
+  }, "PM"))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Vacation Weeks"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mb-2"
+  }, "Select weeks when this resident is on vacation (no continuity clinic)"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 items-center"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    placeholder: "Select week start date",
+    className: "px-3 py-2 border rounded-lg",
+    onChange: e => {
+      if (e.target.value && !formData.vacationWeeks?.includes(e.target.value)) {
+        setFormData({
+          ...formData,
+          vacationWeeks: [...(formData.vacationWeeks || []), e.target.value]
+        });
+        e.target.value = '';
+      }
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-gray-600"
+  }, "Add vacation week starting on this date")), formData.vacationWeeks?.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1 max-h-32 overflow-y-auto border rounded-lg p-2"
+  }, formData.vacationWeeks.sort().map((weekStart, idx) => {
+    const startDate = new Date(weekStart);
+    const endDate = new Date(weekStart);
+    endDate.setDate(endDate.getDate() + 6);
+    return /*#__PURE__*/React.createElement("div", {
+      key: idx,
+      className: "flex items-center justify-between p-1 hover:bg-gray-50 rounded"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-sm"
+    }, startDate.toLocaleDateString(), " - ", endDate.toLocaleDateString()), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => {
+        setFormData({
+          ...formData,
+          vacationWeeks: formData.vacationWeeks.filter(w => w !== weekStart)
+        });
+      },
+      className: "text-red-600 hover:text-red-700"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "x",
+      size: 14
+    })));
+  })))), /*#__PURE__*/React.createElement("div", {
     className: "flex justify-end gap-3"
   }, /*#__PURE__*/React.createElement(Button, {
     type: "button",
@@ -2796,6 +4442,351 @@ const RuleForm = ({
   }, "Save")));
 };
 
+// ==================== Members Management Component ====================
+const MembersManagement = () => {
+  const {
+    firebaseService,
+    institution,
+    user
+  } = useApp();
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [inviteCode, setInviteCode] = useState('');
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
+  const [updatingRoles, setUpdatingRoles] = useState(new Set());
+  const [removingMembers, setRemovingMembers] = useState(new Set());
+  useEffect(() => {
+    if (!firebaseService.currentInstitution) return;
+    const loadMembers = async () => {
+      try {
+        const membersData = await firebaseService.getInstitutionMembers();
+        setMembers(membersData);
+      } catch (error) {
+        console.error('Error loading members:', error);
+        toast.error('Failed to load members');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadMembers();
+  }, [firebaseService.currentInstitution]);
+  const generateInviteCode = () => {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+
+    const inviteData = {
+      code,
+      institutionId: firebaseService.currentInstitution,
+      institutionName: institution.name,
+      createdBy: user.uid,
+      createdAt: new Date().toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      used: false
+    };
+
+    // In a real implementation, save this to Firebase
+    firebaseService.createInviteCode(inviteData).then(() => {
+      setInviteCode(code);
+      setShowInviteModal(true);
+      toast.success('Invite code generated');
+    }).catch(error => {
+      toast.error('Failed to generate invite code');
+    });
+  };
+  const handleRoleChange = async (memberId, newRole) => {
+    setUpdatingRoles(prev => new Set(prev).add(memberId));
+    try {
+      await firebaseService.updateMemberRole(memberId, newRole);
+      setMembers(members.map(m => m.id === memberId ? {
+        ...m,
+        role: newRole
+      } : m));
+      toast.success('Role updated successfully');
+    } catch (error) {
+      console.error('Error updating role:', error);
+      toast.error('Failed to update role');
+    } finally {
+      setUpdatingRoles(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(memberId);
+        return newSet;
+      });
+    }
+  };
+  const handleRemoveMember = async memberId => {
+    if (!confirm('Are you sure you want to remove this member?')) return;
+    setRemovingMembers(prev => new Set(prev).add(memberId));
+    try {
+      await firebaseService.removeMember(memberId);
+      setMembers(members.filter(m => m.id !== memberId));
+      toast.success('Member removed');
+    } catch (error) {
+      console.error('Error removing member:', error);
+      toast.error('Failed to remove member');
+    } finally {
+      setRemovingMembers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(memberId);
+        return newSet;
+      });
+    }
+  };
+  const currentUserMember = members.find(m => m.userId === user.uid);
+  const isAdmin = currentUserMember?.role === 'admin';
+  if (loading) {
+    return /*#__PURE__*/React.createElement(LoadingSpinner, {
+      size: "lg",
+      className: "py-12"
+    });
+  }
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center mb-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-medium text-gray-900"
+  }, "Institution Members"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600"
+  }, "Manage users who have access to this institution")), isAdmin && /*#__PURE__*/React.createElement(Button, {
+    onClick: generateInviteCode
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "user-plus",
+    size: 16,
+    className: "mr-2"
+  }), "Generate Invite")), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, members.map(member => /*#__PURE__*/React.createElement("div", {
+    key: member.id,
+    className: "flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-10 h-10 bg-gradient-to-br from-medical-400 to-medical-600 rounded-full flex items-center justify-center"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "user",
+    size: 18,
+    className: "text-white"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-medium text-gray-900"
+  }, member.name || member.email), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-gray-500"
+  }, member.email))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("select", {
+    value: member.role,
+    onChange: e => handleRoleChange(member.id, e.target.value),
+    disabled: !isAdmin || member.userId === user.uid,
+    className: "px-3 py-1 border rounded-lg text-sm"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "member"
+  }, "Member"), /*#__PURE__*/React.createElement("option", {
+    value: "scheduler"
+  }, "Scheduler"), /*#__PURE__*/React.createElement("option", {
+    value: "admin"
+  }, "Admin")), isAdmin && member.userId !== user.uid && /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleRemoveMember(member.id),
+    className: "text-red-600 hover:text-red-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash",
+    size: 16
+  })))))), showInviteModal && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setShowInviteModal(false),
+    title: "Invitation Code Generated"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-gray-600"
+  }, "Share this code with the person you want to invite. They can use it to join the institution."), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 bg-gray-100 rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-center"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-500 mb-2"
+  }, "Invitation Code"), /*#__PURE__*/React.createElement("p", {
+    className: "text-2xl font-mono font-bold text-gray-900"
+  }, inviteCode))), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-500"
+  }, "This code will expire in 7 days."), /*#__PURE__*/React.createElement(Button, {
+    onClick: () => {
+      navigator.clipboard.writeText(inviteCode);
+      toast.success('Code copied to clipboard');
+    },
+    className: "w-full"
+  }, "Copy Code"))));
+};
+
+// ==================== Backup & Restore Component ====================
+const BackupRestore = () => {
+  const {
+    firebaseService,
+    attendings,
+    residents,
+    assignments,
+    institution
+  } = useApp();
+  const [importing, setImporting] = useState(false);
+  const [exportType, setExportType] = useState('all');
+  const handleExport = () => {
+    let dataToExport = {};
+    if (exportType === 'all' || exportType === 'institution') {
+      dataToExport.institution = institution;
+    }
+    if (exportType === 'all' || exportType === 'attendings') {
+      dataToExport.attendings = attendings;
+    }
+    if (exportType === 'all' || exportType === 'residents') {
+      dataToExport.residents = residents;
+    }
+    if (exportType === 'all' || exportType === 'assignments') {
+      dataToExport.assignments = assignments;
+    }
+    const json = ExportUtils.exportToJSON(dataToExport);
+    const filename = ExportUtils.generateFilename(`backup_${exportType}`, 'json');
+    ExportUtils.downloadFile(json, filename, 'application/json');
+    toast.success(`${exportType} data exported successfully`);
+  };
+  const handleImport = () => {
+    ExportUtils.selectFile('.json', async (content, filename) => {
+      setImporting(true);
+      const result = ExportUtils.parseImportedJSON(content);
+      if (!result.success) {
+        // Show detailed validation errors if present
+        if (result.validationErrors && result.validationErrors.length > 0) {
+          const errorMessage = `Validation errors:\n${result.validationErrors.slice(0, 5).join('\n')}${result.validationErrors.length > 5 ? `\n...and ${result.validationErrors.length - 5} more errors` : ''}`;
+          toast.error(errorMessage);
+        } else {
+          toast.error(result.error);
+        }
+        setImporting(false);
+        return;
+      }
+
+      // Build confirmation message with validation info
+      const dataTypes = Object.keys(result.data);
+      let message = `Import Summary:\n`;
+      if (result.validation) {
+        message += `\n📊 Data to import:`;
+        message += `\n• ${result.validation.summary.attendings} Attendings`;
+        message += `\n• ${result.validation.summary.residents} Residents`;
+        message += `\n• ${result.validation.summary.assignments} Assignments`;
+        if (result.validation.warnings.length > 0) {
+          message += `\n\n⚠️ Warnings (${result.validation.warnings.length}):`;
+          message += `\n${result.validation.warnings.slice(0, 3).join('\n')}`;
+          if (result.validation.warnings.length > 3) {
+            message += `\n...and ${result.validation.warnings.length - 3} more warnings`;
+          }
+        }
+      } else {
+        message += `\nData types: ${dataTypes.join(', ')}`;
+      }
+      message += `\n\nExported: ${result.exportDate || 'Unknown date'}`;
+      message += `\n\nDo you want to continue?`;
+      if (!confirm(message)) {
+        setImporting(false);
+        return;
+      }
+      try {
+        // Import each data type
+        if (result.data.attendings) {
+          for (const attending of result.data.attendings) {
+            await firebaseService.addAttending(attending);
+          }
+        }
+        if (result.data.residents) {
+          for (const resident of result.data.residents) {
+            await firebaseService.addResident(resident);
+          }
+        }
+        if (result.data.assignments) {
+          for (const assignment of result.data.assignments) {
+            await firebaseService.addAssignment(assignment);
+          }
+        }
+        toast.success('Data imported successfully');
+      } catch (error) {
+        console.error('Import error:', error);
+        toast.error('Failed to import data');
+      } finally {
+        setImporting(false);
+      }
+    });
+  };
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-medium text-gray-900 mb-4"
+  }, "Backup & Restore"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "font-medium text-gray-900"
+  }, "Export Data"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600"
+  }, "Create a backup of your institution data"), /*#__PURE__*/React.createElement("select", {
+    value: exportType,
+    onChange: e => setExportType(e.target.value),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "all"
+  }, "All Data"), /*#__PURE__*/React.createElement("option", {
+    value: "institution"
+  }, "Institution Settings Only"), /*#__PURE__*/React.createElement("option", {
+    value: "attendings"
+  }, "Attendings Only"), /*#__PURE__*/React.createElement("option", {
+    value: "residents"
+  }, "Residents Only"), /*#__PURE__*/React.createElement("option", {
+    value: "assignments"
+  }, "Assignments Only")), /*#__PURE__*/React.createElement(Button, {
+    onClick: handleExport,
+    className: "w-full"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "download",
+    size: 16,
+    className: "mr-2"
+  }), "Export ", exportType === 'all' ? 'All Data' : exportType)), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "font-medium text-gray-900"
+  }, "Import Data"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600"
+  }, "Restore data from a backup file"), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 bg-yellow-50 rounded-lg border border-yellow-200"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start gap-2"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "alert-triangle",
+    size: 16,
+    className: "text-yellow-600 mt-0.5"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-yellow-800"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "font-medium"
+  }, "Warning"), /*#__PURE__*/React.createElement("p", null, "Importing will add data to your existing records. Duplicate entries may be created.")))), /*#__PURE__*/React.createElement(Button, {
+    onClick: handleImport,
+    disabled: importing,
+    variant: "secondary",
+    className: "w-full"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "upload",
+    size: 16,
+    className: "mr-2"
+  }), importing ? 'Importing...' : 'Import from File'))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start gap-2"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "info",
+    size: 16,
+    className: "text-blue-600 mt-0.5"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-blue-800"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "font-medium"
+  }, "Backup Best Practices"), /*#__PURE__*/React.createElement("ul", {
+    className: "list-disc list-inside mt-1 space-y-1"
+  }, /*#__PURE__*/React.createElement("li", null, "Export your data regularly"), /*#__PURE__*/React.createElement("li", null, "Store backups in a secure location"), /*#__PURE__*/React.createElement("li", null, "Test restore functionality periodically"), /*#__PURE__*/React.createElement("li", null, "Keep multiple versions of backups"))))));
+};
+
 // ==================== Settings View Component ====================
 const SettingsView = () => {
   const {
@@ -2823,11 +4814,13 @@ const SettingsView = () => {
       siteIds: ['site_1'],
       isMultiSite: false,
       requirements: {}
-    }]
+    }],
+    protectedTimes: institution?.settings?.protectedTimes || []
   });
   const [saving, setSaving] = useState(false);
   const [editingSite, setEditingSite] = useState(null);
   const [editingRotation, setEditingRotation] = useState(null);
+  const [editingProtectedTime, setEditingProtectedTime] = useState(null);
   const handleSave = async () => {
     setSaving(true);
     await firebaseService.updateInstitutionSettings(settings);
@@ -2847,9 +4840,21 @@ const SettingsView = () => {
     name: 'Rotations',
     icon: 'repeat'
   }, {
+    id: 'protected',
+    name: 'Protected Times',
+    icon: 'shield'
+  }, {
     id: 'schedule',
     name: 'Schedule',
     icon: 'calendar'
+  }, {
+    id: 'members',
+    name: 'Members',
+    icon: 'users'
+  }, {
+    id: 'backup',
+    name: 'Backup',
+    icon: 'database'
   }];
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-6"
@@ -2986,7 +4991,50 @@ const SettingsView = () => {
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "trash-2",
     size: 16
-  }))))))), activeTab === 'schedule' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+  }))))))), activeTab === 'protected' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center mb-4"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-medium text-gray-900"
+  }, "Protected Times"), /*#__PURE__*/React.createElement(Button, {
+    onClick: () => setEditingProtectedTime({}),
+    size: "sm"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 16,
+    className: "mr-1"
+  }), "Add Protected Time")), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600 mb-4"
+  }, "Define recurring weekly events like Didactics, Grand Rounds, or protected educational time."), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, settings.protectedTimes.map(pt => /*#__PURE__*/React.createElement("div", {
+    key: pt.id,
+    className: "flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-medium"
+  }, pt.name), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-gray-500"
+  }, ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][pt.dayOfWeek], " ", pt.timeSlot, pt.appliesTo && pt.appliesTo !== 'all' && ` • ${pt.appliesTo.toUpperCase()}`, pt.mandatory && ' • Mandatory')), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditingProtectedTime(pt),
+    className: "text-blue-600 hover:text-blue-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "pencil",
+    size: 16
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setSettings({
+        ...settings,
+        protectedTimes: settings.protectedTimes.filter(p => p.id !== pt.id)
+      });
+    },
+    className: "text-red-600 hover:text-red-700"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash-2",
+    size: 16
+  }))))), settings.protectedTimes.length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "text-center py-8 text-gray-500"
+  }, "No protected times defined. Click \"Add Protected Time\" to create one."))), activeTab === 'schedule' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
     className: "text-lg font-medium text-gray-900 mb-4"
   }, "Schedule Preferences"), /*#__PURE__*/React.createElement("div", {
     className: "space-y-4"
@@ -3040,7 +5088,7 @@ const SettingsView = () => {
     className: "rounded"
   }), /*#__PURE__*/React.createElement("span", {
     className: "text-sm font-medium text-gray-700"
-  }, "Enable Notifications"))))), /*#__PURE__*/React.createElement("div", {
+  }, "Enable Notifications"))))), activeTab === 'members' && /*#__PURE__*/React.createElement(MembersManagement, null), activeTab === 'backup' && /*#__PURE__*/React.createElement(BackupRestore, null), activeTab !== 'members' && activeTab !== 'backup' && /*#__PURE__*/React.createElement("div", {
     className: "flex justify-end"
   }, /*#__PURE__*/React.createElement(Button, {
     onClick: handleSave,
@@ -3098,6 +5146,32 @@ const SettingsView = () => {
       setEditingRotation(null);
     },
     onCancel: () => setEditingRotation(null)
+  })), editingProtectedTime && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setEditingProtectedTime(null),
+    title: editingProtectedTime.id ? 'Edit Protected Time' : 'Add Protected Time'
+  }, /*#__PURE__*/React.createElement(ProtectedTimeForm, {
+    protectedTime: editingProtectedTime,
+    sites: settings.sites,
+    onSave: ptData => {
+      if (ptData.id) {
+        setSettings({
+          ...settings,
+          protectedTimes: settings.protectedTimes.map(pt => pt.id === ptData.id ? ptData : pt)
+        });
+      } else {
+        const newPT = {
+          ...ptData,
+          id: `pt_${Date.now()}`
+        };
+        setSettings({
+          ...settings,
+          protectedTimes: [...settings.protectedTimes, newPT]
+        });
+      }
+      setEditingProtectedTime(null);
+    },
+    onCancel: () => setEditingProtectedTime(null)
   })));
 };
 
@@ -3278,6 +5352,172 @@ const RotationForm = ({
   }, "Save Rotation")));
 };
 
+// Protected Time Form Component
+const ProtectedTimeForm = ({
+  protectedTime,
+  sites,
+  onSave,
+  onCancel
+}) => {
+  const [formData, setFormData] = useState({
+    name: protectedTime.name || '',
+    dayOfWeek: protectedTime.dayOfWeek ?? 3,
+    // Default to Wednesday
+    timeSlot: protectedTime.timeSlot || 'AM',
+    appliesTo: protectedTime.appliesTo || 'all',
+    mandatory: protectedTime.mandatory ?? true,
+    eventType: protectedTime.eventType || 'didactics',
+    siteId: protectedTime.siteId || '',
+    ...protectedTime
+  });
+  const daysOfWeek = [{
+    value: 0,
+    label: 'Sunday'
+  }, {
+    value: 1,
+    label: 'Monday'
+  }, {
+    value: 2,
+    label: 'Tuesday'
+  }, {
+    value: 3,
+    label: 'Wednesday'
+  }, {
+    value: 4,
+    label: 'Thursday'
+  }, {
+    value: 5,
+    label: 'Friday'
+  }, {
+    value: 6,
+    label: 'Saturday'
+  }];
+  const pgyLevels = ['all', 'PGY-1', 'PGY-2', 'PGY-3', 'PGY-4', 'PGY-5+'];
+  const eventTypes = [{
+    value: 'didactics',
+    label: 'Didactics'
+  }, {
+    value: 'grand-rounds',
+    label: 'Grand Rounds'
+  }, {
+    value: 'meeting',
+    label: 'Meeting'
+  }, {
+    value: 'protected',
+    label: 'Protected Education'
+  }, {
+    value: 'other',
+    label: 'Other'
+  }];
+  return /*#__PURE__*/React.createElement("form", {
+    onSubmit: e => {
+      e.preventDefault();
+      onSave(formData);
+    },
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Event Name"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: formData.name,
+    onChange: e => setFormData({
+      ...formData,
+      name: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    placeholder: "e.g., Weekly Didactics",
+    required: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Event Type"), /*#__PURE__*/React.createElement("select", {
+    value: formData.eventType,
+    onChange: e => setFormData({
+      ...formData,
+      eventType: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, eventTypes.map(type => /*#__PURE__*/React.createElement("option", {
+    key: type.value,
+    value: type.value
+  }, type.label)))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Day of Week"), /*#__PURE__*/React.createElement("select", {
+    value: formData.dayOfWeek,
+    onChange: e => setFormData({
+      ...formData,
+      dayOfWeek: parseInt(e.target.value)
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  }, daysOfWeek.map(day => /*#__PURE__*/React.createElement("option", {
+    key: day.value,
+    value: day.value
+  }, day.label)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Time Slot"), /*#__PURE__*/React.createElement("select", {
+    value: formData.timeSlot,
+    onChange: e => setFormData({
+      ...formData,
+      timeSlot: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "AM"
+  }, "AM"), /*#__PURE__*/React.createElement("option", {
+    value: "PM"
+  }, "PM")))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Applies To"), /*#__PURE__*/React.createElement("select", {
+    value: formData.appliesTo,
+    onChange: e => setFormData({
+      ...formData,
+      appliesTo: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, pgyLevels.map(level => /*#__PURE__*/React.createElement("option", {
+    key: level,
+    value: level
+  }, level === 'all' ? 'All Residents' : level)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Site (Optional)"), /*#__PURE__*/React.createElement("select", {
+    value: formData.siteId,
+    onChange: e => setFormData({
+      ...formData,
+      siteId: e.target.value
+    }),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "All Sites"), sites.map(site => /*#__PURE__*/React.createElement("option", {
+    key: site.id,
+    value: site.id
+  }, site.name, " (", site.code, ")")))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: formData.mandatory,
+    onChange: e => setFormData({
+      ...formData,
+      mandatory: e.target.checked
+    }),
+    className: "rounded"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-medium text-gray-700"
+  }, "Mandatory Attendance")), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mt-1"
+  }, "If checked, residents must attend unless explicitly excused")), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-2"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: onCancel
+  }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    type: "submit"
+  }, "Save Protected Time")));
+};
+
 // ==================== Auto-Scheduler Component ====================
 const AutoScheduler = ({
   onClose
@@ -3378,12 +5618,17 @@ const App = () => {
   } = useApp();
   const [activeView, setActiveView] = useState('dashboard');
   const [scheduleFilterData, setScheduleFilterData] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigateToSchedule = (personType, personId) => {
     setScheduleFilterData({
       type: personType,
       id: personId
     });
     setActiveView('schedule');
+  };
+  const handleNavClick = viewId => {
+    setActiveView(viewId);
+    setMobileMenuOpen(false); // Close mobile menu on navigation
   };
   if (loading) {
     return /*#__PURE__*/React.createElement("div", {
@@ -3464,7 +5709,7 @@ const App = () => {
     className: "hidden md:flex ml-12 space-x-2"
   }, navItems.map(item => /*#__PURE__*/React.createElement(motion.button, {
     key: item.id,
-    onClick: () => setActiveView(item.id),
+    onClick: () => handleNavClick(item.id),
     whileHover: {
       scale: 1.05
     },
@@ -3488,14 +5733,22 @@ const App = () => {
     }
   }))))), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-4"
-  }, /*#__PURE__*/React.createElement(motion.div, {
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMobileMenuOpen(!mobileMenuOpen),
+    className: "md:hidden p-2 rounded-lg hover:bg-medical-50 transition-colors",
+    "aria-label": "Toggle menu"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: mobileMenuOpen ? "x" : "menu",
+    size: 24,
+    className: "text-medical-700"
+  })), /*#__PURE__*/React.createElement(motion.div, {
     initial: {
       scale: 0
     },
     animate: {
       scale: 1
     },
-    className: "badge-live flex items-center gap-2 px-4 py-2 rounded-full"
+    className: "hidden sm:flex badge-live items-center gap-2 px-4 py-2 rounded-full"
   }, /*#__PURE__*/React.createElement("div", {
     className: "w-2 h-2 bg-white rounded-full animate-pulse"
   }), /*#__PURE__*/React.createElement("span", {
@@ -3524,7 +5777,7 @@ const App = () => {
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-xs text-white font-bold"
   }, "3"))), /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-3 pl-3 border-l border-medical-200"
+    className: "hidden md:flex items-center gap-3 pl-3 border-l border-medical-200"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-right"
   }, /*#__PURE__*/React.createElement("p", {
@@ -3541,7 +5794,96 @@ const App = () => {
     name: "user",
     size: 18,
     className: "text-white"
-  }))))))), /*#__PURE__*/React.createElement("main", {
+  }))))))), /*#__PURE__*/React.createElement(AnimatePresence, null, mobileMenuOpen && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(motion.div, {
+    initial: {
+      opacity: 0
+    },
+    animate: {
+      opacity: 1
+    },
+    exit: {
+      opacity: 0
+    },
+    onClick: () => setMobileMenuOpen(false),
+    className: "md:hidden fixed inset-0 bg-black/50 z-40"
+  }), /*#__PURE__*/React.createElement(motion.div, {
+    initial: {
+      x: '100%'
+    },
+    animate: {
+      x: 0
+    },
+    exit: {
+      x: '100%'
+    },
+    transition: {
+      type: 'spring',
+      damping: 30,
+      stiffness: 300
+    },
+    className: "md:hidden fixed right-0 top-0 h-full w-80 bg-white shadow-2xl z-50 overflow-y-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between p-4 border-b"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-lg font-bold text-medical-900"
+  }, "Menu"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMobileMenuOpen(false),
+    className: "p-2 hover:bg-gray-100 rounded-lg transition-colors",
+    "aria-label": "Close menu"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "x",
+    size: 24,
+    className: "text-gray-600"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 bg-gradient-to-br from-medical-50 to-medical-100 border-b"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-12 h-12 bg-gradient-to-br from-medical-400 to-medical-600 rounded-full flex items-center justify-center"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "user",
+    size: 20,
+    className: "text-white"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "font-semibold text-medical-900"
+  }, user.name || 'User'), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-medical-600"
+  }, user.email)))), /*#__PURE__*/React.createElement("nav", {
+    className: "flex-1 p-4"
+  }, /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-2"
+  }, navItems.map(item => /*#__PURE__*/React.createElement("li", {
+    key: item.id
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleNavClick(item.id),
+    className: `w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeView === item.id ? 'bg-gradient-to-r from-medical-500 to-medical-600 text-white shadow-lg' : 'hover:bg-medical-50 text-medical-700'}`
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: item.icon,
+    size: 20
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "font-medium"
+  }, item.label)))))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 border-t"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 px-3 py-2 bg-green-100 rounded-lg mb-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 bg-green-500 rounded-full animate-pulse"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-green-700 font-medium"
+  }, "Live Sync Active")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      handleSignOut();
+      setMobileMenuOpen(false);
+    },
+    className: "w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "log-out",
+    size: 20
+  }), "Sign Out")))))), /*#__PURE__*/React.createElement("main", {
     className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative"
   }, activeView === 'dashboard' && /*#__PURE__*/React.createElement(Dashboard, null), activeView === 'schedule' && /*#__PURE__*/React.createElement(ScheduleCalendar, {
     initialFilter: scheduleFilterData,
@@ -3565,7 +5907,10 @@ const App = () => {
 
 // ==================== Root Component ====================
 const Root = () => {
-  return /*#__PURE__*/React.createElement(ToastProvider, null, /*#__PURE__*/React.createElement(AppProvider, null, /*#__PURE__*/React.createElement(App, null)));
+  return /*#__PURE__*/React.createElement(ErrorBoundary, null, /*#__PURE__*/React.createElement(ToastProvider, null, /*#__PURE__*/React.createElement(AppProvider, null, /*#__PURE__*/React.createElement(ErrorBoundary, {
+    title: "Application Error",
+    message: "An error occurred while loading the application. Please try refreshing the page."
+  }, /*#__PURE__*/React.createElement(App, null)))));
 };
 
 // Render the app
