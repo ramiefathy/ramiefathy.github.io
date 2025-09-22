@@ -1257,7 +1257,7 @@ const LoginPage = () => {
 
 // ==================== Dashboard Component ====================
 const Dashboard = () => {
-    const { attendings, residents, assignments, rules, institution } = useApp();
+    const { attendings, residents, assignments, rules, institution, firebaseService } = useApp();
 
     const stats = useMemo(() => {
         const totalAssignments = Object.values(assignments).flat().length;
@@ -1306,7 +1306,7 @@ const Dashboard = () => {
                                 const startDate = new Date();
                                 startDate.setMonth(startDate.getMonth() - 1);
                                 const result = await calculateAnalytics({
-                                    institutionId: useApp().firebaseService.currentInstitution,
+                                    institutionId: firebaseService.currentInstitution,
                                     startDate: startDate.toISOString().split('T')[0],
                                     endDate: new Date().toISOString().split('T')[0]
                                 });
@@ -1330,7 +1330,7 @@ const Dashboard = () => {
                                 const endDate = new Date();
                                 endDate.setDate(endDate.getDate() + 30);
                                 const result = await generatePDF({
-                                    institutionId: useApp().firebaseService.currentInstitution,
+                                    institutionId: firebaseService.currentInstitution,
                                     startDate: startDate.toISOString().split('T')[0],
                                     endDate: endDate.toISOString().split('T')[0]
                                 });
@@ -1511,7 +1511,10 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     };
 
     useEffect(() => {
-        if (!firebaseService.currentInstitution) return;
+        if (!firebaseService.currentInstitution) {
+            setLoading(false);
+            return;
+        }
 
         // Set up real-time listeners
         const unsubscribeAssignments = firebaseService.listenToAssignments((data) => {
