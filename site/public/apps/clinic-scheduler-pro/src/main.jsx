@@ -2827,6 +2827,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                     friday: 5,
                     saturday: 6
                 };
+                
                 const targetDay = dayMap[resident.continuityDay?.toLowerCase?.()] ?? null;
                 if (targetDay === null) {
                     return;
