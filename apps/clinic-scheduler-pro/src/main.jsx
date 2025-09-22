@@ -527,6 +527,57 @@ const ExportUtils = {
         const now = new Date();
         const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
         return `${prefix}_${timestamp}.${extension}`;
+    },
+
+    // Parse and validate imported JSON
+    parseImportedJSON: (jsonString) => {
+        try {
+            const parsed = JSON.parse(jsonString);
+
+            // Validate structure
+            if (!parsed.version || !parsed.data) {
+                throw new Error('Invalid backup file format');
+            }
+
+            // Check version compatibility
+            if (parsed.version !== '1.0') {
+                throw new Error(`Unsupported backup version: ${parsed.version}`);
+            }
+
+            return {
+                success: true,
+                data: parsed.data,
+                exportDate: parsed.exportDate
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message || 'Failed to parse backup file'
+            };
+        }
+    },
+
+    // Create file input and handle selection
+    selectFile: (accept = '.json', onFileSelected) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = accept;
+
+        input.onchange = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                onFileSelected(e.target.result, file.name);
+            };
+            reader.onerror = () => {
+                toast.error('Failed to read file');
+            };
+            reader.readAsText(file);
+        };
+
+        input.click();
     }
 };
 
@@ -1288,6 +1339,186 @@ class FirebaseService {
         );
 
         return unsubscribe;
+    }
+
+    // ===== Member Management =====
+    async getInstitutionMembers() {
+        if (!this.currentInstitution) throw new Error('No institution selected');
+
+        try {
+            const institutionDoc = await window.firebase.firestore.getDoc(
+                window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution)
+            );
+
+            if (!institutionDoc.exists()) {
+                throw new Error('Institution not found');
+            }
+
+            const institutionData = institutionDoc.data();
+            const members = institutionData.members || [];
+
+            // Fetch user details for each member
+            const memberDetails = await Promise.all(
+                members.map(async (member) => {
+                    try {
+                        const userDoc = await window.firebase.firestore.getDoc(
+                            window.firebase.firestore.doc(this.db, 'users', member.userId)
+                        );
+
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            return {
+                                id: member.userId,
+                                name: userData.name || 'Unknown',
+                                email: userData.email,
+                                role: member.role || 'member',
+                                joinedAt: member.joinedAt
+                            };
+                        }
+                        return null;
+                    } catch (error) {
+                        console.error('Error fetching member details:', error);
+                        return null;
+                    }
+                })
+            );
+
+            // Filter out null entries and return
+            return memberDetails.filter(member => member !== null);
+        } catch (error) {
+            console.error('Error fetching institution members:', error);
+            throw error;
+        }
+    }
+
+    async createInviteCode(inviteData) {
+        if (!this.currentInstitution) throw new Error('No institution selected');
+
+        try {
+            // Generate a unique invite code
+            const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+            // Store invite code in Firestore
+            await window.firebase.firestore.setDoc(
+                window.firebase.firestore.doc(this.db, 'inviteCodes', code),
+                {
+                    institutionId: this.currentInstitution,
+                    role: inviteData.role || 'member',
+                    createdBy: this.currentUser.uid,
+                    createdAt: window.firebase.firestore.serverTimestamp(),
+                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+                    used: false
+                }
+            );
+
+            // Add audit log
+            await this.addAuditLog('INVITE_CODE_CREATED', {
+                code,
+                role: inviteData.role
+            });
+
+            return { success: true, code };
+        } catch (error) {
+            console.error('Error creating invite code:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async updateMemberRole(memberId, newRole) {
+        if (!this.currentInstitution) throw new Error('No institution selected');
+
+        try {
+            // Get current institution document
+            const institutionDoc = await window.firebase.firestore.getDoc(
+                window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution)
+            );
+
+            if (!institutionDoc.exists()) {
+                throw new Error('Institution not found');
+            }
+
+            const institutionData = institutionDoc.data();
+            const members = institutionData.members || [];
+
+            // Find and update the member's role
+            const updatedMembers = members.map(member => {
+                if (member.userId === memberId) {
+                    return { ...member, role: newRole };
+                }
+                return member;
+            });
+
+            // Update the institution document
+            await window.firebase.firestore.updateDoc(
+                window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution),
+                {
+                    members: updatedMembers,
+                    updatedAt: window.firebase.firestore.serverTimestamp()
+                }
+            );
+
+            // Add audit log
+            await this.addAuditLog('MEMBER_ROLE_UPDATED', {
+                memberId,
+                newRole
+            });
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error updating member role:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async removeMember(memberId) {
+        if (!this.currentInstitution) throw new Error('No institution selected');
+
+        try {
+            // Get current institution document
+            const institutionDoc = await window.firebase.firestore.getDoc(
+                window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution)
+            );
+
+            if (!institutionDoc.exists()) {
+                throw new Error('Institution not found');
+            }
+
+            const institutionData = institutionDoc.data();
+            const members = institutionData.members || [];
+
+            // Remove the member
+            const updatedMembers = members.filter(member => member.userId !== memberId);
+
+            // Update the institution document
+            await window.firebase.firestore.updateDoc(
+                window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution),
+                {
+                    members: updatedMembers,
+                    updatedAt: window.firebase.firestore.serverTimestamp()
+                }
+            );
+
+            // Remove institution from user's institutions array
+            await window.firebase.firestore.updateDoc(
+                window.firebase.firestore.doc(this.db, 'users', memberId),
+                {
+                    institutions: window.firebase.firestore.arrayRemove({
+                        id: this.currentInstitution,
+                        role: members.find(m => m.userId === memberId)?.role || 'member'
+                    })
+                }
+            );
+
+            // Add audit log
+            await this.addAuditLog('MEMBER_REMOVED', {
+                memberId
+            });
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error removing member:', error);
+            return { success: false, error: error.message };
+        }
     }
 }
 
@@ -3836,6 +4067,330 @@ const RuleForm = ({ rule, onSave, onCancel }) => {
     );
 };
 
+// ==================== Members Management Component ====================
+const MembersManagement = () => {
+    const { firebaseService, institution, user } = useApp();
+    const [members, setMembers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [inviteCode, setInviteCode] = useState('');
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [editingMember, setEditingMember] = useState(null);
+
+    useEffect(() => {
+        if (!firebaseService.currentInstitution) return;
+
+        const loadMembers = async () => {
+            try {
+                const membersData = await firebaseService.getInstitutionMembers();
+                setMembers(membersData);
+            } catch (error) {
+                console.error('Error loading members:', error);
+                toast.error('Failed to load members');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadMembers();
+    }, [firebaseService.currentInstitution]);
+
+    const generateInviteCode = () => {
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+
+        const inviteData = {
+            code,
+            institutionId: firebaseService.currentInstitution,
+            institutionName: institution.name,
+            createdBy: user.uid,
+            createdAt: new Date().toISOString(),
+            expiresAt: expiresAt.toISOString(),
+            used: false
+        };
+
+        // In a real implementation, save this to Firebase
+        firebaseService.createInviteCode(inviteData).then(() => {
+            setInviteCode(code);
+            setShowInviteModal(true);
+            toast.success('Invite code generated');
+        }).catch(error => {
+            toast.error('Failed to generate invite code');
+        });
+    };
+
+    const handleRoleChange = async (memberId, newRole) => {
+        try {
+            await firebaseService.updateMemberRole(memberId, newRole);
+            setMembers(members.map(m =>
+                m.id === memberId ? { ...m, role: newRole } : m
+            ));
+            toast.success('Role updated successfully');
+        } catch (error) {
+            toast.error('Failed to update role');
+        }
+    };
+
+    const handleRemoveMember = async (memberId) => {
+        if (!confirm('Are you sure you want to remove this member?')) return;
+
+        try {
+            await firebaseService.removeMember(memberId);
+            setMembers(members.filter(m => m.id !== memberId));
+            toast.success('Member removed');
+        } catch (error) {
+            toast.error('Failed to remove member');
+        }
+    };
+
+    const currentUserMember = members.find(m => m.userId === user.uid);
+    const isAdmin = currentUserMember?.role === 'admin';
+
+    if (loading) {
+        return <LoadingSpinner size="lg" className="py-12" />;
+    }
+
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-4">
+                <div>
+                    <h3 className="text-lg font-medium text-gray-900">Institution Members</h3>
+                    <p className="text-sm text-gray-600">Manage users who have access to this institution</p>
+                </div>
+                {isAdmin && (
+                    <Button onClick={generateInviteCode}>
+                        <Icon name="user-plus" size={16} className="mr-2" />
+                        Generate Invite
+                    </Button>
+                )}
+            </div>
+
+            <div className="space-y-3">
+                {members.map(member => (
+                    <div key={member.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-medical-400 to-medical-600 rounded-full flex items-center justify-center">
+                                <Icon name="user" size={18} className="text-white" />
+                            </div>
+                            <div>
+                                <div className="font-medium text-gray-900">{member.name || member.email}</div>
+                                <div className="text-sm text-gray-500">{member.email}</div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <select
+                                value={member.role}
+                                onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                                disabled={!isAdmin || member.userId === user.uid}
+                                className="px-3 py-1 border rounded-lg text-sm"
+                            >
+                                <option value="member">Member</option>
+                                <option value="scheduler">Scheduler</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                            {isAdmin && member.userId !== user.uid && (
+                                <button
+                                    onClick={() => handleRemoveMember(member.id)}
+                                    className="text-red-600 hover:text-red-700"
+                                >
+                                    <Icon name="trash" size={16} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Invite Modal */}
+            {showInviteModal && (
+                <Modal
+                    isOpen={true}
+                    onClose={() => setShowInviteModal(false)}
+                    title="Invitation Code Generated"
+                >
+                    <div className="space-y-4">
+                        <p className="text-gray-600">
+                            Share this code with the person you want to invite. They can use it to join the institution.
+                        </p>
+                        <div className="p-4 bg-gray-100 rounded-lg">
+                            <div className="text-center">
+                                <p className="text-sm text-gray-500 mb-2">Invitation Code</p>
+                                <p className="text-2xl font-mono font-bold text-gray-900">{inviteCode}</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                            This code will expire in 7 days.
+                        </p>
+                        <Button
+                            onClick={() => {
+                                navigator.clipboard.writeText(inviteCode);
+                                toast.success('Code copied to clipboard');
+                            }}
+                            className="w-full"
+                        >
+                            Copy Code
+                        </Button>
+                    </div>
+                </Modal>
+            )}
+        </div>
+    );
+};
+
+// ==================== Backup & Restore Component ====================
+const BackupRestore = () => {
+    const { firebaseService, attendings, residents, assignments, institution } = useApp();
+    const [importing, setImporting] = useState(false);
+    const [exportType, setExportType] = useState('all');
+
+    const handleExport = () => {
+        let dataToExport = {};
+
+        if (exportType === 'all' || exportType === 'institution') {
+            dataToExport.institution = institution;
+        }
+        if (exportType === 'all' || exportType === 'attendings') {
+            dataToExport.attendings = attendings;
+        }
+        if (exportType === 'all' || exportType === 'residents') {
+            dataToExport.residents = residents;
+        }
+        if (exportType === 'all' || exportType === 'assignments') {
+            dataToExport.assignments = assignments;
+        }
+
+        const json = ExportUtils.exportToJSON(dataToExport);
+        const filename = ExportUtils.generateFilename(`backup_${exportType}`, 'json');
+        ExportUtils.downloadFile(json, filename, 'application/json');
+        toast.success(`${exportType} data exported successfully`);
+    };
+
+    const handleImport = () => {
+        ExportUtils.selectFile('.json', async (content, filename) => {
+            setImporting(true);
+
+            const result = ExportUtils.parseImportedJSON(content);
+
+            if (!result.success) {
+                toast.error(result.error);
+                setImporting(false);
+                return;
+            }
+
+            // Show confirmation dialog
+            const dataTypes = Object.keys(result.data);
+            const message = `This will import the following data:\n${dataTypes.join(', ')}\n\nExported: ${result.exportDate}\n\nDo you want to continue?`;
+
+            if (!confirm(message)) {
+                setImporting(false);
+                return;
+            }
+
+            try {
+                // Import each data type
+                if (result.data.attendings) {
+                    for (const attending of result.data.attendings) {
+                        await firebaseService.addAttending(attending);
+                    }
+                }
+                if (result.data.residents) {
+                    for (const resident of result.data.residents) {
+                        await firebaseService.addResident(resident);
+                    }
+                }
+                if (result.data.assignments) {
+                    for (const assignment of result.data.assignments) {
+                        await firebaseService.addAssignment(assignment);
+                    }
+                }
+
+                toast.success('Data imported successfully');
+            } catch (error) {
+                console.error('Import error:', error);
+                toast.error('Failed to import data');
+            } finally {
+                setImporting(false);
+            }
+        });
+    };
+
+    return (
+        <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Backup & Restore</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Export Section */}
+                <div className="space-y-4">
+                    <h4 className="font-medium text-gray-900">Export Data</h4>
+                    <p className="text-sm text-gray-600">
+                        Create a backup of your institution data
+                    </p>
+
+                    <select
+                        value={exportType}
+                        onChange={(e) => setExportType(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-lg"
+                    >
+                        <option value="all">All Data</option>
+                        <option value="institution">Institution Settings Only</option>
+                        <option value="attendings">Attendings Only</option>
+                        <option value="residents">Residents Only</option>
+                        <option value="assignments">Assignments Only</option>
+                    </select>
+
+                    <Button onClick={handleExport} className="w-full">
+                        <Icon name="download" size={16} className="mr-2" />
+                        Export {exportType === 'all' ? 'All Data' : exportType}
+                    </Button>
+                </div>
+
+                {/* Import Section */}
+                <div className="space-y-4">
+                    <h4 className="font-medium text-gray-900">Import Data</h4>
+                    <p className="text-sm text-gray-600">
+                        Restore data from a backup file
+                    </p>
+
+                    <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div className="flex items-start gap-2">
+                            <Icon name="alert-triangle" size={16} className="text-yellow-600 mt-0.5" />
+                            <div className="text-sm text-yellow-800">
+                                <p className="font-medium">Warning</p>
+                                <p>Importing will add data to your existing records. Duplicate entries may be created.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <Button
+                        onClick={handleImport}
+                        disabled={importing}
+                        variant="secondary"
+                        className="w-full"
+                    >
+                        <Icon name="upload" size={16} className="mr-2" />
+                        {importing ? 'Importing...' : 'Import from File'}
+                    </Button>
+                </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-2">
+                    <Icon name="info" size={16} className="text-blue-600 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                        <p className="font-medium">Backup Best Practices</p>
+                        <ul className="list-disc list-inside mt-1 space-y-1">
+                            <li>Export your data regularly</li>
+                            <li>Store backups in a secure location</li>
+                            <li>Test restore functionality periodically</li>
+                            <li>Keep multiple versions of backups</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ==================== Settings View Component ====================
 const SettingsView = () => {
     const { firebaseService, institution } = useApp();
@@ -3871,7 +4426,9 @@ const SettingsView = () => {
         { id: 'sites', name: 'Sites', icon: 'map-pin' },
         { id: 'rotations', name: 'Rotations', icon: 'repeat' },
         { id: 'protected', name: 'Protected Times', icon: 'shield' },
-        { id: 'schedule', name: 'Schedule', icon: 'calendar' }
+        { id: 'schedule', name: 'Schedule', icon: 'calendar' },
+        { id: 'members', name: 'Members', icon: 'users' },
+        { id: 'backup', name: 'Backup', icon: 'database' }
     ];
 
     return (
@@ -4144,11 +4701,21 @@ const SettingsView = () => {
                         </div>
                     )}
 
-                    <div className="flex justify-end">
-                        <Button onClick={handleSave} disabled={saving}>
-                            {saving ? 'Saving...' : 'Save Settings'}
-                        </Button>
-                    </div>
+                    {activeTab === 'members' && (
+                        <MembersManagement />
+                    )}
+
+                    {activeTab === 'backup' && (
+                        <BackupRestore />
+                    )}
+
+                    {activeTab !== 'members' && activeTab !== 'backup' && (
+                        <div className="flex justify-end">
+                            <Button onClick={handleSave} disabled={saving}>
+                                {saving ? 'Saving...' : 'Save Settings'}
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </Card>
 
