@@ -105,6 +105,135 @@ const ToastItem = ({ toast, onDismiss }) => {
 };
 
 const Toaster = () => null;
+
+// ==================== Error Boundary Component ====================
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null, errorInfo: null };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error('Error caught by boundary:', error, errorInfo);
+        this.setState({
+            error: error,
+            errorInfo: errorInfo
+        });
+
+        // Log to Firebase Analytics if available
+        if (window.firebaseApp) {
+            try {
+                console.log('Logging error to Firebase:', error.toString());
+            } catch (logError) {
+                console.error('Failed to log error to Firebase:', logError);
+            }
+        }
+    }
+
+    handleReset = () => {
+        this.setState({ hasError: false, error: null, errorInfo: null });
+        // Optionally refresh the page
+        if (this.props.onReset) {
+            this.props.onReset();
+        }
+    };
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100 p-4">
+                    <div className="max-w-2xl w-full bg-white rounded-xl shadow-xl p-8">
+                        <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-xl mb-6">
+                            <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                            {this.props.title || 'Something went wrong'}
+                        </h2>
+                        <p className="text-gray-600 mb-6">
+                            {this.props.message || 'An unexpected error occurred. The application has recovered, but you may need to refresh the page.'}
+                        </p>
+
+                        {/* Error details (only in development) */}
+                        {window.location.hostname === 'localhost' && this.state.error && (
+                            <details className="mb-6 p-4 bg-gray-50 rounded-lg">
+                                <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
+                                    Error Details (Development Only)
+                                </summary>
+                                <pre className="mt-3 text-xs text-gray-600 overflow-auto">
+                                    {this.state.error.toString()}
+                                    {this.state.errorInfo && this.state.errorInfo.componentStack}
+                                </pre>
+                            </details>
+                        )}
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={this.handleReset}
+                                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                            >
+                                Try Again
+                            </button>
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                            >
+                                Refresh Page
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
+// Route-level error boundary with more specific error handling
+class RouteErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error(`Error in ${this.props.routeName || 'route'}:`, error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+                        Unable to load {this.props.routeName || 'this section'}
+                    </h3>
+                    <p className="text-yellow-700 mb-4">
+                        There was a problem loading this section. Please try refreshing the page.
+                    </p>
+                    <button
+                        onClick={() => this.setState({ hasError: false })}
+                        className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
 const { format, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, getDay, addDays } = window['date-fns'];
 const { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
 
@@ -529,6 +658,88 @@ const ExportUtils = {
         return `${prefix}_${timestamp}.${extension}`;
     },
 
+    // Validate imported data schema
+    validateImportData: (data) => {
+        const errors = [];
+        const warnings = [];
+
+        // Validate attendings
+        if (data.attendings) {
+            if (!Array.isArray(data.attendings)) {
+                errors.push('Attendings must be an array');
+            } else {
+                data.attendings.forEach((attending, index) => {
+                    if (!attending.name) {
+                        errors.push(`Attending at index ${index} is missing a name`);
+                    }
+                    if (attending.email && !ValidationUtils.validateEmail(attending.email).isValid) {
+                        warnings.push(`Attending "${attending.name || index}" has invalid email`);
+                    }
+                    if (attending.maxWeeklyAssignments && (typeof attending.maxWeeklyAssignments !== 'number' || attending.maxWeeklyAssignments < 0)) {
+                        warnings.push(`Attending "${attending.name || index}" has invalid maxWeeklyAssignments`);
+                    }
+                });
+            }
+        }
+
+        // Validate residents
+        if (data.residents) {
+            if (!Array.isArray(data.residents)) {
+                errors.push('Residents must be an array');
+            } else {
+                data.residents.forEach((resident, index) => {
+                    if (!resident.name) {
+                        errors.push(`Resident at index ${index} is missing a name`);
+                    }
+                    if (resident.email && !ValidationUtils.validateEmail(resident.email).isValid) {
+                        warnings.push(`Resident "${resident.name || index}" has invalid email`);
+                    }
+                    if (resident.pgyLevel) {
+                        const pgyValidation = ValidationUtils.validatePGYLevel(resident.pgyLevel);
+                        if (!pgyValidation.isValid) {
+                            warnings.push(`Resident "${resident.name || index}" has invalid PGY level`);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Validate assignments
+        if (data.assignments) {
+            if (!Array.isArray(data.assignments)) {
+                errors.push('Assignments must be an array');
+            } else {
+                data.assignments.forEach((assignment, index) => {
+                    if (!assignment.date) {
+                        errors.push(`Assignment at index ${index} is missing a date`);
+                    } else {
+                        // Validate date format (YYYY-MM-DD)
+                        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                        if (!dateRegex.test(assignment.date)) {
+                            errors.push(`Assignment at index ${index} has invalid date format (expected YYYY-MM-DD)`);
+                        }
+                    }
+                    if (!assignment.timeSlot) {
+                        errors.push(`Assignment at index ${index} is missing a time slot`);
+                    } else if (!['AM', 'PM'].includes(assignment.timeSlot)) {
+                        warnings.push(`Assignment at index ${index} has invalid time slot "${assignment.timeSlot}"`);
+                    }
+                });
+            }
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors,
+            warnings,
+            summary: {
+                attendings: data.attendings ? data.attendings.length : 0,
+                residents: data.residents ? data.residents.length : 0,
+                assignments: data.assignments ? data.assignments.length : 0
+            }
+        };
+    },
+
     // Parse and validate imported JSON
     parseImportedJSON: (jsonString) => {
         try {
@@ -544,10 +755,23 @@ const ExportUtils = {
                 throw new Error(`Unsupported backup version: ${parsed.version}`);
             }
 
+            // Validate data schema
+            const validation = ExportUtils.validateImportData(parsed.data);
+
+            if (!validation.isValid) {
+                return {
+                    success: false,
+                    error: 'Import data validation failed',
+                    validationErrors: validation.errors,
+                    validationWarnings: validation.warnings
+                };
+            }
+
             return {
                 success: true,
                 data: parsed.data,
-                exportDate: parsed.exportDate
+                exportDate: parsed.exportDate,
+                validation: validation
             };
         } catch (error) {
             return {
@@ -692,9 +916,8 @@ class FirebaseService {
         if (!this.currentUser) return null;
 
         try {
-            const userDoc = await window.firebase.firestore.getDoc(
-                window.firebase.firestore.doc(this.db, 'users', this.currentUser.uid)
-            );
+            const userRef = window.firebase.firestore.doc(this.db, 'users', this.currentUser.uid);
+            const userDoc = await window.firebase.firestore.getDoc(userRef);
 
             if (userDoc.exists()) {
                 const userData = userDoc.data();
@@ -703,10 +926,32 @@ class FirebaseService {
                     await this.loadInstitution(userData.institutions[0]);
                 }
                 return userData;
+            } else {
+                // Create user document if it doesn't exist
+                console.log('Creating new user profile...');
+                const newUserData = {
+                    email: this.currentUser.email,
+                    uid: this.currentUser.uid,
+                    institutions: [],
+                    createdAt: window.firebase.firestore.serverTimestamp(),
+                    updatedAt: window.firebase.firestore.serverTimestamp()
+                };
+
+                await window.firebase.firestore.setDoc(userRef, newUserData);
+                console.log('User profile created successfully');
+                return newUserData;
             }
-            return null;
         } catch (error) {
             console.error('Load user profile error:', error);
+            // If permission denied, return minimal user data
+            if (error.code === 'permission-denied') {
+                console.warn('Permission denied - returning basic user data');
+                return {
+                    email: this.currentUser.email,
+                    uid: this.currentUser.uid,
+                    institutions: []
+                };
+            }
             return null;
         }
     }
@@ -724,6 +969,14 @@ class FirebaseService {
                 name,
                 createdBy: this.currentUser.uid,
                 createdAt: window.firebase.firestore.serverTimestamp(),
+                // Initialize members array with the creating user
+                members: [{
+                    userId: this.currentUser.uid,
+                    name: userData.name,
+                    email: userData.email,
+                    role: 'program_admin',
+                    joinedAt: new Date().toISOString()
+                }],
                 settings: {
                     sites: [
                         { id: 'site_1', name: 'Main Clinic', code: 'MAIN', color: '#10b981' }
@@ -1520,6 +1773,116 @@ class FirebaseService {
             return { success: false, error: error.message };
         }
     }
+
+    async redeemInviteCode(code) {
+        if (!this.currentUser) {
+            return { success: false, error: 'Not authenticated' };
+        }
+
+        try {
+            // Get the invite code document
+            const inviteDoc = await window.firebase.firestore.getDoc(
+                window.firebase.firestore.doc(this.db, 'inviteCodes', code.toUpperCase())
+            );
+
+            if (!inviteDoc.exists()) {
+                return { success: false, error: 'Invalid invite code' };
+            }
+
+            const inviteData = inviteDoc.data();
+
+            // Check if invite code has expired
+            if (inviteData.expiresAt && inviteData.expiresAt.toDate() < new Date()) {
+                return { success: false, error: 'Invite code has expired' };
+            }
+
+            // Check if invite code has already been used (if single-use)
+            if (inviteData.used) {
+                return { success: false, error: 'Invite code has already been used' };
+            }
+
+            // Get institution details
+            const institutionDoc = await window.firebase.firestore.getDoc(
+                window.firebase.firestore.doc(this.db, 'institutions', inviteData.institutionId)
+            );
+
+            if (!institutionDoc.exists()) {
+                return { success: false, error: 'Institution not found' };
+            }
+
+            const institutionData = institutionDoc.data();
+
+            // Add user to institution members
+            const members = institutionData.members || [];
+            const userProfile = await this.loadUserProfile();
+
+            // Check if user is already a member
+            if (members.some(m => m.userId === this.currentUser.uid)) {
+                return { success: false, error: 'You are already a member of this institution' };
+            }
+
+            // Add user as member
+            members.push({
+                userId: this.currentUser.uid,
+                name: userProfile.displayName || this.currentUser.email,
+                email: this.currentUser.email,
+                role: inviteData.role || 'member',
+                joinedAt: window.firebase.firestore.serverTimestamp()
+            });
+
+            // Update institution with new member
+            await window.firebase.firestore.updateDoc(
+                window.firebase.firestore.doc(this.db, 'institutions', inviteData.institutionId),
+                {
+                    members: members,
+                    updatedAt: window.firebase.firestore.serverTimestamp()
+                }
+            );
+
+            // Add institution to user's institutions array
+            await window.firebase.firestore.updateDoc(
+                window.firebase.firestore.doc(this.db, 'users', this.currentUser.uid),
+                {
+                    institutions: window.firebase.firestore.arrayUnion({
+                        id: inviteData.institutionId,
+                        role: inviteData.role || 'member'
+                    }),
+                    currentInstitution: inviteData.institutionId
+                }
+            );
+
+            // Mark invite code as used (if single-use)
+            if (inviteData.singleUse !== false) {
+                await window.firebase.firestore.updateDoc(
+                    window.firebase.firestore.doc(this.db, 'inviteCodes', code.toUpperCase()),
+                    {
+                        used: true,
+                        usedBy: this.currentUser.uid,
+                        usedAt: window.firebase.firestore.serverTimestamp()
+                    }
+                );
+            }
+
+            // Set current institution
+            this.currentInstitution = inviteData.institutionId;
+            await this.loadInstitutionData();
+
+            // Add audit log
+            await this.addAuditLog('MEMBER_JOINED_VIA_INVITE', {
+                inviteCode: code,
+                role: inviteData.role || 'member'
+            });
+
+            return {
+                success: true,
+                institutionName: institutionData.name,
+                institutionId: inviteData.institutionId
+            };
+        } catch (error) {
+            console.error('Error redeeming invite code:', error);
+            return { success: false, error: error.message };
+        }
+    }
 }
 
 // ==================== App Context ====================
@@ -1741,7 +2104,8 @@ const LoginPage = () => {
         email: '',
         password: '',
         name: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        inviteCode: ''
     });
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
@@ -1770,6 +2134,17 @@ const LoginPage = () => {
                         result = { isValid: false, error: 'Please confirm your password' };
                     } else if (value !== formData.password) {
                         result = { isValid: false, error: 'Passwords do not match' };
+                    }
+                }
+                break;
+            case 'inviteCode':
+                // Invite code is optional, but if provided should be 6 characters
+                if (isSignUp && value) {
+                    const trimmed = value.trim().toUpperCase();
+                    if (trimmed.length !== 6) {
+                        result = { isValid: false, error: 'Invite code must be 6 characters' };
+                    } else {
+                        result = { isValid: true, value: trimmed };
                     }
                 }
                 break;
@@ -1839,13 +2214,26 @@ const LoginPage = () => {
                 );
                 if (result.success) {
                     toast.success('Account created successfully!');
-                    // Create first institution
-                    const instResult = await firebaseService.createInstitution(
-                        `${validatedValues.name || formData.name}'s Institution`,
-                        { name: validatedValues.name || formData.name, email: validatedValues.email || formData.email }
-                    );
-                    if (instResult.success) {
-                        toast.success('Institution created!');
+
+                    // Check if user has an invite code
+                    const inviteCode = validatedValues.inviteCode || formData.inviteCode;
+                    if (inviteCode) {
+                        // Redeem invite code to join existing institution
+                        const redeemResult = await firebaseService.redeemInviteCode(inviteCode);
+                        if (redeemResult.success) {
+                            toast.success(`Joined ${redeemResult.institutionName} successfully!`);
+                        } else {
+                            toast.error(`Failed to redeem invite code: ${redeemResult.error}`);
+                        }
+                    } else {
+                        // Create first institution if no invite code
+                        const instResult = await firebaseService.createInstitution(
+                            `${validatedValues.name || formData.name}'s Institution`,
+                            { name: validatedValues.name || formData.name, email: validatedValues.email || formData.email }
+                        );
+                        if (instResult.success) {
+                            toast.success('Institution created!');
+                        }
                     }
                 } else {
                     toast.error(result.error);
@@ -1982,32 +2370,66 @@ const LoginPage = () => {
                         </div>
 
                         {isSignUp && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Confirm Password <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="password"
-                                    value={formData.confirmPassword}
-                                    onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
-                                    onBlur={() => handleFieldBlur('confirmPassword')}
-                                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                                        errors.confirmPassword && touched.confirmPassword
-                                            ? 'border-red-500 bg-red-50'
-                                            : touched.confirmPassword && !errors.confirmPassword && formData.confirmPassword
-                                            ? 'border-green-500'
-                                            : 'border-gray-300'
-                                    }`}
-                                    autoComplete="new-password"
-                                    aria-invalid={errors.confirmPassword && touched.confirmPassword}
-                                    aria-describedby={errors.confirmPassword && touched.confirmPassword ? 'confirm-password-error' : undefined}
-                                />
-                                {errors.confirmPassword && touched.confirmPassword && (
-                                    <p id="confirm-password-error" className="mt-1 text-xs text-red-600">
-                                        {errors.confirmPassword}
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Confirm Password <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={formData.confirmPassword}
+                                        onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
+                                        onBlur={() => handleFieldBlur('confirmPassword')}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                                            errors.confirmPassword && touched.confirmPassword
+                                                ? 'border-red-500 bg-red-50'
+                                                : touched.confirmPassword && !errors.confirmPassword && formData.confirmPassword
+                                                ? 'border-green-500'
+                                                : 'border-gray-300'
+                                        }`}
+                                        autoComplete="new-password"
+                                        aria-invalid={errors.confirmPassword && touched.confirmPassword}
+                                        aria-describedby={errors.confirmPassword && touched.confirmPassword ? 'confirm-password-error' : undefined}
+                                    />
+                                    {errors.confirmPassword && touched.confirmPassword && (
+                                        <p id="confirm-password-error" className="mt-1 text-xs text-red-600">
+                                            {errors.confirmPassword}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Invite Code <span className="text-gray-400 text-xs">(optional)</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.inviteCode}
+                                        onChange={(e) => handleFieldChange('inviteCode', e.target.value)}
+                                        onBlur={() => handleFieldBlur('inviteCode')}
+                                        placeholder="Enter 6-character code"
+                                        maxLength={6}
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                                            errors.inviteCode && touched.inviteCode
+                                                ? 'border-red-500 bg-red-50'
+                                                : touched.inviteCode && !errors.inviteCode && formData.inviteCode
+                                                ? 'border-green-500'
+                                                : 'border-gray-300'
+                                        }`}
+                                        style={{ textTransform: 'uppercase' }}
+                                        aria-invalid={errors.inviteCode && touched.inviteCode}
+                                        aria-describedby={errors.inviteCode && touched.inviteCode ? 'invite-code-error' : undefined}
+                                    />
+                                    {errors.inviteCode && touched.inviteCode && (
+                                        <p id="invite-code-error" className="mt-1 text-xs text-red-600">
+                                            {errors.inviteCode}
+                                        </p>
+                                    )}
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        Have an invite code? Enter it to join an existing institution.
                                     </p>
-                                )}
-                            </div>
+                                </div>
+                            </>
                         )}
 
                         <Button type="submit" className="w-full" loading={loading}>
@@ -2194,6 +2616,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     const [showAutoScheduler, setShowAutoScheduler] = useState(false);
     const [selectedCell, setSelectedCell] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [deletingIds, setDeletingIds] = useState(new Set());
 
     // Individual schedule view states
     const [scheduleFilter, setScheduleFilter] = useState(initialFilter?.type || 'all');
@@ -2368,7 +2791,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
 
     const isWeekend = (date) => {
         const day = date.getDay();
-        return day === 0 || day === 6; // Sunday or Saturday
+        return day === 0 || day === 6; // Sunday (0) or Saturday (6)
     };
 
     const monthDays = useMemo(() => {
@@ -2377,8 +2800,18 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
         const days = [];
         const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : (d) => new Date(d.getFullYear(), d.getMonth(), 1);
         const endOfMonthFunc = window.dateFns ? window.dateFns.endOfMonth : (d) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
-        const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => d;
-        const endOfWeekFunc = window.dateFns ? window.dateFns.endOfWeek : (d) => d;
+        const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : (d) => {
+            const date = new Date(d);
+            const day = date.getDay();
+            const diff = date.getDate() - day;
+            return new Date(date.setDate(diff));
+        };
+        const endOfWeekFunc = window.dateFns ? window.dateFns.endOfWeek : (d) => {
+            const date = new Date(d);
+            const day = date.getDay();
+            const diff = date.getDate() + (6 - day);
+            return new Date(date.setDate(diff));
+        };
         const eachDayOfIntervalFunc = window.dateFns ? window.dateFns.eachDayOfInterval : (interval) => {
             const days = [];
             const current = new Date(interval.start);
@@ -2440,8 +2873,24 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
 
     const handleDeleteAssignment = async (assignmentId) => {
         if (!confirm('Delete this assignment?')) return;
-        await firebaseService.deleteAssignment(assignmentId);
-        toast.success('Assignment deleted');
+
+        // Add to deleting set
+        setDeletingIds(prev => new Set(prev).add(assignmentId));
+
+        try {
+            await firebaseService.deleteAssignment(assignmentId);
+            toast.success('Assignment deleted');
+        } catch (error) {
+            console.error('Error deleting assignment:', error);
+            toast.error('Failed to delete assignment');
+        } finally {
+            // Remove from deleting set
+            setDeletingIds(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(assignmentId);
+                return newSet;
+            });
+        }
     };
 
     const navigate = (direction) => {
@@ -2695,19 +3144,26 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                     <div className="calendar-grid-week">
                         {/* Header Row with Day Names */}
                         <div className="bg-gray-50 p-2 font-medium text-gray-700">Time</div>
-                        {weekDays.map(day => (
-                            <div
-                                key={day}
-                                className={`p-2 font-medium text-center ${
-                                    isWeekend(day) ? 'bg-gray-200 text-gray-500' : 'bg-gray-50'
-                                } ${isToday(day) ? 'bg-primary-50 text-primary-700' : isWeekend(day) ? 'text-gray-500' : 'text-gray-700'}`}
-                            >
-                                <div className="text-sm font-semibold">{getDayName(day)}</div>
-                                <div className="text-xs">
-                                    {window.dateFns ? window.dateFns.format(day, 'MMM d') : day.toLocaleDateString()}
+                        {weekDays.map(day => {
+                            const dayOfWeek = day.getDay();
+                            const dayName = getDayName(day);
+                            const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6;
+                            const isTodayDay = isToday(day);
+
+                            return (
+                                <div
+                                    key={day}
+                                    className={`p-2 font-medium text-center ${
+                                        isWeekendDay ? 'bg-gray-100 text-gray-500' : 'bg-gray-50'
+                                    } ${isTodayDay ? 'bg-primary-50 text-primary-700' : isWeekendDay ? 'text-gray-500' : 'text-gray-700'}`}
+                                >
+                                    <div className="text-sm font-semibold">{dayName}</div>
+                                    <div className="text-xs">
+                                        {window.dateFns ? window.dateFns.format(day, 'MMM d') : day.toLocaleDateString()}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
 
                         {/* Time Slots */}
                         {timeSlots.map(timeSlot => (
@@ -2717,7 +3173,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                                 </div>
                                 {weekDays.map(day => {
                                     const slotAssignments = getFilteredAssignmentsForSlot(day, timeSlot);
-                                    const isWeekendDay = isWeekend(day);
+                                    const isWeekendDay = day.getDay() === 0 || day.getDay() === 6;
                                     const isTodaySlot = isToday(day);
 
                                     return (
@@ -2805,9 +3261,16 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                                                                         e.stopPropagation();
                                                                         handleDeleteAssignment(assignment.id);
                                                                     }}
-                                                                    className="text-gray-400 hover:text-red-600"
+                                                                    className={`text-gray-400 hover:text-red-600 ${
+                                                                        deletingIds.has(assignment.id) ? 'animate-spin' : ''
+                                                                    }`}
+                                                                    disabled={deletingIds.has(assignment.id)}
                                                                 >
-                                                                    <Icon name="x" size={14} />
+                                                                    {deletingIds.has(assignment.id) ? (
+                                                                        <div className="animate-spin h-3.5 w-3.5 border-2 border-red-600 border-t-transparent rounded-full"></div>
+                                                                    ) : (
+                                                                        <Icon name="x" size={14} />
+                                                                    )}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -2842,10 +3305,13 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                             const amAssignments = dayAssignments.filter(a => a.timeSlot === 'AM');
                             const pmAssignments = dayAssignments.filter(a => a.timeSlot === 'PM');
 
+                            const dayOfWeek = day.getDay();
+                            const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6;
+
                             return (
                                 <div
                                     key={dateStr}
-                                    className={`month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''} ${isWeekend(day) ? 'weekend-slot' : ''}`}
+                                    className={`month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''} ${isWeekendDay ? 'weekend-slot' : ''}`}
                                     onClick={() => {
                                         if (isCurrentMonth(day)) {
                                             // Switch to week view for this day
@@ -4086,6 +4552,8 @@ const MembersManagement = () => {
     const [inviteCode, setInviteCode] = useState('');
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [editingMember, setEditingMember] = useState(null);
+    const [updatingRoles, setUpdatingRoles] = useState(new Set());
+    const [removingMembers, setRemovingMembers] = useState(new Set());
 
     useEffect(() => {
         if (!firebaseService.currentInstitution) return;
@@ -4131,6 +4599,8 @@ const MembersManagement = () => {
     };
 
     const handleRoleChange = async (memberId, newRole) => {
+        setUpdatingRoles(prev => new Set(prev).add(memberId));
+
         try {
             await firebaseService.updateMemberRole(memberId, newRole);
             setMembers(members.map(m =>
@@ -4138,19 +4608,35 @@ const MembersManagement = () => {
             ));
             toast.success('Role updated successfully');
         } catch (error) {
+            console.error('Error updating role:', error);
             toast.error('Failed to update role');
+        } finally {
+            setUpdatingRoles(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(memberId);
+                return newSet;
+            });
         }
     };
 
     const handleRemoveMember = async (memberId) => {
         if (!confirm('Are you sure you want to remove this member?')) return;
 
+        setRemovingMembers(prev => new Set(prev).add(memberId));
+
         try {
             await firebaseService.removeMember(memberId);
             setMembers(members.filter(m => m.id !== memberId));
             toast.success('Member removed');
         } catch (error) {
+            console.error('Error removing member:', error);
             toast.error('Failed to remove member');
+        } finally {
+            setRemovingMembers(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(memberId);
+                return newSet;
+            });
         }
     };
 
@@ -4283,14 +4769,42 @@ const BackupRestore = () => {
             const result = ExportUtils.parseImportedJSON(content);
 
             if (!result.success) {
-                toast.error(result.error);
+                // Show detailed validation errors if present
+                if (result.validationErrors && result.validationErrors.length > 0) {
+                    const errorMessage = `Validation errors:\n${result.validationErrors.slice(0, 5).join('\n')}${
+                        result.validationErrors.length > 5 ? `\n...and ${result.validationErrors.length - 5} more errors` : ''
+                    }`;
+                    toast.error(errorMessage);
+                } else {
+                    toast.error(result.error);
+                }
                 setImporting(false);
                 return;
             }
 
-            // Show confirmation dialog
+            // Build confirmation message with validation info
             const dataTypes = Object.keys(result.data);
-            const message = `This will import the following data:\n${dataTypes.join(', ')}\n\nExported: ${result.exportDate}\n\nDo you want to continue?`;
+            let message = `Import Summary:\n`;
+
+            if (result.validation) {
+                message += `\n📊 Data to import:`;
+                message += `\n• ${result.validation.summary.attendings} Attendings`;
+                message += `\n• ${result.validation.summary.residents} Residents`;
+                message += `\n• ${result.validation.summary.assignments} Assignments`;
+
+                if (result.validation.warnings.length > 0) {
+                    message += `\n\n⚠️ Warnings (${result.validation.warnings.length}):`;
+                    message += `\n${result.validation.warnings.slice(0, 3).join('\n')}`;
+                    if (result.validation.warnings.length > 3) {
+                        message += `\n...and ${result.validation.warnings.length - 3} more warnings`;
+                    }
+                }
+            } else {
+                message += `\nData types: ${dataTypes.join(', ')}`;
+            }
+
+            message += `\n\nExported: ${result.exportDate || 'Unknown date'}`;
+            message += `\n\nDo you want to continue?`;
 
             if (!confirm(message)) {
                 setImporting(false);
@@ -5489,11 +6003,18 @@ const App = () => {
 // ==================== Root Component ====================
 const Root = () => {
     return (
-        <ToastProvider>
-            <AppProvider>
-                <App />
-            </AppProvider>
-        </ToastProvider>
+        <ErrorBoundary>
+            <ToastProvider>
+                <AppProvider>
+                    <ErrorBoundary
+                        title="Application Error"
+                        message="An error occurred while loading the application. Please try refreshing the page."
+                    >
+                        <App />
+                    </ErrorBoundary>
+                </AppProvider>
+            </ToastProvider>
+        </ErrorBoundary>
     );
 };
 
