@@ -13,7 +13,8 @@ let externalToastDispatch = null;
 
 const toast = {
     success: (message) => externalToastDispatch?.({ type: 'success', message }),
-    error: (message) => externalToastDispatch?.({ type: 'error', message })
+    error: (message) => externalToastDispatch?.({ type: 'error', message }),
+    warning: (message) => externalToastDispatch?.({ type: 'warning', message })
 };
 
 const ToastProvider = ({ children }) => {
@@ -80,9 +81,13 @@ const ToastItem = ({ toast, onDismiss }) => {
         return () => clearTimeout(timer);
     }, [toast.id, onDismiss]);
 
-    const palette = toast.type === 'success'
-        ? { bg: '#dcfce7', border: '#86efac', text: '#065f46' }
-        : { bg: '#fee2e2', border: '#fca5a5', text: '#991b1b' };
+    const paletteMap = {
+        success: { bg: '#dcfce7', border: '#86efac', text: '#065f46' },
+        error: { bg: '#fee2e2', border: '#fca5a5', text: '#991b1b' },
+        warning: { bg: '#fef3c7', border: '#fcd34d', text: '#92400e' }
+    };
+
+    const palette = paletteMap[toast.type] || paletteMap.success;
 
     return (
         <div
@@ -921,10 +926,35 @@ class FirebaseService {
 
             if (userDoc.exists()) {
                 const userData = userDoc.data();
-                // Load first institution if available
-                if (userData.institutions && userData.institutions.length > 0) {
-                    await this.loadInstitution(userData.institutions[0]);
+
+                // Normalize institutions array to simple string IDs
+                const rawInstitutions = Array.isArray(userData.institutions) ? userData.institutions : [];
+                const normalizedInstitutions = rawInstitutions
+                    .map(inst => typeof inst === 'string' ? inst : inst?.id)
+                    .filter(id => typeof id === 'string' && id.length > 0);
+
+                if (normalizedInstitutions.length !== rawInstitutions.length) {
+                    try {
+                        await window.firebase.firestore.updateDoc(userRef, {
+                            institutions: normalizedInstitutions
+                        });
+                    } catch (updateError) {
+                        console.warn('Failed to normalize institutions array:', updateError);
+                    }
+                    userData.institutions = normalizedInstitutions;
+                } else {
+                    userData.institutions = normalizedInstitutions;
                 }
+
+                const preferredInstitution =
+                    typeof userData.currentInstitution === 'string' && userData.currentInstitution
+                        ? userData.currentInstitution
+                        : normalizedInstitutions[0];
+
+                if (preferredInstitution) {
+                    await this.loadInstitution(preferredInstitution);
+                }
+
                 return userData;
             } else {
                 // Create user document if it doesn't exist
@@ -1409,21 +1439,29 @@ class FirebaseService {
         if (!this.currentInstitution) throw new Error('No institution selected');
 
         try {
-            const batch = window.firebase.firestore.writeBatch(this.db);
+            const CHUNK_SIZE = 450; // stay safely below Firestore's 500 op limit
+            let committed = 0;
 
-            assignments.forEach(assignment => {
-                const docRef = window.firebase.firestore.doc(
-                    window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments')
-                );
-                batch.set(docRef, {
-                    ...assignment,
-                    createdAt: window.firebase.firestore.serverTimestamp(),
-                    createdBy: this.currentUser.uid
+            for (let i = 0; i < assignments.length; i += CHUNK_SIZE) {
+                const batch = window.firebase.firestore.writeBatch(this.db);
+                const chunk = assignments.slice(i, i + CHUNK_SIZE);
+
+                chunk.forEach(assignment => {
+                    const docRef = window.firebase.firestore.doc(
+                        window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments')
+                    );
+                    batch.set(docRef, {
+                        ...assignment,
+                        createdAt: window.firebase.firestore.serverTimestamp(),
+                        createdBy: this.currentUser.uid
+                    });
                 });
-            });
 
-            await batch.commit();
-            await this.addAuditLog('batch_assignments_added', { count: assignments.length });
+                await batch.commit();
+                committed += chunk.length;
+            }
+
+            await this.addAuditLog('batch_assignments_added', { count: committed });
             return { success: true };
         } catch (error) {
             console.error('Batch add assignments error:', error);
@@ -1439,13 +1477,20 @@ class FirebaseService {
                 window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'assignments')
             );
 
-            const batch = window.firebase.firestore.writeBatch(this.db);
-            snapshot.docs.forEach(doc => {
-                batch.delete(doc.ref);
-            });
+            const CHUNK_SIZE = 450;
+            let processed = 0;
 
-            await batch.commit();
-            await this.addAuditLog('all_assignments_cleared', { count: snapshot.size });
+            for (let i = 0; i < snapshot.docs.length; i += CHUNK_SIZE) {
+                const batch = window.firebase.firestore.writeBatch(this.db);
+                const chunk = snapshot.docs.slice(i, i + CHUNK_SIZE);
+                chunk.forEach(docItem => {
+                    batch.delete(docItem.ref);
+                });
+                await batch.commit();
+                processed += chunk.length;
+            }
+
+            await this.addAuditLog('all_assignments_cleared', { count: processed });
             return { success: true };
         } catch (error) {
             console.error('Clear assignments error:', error);
@@ -1755,10 +1800,13 @@ class FirebaseService {
             await window.firebase.firestore.updateDoc(
                 window.firebase.firestore.doc(this.db, 'users', memberId),
                 {
-                    institutions: window.firebase.firestore.arrayRemove({
-                        id: this.currentInstitution,
-                        role: members.find(m => m.userId === memberId)?.role || 'member'
-                    })
+                    institutions: window.firebase.firestore.arrayRemove(
+                        this.currentInstitution,
+                        {
+                            id: this.currentInstitution,
+                            role: members.find(m => m.userId === memberId)?.role || 'member'
+                        }
+                    )
                 }
             );
 
@@ -1839,14 +1887,11 @@ class FirebaseService {
                 }
             );
 
-            // Add institution to user's institutions array
+            // Add institution to user's institutions array (store IDs consistently)
             await window.firebase.firestore.updateDoc(
                 window.firebase.firestore.doc(this.db, 'users', this.currentUser.uid),
                 {
-                    institutions: window.firebase.firestore.arrayUnion({
-                        id: inviteData.institutionId,
-                        role: inviteData.role || 'member'
-                    }),
+                    institutions: window.firebase.firestore.arrayUnion(inviteData.institutionId),
                     currentInstitution: inviteData.institutionId
                 }
             );
@@ -1865,7 +1910,7 @@ class FirebaseService {
 
             // Set current institution
             this.currentInstitution = inviteData.institutionId;
-            await this.loadInstitutionData();
+            await this.loadInstitution(inviteData.institutionId);
 
             // Add audit log
             await this.addAuditLog('MEMBER_JOINED_VIA_INVITE', {
@@ -2049,6 +2094,87 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
         xl: 'max-w-6xl'
     };
 
+    const dialogRef = useRef(null);
+    const previousFocusRef = useRef(null);
+    const titleIdRef = useRef(`modal-title-${Math.random().toString(36).slice(2, 9)}`);
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        previousFocusRef.current = document.activeElement;
+
+        const focusFirstElement = () => {
+            const node = dialogRef.current;
+            if (!node) return;
+            const focusableSelectors = [
+                'a[href]',
+                'button:not([disabled])',
+                'textarea:not([disabled])',
+                'input:not([disabled])',
+                'select:not([disabled])',
+                '[tabindex]:not([tabindex="-1"])'
+            ];
+            const focusable = node.querySelectorAll(focusableSelectors.join(','));
+            if (focusable.length > 0) {
+                focusable[0].focus();
+            } else {
+                node.focus();
+            }
+        };
+
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                onClose?.();
+                return;
+            }
+
+            if (event.key !== 'Tab') return;
+
+            const node = dialogRef.current;
+            if (!node) return;
+
+            const focusableSelectors = [
+                'a[href]',
+                'button:not([disabled])',
+                'textarea:not([disabled])',
+                'input:not([disabled])',
+                'select:not([disabled])',
+                '[tabindex]:not([tabindex="-1"])'
+            ];
+            const focusable = node.querySelectorAll(focusableSelectors.join(','));
+            if (focusable.length === 0) {
+                event.preventDefault();
+                node.focus();
+                return;
+            }
+
+            const firstElement = focusable[0];
+            const lastElement = focusable[focusable.length - 1];
+            const activeElement = document.activeElement;
+
+            if (event.shiftKey) {
+                if (activeElement === firstElement || !node.contains(activeElement)) {
+                    event.preventDefault();
+                    lastElement.focus();
+                }
+            } else if (activeElement === lastElement) {
+                event.preventDefault();
+                firstElement.focus();
+            }
+        };
+
+        focusFirstElement();
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            if (previousFocusRef.current && typeof previousFocusRef.current.focus === 'function') {
+                previousFocusRef.current.focus();
+            }
+        };
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
 
     return createPortal(
@@ -2073,14 +2199,20 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
                         className={`relative bg-white rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden`}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby={titleIdRef.current}
+                        ref={dialogRef}
+                        tabIndex={-1}
                     >
                         <div className="flex items-center justify-between p-6 border-b">
-                            <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+                            <h3 id={titleIdRef.current} className="text-xl font-semibold text-gray-900">{title}</h3>
                             <motion.button
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={onClose}
                                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                aria-label="Close dialog"
                             >
                                 <Icon name="x" size={20} />
                             </motion.button>
@@ -2549,7 +2681,12 @@ const Dashboard = () => {
                                     endDate: endDate.toISOString().split('T')[0]
                                 });
                                 // Download the PDF
-                                const blob = new Blob([atob(result.data.pdf)], { type: 'application/pdf' });
+                                const binaryPdf = atob(result.data.pdf);
+                                const byteArray = new Uint8Array(binaryPdf.length);
+                                for (let i = 0; i < binaryPdf.length; i++) {
+                                    byteArray[i] = binaryPdf.charCodeAt(i);
+                                }
+                                const blob = new Blob([byteArray], { type: 'application/pdf' });
                                 const url = URL.createObjectURL(blob);
                                 const a = document.createElement('a');
                                 a.href = url;
@@ -2856,6 +2993,25 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
         if (!draggedItem) return;
 
         const dateStr = window.dateFns ? window.dateFns.format(date, 'yyyy-MM-dd') : date.toISOString().split('T')[0];
+
+        const conflictCheck = ConflictDetection.checkAllConflicts({
+            assignments,
+            newAssignment: { ...draggedItem, date: dateStr, timeSlot },
+            attendings,
+            residents,
+            institution,
+            excludeId: draggedItem.id
+        });
+
+        if (conflictCheck.hasErrors) {
+            toast.error(conflictCheck.summary);
+            setDraggedItem(null);
+            return;
+        }
+
+        if (conflictCheck.hasWarnings) {
+            toast.warning(conflictCheck.summary);
+        }
 
         await firebaseService.updateAssignment(draggedItem.id, {
             date: dateStr,

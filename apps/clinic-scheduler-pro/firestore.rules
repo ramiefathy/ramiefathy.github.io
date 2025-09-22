@@ -10,22 +10,22 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Check if user is a member of the institution - VERY PERMISSIVE FOR NOW
+    // Validate membership by checking the members subcollection
     function isInstitutionMember(institutionId) {
-      return isSignedIn();
-      // Simplified - any signed in user can access any institution
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid));
     }
 
-    // Check if user is admin - VERY PERMISSIVE FOR NOW
+    // Program admins/owners have elevated privileges
     function isInstitutionAdmin(institutionId) {
-      return isSignedIn();
-      // Simplified - any signed in user has admin access
+      return isInstitutionMember(institutionId) &&
+        get(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid)).data.role in ['program_admin', 'owner'];
     }
 
-    // Check if user can schedule - VERY PERMISSIVE FOR NOW
+    // Schedulers share many write permissions (includes admins)
     function isScheduler(institutionId) {
-      return isSignedIn();
-      // Simplified - any signed in user can schedule
+      return isInstitutionMember(institutionId) &&
+        get(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid)).data.role in ['program_admin', 'owner', 'scheduler'];
     }
 
     // Institution rules
