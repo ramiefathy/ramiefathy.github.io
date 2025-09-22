@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isMemberOfInstitution(institutionId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid));
+    }
+
+    function getMemberRole(institutionId) {
+      return get(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid)).data.role;
+    }
+
+    function hasRole(institutionId, roles) {
+      return isMemberOfInstitution(institutionId) &&
+        getMemberRole(institutionId) in roles;
+    }
+
+    function canSchedule(institutionId) {
+      return hasRole(institutionId, ['admin', 'program_admin', 'chief_resident', 'scheduler']);
+    }
+
+    function canManageInstitution(institutionId) {
+      return hasRole(institutionId, ['admin', 'program_admin']);
+    }
+
+    // Institutions
+    match /institutions/{institutionId} {
+      allow read: if isMemberOfInstitution(institutionId);
+      allow write: if canManageInstitution(institutionId);
+
+      // Members subcollection
+      match /members/{memberId} {
+        allow read: if isMemberOfInstitution(institutionId);
+        allow write: if canManageInstitution(institutionId) ||
+          (request.auth.uid == memberId && resource.data.role == request.resource.data.role);
+      }
+
+      // Attendings subcollection
+      match /attendings/{attendingId} {
+        allow read: if isMemberOfInstitution(institutionId);
+        allow write: if canSchedule(institutionId);
+      }
+
+      // Residents subcollection
+      match /residents/{residentId} {
+        allow read: if isMemberOfInstitution(institutionId);
+        allow write: if canSchedule(institutionId);
+      }
+
+      // Assignments subcollection
+      match /assignments/{assignmentId} {
+        allow read: if isMemberOfInstitution(institutionId);
+        allow create: if canSchedule(institutionId) &&
+          request.resource.data.createdBy == request.auth.uid;
+        allow update: if canSchedule(institutionId) &&
+          request.resource.data.updatedBy == request.auth.uid;
+        allow delete: if canSchedule(institutionId);
+      }
+
+      // Rules subcollection
+      match /rules/{ruleId} {
+        allow read: if isMemberOfInstitution(institutionId);
+        allow write: if canManageInstitution(institutionId);
+      }
+
+      // Audit logs subcollection
+      match /auditLogs/{logId} {
+        allow read: if canManageInstitution(institutionId);
+        allow create: if isMemberOfInstitution(institutionId);
+        allow update, delete: if false; // Audit logs are immutable
+      }
+    }
+
+    // Backups collection (admin only)
+    match /backups/{backupId} {
+      allow read: if isAuthenticated() &&
+        hasRole(resource.data.institutionId, ['admin']);
+      allow write: if false; // Only cloud functions can write backups
+    }
+  }
+}

@@ -6,15 +6,15 @@ const assert = require('assert');
 const sinon = require('sinon');
 
 // Initialize Firebase Functions Test SDK
-const test = require('firebase-functions-test')({
-  projectId: 'clinic-scheduler-test',
-}, './service-account-test.json'); // You can use a test service account or mock
+const test = require('firebase-functions-test')(
+  { projectId: 'clinic-scheduler-test' },
+  './service-account-test.json'
+); // You can use a test service account or mock
 
 // Import your functions after initializing test SDK
 const functions = require('../index');
 
 describe('Cloud Functions', () => {
-  let adminStub;
 
   before(() => {
     // Set up test environment variables
@@ -162,19 +162,8 @@ describe('Cloud Functions', () => {
   });
 
   describe('syncWithExternalSystem', () => {
-    it('should verify webhook secret', async () => {
-      const wrapped = test.wrap(functions.syncWithExternalSystem);
-      assert.ok(typeof wrapped === 'function');
-    });
-
-    it('should handle import_residents action', () => {
-      const wrapped = test.wrap(functions.syncWithExternalSystem);
-      assert.ok(typeof wrapped === 'function');
-    });
-
-    it('should handle export_schedule action', () => {
-      const wrapped = test.wrap(functions.syncWithExternalSystem);
-      assert.ok(typeof wrapped === 'function');
+    it('should expose an HTTPS handler', () => {
+      assert.strictEqual(typeof functions.syncWithExternalSystem, 'function');
     });
   });
 
@@ -229,15 +218,15 @@ describe('Cloud Functions', () => {
 
   describe('Scheduled Functions', () => {
     it('weeklyScheduleGeneration should be scheduled', () => {
-      assert.ok(typeof functions.weeklyScheduleGeneration === 'object');
+      assert.ok(['object', 'function'].includes(typeof functions.weeklyScheduleGeneration));
     });
 
     it('dailyReminders should be scheduled', () => {
-      assert.ok(typeof functions.dailyReminders === 'object');
+      assert.ok(['object', 'function'].includes(typeof functions.dailyReminders));
     });
 
     it('dailyBackup should be scheduled', () => {
-      assert.ok(typeof functions.dailyBackup === 'object');
+      assert.ok(['object', 'function'].includes(typeof functions.dailyBackup));
     });
   });
 

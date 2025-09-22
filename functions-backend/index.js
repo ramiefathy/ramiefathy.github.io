@@ -1,9 +1,11 @@
 /**
  * Cloud Functions for Clinic Scheduler Pro
  * Comprehensive backend services for scheduling management
+ * FIXED VERSION: Compatible with new rotation-based, multi-site data model
  */
 
-const functions = require('firebase-functions');
+// Use 1st gen API surface per Firebase guidance for Node.js 20 runtime
+const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const cors = require('cors')({ origin: true });
 const nodemailer = require('nodemailer');
@@ -59,7 +61,7 @@ async function sendEmail(to, subject, html, text) {
         text,
         html
       });
-    } else {
+    } else if (functions.config().smtp?.user) {
       await mailTransporter.sendMail({
         from: EMAIL_FROM,
         to,
@@ -67,11 +69,14 @@ async function sendEmail(to, subject, html, text) {
         text,
         html
       });
+    } else {
+      console.log('Email service not configured. Skipping email to:', to);
+      return;
     }
     console.log(`Email sent to ${to}: ${subject}`);
   } catch (error) {
     console.error('Error sending email:', error);
-    throw error;
+    // Don't throw - allow functions to continue even if email fails
   }
 }
 
@@ -93,6 +98,135 @@ async function getUserDetails(userId) {
 }
 
 /**
+ * Check if resident is on vacation for a given date
+ */
+function isResidentOnVacation(resident, date) {
+  if (!resident.vacationWeeks || resident.vacationWeeks.length === 0) {
+    return false;
+  }
+
+  return resident.vacationWeeks.some(vw => {
+    const vacationStart = parseISO(vw);
+    const vacationEnd = addDays(vacationStart, 6);
+    return isWithinInterval(date, { start: vacationStart, end: vacationEnd });
+  });
+}
+
+/**
+ * Check if resident has protected time
+ */
+function hasProtectedTime(resident, date, timeSlot, protectedTimes) {
+  const dayOfWeek = date.getDay();
+  const residentPGY = resident.pgyStatus || 'PGY-1';
+
+  return protectedTimes.some(pt =>
+    pt.dayOfWeek === dayOfWeek &&
+    pt.timeSlot === timeSlot &&
+    (pt.appliesTo === 'all' || pt.appliesTo === residentPGY)
+  );
+}
+
+// Serialization helpers for backup/restore flows
+function isDocumentReference(value) {
+  return !!value && typeof value === 'object' && value.constructor?.name === 'DocumentReference';
+}
+
+function serializeValue(value) {
+  if (value === null || value === undefined) {
+    return value;
+  }
+
+  if (value instanceof admin.firestore.Timestamp) {
+    return { __datatype: 'timestamp', value: value.toMillis() };
+  }
+
+  if (value instanceof admin.firestore.GeoPoint) {
+    return {
+      __datatype: 'geopoint',
+      latitude: value.latitude,
+      longitude: value.longitude
+    };
+  }
+
+  if (isDocumentReference(value)) {
+    return {
+      __datatype: 'document_reference',
+      path: value.path
+    };
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(item => serializeValue(item));
+  }
+
+  if (typeof value === 'object') {
+    const result = {};
+    for (const [key, val] of Object.entries(value)) {
+      result[key] = serializeValue(val);
+    }
+    return result;
+  }
+
+  return value;
+}
+
+function deserializeValue(value) {
+  if (value === null || value === undefined) {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(item => deserializeValue(item));
+  }
+
+  if (typeof value === 'object') {
+    if (value.__datatype === 'timestamp') {
+      return admin.firestore.Timestamp.fromMillis(value.value);
+    }
+    if (value.__datatype === 'geopoint') {
+      return new admin.firestore.GeoPoint(value.latitude, value.longitude);
+    }
+    if (value.__datatype === 'document_reference') {
+      return db.doc(value.path);
+    }
+
+    const result = {};
+    for (const [key, val] of Object.entries(value)) {
+      result[key] = deserializeValue(val);
+    }
+    return result;
+  }
+
+  return value;
+}
+
+function serializeDocument(doc) {
+  return {
+    id: doc.id,
+    data: serializeValue(doc.data())
+  };
+}
+
+function chunkArray(items, size) {
+  const chunks = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function describeAssignmentType(type, options = {}) {
+  const variant = options.variant || 'default';
+  if (type === 'continuity') {
+    return variant === 'short' ? 'Continuity' : 'Continuity Clinic';
+  }
+  if (type === 'protected') {
+    return variant === 'short' ? 'Protected' : 'Protected Time';
+  }
+  return 'Clinical';
+}
+
+/**
  * Check ACGME duty hour compliance
  */
 function checkDutyHourCompliance(assignments, residentId, newAssignment) {
@@ -103,8 +237,8 @@ function checkDutyHourCompliance(assignments, residentId, newAssignment) {
   // - Min 1 day off per week averaged over 4 weeks
 
   const relevantAssignments = assignments.filter(a => a.residentId === residentId);
-  const weekStart = startOfWeek(parseISO(newAssignment.date));
-  const weekEnd = endOfWeek(parseISO(newAssignment.date));
+  const weekStart = startOfWeek(parseISO(newAssignment.date), { weekStartsOn: 0 });
+  const weekEnd = endOfWeek(parseISO(newAssignment.date), { weekStartsOn: 0 });
 
   // Check weekly hours
   const weeklyAssignments = relevantAssignments.filter(a => {
@@ -131,11 +265,6 @@ function checkDutyHourCompliance(assignments, residentId, newAssignment) {
 
   // Check for consecutive days
   const previousDay = format(addDays(parseISO(newAssignment.date), -1), 'yyyy-MM-dd');
-  const nextDay = format(addDays(parseISO(newAssignment.date), 1), 'yyyy-MM-dd');
-
-  const _adjacentAssignments = relevantAssignments.filter(a =>
-    a.date === previousDay || a.date === nextDay
-  );
 
   // Simple check: no more than 6 consecutive days
   let consecutiveDays = 1;
@@ -170,25 +299,28 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
   const { institutionId, startDate, endDate, options = {} } = data;
 
   try {
-    // Get institution data
+    // Get institution data with settings
     const institutionDoc = await db.collection('institutions').doc(institutionId).get();
     if (!institutionDoc.exists) {
       throw new functions.https.HttpsError('not-found', 'Institution not found');
     }
 
+    const institution = institutionDoc.data();
+    const protectedTimes = institution.settings?.protectedTimes || [];
+
     // Verify user has scheduler permissions
     const memberDoc = await db.collection('institutions').doc(institutionId)
       .collection('members').doc(context.auth.uid).get();
 
-    if (!memberDoc.exists || !['admin', 'program_admin', 'chief_resident', 'scheduler'].includes(memberDoc.data().role)) {
+    const allowedRoles = ['admin', 'program_admin', 'chief_resident', 'scheduler'];
+    if (!memberDoc.exists || !allowedRoles.includes(memberDoc.data().role)) {
       throw new functions.https.HttpsError('permission-denied', 'Insufficient permissions');
     }
 
     // Get all necessary data
-    const [attendingsSnap, residentsSnap, rulesSnap, existingAssignmentsSnap] = await Promise.all([
+    const [attendingsSnap, residentsSnap, existingAssignmentsSnap] = await Promise.all([
       db.collection('institutions').doc(institutionId).collection('attendings').get(),
       db.collection('institutions').doc(institutionId).collection('residents').get(),
-      db.collection('institutions').doc(institutionId).collection('rules').where('active', '==', true).get(),
       db.collection('institutions').doc(institutionId).collection('assignments')
         .where('date', '>=', startDate)
         .where('date', '<=', endDate)
@@ -197,7 +329,6 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
 
     const attendings = attendingsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const residents = residentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const rules = rulesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const existingAssignments = existingAssignmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     // Generate schedule assignments
@@ -210,6 +341,7 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
       const currentDate = addDays(startDateObj, dayOffset);
       const dateStr = format(currentDate, 'yyyy-MM-dd');
       const dayOfWeek = currentDate.getDay();
+      const monthStr = format(currentDate, 'yyyy-MM');
 
       // Skip weekends unless specified
       if (!options.includeWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
@@ -226,69 +358,109 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
           continue;
         }
 
-        // Assign continuity clinics first
+        // Process continuity clinics first
         for (const resident of residents) {
-          if (resident.continuityDay && resident.continuityTime === timeSlot) {
+          // Skip if resident is on vacation
+          if (isResidentOnVacation(resident, currentDate)) {
+            continue;
+          }
+
+          // Skip if resident has protected time
+          if (hasProtectedTime(resident, currentDate, timeSlot, protectedTimes)) {
+            continue;
+          }
+
+          // Check for continuity clinic
+          if (resident.continuityDay && resident.continuityTime === timeSlot && resident.continuitySiteId) {
             const dayMap = {
               'monday': 1, 'tuesday': 2, 'wednesday': 3,
               'thursday': 4, 'friday': 5
             };
 
             if (dayMap[resident.continuityDay] === dayOfWeek) {
-              // Find appropriate attending for continuity
-              const continuityAttending = attendings.find(a =>
-                a.specialty === 'General' || a.specialty === 'Continuity'
+              // Assignment already exists as virtual in the frontend
+              // But we'll create a real one here for record-keeping
+              const assignment = {
+                date: dateStr,
+                timeSlot,
+                residentId: resident.id,
+                attendingId: null, // Continuity clinics may not have specific attending
+                type: 'continuity',
+                siteId: resident.continuitySiteId,
+                createdBy: context.auth.uid,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+              };
+
+              // Check duty hour compliance
+              const compliance = checkDutyHourCompliance(
+                [...existingAssignments, ...newAssignments],
+                resident.id,
+                assignment
               );
 
-              if (continuityAttending) {
-                const assignment = {
-                  date: dateStr,
-                  timeSlot,
-                  residentId: resident.id,
-                  attendingId: continuityAttending.id,
-                  type: 'continuity',
-                  createdBy: context.auth.uid,
-                  createdAt: admin.firestore.FieldValue.serverTimestamp()
-                };
-
-                // Check duty hour compliance
-                const compliance = checkDutyHourCompliance(
-                  [...existingAssignments, ...newAssignments],
-                  resident.id,
-                  assignment
-                );
-
-                if (compliance.compliant) {
-                  newAssignments.push(assignment);
-                }
+              if (compliance.compliant) {
+                newAssignments.push(assignment);
               }
             }
           }
         }
 
         // Fill remaining slots with clinical assignments
-        const availableResidents = residents.filter(r => {
+        const availableResidents = residents.filter(resident => {
+          // Skip if on vacation
+          if (isResidentOnVacation(resident, currentDate)) {
+            return false;
+          }
+
+          // Skip if has protected time
+          if (hasProtectedTime(resident, currentDate, timeSlot, protectedTimes)) {
+            return false;
+          }
+
           // Check if resident is already assigned
           const alreadyAssigned = [...existingSlotAssignments, ...newAssignments].some(
-            a => a.date === dateStr && a.timeSlot === timeSlot && a.residentId === r.id
+            a => a.date === dateStr && a.timeSlot === timeSlot && a.residentId === resident.id
           );
-
           if (alreadyAssigned) return false;
 
+          // Check if resident has a rotation for this month
+          const residentRotation = resident.rotationAssignments?.find(ra => ra.month === monthStr);
+          if (!residentRotation) return false;
+
           // Check duty hour compliance
-          const testAssignment = { date: dateStr, timeSlot, residentId: r.id };
+          const testAssignment = { date: dateStr, timeSlot, residentId: resident.id };
           const compliance = checkDutyHourCompliance(
             [...existingAssignments, ...newAssignments],
-            r.id,
+            resident.id,
             testAssignment
           );
 
           return compliance.compliant;
         });
 
-        // Assign available residents to attendings
+        // Group residents by rotation
+        const residentsByRotation = {};
+        availableResidents.forEach(resident => {
+          const rotation = resident.rotationAssignments?.find(ra => ra.month === monthStr);
+          if (rotation) {
+            if (!residentsByRotation[rotation.rotationId]) {
+              residentsByRotation[rotation.rotationId] = [];
+            }
+            residentsByRotation[rotation.rotationId].push(resident);
+          }
+        });
+
+        // Assign residents to attendings based on rotation compatibility
         for (const attending of attendings) {
-          const maxResidents = attending.maxResidents || 2;
+          // Check if attending has clinic on this day/time
+          const clinicSession = attending.clinicSchedule?.find(cs =>
+            cs.dayOfWeek === dayOfWeek && cs.timeSlot === timeSlot
+          );
+
+          if (!clinicSession) continue;
+
+          const maxResidents = clinicSession.capacity || 2;
           const currentAssignments = [...existingSlotAssignments, ...newAssignments].filter(
             a => a.date === dateStr && a.timeSlot === timeSlot && a.attendingId === attending.id
           );
@@ -298,17 +470,31 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
           }
 
           const residentsNeeded = maxResidents - currentAssignments.length;
-          const residentsToAssign = availableResidents.splice(0, residentsNeeded);
 
+          // Find residents with compatible rotations
+          let residentsToAssign = [];
+          for (const rotationId of (attending.rotationIds || [])) {
+            const rotationResidents = residentsByRotation[rotationId] || [];
+            const available = rotationResidents.splice(0, residentsNeeded - residentsToAssign.length);
+            residentsToAssign.push(...available);
+            if (residentsToAssign.length >= residentsNeeded) break;
+          }
+
+          // Create assignments
           for (const resident of residentsToAssign) {
+            const rotation = resident.rotationAssignments?.find(ra => ra.month === monthStr);
+
             newAssignments.push({
               date: dateStr,
               timeSlot,
               residentId: resident.id,
               attendingId: attending.id,
               type: 'clinical',
+              siteId: clinicSession.siteId,
+              rotationId: rotation?.rotationId,
               createdBy: context.auth.uid,
-              createdAt: admin.firestore.FieldValue.serverTimestamp()
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+              updatedAt: admin.firestore.FieldValue.serverTimestamp()
             });
           }
         }
@@ -353,8 +539,7 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
 
 // ==================== 2. NOTIFICATION FUNCTIONS ====================
 
-exports.notifyScheduleChange = functions.firestore
-  .document('institutions/{institutionId}/assignments/{assignmentId}')
+exports.notifyScheduleChange = functions.firestore.document('institutions/{institutionId}/assignments/{assignmentId}')
   .onWrite(async (change, context) => {
     const { institutionId, assignmentId } = context.params;
 
@@ -377,23 +562,44 @@ exports.notifyScheduleChange = functions.firestore
         return null;
       }
 
-      // Get resident and attending information
-      const [residentDoc, attendingDoc, institutionDoc] = await Promise.all([
-        db.collection('institutions').doc(institutionId)
-          .collection('residents').doc(assignment.residentId).get(),
-        db.collection('institutions').doc(institutionId)
-          .collection('attendings').doc(assignment.attendingId).get(),
-        db.collection('institutions').doc(institutionId).get()
-      ]);
-
-      if (!residentDoc.exists || !attendingDoc.exists) {
-        console.error('Resident or attending not found');
+      // Skip virtual assignments
+      if (assignment.virtual) {
         return null;
       }
 
-      const resident = residentDoc.data();
-      const attending = attendingDoc.data();
+      // Get institution settings for sites
+      const institutionDoc = await db.collection('institutions').doc(institutionId).get();
       const institution = institutionDoc.data();
+      const sites = institution.settings?.sites || [];
+
+      // Get resident and attending information
+      let resident = null, attending = null;
+
+      if (assignment.residentId) {
+        const residentDoc = await db.collection('institutions').doc(institutionId)
+          .collection('residents').doc(assignment.residentId).get();
+        if (residentDoc.exists) {
+          resident = residentDoc.data();
+        }
+      }
+
+      if (assignment.attendingId) {
+        const attendingDoc = await db.collection('institutions').doc(institutionId)
+          .collection('attendings').doc(assignment.attendingId).get();
+        if (attendingDoc.exists) {
+          attending = attendingDoc.data();
+        }
+      }
+
+      if (!resident) {
+        console.log('No resident found for assignment');
+        return null;
+      }
+
+      // Get site information
+      const site = sites.find(s => s.id === assignment.siteId);
+      const siteName = site?.name || 'Main Clinic';
+      const siteAddress = site?.address || '';
 
       // Get user email for resident
       const memberDoc = await db.collection('institutions').doc(institutionId)
@@ -404,7 +610,6 @@ exports.notifyScheduleChange = functions.firestore
         return null;
       }
 
-      const memberData = memberDoc.docs[0].data();
       const userDetails = await getUserDetails(memberDoc.docs[0].id);
 
       if (!userDetails || !userDetails.email) {
@@ -412,30 +617,64 @@ exports.notifyScheduleChange = functions.firestore
         return null;
       }
 
-      // Prepare email content
-      const emailSubject = `Schedule ${changeType}: ${assignment.date} ${assignment.timeSlot}`;
-      const emailHtml = `
-        <h2>Schedule ${changeType.charAt(0).toUpperCase() + changeType.slice(1)}</h2>
-        <p>Dear ${resident.name},</p>
-        <p>Your schedule has been ${changeType}:</p>
-        <ul>
-          <li><strong>Date:</strong> ${assignment.date}</li>
-          <li><strong>Time:</strong> ${assignment.timeSlot}</li>
-          <li><strong>Attending:</strong> ${attending.name}</li>
-          <li><strong>Site:</strong> ${attending.site || 'Main Clinic'}</li>
-          <li><strong>Type:</strong> ${assignment.type === 'continuity' ? 'Continuity Clinic' : 'Clinical'}</li>
-        </ul>
-        <p>Please log in to <a href="https://clinicscheduler.com">Clinic Scheduler Pro</a> to view your complete schedule.</p>
-        <hr>
-        <p><small>${institution.name}</small></p>
-      `;
+      // Check if notifications are enabled
+      if (!institution.settings?.notificationsEnabled) {
+        console.log('Notifications disabled for institution');
+        return null;
+      }
 
-      const emailText = `
-        Schedule ${changeType}: ${assignment.date} ${assignment.timeSlot}
-        Attending: ${attending.name}
-        Site: ${attending.site || 'Main Clinic'}
-        Type: ${assignment.type === 'continuity' ? 'Continuity Clinic' : 'Clinical'}
-      `;
+      // Prepare email content
+      const assignmentType = describeAssignmentType(assignment.type);
+
+      const formattedChange = changeType.charAt(0).toUpperCase() + changeType.slice(1);
+      const emailSubject = `Schedule ${formattedChange}: ${assignment.date} ${assignment.timeSlot}`;
+
+      const emailHtmlParts = [
+        `<h2>Schedule ${formattedChange}</h2>`,
+        `<p>Dear ${resident.name || 'Resident'},</p>`,
+        `<p>Your schedule has been ${changeType}:</p>`,
+        '<ul>',
+        `<li><strong>Date:</strong> ${assignment.date}</li>`,
+        `<li><strong>Time:</strong> ${assignment.timeSlot}</li>`,
+        `<li><strong>Type:</strong> ${assignmentType}</li>`
+      ];
+
+      if (attending) {
+        emailHtmlParts.push(`<li><strong>Attending:</strong> ${attending.name}</li>`);
+      }
+
+      emailHtmlParts.push(`<li><strong>Site:</strong> ${siteName}</li>`);
+
+      if (siteAddress) {
+        emailHtmlParts.push(`<li><strong>Location:</strong> ${siteAddress}</li>`);
+      }
+
+      emailHtmlParts.push('</ul>');
+      emailHtmlParts.push(
+        '<p>Please log in to <a href="https://clinicscheduler.com">Clinic Scheduler Pro</a>',
+        'to view your complete schedule.</p>'
+      );
+      emailHtmlParts.push('<hr>');
+      emailHtmlParts.push(`<p><small>${institution.name}</small></p>`);
+
+      const emailHtml = emailHtmlParts.join('\n');
+
+      const emailTextLines = [
+        `Schedule ${formattedChange}: ${assignment.date} ${assignment.timeSlot}`,
+        `Type: ${assignmentType}`
+      ];
+
+      if (attending) {
+        emailTextLines.push(`Attending: ${attending.name}`);
+      }
+
+      emailTextLines.push(`Site: ${siteName}`);
+
+      if (siteAddress) {
+        emailTextLines.push(`Location: ${siteAddress}`);
+      }
+
+      const emailText = emailTextLines.join('\n');
 
       // Send email notification
       await sendEmail(userDetails.email, emailSubject, emailHtml, emailText);
@@ -451,11 +690,15 @@ exports.notifyScheduleChange = functions.firestore
 
 // ==================== 3. DATA VALIDATION FUNCTIONS ====================
 
-exports.validateAssignment = functions.firestore
-  .document('institutions/{institutionId}/assignments/{assignmentId}')
+exports.validateAssignment = functions.firestore.document('institutions/{institutionId}/assignments/{assignmentId}')
   .onCreate(async (snap, context) => {
     const { institutionId, assignmentId } = context.params;
     const assignment = snap.data();
+
+    // Skip validation for virtual assignments
+    if (assignment.virtual) {
+      return null;
+    }
 
     try {
       // Get all assignments for duty hour checking
@@ -516,38 +759,53 @@ exports.validateAssignment = functions.firestore
       }
 
       // Check attending capacity
-      const attendingAssignments = await db.collection('institutions').doc(institutionId)
-        .collection('assignments')
-        .where('attendingId', '==', assignment.attendingId)
-        .where('date', '==', assignment.date)
-        .where('timeSlot', '==', assignment.timeSlot)
-        .get();
+      if (assignment.attendingId) {
+        const [attendingDoc, attendingAssignmentsSnap] = await Promise.all([
+          db.collection('institutions').doc(institutionId)
+            .collection('attendings').doc(assignment.attendingId).get(),
+          db.collection('institutions').doc(institutionId)
+            .collection('assignments')
+            .where('attendingId', '==', assignment.attendingId)
+            .where('date', '==', assignment.date)
+            .where('timeSlot', '==', assignment.timeSlot)
+            .get()
+        ]);
 
-      const attendingDoc = await db.collection('institutions').doc(institutionId)
-        .collection('attendings').doc(assignment.attendingId).get();
+        if (attendingDoc.exists) {
+          const attending = attendingDoc.data();
+          const dayOfWeek = parseISO(assignment.date).getDay();
+          const clinicSession = attending.clinicSchedule?.find(cs =>
+            cs.dayOfWeek === dayOfWeek && cs.timeSlot === assignment.timeSlot
+          );
 
-      if (attendingDoc.exists) {
-        const attending = attendingDoc.data();
-        const maxResidents = attending.maxResidents || 2;
+          const maxResidents = clinicSession?.capacity || 2;
 
-        if (attendingAssignments.size > maxResidents) {
-          // Delete the over-capacity assignment
-          await snap.ref.delete();
+          if (attendingAssignmentsSnap.size > maxResidents) {
+            // Delete the over-capacity assignment
+            await snap.ref.delete();
 
-          // Log the violation
-          await db.collection('institutions').doc(institutionId)
-            .collection('auditLogs').add({
-              action: 'assignment_rejected',
-              data: {
-                assignment,
-                reason: `Attending capacity exceeded (max: ${maxResidents})`
-              },
-              timestamp: admin.firestore.FieldValue.serverTimestamp()
-            });
+            // Log the violation
+            await db.collection('institutions').doc(institutionId)
+              .collection('auditLogs').add({
+                action: 'assignment_rejected',
+                data: {
+                  assignment,
+                  reason: `Attending capacity exceeded (max: ${maxResidents})`
+                },
+                timestamp: admin.firestore.FieldValue.serverTimestamp()
+              });
 
-          console.log(`Assignment ${assignmentId} rejected: Attending over capacity`);
-          return null;
+            console.log(`Assignment ${assignmentId} rejected: Attending over capacity`);
+            return null;
+          }
         }
+      }
+
+      // Add updatedAt timestamp if not present
+      if (!assignment.updatedAt) {
+        await snap.ref.update({
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
       }
 
       console.log(`Assignment ${assignmentId} validated successfully`);
@@ -559,12 +817,13 @@ exports.validateAssignment = functions.firestore
     }
   });
 
+// Continue in next message due to length...
 // ==================== 4. SCHEDULED OPERATIONS ====================
 
 exports.weeklyScheduleGeneration = functions.pubsub
   .schedule('every sunday 23:00')
   .timeZone('America/New_York')
-  .onRun(async (context) => {
+  .onRun(async (_context) => {
     try {
       // Get all institutions with auto-scheduling enabled
       const institutionsSnap = await db.collection('institutions')
@@ -578,8 +837,8 @@ exports.weeklyScheduleGeneration = functions.pubsub
         const institution = institutionDoc.data();
 
         // Generate schedule for next week
-        const nextWeekStart = format(addWeeks(startOfWeek(new Date()), 1), 'yyyy-MM-dd');
-        const nextWeekEnd = format(addWeeks(endOfWeek(new Date()), 1), 'yyyy-MM-dd');
+        const nextWeekStart = format(addWeeks(startOfWeek(new Date(), { weekStartsOn: 0 }), 1), 'yyyy-MM-dd');
+        const nextWeekEnd = format(addWeeks(endOfWeek(new Date(), { weekStartsOn: 0 }), 1), 'yyyy-MM-dd');
 
         // Get the program admin to use as the creator
         const adminMember = await db.collection('institutions').doc(institutionId)
@@ -613,14 +872,23 @@ exports.weeklyScheduleGeneration = functions.pubsub
           for (const memberDoc of adminMember.docs) {
             const userDetails = await getUserDetails(memberDoc.id);
             if (userDetails && userDetails.email) {
+              const summaryHtml = [
+                '<h2>Weekly Schedule Generated</h2>',
+                `<p>The schedule for ${nextWeekStart} to ${nextWeekEnd} has been generated.</p>`,
+                `<p>Assignments created: ${autoScheduleResult.assignmentsCreated}</p>`,
+                '<p><a href="https://clinicscheduler.com">View Schedule</a></p>'
+              ].join('\n');
+
+              const summaryText = [
+                `Weekly schedule generated for ${nextWeekStart} to ${nextWeekEnd}.`,
+                `Assignments created: ${autoScheduleResult.assignmentsCreated}`
+              ].join(' ');
+
               await sendEmail(
                 userDetails.email,
                 'Weekly Schedule Generated',
-                `<h2>Weekly Schedule Generated</h2>
-                 <p>The schedule for ${nextWeekStart} to ${nextWeekEnd} has been generated.</p>
-                 <p>Assignments created: ${autoScheduleResult.assignmentsCreated}</p>
-                 <p><a href="https://clinicscheduler.com">View Schedule</a></p>`,
-                `Weekly schedule generated for ${nextWeekStart} to ${nextWeekEnd}. Assignments created: ${autoScheduleResult.assignmentsCreated}`
+                summaryHtml,
+                summaryText
               );
             }
           }
@@ -639,11 +907,11 @@ exports.weeklyScheduleGeneration = functions.pubsub
 exports.dailyReminders = functions.pubsub
   .schedule('every day 07:00')
   .timeZone('America/New_York')
-  .onRun(async (context) => {
+  .onRun(async (_context) => {
     try {
       const today = format(new Date(), 'yyyy-MM-dd');
 
-      // Get all assignments for today
+      // Get all institutions
       const institutionsSnap = await db.collection('institutions').get();
 
       for (const institutionDoc of institutionsSnap.docs) {
@@ -655,6 +923,9 @@ exports.dailyReminders = functions.pubsub
           continue;
         }
 
+        const sites = institution.settings?.sites || [];
+
+        // Get all assignments for today
         const assignmentsSnap = await db.collection('institutions').doc(institutionId)
           .collection('assignments')
           .where('date', '==', today)
@@ -663,20 +934,33 @@ exports.dailyReminders = functions.pubsub
         for (const assignmentDoc of assignmentsSnap.docs) {
           const assignment = assignmentDoc.data();
 
-          // Get resident and attending info
-          const [residentDoc, attendingDoc] = await Promise.all([
-            db.collection('institutions').doc(institutionId)
-              .collection('residents').doc(assignment.residentId).get(),
-            db.collection('institutions').doc(institutionId)
-              .collection('attendings').doc(assignment.attendingId).get()
-          ]);
+          // Skip virtual assignments
+          if (assignment.virtual) continue;
 
-          if (!residentDoc.exists || !attendingDoc.exists) {
-            continue;
-          }
+          // Get resident info
+          if (!assignment.residentId) continue;
+
+          const residentDoc = await db.collection('institutions').doc(institutionId)
+            .collection('residents').doc(assignment.residentId).get();
+
+          if (!residentDoc.exists) continue;
 
           const resident = residentDoc.data();
-          const attending = attendingDoc.data();
+
+          // Get attending info if available
+          let attending = null;
+          if (assignment.attendingId) {
+            const attendingDoc = await db.collection('institutions').doc(institutionId)
+              .collection('attendings').doc(assignment.attendingId).get();
+            if (attendingDoc.exists) {
+              attending = attendingDoc.data();
+            }
+          }
+
+          // Get site information
+          const site = sites.find(s => s.id === assignment.siteId);
+          const siteName = site?.name || 'Main Clinic';
+          const siteAddress = site?.address || '';
 
           // Get user email
           const memberDoc = await db.collection('institutions').doc(institutionId)
@@ -686,18 +970,37 @@ exports.dailyReminders = functions.pubsub
             const userDetails = await getUserDetails(memberDoc.docs[0].id);
 
             if (userDetails && userDetails.email) {
+              const assignmentType = describeAssignmentType(assignment.type);
+
+              const reminderHtmlParts = [
+                '<h2>Schedule Reminder</h2>',
+                `<p>Hi ${resident.name || 'Resident'},</p>`,
+                '<p>This is a reminder about your assignment today:</p>',
+                '<ul>',
+                `<li><strong>Time:</strong> ${assignment.timeSlot}</li>`,
+                `<li><strong>Type:</strong> ${assignmentType}</li>`
+              ];
+
+              if (attending) {
+                reminderHtmlParts.push(`<li><strong>Attending:</strong> ${attending.name}</li>`);
+              }
+
+              reminderHtmlParts.push(`<li><strong>Site:</strong> ${siteName}</li>`);
+
+              if (siteAddress) {
+                reminderHtmlParts.push(`<li><strong>Location:</strong> ${siteAddress}</li>`);
+              }
+
+              reminderHtmlParts.push('</ul>');
+
+              const reminderHtml = reminderHtmlParts.join('\n');
+              const reminderText = `Reminder: ${assignment.timeSlot} ${assignmentType} at ${siteName}`;
+
               await sendEmail(
                 userDetails.email,
-                `Today's Schedule: ${assignment.timeSlot} with ${attending.name}`,
-                `<h2>Schedule Reminder</h2>
-                 <p>Hi ${resident.name},</p>
-                 <p>This is a reminder about your assignment today:</p>
-                 <ul>
-                   <li><strong>Time:</strong> ${assignment.timeSlot}</li>
-                   <li><strong>Attending:</strong> ${attending.name}</li>
-                   <li><strong>Site:</strong> ${attending.site || 'Main Clinic'}</li>
-                 </ul>`,
-                `Reminder: ${assignment.timeSlot} with ${attending.name} at ${attending.site || 'Main Clinic'}`
+                `Today's Schedule: ${assignment.timeSlot} - ${assignmentType}`,
+                reminderHtml,
+                reminderText
               );
             }
           }
@@ -735,6 +1038,8 @@ exports.generateSchedulePDF = functions.https.onCall(async (data, context) => {
     }
 
     const institution = institutionDoc.data();
+    const sites = institution.settings?.sites || [];
+    const rotations = institution.settings?.rotations || [];
 
     // Get assignments
     let assignmentsQuery = db.collection('institutions').doc(institutionId)
@@ -771,20 +1076,28 @@ exports.generateSchedulePDF = functions.https.onCall(async (data, context) => {
 
     doc.on('data', chunk => chunks.push(chunk));
 
-    // Add content
+    // Add header
     doc.fontSize(20).text(institution.name, { align: 'center' });
     doc.fontSize(16).text('Schedule Report', { align: 'center' });
     doc.fontSize(12).text(`${startDate} to ${endDate}`, { align: 'center' });
     doc.moveDown();
 
+    // Add resident filter if applicable
+    if (residentId && residents[residentId]) {
+      const residentInfo = `Resident: ${residents[residentId].name} (${residents[residentId].pgyStatus})`;
+      doc.fontSize(14).text(residentInfo, { align: 'center' });
+      doc.moveDown();
+    }
+
     // Group assignments by date
     const assignmentsByDate = {};
-    assignmentsSnap.forEach(doc => {
-      const assignment = doc.data();
-      if (!assignmentsByDate[assignment.date]) {
-        assignmentsByDate[assignment.date] = [];
+    assignmentsSnap.forEach(assignmentDoc => {
+      const assignment = assignmentDoc.data();
+      const dateKey = assignment.date;
+      if (!assignmentsByDate[dateKey]) {
+        assignmentsByDate[dateKey] = [];
       }
-      assignmentsByDate[assignment.date].push(assignment);
+      assignmentsByDate[dateKey].push(assignment);
     });
 
     // Add assignments to PDF
@@ -794,32 +1107,63 @@ exports.generateSchedulePDF = functions.https.onCall(async (data, context) => {
 
       assignmentsByDate[date].forEach(assignment => {
         const resident = residents[assignment.residentId];
-        const attending = attendings[assignment.attendingId];
+        const attending = assignment.attendingId ? attendings[assignment.attendingId] : null;
+        const site = sites.find(s => s.id === assignment.siteId);
+        const rotation = rotations.find(r => r.id === assignment.rotationId);
 
-        doc.fontSize(10)
-          .text(`${assignment.timeSlot}: ${resident?.name || 'Unknown'} with ${attending?.name || 'Unknown'} at ${attending?.site || 'Clinic'}`, {
-            indent: 20
-          });
+        const assignmentType = describeAssignmentType(assignment.type, { variant: 'short' });
+
+        let text = `${assignment.timeSlot}: ${resident?.name || 'Unknown'}`;
+        if (attending) {
+          text += ` with ${attending.name}`;
+        }
+        text += ` at ${site?.name || 'Clinic'}`;
+        text += ` (${assignmentType})`;
+        if (rotation) {
+          text += ` - ${rotation.name}`;
+        }
+
+        doc.fontSize(10).text(text, { indent: 20 });
       });
 
       doc.moveDown();
     });
 
-    // Statistics
+    // Add statistics page
     doc.addPage();
     doc.fontSize(16).text('Statistics', { underline: true });
     doc.moveDown();
 
     const totalAssignments = assignmentsSnap.size;
     const uniqueResidents = new Set(assignmentsSnap.docs.map(d => d.data().residentId)).size;
-    const uniqueAttendings = new Set(assignmentsSnap.docs.map(d => d.data().attendingId)).size;
+    const uniqueAttendings = new Set(assignmentsSnap.docs.map(d => d.data().attendingId).filter(id => id)).size;
+    const uniqueSites = new Set(assignmentsSnap.docs.map(d => d.data().siteId).filter(id => id)).size;
+
+    // Count by type
+    let clinicalCount = 0;
+    let continuityCount = 0;
+    let protectedCount = 0;
+
+    assignmentsSnap.forEach(assignmentDoc => {
+      const type = assignmentDoc.data().type;
+      if (type === 'continuity') continuityCount++;
+      else if (type === 'protected') protectedCount++;
+      else clinicalCount++;
+    });
 
     doc.fontSize(12)
       .text(`Total Assignments: ${totalAssignments}`)
+      .text(`Clinical: ${clinicalCount}`)
+      .text(`Continuity Clinics: ${continuityCount}`)
+      .text(`Protected Time: ${protectedCount}`)
       .text(`Unique Residents: ${uniqueResidents}`)
-      .text(`Unique Attendings: ${uniqueAttendings}`);
+      .text(`Unique Attendings: ${uniqueAttendings}`)
+      .text(`Sites Used: ${uniqueSites}`);
 
     doc.end();
+
+    // Wait for PDF generation to complete
+    await new Promise(resolve => doc.on('end', resolve));
 
     // Convert to base64
     const pdfBuffer = Buffer.concat(chunks);
@@ -864,6 +1208,12 @@ exports.calculateAnalytics = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('permission-denied', 'Not a member of institution');
     }
 
+    // Get institution settings
+    const institutionDoc = await db.collection('institutions').doc(institutionId).get();
+    const institution = institutionDoc.data();
+    const sites = institution.settings?.sites || [];
+    const rotations = institution.settings?.rotations || [];
+
     // Get all assignments in date range
     const assignmentsSnap = await db.collection('institutions').doc(institutionId)
       .collection('assignments')
@@ -887,9 +1237,12 @@ exports.calculateAnalytics = functions.https.onCall(async (data, context) => {
       totalAssignments: assignments.length,
       byResident: {},
       byAttending: {},
+      bySite: {},
+      byRotation: {},
       byType: {
         clinical: 0,
-        continuity: 0
+        continuity: 0,
+        protected: 0
       },
       dutyHours: {},
       fairnessScore: 0,
@@ -900,15 +1253,32 @@ exports.calculateAnalytics = functions.https.onCall(async (data, context) => {
       }
     };
 
+    // Initialize site and rotation counters
+    sites.forEach(site => {
+      analytics.bySite[site.id] = {
+        name: site.name,
+        count: 0
+      };
+    });
+
+    rotations.forEach(rotation => {
+      analytics.byRotation[rotation.id] = {
+        name: rotation.name,
+        count: 0
+      };
+    });
+
     // Resident statistics
     residents.forEach(resident => {
       const residentAssignments = assignments.filter(a => a.residentId === resident.id);
       analytics.byResident[resident.id] = {
         name: resident.name,
+        pgyStatus: resident.pgyStatus,
         totalAssignments: residentAssignments.length,
         hours: residentAssignments.length * 4, // 4 hours per half-day
         continuity: residentAssignments.filter(a => a.type === 'continuity').length,
-        clinical: residentAssignments.filter(a => a.type === 'clinical').length
+        clinical: residentAssignments.filter(a => a.type === 'clinical').length,
+        protected: residentAssignments.filter(a => a.type === 'protected').length
       };
 
       analytics.dutyHours[resident.id] = residentAssignments.length * 4;
@@ -920,36 +1290,83 @@ exports.calculateAnalytics = functions.https.onCall(async (data, context) => {
       analytics.byAttending[attending.id] = {
         name: attending.name,
         totalAssignments: attendingAssignments.length,
-        averageResidents: attendingAssignments.length > 0
-          ? (attendingAssignments.length / new Set(attendingAssignments.map(a => a.date + a.timeSlot)).size).toFixed(2)
-          : 0
+        averageResidents: 0
       };
+
+      // Calculate average residents per session
+      const uniqueSessions = new Set(attendingAssignments.map(a => `${a.date}_${a.timeSlot}`));
+      if (uniqueSessions.size > 0) {
+        analytics.byAttending[attending.id].averageResidents = 
+          (attendingAssignments.length / uniqueSessions.size).toFixed(2);
+      }
     });
 
-    // Type distribution
+    // Process assignments for type, site, and rotation distribution
     assignments.forEach(assignment => {
+      // Type distribution
       if (assignment.type === 'continuity') {
         analytics.byType.continuity++;
+      } else if (assignment.type === 'protected') {
+        analytics.byType.protected++;
       } else {
         analytics.byType.clinical++;
+      }
+
+      // Site distribution
+      if (assignment.siteId && analytics.bySite[assignment.siteId]) {
+        analytics.bySite[assignment.siteId].count++;
+      }
+
+      // Rotation distribution
+      if (assignment.rotationId && analytics.byRotation[assignment.rotationId]) {
+        analytics.byRotation[assignment.rotationId].count++;
       }
     });
 
     // Calculate fairness score (standard deviation of assignments)
-    const residentCounts = Object.values(analytics.byResident).map(r => r.totalAssignments);
-    const mean = residentCounts.reduce((a, b) => a + b, 0) / residentCounts.length;
-    const variance = residentCounts.reduce((sum, count) => sum + Math.pow(count - mean, 2), 0) / residentCounts.length;
-    const stdDev = Math.sqrt(variance);
-    analytics.fairnessScore = mean > 0 ? (100 - (stdDev / mean * 100)).toFixed(2) : 100;
+    const residentCounts = Object.values(analytics.byResident)
+      .map(residentStat => residentStat.totalAssignments);
 
-    // Calculate coverage
-    const totalDays = differenceInDays(parseISO(endDate), parseISO(startDate)) + 1;
-    const workDays = Math.floor(totalDays * 5 / 7); // Approximate work days
-    const totalSlots = workDays * 2 * attendings.length; // AM/PM slots per attending
+    if (residentCounts.length > 0) {
+      const totalAssignmentsByResident = residentCounts.reduce((sum, value) => sum + value, 0);
+      const mean = totalAssignmentsByResident / residentCounts.length;
+
+      const varianceSum = residentCounts.reduce((sum, count) => {
+        const diff = count - mean;
+        return sum + diff * diff;
+      }, 0);
+
+      const variance = varianceSum / residentCounts.length;
+      const stdDev = Math.sqrt(variance);
+      const fairness = mean > 0 ? 100 - (stdDev / mean) * 100 : 100;
+      analytics.fairnessScore = Math.max(0, fairness).toFixed(2);
+    } else {
+      analytics.fairnessScore = 100;
+    }
+
+    // Calculate coverage based on actual clinic schedules
+    let totalSlots = 0;
+    const startDateObj = parseISO(startDate);
+    const endDateObj = parseISO(endDate);
+
+    for (let date = startDateObj; date <= endDateObj; date = addDays(date, 1)) {
+      const dayOfWeek = date.getDay();
+      
+      // Skip weekends
+      if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+
+      attendings.forEach(attending => {
+        const dailySlots = (attending.clinicSchedule || [])
+          .filter(cs => cs.dayOfWeek === dayOfWeek)
+          .reduce((sum, cs) => sum + (cs.capacity || 2), 0);
+        totalSlots += dailySlots;
+      });
+    }
+
     analytics.coverage.total = totalSlots;
-    analytics.coverage.filled = assignments.length;
+    analytics.coverage.filled = assignments.filter(a => a.type === 'clinical').length;
     analytics.coverage.percentage = totalSlots > 0
-      ? ((assignments.length / totalSlots) * 100).toFixed(2)
+      ? ((analytics.coverage.filled / totalSlots) * 100).toFixed(2)
       : 0;
 
     // Add audit log
@@ -972,314 +1389,609 @@ exports.calculateAnalytics = functions.https.onCall(async (data, context) => {
   }
 });
 
-// ==================== 7. INTEGRATION WEBHOOKS ====================
+// ==================== 6. EXTERNAL SYSTEM SYNC ====================
 
-exports.syncWithExternalSystem = functions.https.onRequest(async (req, res) => {
+exports.syncWithExternalSystem = functions.https.onRequest((req, res) => {
   return cors(req, res, async () => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ success: false, error: 'method-not-allowed' });
+      return;
+    }
+
+    const secret = functions.config().webhook?.secret;
+    const providedSecret = req.headers['x-webhook-secret'] || req.headers['x-api-key'];
+
+    if (secret && providedSecret !== secret) {
+      res.status(401).json({ success: false, error: 'invalid-secret' });
+      return;
+    }
+
+    const { action, institutionId, payload = {}, options = {} } = req.body || {};
+
+    if (!action || !institutionId) {
+      res.status(400).json({ success: false, error: 'missing-parameters' });
+      return;
+    }
+
     try {
-      // Verify webhook secret
-      const webhookSecret = req.headers['x-webhook-secret'];
-      if (webhookSecret !== functions.config().webhook?.secret) {
-        res.status(401).json({ error: 'Invalid webhook secret' });
+      const institutionRef = db.collection('institutions').doc(institutionId);
+      const institutionSnap = await institutionRef.get();
+
+      if (!institutionSnap.exists) {
+        res.status(404).json({ success: false, error: 'institution-not-found' });
         return;
       }
 
-      const { action, institutionId, data } = req.body;
-
-      switch (action) {
-      case 'import_residents':
-        // Import residents from external system
-        const batch = db.batch();
-        for (const resident of data.residents) {
-          const docRef = db.collection('institutions').doc(institutionId)
-            .collection('residents').doc();
-          batch.set(docRef, {
-            name: resident.name,
-            year: resident.year,
-            email: resident.email,
-            externalId: resident.id,
-            importedAt: admin.firestore.FieldValue.serverTimestamp()
-          });
+      const fetchDocsByIds = async (collectionRef, ids) => {
+        const docs = [];
+        const idChunks = chunkArray(ids, 10);
+        for (const chunk of idChunks) {
+          const snap = await collectionRef
+            .where(admin.firestore.FieldPath.documentId(), 'in', chunk)
+            .get();
+          docs.push(...snap.docs);
         }
+        return docs;
+      };
+
+      if (action === 'import_residents') {
+        if (!Array.isArray(payload.residents) || payload.residents.length === 0) {
+          res.status(400).json({ success: false, error: 'missing-residents' });
+          return;
+        }
+
+        const batch = db.batch();
+        let imported = 0;
+        let skipped = 0;
+
+        payload.residents.forEach((resident) => {
+          if (!resident) {
+            skipped += 1;
+            return;
+          }
+
+          const identifier = resident.id || resident.uid || resident.externalId;
+          let docId = null;
+
+          if (identifier && typeof identifier === 'string') {
+            docId = identifier.trim();
+          } else if (resident.email) {
+            docId = resident.email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+          }
+
+          const residentRef = docId
+            ? institutionRef.collection('residents').doc(docId)
+            : institutionRef.collection('residents').doc();
+
+          const cleanName = resident.name?.trim();
+          const cleanEmail = resident.email?.trim();
+
+          if (!cleanName && !cleanEmail) {
+            skipped += 1;
+            return;
+          }
+
+          const residentPayload = {
+            name: cleanName || cleanEmail || 'Unnamed Resident',
+            email: cleanEmail || null,
+            pgyStatus: resident.pgyStatus || 'PGY-1',
+            rotationAssignments: Array.isArray(resident.rotationAssignments) ? resident.rotationAssignments : [],
+            vacationWeeks: Array.isArray(resident.vacationWeeks) ? resident.vacationWeeks : [],
+            protectedTimes: Array.isArray(resident.protectedTimes) ? resident.protectedTimes : [],
+            continuityDay: resident.continuityDay || null,
+            continuityTime: resident.continuityTime || null,
+            continuitySiteId: resident.continuitySiteId || null,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          };
+
+          if (!resident.createdAt) {
+            residentPayload.createdAt = admin.firestore.FieldValue.serverTimestamp();
+          }
+
+          batch.set(residentRef, residentPayload, { merge: true });
+          imported += 1;
+        });
+
+        if (imported === 0) {
+          res.status(400).json({ success: false, error: 'no-valid-residents', skipped });
+          return;
+        }
+
         await batch.commit();
 
-        res.json({
-          success: true,
-          message: `Imported ${data.residents.length} residents`
+        await institutionRef.collection('auditLogs').add({
+          action: 'external_import_residents',
+          data: { imported, skipped, source: options.source || 'webhook' },
+          userId: 'external-system',
+          timestamp: admin.firestore.FieldValue.serverTimestamp()
         });
-        break;
 
-      case 'export_schedule':
-        // Export schedule to external system
-        const startDate = data.startDate;
-        const endDate = data.endDate;
-
-        const assignmentsSnap = await db.collection('institutions').doc(institutionId)
-          .collection('assignments')
-          .where('date', '>=', startDate)
-          .where('date', '<=', endDate)
-          .get();
-
-        const assignments = assignmentsSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-
-        res.json({
+        res.status(200).json({
           success: true,
-          assignments
+          action,
+          institutionId,
+          imported,
+          skipped
         });
-        break;
-
-      case 'sync_calendar':
-        // Sync with external calendar system
-        // This would integrate with Google Calendar, Outlook, etc.
-        res.json({
-          success: true,
-          message: 'Calendar sync initiated'
-        });
-        break;
-
-      default:
-        res.status(400).json({ error: 'Invalid action' });
+        return;
       }
 
+      if (action === 'export_schedule') {
+        const startDate = payload.startDate;
+        const endDate = payload.endDate;
+        const limit = Math.min(payload.limit || 1000, 5000);
+        const includeDetails = payload.includeDetails !== false;
+
+        if (!startDate || !endDate) {
+          res.status(400).json({ success: false, error: 'missing-date-range' });
+          return;
+        }
+
+        const assignmentsQuery = institutionRef.collection('assignments')
+          .where('date', '>=', startDate)
+          .where('date', '<=', endDate)
+          .orderBy('date')
+          .orderBy('timeSlot')
+          .limit(limit);
+
+        const assignmentsSnap = await assignmentsQuery.get();
+
+        const assignments = assignmentsSnap.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            date: data.date,
+            timeSlot: data.timeSlot,
+            residentId: data.residentId || null,
+            attendingId: data.attendingId || null,
+            siteId: data.siteId || null,
+            rotationId: data.rotationId || null,
+            type: data.type || 'clinical',
+            virtual: !!data.virtual,
+            createdAt: data.createdAt?.toMillis?.() || null,
+            updatedAt: data.updatedAt?.toMillis?.() || null
+          };
+        });
+
+        const response = {
+          success: true,
+          action,
+          institutionId,
+          startDate,
+          endDate,
+          count: assignments.length,
+          assignments
+        };
+
+        if (includeDetails && assignments.length > 0) {
+          const residentIds = Array.from(
+            new Set(assignments.map(a => a.residentId).filter(Boolean))
+          );
+          const attendingIds = Array.from(
+            new Set(assignments.map(a => a.attendingId).filter(Boolean))
+          );
+
+          const residentDocs = residentIds.length > 0
+            ? await fetchDocsByIds(institutionRef.collection('residents'), residentIds)
+            : [];
+          const attendingDocs = attendingIds.length > 0
+            ? await fetchDocsByIds(institutionRef.collection('attendings'), attendingIds)
+            : [];
+
+          if (residentDocs.length > 0) {
+            response.residents = {};
+            residentDocs.forEach((doc) => {
+              const data = doc.data();
+              response.residents[doc.id] = {
+                name: data.name || null,
+                email: data.email || null,
+                pgyStatus: data.pgyStatus || null
+              };
+            });
+          }
+
+          if (attendingDocs.length > 0) {
+            response.attendings = {};
+            attendingDocs.forEach((doc) => {
+              const data = doc.data();
+              response.attendings[doc.id] = {
+                name: data.name || null,
+                email: data.email || null
+              };
+            });
+          }
+        }
+
+        await institutionRef.collection('auditLogs').add({
+          action: 'external_export_schedule',
+          data: {
+            startDate,
+            endDate,
+            count: assignments.length,
+            destination: options.destination || 'external-system'
+          },
+          userId: 'external-system',
+          timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        res.status(200).json(response);
+        return;
+      }
+
+      res.status(400).json({ success: false, error: 'unknown-action' });
     } catch (error) {
-      console.error('Webhook error:', error);
-      res.status(500).json({ error: error.message });
+      console.error('Error in syncWithExternalSystem:', error);
+      res.status(500).json({ success: false, error: 'internal-error', message: error.message });
     }
   });
 });
 
-// ==================== 8. DATA SECURITY FUNCTIONS ====================
+// ==================== 7. COMPLIANCE DATA EXPORT ====================
 
 exports.exportComplianceData = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   }
 
-  const { institutionId, startDate, endDate, anonymize = false } = data;
+  const {
+    institutionId,
+    startDate,
+    endDate,
+    anonymize = false
+  } = data || {};
+
+  if (!institutionId || !startDate || !endDate) {
+    throw new functions.https.HttpsError('invalid-argument', 'institutionId, startDate, and endDate are required');
+  }
 
   try {
-    // Verify admin permissions
-    const memberDoc = await db.collection('institutions').doc(institutionId)
-      .collection('members').doc(context.auth.uid).get();
+    const institutionRef = db.collection('institutions').doc(institutionId);
 
-    if (!memberDoc.exists || !['admin', 'program_admin'].includes(memberDoc.data().role)) {
-      throw new functions.https.HttpsError('permission-denied', 'Admin access required');
-    }
-
-    // Get assignments and audit logs
-    const [assignmentsSnap, auditLogsSnap] = await Promise.all([
-      db.collection('institutions').doc(institutionId)
-        .collection('assignments')
-        .where('date', '>=', startDate)
-        .where('date', '<=', endDate)
-        .get(),
-      db.collection('institutions').doc(institutionId)
-        .collection('auditLogs')
-        .where('timestamp', '>=', admin.firestore.Timestamp.fromDate(new Date(startDate)))
-        .where('timestamp', '<=', admin.firestore.Timestamp.fromDate(new Date(endDate)))
-        .get()
+    const [institutionDoc, memberDoc] = await Promise.all([
+      institutionRef.get(),
+      institutionRef.collection('members').doc(context.auth.uid).get()
     ]);
 
-    let exportData = {
-      assignments: assignmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })),
-      auditLogs: auditLogsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-    };
-
-    // Anonymize if requested
-    if (anonymize) {
-      const residentMap = {};
-      const attendingMap = {};
-      let residentCounter = 1;
-      let attendingCounter = 1;
-
-      exportData.assignments = exportData.assignments.map(assignment => {
-        if (!residentMap[assignment.residentId]) {
-          residentMap[assignment.residentId] = `R${residentCounter++}`;
-        }
-        if (!attendingMap[assignment.attendingId]) {
-          attendingMap[assignment.attendingId] = `A${attendingCounter++}`;
-        }
-
-        return {
-          ...assignment,
-          residentId: residentMap[assignment.residentId],
-          attendingId: attendingMap[assignment.attendingId]
-        };
-      });
-
-      exportData.auditLogs = exportData.auditLogs.map(log => ({
-        ...log,
-        userId: 'ANONYMIZED'
-      }));
+    if (!institutionDoc.exists) {
+      throw new functions.https.HttpsError('not-found', 'Institution not found');
     }
 
-    // Add compliance metadata
-    exportData.metadata = {
-      exportDate: new Date().toISOString(),
-      exportedBy: context.auth.uid,
-      dateRange: { startDate, endDate },
-      anonymized: anonymize,
-      totalAssignments: exportData.assignments.length,
-      totalAuditLogs: exportData.auditLogs.length
+    if (!memberDoc.exists) {
+      throw new functions.https.HttpsError('permission-denied', 'Membership required');
+    }
+
+    const memberRole = memberDoc.data().role;
+    if (!['admin', 'program_admin', 'chief_resident'].includes(memberRole)) {
+      throw new functions.https.HttpsError('permission-denied', 'Administrator role required');
+    }
+
+    const institution = institutionDoc.data();
+    const protectedTimes = institution.settings?.protectedTimes || [];
+
+    const [assignmentsSnap, residentsSnap, attendingsSnap] = await Promise.all([
+      institutionRef.collection('assignments')
+        .where('date', '>=', startDate)
+        .where('date', '<=', endDate)
+        .orderBy('date')
+        .orderBy('timeSlot')
+        .get(),
+      institutionRef.collection('residents').get(),
+      institutionRef.collection('attendings').get()
+    ]);
+
+    const residents = {};
+    residentsSnap.forEach((doc) => {
+      residents[doc.id] = { id: doc.id, ...doc.data() };
+    });
+
+    const attendings = {};
+    attendingsSnap.forEach((doc) => {
+      attendings[doc.id] = { id: doc.id, ...doc.data() };
+    });
+
+    const aliasMap = {};
+    let aliasCounter = 1;
+
+    const rows = [];
+    const flaggedAssignments = [];
+    const residentSet = new Set();
+    const attendingSet = new Set();
+
+    assignmentsSnap.forEach((doc) => {
+      const assignment = doc.data();
+      const dateObj = parseISO(assignment.date);
+      const resident = assignment.residentId
+        ? residents[assignment.residentId]
+        : null;
+      const attending = assignment.attendingId
+        ? attendings[assignment.attendingId]
+        : null;
+
+      if (assignment.residentId) {
+        residentSet.add(assignment.residentId);
+      }
+      if (assignment.attendingId) {
+        attendingSet.add(assignment.attendingId);
+      }
+
+      let residentLabel = resident?.name || assignment.residentId || null;
+      let attendingLabel = attending?.name || assignment.attendingId || null;
+
+      if (anonymize && resident) {
+        if (!aliasMap[resident.id]) {
+          aliasMap[resident.id] = `Resident-${String(aliasCounter).padStart(3, '0')}`;
+          aliasCounter += 1;
+        }
+        residentLabel = aliasMap[resident.id];
+      }
+
+      if (anonymize && attending) {
+        attendingLabel = `Attending-${attending.id.slice(0, 6)}`;
+      }
+
+      const residentOnVacation = resident ? isResidentOnVacation(resident, dateObj) : false;
+      const protectedTimeViolated = resident
+        ? hasProtectedTime(resident, dateObj, assignment.timeSlot, protectedTimes)
+        : false;
+      let rotationMismatch = false;
+
+      if (resident) {
+        const monthStr = format(dateObj, 'yyyy-MM');
+        const rotation = resident.rotationAssignments?.find(ra => ra.month === monthStr);
+        if (assignment.rotationId) {
+          rotationMismatch = !rotation || rotation.rotationId !== assignment.rotationId;
+        }
+      }
+
+      const compliance = {
+        residentOnVacation,
+        protectedTimeViolated,
+        rotationMismatch
+      };
+
+      if (residentOnVacation || protectedTimeViolated || rotationMismatch) {
+        flaggedAssignments.push({ assignmentId: doc.id, compliance });
+      }
+
+      rows.push({
+        assignmentId: doc.id,
+        date: assignment.date,
+        timeSlot: assignment.timeSlot,
+        institutionId,
+        residentId: assignment.residentId || null,
+        resident: residentLabel,
+        attendingId: assignment.attendingId || null,
+        attending: attendingLabel,
+        siteId: assignment.siteId || null,
+        rotationId: assignment.rotationId || null,
+        type: assignment.type || 'clinical',
+        compliance
+      });
+    });
+
+    const summary = {
+      totalAssignments: rows.length,
+      flaggedAssignments: flaggedAssignments.length,
+      residentCount: residentSet.size,
+      attendingCount: attendingSet.size,
+      period: { startDate, endDate }
     };
 
-    // Log the export
-    await db.collection('institutions').doc(institutionId)
-      .collection('auditLogs').add({
-        action: 'compliance_data_exported',
-        data: {
-          startDate,
-          endDate,
-          anonymized: anonymize,
-          recordCount: exportData.assignments.length
-        },
-        userId: context.auth.uid,
-        timestamp: admin.firestore.FieldValue.serverTimestamp()
-      });
+    await institutionRef.collection('auditLogs').add({
+      action: 'export_compliance',
+      data: { startDate, endDate, anonymize },
+      userId: context.auth.uid,
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
 
     return {
       success: true,
-      data: exportData
+      generatedAt: new Date().toISOString(),
+      anonymized: anonymize,
+      summary,
+      rows,
+      flaggedAssignments
     };
-
   } catch (error) {
     console.error('Error exporting compliance data:', error);
     throw new functions.https.HttpsError('internal', error.message);
   }
 });
 
-// ==================== 9. CONFLICT RESOLUTION ====================
+// ==================== 8. CONFLICT RESOLUTION ====================
 
 exports.resolveScheduleConflicts = functions.firestore
   .document('institutions/{institutionId}/assignments/{assignmentId}')
-  .onUpdate(async (change, context) => {
+  .onWrite(async (change, context) => {
     const { institutionId, assignmentId } = context.params;
-    const before = change.before.data();
-    const after = change.after.data();
+    const institutionRef = db.collection('institutions').doc(institutionId);
+    const conflictDocRef = institutionRef.collection('conflicts').doc(assignmentId);
 
-    // Check if this is a conflicting update
-    if (before.updatedAt && after.updatedAt) {
-      const timeDiff = after.updatedAt.toMillis() - before.updatedAt.toMillis();
+    if (!change.after.exists) {
+      await conflictDocRef.delete().catch(() => null);
+      return null;
+    }
 
-      // If updates happened within 5 seconds, might be a conflict
-      if (timeDiff < 5000) {
-        try {
-          // Check for other assignments at the same slot
-          const conflictingAssignments = await db.collection('institutions').doc(institutionId)
-            .collection('assignments')
-            .where('date', '==', after.date)
-            .where('timeSlot', '==', after.timeSlot)
-            .where('residentId', '==', after.residentId)
-            .get();
+    const assignment = change.after.data();
 
-          if (conflictingAssignments.size > 1) {
-            // Conflict detected - keep the most recent, delete others
-            const assignments = conflictingAssignments.docs
-              .map(doc => ({ id: doc.id, ...doc.data() }))
-              .sort((a, b) => b.updatedAt.toMillis() - a.updatedAt.toMillis());
+    if (!assignment || assignment.virtual) {
+      await conflictDocRef.delete().catch(() => null);
+      return null;
+    }
 
-            // Keep the first (most recent), delete the rest
-            for (let i = 1; i < assignments.length; i++) {
-              await db.collection('institutions').doc(institutionId)
-                .collection('assignments').doc(assignments[i].id).delete();
-            }
+    try {
+      const [institutionSnap, residentSnap, attendingSnap] = await Promise.all([
+        institutionRef.get(),
+        assignment.residentId
+          ? institutionRef.collection('residents').doc(assignment.residentId).get()
+          : null,
+        assignment.attendingId
+          ? institutionRef.collection('attendings').doc(assignment.attendingId).get()
+          : null
+      ]);
 
-            // Log the conflict resolution
-            await db.collection('institutions').doc(institutionId)
-              .collection('auditLogs').add({
-                action: 'conflict_resolved',
-                data: {
-                  kept: assignments[0].id,
-                  deleted: assignments.slice(1).map(a => a.id),
-                  date: after.date,
-                  timeSlot: after.timeSlot,
-                  residentId: after.residentId
-                },
-                timestamp: admin.firestore.FieldValue.serverTimestamp()
-              });
+      const conflictReasons = [];
+      const dateObj = parseISO(assignment.date);
+      const protectedTimes = institutionSnap.data()?.settings?.protectedTimes || [];
 
-            console.log(`Resolved conflict for assignment ${assignmentId}`);
-          }
-        } catch (error) {
-          console.error('Error resolving conflict:', error);
+      if (assignment.residentId) {
+        const overlappingSnap = await institutionRef.collection('assignments')
+          .where('date', '==', assignment.date)
+          .where('timeSlot', '==', assignment.timeSlot)
+          .where('residentId', '==', assignment.residentId)
+          .get();
+
+        const duplicates = overlappingSnap.docs.filter(doc => doc.id !== assignmentId);
+        if (duplicates.length > 0) {
+          conflictReasons.push('resident_double_booked');
         }
       }
+
+      let residentData = null;
+      if (residentSnap?.exists) {
+        residentData = { id: residentSnap.id, ...residentSnap.data() };
+        if (isResidentOnVacation(residentData, dateObj)) {
+          conflictReasons.push('resident_on_vacation');
+        }
+        if (hasProtectedTime(residentData, dateObj, assignment.timeSlot, protectedTimes)) {
+          conflictReasons.push('protected_time_violation');
+        }
+      }
+
+      if (assignment.rotationId && residentData) {
+        const monthStr = format(dateObj, 'yyyy-MM');
+        const rotation = residentData.rotationAssignments?.find(ra => ra.month === monthStr);
+        if (!rotation || rotation.rotationId !== assignment.rotationId) {
+          conflictReasons.push('rotation_mismatch');
+        }
+      }
+
+      if (assignment.attendingId && attendingSnap?.exists) {
+        const attendingData = attendingSnap.data();
+        const session = (attendingData.clinicSchedule || []).find(cs =>
+          cs.dayOfWeek === dateObj.getDay() && cs.timeSlot === assignment.timeSlot
+        );
+        const capacity = session?.capacity || 2;
+
+        const loadSnap = await institutionRef.collection('assignments')
+          .where('date', '==', assignment.date)
+          .where('timeSlot', '==', assignment.timeSlot)
+          .where('attendingId', '==', assignment.attendingId)
+          .get();
+
+        const load = loadSnap.docs.length;
+        if (load > capacity) {
+          conflictReasons.push('attending_capacity_exceeded');
+        }
+      }
+
+      if (conflictReasons.length > 0) {
+        await conflictDocRef.set({
+          assignmentId,
+          detectedAt: admin.firestore.FieldValue.serverTimestamp(),
+          reasons: conflictReasons,
+          resolved: false
+        }, { merge: true });
+
+        if (assignment.status !== 'conflict') {
+          await change.after.ref.set({
+            status: 'conflict',
+            conflictReasons
+          }, { merge: true });
+        }
+      } else {
+        await conflictDocRef.delete().catch(() => null);
+        if (assignment.status === 'conflict') {
+          await change.after.ref.set({
+            status: 'confirmed',
+            conflictReasons: admin.firestore.FieldValue.delete()
+          }, { merge: true });
+        }
+      }
+    } catch (error) {
+      console.error('Error resolving schedule conflicts:', error);
     }
 
     return null;
   });
 
-// ==================== 10. BACKUP FUNCTIONS ====================
+// ==================== 9. BACKUP & RESTORE ====================
 
 exports.dailyBackup = functions.pubsub
   .schedule('every day 02:00')
   .timeZone('America/New_York')
-  .onRun(async (context) => {
+  .onRun(async () => {
     try {
-      const backupDate = format(new Date(), 'yyyy-MM-dd');
-
-      // Get all institutions
       const institutionsSnap = await db.collection('institutions').get();
+      const now = new Date();
 
       for (const institutionDoc of institutionsSnap.docs) {
         const institutionId = institutionDoc.id;
-        const institution = institutionDoc.data();
+        const institutionRef = db.collection('institutions').doc(institutionId);
+        const backupId = format(now, 'yyyyMMddHHmmss');
+        const backupRef = institutionRef.collection('backups').doc(backupId);
 
-        // Create backup document
-        const backupData = {
-          institutionId,
-          institutionName: institution.name,
-          backupDate,
-          timestamp: admin.firestore.FieldValue.serverTimestamp(),
-          collections: {}
+        const [assignmentsSnap, residentsSnap, attendingsSnap, rulesSnap] = await Promise.all([
+          institutionRef.collection('assignments').get(),
+          institutionRef.collection('residents').get(),
+          institutionRef.collection('attendings').get(),
+          institutionRef.collection('rules').get()
+        ]);
+
+        const summary = {
+          assignments: assignmentsSnap.size,
+          residents: residentsSnap.size,
+          attendings: attendingsSnap.size,
+          rules: rulesSnap.size
         };
 
-        // Backup each collection
-        const collections = ['attendings', 'residents', 'assignments', 'rules'];
-
-        for (const collection of collections) {
-          const collectionSnap = await db.collection('institutions')
-            .doc(institutionId)
-            .collection(collection)
-            .get();
-
-          backupData.collections[collection] = collectionSnap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-        }
-
-        // Store backup
-        await db.collection('backups').add(backupData);
-
-        // Delete old backups (keep last 30 days)
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        const oldBackupsSnap = await db.collection('backups')
-          .where('institutionId', '==', institutionId)
-          .where('timestamp', '<', admin.firestore.Timestamp.fromDate(thirtyDaysAgo))
-          .get();
-
-        const deleteBatch = db.batch();
-        oldBackupsSnap.docs.forEach(doc => {
-          deleteBatch.delete(doc.ref);
+        await backupRef.set({
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdBy: 'system',
+          generatedAt: now.toISOString(),
+          version: 1,
+          summary
         });
 
-        await deleteBatch.commit();
+        const payloadRef = backupRef.collection('payload');
 
-        console.log(`Backup completed for institution ${institutionId}`);
+        const writeChunks = async (name, snapshot) => {
+          const docs = snapshot.docs.map(serializeDocument);
+          if (docs.length === 0) {
+            await payloadRef.doc(`${name}_0000`).set({
+              items: [],
+              createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+            return;
+          }
+
+          const chunks = chunkArray(docs, 100);
+          for (let index = 0; index < chunks.length; index += 1) {
+            const chunkId = `${name}_${String(index).padStart(4, '0')}`;
+            await payloadRef.doc(chunkId).set({
+              items: chunks[index],
+              createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+          }
+        };
+
+        await writeChunks('assignments', assignmentsSnap);
+        await writeChunks('residents', residentsSnap);
+        await writeChunks('attendings', attendingsSnap);
+        await writeChunks('rules', rulesSnap);
+
+        await institutionRef.collection('auditLogs').add({
+          action: 'daily_backup_created',
+          data: { backupId, summary },
+          userId: 'system',
+          timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
       }
-
-      return null;
-
     } catch (error) {
-      console.error('Error in daily backup:', error);
-      return null;
+      console.error('Error creating daily backup:', error);
     }
+
+    return null;
   });
 
 exports.restoreFromBackup = functions.https.onCall(async (data, context) => {
@@ -1287,84 +1999,109 @@ exports.restoreFromBackup = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
   }
 
-  const { institutionId, backupId } = data;
+  const {
+    institutionId,
+    backupId,
+    clearExisting = false,
+    targets
+  } = data || {};
+
+  if (!institutionId || !backupId) {
+    throw new functions.https.HttpsError('invalid-argument', 'institutionId and backupId are required');
+  }
+
+  const targetCollections = Array.isArray(targets) && targets.length > 0
+    ? targets
+    : ['assignments', 'residents', 'attendings', 'rules'];
 
   try {
-    // Verify admin permissions
-    const memberDoc = await db.collection('institutions').doc(institutionId)
-      .collection('members').doc(context.auth.uid).get();
+    const institutionRef = db.collection('institutions').doc(institutionId);
+    const [memberDoc, backupDoc] = await Promise.all([
+      institutionRef.collection('members').doc(context.auth.uid).get(),
+      institutionRef.collection('backups').doc(backupId).get()
+    ]);
 
-    if (!memberDoc.exists || memberDoc.data().role !== 'admin') {
-      throw new functions.https.HttpsError('permission-denied', 'Admin access required');
+    if (!memberDoc.exists) {
+      throw new functions.https.HttpsError('permission-denied', 'Membership required');
     }
 
-    // Get backup
-    const backupDoc = await db.collection('backups').doc(backupId).get();
+    const memberRole = memberDoc.data().role;
+    if (!['admin', 'program_admin'].includes(memberRole)) {
+      throw new functions.https.HttpsError('permission-denied', 'Administrator role required');
+    }
 
     if (!backupDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'Backup not found');
+      throw new functions.https.HttpsError('not-found', 'Backup snapshot not found');
     }
 
-    const backupData = backupDoc.data();
+    const payloadSnap = await institutionRef
+      .collection('backups')
+      .doc(backupId)
+      .collection('payload')
+      .get();
 
-    if (backupData.institutionId !== institutionId) {
-      throw new functions.https.HttpsError('permission-denied', 'Backup belongs to different institution');
+    const collectItems = (name) => {
+      return payloadSnap.docs
+        .filter(doc => doc.id.startsWith(`${name}_`))
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .flatMap(doc => doc.data().items || []);
+    };
+
+    const deleteCollection = async (collectionRef) => {
+      const batchSize = 500;
+      let snapshot = await collectionRef.limit(batchSize).get();
+      while (!snapshot.empty) {
+        const batch = db.batch();
+        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+        snapshot = await collectionRef.limit(batchSize).get();
+      }
+    };
+
+    const restoreCollection = async (collectionName, items) => {
+      if (items.length === 0) {
+        return;
+      }
+
+      const chunks = chunkArray(items, 400);
+      for (const chunk of chunks) {
+        const batch = db.batch();
+        chunk.forEach((item) => {
+          const docRef = institutionRef.collection(collectionName).doc(item.id);
+          batch.set(docRef, deserializeValue(item.data), { merge: true });
+        });
+        await batch.commit();
+      }
+    };
+
+    const restoredCounts = {};
+
+    for (const collectionName of targetCollections) {
+      const items = collectItems(collectionName);
+
+      if (clearExisting) {
+        await deleteCollection(institutionRef.collection(collectionName));
+      }
+
+      await restoreCollection(collectionName, items);
+      restoredCounts[collectionName] = items.length;
     }
 
-    // Clear existing data
-    const collections = ['attendings', 'residents', 'assignments', 'rules'];
-
-    for (const collection of collections) {
-      const collectionSnap = await db.collection('institutions')
-        .doc(institutionId)
-        .collection(collection)
-        .get();
-
-      const deleteBatch = db.batch();
-      collectionSnap.docs.forEach(doc => {
-        deleteBatch.delete(doc.ref);
-      });
-
-      await deleteBatch.commit();
-    }
-
-    // Restore data
-    for (const collection of collections) {
-      const batch = db.batch();
-      const items = backupData.collections[collection] || [];
-
-      items.forEach(item => {
-        const docRef = db.collection('institutions')
-          .doc(institutionId)
-          .collection(collection)
-          .doc(item.id);
-
-        const { id, ...data } = item;
-        batch.set(docRef, data);
-      });
-
-      await batch.commit();
-    }
-
-    // Log the restoration
-    await db.collection('institutions').doc(institutionId)
-      .collection('auditLogs').add({
-        action: 'backup_restored',
-        data: {
-          backupId,
-          backupDate: backupData.backupDate
-        },
-        userId: context.auth.uid,
-        timestamp: admin.firestore.FieldValue.serverTimestamp()
-      });
+    await institutionRef.collection('auditLogs').add({
+      action: 'restore_from_backup',
+      data: { backupId, targets: targetCollections, restoredCounts },
+      userId: context.auth.uid,
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
 
     return {
       success: true,
-      message: `Data restored from backup ${backupData.backupDate}`
+      restoredCounts,
+      backupId,
+      institutionId
     };
-
   } catch (error) {
-    console.error('Error restoring backup:', error);
+    console.error('Error restoring from backup:', error);
     throw new functions.https.HttpsError('internal', error.message);
   }
 });
@@ -1390,16 +2127,16 @@ module.exports = {
   // Analytics
   calculateAnalytics: exports.calculateAnalytics,
 
-  // Integration
+  // External integrations
   syncWithExternalSystem: exports.syncWithExternalSystem,
 
-  // Security
+  // Compliance reporting
   exportComplianceData: exports.exportComplianceData,
 
-  // Conflict resolution
+  // Conflict management
   resolveScheduleConflicts: exports.resolveScheduleConflicts,
 
-  // Backup
+  // Backup and restore
   dailyBackup: exports.dailyBackup,
   restoreFromBackup: exports.restoreFromBackup
 };
