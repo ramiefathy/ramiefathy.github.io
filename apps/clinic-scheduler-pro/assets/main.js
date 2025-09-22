@@ -444,6 +444,43 @@ const ValidationUtils = {
   }
 };
 
+// ==================== Date Utilities ====================
+const normalizeDate = value => {
+  const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    const fallback = new Date();
+    fallback.setHours(0, 0, 0, 0);
+    return fallback;
+  }
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+const getStartOfWeekSunday = value => {
+  const date = normalizeDate(value);
+  const day = date.getDay();
+  if (day === 0) return date;
+  const start = new Date(date.getTime());
+  start.setDate(date.getDate() - day);
+  return normalizeDate(start);
+};
+const getEndOfWeekSaturday = value => {
+  const date = normalizeDate(value);
+  const day = date.getDay();
+  if (day === 6) return date;
+  const end = new Date(date.getTime());
+  end.setDate(date.getDate() + (6 - day));
+  return normalizeDate(end);
+};
+const getStartOfMonthDate = value => {
+  const date = normalizeDate(value);
+  date.setDate(1);
+  return normalizeDate(date);
+};
+const getEndOfMonthDate = value => {
+  const date = normalizeDate(value);
+  return normalizeDate(new Date(date.getFullYear(), date.getMonth() + 1, 0));
+};
+
 // ==================== Conflict Detection Utilities ====================
 const ConflictDetection = {
   // Check if a person is already assigned at the same date/time
@@ -2724,11 +2761,8 @@ const ScheduleCalendar = ({
     return localStorage.getItem('scheduleViewMode') || 'month';
   });
   const [currentDate, setCurrentDate] = useState(() => {
-    const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
-    const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
-    return viewMode === 'week' ? startOfWeekFunc(new Date(), {
-      weekStartsOn: 0
-    }) : startOfMonthFunc(new Date());
+    const today = normalizeDate(new Date());
+    return viewMode === 'week' ? getStartOfWeekSunday(today) : getStartOfMonthDate(today);
   });
   const [assignments, setAssignments] = useState([]);
   const [attendings, setAttendings] = useState([]);
@@ -2875,24 +2909,12 @@ const ScheduleCalendar = ({
     };
   }, [firebaseService.currentInstitution, institution?.settings?.protectedTimes]);
   const weekDays = useMemo(() => {
+    const start = getStartOfWeekSunday(currentDate);
     const days = [];
-    const addDaysFunc = window.dateFns ? window.dateFns.addDays : (d, n) => new Date(d.getTime() + n * 86400000);
-    const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => {
-      // Manual implementation to start week on Sunday
-      const date = new Date(d);
-      const day = date.getDay();
-      const diff = date.getDate() - day;
-      return new Date(date.setDate(diff));
-    };
-
-    // Always get the Sunday of the current week
-    const weekStart = window.dateFns ? window.dateFns.startOfWeek(currentDate, {
-      weekStartsOn: 0
-    }) : startOfWeekFunc(currentDate);
-
-    // Show full week (7 days) starting from Sunday
     for (let i = 0; i < 7; i++) {
-      days.push(addDaysFunc(weekStart, i));
+      const day = new Date(start.getTime());
+      day.setDate(day.getDate() + i);
+      days.push(day);
     }
     return days;
   }, [currentDate, viewMode]);
@@ -2906,42 +2928,17 @@ const ScheduleCalendar = ({
   };
   const monthDays = useMemo(() => {
     if (viewMode !== 'month') return [];
+    const monthStart = getStartOfMonthDate(currentDate);
+    const monthEnd = getEndOfMonthDate(currentDate);
+    const calendarStart = getStartOfWeekSunday(monthStart);
+    const calendarEnd = getEndOfWeekSaturday(monthEnd);
     const days = [];
-    const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
-    const endOfMonthFunc = window.dateFns ? window.dateFns.endOfMonth : d => new Date(d.getFullYear(), d.getMonth() + 1, 0);
-    const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => {
-      const date = new Date(d);
-      const day = date.getDay();
-      const diff = date.getDate() - day;
-      return new Date(date.setDate(diff));
-    };
-    const endOfWeekFunc = window.dateFns ? window.dateFns.endOfWeek : d => {
-      const date = new Date(d);
-      const day = date.getDay();
-      const diff = date.getDate() + (6 - day);
-      return new Date(date.setDate(diff));
-    };
-    const eachDayOfIntervalFunc = window.dateFns ? window.dateFns.eachDayOfInterval : interval => {
-      const days = [];
-      const current = new Date(interval.start);
-      while (current <= interval.end) {
-        days.push(new Date(current));
-        current.setDate(current.getDate() + 1);
-      }
-      return days;
-    };
-    const monthStart = startOfMonthFunc(currentDate);
-    const monthEnd = endOfMonthFunc(currentDate);
-    const calendarStart = window.dateFns ? window.dateFns.startOfWeek(monthStart, {
-      weekStartsOn: 0
-    }) : startOfWeekFunc(monthStart);
-    const calendarEnd = window.dateFns ? window.dateFns.endOfWeek(monthEnd, {
-      weekStartsOn: 0
-    }) : endOfWeekFunc(monthEnd);
-    return eachDayOfIntervalFunc({
-      start: calendarStart,
-      end: calendarEnd
-    });
+    const cursor = new Date(calendarStart.getTime());
+    while (cursor <= calendarEnd) {
+      days.push(new Date(cursor.getTime()));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return days;
   }, [currentDate, viewMode]);
   const timeSlots = ['AM', 'PM'];
   const getAssignmentsForSlot = (date, timeSlot) => {
@@ -3016,27 +3013,25 @@ const ScheduleCalendar = ({
   };
   const navigate = direction => {
     if (viewMode === 'week') {
-      const addWeeksFunc = window.dateFns ? window.dateFns.addWeeks : (d, n) => new Date(d.getTime() + n * 7 * 86400000);
-      setCurrentDate(prev => addWeeksFunc(prev, direction));
+      setCurrentDate(prev => {
+        const base = normalizeDate(prev);
+        base.setDate(base.getDate() + direction * 7);
+        return getStartOfWeekSunday(base);
+      });
     } else {
-      const addMonthsFunc = window.dateFns ? window.dateFns.addMonths : (d, n) => {
-        const newDate = new Date(d);
-        newDate.setMonth(newDate.getMonth() + n);
-        return newDate;
-      };
-      setCurrentDate(prev => addMonthsFunc(prev, direction));
+      setCurrentDate(prev => {
+        const base = getStartOfMonthDate(prev);
+        base.setMonth(base.getMonth() + direction);
+        return getStartOfMonthDate(base);
+      });
     }
   };
   const switchViewMode = mode => {
     setViewMode(mode);
     if (mode === 'week') {
-      const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
-      setCurrentDate(startOfWeekFunc(currentDate, {
-        weekStartsOn: 0
-      }));
+      setCurrentDate(prev => getStartOfWeekSunday(prev));
     } else {
-      const startOfMonthFunc = window.dateFns ? window.dateFns.startOfMonth : d => new Date(d.getFullYear(), d.getMonth(), 1);
-      setCurrentDate(startOfMonthFunc(currentDate));
+      setCurrentDate(prev => getStartOfMonthDate(prev));
     }
   };
   const getAssignmentCount = date => {
@@ -3048,7 +3043,8 @@ const ScheduleCalendar = ({
     return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
   };
   const isCurrentMonth = date => {
-    return date.getMonth() === currentDate.getMonth();
+    const anchor = getStartOfMonthDate(currentDate);
+    return date.getMonth() === anchor.getMonth() && date.getFullYear() === anchor.getFullYear();
   };
 
   // Filter assignments based on selected person
@@ -3315,10 +3311,7 @@ const ScheduleCalendar = ({
       onClick: () => {
         if (isCurrentMonth(day)) {
           // Switch to week view for this day
-          const startOfWeekFunc = window.dateFns ? window.dateFns.startOfWeek : d => d;
-          setCurrentDate(startOfWeekFunc(day, {
-            weekStartsOn: 0
-          }));
+          setCurrentDate(getStartOfWeekSunday(day));
           setViewMode('week');
         }
       }
