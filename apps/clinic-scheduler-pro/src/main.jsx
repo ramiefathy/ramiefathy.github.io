@@ -2782,10 +2782,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     const [viewMode, setViewMode] = useState(() => {
         return localStorage.getItem('scheduleViewMode') || 'month';
     });
-    const [currentDate, setCurrentDate] = useState(() => {
-        const today = normalizeDate(new Date());
-        return viewMode === 'week' ? getStartOfWeekSunday(today) : getStartOfMonthDate(today);
-    });
+    const [activeDate, setActiveDate] = useState(() => normalizeDate(new Date()));
     const [assignments, setAssignments] = useState([]);
     const [attendings, setAttendings] = useState([]);
     const [residents, setResidents] = useState([]);
@@ -2938,16 +2935,19 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
         };
     }, [firebaseService.currentInstitution, institution?.settings?.protectedTimes]);
 
+    const weekStart = useMemo(() => getStartOfWeekSunday(activeDate), [activeDate]);
+    const monthStart = useMemo(() => getStartOfMonthDate(activeDate), [activeDate]);
+    const monthEnd = useMemo(() => getEndOfMonthDate(activeDate), [activeDate]);
+
     const weekDays = useMemo(() => {
-        const start = getStartOfWeekSunday(currentDate);
         const days = [];
         for (let i = 0; i < 7; i++) {
-            const day = new Date(start.getTime());
+            const day = new Date(weekStart.getTime());
             day.setDate(day.getDate() + i);
             days.push(day);
         }
         return days;
-    }, [currentDate, viewMode]);
+    }, [weekStart]);
 
     const getDayName = (date) => {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -2962,8 +2962,6 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     const monthDays = useMemo(() => {
         if (viewMode !== 'month') return [];
 
-        const monthStart = getStartOfMonthDate(currentDate);
-        const monthEnd = getEndOfMonthDate(currentDate);
         const calendarStart = getStartOfWeekSunday(monthStart);
         const calendarEnd = getEndOfWeekSaturday(monthEnd);
 
@@ -2975,7 +2973,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
         }
 
         return days;
-    }, [currentDate, viewMode]);
+    }, [monthStart, monthEnd, viewMode]);
 
     const timeSlots = ['AM', 'PM'];
 
@@ -3056,28 +3054,23 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     };
 
     const navigate = (direction) => {
-        if (viewMode === 'week') {
-            setCurrentDate(prev => {
-                const base = normalizeDate(prev);
-                base.setDate(base.getDate() + (direction * 7));
-                return getStartOfWeekSunday(base);
-            });
-        } else {
-            setCurrentDate(prev => {
-                const base = getStartOfMonthDate(prev);
-                base.setMonth(base.getMonth() + direction);
-                return getStartOfMonthDate(base);
-            });
-        }
+        setActiveDate(prev => {
+            const next = new Date(prev.getTime());
+            if (viewMode === 'week') {
+                next.setDate(next.getDate() + direction * 7);
+            } else {
+                const currentDay = next.getDate();
+                next.setDate(1);
+                next.setMonth(next.getMonth() + direction);
+                const daysInMonth = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+                next.setDate(Math.min(currentDay, daysInMonth));
+            }
+            return normalizeDate(next);
+        });
     };
 
     const switchViewMode = (mode) => {
         setViewMode(mode);
-        if (mode === 'week') {
-            setCurrentDate(prev => getStartOfWeekSunday(prev));
-        } else {
-            setCurrentDate(prev => getStartOfMonthDate(prev));
-        }
     };
 
     const getAssignmentCount = (date) => {
@@ -3093,8 +3086,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     };
 
     const isCurrentMonth = (date) => {
-        const anchor = getStartOfMonthDate(currentDate);
-        return date.getMonth() === anchor.getMonth() && date.getFullYear() === anchor.getFullYear();
+        return date.getMonth() === monthStart.getMonth() && date.getFullYear() === monthStart.getFullYear();
     };
 
     // Filter assignments based on selected person
@@ -3267,8 +3259,8 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                     </Button>
                     <span className="font-medium text-gray-700 min-w-[150px] text-center">
                         {viewMode === 'month'
-                            ? (window.dateFns ? window.dateFns.format(currentDate, 'MMMM yyyy') : `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`)
-                            : (window.dateFns ? window.dateFns.format(currentDate, 'MMM d, yyyy') : currentDate.toLocaleDateString())
+                            ? (window.dateFns ? window.dateFns.format(monthStart, 'MMMM yyyy') : `${monthStart.toLocaleString('default', { month: 'long' })} ${monthStart.getFullYear()}`)
+                            : (window.dateFns ? window.dateFns.format(activeDate, 'MMM d, yyyy') : activeDate.toLocaleDateString())
                         }
                     </span>
                     <Button variant="secondary" size="sm" onClick={() => navigate(1)}>
@@ -3278,11 +3270,11 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                         variant="secondary"
                         onClick={() => {
                             const startDate = window.dateFns
-                                ? window.dateFns.format(window.dateFns.startOfMonth(currentDate), 'yyyy-MM-dd')
-                                : currentDate.toISOString().split('T')[0];
+                                ? window.dateFns.format(monthStart, 'yyyy-MM-dd')
+                                : monthStart.toISOString().split('T')[0];
                             const endDate = window.dateFns
-                                ? window.dateFns.format(window.dateFns.endOfMonth(currentDate), 'yyyy-MM-dd')
-                                : new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString().split('T')[0];
+                                ? window.dateFns.format(monthEnd, 'yyyy-MM-dd')
+                                : monthEnd.toISOString().split('T')[0];
 
                             const csv = ExportUtils.assignmentsToCSV(assignments, attendings, residents, startDate, endDate);
                             const filename = ExportUtils.generateFilename('schedule', 'csv');
@@ -3312,13 +3304,14 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                             const dayName = getDayName(day);
                             const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6;
                             const isTodayDay = isToday(day);
+                            const isActiveDay = day.getTime() === activeDate.getTime();
 
                             return (
                                 <div
                                     key={day}
                                     className={`p-2 font-medium text-center ${
                                         isWeekendDay ? 'bg-gray-100 text-gray-500' : 'bg-gray-50'
-                                    } ${isTodayDay ? 'bg-primary-50 text-primary-700' : isWeekendDay ? 'text-gray-500' : 'text-gray-700'}`}
+                                    } ${isTodayDay ? 'bg-primary-50 text-primary-700' : isWeekendDay ? 'text-gray-500' : 'text-gray-700'} ${isActiveDay ? 'ring-2 ring-primary-400/70' : ''}`}
                                 >
                                     <div className="text-sm font-semibold">{dayName}</div>
                                     <div className="text-xs">
@@ -3338,11 +3331,12 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                                     const slotAssignments = getFilteredAssignmentsForSlot(day, timeSlot);
                                     const isWeekendDay = day.getDay() === 0 || day.getDay() === 6;
                                     const isTodaySlot = isToday(day);
+                                    const isActiveDay = day.getTime() === activeDate.getTime();
 
                                     return (
                                         <div
                                             key={`${day}-${timeSlot}`}
-                                            className={`time-slot ${isWeekendDay ? 'weekend-slot' : ''} ${isTodaySlot ? 'today-slot' : ''}`}
+                                            className={`time-slot ${isWeekendDay ? 'weekend-slot' : ''} ${isTodaySlot ? 'today-slot' : ''} ${isActiveDay ? 'border-2 border-primary-400/60' : ''}`}
                                             onDragOver={handleDragOver}
                                             onDrop={(e) => handleDrop(e, day, timeSlot)}
                                             onClick={() => handleQuickAdd(day, timeSlot)}
@@ -3470,15 +3464,16 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
 
                             const dayOfWeek = day.getDay();
                             const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6;
+                            const isActiveDay = day.getTime() === activeDate.getTime();
 
                             return (
                                 <div
                                     key={dateStr}
-                                    className={`month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''} ${isWeekendDay ? 'weekend-slot' : ''}`}
+                                    className={`month-day-cell ${!isCurrentMonth(day) ? 'opacity-50' : ''} ${isToday(day) ? 'ring-2 ring-primary-500' : ''} ${isWeekendDay ? 'weekend-slot' : ''} ${isActiveDay ? 'border-primary-400 ring-2 ring-primary-400/60' : ''}`}
                                     onClick={() => {
                                         if (isCurrentMonth(day)) {
                                             // Switch to week view for this day
-                                            setCurrentDate(getStartOfWeekSunday(day));
+                                            setActiveDate(normalizeDate(day));
                                             setViewMode('week');
                                         }
                                     }}
