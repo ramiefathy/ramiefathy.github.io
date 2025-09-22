@@ -209,6 +209,327 @@ const ValidationUtils = {
     }
 };
 
+// ==================== Conflict Detection Utilities ====================
+const ConflictDetection = {
+    // Check if a person is already assigned at the same date/time
+    checkDoubleBooking: (assignments, newAssignment, excludeId = null) => {
+        const conflicts = [];
+
+        for (const assignment of assignments) {
+            // Skip if this is the assignment being edited
+            if (excludeId && assignment.id === excludeId) continue;
+
+            // Check if same person, same date, same time
+            if (assignment.date === newAssignment.date &&
+                assignment.timeSlot === newAssignment.timeSlot) {
+
+                if (assignment.residentId === newAssignment.residentId && newAssignment.residentId) {
+                    conflicts.push({
+                        type: 'double-booking',
+                        severity: 'error',
+                        message: `Resident is already assigned at ${newAssignment.timeSlot} on this date`,
+                        conflictingAssignment: assignment
+                    });
+                }
+
+                if (assignment.attendingId === newAssignment.attendingId && newAssignment.attendingId) {
+                    conflicts.push({
+                        type: 'double-booking',
+                        severity: 'error',
+                        message: `Attending is already assigned at ${newAssignment.timeSlot} on this date`,
+                        conflictingAssignment: assignment
+                    });
+                }
+            }
+        }
+
+        return conflicts;
+    },
+
+    // Check if person is on vacation
+    checkVacationConflict: (person, date) => {
+        if (!person || !person.vacationWeeks) return [];
+
+        const assignmentDate = new Date(date);
+        const conflicts = [];
+
+        for (const vacationWeek of person.vacationWeeks) {
+            const vacationStart = new Date(vacationWeek);
+            const vacationEnd = new Date(vacationStart);
+            vacationEnd.setDate(vacationEnd.getDate() + 6);
+
+            if (assignmentDate >= vacationStart && assignmentDate <= vacationEnd) {
+                conflicts.push({
+                    type: 'vacation',
+                    severity: 'warning',
+                    message: `${person.name} is on vacation this week`,
+                    vacationDates: { start: vacationStart, end: vacationEnd }
+                });
+            }
+        }
+
+        return conflicts;
+    },
+
+    // Check continuity clinic conflicts
+    checkContinuityConflict: (resident, date, timeSlot) => {
+        if (!resident || !resident.continuityDay) return [];
+
+        const assignmentDate = new Date(date);
+        const dayOfWeek = assignmentDate.getDay();
+        const dayMap = {
+            'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
+            'thursday': 4, 'friday': 5, 'saturday': 6
+        };
+
+        const continuityDayNum = dayMap[resident.continuityDay.toLowerCase()];
+
+        if (dayOfWeek === continuityDayNum && timeSlot === resident.continuityTime) {
+            return [{
+                type: 'continuity-clinic',
+                severity: 'info',
+                message: `This is ${resident.name}'s continuity clinic time`,
+                isExpected: true
+            }];
+        }
+
+        return [];
+    },
+
+    // Check maximum assignments per day
+    checkMaxAssignments: (assignments, person, date, maxPerDay = 2) => {
+        const dayAssignments = assignments.filter(a => {
+            if (a.date !== date) return false;
+            if (person.role === 'resident' && a.residentId === person.id) return true;
+            if (person.role === 'attending' && a.attendingId === person.id) return true;
+            return false;
+        });
+
+        if (dayAssignments.length >= maxPerDay) {
+            return [{
+                type: 'max-assignments',
+                severity: 'warning',
+                message: `${person.name} already has ${dayAssignments.length} assignments on this date (max: ${maxPerDay})`,
+                currentCount: dayAssignments.length,
+                maximum: maxPerDay
+            }];
+        }
+
+        return [];
+    },
+
+    // Check protected time conflicts
+    checkProtectedTime: (protectedTimes, date, timeSlot, residentPGY) => {
+        if (!protectedTimes || !protectedTimes.length) return [];
+
+        const assignmentDate = new Date(date);
+        const dayOfWeek = assignmentDate.getDay();
+        const conflicts = [];
+
+        for (const pt of protectedTimes) {
+            if (pt.dayOfWeek === dayOfWeek && pt.timeSlot === timeSlot) {
+                // Check if this protected time applies to this resident
+                if (pt.appliesTo === 'all' ||
+                    (pt.appliesTo === residentPGY) ||
+                    (pt.appliesTo === 'junior' && residentPGY && parseInt(residentPGY.replace('PGY', '')) <= 2) ||
+                    (pt.appliesTo === 'senior' && residentPGY && parseInt(residentPGY.replace('PGY', '')) >= 3)) {
+
+                    conflicts.push({
+                        type: 'protected-time',
+                        severity: pt.mandatory ? 'error' : 'warning',
+                        message: `${pt.name} is scheduled at this time${pt.mandatory ? ' (mandatory)' : ''}`,
+                        protectedTime: pt
+                    });
+                }
+            }
+        }
+
+        return conflicts;
+    },
+
+    // Main conflict checking function
+    checkAllConflicts: ({
+        assignments,
+        newAssignment,
+        attendings,
+        residents,
+        institution,
+        excludeId = null
+    }) => {
+        const allConflicts = [];
+
+        // Check double booking
+        const doubleBooking = ConflictDetection.checkDoubleBooking(assignments, newAssignment, excludeId);
+        allConflicts.push(...doubleBooking);
+
+        // Check vacation conflicts
+        if (newAssignment.residentId) {
+            const resident = residents.find(r => r.id === newAssignment.residentId);
+            if (resident) {
+                const vacationConflicts = ConflictDetection.checkVacationConflict(resident, newAssignment.date);
+                allConflicts.push(...vacationConflicts);
+
+                // Check continuity clinic
+                const continuityConflicts = ConflictDetection.checkContinuityConflict(
+                    resident,
+                    newAssignment.date,
+                    newAssignment.timeSlot
+                );
+                allConflicts.push(...continuityConflicts);
+
+                // Check max assignments
+                const maxConflicts = ConflictDetection.checkMaxAssignments(
+                    assignments,
+                    { ...resident, role: 'resident' },
+                    newAssignment.date,
+                    institution?.settings?.maxAssignmentsPerDay || 2
+                );
+                allConflicts.push(...maxConflicts);
+
+                // Check protected time
+                const protectedConflicts = ConflictDetection.checkProtectedTime(
+                    institution?.settings?.protectedTimes,
+                    newAssignment.date,
+                    newAssignment.timeSlot,
+                    resident.pgyLevel
+                );
+                allConflicts.push(...protectedConflicts);
+            }
+        }
+
+        if (newAssignment.attendingId) {
+            const attending = attendings.find(a => a.id === newAssignment.attendingId);
+            if (attending) {
+                const vacationConflicts = ConflictDetection.checkVacationConflict(attending, newAssignment.date);
+                allConflicts.push(...vacationConflicts);
+
+                // Check max assignments for attending
+                const maxConflicts = ConflictDetection.checkMaxAssignments(
+                    assignments,
+                    { ...attending, role: 'attending' },
+                    newAssignment.date,
+                    institution?.settings?.maxAttendingAssignmentsPerDay || 4
+                );
+                allConflicts.push(...maxConflicts);
+            }
+        }
+
+        return {
+            hasConflicts: allConflicts.length > 0,
+            hasErrors: allConflicts.some(c => c.severity === 'error'),
+            hasWarnings: allConflicts.some(c => c.severity === 'warning'),
+            conflicts: allConflicts,
+            canProceed: !allConflicts.some(c => c.severity === 'error'),
+            summary: allConflicts.length > 0
+                ? `Found ${allConflicts.filter(c => c.severity === 'error').length} errors, ${allConflicts.filter(c => c.severity === 'warning').length} warnings`
+                : 'No conflicts detected'
+        };
+    }
+};
+
+// ==================== Export Utilities ====================
+const ExportUtils = {
+    // Convert assignments to CSV format
+    assignmentsToCSV: (assignments, attendings, residents, startDate, endDate) => {
+        const headers = ['Date', 'Day', 'Time', 'Resident', 'Attending', 'Site', 'Rotation', 'Notes'];
+        const rows = [headers];
+
+        // Filter and sort assignments
+        const filtered = assignments
+            .filter(a => {
+                if (startDate && a.date < startDate) return false;
+                if (endDate && a.date > endDate) return false;
+                return true;
+            })
+            .sort((a, b) => {
+                const dateCompare = a.date.localeCompare(b.date);
+                if (dateCompare !== 0) return dateCompare;
+                return a.timeSlot === 'AM' ? -1 : 1;
+            });
+
+        // Convert to rows
+        for (const assignment of filtered) {
+            const resident = residents.find(r => r.id === assignment.residentId);
+            const attending = attendings.find(a => a.id === assignment.attendingId);
+            const assignmentDate = new Date(assignment.date);
+            const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][assignmentDate.getDay()];
+
+            rows.push([
+                assignment.date,
+                dayName,
+                assignment.timeSlot,
+                resident?.name || '',
+                attending?.name || '',
+                assignment.siteId || '',
+                assignment.rotationId || '',
+                assignment.notes || ''
+            ]);
+        }
+
+        // Convert to CSV string
+        return rows.map(row =>
+            row.map(cell => {
+                // Escape quotes and wrap in quotes if contains comma
+                const escaped = String(cell).replace(/"/g, '""');
+                return escaped.includes(',') ? `"${escaped}"` : escaped;
+            }).join(',')
+        ).join('\n');
+    },
+
+    // Convert attendings list to CSV
+    attendingsToCSV: (attendings) => {
+        const headers = ['Name', 'Email', 'Phone', 'Sites', 'Rotations', 'Max Weekly'];
+        const rows = [headers];
+
+        for (const attending of attendings) {
+            rows.push([
+                attending.name,
+                attending.email || '',
+                attending.phone || '',
+                (attending.sites || []).join('; '),
+                (attending.rotations || []).join('; '),
+                attending.maxWeeklyAssignments || ''
+            ]);
+        }
+
+        return rows.map(row =>
+            row.map(cell => {
+                const escaped = String(cell).replace(/"/g, '""');
+                return escaped.includes(',') ? `"${escaped}"` : escaped;
+            }).join(',')
+        ).join('\n');
+    },
+
+    // Export to JSON for backup
+    exportToJSON: (data) => {
+        return JSON.stringify({
+            version: '1.0',
+            exportDate: new Date().toISOString(),
+            data: data
+        }, null, 2);
+    },
+
+    // Download file utility
+    downloadFile: (content, filename, mimeType = 'text/csv') => {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    },
+
+    // Generate filename with timestamp
+    generateFilename: (prefix, extension) => {
+        const now = new Date();
+        const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        return `${prefix}_${timestamp}.${extension}`;
+    }
+};
+
 // Wait for Firebase to be available
 const waitForFirebase = () => {
     return new Promise((resolve) => {
@@ -2099,6 +2420,25 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                     <Button variant="secondary" size="sm" onClick={() => navigate(1)}>
                         <Icon name="chevron-right" size={16} />
                     </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => {
+                            const startDate = window.dateFns
+                                ? window.dateFns.format(window.dateFns.startOfMonth(currentDate), 'yyyy-MM-dd')
+                                : currentDate.toISOString().split('T')[0];
+                            const endDate = window.dateFns
+                                ? window.dateFns.format(window.dateFns.endOfMonth(currentDate), 'yyyy-MM-dd')
+                                : new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString().split('T')[0];
+
+                            const csv = ExportUtils.assignmentsToCSV(assignments, attendings, residents, startDate, endDate);
+                            const filename = ExportUtils.generateFilename('schedule', 'csv');
+                            ExportUtils.downloadFile(csv, filename);
+                            toast.success('Schedule exported successfully');
+                        }}
+                    >
+                        <Icon name="download" size={16} className="mr-2" />
+                        Export
+                    </Button>
                     <Button onClick={() => setShowAutoScheduler(true)}>
                         <Icon name="sparkles" size={16} className="mr-2" />
                         Auto-Schedule
@@ -2366,7 +2706,40 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                         timeSlot={selectedCell.timeSlot}
                         residents={residents}
                         attendings={attendings}
+                        assignments={assignments}
+                        institution={institution}
                         onSave={async (data) => {
+                            // Check for conflicts
+                            const conflictCheck = ConflictDetection.checkAllConflicts({
+                                assignments,
+                                newAssignment: data,
+                                attendings,
+                                residents,
+                                institution
+                            });
+
+                            if (conflictCheck.hasErrors) {
+                                // Show conflicts and ask for confirmation
+                                const errorMessages = conflictCheck.conflicts
+                                    .filter(c => c.severity === 'error')
+                                    .map(c => c.message)
+                                    .join('\n');
+
+                                if (!confirm(`Conflicts detected:\n\n${errorMessages}\n\nDo you want to override and continue?`)) {
+                                    return;
+                                }
+                            } else if (conflictCheck.hasWarnings) {
+                                // Show warnings but allow to proceed
+                                const warningMessages = conflictCheck.conflicts
+                                    .filter(c => c.severity === 'warning')
+                                    .map(c => c.message)
+                                    .join('\n');
+
+                                if (!confirm(`Warnings:\n\n${warningMessages}\n\nDo you want to continue?`)) {
+                                    return;
+                                }
+                            }
+
                             await firebaseService.addAssignment(data);
                             toast.success('Assignment added');
                             setSelectedCell(null);
@@ -2393,8 +2766,9 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
 };
 
 // Assignment Form Component
-const AssignmentForm = ({ date, timeSlot, residents, attendings, onSave, onCancel }) => {
-    const { institution } = useApp();
+const AssignmentForm = ({ date, timeSlot, residents, attendings, assignments = [], institution: institutionProp, onSave, onCancel }) => {
+    const { institution: contextInstitution } = useApp();
+    const institution = institutionProp || contextInstitution;
     const sites = institution?.settings?.sites || [];
     const rotations = institution?.settings?.rotations || [];
 
@@ -2407,6 +2781,7 @@ const AssignmentForm = ({ date, timeSlot, residents, attendings, onSave, onCance
         siteId: '',
         rotationId: ''
     });
+    const [conflicts, setConflicts] = useState([]);
 
     // Get resident's current rotation for the month
     const getResidentRotation = (residentId) => {
@@ -2444,6 +2819,24 @@ const AssignmentForm = ({ date, timeSlot, residents, attendings, onSave, onCance
     };
 
     const availableAttendings = getAvailableAttendings();
+
+    // Check for conflicts when form data changes
+    useEffect(() => {
+        if (!formData.residentId && !formData.attendingId) {
+            setConflicts([]);
+            return;
+        }
+
+        const conflictCheck = ConflictDetection.checkAllConflicts({
+            assignments,
+            newAssignment: formData,
+            attendings,
+            residents,
+            institution
+        });
+
+        setConflicts(conflictCheck.conflicts);
+    }, [formData.residentId, formData.attendingId, formData.date, formData.timeSlot]);
 
     return (
         <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="space-y-4">
@@ -2513,6 +2906,47 @@ const AssignmentForm = ({ date, timeSlot, residents, attendings, onSave, onCance
                     <option value="continuity">Continuity</option>
                 </select>
             </div>
+
+            {/* Conflict Warnings */}
+            {conflicts.length > 0 && (
+                <div className="space-y-2">
+                    {conflicts.map((conflict, index) => (
+                        <div
+                            key={index}
+                            className={`p-3 rounded-lg border-l-4 ${
+                                conflict.severity === 'error'
+                                    ? 'bg-red-50 border-red-500 text-red-800'
+                                    : conflict.severity === 'warning'
+                                    ? 'bg-yellow-50 border-yellow-500 text-yellow-800'
+                                    : 'bg-blue-50 border-blue-500 text-blue-800'
+                            }`}
+                        >
+                            <div className="flex items-start gap-2">
+                                <Icon
+                                    name={
+                                        conflict.severity === 'error'
+                                            ? 'alert-circle'
+                                            : conflict.severity === 'warning'
+                                            ? 'alert-triangle'
+                                            : 'info'
+                                    }
+                                    size={16}
+                                    className="mt-0.5 flex-shrink-0"
+                                />
+                                <div>
+                                    <p className="text-sm font-medium">{conflict.message}</p>
+                                    {conflict.type === 'vacation' && conflict.vacationDates && (
+                                        <p className="text-xs mt-1 opacity-75">
+                                            Vacation: {conflict.vacationDates.start.toLocaleDateString()} - {conflict.vacationDates.end.toLocaleDateString()}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             <div className="flex justify-end gap-3">
                 <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
                 <Button type="submit">Save</Button>
@@ -2567,10 +3001,24 @@ const AttendingsList = ({ navigateToSchedule }) => {
                     <h2 className="text-2xl font-bold text-gray-900">Attendings</h2>
                     <p className="text-gray-600">Manage attending physicians</p>
                 </div>
-                <Button onClick={() => setEditingAttending({})}>
-                    <Icon name="plus" size={16} className="mr-2" />
-                    Add Attending
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="secondary"
+                        onClick={() => {
+                            const csv = ExportUtils.attendingsToCSV(attendings);
+                            const filename = ExportUtils.generateFilename('attendings', 'csv');
+                            ExportUtils.downloadFile(csv, filename);
+                            toast.success('Attendings exported successfully');
+                        }}
+                    >
+                        <Icon name="download" size={16} className="mr-2" />
+                        Export
+                    </Button>
+                    <Button onClick={() => setEditingAttending({})}>
+                        <Icon name="plus" size={16} className="mr-2" />
+                        Add Attending
+                    </Button>
+                </div>
             </div>
 
             <Card>
