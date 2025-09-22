@@ -3373,7 +3373,8 @@ const AutoScheduler = ({
 const App = () => {
   const {
     user,
-    loading
+    loading,
+    firebaseService
   } = useApp();
   const [activeView, setActiveView] = useState('dashboard');
   const [scheduleFilterData, setScheduleFilterData] = useState(null);
@@ -3424,9 +3425,6 @@ const App = () => {
     icon: 'settings'
   }];
   const handleSignOut = async () => {
-    const {
-      firebaseService
-    } = useApp();
     await firebaseService.signOut();
     toast.success('Signed out successfully');
   };
