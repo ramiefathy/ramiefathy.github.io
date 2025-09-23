@@ -344,7 +344,8 @@ export const monitoringEntries = [
     cautions: 'Increased risk of herpes-zoster reactivation; consider antiviral prophylaxis in high-risk patients.',
     baselineTasks: [
       task('tb', 'TB screening', true),
-      task('hbv', 'Hepatitis B/C serologies', true),
+      task('hbv', 'Hepatitis B surface antigen/core antibodies', true),
+      task('hcv', 'Hepatitis C antibody', true),
       task('zoster', 'Verify zoster vaccine status', true),
       task('cbc', 'CBC and CMP baseline (prudent)'),
       task('vaccines', 'Update routine vaccines; avoid live vaccines after starting', true)
@@ -380,7 +381,8 @@ export const monitoringEntries = [
       task('lfts', 'AST/ALT and bilirubin', true),
       task('lipids', 'Fasting lipid panel', true),
       task('tb', 'TB screening', true),
-      task('hbv', 'Hepatitis B/C serologies', true),
+      task('hbv', 'Hepatitis B surface antigen/core antibodies', true),
+      task('hcv', 'Hepatitis C antibody', true),
       task('pregnancy', 'Pregnancy test if applicable', true),
       task('smoking', 'Document smoking history and CV risk factors', true)
     ],
@@ -422,7 +424,8 @@ export const monitoringEntries = [
       task('lfts', 'AST/ALT and bilirubin', true),
       task('lipids', 'Fasting lipid panel', true),
       task('tb', 'TB screening', true),
-      task('hbv', 'Hepatitis B/C screen', true),
+      task('hbv', 'Hepatitis B surface antigen or core antibodies', true),
+      task('hcv', 'Hepatitis C antibody', true),
       task('pregnancy', 'Pregnancy test if applicable', true),
       task('smoking', 'Document smoking status', true)
     ],
@@ -460,7 +463,8 @@ export const monitoringEntries = [
       task('lfts', 'AST/ALT and bilirubin', true),
       task('lipids', 'Fasting lipid panel', true),
       task('tb', 'TB screening', true),
-      task('hbv', 'Hepatitis B/C screen', true),
+      task('hbv', 'Hepatitis B surface antigen or core antibodies', true),
+      task('hcv', 'Hepatitis C antibody', true),
       task('pregnancy', 'Pregnancy test if applicable'),
       task('smoking', 'Assess smoking and CV risk', true)
     ],
@@ -495,7 +499,8 @@ export const monitoringEntries = [
       task('cbc', 'CBC with differential (ALC ≥500/mm³, platelets ≥100k required)', true),
       task('lfts', 'AST/ALT baseline', true),
       task('tb', 'TB screening', true),
-      task('hbv', 'Hepatitis B/C screen', true),
+      task('hbv', 'Hepatitis B surface antigen or core antibodies', true),
+      task('hcv', 'Hepatitis C antibody', true),
       task('vaccines', 'Update immunizations; avoid live vaccines during therapy', true),
       task('pregnancy', 'Pregnancy test if applicable', true)
     ],
@@ -527,7 +532,8 @@ export const monitoringEntries = [
     cautions: 'Risk of elevated triglycerides and rare rhabdomyolysis; counsel on infection symptoms.',
     baselineTasks: [
       task('tb', 'TB screening', true),
-      task('hbv', 'Hepatitis B/C screen', true),
+      task('hbv', 'Hepatitis B surface antigen or core antibodies', true),
+      task('hcv', 'Hepatitis C antibody', true),
       task('vaccines', 'Update immunizations; avoid live vaccines during therapy', true),
       task('triglycerides', 'Fasting triglycerides and lipid panel', true),
       task('lfts', 'Liver enzymes', true),
@@ -592,7 +598,9 @@ export const monitoringEntries = [
     baselineTasks: [
       task('cbc', 'CBC with differential', true),
       task('cmp', 'CMP with creatinine and albumin', true),
-      task('hbv', 'Hepatitis B/C and HIV screen', true),
+      task('hbv', 'Hepatitis B surface antigen/core antibodies', true),
+      task('hcv', 'Hepatitis C antibody', true),
+      task('hiv', 'HIV screen', true),
       task('chest-xray', 'Chest X-ray or pulmonary evaluation', true),
       task('tb', 'TB screening / varicella immunity as indicated', true),
       task('pregnancy', 'Pregnancy test (negative required)', true),
@@ -708,7 +716,9 @@ export const monitoringEntries = [
       task('cmp', 'CMP with AST/ALT and creatinine/eGFR', true),
       task('bp', 'Blood pressure, height, and weight', true),
       task('vaccines', 'Vaccination status and varicella immunity', true),
-      task('hepatitis', 'Hepatitis B/C ± HIV screen when risk', true),
+      task('hbv', 'Hepatitis B surface antigen/core antibodies (screen high-risk patients)', true),
+      task('hcv', 'Hepatitis C antibody (screen high-risk patients)', true),
+      task('hiv', 'HIV screen when risk factors present', true),
       task('pregnancy', 'Pregnancy counseling', true)
     ],
     monitoringSchedule: [

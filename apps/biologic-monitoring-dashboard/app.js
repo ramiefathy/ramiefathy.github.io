@@ -7,6 +7,8 @@ import {
   dataVersion
 } from './data.js';
 
+const COPY_BUTTON_LABEL = 'Copy monitoring checklist for clinical note';
+
 const RISK_LEVEL_LABELS = {
   high: 'High risk',
   moderate: 'Moderate risk',
@@ -361,12 +363,36 @@ function buildTimeline(entry) {
 }
 
 function buildClipboardText(entry) {
-  const baseline = (entry.baselineTasks || []).map((task) => `- ${task.label}`).join('\n');
-  const monitoring = (entry.monitoringSchedule || [])
-    .map((item) => `- ${item.timing}: ${item.description}`)
+  const agents = entry.agents.join(', ');
+  const header = `**<u>Monitoring checklist for ${entry.name} (${agents})</u>**`;
+
+  const baselineItems = (entry.baselineTasks || []).map((task) => `- ${task.label}`);
+  const followUpItems = (entry.monitoringSchedule || []).map(
+    (item) => `- ${item.timing}: ${item.description}`
+  );
+
+  const baselineSection = baselineItems.length
+    ? baselineItems.join('\n')
+    : '- Refer to regimen baseline guidance';
+  const followUpSection = followUpItems.length
+    ? followUpItems.join('\n')
+    : '- Clinical surveillance per specialist guidance';
+
+  const cautionsLine = entry.cautions ? `*Cautions: ${entry.cautions}*` : '';
+
+  return [
+    header,
+    '',
+    '<u>Baseline:</u>',
+    baselineSection,
+    '',
+    '<u>Follow-up:</u>',
+    followUpSection,
+    '',
+    cautionsLine
+  ]
+    .filter((segment, index, arr) => segment || arr[index - 1])
     .join('\n');
-  const hold = (entry.holdCriteria || []).map((item) => `- ${item}`).join('\n');
-  return `${entry.name} (${entry.agents.join(', ')}):\nSummary: ${entry.summary}\nBaseline essentials:\n${baseline}\nFollow-up cadence:\n${monitoring}\nHold criteria:\n${hold}`;
 }
 
 function renderEntryCard(entry, query) {
@@ -484,7 +510,7 @@ function renderEntryCard(entry, query) {
           </div>
           ${buildReferences(entry)}
           <div class="entry-actions">
-            <button class="copy-btn" type="button" data-action="copy" data-entry-id="${entry.id}">Copy summary</button>
+            <button class="copy-btn" type="button" data-action="copy" data-entry-id="${entry.id}">${COPY_BUTTON_LABEL}</button>
             <button class="secondary-btn export-btn" type="button" data-action="export-checklist" data-entry-id="${entry.id}">Export checklist</button>
           </div>
         </div>
@@ -825,7 +851,7 @@ function copyToClipboard(text, button) {
         button.textContent = 'Copied!';
         button.classList.add('copied');
         setTimeout(() => {
-          button.textContent = 'Copy summary';
+          button.textContent = COPY_BUTTON_LABEL;
           button.classList.remove('copied');
         }, 1600);
       } else {
@@ -836,7 +862,7 @@ function copyToClipboard(text, button) {
       if (button) {
         button.textContent = 'Copy failed';
         setTimeout(() => {
-          button.textContent = 'Copy summary';
+          button.textContent = COPY_BUTTON_LABEL;
         }, 1600);
       } else {
         showToast('Copy failed.', true);
