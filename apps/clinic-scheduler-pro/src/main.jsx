@@ -111,6 +111,94 @@ const ToastItem = ({ toast, onDismiss }) => {
 
 const Toaster = () => null;
 
+const DAYS_OF_WEEK = [
+    { id: 0, name: 'Sunday', short: 'Sun' },
+    { id: 1, name: 'Monday', short: 'Mon' },
+    { id: 2, name: 'Tuesday', short: 'Tue' },
+    { id: 3, name: 'Wednesday', short: 'Wed' },
+    { id: 4, name: 'Thursday', short: 'Thu' },
+    { id: 5, name: 'Friday', short: 'Fri' },
+    { id: 6, name: 'Saturday', short: 'Sat' }
+];
+
+const TIME_SLOTS = ['AM', 'PM'];
+
+const generateId = (prefix = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+const convertLegacyClinicSchedule = (legacySchedule = [], sites = []) => {
+    if (!Array.isArray(legacySchedule) || legacySchedule.length === 0) {
+        return [];
+    }
+
+    const siteLookup = new Map(sites.map(site => [site.id, site]));
+    const clinicsMap = new Map();
+
+    legacySchedule.forEach((session = {}) => {
+        const dayOfWeek = typeof session.dayOfWeek === 'number' ? session.dayOfWeek : null;
+        const timeSlot = session.timeSlot || 'AM';
+        const siteId = session.siteId || '';
+
+        const fallbackId = `legacy_${siteId || 'none'}_${dayOfWeek}_${timeSlot}`;
+        const clinicId = session.clinicId || session.id || fallbackId;
+
+        if (!clinicsMap.has(clinicId)) {
+            const site = siteLookup.get(siteId);
+            const dayLabel = (dayOfWeek != null ? DAYS_OF_WEEK.find(d => d.id === dayOfWeek)?.short : 'Day');
+            clinicsMap.set(clinicId, {
+                id: clinicId,
+                siteId,
+                name: session.clinicName || `${site?.name || 'Clinic'} ${dayLabel || ''} ${timeSlot}`.trim(),
+                residentCapacity: session.maxResidents || session.capacity || 2,
+                defaultSessions: []
+            });
+        }
+
+        const clinic = clinicsMap.get(clinicId);
+        clinic.defaultSessions.push({
+            dayOfWeek: dayOfWeek ?? 0,
+            timeSlot
+        });
+
+        if (session.maxResidents || session.capacity) {
+            clinic.residentCapacity = session.maxResidents || session.capacity;
+        }
+    });
+
+    return Array.from(clinicsMap.values());
+};
+
+const normalizeClinics = (clinics = []) => {
+    if (!Array.isArray(clinics)) return [];
+    return clinics
+        .filter(Boolean)
+        .map((clinic) => ({
+            id: clinic.id || generateId('clinic'),
+            name: clinic.name || 'Clinic',
+            siteId: clinic.siteId || '',
+            residentCapacity: Number.isFinite(clinic.residentCapacity) ? clinic.residentCapacity : (clinic.capacity || clinic.maxResidents || 2),
+            defaultSessions: Array.isArray(clinic.defaultSessions)
+                ? clinic.defaultSessions
+                    .filter(session => typeof session?.dayOfWeek === 'number' && TIME_SLOTS.includes(session?.timeSlot || ''))
+                    .map(session => ({ dayOfWeek: session.dayOfWeek, timeSlot: session.timeSlot || 'AM' }))
+                : []
+        }));
+};
+
+const normalizeAttendingRecord = (attending = {}, sites = []) => {
+    if (!attending) return attending;
+    const clinics = normalizeClinics(attending.clinics);
+
+    const normalizedClinics = clinics.length > 0
+        ? clinics
+        : convertLegacyClinicSchedule(attending.clinicSchedule, sites);
+
+    return {
+        ...attending,
+        clinics: normalizeClinics(normalizedClinics),
+        scheduleOverrides: Array.isArray(attending.scheduleOverrides) ? attending.scheduleOverrides : []
+    };
+};
+
 // ==================== Error Boundary Component ====================
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -566,7 +654,7 @@ const ConflictDetection = {
                     institution?.settings?.protectedTimes,
                     newAssignment.date,
                     newAssignment.timeSlot,
-                    resident.pgyLevel
+                    resident.pgyStatus || resident.pgyLevel
                 );
                 allConflicts.push(...protectedConflicts);
             }
@@ -740,8 +828,9 @@ const ExportUtils = {
                     if (resident.email && !ValidationUtils.validateEmail(resident.email).isValid) {
                         warnings.push(`Resident "${resident.name || index}" has invalid email`);
                     }
-                    if (resident.pgyLevel) {
-                        const pgyValidation = ValidationUtils.validatePGYLevel(resident.pgyLevel);
+                    const residentPgy = resident.pgyStatus || resident.pgyLevel;
+                    if (residentPgy) {
+                        const pgyValidation = ValidationUtils.validatePGYLevel(residentPgy);
                         if (!pgyValidation.isValid) {
                             warnings.push(`Resident "${resident.name || index}" has invalid PGY level`);
                         }
@@ -1554,10 +1643,12 @@ class FirebaseService {
         const unsubscribe = window.firebase.firestore.onSnapshot(
             query,
             (snapshot) => {
-                const data = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+                const data = snapshot.docs.map(doc =>
+                    normalizeAttendingRecord({
+                        id: doc.id,
+                        ...doc.data()
+                    })
+                );
                 callback(data);
             },
             (error) => {
@@ -2777,8 +2868,9 @@ const Dashboard = () => {
 };
 
 // ==================== Schedule Calendar Component ====================
-const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
+const ScheduleCalendar = ({ initialFilter, onNavigateToPerson, onOpenChatAssistant }) => {
     const { firebaseService, institution } = useApp();
+    const sites = institution?.settings?.sites || [];
     const [viewMode, setViewMode] = useState(() => {
         return localStorage.getItem('scheduleViewMode') || 'month';
     });
@@ -2791,11 +2883,35 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     const [selectedCell, setSelectedCell] = useState(null);
     const [loading, setLoading] = useState(true);
     const [deletingIds, setDeletingIds] = useState(new Set());
+    const [showAttendingAdjuster, setShowAttendingAdjuster] = useState(false);
 
     // Individual schedule view states
     const [scheduleFilter, setScheduleFilter] = useState(initialFilter?.type || 'all');
     const [selectedPersonId, setSelectedPersonId] = useState(initialFilter?.id || null);
     const [showPersonSelector, setShowPersonSelector] = useState(false);
+
+    const normalizedAttendings = useMemo(() => {
+        return attendings.map(att => normalizeAttendingRecord(att, sites));
+    }, [attendings, sites]);
+
+    const residentsRef = useRef(residents);
+    useEffect(() => {
+        residentsRef.current = residents;
+    }, [residents]);
+
+    const attendingsRef = useRef(normalizedAttendings);
+    useEffect(() => {
+        attendingsRef.current = normalizedAttendings;
+    }, [normalizedAttendings]);
+
+    useEffect(() => {
+        setAttendings(current => current.map(att => normalizeAttendingRecord(att, sites)));
+    }, [sites]);
+
+    const selectedAttending = useMemo(() => {
+        if (scheduleFilter !== 'attending' || !selectedPersonId) return null;
+        return normalizedAttendings.find(a => a.id === selectedPersonId) || null;
+    }, [normalizedAttendings, scheduleFilter, selectedPersonId]);
 
     // Update filter when prop changes
     useEffect(() => {
@@ -2811,9 +2927,11 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
     }, [viewMode]);
 
     // Generate virtual assignments for continuity clinics and protected times
-    const generateVirtualAssignments = (residents, protectedTimes) => {
+    const generateVirtualAssignments = (residents, protectedTimes, attendingsList = [], siteList = []) => {
         const virtual = [];
         const today = new Date();
+
+        const siteLookup = new Map(siteList.map(site => [site.id, site]));
 
         // Generate continuity clinic assignments
         residents.forEach(resident => {
@@ -2899,6 +3017,96 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
             });
         }
 
+        // Generate attending default clinic sessions
+        attendingsList.forEach(attending => {
+            if (!attending) return;
+            const clinics = attending.clinics || [];
+            const overrides = Array.isArray(attending.scheduleOverrides) ? attending.scheduleOverrides : [];
+
+            const overridesBySlot = new Map();
+            overrides.forEach(override => {
+                if (!override?.date || !override?.timeSlot) return;
+                const key = `${override.date}_${override.timeSlot}`;
+                if (!overridesBySlot.has(key)) {
+                    overridesBySlot.set(key, []);
+                }
+                overridesBySlot.get(key).push(override);
+            });
+
+            clinics.forEach(clinic => {
+                const defaultSessions = clinic.defaultSessions || [];
+                defaultSessions.forEach(session => {
+                    for (let week = 0; week < 52; week++) {
+                        const weekStart = new Date(today);
+                        weekStart.setDate(today.getDate() - today.getDay() + week * 7);
+                        const targetDate = new Date(weekStart);
+                        targetDate.setDate(weekStart.getDate() + session.dayOfWeek);
+
+                        if (targetDate < today) {
+                            continue;
+                        }
+
+                        const dateStr = targetDate.toISOString().split('T')[0];
+                        const timeSlot = session.timeSlot || 'AM';
+                        const key = `${dateStr}_${timeSlot}`;
+                        const slotOverrides = overridesBySlot.get(key) || [];
+                        const isCancelled = slotOverrides.some(override => {
+                            if (override.action !== 'cancel') return false;
+                            if (override.clinicId && override.clinicId !== clinic.id) return false;
+                            return true;
+                        });
+
+                        if (isCancelled) {
+                            continue;
+                        }
+
+                        virtual.push({
+                            id: `attending_default_${attending.id}_${clinic.id}_${dateStr}_${timeSlot}`,
+                            attendingId: attending.id,
+                            clinicId: clinic.id,
+                            siteId: clinic.siteId || '',
+                            date: dateStr,
+                            timeSlot,
+                            type: 'clinic-default',
+                            residentCapacity: clinic.residentCapacity || 0,
+                            virtual: true,
+                            virtualSource: 'attending-default',
+                            attendingName: attending.name,
+                            clinicName: clinic.name || 'Clinic',
+                            siteName: siteLookup.get(clinic.siteId)?.name || ''
+                        });
+                    }
+                });
+            });
+
+            overrides.forEach(override => {
+                if (!override || override.action !== 'add' || !override.date || !override.timeSlot) {
+                    return;
+                }
+
+                const clinic = clinics.find(c => c.id === override.clinicId);
+                const timeSlot = override.timeSlot || 'AM';
+                const siteId = override.siteId || clinic?.siteId || '';
+
+                virtual.push({
+                    id: `attending_override_${attending.id}_${override.date}_${timeSlot}_${override.id || generateId('override')}`,
+                    attendingId: attending.id,
+                    clinicId: override.clinicId || clinic?.id || null,
+                    siteId,
+                    date: override.date,
+                    timeSlot,
+                    type: 'clinic-override',
+                    residentCapacity: override.residentCapacity ?? clinic?.residentCapacity ?? 0,
+                    virtual: true,
+                    virtualSource: 'attending-override',
+                    scheduleOverrideId: override.id || null,
+                    attendingName: attending.name,
+                    clinicName: override.label || clinic?.name || 'Clinic',
+                    siteName: siteLookup.get(siteId)?.name || ''
+                });
+            });
+        });
+
         return virtual;
     };
 
@@ -2910,21 +3118,42 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
 
         // Set up real-time listeners
         const unsubscribeAssignments = firebaseService.listenToAssignments((data) => {
-            // Merge real assignments with virtual ones
-            const virtualAssignments = generateVirtualAssignments(residents, institution?.settings?.protectedTimes);
+            const virtualAssignments = generateVirtualAssignments(
+                residentsRef.current,
+                institution?.settings?.protectedTimes,
+                attendingsRef.current,
+                sites
+            );
             const mergedAssignments = [...data, ...virtualAssignments];
             setAssignments(mergedAssignments);
             setLoading(false);
         });
 
         const unsubscribeAttendings = firebaseService.listenToAttendings((data) => {
-            setAttendings(data);
+            const normalized = data.map(att => normalizeAttendingRecord(att, sites));
+            setAttendings(normalized);
+            attendingsRef.current = normalized;
+            setAssignments(prev => {
+                const realAssignments = prev.filter(a => !a.virtual);
+                const virtualAssignments = generateVirtualAssignments(
+                    residentsRef.current,
+                    institution?.settings?.protectedTimes,
+                    normalized,
+                    sites
+                );
+                return [...realAssignments, ...virtualAssignments];
+            });
         });
 
         const unsubscribeResidents = firebaseService.listenToResidents((data) => {
             setResidents(data);
-            // Regenerate assignments when residents change
-            const virtualAssignments = generateVirtualAssignments(data, institution?.settings?.protectedTimes);
+            residentsRef.current = data;
+            const virtualAssignments = generateVirtualAssignments(
+                data,
+                institution?.settings?.protectedTimes,
+                attendingsRef.current,
+                sites
+            );
             setAssignments(prev => {
                 const realAssignments = prev.filter(a => !a.virtual);
                 return [...realAssignments, ...virtualAssignments];
@@ -2936,7 +3165,7 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
             unsubscribeAttendings();
             unsubscribeResidents();
         };
-    }, [firebaseService.currentInstitution, institution?.settings?.protectedTimes]);
+    }, [firebaseService.currentInstitution, institution?.settings?.protectedTimes, sites]);
 
     const weekStart = useMemo(() => getStartOfWeekSunday(activeDate), [activeDate]);
     const monthStart = useMemo(() => getStartOfMonthDate(activeDate), [activeDate]);
@@ -3132,10 +3361,153 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
             return resident?.name || 'Unknown';
         }
         if (scheduleFilter === 'attending' && selectedPersonId) {
-            const attending = attendings.find(a => a.id === selectedPersonId);
+            const attending = normalizedAttendings.find(a => a.id === selectedPersonId);
             return attending?.name || 'Unknown';
         }
         return null;
+    };
+
+    const handleApplyAttendingOverride = async (attendingId, overrideData) => {
+        const attending = normalizedAttendings.find(a => a.id === attendingId);
+        if (!attending) {
+            toast.error('Attending not found');
+            return;
+        }
+
+        const { action, clinicId, date, timeSlot, residentCapacity, siteId } = overrideData;
+        if (!action || !date || !timeSlot) {
+            toast.error('Select a date, time, and action.');
+            return;
+        }
+
+        const overrides = Array.isArray(attending.scheduleOverrides)
+            ? [...attending.scheduleOverrides]
+            : [];
+
+        const clinic = attending.clinics?.find(c => c.id === clinicId) || null;
+        const dateObj = new Date(date);
+        if (!Number.isFinite(dateObj.getTime())) {
+            toast.error('Invalid date selected.');
+            return;
+        }
+        const dayOfWeek = dateObj.getDay();
+
+        let message = '';
+
+        if (action === 'cancel') {
+            if (!clinic) {
+                toast.error('Select a clinic to cancel.');
+                return;
+            }
+
+            const hasDefaultSession = clinic.defaultSessions?.some(session =>
+                session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot
+            );
+
+            if (!hasDefaultSession) {
+                toast.error('No default clinic is scheduled for that day and time.');
+                return;
+            }
+
+            const existingIndex = overrides.findIndex(override =>
+                override.action === 'cancel' &&
+                override.clinicId === clinicId &&
+                override.date === date &&
+                override.timeSlot === timeSlot
+            );
+
+            if (existingIndex >= 0) {
+                overrides.splice(existingIndex, 1);
+                message = 'Default clinic restored for that day.';
+            } else {
+                overrides.push({
+                    id: generateId('override'),
+                    action: 'cancel',
+                    clinicId,
+                    date,
+                    timeSlot
+                });
+                message = 'Default clinic cancelled for that day.';
+            }
+        } else if (action === 'add') {
+            if (!clinic) {
+                toast.error('Select a clinic to add.');
+                return;
+            }
+
+            const alreadyExists = overrides.some(override =>
+                override.action === 'add' &&
+                override.clinicId === clinicId &&
+                override.date === date &&
+                override.timeSlot === timeSlot
+            );
+
+            if (alreadyExists) {
+                toast.warning('An additional session already exists for this slot.');
+                return;
+            }
+
+            overrides.push({
+                id: generateId('override'),
+                action: 'add',
+                clinicId,
+                siteId: siteId || clinic.siteId || '',
+                date,
+                timeSlot,
+                residentCapacity: Number.isFinite(residentCapacity) ? residentCapacity : (clinic.residentCapacity || 0),
+                label: clinic.name
+            });
+            message = 'Additional clinic session added.';
+        } else {
+            toast.error('Unsupported override action.');
+            return;
+        }
+
+        try {
+            await firebaseService.updateAttending(attendingId, { scheduleOverrides: overrides });
+            setAttendings(current => current.map(att => (
+                att.id === attendingId
+                    ? { ...att, scheduleOverrides: overrides }
+                    : att
+            )));
+            toast.success(message);
+        } catch (error) {
+            console.error('Failed to update attending overrides:', error);
+            toast.error('Failed to update attending schedule.');
+        }
+    };
+
+    const handleRemoveAttendingOverride = async (attendingId, override) => {
+        const attending = normalizedAttendings.find(a => a.id === attendingId);
+        if (!attending) {
+            toast.error('Attending not found');
+            return;
+        }
+
+        const overrides = (attending.scheduleOverrides || []).filter(item => {
+            if (override.id && item.id) {
+                return item.id !== override.id;
+            }
+            return !(
+                item.action === override.action &&
+                item.clinicId === override.clinicId &&
+                item.date === override.date &&
+                item.timeSlot === override.timeSlot
+            );
+        });
+
+        try {
+            await firebaseService.updateAttending(attendingId, { scheduleOverrides: overrides });
+            setAttendings(current => current.map(att => (
+                att.id === attendingId
+                    ? { ...att, scheduleOverrides: overrides }
+                    : att
+            )));
+            toast.success('Override removed');
+        } catch (error) {
+            console.error('Failed to remove attending override:', error);
+            toast.error('Failed to remove override.');
+        }
     };
 
     if (loading) {
@@ -3288,6 +3660,19 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                         <Icon name="download" size={16} className="mr-2" />
                         Export
                     </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => onOpenChatAssistant && onOpenChatAssistant()}
+                    >
+                        <Icon name="message-circle" size={16} className="mr-2" />
+                        Chat Assistant
+                    </Button>
+                    {scheduleFilter === 'attending' && selectedAttending && (
+                        <Button variant="secondary" onClick={() => setShowAttendingAdjuster(true)}>
+                            <Icon name="settings" size={16} className="mr-2" />
+                            Adjust Attending Day
+                        </Button>
+                    )}
                     <Button onClick={() => setShowAutoScheduler(true)}>
                         <Icon name="sparkles" size={16} className="mr-2" />
                         Auto-Schedule
@@ -3346,7 +3731,52 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                                         >
                                             {slotAssignments.map(assignment => {
                                                 const resident = residents.find(r => r.id === assignment.residentId);
-                                                const attending = attendings.find(a => a.id === assignment.attendingId);
+                                                const attending = normalizedAttendings.find(a => a.id === assignment.attendingId);
+                                                const isTemplate = assignment.virtualSource === 'attending-default' || assignment.virtualSource === 'attending-override';
+
+                                                if (isTemplate) {
+                                                    const clinic = attending?.clinics?.find(c => c.id === assignment.clinicId);
+                                                    const site = sites.find(s => s.id === (assignment.siteId || clinic?.siteId));
+                                                    const capacity = assignment.residentCapacity ?? clinic?.residentCapacity ?? 0;
+                                                    const label = assignment.clinicName || clinic?.name || 'Clinic Session';
+
+                                                    return (
+                                                        <div
+                                                            key={assignment.id}
+                                                            className={`assignment-card bg-white border-dashed ${assignment.virtualSource === 'attending-override' ? 'border-primary-300 bg-primary-50/40' : 'border-gray-300 bg-slate-50'}`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (scheduleFilter === 'attending' && selectedAttending) {
+                                                                    setShowAttendingAdjuster(true);
+                                                                } else {
+                                                                    toast.info('Select an attending to adjust their schedule.');
+                                                                }
+                                                            }}
+                                                        >
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex-1">
+                                                                    <div className="font-medium text-gray-800">
+                                                                        {attending?.name || 'Attending Clinic'}
+                                                                    </div>
+                                                                    <div className="text-sm text-gray-600">
+                                                                        {label}
+                                                                        {site ? ` · ${site.name}` : ''}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-500">
+                                                                        {capacity} resident slots
+                                                                    </div>
+                                                                </div>
+                                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${
+                                                                    assignment.virtualSource === 'attending-override'
+                                                                        ? 'bg-primary-100 text-primary-700'
+                                                                        : 'bg-gray-200 text-gray-700'
+                                                                }`}>
+                                                                    {assignment.virtualSource === 'attending-override' ? 'Additional Session' : 'Default Template'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
 
                                                 return (
                                                     <div
@@ -3573,15 +4003,36 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                         date={selectedCell.date}
                         timeSlot={selectedCell.timeSlot}
                         residents={residents}
-                        attendings={attendings}
+                        attendings={normalizedAttendings}
                         assignments={assignments}
                         institution={institution}
                         onSave={async (data) => {
+                            if (!data.residentId && data.attendingId && data.clinicId) {
+                                const clinicAttending = normalizedAttendings.find(a => a.id === data.attendingId);
+                                const clinic = clinicAttending?.clinics?.find(c => c.id === data.clinicId);
+                                if (!clinicAttending || !clinic) {
+                                    toast.error('Unable to identify clinic for attending.');
+                                    return;
+                                }
+
+                                await handleApplyAttendingOverride(clinicAttending.id, {
+                                    action: 'add',
+                                    clinicId: clinic.id,
+                                    date: data.date,
+                                    timeSlot: data.timeSlot,
+                                    residentCapacity: clinic.residentCapacity,
+                                    siteId: clinic.siteId
+                                });
+
+                                setSelectedCell(null);
+                                return;
+                            }
+
                             // Check for conflicts
                             const conflictCheck = ConflictDetection.checkAllConflicts({
                                 assignments,
                                 newAssignment: data,
-                                attendings,
+                                attendings: normalizedAttendings,
                                 residents,
                                 institution
                             });
@@ -3629,6 +4080,250 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson }) => {
                     />
                 </Modal>
             )}
+
+            {showAttendingAdjuster && selectedAttending && (
+                <Modal
+                    isOpen={true}
+                    onClose={() => setShowAttendingAdjuster(false)}
+                    title="Adjust Attending Schedule"
+                >
+                    <AttendingScheduleAdjuster
+                        attending={selectedAttending}
+                        sites={sites}
+                        onApply={(data) => handleApplyAttendingOverride(selectedAttending.id, data)}
+                        onRemove={(override) => handleRemoveAttendingOverride(selectedAttending.id, override)}
+                        onClose={() => setShowAttendingAdjuster(false)}
+                    />
+                </Modal>
+            )}
+        </div>
+    );
+};
+
+const AttendingScheduleAdjuster = ({ attending, sites, onApply, onRemove, onClose }) => {
+    const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+    const clinics = attending?.clinics || [];
+
+    const clinicsKey = clinics.map(c => c.id).join('|');
+
+    const [formData, setFormData] = useState(() => ({
+        action: 'cancel',
+        date: todayStr,
+        timeSlot: 'AM',
+        clinicId: clinics[0]?.id || '',
+        residentCapacity: clinics[0]?.residentCapacity || 0
+    }));
+
+    useEffect(() => {
+        if (!attending) return;
+        setFormData(current => ({
+            ...current,
+            clinicId: clinics[0]?.id || '',
+            residentCapacity: clinics[0]?.residentCapacity || 0
+        }));
+    }, [attending?.id, clinicsKey]);
+
+    const dayOfWeek = useMemo(() => {
+        if (!formData.date) return null;
+        const dateObj = new Date(formData.date);
+        return Number.isFinite(dateObj.getTime()) ? dateObj.getDay() : null;
+    }, [formData.date]);
+
+    const cancellableClinics = useMemo(() => {
+        if (dayOfWeek === null) return [];
+        return clinics.filter(clinic => clinic.defaultSessions?.some(session =>
+            session.dayOfWeek === dayOfWeek && session.timeSlot === formData.timeSlot
+        ));
+    }, [clinics, dayOfWeek, formData.timeSlot]);
+
+    const availableClinics = formData.action === 'cancel' ? cancellableClinics : clinics;
+    const availableClinicsKey = availableClinics.map(clinic => clinic.id).join('|');
+
+    useEffect(() => {
+        if (!availableClinics.length) {
+            setFormData(current => ({ ...current, clinicId: '' }));
+            return;
+        }
+        if (!availableClinics.some(clinic => clinic.id === formData.clinicId)) {
+            setFormData(current => ({
+                ...current,
+                clinicId: availableClinics[0].id,
+                residentCapacity: availableClinics[0]?.residentCapacity || 0
+            }));
+        }
+    }, [availableClinicsKey, formData.clinicId]);
+
+    const selectedClinic = clinics.find(clinic => clinic.id === formData.clinicId) || null;
+
+    const sortedOverrides = useMemo(() => {
+        const overrides = Array.isArray(attending?.scheduleOverrides) ? [...attending.scheduleOverrides] : [];
+        overrides.sort((a, b) => {
+            if (a.date === b.date) {
+                return (a.timeSlot || 'AM').localeCompare(b.timeSlot || 'AM');
+            }
+            return (a.date || '').localeCompare(b.date || '');
+        });
+        return overrides;
+    }, [attending?.scheduleOverrides]);
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (!formData.date || !formData.timeSlot || !formData.action || !formData.clinicId) {
+            toast.error('Complete all override fields.');
+            return;
+        }
+
+        const capacityValue = Number.isFinite(formData.residentCapacity)
+            ? formData.residentCapacity
+            : parseInt(formData.residentCapacity, 10) || 0;
+
+        onApply({
+            action: formData.action,
+            clinicId: formData.clinicId,
+            date: formData.date,
+            timeSlot: formData.timeSlot,
+            residentCapacity: capacityValue,
+            siteId: selectedClinic?.siteId || ''
+        });
+    };
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h3 className="text-lg font-semibold text-gray-900">{attending?.name}</h3>
+                <p className="text-sm text-gray-600">Adjust automatic clinic sessions for specific dates.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Action</label>
+                        <select
+                            value={formData.action}
+                            onChange={(e) => setFormData(current => ({ ...current, action: e.target.value }))}
+                            className="w-full px-3 py-2 border rounded-lg"
+                        >
+                            <option value="cancel">Remove default clinic (one day)</option>
+                            <option value="add">Add additional clinic (one day)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                        <input
+                            type="date"
+                            value={formData.date}
+                            onChange={(e) => setFormData(current => ({ ...current, date: e.target.value }))}
+                            className="w-full px-3 py-2 border rounded-lg"
+                            min={todayStr}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Time Slot</label>
+                        <select
+                            value={formData.timeSlot}
+                            onChange={(e) => setFormData(current => ({ ...current, timeSlot: e.target.value }))}
+                            className="w-full px-3 py-2 border rounded-lg"
+                        >
+                            {TIME_SLOTS.map(slot => (
+                                <option key={slot} value={slot}>{slot}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Clinic</label>
+                        {availableClinics.length === 0 ? (
+                            <div className="px-3 py-2 border rounded-lg bg-gray-50 text-sm text-gray-600">
+                                {formData.action === 'cancel'
+                                    ? 'No default clinic scheduled at this day/time.'
+                                    : 'No clinics configured for this attending.'}
+                            </div>
+                        ) : (
+                            <select
+                                value={formData.clinicId}
+                                onChange={(e) => {
+                                    const clinicId = e.target.value;
+                                    const clinic = clinics.find(c => c.id === clinicId);
+                                    setFormData(current => ({
+                                        ...current,
+                                        clinicId,
+                                        residentCapacity: clinic?.residentCapacity || 0
+                                    }));
+                                }}
+                                className="w-full px-3 py-2 border rounded-lg"
+                            >
+                                {availableClinics.map(clinic => {
+                                    const site = sites.find(s => s.id === clinic.siteId);
+                                    return (
+                                        <option key={clinic.id} value={clinic.id}>
+                                            {clinic.name}
+                                            {site ? ` · ${site.name}` : ''}
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                        )}
+                    </div>
+                    {formData.action === 'add' && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Resident Capacity</label>
+                            <input
+                                type="number"
+                                min="0"
+                                value={formData.residentCapacity}
+                                onChange={(e) => setFormData(current => ({
+                                    ...current,
+                                    residentCapacity: Math.max(0, parseInt(e.target.value, 10) || 0)
+                                }))}
+                                className="w-full px-3 py-2 border rounded-lg"
+                            />
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex justify-end gap-3">
+                    <Button type="button" variant="secondary" onClick={onClose}>Close</Button>
+                    <Button type="submit" disabled={!availableClinics.length}>
+                        Apply
+                    </Button>
+                </div>
+            </form>
+
+            <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-gray-700">Existing Overrides</h4>
+                {sortedOverrides.length === 0 ? (
+                    <div className="px-3 py-2 border rounded-lg text-sm text-gray-600 bg-gray-50">
+                        No overrides configured.
+                    </div>
+                ) : (
+                    <div className="space-y-2">
+                        {sortedOverrides.map((override) => {
+                            const clinic = clinics.find(c => c.id === override.clinicId);
+                            const site = sites.find(s => s.id === (override.siteId || clinic?.siteId));
+                            return (
+                                <div key={override.id || `${override.date}_${override.timeSlot}_${override.clinicId}`} className="border rounded-lg px-3 py-2 bg-white flex items-center justify-between text-sm">
+                                    <div>
+                                        <p className="font-medium text-gray-800">
+                                            {override.action === 'cancel' ? 'Cancel default clinic' : 'Add clinic session'}
+                                        </p>
+                                        <p className="text-gray-600">
+                                            {override.date} · {override.timeSlot}
+                                            {clinic ? ` · ${clinic.name}` : ''}
+                                            {site ? ` · ${site.name}` : ''}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="text-red-600 hover:text-red-700"
+                                        onClick={() => onRemove(override)}
+                                    >
+                                        <Icon name="trash" size={14} />
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -3647,9 +4342,15 @@ const AssignmentForm = ({ date, timeSlot, residents, attendings, assignments = [
         attendingId: '',
         type: 'clinical',
         siteId: '',
-        rotationId: ''
+        rotationId: '',
+        clinicId: ''
     });
     const [conflicts, setConflicts] = useState([]);
+    const [assignResident, setAssignResident] = useState(true);
+
+    const normalizedAttendings = useMemo(() => {
+        return attendings.map(att => normalizeAttendingRecord(att, sites));
+    }, [attendings, sites]);
 
     // Get resident's current rotation for the month
     const getResidentRotation = (residentId) => {
@@ -3665,28 +4366,39 @@ const AssignmentForm = ({ date, timeSlot, residents, attendings, assignments = [
     };
 
     // Get available attendings based on rotation and time slot
+    const getClinicsForSlot = (attending) => {
+        if (!attending) return [];
+        const dayOfWeek = new Date(date).getDay();
+        return (attending.clinics || []).map(clinic => ({
+            ...clinic,
+            isDefaultSession: clinic.defaultSessions?.some(session =>
+                session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot
+            )
+        }));
+    };
+
     const getAvailableAttendings = () => {
-        if (!formData.residentId) return attendings;
-
         const rotation = getResidentRotation(formData.residentId);
-        if (!rotation) return attendings;
-
         const dayOfWeek = new Date(date).getDay();
 
-        // Filter attendings who:
-        // 1. Support this rotation
-        // 2. Have clinic sessions on this day/time
-        return attendings.filter(attending => {
-            const supportsRotation = attending.rotationIds?.includes(rotation.id);
-            const hasClinicSession = attending.clinicSchedule?.some(session =>
-                session.dayOfWeek === dayOfWeek &&
-                session.timeSlot === timeSlot
+        return normalizedAttendings.filter(attending => {
+            const supportsRotation = rotation ? attending.rotationIds?.includes(rotation.id) : true;
+            const hasClinicSession = attending.clinics?.some(clinic =>
+                clinic.defaultSessions?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot)
             );
+
+            if (!assignResident) {
+                return hasClinicSession || (attending.clinics || []).length > 0;
+            }
+
             return supportsRotation && hasClinicSession;
         });
     };
 
     const availableAttendings = getAvailableAttendings();
+
+    const selectedAttending = normalizedAttendings.find(a => a.id === formData.attendingId);
+    const clinicsForAttending = getClinicsForSlot(selectedAttending);
 
     // Check for conflicts when form data changes
     useEffect(() => {
@@ -3698,29 +4410,69 @@ const AssignmentForm = ({ date, timeSlot, residents, attendings, assignments = [
         const conflictCheck = ConflictDetection.checkAllConflicts({
             assignments,
             newAssignment: formData,
-            attendings,
+            attendings: normalizedAttendings,
             residents,
             institution
         });
 
         setConflicts(conflictCheck.conflicts);
-    }, [formData.residentId, formData.attendingId, formData.date, formData.timeSlot]);
+    }, [formData.residentId, formData.attendingId, formData.clinicId, formData.date, formData.timeSlot, normalizedAttendings, residents, assignments, institution]);
 
     return (
-        <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="space-y-4">
+        <form
+            onSubmit={(e) => {
+                e.preventDefault();
+                const payload = {
+                    ...formData,
+                    residentId: assignResident ? formData.residentId : '',
+                    rotationId: assignResident ? formData.rotationId : ''
+                };
+
+                if (!assignResident) {
+                    delete payload.residentId;
+                    delete payload.rotationId;
+                }
+
+                onSave(payload);
+            }}
+            className="space-y-4"
+        >
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Resident</label>
-                <select
-                    value={formData.residentId}
-                    onChange={(e) => setFormData({ ...formData, residentId: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                >
-                    <option value="">Select Resident</option>
-                    {residents.map(r => (
-                        <option key={r.id} value={r.id}>{r.name}</option>
-                    ))}
-                </select>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <input
+                        type="checkbox"
+                        checked={assignResident}
+                        onChange={(e) => {
+                            const checked = e.target.checked;
+                            setAssignResident(checked);
+                            if (!checked) {
+                                setFormData(current => ({
+                                    ...current,
+                                    residentId: '',
+                                    rotationId: ''
+                                }));
+                            }
+                        }}
+                        className="rounded"
+                    />
+                    Assign resident to this clinic
+                </label>
+                {assignResident && (
+                    <div className="mt-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Resident</label>
+                        <select
+                            value={formData.residentId}
+                            onChange={(e) => setFormData({ ...formData, residentId: e.target.value })}
+                            className="w-full px-3 py-2 border rounded-lg"
+                            required={assignResident}
+                        >
+                            <option value="">Select Resident</option>
+                            {residents.map(r => (
+                                <option key={r.id} value={r.id}>{r.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -3733,36 +4485,74 @@ const AssignmentForm = ({ date, timeSlot, residents, attendings, assignments = [
                     value={formData.attendingId}
                     onChange={(e) => {
                         const attendingId = e.target.value;
-                        const attending = attendings.find(a => a.id === attendingId);
-                        const dayOfWeek = new Date(date).getDay();
-                        const session = attending?.clinicSchedule?.find(s =>
-                            s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot
-                        );
-                        setFormData({
-                            ...formData,
+                        const attending = normalizedAttendings.find(a => a.id === attendingId);
+                        const clinics = getClinicsForSlot(attending);
+                        const preferredClinic = clinics.find(c => c.isDefaultSession) || clinics[0];
+                        setFormData(current => ({
+                            ...current,
                             attendingId,
-                            siteId: session?.siteId || '',
-                            rotationId: getResidentRotation(formData.residentId)?.id || ''
-                        });
+                            clinicId: preferredClinic?.id || '',
+                            siteId: preferredClinic?.siteId || '',
+                            rotationId: getResidentRotation(assignResident ? current.residentId : '')?.id || ''
+                        }));
                     }}
                     className="w-full px-3 py-2 border rounded-lg"
                     required
                 >
                     <option value="">Select Attending</option>
                     {availableAttendings.map(a => {
-                        const dayOfWeek = new Date(date).getDay();
-                        const session = a.clinicSchedule?.find(s =>
-                            s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot
-                        );
-                        const site = sites.find(s => s.id === session?.siteId);
+                        const clinics = getClinicsForSlot(a);
+                        const hasDefault = clinics.some(c => c.isDefaultSession);
+                        const labelSuffix = hasDefault
+                            ? ''
+                            : clinics.length === 0
+                                ? ' (no clinics configured)'
+                                : ' (no default clinic this slot)';
                         return (
                             <option key={a.id} value={a.id}>
-                                {a.name} {site && `(${site.name})`}
+                                {a.name}{labelSuffix}
                             </option>
                         );
                     })}
                 </select>
             </div>
+            {formData.attendingId && (
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Clinic</label>
+                    {clinicsForAttending.length === 0 ? (
+                        <div className="text-sm text-gray-500 border rounded-lg p-3 bg-gray-50">
+                            This attending has no clinics configured. Update their profile to add clinics before scheduling.
+                        </div>
+                    ) : (
+                        <select
+                            value={formData.clinicId}
+                            onChange={(e) => {
+                                const clinicId = e.target.value;
+                                const selectedClinic = clinicsForAttending.find(c => c.id === clinicId);
+                                setFormData(current => ({
+                                    ...current,
+                                    clinicId,
+                                    siteId: selectedClinic?.siteId || current.siteId
+                                }));
+                            }}
+                            className="w-full px-3 py-2 border rounded-lg"
+                            required
+                        >
+                            <option value="">Select Clinic</option>
+                            {clinicsForAttending.map(clinic => {
+                                const site = sites.find(s => s.id === clinic.siteId);
+                                return (
+                                    <option key={clinic.id} value={clinic.id}>
+                                        {clinic.name || 'Clinic'}
+                                        {site && ` · ${site.name}`}
+                                        {clinic.isDefaultSession ? '' : ' · one-off'}
+                                    </option>
+                                );
+                            })}
+                        </select>
+                    )}
+                </div>
+            )}
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                 <select
@@ -3825,7 +4615,7 @@ const AssignmentForm = ({ date, timeSlot, residents, attendings, assignments = [
 
 // ==================== Attendings List Component ====================
 const AttendingsList = ({ navigateToSchedule }) => {
-    const { firebaseService } = useApp();
+    const { firebaseService, institution } = useApp();
     const [attendings, setAttendings] = useState([]);
     const [editingAttending, setEditingAttending] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -3840,6 +4630,12 @@ const AttendingsList = ({ navigateToSchedule }) => {
 
         return unsubscribe;
     }, [firebaseService.currentInstitution]);
+
+    const sites = institution?.settings?.sites || [];
+
+    const normalizedAttendings = useMemo(() => {
+        return attendings.map(att => normalizeAttendingRecord(att, sites));
+    }, [attendings, sites]);
 
     const handleSave = async (attendingData) => {
         if (attendingData.id) {
@@ -3895,20 +4691,24 @@ const AttendingsList = ({ navigateToSchedule }) => {
                         <thead>
                             <tr className="border-b">
                                 <th className="text-left py-3 px-4">Name</th>
-                                <th className="text-left py-3 px-4">Clinic Sessions</th>
-                                <th className="text-left py-3 px-4">Total Capacity</th>
+                                <th className="text-left py-3 px-4">Default Sessions</th>
+                                <th className="text-left py-3 px-4">Weekly Capacity</th>
                                 <th className="text-left py-3 px-4">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {attendings.map(attending => {
-                                const sessionCount = attending.clinicSchedule?.length || 0;
-                                const totalCapacity = attending.clinicSchedule?.reduce((sum, s) => sum + (s.maxResidents || 0), 0) || 0;
+                            {normalizedAttendings.map(attending => {
+                                const sessionCount = attending.clinics?.reduce((total, clinic) => total + (clinic.defaultSessions?.length || 0), 0) || 0;
+                                const totalCapacity = attending.clinics?.reduce((sum, clinic) => {
+                                    const sessions = clinic.defaultSessions?.length || 0;
+                                    const capacity = clinic.residentCapacity || 0;
+                                    return sum + (sessions * capacity);
+                                }, 0) || 0;
                                 return (
                                 <tr key={attending.id} className="border-b hover:bg-gray-50">
                                     <td className="py-3 px-4">{attending.name}</td>
-                                    <td className="py-3 px-4">{sessionCount} sessions/week</td>
-                                    <td className="py-3 px-4">{totalCapacity} residents</td>
+                                    <td className="py-3 px-4">{sessionCount} default sessions/week</td>
+                                    <td className="py-3 px-4">{totalCapacity} resident slots/week</td>
                                     <td className="py-3 px-4">
                                         <div className="flex items-center gap-2">
                                             <button
@@ -3919,7 +4719,7 @@ const AttendingsList = ({ navigateToSchedule }) => {
                                                 <Icon name="calendar" size={16} />
                                             </button>
                                             <button
-                                                onClick={() => setEditingAttending(attending)}
+                                                onClick={() => setEditingAttending(normalizeAttendingRecord(attending, sites))}
                                                 className="text-primary-600 hover:text-primary-700"
                                                 title="Edit"
                                             >
@@ -3965,78 +4765,193 @@ const AttendingForm = ({ attending, onSave, onCancel }) => {
     const sites = institution?.settings?.sites || [];
     const rotations = institution?.settings?.rotations || [];
 
-    const [formData, setFormData] = useState({
-        name: attending.name || '',
-        clinicSchedule: attending.clinicSchedule || [],
-        rotationIds: attending.rotationIds || [],
-        ...attending
-    });
+    const buildInitialFormState = useCallback(() => {
+        const normalized = normalizeAttendingRecord(attending, sites);
+        const clinics = normalized.clinics?.length
+            ? normalized.clinics
+            : [{
+                id: generateId('clinic'),
+                name: `${normalized.name || 'Clinic'} Clinic`,
+                siteId: sites[0]?.id || '',
+                residentCapacity: 2,
+                defaultSessions: []
+            }];
 
-    const daysOfWeek = [
-        { id: 0, name: 'Sunday', short: 'Sun' },
-        { id: 1, name: 'Monday', short: 'Mon' },
-        { id: 2, name: 'Tuesday', short: 'Tue' },
-        { id: 3, name: 'Wednesday', short: 'Wed' },
-        { id: 4, name: 'Thursday', short: 'Thu' },
-        { id: 5, name: 'Friday', short: 'Fri' },
-        { id: 6, name: 'Saturday', short: 'Sat' }
-    ];
+        return {
+            name: normalized.name || '',
+            rotationIds: normalized.rotationIds || [],
+            clinics,
+            scheduleOverrides: normalized.scheduleOverrides || [],
+            email: normalized.email || '',
+            phone: normalized.phone || '',
+            maxWeeklyAssignments: normalized.maxWeeklyAssignments || '',
+            notes: normalized.notes || '',
+            id: normalized.id || null
+        };
+    }, [attending, sites]);
 
-    const timeSlots = ['AM', 'PM'];
+    const [formData, setFormData] = useState(buildInitialFormState);
 
-    const toggleClinicSession = (siteId, dayOfWeek, timeSlot) => {
-        const scheduleIndex = formData.clinicSchedule.findIndex(
-            s => s.siteId === siteId && s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot
-        );
+    useEffect(() => {
+        setFormData(buildInitialFormState());
+    }, [buildInitialFormState]);
 
-        if (scheduleIndex >= 0) {
-            // Remove session
-            setFormData({
-                ...formData,
-                clinicSchedule: formData.clinicSchedule.filter((_, i) => i !== scheduleIndex)
-            });
-        } else {
-            // Add session
-            setFormData({
-                ...formData,
-                clinicSchedule: [...formData.clinicSchedule, {
-                    siteId,
-                    dayOfWeek,
-                    timeSlot,
-                    maxResidents: 2
-                }]
-            });
-        }
-    };
-
-    const updateSessionResidents = (siteId, dayOfWeek, timeSlot, maxResidents) => {
-        setFormData({
-            ...formData,
-            clinicSchedule: formData.clinicSchedule.map(session =>
-                session.siteId === siteId && session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot
-                    ? { ...session, maxResidents: parseInt(maxResidents) || 1 }
-                    : session
-            )
+    const dedupeSessions = (sessions = []) => {
+        const seen = new Set();
+        const result = [];
+        sessions.forEach(session => {
+            if (typeof session?.dayOfWeek !== 'number' || !TIME_SLOTS.includes(session?.timeSlot)) {
+                return;
+            }
+            const key = `${session.dayOfWeek}_${session.timeSlot}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                result.push({ dayOfWeek: session.dayOfWeek, timeSlot: session.timeSlot });
+            }
         });
+        return result;
     };
 
-    const getSession = (siteId, dayOfWeek, timeSlot) => {
-        return formData.clinicSchedule.find(
-            s => s.siteId === siteId && s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot
-        );
+    const updateClinic = (clinicId, updates) => {
+        setFormData(current => ({
+            ...current,
+            clinics: current.clinics.map(clinic =>
+                clinic.id === clinicId
+                    ? { ...clinic, ...updates }
+                    : clinic
+            )
+        }));
+    };
+
+    const toggleClinicSession = (clinicId, dayOfWeek, timeSlot) => {
+        setFormData(current => ({
+            ...current,
+            clinics: current.clinics.map(clinic => {
+                if (clinic.id !== clinicId) return clinic;
+                const hasSession = clinic.defaultSessions?.some(session =>
+                    session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot
+                );
+
+                const nextSessions = hasSession
+                    ? clinic.defaultSessions.filter(session => !(session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot))
+                    : [...(clinic.defaultSessions || []), { dayOfWeek, timeSlot }];
+
+                return {
+                    ...clinic,
+                    defaultSessions: dedupeSessions(nextSessions)
+                };
+            })
+        }));
+    };
+
+    const handleResidentCapacityChange = (clinicId, value) => {
+        const capacity = Math.max(0, parseInt(value, 10) || 0);
+        updateClinic(clinicId, { residentCapacity: capacity });
+    };
+
+    const addClinic = () => {
+        const defaultSiteId = sites[0]?.id || '';
+        setFormData(current => ({
+            ...current,
+            clinics: [
+                ...current.clinics,
+                {
+                    id: generateId('clinic'),
+                    name: defaultSiteId ? `${sites.find(s => s.id === defaultSiteId)?.name || 'Clinic'} Clinic` : 'New Clinic',
+                    siteId: defaultSiteId,
+                    residentCapacity: 2,
+                    defaultSessions: []
+                }
+            ]
+        }));
+    };
+
+    const removeClinic = (clinicId) => {
+        setFormData(current => ({
+            ...current,
+            clinics: current.clinics.filter(clinic => clinic.id !== clinicId)
+        }));
+    };
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+
+        const cleanedClinics = formData.clinics.map(clinic => ({
+            id: clinic.id || generateId('clinic'),
+            name: clinic.name?.trim() || 'Clinic',
+            siteId: clinic.siteId || '',
+            residentCapacity: Math.max(0, parseInt(clinic.residentCapacity, 10) || 0),
+            defaultSessions: dedupeSessions(clinic.defaultSessions || [])
+        }));
+
+        const payload = {
+            ...attending,
+            name: formData.name.trim(),
+            rotationIds: formData.rotationIds || [],
+            clinics: cleanedClinics,
+            scheduleOverrides: formData.scheduleOverrides || [],
+            email: formData.email?.trim() || '',
+            phone: formData.phone?.trim() || '',
+            maxWeeklyAssignments: formData.maxWeeklyAssignments || '',
+            notes: formData.notes || ''
+        };
+
+        delete payload.clinicSchedule;
+        delete payload.clinicScheduleLegacy;
+
+        onSave(payload);
     };
 
     return (
-        <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="space-y-4">
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    required
-                />
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData(current => ({ ...current, name: e.target.value }))}
+                        className="w-full px-3 py-2 border rounded-lg"
+                        required
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email (optional)</label>
+                    <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData(current => ({ ...current, email: e.target.value }))}
+                        className="w-full px-3 py-2 border rounded-lg"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone (optional)</label>
+                    <input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => setFormData(current => ({ ...current, phone: e.target.value }))}
+                        className="w-full px-3 py-2 border rounded-lg"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Weekly Assignments</label>
+                    <input
+                        type="number"
+                        min="0"
+                        value={formData.maxWeeklyAssignments}
+                        onChange={(e) => setFormData(current => ({ ...current, maxWeeklyAssignments: Math.max(0, parseInt(e.target.value, 10) || 0) }))}
+                        className="w-full px-3 py-2 border rounded-lg"
+                    />
+                </div>
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea
+                        value={formData.notes}
+                        onChange={(e) => setFormData(current => ({ ...current, notes: e.target.value }))}
+                        className="w-full px-3 py-2 border rounded-lg"
+                        rows={3}
+                    />
+                </div>
             </div>
 
             <div>
@@ -4049,17 +4964,12 @@ const AttendingForm = ({ attending, onSave, onCancel }) => {
                                 type="checkbox"
                                 checked={formData.rotationIds?.includes(rotation.id)}
                                 onChange={(e) => {
-                                    if (e.target.checked) {
-                                        setFormData({
-                                            ...formData,
-                                            rotationIds: [...(formData.rotationIds || []), rotation.id]
-                                        });
-                                    } else {
-                                        setFormData({
-                                            ...formData,
-                                            rotationIds: formData.rotationIds?.filter(id => id !== rotation.id) || []
-                                        });
-                                    }
+                                    setFormData(current => ({
+                                        ...current,
+                                        rotationIds: e.target.checked
+                                            ? [...(current.rotationIds || []), rotation.id]
+                                            : (current.rotationIds || []).filter(id => id !== rotation.id)
+                                    }));
                                 }}
                                 className="rounded"
                             />
@@ -4075,74 +4985,141 @@ const AttendingForm = ({ attending, onSave, onCancel }) => {
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Clinic Schedule</label>
-                <p className="text-xs text-gray-500 mb-3">Click cells to add/remove clinic sessions. Enter resident capacity for each session.</p>
-
-                {sites.map(site => (
-                    <div key={site.id} className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: site.color }}
-                            />
-                            <span className="font-medium text-sm">{site.name}</span>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full border-collapse">
-                                <thead>
-                                    <tr>
-                                        <th className="w-16"></th>
-                                        {daysOfWeek.map(day => (
-                                            <th key={day.id} className="text-xs font-medium text-gray-600 p-1">
-                                                {day.short}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {timeSlots.map(timeSlot => (
-                                        <tr key={timeSlot}>
-                                            <td className="text-xs font-medium text-gray-600 p-1">{timeSlot}</td>
-                                            {daysOfWeek.map(day => {
-                                                const session = getSession(site.id, day.id, timeSlot);
-                                                const isWeekend = day.id === 0 || day.id === 6;
-                                                return (
-                                                    <td key={`${day.id}-${timeSlot}`} className="p-1">
-                                                        <div
-                                                            onClick={() => toggleClinicSession(site.id, day.id, timeSlot)}
-                                                            className={`border rounded cursor-pointer transition-colors ${
-                                                                session
-                                                                    ? 'bg-primary-100 border-primary-300'
-                                                                    : isWeekend
-                                                                    ? 'bg-gray-50 border-gray-200'
-                                                                    : 'bg-white border-gray-300 hover:bg-gray-50'
-                                                            } p-1`}
-                                                        >
-                                                            {session && (
-                                                                <input
-                                                                    type="number"
-                                                                    value={session.maxResidents}
-                                                                    onChange={(e) => {
-                                                                        e.stopPropagation();
-                                                                        updateSessionResidents(site.id, day.id, timeSlot, e.target.value);
-                                                                    }}
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                    className="w-full text-center text-xs p-0 border-0 bg-transparent"
-                                                                    min="1"
-                                                                    max="9"
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                <div className="flex items-center justify-between mb-3">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Clinics & Default Schedule</label>
+                        <p className="text-xs text-gray-500">Configure clinic capacity, site, and weekly default sessions for each attending clinic.</p>
                     </div>
-                ))}
+                    <Button type="button" onClick={addClinic}>
+                        <Icon name="plus" size={16} className="mr-2" />
+                        Add Clinic
+                    </Button>
+                </div>
+
+                <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
+                    {formData.clinics.map((clinic, index) => {
+                        const site = sites.find(s => s.id === clinic.siteId);
+                        return (
+                            <Card key={clinic.id} className="border border-gray-200">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1 space-y-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Clinic Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={clinic.name}
+                                                    onChange={(e) => updateClinic(clinic.id, { name: e.target.value })}
+                                                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                                                    placeholder={`Clinic ${index + 1}`}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Site</label>
+                                                <select
+                                                    value={clinic.siteId}
+                                                    onChange={(e) => updateClinic(clinic.id, { siteId: e.target.value })}
+                                                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                                                >
+                                                    <option value="">Select Site</option>
+                                                    {sites.map(siteOption => (
+                                                        <option key={siteOption.id} value={siteOption.id}>
+                                                            {siteOption.name} ({siteOption.code})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Resident Capacity</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={clinic.residentCapacity}
+                                                    onChange={(e) => handleResidentCapacityChange(clinic.id, e.target.value)}
+                                                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Label</label>
+                                                <div className="flex items-center gap-2 text-xs text-gray-600">
+                                                    <div
+                                                        className="w-3 h-3 rounded-full border"
+                                                        style={{ backgroundColor: site?.color || '#CBD5F5' }}
+                                                    />
+                                                    <span>{site?.name || 'No site selected'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-600 mb-2">Default Sessions</p>
+                                            <div className="overflow-x-auto">
+                                                <table className="min-w-full border-collapse">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="w-16"></th>
+                                                            {DAYS_OF_WEEK.map(day => (
+                                                                <th key={day.id} className="text-xs font-medium text-gray-500 p-1">
+                                                                    {day.short}
+                                                                </th>
+                                                            ))}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {TIME_SLOTS.map(slot => (
+                                                            <tr key={`${clinic.id}_${slot}`}>
+                                                                <td className="text-xs font-medium text-gray-600 p-1">{slot}</td>
+                                                                {DAYS_OF_WEEK.map(day => {
+                                                                    const isSelected = clinic.defaultSessions?.some(session =>
+                                                                        session.dayOfWeek === day.id && session.timeSlot === slot
+                                                                    );
+                                                                    const isWeekend = day.id === 0 || day.id === 6;
+                                                                    return (
+                                                                        <td key={`${clinic.id}_${day.id}_${slot}`} className="p-1">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => toggleClinicSession(clinic.id, day.id, slot)}
+                                                                                className={`w-full h-10 rounded border text-xs transition-colors ${
+                                                                                    isSelected
+                                                                                        ? 'bg-primary-100 border-primary-300 text-primary-700'
+                                                                                        : isWeekend
+                                                                                        ? 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+                                                                                        : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                                                                                }`}
+                                                                            >
+                                                                                {isSelected ? 'Scheduled' : '—'}
+                                                                            </button>
+                                                                        </td>
+                                                                    );
+                                                                })}
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <span className="text-xs text-gray-500">Clinic {index + 1}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeClinic(clinic.id)}
+                                            className="text-red-600 hover:text-red-700"
+                                            title="Remove clinic"
+                                        >
+                                            <Icon name="trash" size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </Card>
+                        );
+                    })}
+                    {formData.clinics.length === 0 && (
+                        <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center text-sm text-gray-500">
+                            No clinics configured. Add a clinic to begin scheduling.
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="flex justify-end gap-3">
@@ -4371,8 +5348,10 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
                                     value={assignment?.rotationId || ''}
                                     onChange={(e) => {
                                         const rotation = rotations.find(r => r.id === e.target.value);
-                                        const primarySite = rotation?.isMultiSite ? null : (rotation?.siteIds?.[0] || sites[0]?.id);
-                                        setRotationForMonth(month, e.target.value, primarySite);
+                                        const rotationSiteIds = rotation?.siteIds || [];
+                                        const availableSiteIds = rotationSiteIds.filter(id => sites.some(site => site.id === id));
+                                        const defaultSiteId = availableSiteIds.length === 1 ? availableSiteIds[0] : '';
+                                        setRotationForMonth(month, e.target.value, defaultSiteId);
                                     }}
                                     className="flex-1 px-2 py-1 border rounded text-sm"
                                 >
@@ -4386,18 +5365,29 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
                                 </select>
                                 {assignment && (() => {
                                     const rotation = rotations.find(r => r.id === assignment.rotationId);
-                                    return !rotation?.isMultiSite && (
+                                    if (!rotation) return null;
+                                    const rotationSiteIds = rotation.siteIds || [];
+                                    const siteOptions = rotationSiteIds.length > 0
+                                        ? sites.filter(s => rotationSiteIds.includes(s.id))
+                                        : sites;
+
+                                    if (!siteOptions.length) {
+                                        return null;
+                                    }
+
+                                    const requiresSelection = rotation.isMultiSite || siteOptions.length > 1;
+
+                                    return (
                                         <select
                                             value={assignment.primarySiteId || ''}
                                             onChange={(e) => setRotationForMonth(month, assignment.rotationId, e.target.value)}
-                                            className="w-32 px-2 py-1 border rounded text-sm"
+                                            className="w-40 px-2 py-1 border rounded text-sm"
+                                            required={requiresSelection}
                                         >
                                             <option value="">Select Site</option>
-                                            {sites
-                                                .filter(s => rotation?.siteIds?.includes(s.id))
-                                                .map(s => (
-                                                    <option key={s.id} value={s.id}>{s.name}</option>
-                                                ))}
+                                            {siteOptions.map(s => (
+                                                <option key={s.id} value={s.id}>{s.name}</option>
+                                            ))}
                                         </select>
                                     );
                                 })()}
@@ -5888,12 +6878,159 @@ const AutoScheduler = ({ onClose }) => {
     );
 };
 
+// ==================== Chat Assistant Panel ====================
+const ChatAssistantPanel = ({ onClose }) => {
+    const { firebaseService, user } = useApp();
+    const institutionId = firebaseService.currentInstitution;
+    const firstName = user?.name ? user.name.split(' ')[0] : 'there';
+    const [messages, setMessages] = useState(() => ([
+        { id: generateId('msg'), role: 'assistant', content: `Hi ${firstName}! How can I help with the schedule today?` }
+    ]));
+    const [inputValue, setInputValue] = useState('');
+    const [isSending, setIsSending] = useState(false);
+    const listRef = useRef(null);
+
+    useEffect(() => {
+        if (listRef.current) {
+            listRef.current.scrollTop = listRef.current.scrollHeight;
+        }
+    }, [messages]);
+
+    const sendMessage = async (text) => {
+        const trimmed = (text || '').trim();
+        if (!trimmed || !institutionId) {
+            return;
+        }
+
+        const userMessage = { id: generateId('msg'), role: 'user', content: trimmed };
+        setMessages(prev => [...prev, userMessage]);
+        setInputValue('');
+
+        if (!window.firebase?.functions) {
+            toast.error('Realtime functions are not available right now.');
+            return;
+        }
+
+        setIsSending(true);
+        try {
+            const chatFn = window.firebase.functions.httpsCallable('chatAssistant');
+            const historyPayload = messages
+                .concat(userMessage)
+                .slice(-10)
+                .map(entry => ({ role: entry.role, content: entry.content }));
+
+            const response = await chatFn({
+                institutionId,
+                message: trimmed,
+                history: historyPayload
+            });
+
+            const data = response?.data || {};
+            const assistantText = data.reply || 'Done.';
+            const assistantMessage = {
+                id: generateId('msg'),
+                role: 'assistant',
+                content: assistantText,
+                metadata: data
+            };
+            setMessages(prev => [...prev, assistantMessage]);
+        } catch (error) {
+            console.error('Chat assistant send error', error);
+            toast.error(error.message || 'The assistant could not complete that request.');
+            setMessages(prev => [...prev, { id: generateId('msg'), role: 'assistant', content: 'Sorry, I could not complete that request. Please try again.' }]);
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (isSending) return;
+        sendMessage(inputValue);
+    };
+
+    const handleUndo = () => {
+        if (isSending) return;
+        sendMessage('Undo the last change.');
+    };
+
+    const handleKeyDown = (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            handleSubmit(event);
+        }
+    };
+
+    return (
+        <div className="flex flex-col h-[500px]">
+            <div ref={listRef} className="flex-1 overflow-y-auto pr-2 space-y-3">
+                {messages.map(message => (
+                    <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div
+                            className={`max-w-[85%] px-4 py-2 rounded-2xl shadow-sm ${
+                                message.role === 'user'
+                                    ? 'bg-primary-600 text-white'
+                                    : 'bg-white text-gray-800 border border-gray-200'
+                            }`}
+                        >
+                            <p className="text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
+                            {message.metadata?.action && (
+                                <p className="mt-1 text-xs opacity-80">Action: {message.metadata.action}</p>
+                            )}
+                        </div>
+                    </div>
+                ))}
+                {isSending && (
+                    <div className="text-gray-500 text-sm italic">Assistant is thinking…</div>
+                )}
+            </div>
+
+            <form onSubmit={handleSubmit} className="mt-4">
+                <div className="flex items-end gap-2">
+                    <textarea
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Ask the assistant to add, adjust, or review schedules…"
+                        className="flex-1 h-24 resize-none px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                    />
+                    <Button type="submit" disabled={isSending || !inputValue.trim()}>
+                        <Icon name="send" size={16} className="mr-2" />
+                        Send
+                    </Button>
+                </div>
+            </form>
+
+            <div className="flex items-center justify-between mt-3 text-sm text-gray-500">
+                <div className="flex gap-2">
+                    <Button variant="secondary" onClick={handleUndo} disabled={isSending}>
+                        <Icon name="rotate-ccw" size={14} className="mr-1" />
+                        Undo last action
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => sendMessage('Summarize today\'s clinic coverage.')}
+                        disabled={isSending}
+                    >
+                        <Icon name="sparkles" size={14} className="mr-1" />
+                        Summarize today
+                    </Button>
+                </div>
+                <Button variant="secondary" onClick={onClose}>
+                    Close
+                </Button>
+            </div>
+        </div>
+    );
+};
+
 // ==================== Main App Component ====================
 const App = () => {
     const { user, loading, firebaseService } = useApp();
     const [activeView, setActiveView] = useState('dashboard');
     const [scheduleFilterData, setScheduleFilterData] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [showChatAssistant, setShowChatAssistant] = useState(false);
 
     const navigateToSchedule = (personType, personId) => {
         setScheduleFilterData({ type: personType, id: personId });
@@ -6138,7 +7275,13 @@ const App = () => {
             {/* Main Content with Glass Background */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
                 {activeView === 'dashboard' && <Dashboard />}
-                {activeView === 'schedule' && <ScheduleCalendar initialFilter={scheduleFilterData} onNavigateToPerson={navigateToSchedule} />}
+                {activeView === 'schedule' && (
+                    <ScheduleCalendar
+                        initialFilter={scheduleFilterData}
+                        onNavigateToPerson={navigateToSchedule}
+                        onOpenChatAssistant={() => setShowChatAssistant(true)}
+                    />
+                )}
                 {activeView === 'attendings' && <AttendingsList navigateToSchedule={navigateToSchedule} />}
                 {activeView === 'residents' && <ResidentsList navigateToSchedule={navigateToSchedule} />}
                 {activeView === 'rules' && <RulesList />}
@@ -6156,6 +7299,17 @@ const App = () => {
                     },
                 }}
             />
+
+            {showChatAssistant && (
+                <Modal
+                    isOpen={showChatAssistant}
+                    onClose={() => setShowChatAssistant(false)}
+                    title="Chat Assistant"
+                    size="xl"
+                >
+                    <ChatAssistantPanel onClose={() => setShowChatAssistant(false)} />
+                </Modal>
+            )}
         </div>
     );
 };
