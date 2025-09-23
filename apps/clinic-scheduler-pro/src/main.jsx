@@ -7202,7 +7202,6 @@ const AssistantGuideView = () => {
         </div>
     );
 };
-
 // ==================== Main App Component ====================
 const App = () => {
     const { user, loading, firebaseService } = useApp();
