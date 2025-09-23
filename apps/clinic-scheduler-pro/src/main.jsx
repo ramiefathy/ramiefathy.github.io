@@ -7024,6 +7024,184 @@ const ChatAssistantPanel = ({ onClose }) => {
     );
 };
 
+const AssistantGuideView = () => {
+    const sections = [
+        {
+            title: 'Prerequisites',
+            description: 'Before launching the assistant, make sure the basics are covered.',
+            icon: 'badge-check',
+            items: [
+                'Sign in with an account that has admin, program_admin, chief_resident, or scheduler permissions.',
+                'Confirm the Firebase Functions deployment includes the chatAssistant callable.',
+                'Set environment config: gemini.location, gemini.model, chatbot.rate_limit, chatbot.undo_limit.',
+                'For local testing, point GOOGLE_APPLICATION_CREDENTIALS to the service account JSON (keep it outside Git).'
+            ]
+        },
+        {
+            title: 'Launching the Assistant',
+            description: 'Find the assistant inside the Schedule view.',
+            icon: 'rocket',
+            items: [
+                'Open Clinic Scheduler Pro and navigate to the Schedule tab.',
+                'Select the floating “Chat Assistant” button at the bottom right.',
+                'Use the modal to review conversation history, send requests, or trigger quick actions like Undo and Summarize.'
+            ]
+        },
+        {
+            title: 'Request Tips',
+            description: 'Provide structured details so Gemini can take precise action.',
+            icon: 'list-checks',
+            items: [
+                'Include date (YYYY-MM-DD), time slot (AM/PM), attending/resident IDs, and site or clinic when known.',
+                'Describe recurrence explicitly, e.g., “every week for 4 weeks starting 2025-10-02”.',
+                'State the desired outcome in one sentence—avoid multi-step instructions in a single message.'
+            ]
+        },
+        {
+            title: 'Guardrails & Limits',
+            description: 'The assistant enforces safety rules before saving changes.',
+            icon: 'shield-alert',
+            items: [
+                'Protected continuity clinics, didactics, and approved time off cannot be edited by the assistant.',
+                'Rate limiting defaults to 20 requests per hour per user—slow down when you see a cooldown message.',
+                'Undo reverts up to the last 25 bot actions for your account; manual calendar edits remain untouched.'
+            ]
+        },
+        {
+            title: 'Troubleshooting',
+            description: 'How to recover when something feels off.',
+            icon: 'life-buoy',
+            items: [
+                'If responses hang on “Assistant is thinking…”, inspect Firebase logs (`firebase functions:log --only chatAssistant`).',
+                'Permission errors typically mean your Firestore member record lacks the required role.',
+                'Missing credentials? Redeploy with the chatbot service account or update GOOGLE_APPLICATION_CREDENTIALS locally.',
+                'Large rollbacks: use the standard schedule restore workflow beyond the 25-step undo stack.'
+            ]
+        }
+    ];
+
+    const samplePrompts = [
+        '“Schedule resident r_jackson with attending a_cole on 2025-10-14 AM at continuity clinic.”',
+        '“Move Taylor’s October 09 AM clinic to Friday October 10 PM.”',
+        '“Undo the last change.”',
+        '“Summarize today’s clinic coverage.”'
+    ];
+
+    const bestPractices = [
+        'Break complex reorganizations into smaller requests and review results between each step.',
+        'Let the UI trim older chat history to keep responses fast; long transcripts increase latency.',
+        'Document high-impact bot changes in audit notes so teammates understand the context.',
+        'Coordinate with other schedulers to avoid overlapping edits during busy clinic weeks.'
+    ];
+
+    return (
+        <div className="space-y-6">
+            <Card className="bg-gradient-to-r from-primary-50 via-white to-primary-50 border-primary-100">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <p className="uppercase tracking-widest text-xs text-primary-500 font-semibold">Assistant Onboarding</p>
+                        <h2 className="text-2xl font-display font-bold text-medical-900 mt-1">Get Started with the Clinic Scheduler Chat Assistant</h2>
+                        <p className="text-gray-600 mt-3 max-w-2xl">
+                            Learn how to safely automate scheduling changes with Gemini. Follow these guidelines to request updates, respect guardrails, and recover quickly when something goes sideways.
+                        </p>
+                    </div>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="px-5 py-4 bg-white border border-primary-100 rounded-xl shadow-sm"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-primary-100 rounded-xl">
+                                <Icon name="bot" size={28} className="text-primary-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Roles with access</p>
+                                <p className="font-semibold text-medical-900">Admin · Program Admin · Chief Resident · Scheduler</p>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            </Card>
+
+            <div className="grid gap-5 lg:grid-cols-2">
+                {sections.map(section => (
+                    <Card key={section.title} className="h-full">
+                        <div className="flex items-start gap-3">
+                            <div className="p-3 bg-medical-50 rounded-xl shadow-inner">
+                                <Icon name={section.icon} size={24} className="text-medical-600" />
+                            </div>
+                            <div className="space-y-3">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-medical-900">{section.title}</h3>
+                                    <p className="text-sm text-gray-600">{section.description}</p>
+                                </div>
+                                <ul className="space-y-2 text-sm text-gray-700 leading-relaxed">
+                                    {section.items.map(item => (
+                                        <li key={item} className="flex gap-2 items-start">
+                                            <Icon name="check" size={16} className="mt-0.5 text-primary-500" />
+                                            <span>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    </Card>
+                ))}
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-2">
+                <Card className="h-full">
+                    <h3 className="text-lg font-semibold text-medical-900 mb-3">Sample Prompts</h3>
+                    <p className="text-sm text-gray-600 mb-4">Use these templates as a starting point and adjust IDs, dates, and clinics to fit your scenario.</p>
+                    <div className="space-y-3">
+                        {samplePrompts.map(prompt => (
+                            <div key={prompt} className="p-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-800">
+                                {prompt}
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+                <Card className="h-full">
+                    <h3 className="text-lg font-semibold text-medical-900 mb-3">Best Practices</h3>
+                    <p className="text-sm text-gray-600 mb-4">Keep collaboration tight and reduce rework by following these habits.</p>
+                    <ul className="space-y-3 text-sm text-gray-700 leading-relaxed">
+                        {bestPractices.map(item => (
+                            <li key={item} className="flex gap-2 items-start">
+                                <Icon name="sparkles" size={16} className="mt-0.5 text-primary-500" />
+                                <span>{item}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </Card>
+            </div>
+
+            <Card className="bg-medical-50 border-medical-100">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h3 className="text-lg font-semibold text-medical-900">Need help or spotting anomalies?</h3>
+                        <p className="text-sm text-gray-600 mt-1">Check the chatAssistant logs first. Escalate via #clinic-scheduler Slack or contact the platform ops team for urgent issues.</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => navigator.clipboard?.writeText('firebase functions:log --only chatAssistant')}
+                            className="bg-white"
+                        >
+                            <Icon name="clipboard-copy" size={16} className="mr-2" />
+                            Copy log command
+                        </Button>
+                        <Button
+                            onClick={() => toast.success('Remember to share context in #clinic-scheduler when you reach out!')}
+                        >
+                            <Icon name="message-circle" size={16} className="mr-2" />
+                            Notify ops team
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+        </div>
+    );
+};
 // ==================== Main App Component ====================
 const App = () => {
     const { user, loading, firebaseService } = useApp();
@@ -7063,6 +7241,7 @@ const App = () => {
         { id: 'attendings', label: 'Attendings', icon: 'users' },
         { id: 'residents', label: 'Residents', icon: 'user-check' },
         { id: 'rules', label: 'Rules', icon: 'shield-check' },
+        { id: 'assistant-guide', label: 'Assistant Guide', icon: 'bot' },
         { id: 'settings', label: 'Settings', icon: 'settings' }
     ];
 
@@ -7285,6 +7464,7 @@ const App = () => {
                 {activeView === 'attendings' && <AttendingsList navigateToSchedule={navigateToSchedule} />}
                 {activeView === 'residents' && <ResidentsList navigateToSchedule={navigateToSchedule} />}
                 {activeView === 'rules' && <RulesList />}
+                {activeView === 'assistant-guide' && <AssistantGuideView />}
                 {activeView === 'settings' && <SettingsView />}
             </main>
 
