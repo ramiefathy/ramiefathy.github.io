@@ -132,7 +132,7 @@ small {
 .controls {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   margin-bottom: 32px;
 }
 
@@ -145,17 +145,28 @@ small {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  text-align: center;
+  align-items: center;
 }
 
 
 .control-card--search {
   gap: 16px;
+  align-items: stretch;
+  text-align: left;
+}
+
+.control-card p,
+.control-card small,
+.control-card .label {
+  width: 100%;
 }
 
 .inline-dropdowns {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  justify-content: center;
 }
 
 .filter-dropdown {
@@ -163,13 +174,19 @@ small {
 }
 
 .dropdown-toggle {
-  padding: 8px 14px;
+  padding: 10px 16px;
   border-radius: 10px;
   border: 1px solid rgba(37, 99, 235, 0.35);
   background: rgba(37, 99, 235, 0.1);
   color: var(--accent);
   cursor: pointer;
   transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 220px;
+  font-size: 0.95rem;
 }
 
 .dropdown-toggle:hover,
@@ -239,8 +256,22 @@ small {
   cursor: pointer;
 }
 
-.dropdown-option span {
+.dropdown-option__text {
   flex: 1;
+}
+
+.dropdown-toggle__icon {
+  font-size: 0.85rem;
+  transition: transform 160ms ease;
+}
+
+.filter-dropdown.is-open .dropdown-toggle__icon {
+  transform: rotate(180deg);
+}
+.filter-dropdown.is-open .dropdown-toggle {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 12px 22px rgba(37, 99, 235, 0.22);
 }
 
 .control-card label {
@@ -286,6 +317,7 @@ small {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  justify-content: center;
 }
 
 .category-btn {
