@@ -7018,7 +7018,21 @@ const App = () => {
     navigateToSchedule: navigateToSchedule
   }), activeView === 'residents' && /*#__PURE__*/React.createElement(ResidentsList, {
     navigateToSchedule: navigateToSchedule
-  }), activeView === 'rules' && /*#__PURE__*/React.createElement(RulesList, null), activeView === 'assistant-guide' && /*#__PURE__*/React.createElement(AssistantGuideView, null), activeView === 'settings' && /*#__PURE__*/React.createElement(SettingsView, null)), /*#__PURE__*/React.createElement(Toaster, {
+  }), activeView === 'rules' && /*#__PURE__*/React.createElement(RulesList, null), activeView === 'assistant-guide' && /*#__PURE__*/React.createElement(AssistantGuideView, null), activeView === 'settings' && /*#__PURE__*/React.createElement(SettingsView, null)), /*#__PURE__*/React.createElement(motion.button, {
+    "aria-label": "Open Chat Assistant",
+    onClick: () => setShowChatAssistant(true),
+    whileHover: {
+      scale: 1.07
+    },
+    whileTap: {
+      scale: 0.95
+    },
+    className: "fixed bottom-6 right-6 z-40 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-xl shadow-primary-500/40 hover:shadow-2xl hover:shadow-primary-500/50 focus:outline-none focus:ring-4 focus:ring-primary-300 rounded-full flex items-center justify-center w-14 h-14"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "bot",
+    size: 22,
+    className: "text-white"
+  })), /*#__PURE__*/React.createElement(Toaster, {
     position: "bottom-right",
     toastOptions: {
       className: 'font-medium',
