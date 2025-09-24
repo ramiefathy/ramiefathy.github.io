@@ -437,6 +437,7 @@ small {
 .meta-actions {
   display: flex;
   gap: 8px;
+  justify-content: flex-end;
 }
 
 .icon-btn {
@@ -616,6 +617,80 @@ small {
 
 .entry-details.is-open {
   display: grid;
+}
+
+.entry-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+}
+
+.expand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 140ms ease;
+}
+
+.expand-btn:hover,
+.expand-btn:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.expand-btn[aria-expanded='true'] {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 12px 22px rgba(37, 99, 235, 0.22);
+}
+
+.expand-btn__icon {
+  font-size: 0.85rem;
+}
+
+.risk-badge {
+  position: relative;
+  cursor: default;
+}
+
+.risk-badge:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.risk-badge::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.22);
+  max-width: 280px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease, transform 140ms ease;
+  transform-origin: top center;
+  z-index: 5;
+}
+
+.risk-badge:hover::after,
+.risk-badge:focus::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .detail-tabs {
