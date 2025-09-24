@@ -139,6 +139,94 @@ const ToastItem = ({
   }, toast.message);
 };
 const Toaster = () => null;
+const DAYS_OF_WEEK = [{
+  id: 0,
+  name: 'Sunday',
+  short: 'Sun'
+}, {
+  id: 1,
+  name: 'Monday',
+  short: 'Mon'
+}, {
+  id: 2,
+  name: 'Tuesday',
+  short: 'Tue'
+}, {
+  id: 3,
+  name: 'Wednesday',
+  short: 'Wed'
+}, {
+  id: 4,
+  name: 'Thursday',
+  short: 'Thu'
+}, {
+  id: 5,
+  name: 'Friday',
+  short: 'Fri'
+}, {
+  id: 6,
+  name: 'Saturday',
+  short: 'Sat'
+}];
+const TIME_SLOTS = ['AM', 'PM'];
+const generateId = (prefix = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+const convertLegacyClinicSchedule = (legacySchedule = [], sites = []) => {
+  if (!Array.isArray(legacySchedule) || legacySchedule.length === 0) {
+    return [];
+  }
+  const siteLookup = new Map(sites.map(site => [site.id, site]));
+  const clinicsMap = new Map();
+  legacySchedule.forEach((session = {}) => {
+    const dayOfWeek = typeof session.dayOfWeek === 'number' ? session.dayOfWeek : null;
+    const timeSlot = session.timeSlot || 'AM';
+    const siteId = session.siteId || '';
+    const fallbackId = `legacy_${siteId || 'none'}_${dayOfWeek}_${timeSlot}`;
+    const clinicId = session.clinicId || session.id || fallbackId;
+    if (!clinicsMap.has(clinicId)) {
+      const site = siteLookup.get(siteId);
+      const dayLabel = dayOfWeek != null ? DAYS_OF_WEEK.find(d => d.id === dayOfWeek)?.short : 'Day';
+      clinicsMap.set(clinicId, {
+        id: clinicId,
+        siteId,
+        name: session.clinicName || `${site?.name || 'Clinic'} ${dayLabel || ''} ${timeSlot}`.trim(),
+        residentCapacity: session.maxResidents || session.capacity || 2,
+        defaultSessions: []
+      });
+    }
+    const clinic = clinicsMap.get(clinicId);
+    clinic.defaultSessions.push({
+      dayOfWeek: dayOfWeek ?? 0,
+      timeSlot
+    });
+    if (session.maxResidents || session.capacity) {
+      clinic.residentCapacity = session.maxResidents || session.capacity;
+    }
+  });
+  return Array.from(clinicsMap.values());
+};
+const normalizeClinics = (clinics = []) => {
+  if (!Array.isArray(clinics)) return [];
+  return clinics.filter(Boolean).map(clinic => ({
+    id: clinic.id || generateId('clinic'),
+    name: clinic.name || 'Clinic',
+    siteId: clinic.siteId || '',
+    residentCapacity: Number.isFinite(clinic.residentCapacity) ? clinic.residentCapacity : clinic.capacity || clinic.maxResidents || 2,
+    defaultSessions: Array.isArray(clinic.defaultSessions) ? clinic.defaultSessions.filter(session => typeof session?.dayOfWeek === 'number' && TIME_SLOTS.includes(session?.timeSlot || '')).map(session => ({
+      dayOfWeek: session.dayOfWeek,
+      timeSlot: session.timeSlot || 'AM'
+    })) : []
+  }));
+};
+const normalizeAttendingRecord = (attending = {}, sites = []) => {
+  if (!attending) return attending;
+  const clinics = normalizeClinics(attending.clinics);
+  const normalizedClinics = clinics.length > 0 ? clinics : convertLegacyClinicSchedule(attending.clinicSchedule, sites);
+  return {
+    ...attending,
+    clinics: normalizeClinics(normalizedClinics),
+    scheduleOverrides: Array.isArray(attending.scheduleOverrides) ? attending.scheduleOverrides : []
+  };
+};
 
 // ==================== Error Boundary Component ====================
 class ErrorBoundary extends React.Component {
@@ -634,7 +722,7 @@ const ConflictDetection = {
         allConflicts.push(...maxConflicts);
 
         // Check protected time
-        const protectedConflicts = ConflictDetection.checkProtectedTime(institution?.settings?.protectedTimes, newAssignment.date, newAssignment.timeSlot, resident.pgyLevel);
+        const protectedConflicts = ConflictDetection.checkProtectedTime(institution?.settings?.protectedTimes, newAssignment.date, newAssignment.timeSlot, resident.pgyStatus || resident.pgyLevel);
         allConflicts.push(...protectedConflicts);
       }
     }
@@ -773,8 +861,9 @@ const ExportUtils = {
           if (resident.email && !ValidationUtils.validateEmail(resident.email).isValid) {
             warnings.push(`Resident "${resident.name || index}" has invalid email`);
           }
-          if (resident.pgyLevel) {
-            const pgyValidation = ValidationUtils.validatePGYLevel(resident.pgyLevel);
+          const residentPgy = resident.pgyStatus || resident.pgyLevel;
+          if (residentPgy) {
+            const pgyValidation = ValidationUtils.validatePGYLevel(residentPgy);
             if (!pgyValidation.isValid) {
               warnings.push(`Resident "${resident.name || index}" has invalid PGY level`);
             }
@@ -1586,7 +1675,7 @@ class FirebaseService {
     }
     const query = window.firebase.firestore.query(window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'attendings'), window.firebase.firestore.orderBy('name'));
     const unsubscribe = window.firebase.firestore.onSnapshot(query, snapshot => {
-      const data = snapshot.docs.map(doc => ({
+      const data = snapshot.docs.map(doc => normalizeAttendingRecord({
         id: doc.id,
         ...doc.data()
       }));
@@ -2751,12 +2840,14 @@ const Dashboard = () => {
 // ==================== Schedule Calendar Component ====================
 const ScheduleCalendar = ({
   initialFilter,
-  onNavigateToPerson
+  onNavigateToPerson,
+  onOpenChatAssistant
 }) => {
   const {
     firebaseService,
     institution
   } = useApp();
+  const sites = institution?.settings?.sites || [];
   const [viewMode, setViewMode] = useState(() => {
     return localStorage.getItem('scheduleViewMode') || 'month';
   });
@@ -2769,11 +2860,30 @@ const ScheduleCalendar = ({
   const [selectedCell, setSelectedCell] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deletingIds, setDeletingIds] = useState(new Set());
+  const [showAttendingAdjuster, setShowAttendingAdjuster] = useState(false);
 
   // Individual schedule view states
   const [scheduleFilter, setScheduleFilter] = useState(initialFilter?.type || 'all');
   const [selectedPersonId, setSelectedPersonId] = useState(initialFilter?.id || null);
   const [showPersonSelector, setShowPersonSelector] = useState(false);
+  const normalizedAttendings = useMemo(() => {
+    return attendings.map(att => normalizeAttendingRecord(att, sites));
+  }, [attendings, sites]);
+  const residentsRef = useRef(residents);
+  useEffect(() => {
+    residentsRef.current = residents;
+  }, [residents]);
+  const attendingsRef = useRef(normalizedAttendings);
+  useEffect(() => {
+    attendingsRef.current = normalizedAttendings;
+  }, [normalizedAttendings]);
+  useEffect(() => {
+    setAttendings(current => current.map(att => normalizeAttendingRecord(att, sites)));
+  }, [sites]);
+  const selectedAttending = useMemo(() => {
+    if (scheduleFilter !== 'attending' || !selectedPersonId) return null;
+    return normalizedAttendings.find(a => a.id === selectedPersonId) || null;
+  }, [normalizedAttendings, scheduleFilter, selectedPersonId]);
 
   // Update filter when prop changes
   useEffect(() => {
@@ -2789,9 +2899,10 @@ const ScheduleCalendar = ({
   }, [viewMode]);
 
   // Generate virtual assignments for continuity clinics and protected times
-  const generateVirtualAssignments = (residents, protectedTimes) => {
+  const generateVirtualAssignments = (residents, protectedTimes, attendingsList = [], siteList = []) => {
     const virtual = [];
     const today = new Date();
+    const siteLookup = new Map(siteList.map(site => [site.id, site]));
 
     // Generate continuity clinic assignments
     residents.forEach(resident => {
@@ -2874,6 +2985,87 @@ const ScheduleCalendar = ({
         }
       });
     }
+
+    // Generate attending default clinic sessions
+    attendingsList.forEach(attending => {
+      if (!attending) return;
+      const clinics = attending.clinics || [];
+      const overrides = Array.isArray(attending.scheduleOverrides) ? attending.scheduleOverrides : [];
+      const overridesBySlot = new Map();
+      overrides.forEach(override => {
+        if (!override?.date || !override?.timeSlot) return;
+        const key = `${override.date}_${override.timeSlot}`;
+        if (!overridesBySlot.has(key)) {
+          overridesBySlot.set(key, []);
+        }
+        overridesBySlot.get(key).push(override);
+      });
+      clinics.forEach(clinic => {
+        const defaultSessions = clinic.defaultSessions || [];
+        defaultSessions.forEach(session => {
+          for (let week = 0; week < 52; week++) {
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay() + week * 7);
+            const targetDate = new Date(weekStart);
+            targetDate.setDate(weekStart.getDate() + session.dayOfWeek);
+            if (targetDate < today) {
+              continue;
+            }
+            const dateStr = targetDate.toISOString().split('T')[0];
+            const timeSlot = session.timeSlot || 'AM';
+            const key = `${dateStr}_${timeSlot}`;
+            const slotOverrides = overridesBySlot.get(key) || [];
+            const isCancelled = slotOverrides.some(override => {
+              if (override.action !== 'cancel') return false;
+              if (override.clinicId && override.clinicId !== clinic.id) return false;
+              return true;
+            });
+            if (isCancelled) {
+              continue;
+            }
+            virtual.push({
+              id: `attending_default_${attending.id}_${clinic.id}_${dateStr}_${timeSlot}`,
+              attendingId: attending.id,
+              clinicId: clinic.id,
+              siteId: clinic.siteId || '',
+              date: dateStr,
+              timeSlot,
+              type: 'clinic-default',
+              residentCapacity: clinic.residentCapacity || 0,
+              virtual: true,
+              virtualSource: 'attending-default',
+              attendingName: attending.name,
+              clinicName: clinic.name || 'Clinic',
+              siteName: siteLookup.get(clinic.siteId)?.name || ''
+            });
+          }
+        });
+      });
+      overrides.forEach(override => {
+        if (!override || override.action !== 'add' || !override.date || !override.timeSlot) {
+          return;
+        }
+        const clinic = clinics.find(c => c.id === override.clinicId);
+        const timeSlot = override.timeSlot || 'AM';
+        const siteId = override.siteId || clinic?.siteId || '';
+        virtual.push({
+          id: `attending_override_${attending.id}_${override.date}_${timeSlot}_${override.id || generateId('override')}`,
+          attendingId: attending.id,
+          clinicId: override.clinicId || clinic?.id || null,
+          siteId,
+          date: override.date,
+          timeSlot,
+          type: 'clinic-override',
+          residentCapacity: override.residentCapacity ?? clinic?.residentCapacity ?? 0,
+          virtual: true,
+          virtualSource: 'attending-override',
+          scheduleOverrideId: override.id || null,
+          attendingName: attending.name,
+          clinicName: override.label || clinic?.name || 'Clinic',
+          siteName: siteLookup.get(siteId)?.name || ''
+        });
+      });
+    });
     return virtual;
   };
   useEffect(() => {
@@ -2884,19 +3076,25 @@ const ScheduleCalendar = ({
 
     // Set up real-time listeners
     const unsubscribeAssignments = firebaseService.listenToAssignments(data => {
-      // Merge real assignments with virtual ones
-      const virtualAssignments = generateVirtualAssignments(residents, institution?.settings?.protectedTimes);
+      const virtualAssignments = generateVirtualAssignments(residentsRef.current, institution?.settings?.protectedTimes, attendingsRef.current, sites);
       const mergedAssignments = [...data, ...virtualAssignments];
       setAssignments(mergedAssignments);
       setLoading(false);
     });
     const unsubscribeAttendings = firebaseService.listenToAttendings(data => {
-      setAttendings(data);
+      const normalized = data.map(att => normalizeAttendingRecord(att, sites));
+      setAttendings(normalized);
+      attendingsRef.current = normalized;
+      setAssignments(prev => {
+        const realAssignments = prev.filter(a => !a.virtual);
+        const virtualAssignments = generateVirtualAssignments(residentsRef.current, institution?.settings?.protectedTimes, normalized, sites);
+        return [...realAssignments, ...virtualAssignments];
+      });
     });
     const unsubscribeResidents = firebaseService.listenToResidents(data => {
       setResidents(data);
-      // Regenerate assignments when residents change
-      const virtualAssignments = generateVirtualAssignments(data, institution?.settings?.protectedTimes);
+      residentsRef.current = data;
+      const virtualAssignments = generateVirtualAssignments(data, institution?.settings?.protectedTimes, attendingsRef.current, sites);
       setAssignments(prev => {
         const realAssignments = prev.filter(a => !a.virtual);
         return [...realAssignments, ...virtualAssignments];
@@ -2907,7 +3105,7 @@ const ScheduleCalendar = ({
       unsubscribeAttendings();
       unsubscribeResidents();
     };
-  }, [firebaseService.currentInstitution, institution?.settings?.protectedTimes]);
+  }, [firebaseService.currentInstitution, institution?.settings?.protectedTimes, sites]);
   const weekStart = useMemo(() => getStartOfWeekSunday(activeDate), [activeDate]);
   const monthStart = useMemo(() => getStartOfMonthDate(activeDate), [activeDate]);
   const monthEnd = useMemo(() => getEndOfMonthDate(activeDate), [activeDate]);
@@ -3074,10 +3272,126 @@ const ScheduleCalendar = ({
       return resident?.name || 'Unknown';
     }
     if (scheduleFilter === 'attending' && selectedPersonId) {
-      const attending = attendings.find(a => a.id === selectedPersonId);
+      const attending = normalizedAttendings.find(a => a.id === selectedPersonId);
       return attending?.name || 'Unknown';
     }
     return null;
+  };
+  const handleApplyAttendingOverride = async (attendingId, overrideData) => {
+    const attending = normalizedAttendings.find(a => a.id === attendingId);
+    if (!attending) {
+      toast.error('Attending not found');
+      return;
+    }
+    const {
+      action,
+      clinicId,
+      date,
+      timeSlot,
+      residentCapacity,
+      siteId
+    } = overrideData;
+    if (!action || !date || !timeSlot) {
+      toast.error('Select a date, time, and action.');
+      return;
+    }
+    const overrides = Array.isArray(attending.scheduleOverrides) ? [...attending.scheduleOverrides] : [];
+    const clinic = attending.clinics?.find(c => c.id === clinicId) || null;
+    const dateObj = new Date(date);
+    if (!Number.isFinite(dateObj.getTime())) {
+      toast.error('Invalid date selected.');
+      return;
+    }
+    const dayOfWeek = dateObj.getDay();
+    let message = '';
+    if (action === 'cancel') {
+      if (!clinic) {
+        toast.error('Select a clinic to cancel.');
+        return;
+      }
+      const hasDefaultSession = clinic.defaultSessions?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot);
+      if (!hasDefaultSession) {
+        toast.error('No default clinic is scheduled for that day and time.');
+        return;
+      }
+      const existingIndex = overrides.findIndex(override => override.action === 'cancel' && override.clinicId === clinicId && override.date === date && override.timeSlot === timeSlot);
+      if (existingIndex >= 0) {
+        overrides.splice(existingIndex, 1);
+        message = 'Default clinic restored for that day.';
+      } else {
+        overrides.push({
+          id: generateId('override'),
+          action: 'cancel',
+          clinicId,
+          date,
+          timeSlot
+        });
+        message = 'Default clinic cancelled for that day.';
+      }
+    } else if (action === 'add') {
+      if (!clinic) {
+        toast.error('Select a clinic to add.');
+        return;
+      }
+      const alreadyExists = overrides.some(override => override.action === 'add' && override.clinicId === clinicId && override.date === date && override.timeSlot === timeSlot);
+      if (alreadyExists) {
+        toast.warning('An additional session already exists for this slot.');
+        return;
+      }
+      overrides.push({
+        id: generateId('override'),
+        action: 'add',
+        clinicId,
+        siteId: siteId || clinic.siteId || '',
+        date,
+        timeSlot,
+        residentCapacity: Number.isFinite(residentCapacity) ? residentCapacity : clinic.residentCapacity || 0,
+        label: clinic.name
+      });
+      message = 'Additional clinic session added.';
+    } else {
+      toast.error('Unsupported override action.');
+      return;
+    }
+    try {
+      await firebaseService.updateAttending(attendingId, {
+        scheduleOverrides: overrides
+      });
+      setAttendings(current => current.map(att => att.id === attendingId ? {
+        ...att,
+        scheduleOverrides: overrides
+      } : att));
+      toast.success(message);
+    } catch (error) {
+      console.error('Failed to update attending overrides:', error);
+      toast.error('Failed to update attending schedule.');
+    }
+  };
+  const handleRemoveAttendingOverride = async (attendingId, override) => {
+    const attending = normalizedAttendings.find(a => a.id === attendingId);
+    if (!attending) {
+      toast.error('Attending not found');
+      return;
+    }
+    const overrides = (attending.scheduleOverrides || []).filter(item => {
+      if (override.id && item.id) {
+        return item.id !== override.id;
+      }
+      return !(item.action === override.action && item.clinicId === override.clinicId && item.date === override.date && item.timeSlot === override.timeSlot);
+    });
+    try {
+      await firebaseService.updateAttending(attendingId, {
+        scheduleOverrides: overrides
+      });
+      setAttendings(current => current.map(att => att.id === attendingId ? {
+        ...att,
+        scheduleOverrides: overrides
+      } : att));
+      toast.success('Override removed');
+    } catch (error) {
+      console.error('Failed to remove attending override:', error);
+      toast.error('Failed to remove override.');
+    }
   };
   if (loading) {
     return /*#__PURE__*/React.createElement(LoadingSpinner, {
@@ -3182,6 +3496,20 @@ const ScheduleCalendar = ({
     size: 16,
     className: "mr-2"
   }), "Export"), /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: () => onOpenChatAssistant && onOpenChatAssistant()
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "message-circle",
+    size: 16,
+    className: "mr-2"
+  }), "Chat Assistant"), scheduleFilter === 'attending' && selectedAttending && /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: () => setShowAttendingAdjuster(true)
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "settings",
+    size: 16,
+    className: "mr-2"
+  }), "Adjust Attending Day"), /*#__PURE__*/React.createElement(Button, {
     onClick: () => setShowAutoScheduler(true)
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "sparkles",
@@ -3227,7 +3555,38 @@ const ScheduleCalendar = ({
       onClick: () => handleQuickAdd(day, timeSlot)
     }, slotAssignments.map(assignment => {
       const resident = residents.find(r => r.id === assignment.residentId);
-      const attending = attendings.find(a => a.id === assignment.attendingId);
+      const attending = normalizedAttendings.find(a => a.id === assignment.attendingId);
+      const isTemplate = assignment.virtualSource === 'attending-default' || assignment.virtualSource === 'attending-override';
+      if (isTemplate) {
+        const clinic = attending?.clinics?.find(c => c.id === assignment.clinicId);
+        const site = sites.find(s => s.id === (assignment.siteId || clinic?.siteId));
+        const capacity = assignment.residentCapacity ?? clinic?.residentCapacity ?? 0;
+        const label = assignment.clinicName || clinic?.name || 'Clinic Session';
+        return /*#__PURE__*/React.createElement("div", {
+          key: assignment.id,
+          className: `assignment-card bg-white border-dashed ${assignment.virtualSource === 'attending-override' ? 'border-primary-300 bg-primary-50/40' : 'border-gray-300 bg-slate-50'}`,
+          onClick: e => {
+            e.stopPropagation();
+            if (scheduleFilter === 'attending' && selectedAttending) {
+              setShowAttendingAdjuster(true);
+            } else {
+              toast.info('Select an attending to adjust their schedule.');
+            }
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          className: "flex items-center justify-between"
+        }, /*#__PURE__*/React.createElement("div", {
+          className: "flex-1"
+        }, /*#__PURE__*/React.createElement("div", {
+          className: "font-medium text-gray-800"
+        }, attending?.name || 'Attending Clinic'), /*#__PURE__*/React.createElement("div", {
+          className: "text-sm text-gray-600"
+        }, label, site ? ` · ${site.name}` : ''), /*#__PURE__*/React.createElement("div", {
+          className: "text-xs text-gray-500"
+        }, capacity, " resident slots")), /*#__PURE__*/React.createElement("span", {
+          className: `inline-flex items-center px-2 py-0.5 rounded-full text-xs ${assignment.virtualSource === 'attending-override' ? 'bg-primary-100 text-primary-700' : 'bg-gray-200 text-gray-700'}`
+        }, assignment.virtualSource === 'attending-override' ? 'Additional Session' : 'Default Template')));
+      }
       return /*#__PURE__*/React.createElement("div", {
         key: assignment.id,
         draggable: assignment.type !== 'protected',
@@ -3365,15 +3724,34 @@ const ScheduleCalendar = ({
     date: selectedCell.date,
     timeSlot: selectedCell.timeSlot,
     residents: residents,
-    attendings: attendings,
+    attendings: normalizedAttendings,
     assignments: assignments,
     institution: institution,
     onSave: async data => {
+      if (!data.residentId && data.attendingId && data.clinicId) {
+        const clinicAttending = normalizedAttendings.find(a => a.id === data.attendingId);
+        const clinic = clinicAttending?.clinics?.find(c => c.id === data.clinicId);
+        if (!clinicAttending || !clinic) {
+          toast.error('Unable to identify clinic for attending.');
+          return;
+        }
+        await handleApplyAttendingOverride(clinicAttending.id, {
+          action: 'add',
+          clinicId: clinic.id,
+          date: data.date,
+          timeSlot: data.timeSlot,
+          residentCapacity: clinic.residentCapacity,
+          siteId: clinic.siteId
+        });
+        setSelectedCell(null);
+        return;
+      }
+
       // Check for conflicts
       const conflictCheck = ConflictDetection.checkAllConflicts({
         assignments,
         newAssignment: data,
-        attendings,
+        attendings: normalizedAttendings,
         residents,
         institution
       });
@@ -3401,7 +3779,213 @@ const ScheduleCalendar = ({
     title: "Auto-Schedule Assignments"
   }, /*#__PURE__*/React.createElement(AutoScheduler, {
     onClose: () => setShowAutoScheduler(false)
+  })), showAttendingAdjuster && selectedAttending && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: true,
+    onClose: () => setShowAttendingAdjuster(false),
+    title: "Adjust Attending Schedule"
+  }, /*#__PURE__*/React.createElement(AttendingScheduleAdjuster, {
+    attending: selectedAttending,
+    sites: sites,
+    onApply: data => handleApplyAttendingOverride(selectedAttending.id, data),
+    onRemove: override => handleRemoveAttendingOverride(selectedAttending.id, override),
+    onClose: () => setShowAttendingAdjuster(false)
   })));
+};
+const AttendingScheduleAdjuster = ({
+  attending,
+  sites,
+  onApply,
+  onRemove,
+  onClose
+}) => {
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const clinics = attending?.clinics || [];
+  const clinicsKey = clinics.map(c => c.id).join('|');
+  const [formData, setFormData] = useState(() => ({
+    action: 'cancel',
+    date: todayStr,
+    timeSlot: 'AM',
+    clinicId: clinics[0]?.id || '',
+    residentCapacity: clinics[0]?.residentCapacity || 0
+  }));
+  useEffect(() => {
+    if (!attending) return;
+    setFormData(current => ({
+      ...current,
+      clinicId: clinics[0]?.id || '',
+      residentCapacity: clinics[0]?.residentCapacity || 0
+    }));
+  }, [attending?.id, clinicsKey]);
+  const dayOfWeek = useMemo(() => {
+    if (!formData.date) return null;
+    const dateObj = new Date(formData.date);
+    return Number.isFinite(dateObj.getTime()) ? dateObj.getDay() : null;
+  }, [formData.date]);
+  const cancellableClinics = useMemo(() => {
+    if (dayOfWeek === null) return [];
+    return clinics.filter(clinic => clinic.defaultSessions?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === formData.timeSlot));
+  }, [clinics, dayOfWeek, formData.timeSlot]);
+  const availableClinics = formData.action === 'cancel' ? cancellableClinics : clinics;
+  const availableClinicsKey = availableClinics.map(clinic => clinic.id).join('|');
+  useEffect(() => {
+    if (!availableClinics.length) {
+      setFormData(current => ({
+        ...current,
+        clinicId: ''
+      }));
+      return;
+    }
+    if (!availableClinics.some(clinic => clinic.id === formData.clinicId)) {
+      setFormData(current => ({
+        ...current,
+        clinicId: availableClinics[0].id,
+        residentCapacity: availableClinics[0]?.residentCapacity || 0
+      }));
+    }
+  }, [availableClinicsKey, formData.clinicId]);
+  const selectedClinic = clinics.find(clinic => clinic.id === formData.clinicId) || null;
+  const sortedOverrides = useMemo(() => {
+    const overrides = Array.isArray(attending?.scheduleOverrides) ? [...attending.scheduleOverrides] : [];
+    overrides.sort((a, b) => {
+      if (a.date === b.date) {
+        return (a.timeSlot || 'AM').localeCompare(b.timeSlot || 'AM');
+      }
+      return (a.date || '').localeCompare(b.date || '');
+    });
+    return overrides;
+  }, [attending?.scheduleOverrides]);
+  const handleSubmit = event => {
+    event.preventDefault();
+    if (!formData.date || !formData.timeSlot || !formData.action || !formData.clinicId) {
+      toast.error('Complete all override fields.');
+      return;
+    }
+    const capacityValue = Number.isFinite(formData.residentCapacity) ? formData.residentCapacity : parseInt(formData.residentCapacity, 10) || 0;
+    onApply({
+      action: formData.action,
+      clinicId: formData.clinicId,
+      date: formData.date,
+      timeSlot: formData.timeSlot,
+      residentCapacity: capacityValue,
+      siteId: selectedClinic?.siteId || ''
+    });
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-semibold text-gray-900"
+  }, attending?.name), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600"
+  }, "Adjust automatic clinic sessions for specific dates.")), /*#__PURE__*/React.createElement("form", {
+    onSubmit: handleSubmit,
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Action"), /*#__PURE__*/React.createElement("select", {
+    value: formData.action,
+    onChange: e => setFormData(current => ({
+      ...current,
+      action: e.target.value
+    })),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "cancel"
+  }, "Remove default clinic (one day)"), /*#__PURE__*/React.createElement("option", {
+    value: "add"
+  }, "Add additional clinic (one day)"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Date"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: formData.date,
+    onChange: e => setFormData(current => ({
+      ...current,
+      date: e.target.value
+    })),
+    className: "w-full px-3 py-2 border rounded-lg",
+    min: todayStr
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Time Slot"), /*#__PURE__*/React.createElement("select", {
+    value: formData.timeSlot,
+    onChange: e => setFormData(current => ({
+      ...current,
+      timeSlot: e.target.value
+    })),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, TIME_SLOTS.map(slot => /*#__PURE__*/React.createElement("option", {
+    key: slot,
+    value: slot
+  }, slot)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Clinic"), availableClinics.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "px-3 py-2 border rounded-lg bg-gray-50 text-sm text-gray-600"
+  }, formData.action === 'cancel' ? 'No default clinic scheduled at this day/time.' : 'No clinics configured for this attending.') : /*#__PURE__*/React.createElement("select", {
+    value: formData.clinicId,
+    onChange: e => {
+      const clinicId = e.target.value;
+      const clinic = clinics.find(c => c.id === clinicId);
+      setFormData(current => ({
+        ...current,
+        clinicId,
+        residentCapacity: clinic?.residentCapacity || 0
+      }));
+    },
+    className: "w-full px-3 py-2 border rounded-lg"
+  }, availableClinics.map(clinic => {
+    const site = sites.find(s => s.id === clinic.siteId);
+    return /*#__PURE__*/React.createElement("option", {
+      key: clinic.id,
+      value: clinic.id
+    }, clinic.name, site ? ` · ${site.name}` : '');
+  }))), formData.action === 'add' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Resident Capacity"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    value: formData.residentCapacity,
+    onChange: e => setFormData(current => ({
+      ...current,
+      residentCapacity: Math.max(0, parseInt(e.target.value, 10) || 0)
+    })),
+    className: "w-full px-3 py-2 border rounded-lg"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end gap-3"
+  }, /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    variant: "secondary",
+    onClick: onClose
+  }, "Close"), /*#__PURE__*/React.createElement(Button, {
+    type: "submit",
+    disabled: !availableClinics.length
+  }, "Apply"))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "text-sm font-semibold text-gray-700"
+  }, "Existing Overrides"), sortedOverrides.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "px-3 py-2 border rounded-lg text-sm text-gray-600 bg-gray-50"
+  }, "No overrides configured.") : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, sortedOverrides.map(override => {
+    const clinic = clinics.find(c => c.id === override.clinicId);
+    const site = sites.find(s => s.id === (override.siteId || clinic?.siteId));
+    return /*#__PURE__*/React.createElement("div", {
+      key: override.id || `${override.date}_${override.timeSlot}_${override.clinicId}`,
+      className: "border rounded-lg px-3 py-2 bg-white flex items-center justify-between text-sm"
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      className: "font-medium text-gray-800"
+    }, override.action === 'cancel' ? 'Cancel default clinic' : 'Add clinic session'), /*#__PURE__*/React.createElement("p", {
+      className: "text-gray-600"
+    }, override.date, " \xB7 ", override.timeSlot, clinic ? ` · ${clinic.name}` : '', site ? ` · ${site.name}` : '')), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "text-red-600 hover:text-red-700",
+      onClick: () => onRemove(override)
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "trash",
+      size: 14
+    })));
+  }))));
 };
 
 // Assignment Form Component
@@ -3428,9 +4012,14 @@ const AssignmentForm = ({
     attendingId: '',
     type: 'clinical',
     siteId: '',
-    rotationId: ''
+    rotationId: '',
+    clinicId: ''
   });
   const [conflicts, setConflicts] = useState([]);
+  const [assignResident, setAssignResident] = useState(true);
+  const normalizedAttendings = useMemo(() => {
+    return attendings.map(att => normalizeAttendingRecord(att, sites));
+  }, [attendings, sites]);
 
   // Get resident's current rotation for the month
   const getResidentRotation = residentId => {
@@ -3444,22 +4033,29 @@ const AssignmentForm = ({
   };
 
   // Get available attendings based on rotation and time slot
-  const getAvailableAttendings = () => {
-    if (!formData.residentId) return attendings;
-    const rotation = getResidentRotation(formData.residentId);
-    if (!rotation) return attendings;
+  const getClinicsForSlot = attending => {
+    if (!attending) return [];
     const dayOfWeek = new Date(date).getDay();
-
-    // Filter attendings who:
-    // 1. Support this rotation
-    // 2. Have clinic sessions on this day/time
-    return attendings.filter(attending => {
-      const supportsRotation = attending.rotationIds?.includes(rotation.id);
-      const hasClinicSession = attending.clinicSchedule?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot);
+    return (attending.clinics || []).map(clinic => ({
+      ...clinic,
+      isDefaultSession: clinic.defaultSessions?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot)
+    }));
+  };
+  const getAvailableAttendings = () => {
+    const rotation = getResidentRotation(formData.residentId);
+    const dayOfWeek = new Date(date).getDay();
+    return normalizedAttendings.filter(attending => {
+      const supportsRotation = rotation ? attending.rotationIds?.includes(rotation.id) : true;
+      const hasClinicSession = attending.clinics?.some(clinic => clinic.defaultSessions?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot));
+      if (!assignResident) {
+        return hasClinicSession || (attending.clinics || []).length > 0;
+      }
       return supportsRotation && hasClinicSession;
     });
   };
   const availableAttendings = getAvailableAttendings();
+  const selectedAttending = normalizedAttendings.find(a => a.id === formData.attendingId);
+  const clinicsForAttending = getClinicsForSlot(selectedAttending);
 
   // Check for conflicts when form data changes
   useEffect(() => {
@@ -3470,19 +4066,47 @@ const AssignmentForm = ({
     const conflictCheck = ConflictDetection.checkAllConflicts({
       assignments,
       newAssignment: formData,
-      attendings,
+      attendings: normalizedAttendings,
       residents,
       institution
     });
     setConflicts(conflictCheck.conflicts);
-  }, [formData.residentId, formData.attendingId, formData.date, formData.timeSlot]);
+  }, [formData.residentId, formData.attendingId, formData.clinicId, formData.date, formData.timeSlot, normalizedAttendings, residents, assignments, institution]);
   return /*#__PURE__*/React.createElement("form", {
     onSubmit: e => {
       e.preventDefault();
-      onSave(formData);
+      const payload = {
+        ...formData,
+        residentId: assignResident ? formData.residentId : '',
+        rotationId: assignResident ? formData.rotationId : ''
+      };
+      if (!assignResident) {
+        delete payload.residentId;
+        delete payload.rotationId;
+      }
+      onSave(payload);
     },
     className: "space-y-4"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "flex items-center gap-2 text-sm font-medium text-gray-700"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: assignResident,
+    onChange: e => {
+      const checked = e.target.checked;
+      setAssignResident(checked);
+      if (!checked) {
+        setFormData(current => ({
+          ...current,
+          residentId: '',
+          rotationId: ''
+        }));
+      }
+    },
+    className: "rounded"
+  }), "Assign resident to this clinic"), assignResident && /*#__PURE__*/React.createElement("div", {
+    className: "mt-2"
+  }, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Resident"), /*#__PURE__*/React.createElement("select", {
     value: formData.residentId,
@@ -3491,13 +4115,13 @@ const AssignmentForm = ({
       residentId: e.target.value
     }),
     className: "w-full px-3 py-2 border rounded-lg",
-    required: true
+    required: assignResident
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
   }, "Select Resident"), residents.map(r => /*#__PURE__*/React.createElement("option", {
     key: r.id,
     value: r.id
-  }, r.name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+  }, r.name))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Attending", availableAttendings.length === 0 && formData.residentId && /*#__PURE__*/React.createElement("span", {
     className: "text-red-500 text-xs ml-2"
@@ -3505,28 +4129,54 @@ const AssignmentForm = ({
     value: formData.attendingId,
     onChange: e => {
       const attendingId = e.target.value;
-      const attending = attendings.find(a => a.id === attendingId);
-      const dayOfWeek = new Date(date).getDay();
-      const session = attending?.clinicSchedule?.find(s => s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot);
-      setFormData({
-        ...formData,
+      const attending = normalizedAttendings.find(a => a.id === attendingId);
+      const clinics = getClinicsForSlot(attending);
+      const preferredClinic = clinics.find(c => c.isDefaultSession) || clinics[0];
+      setFormData(current => ({
+        ...current,
         attendingId,
-        siteId: session?.siteId || '',
-        rotationId: getResidentRotation(formData.residentId)?.id || ''
-      });
+        clinicId: preferredClinic?.id || '',
+        siteId: preferredClinic?.siteId || '',
+        rotationId: getResidentRotation(assignResident ? current.residentId : '')?.id || ''
+      }));
     },
     className: "w-full px-3 py-2 border rounded-lg",
     required: true
   }, /*#__PURE__*/React.createElement("option", {
     value: ""
   }, "Select Attending"), availableAttendings.map(a => {
-    const dayOfWeek = new Date(date).getDay();
-    const session = a.clinicSchedule?.find(s => s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot);
-    const site = sites.find(s => s.id === session?.siteId);
+    const clinics = getClinicsForSlot(a);
+    const hasDefault = clinics.some(c => c.isDefaultSession);
+    const labelSuffix = hasDefault ? '' : clinics.length === 0 ? ' (no clinics configured)' : ' (no default clinic this slot)';
     return /*#__PURE__*/React.createElement("option", {
       key: a.id,
       value: a.id
-    }, a.name, " ", site && `(${site.name})`);
+    }, a.name, labelSuffix);
+  }))), formData.attendingId && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Clinic"), clinicsForAttending.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-gray-500 border rounded-lg p-3 bg-gray-50"
+  }, "This attending has no clinics configured. Update their profile to add clinics before scheduling.") : /*#__PURE__*/React.createElement("select", {
+    value: formData.clinicId,
+    onChange: e => {
+      const clinicId = e.target.value;
+      const selectedClinic = clinicsForAttending.find(c => c.id === clinicId);
+      setFormData(current => ({
+        ...current,
+        clinicId,
+        siteId: selectedClinic?.siteId || current.siteId
+      }));
+    },
+    className: "w-full px-3 py-2 border rounded-lg",
+    required: true
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Select Clinic"), clinicsForAttending.map(clinic => {
+    const site = sites.find(s => s.id === clinic.siteId);
+    return /*#__PURE__*/React.createElement("option", {
+      key: clinic.id,
+      value: clinic.id
+    }, clinic.name || 'Clinic', site && ` · ${site.name}`, clinic.isDefaultSession ? '' : ' · one-off');
   }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Type"), /*#__PURE__*/React.createElement("select", {
@@ -3571,7 +4221,8 @@ const AttendingsList = ({
   navigateToSchedule
 }) => {
   const {
-    firebaseService
+    firebaseService,
+    institution
   } = useApp();
   const [attendings, setAttendings] = useState([]);
   const [editingAttending, setEditingAttending] = useState(null);
@@ -3584,6 +4235,10 @@ const AttendingsList = ({
     });
     return unsubscribe;
   }, [firebaseService.currentInstitution]);
+  const sites = institution?.settings?.sites || [];
+  const normalizedAttendings = useMemo(() => {
+    return attendings.map(att => normalizeAttendingRecord(att, sites));
+  }, [attendings, sites]);
   const handleSave = async attendingData => {
     if (attendingData.id) {
       await firebaseService.updateAttending(attendingData.id, attendingData);
@@ -3643,13 +4298,17 @@ const AttendingsList = ({
     className: "text-left py-3 px-4"
   }, "Name"), /*#__PURE__*/React.createElement("th", {
     className: "text-left py-3 px-4"
-  }, "Clinic Sessions"), /*#__PURE__*/React.createElement("th", {
+  }, "Default Sessions"), /*#__PURE__*/React.createElement("th", {
     className: "text-left py-3 px-4"
-  }, "Total Capacity"), /*#__PURE__*/React.createElement("th", {
+  }, "Weekly Capacity"), /*#__PURE__*/React.createElement("th", {
     className: "text-left py-3 px-4"
-  }, "Actions"))), /*#__PURE__*/React.createElement("tbody", null, attendings.map(attending => {
-    const sessionCount = attending.clinicSchedule?.length || 0;
-    const totalCapacity = attending.clinicSchedule?.reduce((sum, s) => sum + (s.maxResidents || 0), 0) || 0;
+  }, "Actions"))), /*#__PURE__*/React.createElement("tbody", null, normalizedAttendings.map(attending => {
+    const sessionCount = attending.clinics?.reduce((total, clinic) => total + (clinic.defaultSessions?.length || 0), 0) || 0;
+    const totalCapacity = attending.clinics?.reduce((sum, clinic) => {
+      const sessions = clinic.defaultSessions?.length || 0;
+      const capacity = clinic.residentCapacity || 0;
+      return sum + sessions * capacity;
+    }, 0) || 0;
     return /*#__PURE__*/React.createElement("tr", {
       key: attending.id,
       className: "border-b hover:bg-gray-50"
@@ -3657,9 +4316,9 @@ const AttendingsList = ({
       className: "py-3 px-4"
     }, attending.name), /*#__PURE__*/React.createElement("td", {
       className: "py-3 px-4"
-    }, sessionCount, " sessions/week"), /*#__PURE__*/React.createElement("td", {
+    }, sessionCount, " default sessions/week"), /*#__PURE__*/React.createElement("td", {
       className: "py-3 px-4"
-    }, totalCapacity, " residents"), /*#__PURE__*/React.createElement("td", {
+    }, totalCapacity, " resident slots/week"), /*#__PURE__*/React.createElement("td", {
       className: "py-3 px-4"
     }, /*#__PURE__*/React.createElement("div", {
       className: "flex items-center gap-2"
@@ -3671,7 +4330,7 @@ const AttendingsList = ({
       name: "calendar",
       size: 16
     })), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setEditingAttending(attending),
+      onClick: () => setEditingAttending(normalizeAttendingRecord(attending, sites)),
       className: "text-primary-600 hover:text-primary-700",
       title: "Edit"
     }, /*#__PURE__*/React.createElement(Icon, {
@@ -3707,93 +4366,184 @@ const AttendingForm = ({
   } = useApp();
   const sites = institution?.settings?.sites || [];
   const rotations = institution?.settings?.rotations || [];
-  const [formData, setFormData] = useState({
-    name: attending.name || '',
-    clinicSchedule: attending.clinicSchedule || [],
-    rotationIds: attending.rotationIds || [],
-    ...attending
-  });
-  const daysOfWeek = [{
-    id: 0,
-    name: 'Sunday',
-    short: 'Sun'
-  }, {
-    id: 1,
-    name: 'Monday',
-    short: 'Mon'
-  }, {
-    id: 2,
-    name: 'Tuesday',
-    short: 'Tue'
-  }, {
-    id: 3,
-    name: 'Wednesday',
-    short: 'Wed'
-  }, {
-    id: 4,
-    name: 'Thursday',
-    short: 'Thu'
-  }, {
-    id: 5,
-    name: 'Friday',
-    short: 'Fri'
-  }, {
-    id: 6,
-    name: 'Saturday',
-    short: 'Sat'
-  }];
-  const timeSlots = ['AM', 'PM'];
-  const toggleClinicSession = (siteId, dayOfWeek, timeSlot) => {
-    const scheduleIndex = formData.clinicSchedule.findIndex(s => s.siteId === siteId && s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot);
-    if (scheduleIndex >= 0) {
-      // Remove session
-      setFormData({
-        ...formData,
-        clinicSchedule: formData.clinicSchedule.filter((_, i) => i !== scheduleIndex)
-      });
-    } else {
-      // Add session
-      setFormData({
-        ...formData,
-        clinicSchedule: [...formData.clinicSchedule, {
-          siteId,
-          dayOfWeek,
-          timeSlot,
-          maxResidents: 2
-        }]
-      });
-    }
+  const buildInitialFormState = useCallback(() => {
+    const normalized = normalizeAttendingRecord(attending, sites);
+    const clinics = normalized.clinics?.length ? normalized.clinics : [{
+      id: generateId('clinic'),
+      name: `${normalized.name || 'Clinic'} Clinic`,
+      siteId: sites[0]?.id || '',
+      residentCapacity: 2,
+      defaultSessions: []
+    }];
+    return {
+      name: normalized.name || '',
+      rotationIds: normalized.rotationIds || [],
+      clinics,
+      scheduleOverrides: normalized.scheduleOverrides || [],
+      email: normalized.email || '',
+      phone: normalized.phone || '',
+      maxWeeklyAssignments: normalized.maxWeeklyAssignments || '',
+      notes: normalized.notes || '',
+      id: normalized.id || null
+    };
+  }, [attending, sites]);
+  const [formData, setFormData] = useState(buildInitialFormState);
+  useEffect(() => {
+    setFormData(buildInitialFormState());
+  }, [buildInitialFormState]);
+  const dedupeSessions = (sessions = []) => {
+    const seen = new Set();
+    const result = [];
+    sessions.forEach(session => {
+      if (typeof session?.dayOfWeek !== 'number' || !TIME_SLOTS.includes(session?.timeSlot)) {
+        return;
+      }
+      const key = `${session.dayOfWeek}_${session.timeSlot}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push({
+          dayOfWeek: session.dayOfWeek,
+          timeSlot: session.timeSlot
+        });
+      }
+    });
+    return result;
   };
-  const updateSessionResidents = (siteId, dayOfWeek, timeSlot, maxResidents) => {
-    setFormData({
-      ...formData,
-      clinicSchedule: formData.clinicSchedule.map(session => session.siteId === siteId && session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot ? {
-        ...session,
-        maxResidents: parseInt(maxResidents) || 1
-      } : session)
+  const updateClinic = (clinicId, updates) => {
+    setFormData(current => ({
+      ...current,
+      clinics: current.clinics.map(clinic => clinic.id === clinicId ? {
+        ...clinic,
+        ...updates
+      } : clinic)
+    }));
+  };
+  const toggleClinicSession = (clinicId, dayOfWeek, timeSlot) => {
+    setFormData(current => ({
+      ...current,
+      clinics: current.clinics.map(clinic => {
+        if (clinic.id !== clinicId) return clinic;
+        const hasSession = clinic.defaultSessions?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot);
+        const nextSessions = hasSession ? clinic.defaultSessions.filter(session => !(session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot)) : [...(clinic.defaultSessions || []), {
+          dayOfWeek,
+          timeSlot
+        }];
+        return {
+          ...clinic,
+          defaultSessions: dedupeSessions(nextSessions)
+        };
+      })
+    }));
+  };
+  const handleResidentCapacityChange = (clinicId, value) => {
+    const capacity = Math.max(0, parseInt(value, 10) || 0);
+    updateClinic(clinicId, {
+      residentCapacity: capacity
     });
   };
-  const getSession = (siteId, dayOfWeek, timeSlot) => {
-    return formData.clinicSchedule.find(s => s.siteId === siteId && s.dayOfWeek === dayOfWeek && s.timeSlot === timeSlot);
+  const addClinic = () => {
+    const defaultSiteId = sites[0]?.id || '';
+    setFormData(current => ({
+      ...current,
+      clinics: [...current.clinics, {
+        id: generateId('clinic'),
+        name: defaultSiteId ? `${sites.find(s => s.id === defaultSiteId)?.name || 'Clinic'} Clinic` : 'New Clinic',
+        siteId: defaultSiteId,
+        residentCapacity: 2,
+        defaultSessions: []
+      }]
+    }));
+  };
+  const removeClinic = clinicId => {
+    setFormData(current => ({
+      ...current,
+      clinics: current.clinics.filter(clinic => clinic.id !== clinicId)
+    }));
+  };
+  const handleSubmit = event => {
+    event.preventDefault();
+    const cleanedClinics = formData.clinics.map(clinic => ({
+      id: clinic.id || generateId('clinic'),
+      name: clinic.name?.trim() || 'Clinic',
+      siteId: clinic.siteId || '',
+      residentCapacity: Math.max(0, parseInt(clinic.residentCapacity, 10) || 0),
+      defaultSessions: dedupeSessions(clinic.defaultSessions || [])
+    }));
+    const payload = {
+      ...attending,
+      name: formData.name.trim(),
+      rotationIds: formData.rotationIds || [],
+      clinics: cleanedClinics,
+      scheduleOverrides: formData.scheduleOverrides || [],
+      email: formData.email?.trim() || '',
+      phone: formData.phone?.trim() || '',
+      maxWeeklyAssignments: formData.maxWeeklyAssignments || '',
+      notes: formData.notes || ''
+    };
+    delete payload.clinicSchedule;
+    delete payload.clinicScheduleLegacy;
+    onSave(payload);
   };
   return /*#__PURE__*/React.createElement("form", {
-    onSubmit: e => {
-      e.preventDefault();
-      onSave(formData);
-    },
-    className: "space-y-4"
+    onSubmit: handleSubmit,
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-4"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Name"), /*#__PURE__*/React.createElement("input", {
     type: "text",
     value: formData.name,
-    onChange: e => setFormData({
-      ...formData,
+    onChange: e => setFormData(current => ({
+      ...current,
       name: e.target.value
-    }),
+    })),
     className: "w-full px-3 py-2 border rounded-lg",
     required: true
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Email (optional)"), /*#__PURE__*/React.createElement("input", {
+    type: "email",
+    value: formData.email,
+    onChange: e => setFormData(current => ({
+      ...current,
+      email: e.target.value
+    })),
+    className: "w-full px-3 py-2 border rounded-lg"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Phone (optional)"), /*#__PURE__*/React.createElement("input", {
+    type: "tel",
+    value: formData.phone,
+    onChange: e => setFormData(current => ({
+      ...current,
+      phone: e.target.value
+    })),
+    className: "w-full px-3 py-2 border rounded-lg"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Max Weekly Assignments"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: "0",
+    value: formData.maxWeeklyAssignments,
+    onChange: e => setFormData(current => ({
+      ...current,
+      maxWeeklyAssignments: Math.max(0, parseInt(e.target.value, 10) || 0)
+    })),
+    className: "w-full px-3 py-2 border rounded-lg"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "md:col-span-2"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2"
+  }, "Notes"), /*#__PURE__*/React.createElement("textarea", {
+    value: formData.notes,
+    onChange: e => setFormData(current => ({
+      ...current,
+      notes: e.target.value
+    })),
+    className: "w-full px-3 py-2 border rounded-lg",
+    rows: 3
+  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium text-gray-700 mb-2"
   }, "Supported Rotations"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-gray-500 mb-2"
@@ -3806,74 +4556,124 @@ const AttendingForm = ({
     type: "checkbox",
     checked: formData.rotationIds?.includes(rotation.id),
     onChange: e => {
-      if (e.target.checked) {
-        setFormData({
-          ...formData,
-          rotationIds: [...(formData.rotationIds || []), rotation.id]
-        });
-      } else {
-        setFormData({
-          ...formData,
-          rotationIds: formData.rotationIds?.filter(id => id !== rotation.id) || []
-        });
-      }
+      setFormData(current => ({
+        ...current,
+        rotationIds: e.target.checked ? [...(current.rotationIds || []), rotation.id] : (current.rotationIds || []).filter(id => id !== rotation.id)
+      }));
     },
     className: "rounded"
   }), /*#__PURE__*/React.createElement("span", {
     className: "text-sm"
   }, rotation.name, " (", rotation.code, ")", rotation.isMultiSite && /*#__PURE__*/React.createElement("span", {
     className: "ml-1 text-xs text-gray-500"
-  }, "[Multi-site]")))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "block text-sm font-medium text-gray-700 mb-2"
-  }, "Clinic Schedule"), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs text-gray-500 mb-3"
-  }, "Click cells to add/remove clinic sessions. Enter resident capacity for each session."), sites.map(site => /*#__PURE__*/React.createElement("div", {
-    key: site.id,
-    className: "mb-4"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-2 mb-2"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "w-3 h-3 rounded-full",
-    style: {
-      backgroundColor: site.color
-    }
-  }), /*#__PURE__*/React.createElement("span", {
-    className: "font-medium text-sm"
-  }, site.name)), /*#__PURE__*/React.createElement("div", {
-    className: "overflow-x-auto"
-  }, /*#__PURE__*/React.createElement("table", {
-    className: "min-w-full border-collapse"
-  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
-    className: "w-16"
-  }), daysOfWeek.map(day => /*#__PURE__*/React.createElement("th", {
-    key: day.id,
-    className: "text-xs font-medium text-gray-600 p-1"
-  }, day.short)))), /*#__PURE__*/React.createElement("tbody", null, timeSlots.map(timeSlot => /*#__PURE__*/React.createElement("tr", {
-    key: timeSlot
-  }, /*#__PURE__*/React.createElement("td", {
-    className: "text-xs font-medium text-gray-600 p-1"
-  }, timeSlot), daysOfWeek.map(day => {
-    const session = getSession(site.id, day.id, timeSlot);
-    const isWeekend = day.id === 0 || day.id === 6;
-    return /*#__PURE__*/React.createElement("td", {
-      key: `${day.id}-${timeSlot}`,
-      className: "p-1"
+  }, "[Multi-site]")))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-3"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700"
+  }, "Clinics & Default Schedule"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500"
+  }, "Configure clinic capacity, site, and weekly default sessions for each attending clinic.")), /*#__PURE__*/React.createElement(Button, {
+    type: "button",
+    onClick: addClinic
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 16,
+    className: "mr-2"
+  }), "Add Clinic")), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4 max-h-[420px] overflow-y-auto pr-1"
+  }, formData.clinics.map((clinic, index) => {
+    const site = sites.find(s => s.id === clinic.siteId);
+    return /*#__PURE__*/React.createElement(Card, {
+      key: clinic.id,
+      className: "border border-gray-200"
     }, /*#__PURE__*/React.createElement("div", {
-      onClick: () => toggleClinicSession(site.id, day.id, timeSlot),
-      className: `border rounded cursor-pointer transition-colors ${session ? 'bg-primary-100 border-primary-300' : isWeekend ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300 hover:bg-gray-50'} p-1`
-    }, session && /*#__PURE__*/React.createElement("input", {
+      className: "flex items-start justify-between gap-3"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex-1 space-y-3"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-1 md:grid-cols-2 gap-3"
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+      className: "block text-xs font-medium text-gray-600 mb-1"
+    }, "Clinic Name"), /*#__PURE__*/React.createElement("input", {
+      type: "text",
+      value: clinic.name,
+      onChange: e => updateClinic(clinic.id, {
+        name: e.target.value
+      }),
+      className: "w-full px-3 py-2 border rounded-lg text-sm",
+      placeholder: `Clinic ${index + 1}`
+    })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+      className: "block text-xs font-medium text-gray-600 mb-1"
+    }, "Site"), /*#__PURE__*/React.createElement("select", {
+      value: clinic.siteId,
+      onChange: e => updateClinic(clinic.id, {
+        siteId: e.target.value
+      }),
+      className: "w-full px-3 py-2 border rounded-lg text-sm"
+    }, /*#__PURE__*/React.createElement("option", {
+      value: ""
+    }, "Select Site"), sites.map(siteOption => /*#__PURE__*/React.createElement("option", {
+      key: siteOption.id,
+      value: siteOption.id
+    }, siteOption.name, " (", siteOption.code, ")")))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+      className: "block text-xs font-medium text-gray-600 mb-1"
+    }, "Resident Capacity"), /*#__PURE__*/React.createElement("input", {
       type: "number",
-      value: session.maxResidents,
-      onChange: e => {
-        e.stopPropagation();
-        updateSessionResidents(site.id, day.id, timeSlot, e.target.value);
-      },
-      onClick: e => e.stopPropagation(),
-      className: "w-full text-center text-xs p-0 border-0 bg-transparent",
-      min: "1",
-      max: "9"
-    })));
-  }))))))))), /*#__PURE__*/React.createElement("div", {
+      min: "0",
+      value: clinic.residentCapacity,
+      onChange: e => handleResidentCapacityChange(clinic.id, e.target.value),
+      className: "w-full px-3 py-2 border rounded-lg text-sm"
+    })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+      className: "block text-xs font-medium text-gray-600 mb-1"
+    }, "Label"), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2 text-xs text-gray-600"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "w-3 h-3 rounded-full border",
+      style: {
+        backgroundColor: site?.color || '#CBD5F5'
+      }
+    }), /*#__PURE__*/React.createElement("span", null, site?.name || 'No site selected')))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      className: "text-xs font-medium text-gray-600 mb-2"
+    }, "Default Sessions"), /*#__PURE__*/React.createElement("div", {
+      className: "overflow-x-auto"
+    }, /*#__PURE__*/React.createElement("table", {
+      className: "min-w-full border-collapse"
+    }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+      className: "w-16"
+    }), DAYS_OF_WEEK.map(day => /*#__PURE__*/React.createElement("th", {
+      key: day.id,
+      className: "text-xs font-medium text-gray-500 p-1"
+    }, day.short)))), /*#__PURE__*/React.createElement("tbody", null, TIME_SLOTS.map(slot => /*#__PURE__*/React.createElement("tr", {
+      key: `${clinic.id}_${slot}`
+    }, /*#__PURE__*/React.createElement("td", {
+      className: "text-xs font-medium text-gray-600 p-1"
+    }, slot), DAYS_OF_WEEK.map(day => {
+      const isSelected = clinic.defaultSessions?.some(session => session.dayOfWeek === day.id && session.timeSlot === slot);
+      const isWeekend = day.id === 0 || day.id === 6;
+      return /*#__PURE__*/React.createElement("td", {
+        key: `${clinic.id}_${day.id}_${slot}`,
+        className: "p-1"
+      }, /*#__PURE__*/React.createElement("button", {
+        type: "button",
+        onClick: () => toggleClinicSession(clinic.id, day.id, slot),
+        className: `w-full h-10 rounded border text-xs transition-colors ${isSelected ? 'bg-primary-100 border-primary-300 text-primary-700' : isWeekend ? 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'}`
+      }, isSelected ? 'Scheduled' : '—'));
+    })))))))), /*#__PURE__*/React.createElement("div", {
+      className: "flex flex-col items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-xs text-gray-500"
+    }, "Clinic ", index + 1), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => removeClinic(clinic.id),
+      className: "text-red-600 hover:text-red-700",
+      title: "Remove clinic"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "trash",
+      size: 16
+    })))));
+  }), formData.clinics.length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "border border-dashed border-gray-300 rounded-lg p-6 text-center text-sm text-gray-500"
+  }, "No clinics configured. Add a clinic to begin scheduling."))), /*#__PURE__*/React.createElement("div", {
     className: "flex justify-end gap-3"
   }, /*#__PURE__*/React.createElement(Button, {
     type: "button",
@@ -4116,8 +4916,10 @@ const ResidentForm = ({
       value: assignment?.rotationId || '',
       onChange: e => {
         const rotation = rotations.find(r => r.id === e.target.value);
-        const primarySite = rotation?.isMultiSite ? null : rotation?.siteIds?.[0] || sites[0]?.id;
-        setRotationForMonth(month, e.target.value, primarySite);
+        const rotationSiteIds = rotation?.siteIds || [];
+        const availableSiteIds = rotationSiteIds.filter(id => sites.some(site => site.id === id));
+        const defaultSiteId = availableSiteIds.length === 1 ? availableSiteIds[0] : '';
+        setRotationForMonth(month, e.target.value, defaultSiteId);
       },
       className: "flex-1 px-2 py-1 border rounded text-sm"
     }, /*#__PURE__*/React.createElement("option", {
@@ -4127,13 +4929,21 @@ const ResidentForm = ({
       value: r.id
     }, r.name, r.isMultiSite && ' [Multi-site]'))), assignment && (() => {
       const rotation = rotations.find(r => r.id === assignment.rotationId);
-      return !rotation?.isMultiSite && /*#__PURE__*/React.createElement("select", {
+      if (!rotation) return null;
+      const rotationSiteIds = rotation.siteIds || [];
+      const siteOptions = rotationSiteIds.length > 0 ? sites.filter(s => rotationSiteIds.includes(s.id)) : sites;
+      if (!siteOptions.length) {
+        return null;
+      }
+      const requiresSelection = rotation.isMultiSite || siteOptions.length > 1;
+      return /*#__PURE__*/React.createElement("select", {
         value: assignment.primarySiteId || '',
         onChange: e => setRotationForMonth(month, assignment.rotationId, e.target.value),
-        className: "w-32 px-2 py-1 border rounded text-sm"
+        className: "w-40 px-2 py-1 border rounded text-sm",
+        required: requiresSelection
       }, /*#__PURE__*/React.createElement("option", {
         value: ""
-      }, "Select Site"), sites.filter(s => rotation?.siteIds?.includes(s.id)).map(s => /*#__PURE__*/React.createElement("option", {
+      }, "Select Site"), siteOptions.map(s => /*#__PURE__*/React.createElement("option", {
         key: s.id,
         value: s.id
       }, s.name)));
@@ -5612,6 +6422,297 @@ const AutoScheduler = ({
   }, scheduling ? 'Scheduling...' : 'Start Auto-Schedule')));
 };
 
+// ==================== Chat Assistant Panel ====================
+const ChatAssistantPanel = ({
+  onClose
+}) => {
+  const {
+    firebaseService,
+    user
+  } = useApp();
+  const institutionId = firebaseService.currentInstitution;
+  const firstName = user?.name ? user.name.split(' ')[0] : 'there';
+  const [messages, setMessages] = useState(() => [{
+    id: generateId('msg'),
+    role: 'assistant',
+    content: `Hi ${firstName}! How can I help with the schedule today?`
+  }]);
+  const [inputValue, setInputValue] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const listRef = useRef(null);
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
+  }, [messages]);
+  const sendMessage = async text => {
+    const trimmed = (text || '').trim();
+    if (!trimmed || !institutionId) {
+      return;
+    }
+    const userMessage = {
+      id: generateId('msg'),
+      role: 'user',
+      content: trimmed
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    if (!window.firebase?.functions) {
+      toast.error('Realtime functions are not available right now.');
+      return;
+    }
+    setIsSending(true);
+    try {
+      const chatFn = window.firebase.functions.httpsCallable('chatAssistant');
+      const historyPayload = messages.concat(userMessage).slice(-10).map(entry => ({
+        role: entry.role,
+        content: entry.content
+      }));
+      const response = await chatFn({
+        institutionId,
+        message: trimmed,
+        history: historyPayload
+      });
+      const data = response?.data || {};
+      const assistantText = data.reply || 'Done.';
+      const assistantMessage = {
+        id: generateId('msg'),
+        role: 'assistant',
+        content: assistantText,
+        metadata: data
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Chat assistant send error', error);
+      toast.error(error.message || 'The assistant could not complete that request.');
+      setMessages(prev => [...prev, {
+        id: generateId('msg'),
+        role: 'assistant',
+        content: 'Sorry, I could not complete that request. Please try again.'
+      }]);
+    } finally {
+      setIsSending(false);
+    }
+  };
+  const handleSubmit = event => {
+    event.preventDefault();
+    if (isSending) return;
+    sendMessage(inputValue);
+  };
+  const handleUndo = () => {
+    if (isSending) return;
+    sendMessage('Undo the last change.');
+  };
+  const handleKeyDown = event => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      handleSubmit(event);
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-[500px]"
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: listRef,
+    className: "flex-1 overflow-y-auto pr-2 space-y-3"
+  }, messages.map(message => /*#__PURE__*/React.createElement("div", {
+    key: message.id,
+    className: `flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `max-w-[85%] px-4 py-2 rounded-2xl shadow-sm ${message.role === 'user' ? 'bg-primary-600 text-white' : 'bg-white text-gray-800 border border-gray-200'}`
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm whitespace-pre-line leading-relaxed"
+  }, message.content), message.metadata?.action && /*#__PURE__*/React.createElement("p", {
+    className: "mt-1 text-xs opacity-80"
+  }, "Action: ", message.metadata.action)))), isSending && /*#__PURE__*/React.createElement("div", {
+    className: "text-gray-500 text-sm italic"
+  }, "Assistant is thinking\u2026")), /*#__PURE__*/React.createElement("form", {
+    onSubmit: handleSubmit,
+    className: "mt-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-end gap-2"
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: inputValue,
+    onChange: e => setInputValue(e.target.value),
+    onKeyDown: handleKeyDown,
+    placeholder: "Ask the assistant to add, adjust, or review schedules\u2026",
+    className: "flex-1 h-24 resize-none px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+  }), /*#__PURE__*/React.createElement(Button, {
+    type: "submit",
+    disabled: isSending || !inputValue.trim()
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "send",
+    size: 16,
+    className: "mr-2"
+  }), "Send"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mt-3 text-sm text-gray-500"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: handleUndo,
+    disabled: isSending
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "rotate-ccw",
+    size: 14,
+    className: "mr-1"
+  }), "Undo last action"), /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: () => sendMessage('Summarize today\'s clinic coverage.'),
+    disabled: isSending
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "sparkles",
+    size: 14,
+    className: "mr-1"
+  }), "Summarize today")), /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: onClose
+  }, "Close")));
+};
+const AssistantGuideView = () => {
+  const sections = [{
+    title: 'Prerequisites',
+    description: 'Before launching the assistant, make sure the basics are covered.',
+    icon: 'badge-check',
+    items: ['Sign in with an account that has admin, program_admin, chief_resident, or scheduler permissions.', 'Confirm the Firebase Functions deployment includes the chatAssistant callable.', 'Set environment config: gemini.location, gemini.model, chatbot.rate_limit, chatbot.undo_limit.', 'For local testing, point GOOGLE_APPLICATION_CREDENTIALS to the service account JSON (keep it outside Git).']
+  }, {
+    title: 'Launching the Assistant',
+    description: 'Find the assistant inside the Schedule view.',
+    icon: 'rocket',
+    items: ['Open Clinic Scheduler Pro and navigate to the Schedule tab.', 'Select the floating “Chat Assistant” button at the bottom right.', 'Use the modal to review conversation history, send requests, or trigger quick actions like Undo and Summarize.']
+  }, {
+    title: 'Request Tips',
+    description: 'Provide structured details so Gemini can take precise action.',
+    icon: 'list-checks',
+    items: ['Include date (YYYY-MM-DD), time slot (AM/PM), attending/resident IDs, and site or clinic when known.', 'Describe recurrence explicitly, e.g., “every week for 4 weeks starting 2025-10-02”.', 'State the desired outcome in one sentence—avoid multi-step instructions in a single message.']
+  }, {
+    title: 'Guardrails & Limits',
+    description: 'The assistant enforces safety rules before saving changes.',
+    icon: 'shield-alert',
+    items: ['Protected continuity clinics, didactics, and approved time off cannot be edited by the assistant.', 'Rate limiting defaults to 20 requests per hour per user—slow down when you see a cooldown message.', 'Undo reverts up to the last 25 bot actions for your account; manual calendar edits remain untouched.']
+  }, {
+    title: 'Troubleshooting',
+    description: 'How to recover when something feels off.',
+    icon: 'life-buoy',
+    items: ['If responses hang on “Assistant is thinking…”, inspect Firebase logs (`firebase functions:log --only chatAssistant`).', 'Permission errors typically mean your Firestore member record lacks the required role.', 'Missing credentials? Redeploy with the chatbot service account or update GOOGLE_APPLICATION_CREDENTIALS locally.', 'Large rollbacks: use the standard schedule restore workflow beyond the 25-step undo stack.']
+  }];
+  const samplePrompts = ['“Schedule resident r_jackson with attending a_cole on 2025-10-14 AM at continuity clinic.”', '“Move Taylor’s October 09 AM clinic to Friday October 10 PM.”', '“Undo the last change.”', '“Summarize today’s clinic coverage.”'];
+  const bestPractices = ['Break complex reorganizations into smaller requests and review results between each step.', 'Let the UI trim older chat history to keep responses fast; long transcripts increase latency.', 'Document high-impact bot changes in audit notes so teammates understand the context.', 'Coordinate with other schedulers to avoid overlapping edits during busy clinic weeks.'];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement(Card, {
+    className: "bg-gradient-to-r from-primary-50 via-white to-primary-50 border-primary-100"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "uppercase tracking-widest text-xs text-primary-500 font-semibold"
+  }, "Assistant Onboarding"), /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl font-display font-bold text-medical-900 mt-1"
+  }, "Get Started with the Clinic Scheduler Chat Assistant"), /*#__PURE__*/React.createElement("p", {
+    className: "text-gray-600 mt-3 max-w-2xl"
+  }, "Learn how to safely automate scheduling changes with Gemini. Follow these guidelines to request updates, respect guardrails, and recover quickly when something goes sideways.")), /*#__PURE__*/React.createElement(motion.div, {
+    initial: {
+      opacity: 0,
+      scale: 0.9
+    },
+    animate: {
+      opacity: 1,
+      scale: 1
+    },
+    className: "px-5 py-4 bg-white border border-primary-100 rounded-xl shadow-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 bg-primary-100 rounded-xl"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "bot",
+    size: 28,
+    className: "text-primary-600"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-500"
+  }, "Roles with access"), /*#__PURE__*/React.createElement("p", {
+    className: "font-semibold text-medical-900"
+  }, "Admin \xB7 Program Admin \xB7 Chief Resident \xB7 Scheduler")))))), /*#__PURE__*/React.createElement("div", {
+    className: "grid gap-5 lg:grid-cols-2"
+  }, sections.map(section => /*#__PURE__*/React.createElement(Card, {
+    key: section.title,
+    className: "h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 bg-medical-50 rounded-xl shadow-inner"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: section.icon,
+    size: 24,
+    className: "text-medical-600"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-semibold text-medical-900"
+  }, section.title), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600"
+  }, section.description)), /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-2 text-sm text-gray-700 leading-relaxed"
+  }, section.items.map(item => /*#__PURE__*/React.createElement("li", {
+    key: item,
+    className: "flex gap-2 items-start"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "check",
+    size: 16,
+    className: "mt-0.5 text-primary-500"
+  }), /*#__PURE__*/React.createElement("span", null, item))))))))), /*#__PURE__*/React.createElement("div", {
+    className: "grid gap-5 lg:grid-cols-2"
+  }, /*#__PURE__*/React.createElement(Card, {
+    className: "h-full"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-semibold text-medical-900 mb-3"
+  }, "Sample Prompts"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600 mb-4"
+  }, "Use these templates as a starting point and adjust IDs, dates, and clinics to fit your scenario."), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, samplePrompts.map(prompt => /*#__PURE__*/React.createElement("div", {
+    key: prompt,
+    className: "p-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-800"
+  }, prompt)))), /*#__PURE__*/React.createElement(Card, {
+    className: "h-full"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-semibold text-medical-900 mb-3"
+  }, "Best Practices"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600 mb-4"
+  }, "Keep collaboration tight and reduce rework by following these habits."), /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-3 text-sm text-gray-700 leading-relaxed"
+  }, bestPractices.map(item => /*#__PURE__*/React.createElement("li", {
+    key: item,
+    className: "flex gap-2 items-start"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "sparkles",
+    size: 16,
+    className: "mt-0.5 text-primary-500"
+  }), /*#__PURE__*/React.createElement("span", null, item)))))), /*#__PURE__*/React.createElement(Card, {
+    className: "bg-medical-50 border-medical-100"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-semibold text-medical-900"
+  }, "Need help or spotting anomalies?"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-600 mt-1"
+  }, "Check the chatAssistant logs first. Escalate via #clinic-scheduler Slack or contact the platform ops team for urgent issues.")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement(Button, {
+    variant: "secondary",
+    onClick: () => navigator.clipboard?.writeText('firebase functions:log --only chatAssistant'),
+    className: "bg-white"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "clipboard-copy",
+    size: 16,
+    className: "mr-2"
+  }), "Copy log command"), /*#__PURE__*/React.createElement(Button, {
+    onClick: () => toast.success('Remember to share context in #clinic-scheduler when you reach out!')
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "message-circle",
+    size: 16,
+    className: "mr-2"
+  }), "Notify ops team")))));
+};
 // ==================== Main App Component ====================
 const App = () => {
   const {
@@ -5622,6 +6723,7 @@ const App = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const [scheduleFilterData, setScheduleFilterData] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showChatAssistant, setShowChatAssistant] = useState(false);
   const navigateToSchedule = (personType, personId) => {
     setScheduleFilterData({
       type: personType,
@@ -5667,6 +6769,10 @@ const App = () => {
     id: 'rules',
     label: 'Rules',
     icon: 'shield-check'
+  }, {
+    id: 'assistant-guide',
+    label: 'Assistant Guide',
+    icon: 'bot'
   }, {
     id: 'settings',
     label: 'Settings',
@@ -5890,12 +6996,13 @@ const App = () => {
     className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative"
   }, activeView === 'dashboard' && /*#__PURE__*/React.createElement(Dashboard, null), activeView === 'schedule' && /*#__PURE__*/React.createElement(ScheduleCalendar, {
     initialFilter: scheduleFilterData,
-    onNavigateToPerson: navigateToSchedule
+    onNavigateToPerson: navigateToSchedule,
+    onOpenChatAssistant: () => setShowChatAssistant(true)
   }), activeView === 'attendings' && /*#__PURE__*/React.createElement(AttendingsList, {
     navigateToSchedule: navigateToSchedule
   }), activeView === 'residents' && /*#__PURE__*/React.createElement(ResidentsList, {
     navigateToSchedule: navigateToSchedule
-  }), activeView === 'rules' && /*#__PURE__*/React.createElement(RulesList, null), activeView === 'settings' && /*#__PURE__*/React.createElement(SettingsView, null)), /*#__PURE__*/React.createElement(Toaster, {
+  }), activeView === 'rules' && /*#__PURE__*/React.createElement(RulesList, null), activeView === 'assistant-guide' && /*#__PURE__*/React.createElement(AssistantGuideView, null), activeView === 'settings' && /*#__PURE__*/React.createElement(SettingsView, null)), /*#__PURE__*/React.createElement(Toaster, {
     position: "bottom-right",
     toastOptions: {
       className: 'font-medium',
@@ -5905,7 +7012,14 @@ const App = () => {
         color: '#363636'
       }
     }
-  }));
+  }), showChatAssistant && /*#__PURE__*/React.createElement(Modal, {
+    isOpen: showChatAssistant,
+    onClose: () => setShowChatAssistant(false),
+    title: "Chat Assistant",
+    size: "xl"
+  }, /*#__PURE__*/React.createElement(ChatAssistantPanel, {
+    onClose: () => setShowChatAssistant(false)
+  })));
 };
 
 // ==================== Root Component ====================
