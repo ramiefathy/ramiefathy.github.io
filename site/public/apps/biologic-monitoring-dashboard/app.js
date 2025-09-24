@@ -244,10 +244,11 @@ function renderFilterChips(container, options, stateSet) {
       announce(`Filter updated: ${option.label}`);
       render();
     });
-    const text = document.createElement('span');
-    text.textContent = option.label;
+    const wrapper = document.createElement('span');
+    wrapper.className = 'dropdown-option__text';
+    wrapper.textContent = option.label;
     label.appendChild(input);
-    label.appendChild(text);
+    label.appendChild(wrapper);
     fragment.appendChild(label);
   });
   container.appendChild(fragment);
