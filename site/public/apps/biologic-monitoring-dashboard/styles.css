@@ -79,7 +79,12 @@ button,
 .category-btn,
 .tab-btn,
 .entry-summary,
-.muted {
+.muted,
+.dropdown-heading,
+.dropdown-option__text,
+.dropdown-toggle,
+.dropdown-toggle__label,
+.dropdown-toggle__icon {
   font-family: var(--body-font);
 }
 
@@ -243,7 +248,7 @@ small {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--fg);
 }
 
@@ -258,6 +263,7 @@ small {
 
 .dropdown-option__text {
   flex: 1;
+  font-family: var(--body-font);
 }
 
 .dropdown-toggle__icon {
@@ -703,7 +709,8 @@ small {
   padding: 8px 16px;
   border-radius: 10px;
   border: 1px solid rgba(15, 23, 42, 0.12);
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(59, 130, 246, 0.12);
+  color: rgba(15, 23, 42, 0.8);
   font-weight: 600;
   cursor: pointer;
   transition: all 140ms ease;
@@ -714,6 +721,12 @@ small {
   color: #fff;
   border-color: transparent;
   box-shadow: 0 10px 18px rgba(37, 99, 235, 0.24);
+}
+
+.tab-btn:hover,
+.tab-btn:focus {
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
 .tab-panels {
