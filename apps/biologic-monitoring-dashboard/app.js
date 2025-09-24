@@ -41,7 +41,7 @@ const userPreferences = {
 
 const state = {
   search: '',
-  categories: new Set(['Biologics', 'Targeted & Conventional']),
+  categories: new Set(['Biologics', 'Targeted', 'Conventional']),
   conditions: new Set(),
   requirements: new Set(),
   riskLevels: new Set(),
@@ -993,7 +993,7 @@ function attachListeners() {
         state.categories.add(category);
       }
       if (!state.categories.size) {
-        state.categories = new Set(['Biologics', 'Targeted & Conventional']);
+        state.categories = new Set(['Biologics', 'Targeted', 'Conventional']);
         dom.categoryButtons.forEach((btn) => btn.classList.add('is-active'));
       } else {
         dom.categoryButtons.forEach((btn) => {
@@ -1087,7 +1087,7 @@ function jumpToEntry(entryId) {
 
 function resetAll() {
   state.search = '';
-  state.categories = new Set(['Biologics', 'Targeted & Conventional']);
+  state.categories = new Set(['Biologics', 'Targeted', 'Conventional']);
   state.conditions.clear();
   state.requirements.clear();
   state.riskLevels.clear();

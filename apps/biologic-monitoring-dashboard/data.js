@@ -116,7 +116,10 @@ export const monitoringEntries = [
     interactions: 'Avoid live vaccines during therapy; combination immunosuppression increases infection risk—coordinate prophylaxis for hepatitis B carriers.',
     dosing: 'Agents are weight-based or fixed dose per label; no routine dose adjustment for labs but hold for serious infection or cytopenia.',
     references: [
-      { label: 'HUMIRA Prescribing Information', url: 'https://www.drugs.com/pro/humira.html' },
+      { label: 'Humira (adalimumab) Prescribing Information', url: 'https://www.rxabbvie.com/pdf/humira.pdf' },
+      { label: 'Remicade (infliximab) Prescribing Information', url: 'https://www.janssenlabels.com/package-insert/product-monograph/prescribing-information/REMICADE-pi.pdf' },
+      { label: 'Enbrel (etanercept) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/103795s5635lbl.pdf' },
+      { label: 'Cimzia (certolizumab) Prescribing Information', url: 'https://www.cimzia.com/sites/default/files/2023-08/CIMZIA_Prescribing_Information.pdf' },
       { label: 'AAD Biologic Monitoring Review 2025', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC2945861/' }
     ]
   },
@@ -153,8 +156,10 @@ export const monitoringEntries = [
     interactions: 'Avoid live vaccines; caution with other immunosuppressants increasing infection risk.',
     dosing: 'Fixed dosing varies by agent; secukinumab approved for hidradenitis suppurativa (2023) with loading schedule.',
     references: [
-      { label: 'COSENTYX HCP Safety', url: 'https://www.cosentyxhcp.com/rheumatology/safety/jpsa-era-safety' },
-      { label: 'Brodalumab Prescribing Information', url: 'https://www.drugs.com/pro/brodalumab.html' }
+      { label: 'Cosentyx (secukinumab) Prescribing Information', url: 'https://www.novartis.com/us-en/sites/novartis_us/files/cosentyx.pdf' },
+      { label: 'Taltz (ixekizumab) Prescribing Information', url: 'https://uspl.lilly.com/taltz/taltz.html#pi' },
+      { label: 'Siliq (brodalumab) Prescribing Information', url: 'https://www.ema.europa.eu/en/documents/product-information/kyntheum-epar-product-information_en.pdf' },
+      { label: 'Bimzelx (bimekizumab-bkzx) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/761156s000lbl.pdf' }
     ]
   },
   {
@@ -188,8 +193,10 @@ export const monitoringEntries = [
     interactions: 'Avoid live vaccines.',
     dosing: 'Agent-specific fixed dosing; guselkumab and mirikizumab have induction IV regimens for IBD that trigger additional LFT monitoring requirements.',
     references: [
-      { label: 'TREMFYA Prescribing Information', url: 'https://www.janssenlabels.com/package-insert/product-monograph/prescribing-information/TREMFYA-pi.pdf' },
-      { label: 'Mirikizumab FDA Label', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/761150s000lbl.pdf' }
+      { label: 'Tremfya (guselkumab) Prescribing Information', url: 'https://www.janssenlabels.com/package-insert/product-monograph/prescribing-information/TREMFYA-pi.pdf' },
+      { label: 'Skyrizi (risankizumab-rzaa) Prescribing Information', url: 'https://www.rxabbvie.com/pdf/skyrizi_pi.pdf' },
+      { label: 'Ilumya (tildrakizumab-asmn) Prescribing Information', url: 'https://www.ilumya.com/pdf/prescribing-information.pdf' },
+      { label: 'Omvoh (mirikizumab-mrkz) Prescribing Information', url: 'https://uspl.lilly.com/omvoh/omvoh.html#pi' }
     ]
   },
   {
@@ -228,8 +235,8 @@ export const monitoringEntries = [
     interactions: 'Avoid live vaccines.',
     dosing: 'Weight-based SC dosing for psoriasis; IV induction for Crohn’s/UC followed by SC maintenance.',
     references: [
-      { label: 'STELARA Prescribing Information', url: 'https://www.drugs.com/pro/stelara.html' },
-      { label: 'Drugs.com Monitoring Guidance', url: 'https://www.drugs.com/medical-answers/blood-tests-needed-stelara-3539116/' }
+      { label: 'Stelara (ustekinumab) Prescribing Information', url: 'https://www.janssenlabels.com/package-insert/product-monograph/prescribing-information/STELARA-pi.pdf' },
+      { label: 'AAD Psoriasis Guidelines', url: 'https://www.aad.org/member/clinical-quality/guidelines/psoriasis' }
     ]
   },
   {
@@ -264,7 +271,9 @@ export const monitoringEntries = [
     interactions: 'Avoid live vaccines; minimal CYP interactions.',
     dosing: 'Dupilumab includes pediatric dosing ≥6 months for AD, CSU approval April 2025, bullous pemphigoid approval June 2025; lebrikizumab approved September 2024 ≥12 years.',
     references: [
-      { label: 'Dupixent Prescribing Information', url: 'https://www.regeneron.com/downloads/dupixent_fpi.pdf' },
+      { label: 'Dupixent (dupilumab) Prescribing Information', url: 'https://www.regeneron.com/downloads/dupixent_fpi.pdf' },
+      { label: 'Adbry (tralokinumab-ldrm) Prescribing Information', url: 'https://www.adbryhcp.com/sites/default/files/2023-10/adbry-uspi.pdf' },
+      { label: 'Ebglyss (lebrikizumab-lylb) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/761325s000lbl.pdf' },
       { label: 'AAD 2024 Atopic Dermatitis Guidelines', url: 'https://www.ajmc.com/view/monoclonal-antibodies-and-jak-inhibitors-in-atopic-dermatitis-management-2024-guidelines-and-managed-care-considerations' }
     ]
   },
@@ -295,6 +304,7 @@ export const monitoringEntries = [
     interactions: 'Avoid live vaccines; otherwise minimal drug interactions.',
     dosing: 'FDA approvals: Prurigo nodularis (Aug 2024 adults) and atopic dermatitis (Dec 2024 ≥12 years).',
     references: [
+      { label: 'Nemlouvio (nemolizumab-ilto) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/761331s000lbl.pdf' },
       { label: 'VA Nemolizumab Monograph 2025', url: 'https://www.va.gov/formularyadvisor/DOC_PDF/MON_Nemolizumab-ilto_NEMLUVIO_in_Atopic_Dermatitis_Monograph_Jun_2025.pdf' }
     ]
   },
@@ -325,6 +335,7 @@ export const monitoringEntries = [
     interactions: 'None clinically significant; avoid concomitant therapy that may blunt response to anaphylaxis treatment.',
     dosing: 'Fixed dosing based on weight/IgE for asthma; fixed 150–300 mg q4w for CSU.',
     references: [
+      { label: 'Xolair (omalizumab) Prescribing Information', url: 'https://www.gene.com/download/pdf/xolair_prescribing.pdf' },
       { label: 'Omalizumab Anaphylaxis Guidance', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3006370/' }
     ]
   },
@@ -359,13 +370,14 @@ export const monitoringEntries = [
     interactions: 'Avoid live vaccines; immunosuppressive synergy with other biologics.',
     dosing: '300 mg IV every 4 weeks for SLE.',
     references: [
+      { label: 'Saphnelo (anifrolumab-fnia) Prescribing Information', url: 'https://www.azpicentral.com/saphnelo/saphnelo.pdf' },
       { label: 'Anifrolumab Safety Review', url: 'https://pubmed.ncbi.nlm.nih.gov/39245905/' }
     ]
   },
   {
     id: 'upadacitinib',
     name: 'Upadacitinib (JAK1)',
-    category: 'Targeted & Conventional',
+    category: 'Targeted',
     agents: ['Upadacitinib'],
     summary: 'Upadacitinib carries boxed warnings for MACE, thrombosis, malignancy, and serious infection with 2024 requirements for ≥65-year risk stratification and smoking status documentation.',
     conditions: ['atopic-dermatitis', 'psoriatic-arthritis', 'rheumatoid-arthritis'],
@@ -401,14 +413,14 @@ export const monitoringEntries = [
     interactions: 'Avoid strong CYP3A inducers; live vaccines contraindicated.',
     dosing: '15 mg PO daily for atopic dermatitis; consider lowest effective dose in adults ≥65 years.',
     references: [
-      { label: 'RINVOQ Prescribing Information', url: 'https://www.rinvoqhcp.com/dermatology/dosing-lab-monitoring' },
+      { label: 'Rinvoq (upadacitinib) Prescribing Information', url: 'https://www.rxabbvie.com/pdf/rinvoq_pi.pdf' },
       { label: '2024 JAK Monitoring Review', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11393246/' }
     ]
   },
   {
     id: 'abrocitinib',
     name: 'Abrocitinib (JAK1)',
-    category: 'Targeted & Conventional',
+    category: 'Targeted',
     agents: ['Abrocitinib'],
     summary: 'Requires platelet monitoring at weeks 4 and 8 and lipids at week 12, with enhanced risk counseling for patients ≥65 or with CV risks.',
     conditions: ['atopic-dermatitis'],
@@ -440,14 +452,14 @@ export const monitoringEntries = [
     interactions: 'Avoid strong CYP2C19 inhibitors/inducers; live vaccines contraindicated.',
     dosing: '100 mg or 200 mg PO daily; consider 100 mg in patients ≥65 years.',
     references: [
-      { label: 'CIBINQO Prescribing Information', url: 'https://www.drugs.com/pro/cibinqo.html' },
+      { label: 'Cibinqo (abrocitinib) Prescribing Information', url: 'https://labeling.pfizer.com/ShowLabeling.aspx?id=15544' },
       { label: 'JAK Monitoring Guidance 2024', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11393246/' }
     ]
   },
   {
     id: 'baricitinib',
     name: 'Baricitinib (JAK1/2)',
-    category: 'Targeted & Conventional',
+    category: 'Targeted',
     agents: ['Baricitinib'],
     summary: 'Baricitinib shares boxed warnings with class, requires baseline labs, thresholds for initiation, and 12-week lipid checks.',
     conditions: ['alopecia-areata', 'atopic-dermatitis', 'rheumatoid-arthritis'],
@@ -478,13 +490,13 @@ export const monitoringEntries = [
     interactions: 'Adjust with strong OAT3 inhibitors; avoid live vaccines.',
     dosing: '2 mg PO daily for alopecia areata; reduce or avoid higher doses in adults ≥65 years with risk factors.',
     references: [
-      { label: 'OLUMIANT Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2022/207924s006lbl.pdf' }
+      { label: 'Olumiant (baricitinib) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2022/207924s006lbl.pdf' }
     ]
   },
   {
     id: 'ritlecitinib',
     name: 'Ritlecitinib (JAK3/TEC)',
-    category: 'Targeted & Conventional',
+    category: 'Targeted',
     agents: ['Ritlecitinib'],
     summary: 'First JAK inhibitor approved for adolescent alopecia areata (≥12 years); requires 4-week ALC/platelet check and ongoing skin cancer surveillance.',
     conditions: ['alopecia-areata'],
@@ -513,13 +525,13 @@ export const monitoringEntries = [
     interactions: 'Avoid strong CYP3A inducers; live vaccines contraindicated.',
     dosing: '50 mg PO daily for alopecia areata; counsel on contraception.',
     references: [
-      { label: 'LITFULO Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/215830s000lbl.pdf' }
+      { label: 'Litfulo (ritlecitinib) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/215830s000lbl.pdf' }
     ]
   },
   {
     id: 'deucravacitinib',
     name: 'Deucravacitinib (TYK2)',
-    category: 'Targeted & Conventional',
+    category: 'Targeted',
     agents: ['Deucravacitinib'],
     summary: 'TYK2 inhibitor without boxed warnings but requires baseline triglycerides and optional CPK with symptom-directed monitoring.',
     conditions: ['plaque-psoriasis'],
@@ -548,13 +560,14 @@ export const monitoringEntries = [
     interactions: 'Minimal CYP involvement; avoid live vaccines.',
     dosing: '6 mg PO daily for moderate-to-severe plaque psoriasis.',
     references: [
+      { label: 'Sotyktu (deucravacitinib) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2022/214353s000lbl.pdf' },
       { label: 'SOTYKTU VA Monograph', url: 'https://www.va.gov/formularyadvisor/DOC_PDF/MON_Deucravacitinib_SOTYKTU_in_Plaque_Psoriasis_Monograph_Apr_2023.pdf' }
     ]
   },
   {
     id: 'apremilast',
     name: 'Apremilast (PDE4)',
-    category: 'Targeted & Conventional',
+    category: 'Targeted',
     agents: ['Apremilast'],
     summary: 'Oral PDE4 inhibitor with 2024 pediatric approval for plaque psoriasis ≥6 years; focus on weight and mood monitoring.',
     conditions: ['plaque-psoriasis', 'psoriatic-arthritis', 'atopic-dermatitis'],
@@ -577,14 +590,14 @@ export const monitoringEntries = [
     interactions: 'Avoid strong CYP inducers reducing exposure.',
     dosing: '30 mg PO BID for adults; pediatric weight-based dosing: 20 mg BID for 20–50 kg, 30 mg BID ≥50 kg.',
     references: [
-      { label: 'Otezla Prescribing Information', url: 'https://www.drugs.com/pro/otezla.html' },
-      { label: 'BAD Apremilast Guidance', url: 'https://www.skinhealthinfo.org.uk/condition/apremilast/' }
+      { label: 'Otezla (apremilast) Product Information', url: 'https://www.ema.europa.eu/en/documents/product-information/otezla-epar-product-information_en.pdf' },
+      { label: 'AAD Psoriasis Guidelines (2024)', url: 'https://www.aad.org/member/clinical-quality/guidelines/psoriasis' }
     ]
   },
   {
     id: 'methotrexate',
     name: 'Methotrexate',
-    category: 'Targeted & Conventional',
+    category: 'Conventional',
     agents: ['Methotrexate'],
     summary: 'Cornerstone systemic requiring intensive early lab monitoring, folate supplementation, and contraindications for renal impairment or pregnancy.',
     conditions: ['plaque-psoriasis', 'psoriatic-arthritis', 'autoimmune-blistering-disease'],
@@ -620,13 +633,14 @@ export const monitoringEntries = [
     interactions: 'Avoid concomitant trimethoprim-sulfamethoxazole, NSAIDs at high doses, and other hepatotoxic drugs.',
     dosing: 'Weekly dosing with folate supplementation; consider subcutaneous route for GI intolerance.',
     references: [
+      { label: 'Trexall (methotrexate) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/020004s031lbl.pdf' },
       { label: 'SPS Methotrexate Monitoring', url: 'https://www.sps.nhs.uk/monitorings/methotrexate-monitoring/' }
     ]
   },
   {
     id: 'cyclosporine',
     name: 'Cyclosporine',
-    category: 'Targeted & Conventional',
+    category: 'Conventional',
     agents: ['Cyclosporine'],
     summary: 'Rapid-acting calcineurin inhibitor requiring intensive renal, blood pressure, and electrolyte monitoring, especially during first months.',
     conditions: ['plaque-psoriasis', 'autoimmune-blistering-disease'],
@@ -657,13 +671,14 @@ export const monitoringEntries = [
     interactions: 'CYP3A4 interactions (avoid grapefruit, certain antifungals); note nephrotoxic synergy with NSAIDs.',
     dosing: '2.5–5 mg/kg/day divided BID with taper to avoid rebound.',
     references: [
+      { label: 'Neoral (cyclosporine) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/050715s073lbl.pdf' },
       { label: 'SPS Ciclosporin Monitoring', url: 'https://www.sps.nhs.uk/monitorings/ciclosporin-monitoring/' }
     ]
   },
   {
     id: 'mycophenolate',
     name: 'Mycophenolate mofetil',
-    category: 'Targeted & Conventional',
+    category: 'Conventional',
     agents: ['Mycophenolate mofetil'],
     summary: 'Teratogenic antimetabolite requiring dual pregnancy testing and 2-week lab cadence for first 6 weeks.',
     conditions: ['autoimmune-blistering-disease', 'lupus'],
@@ -693,13 +708,14 @@ export const monitoringEntries = [
     interactions: 'Decreased efficacy with antacids/cholestyramine; avoid live vaccines.',
     dosing: '1–1.5 g BID for immunobullous disease; adjust for renal impairment.',
     references: [
+      { label: 'CellCept (mycophenolate mofetil) Prescribing Information', url: 'https://www.gene.com/download/pdf/cellcept_prescribing.pdf' },
       { label: 'SPS Mycophenolate Monitoring', url: 'https://www.sps.nhs.uk/monitorings/mycophenolate-mofetil-monitoring/' }
     ]
   },
   {
     id: 'azathioprine',
     name: 'Azathioprine',
-    category: 'Targeted & Conventional',
+    category: 'Conventional',
     agents: ['Azathioprine'],
     summary: 'Thiopurine requiring TPMT and NUDT15 testing plus structured lab cadence and infection screening.',
     conditions: ['pemphigus', 'lupus', 'autoimmune-blistering-disease'],
@@ -733,13 +749,14 @@ export const monitoringEntries = [
     interactions: 'Allopurinol/febuxostat markedly increase exposure—dose reduction mandatory.',
     dosing: '1–3 mg/kg/day with TPMT/NUDT15-guided adjustments.',
     references: [
+      { label: 'Imuran (azathioprine) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2018/016324s043lbl.pdf' },
       { label: 'SPS Azathioprine Monitoring', url: 'https://www.sps.nhs.uk/monitorings/azathioprine-monitoring/' }
     ]
   },
   {
     id: 'hydroxychloroquine',
     name: 'Hydroxychloroquine',
-    category: 'Targeted & Conventional',
+    category: 'Conventional',
     agents: ['Hydroxychloroquine'],
     summary: 'Antimalarial with ocular toxicity risk requiring baseline ophthalmologic exam and weight-based dosing ≤5 mg/kg actual body weight.',
     conditions: ['cutaneous-lupus', 'rheumatoid-arthritis', 'dermatomyositis'],
@@ -764,6 +781,7 @@ export const monitoringEntries = [
     interactions: 'Caution with QT-prolonging medications.',
     dosing: '≤5 mg/kg actual body weight per day; adjust for renal impairment.',
     references: [
+      { label: 'Plaquenil (hydroxychloroquine sulfate) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/009768s048lbl.pdf' },
       { label: 'AAO Retinopathy Screening Guideline', url: 'https://www.aao.org/education/clinical-statement/revised-recommendations-on-screening-chloroquine-h' },
       { label: 'ACR 2024 Guideline', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11111504/' }
     ]
@@ -771,7 +789,7 @@ export const monitoringEntries = [
   {
     id: 'acitretin',
     name: 'Acitretin',
-    category: 'Targeted & Conventional',
+    category: 'Conventional',
     agents: ['Acitretin'],
     summary: 'Oral retinoid with strict contraception requirements and structured lipid/LFT monitoring schedule (weeks 4, 8, then every 12 weeks).',
     conditions: ['plaque-psoriasis'],
@@ -802,13 +820,14 @@ export const monitoringEntries = [
     interactions: 'Avoid tetracyclines (pseudotumor cerebri risk) and vitamin A supplements.',
     dosing: '25–50 mg PO daily with food; use lowest effective dose.',
     references: [
+      { label: 'Soriatane (acitretin) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2017/019821s024lbl.pdf' },
       { label: 'EuroGuiDerm 2024 Guideline', url: 'https://www.guidelines.edf.one/uploads/attachments/clrf2t72k3ttodtjrokdem0cy-0-euroguiderm-pso-gl-draft-2024.pdf' }
     ]
   },
   {
     id: 'isotretinoin',
     name: 'Isotretinoin (iPLEDGE)',
-    category: 'Targeted & Conventional',
+    category: 'Conventional',
     agents: ['Isotretinoin'],
     summary: 'Updated 2024 iPLEDGE modifications allow home pregnancy testing and remove CLIA requirement; labs should occur at baseline, 1 month, and every 3 months thereafter.',
     conditions: ['nodulocystic-acne'],
@@ -836,13 +855,14 @@ export const monitoringEntries = [
     interactions: 'Avoid tetracyclines, vitamin A supplements, and alcohol (hypertriglyceridemia).',
     dosing: '0.5–1 mg/kg/day divided BID; goal cumulative dose 120–150 mg/kg.',
     references: [
+      { label: 'Accutane (isotretinoin) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2023/018662s071lbl.pdf' },
       { label: 'Revised iPLEDGE 2024 Guidance', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11362893/' }
     ]
   },
   {
     id: 'thalidomide',
     name: 'Thalidomide',
-    category: 'Targeted & Conventional',
+    category: 'Conventional',
     agents: ['Thalidomide'],
     summary: 'REMS-controlled teratogen requiring ANC/platelet monitoring and vital sign surveillance for bradycardia.',
     conditions: ['erythema-nodosum-leprosum', 'autoimmune-blistering-disease'],
@@ -871,14 +891,14 @@ export const monitoringEntries = [
     interactions: 'Additive sedation with CNS depressants; avoid drugs increasing neuropathy risk.',
     dosing: '100–300 mg at bedtime for ENL; titrate to lowest effective dose.',
     references: [
-      { label: 'THALOMID Prescribing Information', url: 'https://packageinserts.bms.com/pi/pi_thalomid.pdf' }
+      { label: 'Thalomid (thalidomide) Prescribing Information', url: 'https://packageinserts.bms.com/pi/pi_thalomid.pdf' }
     ]
   },
   {
     id: 'ivig',
     name: 'Intravenous immunoglobulin (IVIG)',
-    category: 'Targeted & Conventional',
-    agents: ['IVIG (various formulations)'],
+    category: 'Conventional',
+    agents: ['Bivigam', 'Privigen'],
     summary: 'High-cost infusion requiring IgA screening, renal monitoring (BUN/creatinine), hydration, and thrombosis vigilance.',
     conditions: ['autoimmune-blistering-disease'],
     monitoringFrequency: 'moderate',
@@ -903,7 +923,8 @@ export const monitoringEntries = [
     interactions: 'May interfere with live vaccines; delay immunization 3 months.',
     dosing: '2 g/kg divided over 2–5 days monthly depending on indication; adjust rate for tolerability.',
     references: [
-      { label: 'Bivigam Prescribing Information', url: 'https://www.drugs.com/pro/bivigam.html' }
+      { label: 'Bivigam (immune globulin intravenous) Prescribing Information', url: 'https://labeling.grifols.com/PI/US/Bivigam/EN/Bivigam.pdf' },
+      { label: 'Privigen (immune globulin intravenous) Prescribing Information', url: 'https://labeling.cslbehring.com/PI/US/Privigen/EN/Privigen-Prescribing-Information.pdf' }
     ]
   }
 ];
