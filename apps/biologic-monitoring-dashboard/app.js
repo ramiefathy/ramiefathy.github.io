@@ -539,6 +539,7 @@ function renderEntryCard(entry, query) {
               <span aria-hidden="true">⇄</span>
               <span class="sr-only">${isCompared ? 'Remove from comparison' : 'Add to comparison'}</span>
             </button>
+            <button class="secondary-btn export-btn" type="button" data-action="export-checklist" data-entry-id="${entry.id}">Export checklist</button>
           </div>
         </div>
       </header>
@@ -585,7 +586,6 @@ function renderEntryCard(entry, query) {
           ${buildReferences(entry)}
           <div class="entry-actions">
             <button class="copy-btn" type="button" data-action="copy" data-entry-id="${entry.id}">${COPY_BUTTON_LABEL}</button>
-            <button class="secondary-btn export-btn" type="button" data-action="export-checklist" data-entry-id="${entry.id}">Export checklist</button>
           </div>
         </div>
       </div>
