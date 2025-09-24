@@ -2070,7 +2070,9 @@ exports.resolveScheduleConflicts = functions.firestore
 
         let slotCapacity = 0;
         if (assignment.clinicId) {
-          const matchedSlot = slots.find(slot => slot.assignmentClinicId === assignment.clinicId || slot.clinicId === assignment.clinicId);
+          const matchedSlot = slots.find(slot =>
+            slot.assignmentClinicId === assignment.clinicId || slot.clinicId === assignment.clinicId
+          );
           slotCapacity = matchedSlot ? matchedSlot.capacity : 0;
         }
 
@@ -2351,12 +2353,12 @@ exports.chatAssistant = functions.region('us-central1').https.onCall(async (data
 
   const sanitizedHistory = Array.isArray(history)
     ? history
-        .map(entry => ({
-          role: entry?.role === 'assistant' ? 'assistant' : 'user',
-          content: String(entry?.content || '').trim()
-        }))
-        .filter(entry => entry.content.length)
-        .slice(-10)
+      .map(entry => ({
+        role: entry?.role === 'assistant' ? 'assistant' : 'user',
+        content: String(entry?.content || '').trim()
+      }))
+      .filter(entry => entry.content.length)
+      .slice(-10)
     : [];
 
   let geminiResult;

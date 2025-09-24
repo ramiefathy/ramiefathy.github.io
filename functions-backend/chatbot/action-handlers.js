@@ -117,9 +117,9 @@ async function handleAddAssignment(args, context) {
 
   const recurrence = args.recurrence && typeof args.recurrence === 'object'
     ? {
-        frequency: args.recurrence.frequency,
-        occurrences: Math.min(args.recurrence.occurrences || 1, MAX_RECURRENCE)
-      }
+      frequency: args.recurrence.frequency,
+      occurrences: Math.min(args.recurrence.occurrences || 1, MAX_RECURRENCE)
+    }
     : null;
 
   const occurrences = recurrence ? recurrence.occurrences : 1;
@@ -157,8 +157,11 @@ async function handleAddAssignment(args, context) {
         capacityRecord = { existing: existingSnap.size, capacity, newCount: 0 };
         attendingCapacityCache.set(cacheKey, capacityRecord);
       }
-      if (capacityRecord.capacity && (capacityRecord.existing + capacityRecord.newCount + 1) > capacityRecord.capacity) {
-        return respond('That attending already has the maximum number of residents for that clinic.');
+      const totalCount = capacityRecord.existing + capacityRecord.newCount + 1;
+      if (capacityRecord.capacity && totalCount > capacityRecord.capacity) {
+        return respond(
+          'That attending already has the maximum number of residents for that clinic.'
+        );
       }
       capacityRecord.newCount += 1;
     }
@@ -382,7 +385,11 @@ async function handleRemoveOverride(args, context) {
   const snap = await docRef.get();
   if (!snap.exists) return respond('I could not find that attending.');
   const overrides = Array.isArray(snap.data().scheduleOverrides) ? snap.data().scheduleOverrides : [];
-  const match = overrides.find(item => item.clinicId === args.clinicId && item.date === args.date && item.timeSlot === timeSlot);
+  const match = overrides.find(item =>
+    item.clinicId === args.clinicId &&
+    item.date === args.date &&
+    item.timeSlot === timeSlot
+  );
   if (!match) {
     return respond('There is no override for that slot.');
   }
@@ -625,151 +632,151 @@ async function applyInverse(record, context) {
   }
   const type = record.action;
   switch (type) {
-    case 'delete_assignments': {
-      const batch = context.firestore.batch();
-      record.assignments.forEach(item => {
-        const ref = assignmentCollection(context).doc(item.id);
-        batch.delete(ref);
-      });
-      await batch.commit();
-      return respond('The previous assignments have been removed.');
-    }
-    case 'restore_assignments': {
-      const batch = context.firestore.batch();
-      record.assignments.forEach(item => {
-        const { id, ...data } = item;
-        const ref = assignmentCollection(context).doc(id);
-        batch.set(ref, { ...data, updatedAt: FieldValue.serverTimestamp(), updatedBy: context.userId });
-      });
-      await batch.commit();
-      return respond('The assignment has been restored.');
-    }
-    case 'move_assignment': {
-      const ref = assignmentCollection(context).doc(record.assignmentId);
-      await ref.update({
-        date: record.previousDate,
-        timeSlot: record.previousTimeSlot,
-        updatedAt: FieldValue.serverTimestamp(),
-        updatedBy: context.userId
-      });
-      return respond('The previous move has been undone.');
-    }
-    case 'remove_override': {
-      await upsertAttendingOverride({
-        context,
-        attendingId: record.attendingId,
-        override: record.override,
-        remove: true
-      });
-      return respond('The extra clinic session has been removed.');
-    }
-    case 'add_override': {
-      await upsertAttendingOverride({
-        context,
-        attendingId: record.attendingId,
-        override: record.override,
-        remove: false
-      });
-      return respond('The clinic override has been restored.');
-    }
-    case 'delete_attending': {
-      await context.institutionRef.collection('attendings').doc(record.attendingId).delete();
-      return respond('The attending has been removed.');
-    }
-    case 'update_attending': {
-      const docRef = context.institutionRef.collection('attendings').doc(record.attendingId);
-      const updates = {};
-      Object.entries(record.previous || {}).forEach(([key, info]) => {
-        if (info && info.exists) {
-          updates[key] = info.value;
-        } else {
-          updates[key] = FieldValue.delete();
-        }
-      });
-      updates.updatedAt = FieldValue.serverTimestamp();
-      updates.updatedBy = context.userId;
-      await docRef.update(updates);
-      return respond('Attending changes have been reverted.');
-    }
-    case 'delete_resident': {
-      await context.institutionRef.collection('residents').doc(record.residentId).delete();
-      return respond('The resident has been removed.');
-    }
-    case 'update_resident': {
-      const docRef = context.institutionRef.collection('residents').doc(record.residentId);
-      const updates = {};
-      Object.entries(record.previous || {}).forEach(([key, info]) => {
-        if (info && info.exists) {
-          updates[key] = info.value;
-        } else {
-          updates[key] = FieldValue.delete();
-        }
-      });
-      updates.updatedAt = FieldValue.serverTimestamp();
-      updates.updatedBy = context.userId;
-      await docRef.update(updates);
-      return respond('Resident changes have been reverted.');
-    }
-    case 'remove_clinic': {
-      const docRef = context.institutionRef.collection('attendings').doc(record.attendingId);
-      const snap = await docRef.get();
-      if (!snap.exists) return respond('The attending no longer exists.');
-      const clinics = (snap.data().clinics || []).filter(c => c.id !== record.clinicId);
-      await docRef.update({ clinics, updatedAt: FieldValue.serverTimestamp(), updatedBy: context.userId });
-      return respond('The clinic has been removed again.');
-    }
-    case 'update_clinic': {
-      const docRef = context.institutionRef.collection('attendings').doc(record.attendingId);
-      const snap = await docRef.get();
-      if (!snap.exists) return respond('Attending missing for undo.');
-      const clinics = Array.isArray(snap.data().clinics) ? [...snap.data().clinics] : [];
-      const index = clinics.findIndex(c => c.id === record.clinicId);
-      if (index >= 0) {
-        clinics[index] = record.previous;
-        await docRef.update({ clinics, updatedAt: FieldValue.serverTimestamp(), updatedBy: context.userId });
+  case 'delete_assignments': {
+    const batch = context.firestore.batch();
+    record.assignments.forEach(item => {
+      const ref = assignmentCollection(context).doc(item.id);
+      batch.delete(ref);
+    });
+    await batch.commit();
+    return respond('The previous assignments have been removed.');
+  }
+  case 'restore_assignments': {
+    const batch = context.firestore.batch();
+    record.assignments.forEach(item => {
+      const { id, ...data } = item;
+      const ref = assignmentCollection(context).doc(id);
+      batch.set(ref, { ...data, updatedAt: FieldValue.serverTimestamp(), updatedBy: context.userId });
+    });
+    await batch.commit();
+    return respond('The assignment has been restored.');
+  }
+  case 'move_assignment': {
+    const ref = assignmentCollection(context).doc(record.assignmentId);
+    await ref.update({
+      date: record.previousDate,
+      timeSlot: record.previousTimeSlot,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: context.userId
+    });
+    return respond('The previous move has been undone.');
+  }
+  case 'remove_override': {
+    await upsertAttendingOverride({
+      context,
+      attendingId: record.attendingId,
+      override: record.override,
+      remove: true
+    });
+    return respond('The extra clinic session has been removed.');
+  }
+  case 'add_override': {
+    await upsertAttendingOverride({
+      context,
+      attendingId: record.attendingId,
+      override: record.override,
+      remove: false
+    });
+    return respond('The clinic override has been restored.');
+  }
+  case 'delete_attending': {
+    await context.institutionRef.collection('attendings').doc(record.attendingId).delete();
+    return respond('The attending has been removed.');
+  }
+  case 'update_attending': {
+    const docRef = context.institutionRef.collection('attendings').doc(record.attendingId);
+    const updates = {};
+    Object.entries(record.previous || {}).forEach(([key, info]) => {
+      if (info && info.exists) {
+        updates[key] = info.value;
+      } else {
+        updates[key] = FieldValue.delete();
       }
-      return respond('Clinic changes have been reverted.');
+    });
+    updates.updatedAt = FieldValue.serverTimestamp();
+    updates.updatedBy = context.userId;
+    await docRef.update(updates);
+    return respond('Attending changes have been reverted.');
+  }
+  case 'delete_resident': {
+    await context.institutionRef.collection('residents').doc(record.residentId).delete();
+    return respond('The resident has been removed.');
+  }
+  case 'update_resident': {
+    const docRef = context.institutionRef.collection('residents').doc(record.residentId);
+    const updates = {};
+    Object.entries(record.previous || {}).forEach(([key, info]) => {
+      if (info && info.exists) {
+        updates[key] = info.value;
+      } else {
+        updates[key] = FieldValue.delete();
+      }
+    });
+    updates.updatedAt = FieldValue.serverTimestamp();
+    updates.updatedBy = context.userId;
+    await docRef.update(updates);
+    return respond('Resident changes have been reverted.');
+  }
+  case 'remove_clinic': {
+    const docRef = context.institutionRef.collection('attendings').doc(record.attendingId);
+    const snap = await docRef.get();
+    if (!snap.exists) return respond('The attending no longer exists.');
+    const clinics = (snap.data().clinics || []).filter(c => c.id !== record.clinicId);
+    await docRef.update({ clinics, updatedAt: FieldValue.serverTimestamp(), updatedBy: context.userId });
+    return respond('The clinic has been removed again.');
+  }
+  case 'update_clinic': {
+    const docRef = context.institutionRef.collection('attendings').doc(record.attendingId);
+    const snap = await docRef.get();
+    if (!snap.exists) return respond('Attending missing for undo.');
+    const clinics = Array.isArray(snap.data().clinics) ? [...snap.data().clinics] : [];
+    const index = clinics.findIndex(c => c.id === record.clinicId);
+    if (index >= 0) {
+      clinics[index] = record.previous;
+      await docRef.update({ clinics, updatedAt: FieldValue.serverTimestamp(), updatedBy: context.userId });
     }
-    default:
-      return respond('I could not undo the last action.');
+    return respond('Clinic changes have been reverted.');
+  }
+  default:
+    return respond('I could not undo the last action.');
   }
 }
 
 async function handleAction(action, args, context) {
   switch (action) {
-    case ACTIONS.ADD_ASSIGNMENT:
-      return handleAddAssignment(args, context);
-    case ACTIONS.MOVE_ASSIGNMENT:
-      return handleMoveAssignment(args, context);
-    case ACTIONS.DELETE_ASSIGNMENT:
-      return handleDeleteAssignment(args, context);
-    case ACTIONS.ADD_ATTENDING_OVERRIDE:
-      return handleAddOverride(args, context);
-    case ACTIONS.REMOVE_ATTENDING_OVERRIDE:
-      return handleRemoveOverride(args, context);
-    case ACTIONS.CREATE_ATTENDING:
-      return handleCreateAttending(args, context);
-    case ACTIONS.UPDATE_ATTENDING:
-      return handleUpdateAttending(args, context);
-    case ACTIONS.CREATE_RESIDENT:
-      return handleCreateResident(args, context);
-    case ACTIONS.UPDATE_RESIDENT:
-      return handleUpdateResident(args, context);
-    case ACTIONS.CREATE_CLINIC:
-      return handleCreateClinic(args, context);
-    case ACTIONS.UPDATE_CLINIC:
-      return handleUpdateClinic(args, context);
-    case ACTIONS.UNDO: {
-      const record = await popUndoRecord({
-        firestore: context.firestore,
-        institutionId: context.institutionId,
-        userId: context.userId
-      });
-      return applyInverse(record, context);
-    }
-    case ACTIONS.INFO_ONLY:
-    default:
-      return respond('I can help with scheduling changes, but I did not recognise that request.');
+  case ACTIONS.ADD_ASSIGNMENT:
+    return handleAddAssignment(args, context);
+  case ACTIONS.MOVE_ASSIGNMENT:
+    return handleMoveAssignment(args, context);
+  case ACTIONS.DELETE_ASSIGNMENT:
+    return handleDeleteAssignment(args, context);
+  case ACTIONS.ADD_ATTENDING_OVERRIDE:
+    return handleAddOverride(args, context);
+  case ACTIONS.REMOVE_ATTENDING_OVERRIDE:
+    return handleRemoveOverride(args, context);
+  case ACTIONS.CREATE_ATTENDING:
+    return handleCreateAttending(args, context);
+  case ACTIONS.UPDATE_ATTENDING:
+    return handleUpdateAttending(args, context);
+  case ACTIONS.CREATE_RESIDENT:
+    return handleCreateResident(args, context);
+  case ACTIONS.UPDATE_RESIDENT:
+    return handleUpdateResident(args, context);
+  case ACTIONS.CREATE_CLINIC:
+    return handleCreateClinic(args, context);
+  case ACTIONS.UPDATE_CLINIC:
+    return handleUpdateClinic(args, context);
+  case ACTIONS.UNDO: {
+    const record = await popUndoRecord({
+      firestore: context.firestore,
+      institutionId: context.institutionId,
+      userId: context.userId
+    });
+    return applyInverse(record, context);
+  }
+  case ACTIONS.INFO_ONLY:
+  default:
+    return respond('I can help with scheduling changes, but I did not recognise that request.');
   }
 }
 
