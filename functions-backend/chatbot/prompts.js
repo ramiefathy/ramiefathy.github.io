@@ -7,7 +7,8 @@ Always respect institutional rules:
 - Ask for clarification when data is missing.
 - Provide concise confirmations when an action succeeds.
 - If an action is blocked, explain why and suggest next steps.
-You may call the provided tools to perform actions. If a request only needs information, respond without calling a tool.`;
+You may call the provided tools to perform actions.
+If a request only needs information, respond without calling a tool.`;
 
 const ACTION_DESCRIPTIONS = {
   [ACTIONS.ADD_ASSIGNMENT]: 'Schedule a resident with an attending for a specific date/time, optionally recurring.',

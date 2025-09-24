@@ -108,7 +108,13 @@ async function callGemini({ history, message }) {
     }
   }
 
-  return { type: 'text', text: candidate.content?.parts?.map(p => p.text).filter(Boolean).join('\n') || 'I was unable to process that request.' };
+  const fallbackText =
+    candidate.content?.parts
+      ?.map(part => part.text)
+      .filter(Boolean)
+      .join('\n') || 'I was unable to process that request.';
+
+  return { type: 'text', text: fallbackText };
 }
 
 module.exports = {
