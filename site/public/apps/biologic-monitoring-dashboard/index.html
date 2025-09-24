@@ -30,16 +30,57 @@
       </section>
 
       <section class="controls" aria-label="Filters">
-        <div class="control-card">
+        <div class="control-card control-card--search">
           <label for="search-input">Quick search</label>
           <div class="search-input">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input id="search-input" type="search" placeholder="Search by drug, lab, or caution" autocomplete="off" />
+            <input
+              id="search-input"
+              type="search"
+              placeholder="Search by drug, lab, caution, or diagnosis"
+              autocomplete="off"
+            />
           </div>
-          <small>Matches drug names, class, monitoring pearls, and baseline tasks.</small>
+          <small>Matches drug names, diagnoses, monitoring pearls, and baseline tasks.</small>
+
+          <div class="inline-dropdowns">
+            <div class="filter-dropdown" data-dropdown>
+              <button class="dropdown-toggle" type="button" data-dropdown-toggle="conditions" aria-haspopup="true" aria-expanded="false">
+                Clinical uses
+              </button>
+              <div class="dropdown-panel" data-dropdown-panel="conditions" role="menu">
+                <div class="dropdown-options" id="condition-filters"></div>
+              </div>
+            </div>
+
+            <div class="filter-dropdown" data-dropdown>
+              <button class="dropdown-toggle" type="button" data-dropdown-toggle="requirements" aria-haspopup="true" aria-expanded="false">
+                Monitoring requirements
+              </button>
+              <div class="dropdown-panel" data-dropdown-panel="requirements" role="menu">
+                <div class="dropdown-options" id="requirement-filters"></div>
+              </div>
+            </div>
+
+            <div class="filter-dropdown" data-dropdown>
+              <button class="dropdown-toggle" type="button" data-dropdown-toggle="risk" aria-haspopup="true" aria-expanded="false">
+                Risk &amp; cadence
+              </button>
+              <div class="dropdown-panel" data-dropdown-panel="risk" role="menu">
+                <div class="dropdown-section">
+                  <p class="dropdown-heading">Risk level</p>
+                  <div class="dropdown-options" id="risk-filters"></div>
+                </div>
+                <div class="dropdown-section">
+                  <p class="dropdown-heading">Monitoring intensity</p>
+                  <div class="dropdown-options" id="intensity-filters"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="control-card">
@@ -53,25 +94,6 @@
         </div>
 
         <div class="control-card">
-          <span class="label">Clinical uses</span>
-          <div class="filter-chips" id="condition-filters"></div>
-          <small>Show regimens verified for specific diseases or patient populations.</small>
-        </div>
-
-        <div class="control-card">
-          <span class="label">Monitoring requirements</span>
-          <div class="filter-chips" id="requirement-filters"></div>
-          <small>Focus on regimens that mandate certain labs, exams, or counseling.</small>
-        </div>
-
-        <div class="control-card control-card--stacked">
-          <span class="label">Risk &amp; cadence</span>
-          <div class="filter-chips" id="risk-filters"></div>
-          <div class="filter-chips" id="intensity-filters"></div>
-          <small>Combine clinical risk level with monitoring intensity to plan visit cadence.</small>
-        </div>
-
-        <div class="control-card">
           <span class="label">Actions</span>
           <div class="action-buttons">
             <button class="primary-btn" type="button" id="view-toggle">Switch to table view</button>
@@ -82,34 +104,11 @@
         </div>
       </section>
 
-      <section class="secondary-panels" aria-label="Quick access panels">
-        <article class="panel-card" id="favorites-panel">
-          <div class="panel-header">
-            <h2>⭐ Favorites</h2>
-            <button class="panel-close" type="button" data-panel="favorites">Close</button>
-          </div>
-          <div id="favorites-list" class="panel-list" aria-live="polite"></div>
-        </article>
-        <article class="panel-card" id="recent-panel">
-          <div class="panel-header">
-            <h2>🕒 Recently viewed</h2>
-            <button class="panel-close" type="button" data-panel="recent">Close</button>
-          </div>
-          <div id="recent-list" class="panel-list" aria-live="polite"></div>
-        </article>
-      </section>
-
       <section id="comparison-view" class="comparison-section" aria-label="Side-by-side comparison" aria-live="polite"></section>
 
       <p id="result-count"></p>
       <section id="results" class="entries" aria-live="polite"></section>
     </main>
-
-    <div class="mobile-actions" aria-label="Mobile quick actions">
-      <button type="button" data-mobile-action="favorites">⭐ Favorites</button>
-      <button type="button" data-mobile-action="filters">🎛️ Filters</button>
-      <button type="button" data-mobile-action="top">⬆️ Top</button>
-    </div>
 
     <div id="modal-root"></div>
     <script type="module" src="./app.js"></script>

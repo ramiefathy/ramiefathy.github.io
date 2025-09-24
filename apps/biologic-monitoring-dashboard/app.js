@@ -67,12 +67,13 @@ const dom = {
   favoritesList: document.querySelector('#favorites-list'),
   recentList: document.querySelector('#recent-list'),
   comparisonView: document.querySelector('#comparison-view'),
-  mobileActions: document.querySelector('.mobile-actions'),
   modalRoot: document.querySelector('#modal-root'),
   panelCloseButtons: document.querySelectorAll('.panel-close'),
   favoritesPanel: document.querySelector('#favorites-panel'),
   recentPanel: document.querySelector('#recent-panel')
 };
+
+let dropdownOutsideListenerAttached = false;
 
 const filterOptions = {
   conditions: buildFilterOptions(extractUniqueValues('conditions'), CONDITION_LABELS),
@@ -223,33 +224,76 @@ function filterEntries() {
 }
 
 function renderFilterChips(container, options, stateSet) {
+  if (!container) return;
   container.innerHTML = '';
   const fragment = document.createDocumentFragment();
-  options.forEach((option) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'filter-chip';
-    button.textContent = option.label;
-    button.dataset.filterId = option.id;
-    const isActive = stateSet.has(option.id);
-    if (isActive) button.classList.add('is-active');
-    button.setAttribute('aria-pressed', isActive);
-    button.addEventListener('click', () => {
-      if (stateSet.has(option.id)) {
-        stateSet.delete(option.id);
-        button.classList.remove('is-active');
-        button.setAttribute('aria-pressed', 'false');
-      } else {
+  options.forEach((option, index) => {
+    const label = document.createElement('label');
+    label.className = 'dropdown-option';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = stateSet.has(option.id);
+    input.dataset.filterId = option.id;
+    input.id = `${container.id || 'filter'}-${index}`;
+    input.addEventListener('change', (event) => {
+      if (event.target.checked) {
         stateSet.add(option.id);
-        button.classList.add('is-active');
-        button.setAttribute('aria-pressed', 'true');
+      } else {
+        stateSet.delete(option.id);
       }
       announce(`Filter updated: ${option.label}`);
       render();
     });
-    fragment.appendChild(button);
+    const text = document.createElement('span');
+    text.textContent = option.label;
+    label.appendChild(input);
+    label.appendChild(text);
+    fragment.appendChild(label);
   });
   container.appendChild(fragment);
+}
+
+function setupDropdowns() {
+  const dropdowns = document.querySelectorAll('[data-dropdown]');
+  if (!dropdowns.length) return;
+  dropdowns.forEach((dropdown) => {
+    const toggle = dropdown.querySelector('[data-dropdown-toggle]');
+    const panel = dropdown.querySelector('[data-dropdown-panel]');
+    if (!toggle || !panel || toggle.dataset.dropdownReady === 'true') return;
+    toggle.dataset.dropdownReady = 'true';
+    toggle.setAttribute('aria-expanded', 'false');
+    panel.setAttribute('aria-hidden', 'true');
+    toggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const isOpen = dropdown.classList.contains('is-open');
+      closeAllDropdowns();
+      if (!isOpen) {
+        dropdown.classList.add('is-open');
+        toggle.setAttribute('aria-expanded', 'true');
+        panel.setAttribute('aria-hidden', 'false');
+      }
+    });
+  });
+
+  if (!dropdownOutsideListenerAttached) {
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('[data-dropdown]')) {
+        closeAllDropdowns();
+      }
+    });
+    dropdownOutsideListenerAttached = true;
+  }
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll('[data-dropdown]').forEach((dropdown) => {
+    dropdown.classList.remove('is-open');
+    const toggle = dropdown.querySelector('[data-dropdown-toggle]');
+    const panel = dropdown.querySelector('[data-dropdown-panel]');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    if (panel) panel.setAttribute('aria-hidden', 'true');
+  });
 }
 
 function buildRiskIndicators(entry) {
@@ -565,6 +609,7 @@ function renderTable(entries) {
 }
 
 function renderFavoritesList() {
+  if (!dom.favoritesList) return;
   const favorites = Array.from(userPreferences.favorites)
     .map((id) => monitoringEntries.find((entry) => entry.id === id))
     .filter(Boolean);
@@ -583,6 +628,7 @@ function renderFavoritesList() {
 }
 
 function renderRecentList() {
+  if (!dom.recentList) return;
   const recent = userPreferences.recent
     .map((id) => monitoringEntries.find((entry) => entry.id === id))
     .filter(Boolean);
@@ -954,12 +1000,15 @@ function handleGlobalKeydown(event) {
   }
 
   if (event.shiftKey && !meta && event.key.toLowerCase() === 'f' && !isInputFocused) {
-    event.preventDefault();
-    togglePanel(dom.favoritesPanel);
+    if (dom.favoritesPanel) {
+      event.preventDefault();
+      togglePanel(dom.favoritesPanel);
+    }
   }
 }
 
 function togglePanel(panel) {
+  if (!panel) return;
   panel.classList.toggle('is-collapsed');
 }
 
@@ -967,7 +1016,7 @@ function handleMobileAction(event) {
   const button = event.target.closest('[data-mobile-action]');
   if (!button) return;
   const action = button.dataset.mobileAction;
-  if (action === 'favorites') {
+  if (action === 'favorites' && dom.favoritesPanel) {
     dom.favoritesPanel.classList.remove('is-collapsed');
     dom.favoritesPanel.scrollIntoView({ behavior: 'smooth' });
   } else if (action === 'filters') {
@@ -1017,18 +1066,22 @@ function attachListeners() {
   dom.resultsContainer.addEventListener('click', handleCardInteraction);
   dom.resultsContainer.addEventListener('change', handleChecklistChange);
 
-  dom.favoritesList.addEventListener('click', (event) => {
-    const target = event.target.closest('[data-action="jump"]');
-    if (!target) return;
-    const entryId = target.dataset.entryId;
-    jumpToEntry(entryId);
-  });
+  if (dom.favoritesList) {
+    dom.favoritesList.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-action="jump"]');
+      if (!target) return;
+      const entryId = target.dataset.entryId;
+      jumpToEntry(entryId);
+    });
+  }
 
-  dom.recentList.addEventListener('click', (event) => {
-    const target = event.target.closest('[data-action="jump"]');
-    if (!target) return;
-    jumpToEntry(target.dataset.entryId);
-  });
+  if (dom.recentList) {
+    dom.recentList.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-action="jump"]');
+      if (!target) return;
+      jumpToEntry(target.dataset.entryId);
+    });
+  }
 
   dom.comparisonView.addEventListener('click', (event) => {
     if (event.target.matches('[data-action="clear-comparison"]')) {
@@ -1048,6 +1101,8 @@ function attachListeners() {
   }
 
   document.addEventListener('keydown', handleGlobalKeydown);
+
+  setupDropdowns();
 
   let touchStartX = 0;
   let touchEndX = 0;
@@ -1101,6 +1156,7 @@ function resetAll() {
   initialiseFilters();
   document.body.setAttribute('data-view', 'cards');
   render();
+  closeAllDropdowns();
   showToast('Filters reset');
 }
 
