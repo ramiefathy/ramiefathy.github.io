@@ -24,6 +24,21 @@ const riskBadgeConfig = {
   infection: { icon: '🦠', className: 'badge-infection' }
 };
 
+const riskBadgeDescriptions = {
+  'boxed-warning':
+    'FDA boxed warning present – review prescribing information for life-threatening risks, monitoring, and contraindications before prescribing.',
+  teratogenic:
+    'Teratogenic risk – requires strict pregnancy prevention, counseling, and testing per regimen guidelines.',
+  rems:
+    'REMS program required – enrollment and compliance with Risk Evaluation and Mitigation Strategy are mandatory.',
+  'age-65-plus':
+    'Higher risk in patients aged 65 and older – evaluate cardiovascular, malignancy, and infection risks closely.',
+  pediatric:
+    'Pediatric-specific considerations – dosing, safety, or monitoring differs in children and adolescents.',
+  infection:
+    'Elevated serious infection risk – ensure screening, vaccination, and patient counseling on early symptom reporting.'
+};
+
 const STORAGE_KEYS = {
   favorites: 'biologic-dashboard:favorites',
   recent: 'biologic-dashboard:recent',
@@ -100,6 +115,14 @@ function buildFilterOptions(values, labelMap) {
   return values
     .map((value) => ({ id: value, label: labelMap[value] || toTitleCase(value) }))
     .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function escapeAttribute(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function loadSet(key) {
@@ -303,7 +326,10 @@ function buildRiskIndicators(entry) {
     .map((flag) => {
       const config = riskBadgeConfig[flag] || { icon: '⚠️', className: 'badge-generic' };
       const label = RISK_BADGE_LABELS[flag] || toTitleCase(flag);
-      return `<span class="risk-badge ${config.className}" title="${label}">${config.icon} ${label}</span>`;
+      const description = riskBadgeDescriptions[flag] || 'Review prescribing information for additional safety guidance.';
+      return `<span class="risk-badge ${config.className}" tabindex="0" data-tooltip="${escapeAttribute(
+        description
+      )}" aria-label="${escapeAttribute(description)}">${config.icon} <span class="risk-badge__text">${label}</span></span>`;
     })
     .join('');
   return `<div class="risk-indicators">${badges}</div>`;
@@ -513,9 +539,6 @@ function renderEntryCard(entry, query) {
               <span aria-hidden="true">⇄</span>
               <span class="sr-only">${isCompared ? 'Remove from comparison' : 'Add to comparison'}</span>
             </button>
-            <button class="expand-btn" type="button" data-action="toggle-details" data-entry-id="${entry.id}" aria-expanded="${isExpanded}">
-              ${isExpanded ? 'Hide details' : 'View details'}
-            </button>
           </div>
         </div>
       </header>
@@ -525,6 +548,12 @@ function renderEntryCard(entry, query) {
           <p class="agent-list">${highlightText(entry.agents.join(', '), query)}</p>
         </div>
         ${buildMetaChips(entry)}
+      </div>
+      <div class="entry-toggle">
+        <button class="expand-btn" type="button" data-action="toggle-details" data-entry-id="${entry.id}" aria-expanded="${isExpanded}">
+          <span class="expand-btn__label">${isExpanded ? 'Hide monitoring details' : 'View monitoring details'}</span>
+          <span class="expand-btn__icon" aria-hidden="true">${isExpanded ? '▴' : '▾'}</span>
+        </button>
       </div>
       <div class="entry-details ${isExpanded ? 'is-open' : ''}" data-entry-details="${entry.id}" aria-hidden="${!isExpanded}">
         <div class="detail-tabs" role="tablist">
