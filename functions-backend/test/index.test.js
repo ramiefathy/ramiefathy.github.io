@@ -6,10 +6,13 @@ const assert = require('assert');
 const sinon = require('sinon');
 
 // Initialize Firebase Functions Test SDK
-const test = require('firebase-functions-test')(
-  { projectId: 'clinic-scheduler-test' },
-  './service-account-test.json'
-); // You can use a test service account or mock
+// Use emulator host if available to avoid hitting live project when credentials missing
+const firebaseConfig = { projectId: 'clinic-scheduler-test' };
+const functionsTestOptions = process.env.FIRESTORE_EMULATOR_HOST
+  ? firebaseConfig
+  : firebaseConfig;
+
+const test = require('firebase-functions-test')(functionsTestOptions);
 
 // Import your functions after initializing test SDK
 const functions = require('../index');
@@ -17,6 +20,9 @@ const functions = require('../index');
 describe('Cloud Functions', () => {
 
   before(() => {
+    if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && !process.env.FIRESTORE_EMULATOR_HOST) {
+      console.warn('[tests] FIRESTORE_EMULATOR_HOST not set; some integration tests will skip.');
+    }
     // Set up test environment variables
     test.mockConfig({
       sendgrid: { key: 'test-key' },
