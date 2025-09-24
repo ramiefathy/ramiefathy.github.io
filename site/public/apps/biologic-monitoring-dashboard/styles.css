@@ -147,38 +147,100 @@ small {
   gap: 12px;
 }
 
-.control-card--stacked {
-  gap: 10px;
+
+.control-card--search {
+  gap: 16px;
 }
 
-.filter-chips {
+.inline-dropdowns {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
-.filter-chip {
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.14);
-  background: rgba(255, 255, 255, 0.85);
-  font-weight: 600;
-  font-size: 0.85rem;
+.filter-dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--accent);
   cursor: pointer;
-  transition: all 140ms ease;
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
 }
 
-.filter-chip:hover,
-.filter-chip:focus {
-  border-color: var(--accent);
+.dropdown-toggle:hover,
+.dropdown-toggle:focus {
+  transform: translateY(-1px);
   box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
-.filter-chip.is-active {
+.filter-dropdown.is-open .dropdown-toggle {
   background: var(--accent);
   color: #fff;
-  border-color: transparent;
-  box-shadow: 0 12px 20px rgba(37, 99, 235, 0.22);
+  box-shadow: 0 12px 22px rgba(37, 99, 235, 0.22);
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 240px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
+  padding: 12px;
+  display: none;
+  z-index: 10;
+}
+
+.filter-dropdown.is-open .dropdown-panel {
+  display: block;
+}
+
+.dropdown-section + .dropdown-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.dropdown-heading {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.dropdown-options {
+  display: grid;
+  gap: 6px;
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--fg);
+}
+
+.dropdown-option input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(15, 23, 42, 0.25);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.dropdown-option span {
+  flex: 1;
 }
 
 .control-card label {
@@ -357,6 +419,7 @@ small {
   font-size: 1rem;
   cursor: pointer;
   transition: all 140ms ease;
+  color: var(--accent);
 }
 
 .icon-btn:hover,

@@ -534,7 +534,21 @@ const ValidationUtils = {
 
 // ==================== Date Utilities ====================
 const normalizeDate = value => {
-  const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
+  if (value instanceof Date) {
+    const date = new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+  if (typeof value === 'string') {
+    const parts = value.split('-').map(Number);
+    if (parts.length === 3 && parts.every(part => Number.isInteger(part))) {
+      const [year, month, day] = parts;
+      const date = new Date(year, month - 1, day);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+  }
+  const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     const fallback = new Date();
     fallback.setHours(0, 0, 0, 0);
@@ -603,7 +617,7 @@ const ConflictDetection = {
   // Check if person is on vacation
   checkVacationConflict: (person, date) => {
     if (!person || !person.vacationWeeks) return [];
-    const assignmentDate = new Date(date);
+    const assignmentDate = normalizeDate(date);
     const conflicts = [];
     for (const vacationWeek of person.vacationWeeks) {
       const vacationStart = new Date(vacationWeek);
@@ -626,7 +640,7 @@ const ConflictDetection = {
   // Check continuity clinic conflicts
   checkContinuityConflict: (resident, date, timeSlot) => {
     if (!resident || !resident.continuityDay) return [];
-    const assignmentDate = new Date(date);
+    const assignmentDate = normalizeDate(date);
     const dayOfWeek = assignmentDate.getDay();
     const dayMap = {
       'sunday': 0,
@@ -670,7 +684,7 @@ const ConflictDetection = {
   // Check protected time conflicts
   checkProtectedTime: (protectedTimes, date, timeSlot, residentPGY) => {
     if (!protectedTimes || !protectedTimes.length) return [];
-    const assignmentDate = new Date(date);
+    const assignmentDate = normalizeDate(date);
     const dayOfWeek = assignmentDate.getDay();
     const conflicts = [];
     for (const pt of protectedTimes) {
@@ -773,7 +787,7 @@ const ExportUtils = {
     for (const assignment of filtered) {
       const resident = residents.find(r => r.id === assignment.residentId);
       const attending = attendings.find(a => a.id === assignment.attendingId);
-      const assignmentDate = new Date(assignment.date);
+      const assignmentDate = normalizeDate(assignment.date);
       const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][assignmentDate.getDay()];
       rows.push([assignment.date, dayName, assignment.timeSlot, resident?.name || '', attending?.name || '', assignment.siteId || '', assignment.rotationId || '', assignment.notes || '']);
     }
@@ -3297,7 +3311,7 @@ const ScheduleCalendar = ({
     }
     const overrides = Array.isArray(attending.scheduleOverrides) ? [...attending.scheduleOverrides] : [];
     const clinic = attending.clinics?.find(c => c.id === clinicId) || null;
-    const dateObj = new Date(date);
+    const dateObj = normalizeDate(date);
     if (!Number.isFinite(dateObj.getTime())) {
       toast.error('Invalid date selected.');
       return;
@@ -3818,7 +3832,7 @@ const AttendingScheduleAdjuster = ({
   }, [attending?.id, clinicsKey]);
   const dayOfWeek = useMemo(() => {
     if (!formData.date) return null;
-    const dateObj = new Date(formData.date);
+    const dateObj = normalizeDate(formData.date);
     return Number.isFinite(dateObj.getTime()) ? dateObj.getDay() : null;
   }, [formData.date]);
   const cancellableClinics = useMemo(() => {
@@ -4017,6 +4031,8 @@ const AssignmentForm = ({
   });
   const [conflicts, setConflicts] = useState([]);
   const [assignResident, setAssignResident] = useState(true);
+  const selectedDateValue = formData.date || date;
+  const selectedDate = useMemo(() => normalizeDate(selectedDateValue), [selectedDateValue]);
   const normalizedAttendings = useMemo(() => {
     return attendings.map(att => normalizeAttendingRecord(att, sites));
   }, [attendings, sites]);
@@ -4026,7 +4042,7 @@ const AssignmentForm = ({
     if (!residentId) return null;
     const resident = residents.find(r => r.id === residentId);
     if (!resident) return null;
-    const monthStr = new Date(date).toISOString().slice(0, 7);
+    const monthStr = selectedDate.toISOString().slice(0, 7);
     const assignment = resident.rotationAssignments?.find(ra => ra.month === monthStr);
     if (!assignment) return null;
     return rotations.find(r => r.id === assignment.rotationId);
@@ -4035,7 +4051,7 @@ const AssignmentForm = ({
   // Get available attendings based on rotation and time slot
   const getClinicsForSlot = attending => {
     if (!attending) return [];
-    const dayOfWeek = new Date(date).getDay();
+    const dayOfWeek = selectedDate.getDay();
     return (attending.clinics || []).map(clinic => ({
       ...clinic,
       isDefaultSession: clinic.defaultSessions?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot)
@@ -4043,7 +4059,7 @@ const AssignmentForm = ({
   };
   const getAvailableAttendings = () => {
     const rotation = getResidentRotation(formData.residentId);
-    const dayOfWeek = new Date(date).getDay();
+    const dayOfWeek = selectedDate.getDay();
     return normalizedAttendings.filter(attending => {
       const supportsRotation = rotation ? attending.rotationIds?.includes(rotation.id) : true;
       const hasClinicSession = attending.clinics?.some(clinic => clinic.defaultSessions?.some(session => session.dayOfWeek === dayOfWeek && session.timeSlot === timeSlot));
