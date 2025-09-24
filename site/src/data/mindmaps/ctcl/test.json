@@ -1,0 +1,112 @@
+{
+  "id": "root",
+  "name": "CTCL Tests",
+  "tooltip": {
+    "title": "CTCL Workup by Test Type",
+    "markdown": "The diagnostic evaluation for CTCL integrates tests from multiple modalities, from routine blood work to advanced molecular and imaging studies."
+  },
+  "children": [
+    {
+      "id": "basic_labs",
+      "name": "Basic Labs",
+      "tooltip": {
+        "title": "Basic Laboratory Studies",
+        "markdown": "These initial blood tests establish the patient's baseline health, assess overall disease burden, and identify key prognostic markers."
+      },
+      "children": [
+        {
+          "id": "cbc_diff",
+          "name": "CBC w/ Diff",
+          "tooltip": {
+            "title": "Complete Blood Count with Differential",
+            "markdown": "-   **Purpose:** Quantifies white blood cells, lymphocytes, and eosinophils. The absolute lymphocyte count is essential for calculating the absolute Sézary cell count.\n-   **Relevance:** Can reveal lymphocytosis or eosinophilia, common findings in advanced CTCL."
+          }
+        },
+        {
+          "id": "cmp_test",
+          "name": "CMP",
+          "tooltip": {
+            "title": "Comprehensive Metabolic Panel",
+            "markdown": "-   **Purpose:** Assesses baseline liver (ALT, AST, bilirubin) and kidney (creatinine) function.\n-   **Relevance:** Critical before starting systemic therapies, many of which can be hepatotoxic or require dose adjustment for renal impairment."
+          }
+        },
+        {
+          "id": "ldh_test",
+          "name": "LDH",
+          "tooltip": {
+            "title": "Lactate Dehydrogenase",
+            "markdown": "-   **Purpose:** A non-specific marker of cell turnover.\n-   **Relevance:** Elevated LDH is an independent adverse prognostic factor in advanced MF/SS, indicating higher tumor burden and potentially large-cell transformation."
+          }
+        }
+      ]
+    },
+    {
+      "id": "flow_cytometry",
+      "name": "Flow Cytometry (Blood)",
+      "tooltip": {
+        "title": "Flow Cytometry (Peripheral Blood)",
+        "markdown": "The primary method for quantifying blood involvement (B stage) and diagnosing Sézary Syndrome."
+      },
+      "children": [
+        {
+          "id": "cd4_cd8",
+          "name": "CD4:CD8 Ratio",
+          "tooltip": {
+            "title": "CD4:CD8 Ratio",
+            "markdown": "-   **Purpose:** Measures the ratio of helper (CD4+) to cytotoxic (CD8+) T-cells.\n-   **Relevance:** A ratio >10 is one criterion for B2 blood involvement."
+          }
+        },
+        {
+          "id": "aberrant_markers",
+          "name": "Aberrant Markers",
+          "tooltip": {
+            "title": "Loss of Pan-T-Cell Antigens",
+            "markdown": "-   **Purpose:** Malignant T-cells often lose expression of normal T-cell markers.\n-   **Relevance:** Loss of CD7 or CD26 on a significant portion of the CD4+ population is a key diagnostic criterion for Sézary Syndrome. (e.g., >40% CD4+CD7- cells)."
+          }
+        },
+        {
+          "id": "sezary_count",
+          "name": "Sézary Cell Count",
+          "tooltip": {
+            "title": "Absolute Sézary Cell Count",
+            "markdown": "-   **Purpose:** To directly quantify the tumor burden in the blood.\n-   **Relevance:** An absolute count ≥1000 cells/μL is a major criterion for diagnosing Sézary Syndrome and defines B2 blood involvement."
+          }
+        }
+      ]
+    },
+    {
+      "id": "pathology",
+      "name": "Pathology",
+      "tooltip": {
+        "title": "Pathology Tests",
+        "markdown": "Direct examination of tissue is essential for diagnosis and staging."
+      },
+      "children": [
+        {
+          "id": "skin_biopsy_path",
+          "name": "Skin Biopsy",
+          "tooltip": {
+            "title": "Skin Biopsy (Histopathology)",
+            "markdown": "The single most important diagnostic test. Shows atypical lymphocytes with epidermotropism."
+          }
+        },
+        {
+          "id": "tcr_path",
+          "name": "TCR Gene Rearrangement",
+          "tooltip": {
+            "title": "TCR Gene Rearrangement (Clonality)",
+            "markdown": "Identifies a dominant T-cell clone in skin or blood, supporting a diagnosis of lymphoma."
+          }
+        },
+        {
+          "id": "node_biopsy_path",
+          "name": "Lymph Node Biopsy",
+          "tooltip": {
+            "title": "Lymph Node Biopsy",
+            "markdown": "Required for staging if palpable lymphadenopathy is present."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "id": "root",
+  "name": "TNMB Staging",
+  "tooltip": {
+    "title": "MF/SS Staging System",
+    "markdown": "The TNMB system is the standard for staging Mycosis Fungoides (MF) and Sézary Syndrome (SS). The final clinical stage (IA through IVB) is determined by combining the individual T, N, M, and B scores."
+  },
+  "children": [
+    {
+      "id": "t_skin",
+      "name": "T (Skin)",
+      "tooltip": {
+        "title": "T - Skin Involvement",
+        "markdown": "Based on the type and percentage of body surface area (BSA) affected by lesions."
+      },
+      "children": [
+        {
+          "id": "t1",
+          "name": "T1",
+          "tooltip": {
+            "title": "T1: Limited Patch/Plaque",
+            "markdown": "Patches, papules, or plaques covering <10% of the skin surface. Subdivided into T1a (patches only) and T1b (plaques +/- patches)."
+          }
+        },
+        {
+          "id": "t2",
+          "name": "T2",
+          "tooltip": {
+            "title": "T2: Generalized Patch/Plaque",
+            "markdown": "Patches, papules, or plaques covering ≥10% of the skin surface. Subdivided into T2a (patches only) and T2b (plaques +/- patches)."
+          }
+        },
+        {
+          "id": "t3",
+          "name": "T3",
+          "tooltip": {
+            "title": "T3: Tumor(s)",
+            "markdown": "One or more tumors that are ≥1 cm in diameter."
+          }
+        },
+        {
+          "id": "t4",
+          "name": "T4",
+          "tooltip": {
+            "title": "T4: Erythroderma",
+            "markdown": "Confluence of erythema covering ≥80% of the skin surface."
+          }
+        }
+      ]
+    },
+    {
+      "id": "n_nodes",
+      "name": "N (Nodes)",
+      "tooltip": {
+        "title": "N - Lymph Node Involvement",
+        "markdown": "Based on clinical palpation and, more definitively, on histopathology of a biopsied lymph node."
+      },
+      "children": [
+        {
+          "id": "n0",
+          "name": "N0",
+          "tooltip": {
+            "title": "N0",
+            "markdown": "No clinically abnormal peripheral lymph nodes; no biopsy necessary."
+          }
+        },
+        {
+          "id": "n1",
+          "name": "N1",
+          "tooltip": {
+            "title": "N1",
+            "markdown": "Clinically abnormal nodes, but histopathology shows only dermatopathic changes without definitive lymphoma."
+          }
+        },
+        {
+          "id": "n2",
+          "name": "N2",
+          "tooltip": {
+            "title": "N2",
+            "markdown": "Clinically abnormal nodes with histopathology showing early lymphoma involvement but preserved nodal architecture."
+          }
+        },
+        {
+          "id": "n3",
+          "name": "N3 (Lymphoma)",
+          "tooltip": {
+            "title": "N3 (Lymphoma)",
+            "markdown": "Histopathology shows partial or complete effacement of the lymph node architecture by lymphoma."
+          }
+        },
+        {
+          "id": "nx",
+          "name": "NX",
+          "tooltip": {
+            "title": "NX",
+            "markdown": "Clinically abnormal nodes, but no histopathology performed."
+          }
+        }
+      ]
+    },
+    {
+      "id": "m_visceral",
+      "name": "M (Visceral)",
+      "tooltip": {
+        "title": "M - Visceral Organ Involvement",
+        "markdown": "Based on imaging and biopsy of internal organs."
+      },
+      "children": [
+        {
+          "id": "m0",
+          "name": "M0",
+          "tooltip": {
+            "title": "M0",
+            "markdown": "No visceral organ involvement."
+          }
+        },
+        {
+          "id": "m1",
+          "name": "M1",
+          "tooltip": {
+            "title": "M1",
+            "markdown": "Visceral involvement (e.g., liver, spleen, lungs) confirmed by pathology."
+          }
+        }
+      ]
+    },
+    {
+      "id": "b_blood",
+      "name": "B (Blood)",
+      "tooltip": {
+        "title": "B - Blood Involvement",
+        "markdown": "Based on the presence and quantity of malignant Sézary cells in the peripheral blood, as measured by flow cytometry."
+      },
+      "children": [
+        {
+          "id": "b0",
+          "name": "B0",
+          "tooltip": {
+            "title": "B0: Low Blood Involvement",
+            "markdown": "Absolute Sézary cell count <1000/μL AND ≤5% of total lymphocytes."
+          }
+        },
+        {
+          "id": "b1",
+          "name": "B1",
+          "tooltip": {
+            "title": "B1: Moderate Blood Involvement",
+            "markdown": "Absolute Sézary cell count <1000/μL BUT >5% of total lymphocytes."
+          }
+        },
+        {
+          "id": "b2",
+          "name": "B2",
+          "tooltip": {
+            "title": "B2: High Blood Involvement (Sézary Syndrome)",
+            "markdown": "Absolute Sézary cell count ≥1000/μL OR meets other criteria for a significant clonal population."
+          }
+        }
+      ]
+    }
+  ]
+}

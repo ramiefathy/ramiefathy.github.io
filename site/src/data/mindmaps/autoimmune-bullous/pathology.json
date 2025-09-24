@@ -1,0 +1,346 @@
+{
+  "id": "root",
+  "name": "Pathology Findings",
+  "tooltip": {
+    "title": "Pathology Findings by Disease Category",
+    "markdown": "Histopathologic and direct immunofluorescence findings organized by disease location and mechanism"
+  },
+  "children": [
+    {
+      "id": "intraepidermal_group",
+      "name": "Intraepidermal\nDiseases",
+      "tooltip": {
+        "title": "Intraepidermal Bullous Diseases",
+        "markdown": "Pemphigus group diseases with intraepidermal blister formation and acantholysis"
+      },
+      "children": [
+        {
+          "id": "pv_pathology",
+          "name": "Pemphigus\nVulgaris",
+          "tooltip": {
+            "title": "Pemphigus Vulgaris Pathology",
+            "markdown": "Intraepidermal blistering disease with suprabasal acantholysis"
+          },
+          "children": [
+            {
+              "id": "pv_histopath",
+              "name": "Histopathology",
+              "tooltip": {
+                "title": "PV Histopathology",
+                "markdown": "-   **Blister level:** Suprabasal split\n-   **Key finding:** \"Row of tombstones\" - basal keratinocytes remain attached to BMZ\n-   **Acantholysis:** Loss of cell-cell adhesion with rounded acantholytic cells\n-   **Infiltrate:** Usually sparse, mixed inflammatory cells"
+              }
+            },
+            {
+              "id": "pv_dif",
+              "name": "DIF Pattern",
+              "tooltip": {
+                "title": "PV Direct Immunofluorescence",
+                "markdown": "-   **Pattern:** Intercellular \"net-like\" or \"chicken wire\"\n-   **Antibodies:** IgG and C3 throughout epidermis\n-   **Distribution:** Most prominent in lower epidermis\n-   **Subclass:** IgG4 predominant"
+              }
+            },
+            {
+              "id": "pv_iif",
+              "name": "IIF/Serology",
+              "tooltip": {
+                "title": "PV Indirect IF & Serology",
+                "markdown": "-   **IIF substrate:** Monkey esophagus shows intercellular pattern\n-   **ELISA:** Anti-DSG3 (mucosal), Anti-DSG1 (cutaneous)\n-   **Titer correlation:** Often correlates with disease activity"
+              }
+            }
+          ]
+        },
+        {
+          "id": "pf_pathology",
+          "name": "Pemphigus\nFoliaceus",
+          "tooltip": {
+            "title": "Pemphigus Foliaceus Pathology",
+            "markdown": "Superficial intraepidermal blistering in the granular layer"
+          },
+          "children": [
+            {
+              "id": "pf_histopath",
+              "name": "Histopathology",
+              "tooltip": {
+                "title": "PF Histopathology",
+                "markdown": "-   **Blister level:** Subcorneal/granular layer split\n-   **Acantholysis:** High in epidermis, very superficial\n-   **Infiltrate:** Mixed with eosinophils and neutrophils\n-   **Note:** Blisters are very fragile, often see only crusted erosions"
+              }
+            },
+            {
+              "id": "pf_dif",
+              "name": "DIF Pattern",
+              "tooltip": {
+                "title": "PF Direct Immunofluorescence",
+                "markdown": "-   **Pattern:** Intercellular, concentrated in upper epidermis\n-   **Antibodies:** IgG and C3\n-   **Distribution:** Most prominent in superficial layers\n-   **Subclass:** IgG1 predominant"
+              }
+            },
+            {
+              "id": "pf_serology",
+              "name": "Serology",
+              "tooltip": {
+                "title": "PF Serology",
+                "markdown": "-   **Target:** Anti-DSG1 antibodies only\n-   **DSG3:** Negative (unlike PV)\n-   **Endemic form:** Fogo selvagem has same antibody profile"
+              }
+            }
+          ]
+        },
+        {
+          "id": "iga_pemphigus_pathology",
+          "name": "IgA\nPemphigus",
+          "tooltip": {
+            "title": "IgA Pemphigus Pathology",
+            "markdown": "Rare intraepidermal neutrophilic disease"
+          },
+          "children": [
+            {
+              "id": "iga_pemphigus_histopath",
+              "name": "Histopathology",
+              "tooltip": {
+                "title": "IgA Pemphigus Histopathology",
+                "markdown": "-   **SPD type:** Subcorneal pustules\n-   **IEN type:** Intraepidermal neutrophilic pustules\n-   **Minimal acantholysis:** Unlike classic pemphigus\n-   **Neutrophils:** Predominant cell type"
+              }
+            },
+            {
+              "id": "iga_pemphigus_dif",
+              "name": "DIF Pattern",
+              "tooltip": {
+                "title": "IgA Pemphigus DIF",
+                "markdown": "-   **Pattern:** Intercellular IgA deposition\n-   **NO IgG:** Key distinguishing feature\n-   **Distribution:** Throughout epidermis or superficial"
+              }
+            },
+            {
+              "id": "iga_pemphigus_subtypes",
+              "name": "Subtypes",
+              "tooltip": {
+                "title": "IgA Pemphigus Subtypes",
+                "markdown": "-   **SPD type:** Targets desmocollin-1\n-   **IEN type:** Unknown target antigen\n-   **Clinical:** Annular pustular lesions"
+              }
+            }
+          ]
+        },
+        {
+          "id": "pnp_pathology",
+          "name": "Paraneo-\nplastic\nPemphigus",
+          "tooltip": {
+            "title": "Paraneoplastic Pemphigus Pathology",
+            "markdown": "Severe mucocutaneous disease associated with neoplasms"
+          },
+          "children": [
+            {
+              "id": "pnp_histopath",
+              "name": "Histopathology",
+              "tooltip": {
+                "title": "PNP Histopathology",
+                "markdown": "-   **Variable:** Suprabasal acantholysis + interface dermatitis\n-   **Lichenoid changes:** Basal vacuolar degeneration\n-   **Dyskeratotic cells:** Throughout epidermis\n-   **Mixed pattern:** Features of pemphigus + EM/lichenoid"
+              }
+            },
+            {
+              "id": "pnp_dif",
+              "name": "DIF Pattern",
+              "tooltip": {
+                "title": "PNP Direct Immunofluorescence",
+                "markdown": "-   **Dual pattern:** Intercellular AND linear BMZ\n-   **IgG and C3:** Both patterns present\n-   **Unique:** Combined pattern highly suggestive"
+              }
+            },
+            {
+              "id": "pnp_associations",
+              "name": "Associations",
+              "tooltip": {
+                "title": "PNP Associations & Antibodies",
+                "markdown": "-   **Neoplasms:** NHL, CLL, Castleman disease, thymoma\n-   **Antigens:** Plakins (desmoplakin, envoplakin, periplakin)\n-   **IIF:** Rat bladder epithelium positive\n-   **Prognosis:** Often poor, bronchiolitis obliterans"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subepidermal_igg_group",
+      "name": "Subepidermal\nIgG-Mediated",
+      "tooltip": {
+        "title": "Subepidermal IgG-Mediated Diseases",
+        "markdown": "Pemphigoid group and related diseases with IgG deposition at the basement membrane zone"
+      },
+      "children": [
+        {
+          "id": "bp_pathology",
+          "name": "Bullous\nPemphigoid",
+          "tooltip": {
+            "title": "Bullous Pemphigoid Pathology",
+            "markdown": "Most common subepidermal blistering disease with eosinophilic infiltrate"
+          },
+          "children": [
+            {
+              "id": "bp_histopath",
+              "name": "Histopathology",
+              "tooltip": {
+                "title": "BP Histopathology",
+                "markdown": "-   **Blister level:** Subepidermal split\n-   **Infiltrate:** Eosinophil-rich, often forming microabscesses\n-   **Early lesion:** Eosinophilic spongiosis\n-   **Blister cavity:** Contains eosinophils and fibrin"
+              }
+            },
+            {
+              "id": "bp_dif",
+              "name": "DIF Pattern",
+              "tooltip": {
+                "title": "BP Direct Immunofluorescence",
+                "markdown": "-   **Pattern:** Linear at basement membrane zone\n-   **Antibodies:** IgG and C3 (C3 may be stronger)\n-   **n-serrated pattern:** On high-resolution IF\n-   **Salt-split:** Binds to roof (epidermal side)"
+              }
+            },
+            {
+              "id": "bp_serology",
+              "name": "Serology",
+              "tooltip": {
+                "title": "BP Serology",
+                "markdown": "-   **BP180 ELISA:** Most sensitive and specific\n-   **BP230 ELISA:** Also positive in many cases\n-   **NC16A domain:** Pathogenic epitope on BP180"
+              }
+            }
+          ]
+        },
+        {
+          "id": "pg_pathology",
+          "name": "Pemphigoid\nGestationis",
+          "tooltip": {
+            "title": "Pemphigoid Gestationis Pathology",
+            "markdown": "Pregnancy-associated autoimmune blistering disease"
+          },
+          "children": [
+            {
+              "id": "pg_histopath",
+              "name": "Histopathology",
+              "tooltip": {
+                "title": "PG Histopathology",
+                "markdown": "-   **Similar to BP:** Subepidermal blister with eosinophils\n-   **Papillary edema:** Often prominent\n-   **Eosinophilic spongiosis:** Common in urticarial phase"
+              }
+            },
+            {
+              "id": "pg_dif",
+              "name": "DIF Pattern",
+              "tooltip": {
+                "title": "PG Direct Immunofluorescence",
+                "markdown": "-   **Pattern:** Linear C3 at BMZ (100% of cases)\n-   **IgG:** Present in only 30-50%\n-   **C3 dominance:** Key feature"
+              }
+            },
+            {
+              "id": "pg_associations",
+              "name": "Associations",
+              "tooltip": {
+                "title": "PG Clinical Associations",
+                "markdown": "-   **Timing:** 2nd-3rd trimester, can flare postpartum\n-   **Target:** BP180 NC16A domain\n-   **Fetal risk:** Prematurity, SGA\n-   **Recurrence:** Common in subsequent pregnancies"
+              }
+            }
+          ]
+        },
+        {
+          "id": "eba_pathology",
+          "name": "EBA",
+          "tooltip": {
+            "title": "Epidermolysis Bullosa Acquisita Pathology",
+            "markdown": "Mechanobullous disease targeting type VII collagen"
+          },
+          "children": [
+            {
+              "id": "eba_histopath",
+              "name": "Histopathology",
+              "tooltip": {
+                "title": "EBA Histopathology",
+                "markdown": "-   **Classic type:** Paucicellular subepidermal blister\n-   **Minimal inflammation:** Clean split\n-   **Inflammatory variant:** Can have neutrophils/eosinophils\n-   **Late:** Scarring and milia formation"
+              }
+            },
+            {
+              "id": "eba_dif",
+              "name": "DIF Pattern",
+              "tooltip": {
+                "title": "EBA Direct Immunofluorescence",
+                "markdown": "-   **Pattern:** Linear IgG (± C3) at BMZ\n-   **u-serrated pattern:** On high-resolution IF\n-   **Salt-split:** Binds to FLOOR (dermal side)\n-   **Key test:** Floor binding distinguishes from BP"
+              }
+            },
+            {
+              "id": "eba_serology",
+              "name": "Serology",
+              "tooltip": {
+                "title": "EBA Serology",
+                "markdown": "-   **Target:** Type VII collagen (anchoring fibrils)\n-   **ELISA:** Anti-type VII collagen available\n-   **NC1 domain:** Major antigenic region"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subepidermal_iga_group",
+      "name": "Subepidermal\nIgA-Mediated",
+      "tooltip": {
+        "title": "Subepidermal IgA-Mediated Diseases",
+        "markdown": "IgA-mediated subepidermal blistering diseases"
+      },
+      "children": [
+        {
+          "id": "dh_pathology",
+          "name": "Dermatitis\nHerpetiformis",
+          "tooltip": {
+            "title": "Dermatitis Herpetiformis Pathology",
+            "markdown": "Gluten-sensitive disease with characteristic papillary IgA deposits"
+          },
+          "children": [
+            {
+              "id": "dh_histopath",
+              "name": "Histopathology",
+              "tooltip": {
+                "title": "DH Histopathology",
+                "markdown": "-   **Early lesion:** Neutrophilic microabscesses in papillary tips\n-   **Later:** Subepidermal vesicle formation\n-   **Key feature:** Must biopsy early lesion for diagnosis\n-   **Infiltrate:** Predominantly neutrophils"
+              }
+            },
+            {
+              "id": "dh_dif",
+              "name": "DIF Pattern",
+              "tooltip": {
+                "title": "DH Direct Immunofluorescence",
+                "markdown": "-   **Pattern:** Granular IgA in dermal papillae\n-   **Location:** Tips of dermal papillae\n-   **Key:** NOT linear - granular deposits\n-   **Perilesional skin:** Best site for DIF"
+              }
+            },
+            {
+              "id": "dh_associations",
+              "name": "Associations",
+              "tooltip": {
+                "title": "DH Associations",
+                "markdown": "-   **Celiac disease:** Present in nearly 100%\n-   **Anti-tTG:** Tissue transglutaminase antibodies\n-   **Anti-endomysial:** Often positive\n-   **HLA:** DQ2/DQ8 association"
+              }
+            }
+          ]
+        },
+        {
+          "id": "labd_pathology",
+          "name": "Linear\nIgA\nDermatosis",
+          "tooltip": {
+            "title": "Linear IgA Bullous Dermatosis Pathology",
+            "markdown": "IgA-mediated subepidermal blistering disease"
+          },
+          "children": [
+            {
+              "id": "labd_histopath",
+              "name": "Histopathology",
+              "tooltip": {
+                "title": "LABD Histopathology",
+                "markdown": "-   **Blister level:** Subepidermal split\n-   **Infiltrate:** Neutrophil-predominant\n-   **Distribution:** Along DEJ and in papillae\n-   **Similar to:** Can look like DH on H&E"
+              }
+            },
+            {
+              "id": "labd_dif",
+              "name": "DIF Pattern",
+              "tooltip": {
+                "title": "LABD Direct Immunofluorescence",
+                "markdown": "-   **Pattern:** LINEAR IgA at BMZ\n-   **Key distinction:** Linear (not granular like DH)\n-   **Homogeneous:** Smooth linear deposition\n-   **Salt-split:** Usually binds to roof"
+              }
+            },
+            {
+              "id": "labd_variants",
+              "name": "Variants",
+              "tooltip": {
+                "title": "LABD Variants",
+                "markdown": "-   **Drug-induced:** Vancomycin is classic cause\n-   **Childhood:** Chronic bullous disease of childhood\n-   **Target antigens:** LAD-1, LABD97 (BP180 fragments)"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

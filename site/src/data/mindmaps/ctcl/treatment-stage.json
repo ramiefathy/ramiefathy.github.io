@@ -1,0 +1,162 @@
+{
+  "id": "root",
+  "name": "Treatment by Stage",
+  "tooltip": {
+    "title": "Treatment by Stage",
+    "markdown": "CTCL treatment follows a stage-adapted approach. Early-stage disease is managed with skin-directed therapies, while advanced disease requires systemic agents. The goal is long-term disease control, not cure."
+  },
+  "children": [
+    {
+      "id": "early_mf",
+      "name": "Early-Stage MF (IA-IIA)",
+      "tooltip": {
+        "title": "Early-Stage Mycosis Fungoides (Stage IA to IIA)",
+        "markdown": "Primary goal is symptom palliation using skin-directed therapies."
+      },
+      "children": [
+        {
+          "id": "stage_ia",
+          "name": "Stage IA (<10% BSA)",
+          "tooltip": {
+            "title": "Stage IA Management",
+            "markdown": "Focus on clearing limited skin lesions with minimal toxicity. \"Watchful waiting\" is an option for asymptomatic disease."
+          },
+          "children": [
+            {
+              "id": "ia_first_line",
+              "name": "First-Line",
+              "tooltip": {
+                "title": "First-Line Therapies for Stage IA",
+                "markdown": "-   **Topical Corticosteroids:** High-potency steroids are often the initial choice.\n-   **Topical Mechlorethamine:** An alternative first-line option.\n-   **Phototherapy (NB-UVB):** For widespread but thin patches."
+              }
+            },
+            {
+              "id": "ia_refractory",
+              "name": "Refractory/Localized",
+              "tooltip": {
+                "title": "Refractory/Localized Stage IA Lesions",
+                "markdown": "-   **Localized Radiation:** Highly effective for a single resistant plaque.\n-   **Topical Retinoids/Imiquimod:** Options for persistent localized disease."
+              }
+            }
+          ]
+        },
+        {
+          "id": "stage_ib_iia",
+          "name": "Stage IB/IIA (≥10% BSA)",
+          "tooltip": {
+            "title": "Stage IB / IIA Management",
+            "markdown": "Requires therapies that can cover larger skin surface areas. Systemic therapy may be added for refractory disease."
+          },
+          "children": [
+            {
+              "id": "ib_primary",
+              "name": "Primary Therapies",
+              "tooltip": {
+                "title": "Primary Therapies for Stage IB/IIA",
+                "markdown": "-   **Phototherapy (PUVA):** Preferred for thicker, more extensive plaques due to deeper penetration.\n-   **TSEBT (Total Skin Electron Beam):** Low-dose (10-12 Gy) is effective for widespread plaques."
+              }
+            },
+            {
+              "id": "ib_refractory",
+              "name": "Refractory/Systemic Options",
+              "tooltip": {
+                "title": "Refractory or Systemic Options for IB/IIA",
+                "markdown": "-   **Bexarotene or Methotrexate:** Can be added to skin-directed therapies."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced_mf",
+      "name": "Advanced-Stage MF (IIB-IV)",
+      "tooltip": {
+        "title": "Advanced-Stage Mycosis Fungoides (Stage IIB to IV)",
+        "markdown": "Requires systemic therapy, often in combination with skin-directed treatments."
+      },
+      "children": [
+        {
+          "id": "stage_iib",
+          "name": "Stage IIB (Tumor Stage)",
+          "tooltip": {
+            "title": "Stage IIB Management",
+            "markdown": "Focus on controlling tumors and systemic spread."
+          },
+          "children": [
+            {
+              "id": "iib_first",
+              "name": "First-Line",
+              "tooltip": {
+                "title": "First-Line for Stage IIB",
+                "markdown": "-   **Localized Radiation:** For limited tumor burden.\n-   **Systemic Therapy:** Bexarotene, Methotrexate, or Mogamulizumab."
+              }
+            }
+          ]
+        },
+        {
+          "id": "stage_iii",
+          "name": "Stage III (Erythroderma)",
+          "tooltip": {
+            "title": "Stage III Management",
+            "markdown": "Management is similar to Sézary Syndrome."
+          },
+          "children": [
+            {
+              "id": "iii_first",
+              "name": "First-Line",
+              "tooltip": {
+                "title": "First-Line for Stage III",
+                "markdown": "-   **ECP, Mogamulizumab, Bexarotene, Methotrexate.**"
+              }
+            }
+          ]
+        },
+        {
+          "id": "stage_iv",
+          "name": "Stage IV (Metastatic)",
+          "tooltip": {
+            "title": "Stage IV Management",
+            "markdown": "Palliative intent. Focus on quality of life."
+          },
+          "children": [
+            {
+              "id": "iv_first",
+              "name": "First-Line",
+              "tooltip": {
+                "title": "First-Line for Stage IV",
+                "markdown": "-   **Targeted Biologics:** Mogamulizumab or Brentuximab Vedotin (if CD30+).\n-   **Single-Agent Chemo:** Gemcitabine or Doxil."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ss_tx",
+      "name": "Sézary Syndrome",
+      "tooltip": {
+        "title": "Sézary Syndrome Management",
+        "markdown": "Requires aggressive systemic therapy targeting the high burden of disease in the blood."
+      },
+      "children": [
+        {
+          "id": "ss_first_line",
+          "name": "First-Line",
+          "tooltip": {
+            "title": "First-Line for Sézary Syndrome",
+            "markdown": "-   **Extracorporeal Photopheresis (ECP)**\n-   **Mogamulizumab**"
+          }
+        },
+        {
+          "id": "ss_second_line",
+          "name": "Second-Line",
+          "tooltip": {
+            "title": "Second-Line for Sézary Syndrome",
+            "markdown": "-   **Bexarotene, Romidepsin, Vorinostat.**"
+          }
+        }
+      ]
+    }
+  ]
+}

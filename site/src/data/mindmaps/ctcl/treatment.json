@@ -1,0 +1,164 @@
+{
+  "id": "root",
+  "name": "Treatment by Therapy Type",
+  "tooltip": {
+    "title": "CTCL Treatment Overview",
+    "markdown": "Treatment is stage-adapted, prioritizing immune-preserving, skin-directed therapies for early disease and escalating to systemic agents for advanced or refractory cases. The goal is long-term disease control and palliation, not cure."
+  },
+  "children": [
+    {
+      "id": "sdt",
+      "name": "Skin-Directed Therapies",
+      "tooltip": {
+        "title": "Skin-Directed Therapies (SDT)",
+        "markdown": "Cornerstone of treatment for early-stage MF (IA-IIA). Can be used as adjunctive therapy at any stage to control skin-based symptoms."
+      },
+      "children": [
+        {
+          "id": "topical_steroids",
+          "name": "Topical Corticosteroids",
+          "tooltip": {
+            "title": "Topical Corticosteroids",
+            "markdown": "-   **Mechanism:** Anti-inflammatory, antimitotic, and immunosuppressive.\n-   **Use:** Preferred first-line option for Stage IA MF; adjunctive use for pruritus at all stages.\n-   **Side Effects:** Skin atrophy, striae, potential for adrenal suppression with widespread use of high-potency agents."
+          }
+        },
+        {
+          "id": "mechlorethamine",
+          "name": "Topical Mechlorethamine",
+          "tooltip": {
+            "title": "Topical Mechlorethamine (Nitrogen Mustard)",
+            "markdown": "-   **Mechanism:** Topical alkylating agent (chemotherapy).\n-   **Use:** First- or second-line for Stage IA/IB MF.\n-   **Side Effects:** High rate of irritant or allergic contact dermatitis; hypo/hyperpigmentation."
+          }
+        },
+        {
+          "id": "phototherapy",
+          "name": "Phototherapy",
+          "tooltip": {
+            "title": "Phototherapy",
+            "markdown": "Used for generalized patch or plaque disease."
+          },
+          "children": [
+            {
+              "id": "nb_uvb",
+              "name": "NB-UVB",
+              "tooltip": {
+                "title": "Narrowband UVB (NB-UVB)",
+                "markdown": "-   **Use:** Effective for patch-stage disease (T1a/T2a).\n-   **Considerations:** Less deep penetration than PUVA."
+              }
+            },
+            {
+              "id": "puva",
+              "name": "PUVA",
+              "tooltip": {
+                "title": "Psoralen + UVA (PUVA)",
+                "markdown": "-   **Use:** Deeper penetration makes it effective for thicker plaques (T1b/T2b).\n-   **Side Effects:** Higher risk of non-melanoma skin cancer than UVB."
+              }
+            }
+          ]
+        },
+        {
+          "id": "radiation",
+          "name": "Radiation Therapy",
+          "tooltip": {
+            "title": "Radiation Therapy",
+            "markdown": "Highly effective for clearing localized lesions."
+          },
+          "children": [
+            {
+              "id": "lsrt",
+              "name": "LSRT",
+              "tooltip": {
+                "title": "Localized Superficial Radiation",
+                "markdown": "Excellent for treating a single persistent plaque or tumor."
+              }
+            },
+            {
+              "id": "tsebt",
+              "name": "TSEBT",
+              "tooltip": {
+                "title": "Total Skin Electron Beam",
+                "markdown": "Used for widespread, refractory plaque disease or erythrodermic MF."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "systemic",
+      "name": "Systemic Therapies",
+      "tooltip": {
+        "title": "Systemic Therapies",
+        "markdown": "Used for advanced-stage disease (IIB-IV), refractory early-stage disease, or Sézary Syndrome."
+      },
+      "children": [
+        {
+          "id": "retinoids",
+          "name": "Retinoids",
+          "tooltip": {
+            "title": "Oral Retinoids",
+            "markdown": "Bexarotene is FDA-approved for CTCL. Acitretin is used off-label. Often combined with other therapies like phototherapy or IFN-α."
+          }
+        },
+        {
+          "id": "interferons",
+          "name": "Interferons",
+          "tooltip": {
+            "title": "Interferon-alfa (IFN-α)",
+            "markdown": "An immunomodulatory agent, often used in combination with other therapies."
+          }
+        },
+        {
+          "id": "hdac",
+          "name": "HDAC Inhibitors",
+          "tooltip": {
+            "title": "Histone Deacetylase (HDAC) Inhibitors",
+            "markdown": "Romidepsin and Vorinostat are FDA-approved for relapsed/refractory CTCL."
+          }
+        },
+        {
+          "id": "chemo",
+          "name": "Chemotherapy",
+          "tooltip": {
+            "title": "Systemic Chemotherapy",
+            "markdown": "Reserved for advanced, refractory, or transformed disease due to toxicity and short duration of response. Includes single-agent (e.g., Gemcitabine, Doxil) and multi-agent regimens."
+          }
+        },
+        {
+          "id": "biologics",
+          "name": "Targeted Biologics",
+          "tooltip": {
+            "title": "Targeted Biologic Agents",
+            "markdown": "Modern therapies that target specific molecules on the malignant T-cells."
+          },
+          "children": [
+            {
+              "id": "brentuximab",
+              "name": "Brentuximab Vedotin",
+              "tooltip": {
+                "title": "Brentuximab Vedotin (Anti-CD30)",
+                "markdown": "An antibody-drug conjugate targeting CD30. Highly effective for CD30+ LPDs and transformed MF."
+              }
+            },
+            {
+              "id": "mogamulizumab",
+              "name": "Mogamulizumab (Anti-CCR4)",
+              "tooltip": {
+                "title": "Mogamulizumab (Anti-CCR4)",
+                "markdown": "A monoclonal antibody targeting CCR4. FDA-approved for relapsed/refractory MF/SS."
+              }
+            }
+          ]
+        },
+        {
+          "id": "ecp",
+          "name": "ECP",
+          "tooltip": {
+            "title": "Extracorporeal Photopheresis (ECP)",
+            "markdown": "A first-line therapy for Sézary Syndrome. Involves treating the patient's white blood cells with a photosensitizer and UVA light outside the body."
+          }
+        }
+      ]
+    }
+  ]
+}

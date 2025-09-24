@@ -1,0 +1,124 @@
+{
+  "id": "root",
+  "name": "Blister Level",
+  "tooltip": {
+    "title": "Classification by Level of Split",
+    "markdown": "The fundamental histopathologic branch point for diagnosing autoimmune bullous diseases is the location of the blister within or below the epidermis. This guides the entire diagnostic workup."
+  },
+  "children": [
+    {
+      "id": "intraepi",
+      "name": "Intraepidermal",
+      "tooltip": {
+        "title": "Intraepidermal Blistering",
+        "markdown": "Blisters form due to loss of adhesion between keratinocytes (acantholysis). These blisters are typically flaccid and rupture easily, leaving erosions."
+      },
+      "children": [
+        {
+          "id": "suprabasal",
+          "name": "Suprabasal Split",
+          "tooltip": {
+            "title": "Suprabasal Split",
+            "markdown": "Cleavage occurs just above the basal cell layer, leaving a \"row of tombstones.\" Caused by autoantibodies against desmosomal proteins."
+          },
+          "children": [
+            {
+              "id": "pv_class",
+              "name": "Pemphigus Vulgaris"
+            },
+            {
+              "id": "pnp_class",
+              "name": "Paraneoplastic Pemphigus"
+            }
+          ]
+        },
+        {
+          "id": "subcorneal",
+          "name": "Subcorneal/Granular Split",
+          "tooltip": {
+            "title": "Subcorneal or Granular Layer Split",
+            "markdown": "A very superficial split high in the epidermis. Blisters are extremely fragile."
+          },
+          "children": [
+            {
+              "id": "pf_class",
+              "name": "Pemphigus Foliaceus"
+            },
+            {
+              "id": "iga_class",
+              "name": "IgA Pemphigus"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subepi",
+      "name": "Subepidermal",
+      "tooltip": {
+        "title": "Subepidermal Blistering",
+        "markdown": "Blisters form due to detachment of the entire epidermis from the underlying dermis at the basement membrane zone. These blisters are typically tense and remain intact."
+      },
+      "children": [
+        {
+          "id": "eosinophilic_split",
+          "name": "Eosinophil-Predominant",
+          "tooltip": {
+            "title": "Eosinophil-Rich Infiltrate",
+            "markdown": "The inflammatory infiltrate in the dermis is primarily composed of eosinophils."
+          },
+          "children": [
+            {
+              "id": "bp_class",
+              "name": "Bullous Pemphigoid"
+            },
+            {
+              "id": "pg_class",
+              "name": "Pemphigoid Gestationis"
+            }
+          ]
+        },
+        {
+          "id": "neutrophilic_split",
+          "name": "Neutrophil-Predominant",
+          "tooltip": {
+            "title": "Neutrophil-Rich Infiltrate",
+            "markdown": "The inflammatory infiltrate in the dermis is primarily composed of neutrophils, often forming microabscesses in the dermal papillae."
+          },
+          "children": [
+            {
+              "id": "dh_class",
+              "name": "Dermatitis Herpetiformis"
+            },
+            {
+              "id": "liga_class",
+              "name": "Linear IgA Bullous Dermatosis"
+            },
+            {
+              "id": "bsle_class",
+              "name": "Bullous SLE"
+            }
+          ]
+        },
+        {
+          "id": "pauci_split",
+          "name": "Paucicellular",
+          "tooltip": {
+            "title": "Paucicellular (Non-inflammatory)",
+            "markdown": "Blistering occurs with minimal to no associated inflammation. Often associated with scarring."
+          },
+          "children": [
+            {
+              "id": "eba_class",
+              "name": "Epidermolysis Bullosa Acquisita"
+            },
+            {
+              "id": "pct_class",
+              "name": "Porphyria Cutanea Tarda"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
