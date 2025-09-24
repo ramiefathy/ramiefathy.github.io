@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Pathology Specific</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <h1>Testing Pathology Node Count</h1>
+    <div id="output"></div>
+    
+    <script>
+        // Load the data
+        fetch('AutoimmuneBullousMindMaps/AutoimmuneBullous/js/data.js')
+            .then(response => response.text())
+            .then(text => {
+                // Execute the data.js content
+                eval(text);
+                
+                // Check pathology data
+                const pathologyData = window.dataMap.pathology;
+                const output = document.getElementById('output');
+                
+                output.innerHTML = `
+                    <h2>Pathology Findings Data Structure</h2>
+                    <p>Root name: ${pathologyData.name}</p>
+                    <p>Number of main children: ${pathologyData.children ? pathologyData.children.length : 0}</p>
+                    <h3>Children:</h3>
+                    <ul>
+                        ${pathologyData.children ? pathologyData.children.map(child => 
+                            `<li>${child.name} (${child.children ? child.children.length : 0} sub-children)</li>`
+                        ).join('') : 'No children'}
+                    </ul>
+                `;
+                
+                console.log('Pathology data:', pathologyData);
+            })
+            .catch(error => {
+                console.error('Error loading data:', error);
+                document.getElementById('output').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            });
+    </script>
+</body>
+</html>

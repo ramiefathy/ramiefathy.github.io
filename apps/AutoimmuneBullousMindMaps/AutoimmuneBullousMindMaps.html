@@ -1,0 +1,377 @@
+Of course. This is a perfect topic for the mind map application, as the diagnosis and management of autoimmune bullous diseases are highly structured and rely on understanding the precise level of skin cleavage, target antigens, and immunofluorescence patterns.
+
+Based on the excellent reference articles you provided and my supplemental knowledge, I have designed a comprehensive educational tool for autoimmune bullous diseases. I've structured the information into several logical views that a trainee would find intuitive, moving from broad classification to specific disease management.
+
+Here is the complete, single-file HTML application. You can save the code as an .html file and open it in any modern web browser to run it.
+
+code
+Html
+download
+content_copy
+expand_less
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoimmune Bullous Diseases Mind Maps</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include the D3.js library -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .tab-container {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        #tab-bar {
+            padding-bottom: 180px; 
+            margin-bottom: -180px;
+        }
+        .tab {
+            cursor: pointer;
+            padding: 10px 16px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            display: inline-block;
+            position: relative;
+            border-radius: 6px 6px 0 0;
+        }
+        .tab-group-emerald { color: #059669; }
+        .tab-group-rose { color: #e11d48; }
+        .tab-group-emerald.active { font-weight: 600; background-color: #d1fae5; border-color: #059669; }
+        .tab-group-rose.active { font-weight: 600; background-color: #ffe4e6; border-color: #e11d48; }
+        
+        .dropdown {
+            display: none; position: absolute; background-color: white;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 10;
+            top: 100%; left: 0; border-radius: 0 0 8px 8px; overflow: hidden;
+        }
+        .dropdown-item {
+            color: #334155; padding: 12px 16px; text-decoration: none;
+            display: block; text-align: left; white-space: nowrap;
+        }
+        .dropdown-item:hover { background-color: #f1f5f9; }
+        .tab.dropdown-active .dropdown { display: block; }
+        @media (hover: hover) { .tab:hover .dropdown { display: block; } }
+
+        .mind-map-view { display: none; }
+        .mind-map-view.active { display: flex; align-items: center; justify-content: center; }
+        .loading-indicator { color: #64748b; font-size: 1.25rem; }
+        
+        /* D3-specific styles */
+        .node { cursor: pointer; }
+        .node-text { font-weight: 500; pointer-events: none; text-anchor: middle; dominant-baseline: central; fill: #1e293b; }
+        .link {
+            fill: none;
+            stroke: #cbd5e1;
+            stroke-width: 2px;
+            opacity: 0.6;
+        }
+        .node circle {
+            stroke: #047857;
+            stroke-width: 1.5px;
+            transition: stroke-width 0.2s ease, stroke 0.2s ease;
+        }
+        .node .collapsible {
+            stroke: #065f46;
+            stroke-width: 3px;
+        }
+        
+        .tooltip {
+            position: absolute; background-color: rgba(0, 0, 0, 0.85); color: white;
+            padding: 10px 15px; border-radius: 8px; font-size: 14px; line-height: 1.5;
+            max-width: 450px; visibility: hidden; opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s; pointer-events: none; z-index: 20;
+        }
+        .tooltip-title { font-weight: 700; margin-bottom: 5px; color: #6ee7b7; }
+        .tooltip-content ul { list-style-position: inside; padding-left: 0; margin: 0; }
+        .tooltip-content li { margin-bottom: 5px; }
+        .tooltip-content strong { color: #facc15; }
+    </style>
+</head>
+<body class="bg-slate-50 flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-6xl text-center mb-4">
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-800">Autoimmune Bullous Diseases</h1>
+        <p class="text-slate-600 mt-2 text-lg">An Interactive Guide to Diagnosis and Management.</p>
+    </div>
+
+    <div class="w-full max-w-6xl">
+        <div class="border-b border-slate-200">
+            <div id="tab-bar" class="flex justify-center tab-container">
+                <div id="tab-classification" class="tab active tab-group-emerald" data-tab="classification">Classification by Split</div>
+                <div id="tab-workup" class="tab tab-group-emerald mr-4" data-tab="workup">Diagnostic Workup</div>
+                <div id="tab-compendium" class="tab tab-group-rose">
+                    Disease Compendium ▾
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-item" data-tab="compendium-pv">Pemphigus Vulgaris</a>
+                        <a href="#" class="dropdown-item" data-tab="compendium-bp">Bullous Pemphigoid</a>
+                        <a href="#" class="dropdown-item" data-tab="compendium-dh">Dermatitis Herpetiformis</a>
+                        <a href="#" class="dropdown-item" data-tab="compendium-liga">Linear IgA Bullous Dermatosis</a>
+                        <a href="#" class="dropdown-item" data-tab="compendium-eba">Epidermolysis Bullosa Acquisita</a>
+                    </div>
+                </div>
+                <div id="tab-treatment" class="tab tab-group-rose ml-4" data-tab="treatment">Treatment by Modality</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mind-map-container" class="w-full max-w-6xl aspect-[4/3] bg-white rounded-xl shadow-lg border border-slate-200 mt-4">
+        <div id="view-classification" class="mind-map-view active h-full"></div>
+        <div id="view-workup" class="mind-map-view h-full"></div>
+        <div id="view-treatment" class="mind-map-view h-full"></div>
+        <div id="view-compendium-pv" class="mind-map-view h-full"></div>
+        <div id="view-compendium-bp" class="mind-map-view h-full"></div>
+        <div id="view-compendium-dh" class="mind-map-view h-full"></div>
+        <div id="view-compendium-liga" class="mind-map-view h-full"></div>
+        <div id="view-compendium-eba" class="mind-map-view h-full"></div>
+    </div>
+    <div id="tooltip" class="tooltip"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        (function() {
+            // --- DATA STRUCTURES ---
+            const mindMapDataByClassification = {id:'root',name:'Blister Level',tooltip:{title:'Classification by Level of Split',content:'The fundamental histopathologic branch point for diagnosing autoimmune bullous diseases is the location of the blister within or below the epidermis. This guides the entire diagnostic workup.'},children:[{id:'intraepi',name:'Intraepidermal',tooltip:{title:'Intraepidermal Blistering',content:'Blisters form due to loss of adhesion between keratinocytes (acantholysis). These blisters are typically flaccid and rupture easily, leaving erosions.'},children:[{id:'suprabasal',name:'Suprabasal Split',tooltip:{title:'Suprabasal Split',content:'Cleavage occurs just above the basal cell layer, leaving a "row of tombstones." Caused by autoantibodies against desmosomal proteins.'},children:[{id:'pv_class',name:'Pemphigus Vulgaris'},{id:'pnp_class',name:'Paraneoplastic Pemphigus'}]},{id:'subcorneal',name:'Subcorneal/Granular Split',tooltip:{title:'Subcorneal or Granular Layer Split',content:'A very superficial split high in the epidermis. Blisters are extremely fragile.'},children:[{id:'pf_class',name:'Pemphigus Foliaceus'},{id:'iga_class',name:'IgA Pemphigus'}]}]},{id:'subepi',name:'Subepidermal',tooltip:{title:'Subepidermal Blistering',content:'Blisters form due to detachment of the entire epidermis from the underlying dermis at the basement membrane zone. These blisters are typically tense and remain intact.'},children:[{id:'eosinophilic_split',name:'Eosinophil-Predominant',tooltip:{title:'Eosinophil-Rich Infiltrate',content:'The inflammatory infiltrate in the dermis is primarily composed of eosinophils.'},children:[{id:'bp_class',name:'Bullous Pemphigoid'},{id:'pg_class',name:'Pemphigoid Gestationis'}]},{id:'neutrophilic_split',name:'Neutrophil-Predominant',tooltip:{title:'Neutrophil-Rich Infiltrate',content:'The inflammatory infiltrate in the dermis is primarily composed of neutrophils, often forming microabscesses in the dermal papillae.'},children:[{id:'dh_class',name:'Dermatitis Herpetiformis'},{id:'liga_class',name:'Linear IgA Bullous Dermatosis'},{id:'bsle_class',name:'Bullous SLE'}]},{id:'pauci_split',name:'Paucicellular',tooltip:{title:'Paucicellular (Non-inflammatory)',content:'Blistering occurs with minimal to no associated inflammation. Often associated with scarring.'},children:[{id:'eba_class',name:'Epidermolysis Bullosa Acquisita'},{id:'pct_class',name:'Porphyria Cutanea Tarda'}]}]}]};
+            const mindMapDataByWorkup = {id:'root',name:'Diagnostic Workup',tooltip:{title:'Diagnostic Toolkit',content:'A multi-modal approach is required for accurate diagnosis, combining clinical findings with histology, immunofluorescence, and serology.'},children:[{id:'biopsy',name:'Skin Biopsy',tooltip:{title:'Skin Biopsy',content:'The cornerstone of diagnosis. Two biopsies are typically required.'},children:[{id:'lesional',name:'Lesional Biopsy (for H&E)',tooltip:{title:'Lesional Biopsy (for Histology)',content:'<ul><li><strong>Purpose:</strong> To determine the level of the split (intraepidermal vs. subepidermal) and characterize the inflammatory infiltrate.</li><li><strong>Technique:</strong> A 4mm punch biopsy from the edge of a fresh, intact blister is ideal.</li></ul>'}},{id:'perilesional',name:'Perilesional Biopsy (for DIF)',tooltip:{title:'Perilesional Biopsy (for Direct Immunofluorescence)',content:'<ul><li><strong>Purpose:</strong> To detect in-vivo deposition of autoantibodies and complement in the patient\'s skin.</li><li><strong>Technique:</strong> A 4mm punch biopsy from normal-appearing skin immediately adjacent to a blister. Must be placed in special transport medium (e.g., Michel\'s or Zeus), NOT formalin.</li></ul>'}}]}, {id:'if',name:'Immunofluorescence',tooltip:{title:'Immunofluorescence (IF)',content:'Techniques to visualize the location and pattern of autoantibody deposition.'},children:[{id:'dif',name:'Direct IF (DIF)',tooltip:{title:'Direct Immunofluorescence (DIF)',content:'<ul><li><strong>What it Shows:</strong> Detects antibodies directly deposited in the patient\'s skin.</li><li><strong>Pemphigus Pattern:</strong> Intercellular ("net-like" or "chicken wire") deposition of IgG and C3 within the epidermis.</li><li><strong>Pemphigoid Pattern:</strong> Linear deposition of IgG and/or C3 along the basement membrane zone.</li><li><strong>DH Pattern:</strong> Granular IgA deposits in the dermal papillae.</li></ul>'}},{id:'iif',name:'Indirect IF (IIF)',tooltip:{title:'Indirect Immunofluorescence (IIF)',content:'<ul><li><strong>What it Shows:</strong> Detects circulating autoantibodies in the patient\'s serum.</li><li><strong>Technique:</strong> Patient serum is incubated with a substrate (e.g., monkey esophagus, salt-split skin).</li></ul>'}},{id:'sss',name:'IIF on Salt-Split Skin',tooltip:{title:'Salt-Split Skin IIF',content:'<ul><li><strong>Purpose:</strong> The critical test to differentiate subepidermal bullous diseases. Skin is artificially split at the lamina lucida.</li><li><strong>Roof Staining (Epidermal):</strong> Antibodies bind to the top of the split. Classic for <strong>Bullous Pemphigoid</strong>.</li><li><strong>Floor Staining (Dermal):</strong> Antibodies bind to the bottom of the split. Classic for <strong>Epidermolysis Bullosa Acquisita</strong> and <strong>Bullous SLE</strong>.</li></ul>'}}]}, {id:'serology',name:'Serology (ELISA)',tooltip:{title:'Serology (ELISA)',content:'Enzyme-linked immunosorbent assays that detect and quantify circulating antibodies against specific target antigens. Titers often correlate with disease activity.'},children:[{id:'pemphigus_elisa',name:'Pemphigus Antigens',tooltip:{title:'Pemphigus Antigens',content:'<ul><li><strong>Desmoglein 3 (DSG3):</strong> Primarily associated with Pemphigus Vulgaris, especially mucosal involvement.</li><li><strong>Desmoglein 1 (DSG1):</strong> Primarily associated with Pemphigus Foliaceus and the cutaneous lesions of Pemphigus Vulgaris.</li></ul>'}},{id:'pemphigoid_elisa',name:'Pemphigoid Antigens',tooltip:{title:'Pemphigoid Antigens',content:'<ul><li><strong>BP180 (Type XVII Collagen):</strong> The primary pathogenic antigen in Bullous Pemphigoid.</li><li><strong>BP230:</strong> Another major antigen in Bullous Pemphigoid.</li><li><strong>Type VII Collagen:</strong> The target antigen in Epidermolysis Bullosa Acquisita and Bullous SLE.</li></ul>'}}]}]};
+            const mindMapDataByTreatment = {id:'root',name:'By Modality',tooltip:{title:'Therapeutic Modalities',content:'Treatment aims to suppress autoantibody production and inflammation to stop blistering and promote healing.'},children:[{id:'steroids_tx',name:'Corticosteroids',tooltip:{title:'Corticosteroids',content:'The mainstay of initial therapy for most autoimmune bullous diseases to gain rapid control of inflammation.'},children:[{id:'topical_steroids_tx',name:'High-Potency Topicals',tooltip:{title:'High-Potency Topical Steroids',content:'(e.g., Clobetasol) A first-line, preferred treatment for localized or even generalized Bullous Pemphigoid, as it has fewer systemic side effects than oral steroids.'}},{id:'systemic_steroids_tx',name:'Systemic Steroids',tooltip:{title:'Systemic Steroids',content:'(e.g., Prednisone) Required for most cases of Pemphigus and severe cases of other bullous diseases to induce remission.'}}]}, {id:'immunosuppressants_tx',name:'Conventional Immunosuppressants',tooltip:{title:'Conventional Immunosuppressants ("Steroid-Sparing" Agents)',content:'Added to systemic steroids to allow for dose reduction and long-term maintenance, minimizing steroid toxicity.'},children:[{id:'aza_mmf',name:'Antimetabolites',tooltip:{title:'Antimetabolites',content:'<ul><li><strong>Mycophenolate Mofetil (MMF)</strong></li><li><strong>Azathioprine</strong></li><li>Both are commonly used as first-line steroid-sparing agents in Pemphigus and Pemphigoid.</li></ul>'}},{id:'dapsone_tx',name:'Dapsone',tooltip:{title:'Dapsone',content:'A sulfone antibiotic with potent anti-neutrophilic effects. It is the absolute first-line treatment for Dermatitis Herpetiformis and Linear IgA Bullous Dermatosis.'}},{id:'tetracyclines_tx',name:'Tetracyclines',tooltip:{title:'Tetracyclines & Nicotinamide',content:'(e.g., Doxycycline, Minocycline) A well-tolerated combination with anti-inflammatory properties, often used for milder Bullous Pemphigoid.'}}]}, {id:'biologics_tx',name:'Biologic & Targeted Therapy',tooltip:{title:'Biologic & Targeted Therapies',content:'Highly specific agents for refractory or severe disease.'},children:[{id:'rituximab_tx',name:'Rituximab',tooltip:{title:'Rituximab',content:'A monoclonal antibody that depletes B-cells (the source of autoantibodies). Now a first-line agent, along with steroids, for moderate-to-severe Pemphigus.'}},{id:'ivig_tx',name:'IVIG',tooltip:{title:'Intravenous Immunoglobulin (IVIG)',content:'A pool of human antibodies thought to work by neutralizing pathogenic autoantibodies. Used for severe, refractory disease.'}},{id:'other_targeted_tx',name:'Other Agents',tooltip:{title:'Other Targeted Therapies',content:'Includes agents like Dupilumab and Omalizumab for Bullous Pemphigoid.'}}]}]};
+            const mindMapDataCompendiumPV = {id:'root',name:'Pemphigus Vulgaris',tooltip:{title:'Pemphigus Vulgaris (PV)',content:'An autoimmune blistering disease characterized by flaccid bullae and painful erosions on skin and mucous membranes. It is potentially life-threatening if untreated.'},children:[{id:'patho_pv',name:'Pathophysiology',tooltip:{title:'Pathophysiology of PV',content:'<ul><li><strong>Target Antigens:</strong> Autoantibodies (IgG) against <strong>Desmoglein 3 (DSG3)</strong> and/or <strong>Desmoglein 1 (DSG1)</strong>.</li><li><strong>Acantholysis:</strong> Antibodies disrupt desmosomal adhesion, causing keratinocytes to separate.</li><li><strong>Blister Level:</strong> Leads to a <strong>suprabasal</strong> intraepidermal split.</li></ul>'}},{id:'clinical_pv',name:'Clinical Features',tooltip:{title:'Clinical Features of PV',content:'<ul><li><strong>Mucosal Erosions:</strong> Painful oral erosions are the first sign in ~70% of patients.</li><li><strong>Cutaneous Bullae:</strong> Flaccid, fragile blisters on normal-appearing skin that rupture easily to form widespread, painful erosions.</li><li><strong>Nikolsky Sign:</strong> Positive. Gentle pressure on the skin causes the epidermis to shear off.</li></ul>'}},{id:'diag_pv',name:'Diagnosis',tooltip:{title:'Diagnosis of PV',content:'<ul><li><strong>Histology:</strong> Suprabasal acantholysis with a "row of tombstones" appearance.</li><li><strong>DIF:</strong> Intercellular "net-like" pattern of IgG and C3 deposition.</li><li><strong>Serology:</strong> Positive ELISA for anti-DSG3 and/or anti-DSG1 antibodies.</li></ul>'}},{id:'tx_pv',name:'Treatment',tooltip:{title:'Treatment of PV',content:'<ul><li><strong>First Line (Mod-Sev):</strong> <strong>Rituximab</strong> plus systemic glucocorticoids (e.g., Prednisone).</li><li><strong>Adjuvants:</strong> Steroid-sparing agents like Mycophenolate Mofetil or Azathioprine.</li><li><strong>Refractory Disease:</strong> IVIG, immunoadsorption, or cyclophosphamide.</li></ul>'}}]};
+            const mindMapDataCompendiumBP = {id:'root',name:'Bullous Pemphigoid',tooltip:{title:'Bullous Pemphigoid (BP)',content:'The most common autoimmune blistering disease, typically affecting the elderly. Characterized by tense bullae and intense pruritus.'},children:[{id:'patho_bp',name:'Pathophysiology',tooltip:{title:'Pathophysiology of BP',content:'<ul><li><strong>Target Antigens:</strong> Autoantibodies (IgG) against hemidesmosomal proteins <strong>BP180 (Type XVII Collagen)</strong> and <strong>BP230</strong>.</li><li><strong>Mechanism:</strong> Antibody binding at the basement membrane zone (BMZ) activates complement and recruits eosinophils and neutrophils, leading to separation.</li><li><strong>Blister Level:</strong> Subepidermal split.</li></ul>'}},{id:'clinical_bp',name:'Clinical Features',tooltip:{title:'Clinical Features of BP',content:'<ul><li><strong>Prodrome:</strong> Intense pruritus and urticarial or eczematous plaques may precede blisters by weeks to months.</li><li><strong>Cutaneous Bullae:</strong> Large, tense bullae on erythematous or urticarial skin. Rupture leads to erosions that heal without scarring.</li><li><strong>Nikolsky Sign:</strong> Negative.</li><li><strong>Distribution:</strong> Trunk, flexural areas, and extremities.</li></ul>'}},{id:'diag_bp',name:'Diagnosis',tooltip:{title:'Diagnosis of BP',content:'<ul><li><strong>Histology:</strong> Subepidermal blister with an eosinophil-rich infiltrate.</li><li><strong>DIF:</strong> Linear deposition of IgG and C3 along the BMZ.</li><li><strong>IIF (Salt-Split):</strong> Antibody binding to the <strong>roof (epidermal side)</strong> of the split.</li><li><strong>Serology:</strong> Positive ELISA for anti-BP180 and/or anti-BP230 antibodies.</li></ul>'}},{id:'tx_bp',name:'Treatment',tooltip:{title:'Treatment of BP',content:'<ul><li><strong>First Line (Generalized):</strong> High-potency topical corticosteroids (e.g., Clobetasol) are preferred.</li><li><strong>First Line (Oral):</strong> Systemic steroids (Prednisone) or Doxycycline are alternatives.</li><li><strong>Adjuvants:</strong> Methotrexate, Mycophenolate, Azathioprine.</li><li><strong>Refractory Disease:</strong> Rituximab, Dupilumab, Omalizumab, IVIG.</li></ul>'}}]};
+            const mindMapDataCompendiumDH = {id:'root',name:'Dermatitis Herpetiformis',tooltip:{title:'Dermatitis Herpetiformis (DH)',content:'The cutaneous manifestation of celiac disease (gluten sensitivity). Characterized by intensely pruritic vesicles and papules.'},children:[{id:'patho_dh',name:'Pathophysiology',tooltip:{title:'Pathophysiology of DH',content:'<ul><li><strong>Mechanism:</strong> Ingestion of gluten leads to production of IgA autoantibodies against <strong>tissue transglutaminase (tTG)</strong> and <strong>epidermal transglutaminase (eTG)</strong>.</li><li><strong>Deposition:</strong> IgA-eTG immune complexes deposit in the dermal papillae, recruiting neutrophils and causing blistering.</li><li><strong>Blister Level:</strong> Subepidermal split.</li></ul>'}},{id:'clinical_dh',name:'Clinical Features',tooltip:{title:'Clinical Features of DH',content:'<ul><li><strong>Symptoms:</strong> Intense, burning pruritus is the hallmark symptom.</li><li><strong>Lesions:</strong> Grouped ("herpetiform") vesicles, papules, and urticarial plaques. Often excoriated and difficult to see intact blisters.</li><li><strong>Distribution:</strong> Symmetrical involvement of extensor surfaces (elbows, knees), buttocks, and posterior scalp.</li></ul>'}},{id:'diag_dh',name:'Diagnosis',tooltip:{title:'Diagnosis of DH',content:'<ul><li><strong>Histology:</strong> Neutrophilic microabscesses in the dermal papillae.</li><li><strong>DIF:</strong> The gold standard. Shows <strong>granular IgA deposition</strong> in the dermal papillae.</li><li><strong>Serology:</strong> Positive serology for anti-tTG and anti-endomysial IgA antibodies confirms underlying celiac disease.</li></ul>'}},{id:'tx_dh',name:'Treatment',tooltip:{title:'Treatment of DH',content:'<ul><li><strong>Diet:</strong> A strict, lifelong <strong>gluten-free diet</strong> is the primary treatment and manages both skin and gut disease.</li><li><strong>Pharmacologic:</strong> <strong>Dapsone</strong> provides rapid relief of pruritus and skin lesions but does not treat the underlying intestinal disease.</li></ul>'}}]};
+            const mindMapDataCompendiumLIGA = {id:'root',name:'Linear IgA',tooltip:{title:'Linear IgA Bullous Dermatosis (LABD)',content:'A rare autoimmune disease characterized by linear deposition of IgA at the basement membrane zone. It has both idiopathic and drug-induced forms.'},children:[{id:'patho_liga',name:'Pathophysiology',tooltip:{title:'Pathophysiology of LABD',content:'<ul><li><strong>Target Antigens:</strong> IgA autoantibodies target proteolytic fragments of <strong>BP180</strong> (LAD-1, LABD97).</li><li><strong>Mechanism:</strong> IgA deposition recruits neutrophils, leading to a subepidermal split.</li><li><strong>Blister Level:</strong> Subepidermal.</li></ul>'}},{id:'clinical_liga',name:'Clinical Features',tooltip:{title:'Clinical Features of LABD',content:'<ul><li><strong>Classic Lesion:</strong> Tense vesicles and bullae arranged in an annular or "string of pearls" configuration.</li><li><strong>Childhood:</strong> Often presents as Chronic Bullous Disease of Childhood with prominent involvement of the lower abdomen and perineum.</li><li><strong>Adults:</strong> More widespread involvement of trunk and limbs. Mucosal involvement is common.</li></ul>'}},{id:'diag_liga',name:'Diagnosis',tooltip:{title:'Diagnosis of LABD',content:'<ul><li><strong>Histology:</strong> Subepidermal blister with a neutrophil-predominant infiltrate.</li><li><strong>DIF:</strong> The gold standard. Shows <strong>linear IgA deposition</strong> along the basement membrane zone.</li><li><strong>IIF (Salt-Split):</strong> Antibody binding usually to the <strong>epidermal side (roof)</strong> of the split.</li></ul>'}},{id:'tx_liga',name:'Treatment',tooltip:{title:'Treatment of LABD',content:'<ul><li><strong>First Line:</strong> <strong>Dapsone</strong> or Sulfapyridine.</li><li><strong>Second Line:</strong> Systemic corticosteroids, colchicine, or immunosuppressants like Mycophenolate Mofetil.</li></ul>'}}]};
+            const mindMapDataCompendiumEBA = {id:'root',name:'EBA',tooltip:{title:'Epidermolysis Bullosa Acquisita (EBA)',content:'A rare, chronic autoimmune disease caused by antibodies to Type VII collagen. Presents with skin fragility and blistering.'},children:[{id:'patho_eba',name:'Pathophysiology',tooltip:{title:'Pathophysiology of EBA',content:'<ul><li><strong>Target Antigen:</strong> Autoantibodies (IgG) against <strong>Type VII Collagen</strong>, the main component of anchoring fibrils.</li><li><strong>Mechanism:</strong> Disruption of anchoring fibrils weakens dermo-epidermal adhesion.</li><li><strong>Blister Level:</strong> Subepidermal split deep in the sub-lamina densa.</li></ul>'}},{id:'clinical_eba',name:'Clinical Features',tooltip:{title:'Clinical Features of EBA',content:'EBA has two main presentations:<ul><li><strong>Classical (Non-inflammatory):</strong> Resembles hereditary dystrophic EB. Skin fragility, trauma-induced tense bullae, atrophic scarring, and milia formation.</li><li><strong>Inflammatory:</strong> Can mimic Bullous Pemphigoid, with widespread tense bullae on inflamed skin and intense pruritus.</li></ul>'}},{id:'diag_eba',name:'Diagnosis',tooltip:{title:'Diagnosis of EBA',content:'<ul><li><strong>Histology:</strong> Paucicellular subepidermal blister.</li><li><strong>DIF:</strong> Linear IgG and C3 deposition at the BMZ.</li><li><strong>IIF (Salt-Split):</strong> The key diagnostic test. Shows antibody binding to the <strong>dermal side (floor)</strong> of the split.</li><li><strong>Serology:</strong> ELISA for anti-Type VII Collagen antibodies is available.</li></ul>'}},{id:'tx_eba',name:'Treatment',tooltip:{title:'Treatment of EBA',content:'<ul><li><strong>First Line:</strong> Often difficult to treat. <strong>Colchicine</strong> or <strong>Dapsone</strong> can be effective, especially for the inflammatory variant.</li><li><strong>Refractory Disease:</strong> Systemic corticosteroids, immunosuppressants, IVIG, and Rituximab.</li></ul>'}}]};
+
+            const tooltip = document.getElementById('tooltip');
+            const container = document.getElementById('mind-map-container');
+            const tabBar = document.getElementById('tab-bar');
+            const compendiumTab = document.getElementById('tab-compendium');
+            
+            const dataMap = {
+                'classification': mindMapDataByClassification,
+                'workup': mindMapDataByWorkup,
+                'treatment': mindMapDataByTreatment,
+                'compendium-pv': mindMapDataCompendiumPV,
+                'compendium-bp': mindMapDataCompendiumBP,
+                'compendium-dh': mindMapDataCompendiumDH,
+                'compendium-liga': mindMapDataCompendiumLIGA,
+                'compendium-eba': mindMapDataCompendiumEBA,
+            };
+
+            // --- D3 Drawing Logic ---
+            function drawMindMap(data, svgId) {
+                const svgElement = document.getElementById(svgId);
+                if (!svgElement || !svgElement.parentElement) return;
+                
+                const container = svgElement.parentElement;
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                const isMobile = width < 768;
+                
+                const root = d3.hierarchy(data);
+                root.descendants().forEach(d => { d.x0 = 0; d.y0 = 0; });
+                if (root.children) { root.children.forEach(collapse); }
+
+                const svg = d3.select(svgElement).attr("viewBox", [-width / 2, -height / 2, width, height]);
+                svg.selectAll("*").remove();
+                const g = svg.append("g");
+                
+                const treeLayout = d3.tree()
+                    .size([2 * Math.PI, Math.min(width, height) / 2 - (isMobile ? 60 : 100)])
+                    .separation((a, b) => (a.parent === b.parent ? 1 : 2) / (a.depth || 1));
+                
+                let i = 0;
+                root.eachBefore(d => d.id = `node-${i++}`);
+
+                function update(source) {
+                    const duration = 500;
+                    const treeData = treeLayout(root);
+                    const nodes = treeData.descendants().reverse();
+                    const links = treeData.links();
+
+                    const visibleNodeCount = nodes.filter(d => !d.children && !d._children ? true : d.children ? true : false).length;
+                    
+                    let sizeMultiplier = 1.0;
+                    if (visibleNodeCount <= 10) sizeMultiplier = 1.2;
+                    else if (visibleNodeCount <= 20) sizeMultiplier = 1.0;
+                    else sizeMultiplier = 0.85;
+                    
+                    const baseRadii = [isMobile ? 30 : 36, isMobile ? 24 : 28, isMobile ? 20 : 24, isMobile ? 16 : 20, isMobile ? 14 : 17];
+                    const baseFontSizes = [isMobile ? 9 : 11, isMobile ? 8 : 9, isMobile ? 7 : 8, isMobile ? 6 : 7, isMobile ? 5 : 6];
+                    const radii = baseRadii.map(r => Math.round(r * sizeMultiplier));
+                    const fontSizes = baseFontSizes.map(s => Math.round(s * sizeMultiplier) + 'px');
+                    const colors = ['#a7f3d0', '#d1fae5', '#ecfdf5', '#f0fdf4', '#f9fafb'];
+                    
+                    const gLink = g.selectAll(".link-group").data([null]);
+                    gLink.enter().append("g").attr("class", "link-group").lower();
+                    const gNode = g.selectAll(".node-group").data([null]);
+                    gNode.enter().append("g").attr("class", "node-group");
+
+                    const link = g.select(".link-group").selectAll(".link").data(links, d => d.target.id);
+                    const linkEnter = link.enter().append("path").attr("class", "link")
+                        .attr("d", d => {
+                            const o = {x: source.x0 || 0, y: source.y0 || 0};
+                            return d3.linkRadial().angle(d => d.x || 0).radius(d => d.y || 0)({source: o, target: o});
+                        });
+                    link.merge(linkEnter).transition().duration(duration).attr("d", d3.linkRadial().angle(d => d.x).radius(d => d.y));
+                    link.exit().transition().duration(duration).attr("d", d => {
+                        const o = {x: source.x || 0, y: source.y || 0};
+                        return d3.linkRadial().angle(d => d.x || 0).radius(d => d.y || 0)({source: o, target: o});
+                    }).remove();
+
+                    const node = g.select(".node-group").selectAll(".node").data(nodes, d => d.id);
+                    const nodeEnter = node.enter().append("g").attr("class", "node")
+                        .attr("transform", d => `translate(${radialPoint(source.x0 || 0, source.y0 || 0)})`)
+                        .on("click", click);
+                    nodeEnter.append("circle").attr("r", 1e-6);
+                    nodeEnter.append("text").attr("class", "node-text")
+                        .style("font-size", d => fontSizes[d.depth] || fontSizes[fontSizes.length-1])
+                        .each(function(d) { wrapText(this, d, radii); });
+                    
+                    const nodeUpdate = nodeEnter.merge(node);
+                    nodeUpdate.transition().duration(duration).attr("transform", d => `translate(${radialPoint(d.x, d.y)})`);
+                    nodeUpdate.select("circle").transition().duration(duration)
+                        .attr("r", d => radii[d.depth] || radii[radii.length-1])
+                        .attr("fill", d => colors[d.depth] || colors[colors.length-1])
+                        .attr("class", d => d._children ? "collapsible" : "");
+
+                    nodeUpdate
+                        .on('mousemove', (event, d) => {
+                            tooltip.style.visibility = 'visible';
+                            tooltip.style.opacity = '1';
+                            const tooltipRect = tooltip.getBoundingClientRect();
+                            let left = event.pageX + 15, top = event.pageY + 15;
+                            if (left + tooltipRect.width > window.innerWidth) left = event.pageX - tooltipRect.width - 15;
+                            if (top + tooltipRect.height > window.innerHeight) top = event.pageY - tooltipRect.height - 15;
+                            tooltip.style.left = `${left}px`;
+                            tooltip.style.top = `${top}px`;
+                            tooltip.innerHTML = `<div class="tooltip-title">${d.data.tooltip.title}</div><div class="tooltip-content">${d.data.tooltip.content}</div>`;
+                        }).on('mouseleave', () => {
+                            tooltip.style.visibility = 'hidden';
+                            tooltip.style.opacity = '0';
+                        });
+
+                    node.exit().transition().duration(duration)
+                        .attr("transform", d => `translate(${radialPoint(source.x || 0, source.y || 0)})`).remove()
+                        .select("circle").attr("r", 1e-6);
+                    nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
+                }
+
+                function click(event, d) {
+                    if (event.defaultPrevented) return;
+                    if (d.children) { d._children = d.children; d.children = null; } 
+                    else if (d._children) {
+                        d.children = d._children; d._children = null;
+                        if (d.children) { d.children.forEach(child => { if (child.x0 === undefined) child.x0 = d.x0 || 0; if (child.y0 === undefined) child.y0 = d.y0 || 0; }); }
+                    }
+                    update(d);
+                }
+
+                function collapse(d) {
+                    if(d.children) { d._children = d.children; d._children.forEach(collapse); d.children = null; }
+                    if (d.x0 === undefined) d.x0 = 0; if (d.y0 === undefined) d.y0 = 0;
+                }
+
+                function radialPoint(x, y) { return [(y = +y) * Math.cos(x -= Math.PI / 2), y * Math.sin(x)]; }
+
+                function wrapText(element, d, radii) {
+                    const textElement = d3.select(element);
+                    const words = d.data.name.split(/\s+/).filter(w => w.length > 0);
+                    const lineHeight = 1.1;
+                    const radius = radii[d.depth] || radii[radii.length-1];
+                    const maxLineWidth = (radius - 5) * 2;
+                    textElement.text(null);
+                    const lines = []; let line = [];
+                    let tempTspan = textElement.append("tspan");
+                    words.forEach(word => {
+                        line.push(word);
+                        tempTspan.text(line.join(" "));
+                        if (tempTspan.node().getComputedTextLength() > maxLineWidth && line.length > 1) {
+                            line.pop(); lines.push(line.join(" ")); line = [word];
+                        }
+                    });
+                    lines.push(line.join(" "));
+                    tempTspan.remove();
+                    const startY = -(lines.length - 1) * 0.5 * lineHeight;
+                    lines.forEach((lineText, i) => {
+                        textElement.append("tspan").attr("x", 0).attr("dy", i === 0 ? `${startY}em` : `${lineHeight}em`).text(lineText);
+                    });
+                }
+                
+                update(root);
+            }
+            
+            // --- Core Application Logic ---
+            function switchTab(tabName) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.mind-map-view').forEach(v => v.classList.remove('active'));
+                
+                const mainTabId = `tab-${tabName.startsWith('compendium') ? 'compendium' : tabName}`;
+                const mainTabEl = document.getElementById(mainTabId);
+                if (mainTabEl) mainTabEl.classList.add('active');
+
+                const viewId = `view-${tabName}`;
+                const view = document.getElementById(viewId);
+                if (view) {
+                    view.classList.add('active');
+                    view.innerHTML = '<div class="loading-indicator">Loading Interactive Map...</div>';
+                    setTimeout(() => {
+                        const svgId = `mind-map-svg-${tabName}`;
+                        const data = dataMap[tabName];
+                        if (data) {
+                            view.innerHTML = `<svg id="${svgId}"></svg>`;
+                            drawMindMap(data, svgId);
+                        }
+                    }, 10);
+                }
+            }
+
+            // --- Event Listeners ---
+            tabBar.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = e.target;
+                
+                const dropdownItem = target.closest('.dropdown-item');
+                const targetTab = target.closest('.tab');
+
+                if (dropdownItem && dropdownItem.dataset.tab) {
+                    switchTab(dropdownItem.dataset.tab);
+                    if (compendiumTab) compendiumTab.classList.remove('dropdown-active');
+                } else if (targetTab && targetTab.id === 'tab-compendium') {
+                    targetTab.classList.toggle('dropdown-active');
+                } else if (targetTab && targetTab.dataset.tab) {
+                    switchTab(targetTab.dataset.tab);
+                }
+            });
+
+            window.addEventListener('click', (e) => {
+                if (compendiumTab && !compendiumTab.contains(e.target)) {
+                    compendiumTab.classList.remove('dropdown-active');
+                }
+            });
+
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    const activeView = document.querySelector('.mind-map-view.active');
+                    if (activeView) {
+                        const activeTabName = activeView.id.replace('view-', '');
+                        switchTab(activeTabName);
+                    }
+                }, 250);
+            });
+            
+            // --- Initial Load ---
+            switchTab('classification');
+
+        })();
+    });
+    </script>
+</body>
+</html>
