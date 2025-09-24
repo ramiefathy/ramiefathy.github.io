@@ -7487,6 +7487,17 @@ const App = () => {
                 {activeView === 'settings' && <SettingsView />}
             </main>
 
+            {/* Global Chat Assistant Launcher */}
+            <motion.button
+                aria-label="Open Chat Assistant"
+                onClick={() => setShowChatAssistant(true)}
+                whileHover={{ scale: 1.07 }}
+                whileTap={{ scale: 0.95 }}
+                className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-xl shadow-primary-500/40 hover:shadow-2xl hover:shadow-primary-500/50 focus:outline-none focus:ring-4 focus:ring-primary-300 rounded-full flex items-center justify-center w-14 h-14"
+            >
+                <Icon name="bot" size={22} className="text-white" />
+            </motion.button>
+
             <Toaster
                 position="bottom-right"
                 toastOptions={{
