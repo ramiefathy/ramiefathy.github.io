@@ -81,6 +81,7 @@
 3. **Static analysis:** Run ESLint, Stylelint (if needed), and accessibility scanners (axe-core) during CI to catch regressions early.
 4. **Telemetry abstraction:** Introduce a no-op analytics adapter inside the shared controller so click/search events can later be piped to logging without refactoring. Expose a developer console overlay for debugging node data and performance metrics.
 5. **Knowledge base:** Consolidate existing review documents (CTCL verification, Pruritus UX audit) into a single documentation hub with change logs and regression tracking to ensure institutional knowledge persists.【F:apps/CTCLMindMaps/README.md†L1-L64】【F:apps/PruritusMindMaps/UI_UX_CRITICAL_REVIEW.md†L1-L120】
+6. **Execution playbook:** Standardize on `npm run site:test` for Vitest coverage, `npm run site:test:e2e` for Playwright smoke + visual regression, and `npm run site:test:e2e:update` to refresh baseline screenshots so contributors share a common QA workflow.
 
 ## 4. Backend-Enabled Expansion Opportunities
 While the near-term roadmap remains frontend-only, preparing for a backend unlocks significant future value:
