@@ -70,7 +70,7 @@ function safeSave<T>(key: string, value: T) {
   }
 }
 
-function buildInitialCollapsed(node: MindMapNode): Set<string> {
+export function buildInitialCollapsed(node: MindMapNode): Set<string> {
   const collapsed = new Set<string>();
   const visit = (current: MindMapNode, depth: number) => {
     if (depth >= 2 && current.children && current.children.length) {
@@ -119,7 +119,7 @@ function flattenNode(
   node.children?.forEach((child) => flattenNode(child, tabId, [...path, child.name], [...idPath, child.id], acc));
 }
 
-function buildBreadcrumbPath(nodeId: string, tabRoot: MindMapNode): string[] {
+export function buildBreadcrumbPath(nodeId: string, tabRoot: MindMapNode): string[] {
   const path: string[] = [];
   let found = false;
   const dfs = (node: MindMapNode, segments: string[]) => {
@@ -136,7 +136,7 @@ function buildBreadcrumbPath(nodeId: string, tabRoot: MindMapNode): string[] {
   return path;
 }
 
-function markdownToHtml(tooltip?: MindMapTooltip): string {
+export function markdownToHtml(tooltip?: MindMapTooltip): string {
   if (!tooltip) return '';
   const raw = marked.parse(tooltip.markdown || '', { breaks: true });
   return DOMPurify.sanitize(raw);

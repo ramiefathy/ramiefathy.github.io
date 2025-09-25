@@ -1,4 +1,5 @@
 import type { MindMapDataset, MindMapManifest, MindMapNode } from './types';
+import { validateMindMapDataset, validateMindMapManifest } from './schema';
 
 const manifestModules = import.meta.glob('../../data/mindmaps/**/manifest.json', {
   import: 'default',
@@ -52,14 +53,14 @@ export function getMindMapDataset(topic: string): MindMapDataset | undefined {
     tabs[tab] = node as MindMapNode;
   }
 
-  const dataset: MindMapDataset = { manifest, tabs };
+  const dataset = validateMindMapDataset({ manifest, tabs });
   cache.set(topic, dataset);
   return dataset;
 }
 
 export function listAvailableMindMaps(): MindMapManifest[] {
   return Object.entries(manifestModules)
-    .map(([path, manifest]) => ({ path, manifest }))
+    .map(([path, manifest]) => ({ path, manifest: validateMindMapManifest(manifest) }))
     .sort((a, b) => a.manifest.title.localeCompare(b.manifest.title))
     .map((entry) => entry.manifest);
 }
