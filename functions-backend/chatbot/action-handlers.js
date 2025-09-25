@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const { addWeeks, parseISO, isValid: isValidDate } = require('date-fns');
 const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 const { ACTIONS } = require('./intents');
-const { pushUndoRecord, popUndoRecord } = require('./undo-store');
+const { pushUndoRecord, popUndoRecords, MAX_STACK_DEPTH } = require('./undo-store');
 const { buildSlotsForMoment, normalizeAttending } = require('../lib/attending-utils.js');
 
 const MAX_RECURRENCE = 12;
@@ -626,6 +626,368 @@ async function handleUpdateClinic(args, context) {
   return respond('The clinic has been updated.');
 }
 
+function handleInformational(args = {}) {
+  const message = typeof args.message === 'string' && args.message.trim().length
+    ? args.message.trim()
+    : 'Here is the information you requested.';
+  return respond(message, { informational: true });
+}
+
+const MAX_SUMMARY_DAYS = 14;
+
+const slotPriority = (slot) => {
+  if (slot === 'AM') return 0;
+  if (slot === 'PM') return 1;
+  return 2;
+};
+
+const formatDateKey = (date) => date.toISOString().split('T')[0];
+
+async function handleSummarizeCoverage(args = {}, context) {
+  let startDate = args.startDate ? parseDateOnly(args.startDate) : null;
+  let endDate = args.endDate ? parseDateOnly(args.endDate) : null;
+  const singleDate = args.date ? parseDateOnly(args.date) : null;
+
+  if (startDate && !endDate) {
+    endDate = startDate;
+  }
+  if (!startDate && endDate) {
+    return respond('Please provide a start date when specifying an end date.');
+  }
+
+  if (!startDate && !endDate) {
+    startDate = singleDate || new Date();
+    endDate = startDate;
+  }
+
+  if (!startDate || !endDate) {
+    return respond('I could not understand the requested date range. Please use YYYY-MM-DD.');
+  }
+
+  if (endDate < startDate) {
+    return respond('The end date must be on or after the start date.');
+  }
+
+  const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+  if (totalDays > MAX_SUMMARY_DAYS) {
+    return respond(`Please request coverage summaries for ${MAX_SUMMARY_DAYS} days or fewer at a time.`);
+  }
+
+  const startKey = formatDateKey(startDate);
+  const endKey = formatDateKey(endDate);
+
+  let query = assignmentCollection(context);
+  if (startKey === endKey) {
+    query = query.where('date', '==', startKey);
+  } else {
+    query = query.where('date', '>=', startKey).where('date', '<=', endKey).orderBy('date');
+  }
+
+  const snapshot = await query.get();
+  if (snapshot.empty) {
+    return respond('No assignments were found for the requested timeframe.', {
+      startDate: startKey,
+      endDate: endKey,
+      totalAssignments: 0
+    });
+  }
+
+  const assignments = [];
+  snapshot.forEach(doc => assignments.push({ id: doc.id, ...doc.data() }));
+  assignments.sort((a, b) => {
+    if (a.date === b.date) {
+      return slotPriority(a.timeSlot) - slotPriority(b.timeSlot);
+    }
+    return a.date.localeCompare(b.date);
+  });
+
+  const siteLookup = new Map(
+    Array.isArray(context.sites)
+      ? context.sites
+        .filter(site => site && site.id)
+        .map(site => [site.id, site.name || site.id])
+      : []
+  );
+
+  const breakdownMap = new Map();
+  const slotOrder = ['AM', 'PM'];
+
+  for (const assignment of assignments) {
+    const dateKey = assignment.date || startKey;
+    let slotsForDate = breakdownMap.get(dateKey);
+    if (!slotsForDate) {
+      slotsForDate = new Map();
+      breakdownMap.set(dateKey, slotsForDate);
+    }
+
+    const slotKey = slotOrder.includes(assignment.timeSlot) ? assignment.timeSlot : 'Other';
+    let slotEntries = slotsForDate.get(slotKey);
+    if (!slotEntries) {
+      slotEntries = [];
+      slotsForDate.set(slotKey, slotEntries);
+    }
+
+    const resident = assignment.residentId ? await getResident(context, assignment.residentId) : null;
+    const attending = assignment.attendingId ? await getAttending(context, assignment.attendingId) : null;
+    const clinic = assignment.clinicId && attending
+      ? (attending.clinics || []).find(c => c.id === assignment.clinicId)
+      : null;
+    const siteName = assignment.siteId ? siteLookup.get(assignment.siteId) || null : null;
+
+    const residentLabel = resident?.name || assignment.residentName || assignment.residentId || 'Unassigned';
+    const attendingLabel = attending?.name || assignment.attendingName || assignment.attendingId || 'Unassigned attending';
+    let label = `${residentLabel} -> ${attendingLabel}`;
+    if (clinic?.name) {
+      label += ` at ${clinic.name}`;
+    }
+    if (siteName) {
+      label += ` (${siteName})`;
+    }
+
+    const entry = {
+      assignmentId: assignment.id,
+      resident: residentLabel,
+      attending: attendingLabel,
+      clinicName: clinic?.name || null,
+      siteName: siteName || null,
+      slot: slotKey,
+      notes: assignment.notes || '',
+      label
+    };
+
+    slotEntries.push(entry);
+  }
+
+  const lines = [];
+  const header = startKey === endKey
+    ? `Coverage summary for ${startKey}`
+    : `Coverage summary for ${startKey} through ${endKey}`;
+  lines.push(header);
+
+  const orderedDates = Array.from(breakdownMap.keys()).sort();
+  for (const dateKey of orderedDates) {
+    lines.push(`\n${dateKey}`);
+    const slots = breakdownMap.get(dateKey);
+    const orderedSlots = Array.from(slots.keys()).sort((a, b) => slotPriority(a) - slotPriority(b));
+    for (const slotKey of orderedSlots) {
+      const slotEntries = slots.get(slotKey);
+      lines.push(`  ${slotKey} (${slotEntries.length})`);
+      slotEntries.forEach(item => {
+        lines.push(`    - ${item.label}`);
+      });
+    }
+  }
+
+  return respond(lines.join('\n'), {
+    startDate: startKey,
+    endDate: endKey,
+    totalAssignments: assignments.length,
+    breakdown: orderedDates.map(dateKey => ({
+      date: dateKey,
+      slots: Array.from(breakdownMap.get(dateKey).entries()).map(([slotKey, items]) => ({
+        slot: slotKey,
+        assignments: items
+      }))
+    }))
+  });
+}
+
+const MAX_BULK_ENTRIES = 400;
+const BATCH_CHUNK = 450;
+
+async function handleBulkCreateResidents(args = {}, context) {
+  const entries = Array.isArray(args.entries) ? args.entries : [];
+  if (!entries.length) {
+    return respond('I did not find any resident entries to add.');
+  }
+  if (entries.length > MAX_BULK_ENTRIES) {
+    return respond(`Please add ${MAX_BULK_ENTRIES} or fewer residents per request.`);
+  }
+
+  const seenNames = new Set();
+  const created = [];
+  const skipped = [];
+  let batch = context.firestore.batch();
+  let writesInBatch = 0;
+
+  const flushBatch = async () => {
+    if (writesInBatch === 0) return;
+    await batch.commit();
+    batch = context.firestore.batch();
+    writesInBatch = 0;
+  };
+
+  for (const entry of entries) {
+    const name = typeof entry?.name === 'string' ? entry.name.trim() : '';
+    const pgyStatus = typeof entry?.pgyStatus === 'string' ? entry.pgyStatus.trim() : '';
+    const email = typeof entry?.email === 'string' ? entry.email.trim() : '';
+
+    if (!name || !pgyStatus) {
+      skipped.push({ name: name || entry?.name || null, reason: 'Missing name or PGY status' });
+      continue;
+    }
+
+    const lowerName = name.toLowerCase();
+    if (seenNames.has(lowerName)) {
+      skipped.push({ name, reason: 'Duplicate within request' });
+      continue;
+    }
+
+    const existingSnap = await context.institutionRef
+      .collection('residents')
+      .where('name', '==', name)
+      .limit(1)
+      .get();
+    if (!existingSnap.empty) {
+      skipped.push({ name, reason: 'Resident already exists' });
+      continue;
+    }
+
+    const docRef = context.institutionRef.collection('residents').doc();
+    batch.set(docRef, {
+      name,
+      pgyStatus,
+      email,
+      rotationAssignments: [],
+      halfDaysOff: [],
+      vacationWeeks: [],
+      createdAt: FieldValue.serverTimestamp(),
+      createdBy: context.userId
+    });
+    writesInBatch += 1;
+    seenNames.add(lowerName);
+    created.push({ id: docRef.id, name, pgyStatus, email });
+
+    if (writesInBatch >= BATCH_CHUNK) {
+      await flushBatch();
+    }
+  }
+
+  if (!created.length) {
+    await flushBatch();
+    return respond('No residents were added.', { skipped });
+  }
+
+  await flushBatch();
+
+  await pushUndoRecord({
+    firestore: context.firestore,
+    institutionId: context.institutionId,
+    userId: context.userId,
+    record: {
+      action: 'delete_residents',
+      residentIds: created.map(entry => entry.id)
+    }
+  });
+
+  const messageParts = [`Added ${created.length} resident${created.length === 1 ? '' : 's'}.`];
+  if (skipped.length) {
+    messageParts.push(`${skipped.length} entr${skipped.length === 1 ? 'y was' : 'ies were'} skipped.`);
+  }
+
+  return respond(messageParts.join(' '), {
+    created,
+    skipped
+  });
+}
+
+async function handleBulkCreateAttendings(args = {}, context) {
+  const entries = Array.isArray(args.entries) ? args.entries : [];
+  if (!entries.length) {
+    return respond('I did not find any attending entries to add.');
+  }
+  if (entries.length > MAX_BULK_ENTRIES) {
+    return respond(`Please add ${MAX_BULK_ENTRIES} or fewer attendings per request.`);
+  }
+
+  const seenNames = new Set();
+  const created = [];
+  const skipped = [];
+  let batch = context.firestore.batch();
+  let writesInBatch = 0;
+
+  const flushBatch = async () => {
+    if (writesInBatch === 0) return;
+    await batch.commit();
+    batch = context.firestore.batch();
+    writesInBatch = 0;
+  };
+
+  for (const entry of entries) {
+    const name = typeof entry?.name === 'string' ? entry.name.trim() : '';
+    const email = typeof entry?.email === 'string' ? entry.email.trim() : '';
+    const phone = typeof entry?.phone === 'string' ? entry.phone.trim() : '';
+    const rotationIds = Array.isArray(entry?.rotationIds) ? entry.rotationIds.filter(Boolean) : [];
+
+    if (!name) {
+      skipped.push({ name: name || entry?.name || null, reason: 'Missing name' });
+      continue;
+    }
+
+    const lowerName = name.toLowerCase();
+    if (seenNames.has(lowerName)) {
+      skipped.push({ name, reason: 'Duplicate within request' });
+      continue;
+    }
+
+    const existingSnap = await context.institutionRef
+      .collection('attendings')
+      .where('name', '==', name)
+      .limit(1)
+      .get();
+    if (!existingSnap.empty) {
+      skipped.push({ name, reason: 'Attending already exists' });
+      continue;
+    }
+
+    const docRef = context.institutionRef.collection('attendings').doc();
+    batch.set(docRef, {
+      name,
+      email,
+      phone,
+      rotationIds,
+      clinics: [],
+      scheduleOverrides: [],
+      createdAt: FieldValue.serverTimestamp(),
+      createdBy: context.userId
+    });
+    writesInBatch += 1;
+    seenNames.add(lowerName);
+    created.push({ id: docRef.id, name, email, phone, rotationIds });
+
+    if (writesInBatch >= BATCH_CHUNK) {
+      await flushBatch();
+    }
+  }
+
+  if (!created.length) {
+    await flushBatch();
+    return respond('No attendings were added.', { skipped });
+  }
+
+  await flushBatch();
+
+  await pushUndoRecord({
+    firestore: context.firestore,
+    institutionId: context.institutionId,
+    userId: context.userId,
+    record: {
+      action: 'delete_attendings',
+      attendingIds: created.map(entry => entry.id)
+    }
+  });
+
+  const messageParts = [`Added ${created.length} attending${created.length === 1 ? '' : 's'}.`];
+  if (skipped.length) {
+    messageParts.push(`${skipped.length} entr${skipped.length === 1 ? 'y was' : 'ies were'} skipped.`);
+  }
+
+  return respond(messageParts.join(' '), {
+    created,
+    skipped
+  });
+}
+
 async function applyInverse(record, context) {
   if (!record) {
     return respond('There are no actions left to undo.');
@@ -702,6 +1064,21 @@ async function applyInverse(record, context) {
     await context.institutionRef.collection('residents').doc(record.residentId).delete();
     return respond('The resident has been removed.');
   }
+  case 'delete_residents': {
+    const ids = Array.isArray(record.residentIds) ? record.residentIds.filter(Boolean) : [];
+    if (!ids.length) {
+      return respond('There were no residents to remove.');
+    }
+    for (let i = 0; i < ids.length; i += BATCH_CHUNK) {
+      const batch = context.firestore.batch();
+      ids.slice(i, i + BATCH_CHUNK).forEach(id => {
+        const ref = context.institutionRef.collection('residents').doc(id);
+        batch.delete(ref);
+      });
+      await batch.commit();
+    }
+    return respond('The residents have been removed.');
+  }
   case 'update_resident': {
     const docRef = context.institutionRef.collection('residents').doc(record.residentId);
     const updates = {};
@@ -716,6 +1093,21 @@ async function applyInverse(record, context) {
     updates.updatedBy = context.userId;
     await docRef.update(updates);
     return respond('Resident changes have been reverted.');
+  }
+  case 'delete_attendings': {
+    const ids = Array.isArray(record.attendingIds) ? record.attendingIds.filter(Boolean) : [];
+    if (!ids.length) {
+      return respond('There were no attendings to remove.');
+    }
+    for (let i = 0; i < ids.length; i += BATCH_CHUNK) {
+      const batch = context.firestore.batch();
+      ids.slice(i, i + BATCH_CHUNK).forEach(id => {
+        const ref = context.institutionRef.collection('attendings').doc(id);
+        batch.delete(ref);
+      });
+      await batch.commit();
+    }
+    return respond('The attendings have been removed.');
   }
   case 'remove_clinic': {
     const docRef = context.institutionRef.collection('attendings').doc(record.attendingId);
@@ -766,15 +1158,45 @@ async function handleAction(action, args, context) {
     return handleCreateClinic(args, context);
   case ACTIONS.UPDATE_CLINIC:
     return handleUpdateClinic(args, context);
+  case ACTIONS.SUMMARIZE_COVERAGE:
+    return handleSummarizeCoverage(args, context);
+  case ACTIONS.BULK_CREATE_RESIDENTS:
+    return handleBulkCreateResidents(args, context);
+  case ACTIONS.BULK_CREATE_ATTENDINGS:
+    return handleBulkCreateAttendings(args, context);
   case ACTIONS.UNDO: {
-    const record = await popUndoRecord({
+    const stepsRequested = Math.max(1, Math.min(Number.parseInt(args?.steps, 10) || 1, MAX_STACK_DEPTH));
+    const records = await popUndoRecords({
       firestore: context.firestore,
       institutionId: context.institutionId,
-      userId: context.userId
+      userId: context.userId,
+      count: stepsRequested
     });
-    return applyInverse(record, context);
+    if (!records.length) {
+      return respond('There are no actions left to undo.');
+    }
+
+    const details = [];
+    const perActionData = [];
+    for (const record of records) {
+      const result = await applyInverse(record, context);
+      details.push(result?.message || 'Action undone.');
+      perActionData.push(result?.data || null);
+    }
+
+    const message = records.length === 1
+      ? details[0]
+      : `Undid ${records.length} actions:\n- ${details.join('\n- ')}`;
+
+    return respond(message, {
+      undone: records.length,
+      stepsRequested,
+      details,
+      results: perActionData
+    });
   }
   case ACTIONS.INFO_ONLY:
+    return handleInformational(args);
   default:
     return respond('I can help with scheduling changes, but I did not recognise that request.');
   }

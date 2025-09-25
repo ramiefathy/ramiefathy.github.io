@@ -29,7 +29,7 @@ const {
   buildSlotsForMoment,
   getWeekKey
 } = require('./lib/attending-utils.js');
-const { callGemini } = require('./chatbot/gemini');
+const { callGemini, ACTIONS } = require('./chatbot/gemini');
 const { handleAction } = require('./chatbot/action-handlers');
 const { recordUsage } = require('./chatbot/undo-store');
 
@@ -2318,9 +2318,12 @@ exports.chatAssistant = functions.region('us-central1').https.onCall(async (data
     throw new functions.https.HttpsError('unauthenticated', 'You must be signed in to use the assistant.');
   }
 
-  const { institutionId, message, history = [] } = data || {};
-  if (!institutionId || !message) {
-    throw new functions.https.HttpsError('invalid-argument', 'Please provide both institutionId and message.');
+  const { institutionId, message, history = [], directAction = null } = data || {};
+  const trimmedMessage = typeof message === 'string' ? message.trim() : '';
+  const hasDirectAction = directAction && typeof directAction.name === 'string';
+
+  if (!institutionId || (!trimmedMessage && !hasDirectAction)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Please provide an institutionId and either a message or a direct action.');
   }
 
   const usageAllowed = await recordUsage({
@@ -2361,9 +2364,54 @@ exports.chatAssistant = functions.region('us-central1').https.onCall(async (data
       .slice(-10)
     : [];
 
+  const contextObj = {
+    firestore: db,
+    institutionId,
+    institutionRef,
+    institution: institutionSnap.data(),
+    userId: context.auth.uid,
+    protectedTimes: institutionSnap.data().settings?.protectedTimes || [],
+    sites: institutionSnap.data().settings?.sites || [],
+    residentCache: new Map(),
+    attendingCache: new Map()
+  };
+
+  const executeAction = async (actionName, actionArgs, source = 'gemini') => {
+    try {
+      const result = await handleAction(actionName, actionArgs, contextObj);
+      await institutionRef.collection('auditLogs').add({
+        action: 'chatbot_action',
+        data: { action: actionName, args: actionArgs, source },
+        userId: context.auth.uid,
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      });
+      return {
+        reply: result.message,
+        type: 'action',
+        action: actionName,
+        data: { ...(result.data || {}), source }
+      };
+    } catch (err) {
+      console.error('Chat assistant error', err);
+      throw new functions.https.HttpsError('internal', err.message || 'Unable to complete that action.');
+    }
+  };
+
+  if (hasDirectAction) {
+    const actionName = String(directAction.name);
+    const allowedActions = new Set(Object.values(ACTIONS));
+    if (!allowedActions.has(actionName)) {
+      throw new functions.https.HttpsError('invalid-argument', 'The requested direct action is not supported.');
+    }
+    const actionArgs = typeof directAction.args === 'object' && directAction.args !== null
+      ? directAction.args
+      : {};
+    return executeAction(actionName, actionArgs, 'direct');
+  }
+
   let geminiResult;
   try {
-    geminiResult = await callGemini({ history: sanitizedHistory, message: String(message) });
+    geminiResult = await callGemini({ history: sanitizedHistory, message: trimmedMessage });
   } catch (err) {
     console.error('Gemini call failed', err);
     throw new functions.https.HttpsError('internal', 'The assistant was unable to process your request.');
@@ -2385,36 +2433,7 @@ exports.chatAssistant = functions.region('us-central1').https.onCall(async (data
 
   const actionName = geminiResult.name;
   const actionArgs = geminiResult.args || {};
-  const contextObj = {
-    firestore: db,
-    institutionId,
-    institutionRef,
-    institution: institutionSnap.data(),
-    userId: context.auth.uid,
-    protectedTimes: institutionSnap.data().settings?.protectedTimes || [],
-    sites: institutionSnap.data().settings?.sites || [],
-    residentCache: new Map(),
-    attendingCache: new Map()
-  };
-
-  try {
-    const result = await handleAction(actionName, actionArgs, contextObj);
-    await institutionRef.collection('auditLogs').add({
-      action: 'chatbot_action',
-      data: { action: actionName, args: actionArgs },
-      userId: context.auth.uid,
-      timestamp: admin.firestore.FieldValue.serverTimestamp()
-    });
-    return {
-      reply: result.message,
-      type: 'action',
-      action: actionName,
-      data: result.data || {}
-    };
-  } catch (err) {
-    console.error('Chat assistant error', err);
-    throw new functions.https.HttpsError('internal', err.message || 'Unable to complete that action.');
-  }
+  return executeAction(actionName, actionArgs, 'gemini');
 });
 
 // Export all functions

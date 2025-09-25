@@ -19,20 +19,36 @@ async function pushUndoRecord({ firestore, institutionId, userId, record }) {
   });
 }
 
-async function popUndoRecord({ firestore, institutionId, userId }) {
+async function popUndoRecords({ firestore, institutionId, userId, count = 1 }) {
   const docRef = stackDocRef(firestore, institutionId, userId);
-  let record = null;
+  const requested = Math.max(1, Math.min(Number.parseInt(count, 10) || 1, MAX_STACK_DEPTH));
+  let popped = [];
+
   await firestore.runTransaction(async (tx) => {
     const snap = await tx.get(docRef);
     if (!snap.exists) {
       tx.set(docRef, { actions: [] }, { merge: true });
       return;
     }
-    const actions = snap.data().actions || [];
-    record = actions.pop() || null;
-    tx.set(docRef, { actions }, { merge: true });
+
+    const actions = Array.isArray(snap.data().actions) ? [...snap.data().actions] : [];
+    if (!actions.length) {
+      tx.set(docRef, { actions: [] }, { merge: true });
+      return;
+    }
+
+    const actual = Math.min(requested, actions.length);
+    const remaining = actions.slice(0, actions.length - actual);
+    popped = actions.slice(actions.length - actual).reverse();
+    tx.set(docRef, { actions: remaining }, { merge: true });
   });
-  return record;
+
+  return popped;
+}
+
+async function popUndoRecord({ firestore, institutionId, userId }) {
+  const [record] = await popUndoRecords({ firestore, institutionId, userId, count: 1 });
+  return record || null;
 }
 
 async function recordUsage({ firestore, institutionId, userId, limit = 20 }) {
@@ -63,6 +79,7 @@ async function recordUsage({ firestore, institutionId, userId, limit = 20 }) {
 module.exports = {
   pushUndoRecord,
   popUndoRecord,
+  popUndoRecords,
   recordUsage,
   MAX_STACK_DEPTH
 };

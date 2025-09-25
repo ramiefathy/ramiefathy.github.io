@@ -6915,13 +6915,17 @@ const ChatAssistantPanel = ({ onClose }) => {
         }
     }, [messages]);
 
-    const sendMessage = async (text) => {
-        const trimmed = (text || '').trim();
-        if (!trimmed || !institutionId) {
+    const todayIso = () => new Date().toISOString().split('T')[0];
+
+    const sendMessage = async (text, options = {}) => {
+        const trimmed = typeof text === 'string' ? text.trim() : '';
+        const hasDirectAction = Boolean(options?.directAction?.name);
+        if ((!trimmed && !hasDirectAction) || !institutionId) {
             return;
         }
 
-        const userMessage = { id: generateId('msg'), role: 'user', content: trimmed };
+        const userContent = trimmed || options.fallbackUserMessage || 'Request sent.';
+        const userMessage = { id: generateId('msg'), role: 'user', content: userContent };
         setMessages(prev => [...prev, userMessage]);
         setInputValue('');
 
@@ -6938,11 +6942,17 @@ const ChatAssistantPanel = ({ onClose }) => {
                 .slice(-10)
                 .map(entry => ({ role: entry.role, content: entry.content }));
 
-            const response = await chatFn({
+            const payload = {
                 institutionId,
-                message: trimmed,
+                message: userContent,
                 history: historyPayload
-            });
+            };
+
+            if (hasDirectAction) {
+                payload.directAction = options.directAction;
+            }
+
+            const response = await chatFn(payload);
 
             const data = response?.data || {};
             const assistantText = data.reply || 'Done.';
@@ -6970,7 +6980,12 @@ const ChatAssistantPanel = ({ onClose }) => {
 
     const handleUndo = () => {
         if (isSending) return;
-        sendMessage('Undo the last change.');
+        sendMessage('Undo the last change.', {
+            directAction: {
+                name: 'undo_action',
+                args: { steps: 1 }
+            }
+        });
     };
 
     const handleKeyDown = (event) => {
@@ -7028,7 +7043,12 @@ const ChatAssistantPanel = ({ onClose }) => {
                     </Button>
                     <Button
                         variant="secondary"
-                        onClick={() => sendMessage('Summarize today\'s clinic coverage.')}
+                        onClick={() => sendMessage('Summarize today\'s clinic coverage.', {
+                            directAction: {
+                                name: 'summarize_coverage',
+                                args: { date: todayIso() }
+                            }
+                        })}
                         disabled={isSending}
                     >
                         <Icon name="sparkles" size={14} className="mr-1" />
@@ -7073,7 +7093,19 @@ const AssistantGuideView = () => {
             items: [
                 'Include date (YYYY-MM-DD), time slot (AM/PM), attending/resident IDs, and site or clinic when known.',
                 'Describe recurrence explicitly, e.g., “every week for 4 weeks starting 2025-10-02”.',
-                'State the desired outcome in one sentence—avoid multi-step instructions in a single message.'
+                'State the desired outcome in one sentence—avoid multi-step instructions in a single message.',
+                'Roster uploads should list one person per line with name and PGY (add email/phone if available).',
+                'Ask for a coverage summary and include a specific date or range when you need staffing snapshots.'
+            ]
+        },
+        {
+            title: 'Coverage & Rosters',
+            description: 'Leverage purpose-built tools for summaries and bulk directory updates.',
+            icon: 'file-text',
+            items: [
+                'Use the Summarize quick action or say “summarize coverage for 2025-11-04” to get slot-by-slot assignments.',
+                'Undo up to 25 chatbot actions in one go, e.g., “undo the last 3 changes”.',
+                'Keep bulk additions to 400 people or fewer to stay within Firestore write limits.'
             ]
         },
         {
@@ -7083,7 +7115,7 @@ const AssistantGuideView = () => {
             items: [
                 'Protected continuity clinics, didactics, and approved time off cannot be edited by the assistant.',
                 'Rate limiting defaults to 20 requests per hour per user—slow down when you see a cooldown message.',
-                'Undo reverts up to the last 25 bot actions for your account; manual calendar edits remain untouched.'
+                'Undo reverts up to the last 25 bot actions for your account (per request or stacked); manual calendar edits remain untouched.'
             ]
         },
         {
@@ -7102,15 +7134,17 @@ const AssistantGuideView = () => {
     const samplePrompts = [
         '“Schedule resident r_jackson with attending a_cole on 2025-10-14 AM at continuity clinic.”',
         '“Move Taylor’s October 09 AM clinic to Friday October 10 PM.”',
-        '“Undo the last change.”',
-        '“Summarize today’s clinic coverage.”'
+        '“Undo the last 3 actions.”',
+        '“Summarize today’s clinic coverage.”',
+        '“Add the following residents: Olivia Pierog, PGY-2; Jonathan Lai, PGY-2; Catherine Reilly, PGY-2; Diem-Phuong Dao, PGY-2.”'
     ];
 
     const bestPractices = [
         'Break complex reorganizations into smaller requests and review results between each step.',
         'Let the UI trim older chat history to keep responses fast; long transcripts increase latency.',
         'Document high-impact bot changes in audit notes so teammates understand the context.',
-        'Coordinate with other schedulers to avoid overlapping edits during busy clinic weeks.'
+        'Coordinate with other schedulers to avoid overlapping edits during busy clinic weeks.',
+        'Use quick actions for undo and coverage summaries to call the underlying tools directly.'
     ];
 
     return (

@@ -18,7 +18,10 @@ const ACTIONS = {
   CREATE_CLINIC: 'create_clinic',
   UPDATE_CLINIC: 'update_clinic',
   UNDO: 'undo_action',
-  INFO_ONLY: 'informational' // Used when Gemini should reply without mutations
+  INFO_ONLY: 'informational', // Used when Gemini should reply without mutations
+  SUMMARIZE_COVERAGE: 'summarize_coverage',
+  BULK_CREATE_RESIDENTS: 'bulk_create_residents',
+  BULK_CREATE_ATTENDINGS: 'bulk_create_attendings'
 };
 
 const INTENT_SCHEMAS = {
@@ -151,10 +154,10 @@ const INTENT_SCHEMAS = {
     }
   },
   [ACTIONS.UNDO]: {
-    description: 'Undo the most recent chatbot action for the user',
+    description: 'Undo one or more of the most recent chatbot actions for the user',
     required: [],
     properties: {
-      steps: { type: ['integer', 'null'], minimum: 1, maximum: 25 }
+      steps: { type: ['integer', 'null'], minimum: 1, maximum: 25, description: 'Number of actions to undo, defaults to 1.' }
     }
   },
   [ACTIONS.INFO_ONLY]: {
@@ -162,6 +165,52 @@ const INTENT_SCHEMAS = {
     required: [],
     properties: {
       message: { type: ['string', 'null'] }
+    }
+  },
+  [ACTIONS.SUMMARIZE_COVERAGE]: {
+    description: 'Summarize clinic coverage across assignments for a specific day or range',
+    required: [],
+    properties: {
+      date: { type: ['string', 'null'], format: 'date', description: 'Single date to summarize (defaults to today).' },
+      startDate: { type: ['string', 'null'], format: 'date', description: 'Inclusive range start when summarizing multiple days.' },
+      endDate: { type: ['string', 'null'], format: 'date', description: 'Inclusive range end when summarizing multiple days.' }
+    }
+  },
+  [ACTIONS.BULK_CREATE_RESIDENTS]: {
+    description: 'Create multiple resident profiles from structured roster data',
+    required: ['entries'],
+    properties: {
+      entries: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['name', 'pgyStatus'],
+          properties: {
+            name: { type: 'string' },
+            pgyStatus: { type: 'string' },
+            email: { type: ['string', 'null'] }
+          }
+        }
+      }
+    }
+  },
+  [ACTIONS.BULK_CREATE_ATTENDINGS]: {
+    description: 'Create multiple attending profiles from structured roster data',
+    required: ['entries'],
+    properties: {
+      entries: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: { type: 'string' },
+            email: { type: ['string', 'null'] },
+            phone: { type: ['string', 'null'] },
+            rotationIds: { type: ['array', 'null'], items: { type: 'string' } }
+          }
+        }
+      }
     }
   }
 };
