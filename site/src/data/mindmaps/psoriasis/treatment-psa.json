@@ -1,0 +1,68 @@
+{
+  "id": "root",
+  "name": "Psoriatic Arthritis (PsA)",
+  "tooltip": {
+    "title": "Treatment Algorithm for PsA",
+    "markdown": "Treatment choice is guided by the specific domains of disease involved (e.g., peripheral arthritis, axial disease, enthesitis)."
+  },
+  "children": [
+    {
+      "id": "nsaids_psa",
+      "name": "Initial Symptom Control",
+      "tooltip": {
+        "title": "Initial Symptom Control",
+        "markdown": "Non-steroidal anti-inflammatory drugs (NSAIDs) can be used for mild pain and stiffness but do not prevent joint damage."
+      }
+    },
+    {
+      "id": "csdmards_psa",
+      "name": "csDMARDs",
+      "tooltip": {
+        "title": "Conventional Synthetic DMARDs",
+        "markdown": "**Methotrexate:** Often the first-line DMARD, especially for peripheral arthritis. It treats both skin and joints but is not effective for axial disease."
+      }
+    },
+    {
+      "id": "biologics_psa",
+      "name": "Biologics & tsDMARDs",
+      "tooltip": {
+        "title": "Biologics and Targeted Synthetic DMARDs (tsDMARDs)",
+        "markdown": "The primary treatment for moderate-to-severe or progressive PsA. The choice is based on the dominant clinical domain."
+      },
+      "children": [
+        {
+          "id": "peripheral_tx",
+          "name": "Peripheral Arthritis Dominant",
+          "tooltip": {
+            "title": "Treatment for Peripheral Arthritis",
+            "markdown": "-   **TNF-α inhibitors:** The gold-standard first-line biologic class, effective for all PsA domains.\n-   **IL-17 inhibitors:** Highly effective for joints and skin.\n-   **IL-23 inhibitors:** Effective, particularly with prominent skin disease.\n-   **Oral JAK inhibitors:** An effective oral alternative to biologics."
+          }
+        },
+        {
+          "id": "axial_tx",
+          "name": "Axial Disease Dominant",
+          "tooltip": {
+            "title": "Treatment for Axial Disease",
+            "markdown": "-   **First Line:** TNF-α inhibitors.\n-   **Second Line:** IL-17 inhibitors.\n-   (Note: IL-23 and IL-12/23 inhibitors are generally not effective for axial disease)."
+          }
+        },
+        {
+          "id": "enthesitis_dactylitis_tx",
+          "name": "Enthesitis/Dactylitis Dominant",
+          "tooltip": {
+            "title": "Treatment for Enthesitis and Dactylitis",
+            "markdown": "Generally responds well to the same biologics used for peripheral arthritis, particularly **TNF-α** and **IL-17 inhibitors**."
+          }
+        },
+        {
+          "id": "comorbid_tx_consider",
+          "name": "Comorbidity Considerations",
+          "tooltip": {
+            "title": "Considering Comorbidities",
+            "markdown": "-   **Inflammatory Bowel Disease:** Prefer TNF-α inhibitors or IL-12/23 inhibitors. AVOID IL-17 inhibitors.\n-   **Uveitis:** Prefer monoclonal antibody TNF-α inhibitors (e.g., adalimumab, infliximab)."
+          }
+        }
+      ]
+    }
+  ]
+}

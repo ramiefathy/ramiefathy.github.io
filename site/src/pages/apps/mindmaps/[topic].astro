@@ -1,0 +1,60 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import Header from '../../../components/Header.jsx';
+import MindMapApp from '../../../apps/mindmaps/MindMapApp.tsx';
+import { getMindMapDataset, listAvailableMindMaps } from '../../../apps/mindmaps/dataLoader';
+import type { MindMapDataset } from '../../../apps/mindmaps/types';
+
+export function getStaticPaths() {
+  const manifests = listAvailableMindMaps();
+  return manifests
+    .map((manifest) => {
+      const dataset = getMindMapDataset(manifest.id);
+      if (!dataset) return null;
+      return {
+        params: { topic: manifest.id },
+        props: { dataset }
+      };
+    })
+    .filter(Boolean);
+}
+
+const { dataset } = Astro.props as { dataset: MindMapDataset };
+
+if (!dataset) {
+  throw Astro.redirect('/apps');
+}
+
+const available = listAvailableMindMaps();
+const otherMaps = available.filter((manifest) => manifest.id !== dataset.manifest.id);
+---
+<MainLayout title={`${dataset.manifest.title} – Interactive Mind Map`} description={`Interactive dermatology mind map for ${dataset.manifest.title}.`}>
+  <Header client:load />
+  <main class="mindmap-page">
+    <section class="mindmap-hero">
+      <div class="mindmap-hero__content">
+        <h1>{dataset.manifest.title}</h1>
+        <p>
+          Explore diagnostic pathways, disease classifications, and treatment strategies using an accessible, fully interactive mind map.
+          Tabs organize content into focused perspectives; search, annotations, and export tools support study and teaching workflows.
+        </p>
+        {otherMaps.length ? (
+          <div class="mindmap-hero__other">
+            <span>Explore other mind maps:</span>
+            <ul>
+              {otherMaps.map((map) => (
+                <li><a href={`/apps/mindmaps/${map.id}`}>{map.title}</a></li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    </section>
+    <section class="mindmap-runtime" id="mindmap-runtime">
+      <MindMapApp client:load dataset={dataset} />
+    </section>
+  </main>
+  <style is:global>
+    @import '../../../styles/mindmap.css';
+  </style>
+</MainLayout>

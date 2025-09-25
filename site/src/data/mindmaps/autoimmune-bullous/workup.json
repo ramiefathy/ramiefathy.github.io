@@ -1,0 +1,96 @@
+{
+  "id": "root",
+  "name": "Diagnostic Workup",
+  "tooltip": {
+    "title": "Diagnostic Toolkit",
+    "markdown": "A multi-modal approach is required for accurate diagnosis, combining clinical findings with histology, immunofluorescence, and serology."
+  },
+  "children": [
+    {
+      "id": "biopsy",
+      "name": "Skin Biopsy",
+      "tooltip": {
+        "title": "Skin Biopsy",
+        "markdown": "The cornerstone of diagnosis. Two biopsies are typically required."
+      },
+      "children": [
+        {
+          "id": "lesional",
+          "name": "Lesional Biopsy (for H&E)",
+          "tooltip": {
+            "title": "Lesional Biopsy (for Histology)",
+            "markdown": "-   **Purpose:** To determine the level of the split (intraepidermal vs. subepidermal) and characterize the inflammatory infiltrate.\n-   **Technique:** A 4mm punch biopsy from the edge of a fresh, intact blister is ideal."
+          }
+        },
+        {
+          "id": "perilesional",
+          "name": "Perilesional Biopsy (for DIF)",
+          "tooltip": {
+            "title": "Perilesional Biopsy (for Direct Immunofluorescence)",
+            "markdown": "-   **Purpose:** To detect in-vivo deposition of autoantibodies and complement in the patient's skin.\n-   **Technique:** A 4mm punch biopsy from normal-appearing skin immediately adjacent to a blister. Must be placed in special transport medium (e.g., Michel's or Zeus), NOT formalin."
+          }
+        }
+      ]
+    },
+    {
+      "id": "if",
+      "name": "Immunofluorescence",
+      "tooltip": {
+        "title": "Immunofluorescence (IF)",
+        "markdown": "Techniques to visualize the location and pattern of autoantibody deposition."
+      },
+      "children": [
+        {
+          "id": "dif",
+          "name": "Direct IF (DIF)",
+          "tooltip": {
+            "title": "Direct Immunofluorescence (DIF)",
+            "markdown": "-   **What it Shows:** Detects antibodies directly deposited in the patient's skin.\n-   **Pemphigus Pattern:** Intercellular (\"net-like\" or \"chicken wire\") deposition of IgG and C3 within the epidermis.\n-   **Pemphigoid Pattern:** Linear deposition of IgG and/or C3 along the basement membrane zone.\n-   **DH Pattern:** Granular IgA deposits in the dermal papillae."
+          }
+        },
+        {
+          "id": "iif",
+          "name": "Indirect IF (IIF)",
+          "tooltip": {
+            "title": "Indirect Immunofluorescence (IIF)",
+            "markdown": "-   **What it Shows:** Detects circulating autoantibodies in the patient's serum.\n-   **Technique:** Patient serum is incubated with a substrate (e.g., monkey esophagus, salt-split skin)."
+          }
+        },
+        {
+          "id": "sss",
+          "name": "IIF on Salt-Split Skin",
+          "tooltip": {
+            "title": "Salt-Split Skin IIF",
+            "markdown": "-   **Purpose:** The critical test to differentiate subepidermal bullous diseases. Skin is artificially split at the lamina lucida.\n-   **Roof Staining (Epidermal):** Antibodies bind to the top of the split. Classic for **Bullous Pemphigoid**.\n-   **Floor Staining (Dermal):** Antibodies bind to the bottom of the split. Classic for **Epidermolysis Bullosa Acquisita** and **Bullous SLE**."
+          }
+        }
+      ]
+    },
+    {
+      "id": "serology",
+      "name": "Serology (ELISA)",
+      "tooltip": {
+        "title": "Serology (ELISA)",
+        "markdown": "Enzyme-linked immunosorbent assays that detect and quantify circulating antibodies against specific target antigens. Titers often correlate with disease activity."
+      },
+      "children": [
+        {
+          "id": "pemphigus_elisa",
+          "name": "Pemphigus Antigens",
+          "tooltip": {
+            "title": "Pemphigus Antigens",
+            "markdown": "-   **Desmoglein 3 (DSG3):** Primarily associated with Pemphigus Vulgaris, especially mucosal involvement.\n-   **Desmoglein 1 (DSG1):** Primarily associated with Pemphigus Foliaceus and the cutaneous lesions of Pemphigus Vulgaris."
+          }
+        },
+        {
+          "id": "pemphigoid_elisa",
+          "name": "Pemphigoid Antigens",
+          "tooltip": {
+            "title": "Pemphigoid Antigens",
+            "markdown": "-   **BP180 (Type XVII Collagen):** The primary pathogenic antigen in Bullous Pemphigoid.\n-   **BP230:** Another major antigen in Bullous Pemphigoid.\n-   **Type VII Collagen:** The target antigen in Epidermolysis Bullosa Acquisita and Bullous SLE."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "id": "root",
+  "name": "AA Treatment",
+  "tooltip": {
+    "title": "Treatment of Alopecia Areata",
+    "markdown": "Therapy is stratified by the extent and severity of disease."
+  },
+  "children": [
+    {
+      "id": "aa_limited",
+      "name": "Limited / Patchy Disease",
+      "tooltip": {
+        "title": "Treatment for Limited AA (<50% Scalp Involvement)",
+        "markdown": "Focus is on localized anti-inflammatory treatments."
+      },
+      "children": [
+        {
+          "id": "il_steroids_aa",
+          "name": "Intralesional Corticosteroids",
+          "tooltip": {
+            "title": "Intralesional Corticosteroids",
+            "markdown": "The first-line treatment for patchy AA. Injections of triamcinolone acetonide are given directly into the alopecic patches every 4-6 weeks."
+          }
+        },
+        {
+          "id": "topicals_aa",
+          "name": "Topical Therapies",
+          "tooltip": {
+            "title": "Topical Therapies for AA",
+            "markdown": "-   **High-Potency Steroids:** Can be used alone or between injection sessions.\n-   **Topical Minoxidil:** May help stimulate and maintain regrowth."
+          }
+        }
+      ]
+    },
+    {
+      "id": "aa_severe",
+      "name": "Moderate-to-Severe Disease",
+      "tooltip": {
+        "title": "Treatment for Severe AA (≥50% Scalp, Totalis, Universalis)",
+        "markdown": "Requires systemic therapy to address widespread autoimmune activity."
+      },
+      "children": [
+        {
+          "id": "jaki_aa",
+          "name": "Oral JAK Inhibitors",
+          "tooltip": {
+            "title": "Oral Janus Kinase (JAK) Inhibitors",
+            "markdown": "-   **Mechanism:** Target the cytokine signaling pathway (IFN-gamma, IL-15) that drives the disease.\n-   **Baricitinib (Olumiant):** FDA-approved for severe AA in adults.\n-   **Ritlecitinib (Litfulo):** FDA-approved for severe AA in adults and adolescents 12+.\n-   **Tofacitinib/Ruxolitinib:** Used effectively off-label."
+          }
+        },
+        {
+          "id": "contact_immuno",
+          "name": "Contact Immunotherapy",
+          "tooltip": {
+            "title": "Contact Immunotherapy",
+            "markdown": "Application of a potent contact allergen (like DPCP) to the scalp to induce a mild allergic reaction, which is thought to displace the autoimmune response."
+          }
+        },
+        {
+          "id": "systemic_trad",
+          "name": "Traditional Systemics",
+          "tooltip": {
+            "title": "Traditional Systemic Immunosuppressants",
+            "markdown": "Agents like methotrexate or cyclosporine may be considered but have been largely superseded by the efficacy and specificity of JAK inhibitors."
+          }
+        }
+      ]
+    }
+  ]
+}

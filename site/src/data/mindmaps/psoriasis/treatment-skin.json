@@ -1,0 +1,80 @@
+{
+  "id": "root",
+  "name": "Psoriasis (Skin)",
+  "tooltip": {
+    "title": "Treatment Algorithm for Psoriasis",
+    "markdown": "Treatment is stratified based on disease severity (Body Surface Area affected) and location."
+  },
+  "children": [
+    {
+      "id": "mild_skin",
+      "name": "Mild/Limited Disease",
+      "tooltip": {
+        "title": "Mild to Moderate Plaque Psoriasis (<5-10% BSA)",
+        "markdown": "Typically managed with topical therapies."
+      },
+      "children": [
+        {
+          "id": "mild_first",
+          "name": "First Line",
+          "tooltip": {
+            "title": "First-Line for Mild Psoriasis",
+            "markdown": "-   **High-potency topical corticosteroids** (e.g., clobetasol).\n-   Combination topicals (e.g., **steroid + vitamin D analog**) are often more effective."
+          }
+        },
+        {
+          "id": "mild_second",
+          "name": "Second Line / Special Sites",
+          "tooltip": {
+            "title": "Second-Line & Special Sites",
+            "markdown": "-   **Face/Flexures:** Lower potency steroids, topical calcineurin inhibitors.\n-   **Refractory Plaques:** Topical retinoids (Tazarotene), intralesional steroid injections."
+          }
+        }
+      ]
+    },
+    {
+      "id": "mod_sev_skin",
+      "name": "Moderate-to-Severe Disease",
+      "tooltip": {
+        "title": "Moderate to Severe Plaque Psoriasis (>5-10% BSA or impacting sensitive areas)",
+        "markdown": "Requires phototherapy or systemic treatment."
+      },
+      "children": [
+        {
+          "id": "photo_skin",
+          "name": "Phototherapy",
+          "tooltip": {
+            "title": "Phototherapy",
+            "markdown": "An excellent option for patients with widespread disease who have access and no contraindications. **Narrowband UVB** is the preferred modality."
+          }
+        },
+        {
+          "id": "systemic_skin",
+          "name": "Systemic Therapy",
+          "tooltip": {
+            "title": "Systemic Therapy",
+            "markdown": "The mainstay for most patients with moderate-to-severe disease."
+          },
+          "children": [
+            {
+              "id": "biologics_skin",
+              "name": "Biologics First-Line",
+              "tooltip": {
+                "title": "Biologics as First-Line Systemic",
+                "markdown": "Due to their high efficacy and favorable safety profiles, biologics are often preferred. Choice depends on comorbidities and patient factors.\n\n-   **IL-17 / IL-23 inhibitors:** Generally offer the highest levels of skin clearance (PASI 90/100).\n-   **TNF-α inhibitors:** Broadly effective, especially if PsA is also present."
+              }
+            },
+            {
+              "id": "orals_skin",
+              "name": "Oral Systemics",
+              "tooltip": {
+                "title": "Oral Systemics",
+                "markdown": "Still important options.\n\n-   **Methotrexate:** A cost-effective choice for skin and joints.\n-   **Apremilast:** Oral option with a favorable safety profile (no lab monitoring).\n-   **Deucravacitinib:** A newer oral selective TYK2 inhibitor with efficacy comparable to some biologics."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

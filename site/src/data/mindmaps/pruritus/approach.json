@@ -1,0 +1,112 @@
+{
+  "id": "root",
+  "name": "Pruritus Workup",
+  "tooltip": {
+    "title": "Diagnostic Approach to the Itchy Patient",
+    "markdown": "A systematic approach to evaluating a patient with chronic pruritus, focusing on the cardinal question of whether a primary skin rash is present to guide the diagnostic pathway."
+  },
+  "children": [
+    {
+      "id": "history",
+      "name": "Comprehensive History",
+      "tooltip": {
+        "title": "The Patient History",
+        "markdown": "A thorough history is the most fundamental factor in diagnosing the cause of itch. It provides crucial clues to narrow the vast differential diagnosis."
+      },
+      "children": [
+        {
+          "id": "history_char",
+          "name": "Itch Characteristics",
+          "tooltip": {
+            "title": "Characterizing the Itch",
+            "markdown": "-   **Onset & Duration:** Acute (<6 weeks) vs. Chronic (>6 weeks). Gradual vs. abrupt.\n-   **Timing:** Constant, intermittent, or paroxysmal. Nocturnal worsening is common in many types but especially suggestive of scabies.\n-   **Quality:** Pruritus vs. burning, stinging, or tingling sensations (suggests a neuropathic component).\n-   **Localization:** Generalized vs. localized. Acral start (palms/soles) suggests cholestasis. Dermatomal pattern suggests neuropathic cause.\n-   **Severity:** Use validated scales like Visual Analog Scale (VAS) or Numeric Rating Scale (NRS) (0-10)."
+          }
+        },
+        {
+          "id": "history_triggers",
+          "name": "Triggers & Alleviators",
+          "tooltip": {
+            "title": "Triggers and Alleviating Factors",
+            "markdown": "-   **Exacerbating Factors:** Water (aquagenic pruritus), heat, sweat, stress, specific foods, or clothing (wool).\n-   **Alleviating Factors:** Cold (e.g., the \"ice-pack sign\" in brachioradial pruritus), cooling lotions (menthol), or scratching."
+          }
+        },
+        {
+          "id": "history_ros",
+          "name": "Review of Systems",
+          "tooltip": {
+            "title": "Systemic Review of Systems",
+            "markdown": "Screen for symptoms of underlying systemic disease.\n\n-   **Constitutional:** Fever, night sweats, weight loss (suggests malignancy, esp. lymphoma).\n-   **Hepatobiliary:** Jaundice, pale stools (suggests cholestasis).\n-   **Renal:** Decreased urine output, malaise (suggests CKD).\n-   **Endocrine:** Heat/cold intolerance, palpitations (suggests thyroid disease)."
+          }
+        },
+        {
+          "id": "history_meds",
+          "name": "Medication History",
+          "tooltip": {
+            "title": "Medication and Substance History",
+            "markdown": "A complete list of all prescription, over-the-counter, and supplement use is critical.\n\n-   **Common Culprits:** Opioids, ACE inhibitors, calcium-channel blockers, and targeted cancer therapies.\n-   **Substance Use:** Opioids, cocaine, and amphetamines can cause itch."
+          }
+        }
+      ]
+    },
+    {
+      "id": "exam",
+      "name": "Physical Examination",
+      "tooltip": {
+        "title": "The Physical Examination",
+        "markdown": "The physical exam is the most important branch point. The primary goal is to determine if the itch is caused by a primary skin disease or an underlying systemic/neurologic issue."
+      },
+      "children": [
+        {
+          "id": "exam_rash_q",
+          "name": "Primary Rash Present?",
+          "tooltip": {
+            "title": "The Cardinal Question: Rash or No Rash?",
+            "markdown": "The presence or absence of a primary dermatosis fundamentally changes the diagnostic algorithm."
+          },
+          "children": [
+            {
+              "id": "exam_rash_yes",
+              "name": "Itch with Primary Rash",
+              "tooltip": {
+                "title": "Pruritus on Inflamed/Diseased Skin",
+                "markdown": "The patient has a primary skin condition causing the itch. Diagnosis is based on lesion morphology and distribution. Examples include atopic dermatitis, psoriasis, and scabies."
+              }
+            },
+            {
+              "id": "exam_rash_no",
+              "name": "Itch without Primary Rash",
+              "tooltip": {
+                "title": "Pruritus on Non-Diseased Skin",
+                "markdown": "The itch is the primary problem. Skin changes (excoriations, prurigo nodules) are secondary to scratching. This presentation strongly suggests a systemic, neuropathic, psychogenic, or unknown origin (CPUO)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "exam_lesions",
+          "name": "Secondary Lesions",
+          "tooltip": {
+            "title": "Lesions from Scratching",
+            "markdown": "These are the consequences of chronic itch, not the cause. Their presence does not rule out a systemic etiology.\n\n-   **Excoriations:** Linear scratch marks.\n-   **Lichen Simplex Chronicus:** Thickened skin plaques with accentuated skin lines from chronic rubbing.\n-   **Prurigo Nodularis:** Firm, intensely itchy nodules arising from chronic, focused scratching."
+          }
+        },
+        {
+          "id": "exam_clues",
+          "name": "Specific Clinical Clues",
+          "tooltip": {
+            "title": "Bedside Diagnostic Clues",
+            "markdown": "-   **\"Butterfly Sign\":** Sparing of the mid-upper back, an area the patient cannot reach. Suggests the lesions are self-induced from scratching.\n-   **Burrows:** Thin, serpiginous lines, especially in finger webs. Pathognomonic for scabies.\n-   **Nail Pitting:** Suggests psoriasis.\n-   **Jaundice/Palmar Erythema:** Suggests underlying liver disease."
+          }
+        },
+        {
+          "id": "exam_labs",
+          "name": "Initial Lab Workup",
+          "tooltip": {
+            "title": "Screening Labs for Itch without a Rash",
+            "markdown": "Recommended for all patients with chronic pruritus and no clear primary skin disease.\n\n-   **Core Labs:** Complete blood count (CBC) with differential, liver and renal function tests (CMP), Thyroid-stimulating hormone (TSH).\n-   **Guided Labs:** Based on H&P, consider HIV/hepatitis serologies, iron studies, chest x-ray, and protein electrophoresis.\n-   **Skin Biopsy:** Recommended if latent dermatosis (e.g., bullous pemphigoid) is suspected."
+          }
+        }
+      ]
+    }
+  ]
+}

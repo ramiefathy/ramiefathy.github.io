@@ -1,0 +1,88 @@
+{
+  "id": "root",
+  "name": "Pathogenesis",
+  "tooltip": {
+    "title": "The Immune Basis of Psoriasis",
+    "markdown": "Psoriasis is a chronic immune-mediated disease where an interplay of genetic and environmental factors triggers a cascade of inflammation, primarily driven by the IL-23/Th17 axis."
+  },
+  "children": [
+    {
+      "id": "genetics",
+      "name": "Genetic & Environmental",
+      "tooltip": {
+        "title": "Genetic & Environmental Factors",
+        "markdown": "The initial phase where susceptibility meets a trigger, initiating the inflammatory process."
+      },
+      "children": [
+        {
+          "id": "hla",
+          "name": "Genetic Susceptibility",
+          "tooltip": {
+            "title": "Genetic Susceptibility",
+            "markdown": "-   **HLA-C\\*06:02:** The main genetic risk factor for psoriasis.\n-   **HLA-B\\*27:** A strong genetic marker for axial disease in Psoriatic Arthritis (PsA).\n-   **Other Genes:** Loci related to IL23R and other immune pathways are also implicated."
+          }
+        },
+        {
+          "id": "env_triggers",
+          "name": "Environmental Triggers",
+          "tooltip": {
+            "title": "Environmental Triggers",
+            "markdown": "-   **Infections:** Streptococcal pharyngitis is a classic trigger for guttate psoriasis.\n-   **Trauma (Koebner):** Psoriatic lesions appearing at sites of skin injury.\n-   **Stress:** Both physical and psychological stress can trigger or exacerbate psoriasis.\n-   **Medications:** Beta-blockers, lithium, and antimalarials are known triggers."
+          }
+        }
+      ]
+    },
+    {
+      "id": "il23_th17",
+      "name": "IL-23/Th17 Axis",
+      "tooltip": {
+        "title": "The IL-23/Th17 Axis",
+        "markdown": "The core inflammatory pathway driving the clinical manifestations of psoriasis."
+      },
+      "children": [
+        {
+          "id": "apc",
+          "name": "Antigen Presentation",
+          "tooltip": {
+            "title": "Antigen-Presenting Cells (APCs)",
+            "markdown": "Dendritic cells in the skin are activated by triggers and produce key cytokines, including IL-23 and IL-12."
+          }
+        },
+        {
+          "id": "th17",
+          "name": "T-Helper 17 (Th17) Cells",
+          "tooltip": {
+            "title": "Th17 Cell Activation",
+            "markdown": "IL-23 acts as a \"master cytokine\" that promotes the survival and proliferation of Th17 cells. These cells are the primary source of IL-17. \\[1\\]"
+          }
+        },
+        {
+          "id": "il17_22",
+          "name": "Effector Cytokines",
+          "tooltip": {
+            "title": "Effector Cytokines (IL-17 & IL-22)",
+            "markdown": "-   **IL-17:** A key pro-inflammatory cytokine that stimulates keratinocytes to produce chemokines, recruiting inflammatory cells (like neutrophils) into the skin.\n-   **IL-22:** Directly drives the hyperproliferation of keratinocytes, leading to the thick, scaly plaques characteristic of psoriasis. \\[1\\]\n-   **TNF-α:** Another critical cytokine that contributes to the overall inflammatory milieu."
+          }
+        }
+      ]
+    },
+    {
+      "id": "kc_hyper",
+      "name": "Keratinocyte Hyperproliferation",
+      "tooltip": {
+        "title": "Clinical Manifestation",
+        "markdown": "The result of the cytokine cascade on the skin."
+      },
+      "children": [
+        {
+          "id": "plaque",
+          "name": "Plaque Formation",
+          "tooltip": {
+            "title": "Plaque Formation",
+            "markdown": "The combined effects of IL-17 and IL-22 lead to:\n\n-   **Hyperproliferation:** Epidermal cell turnover is dramatically increased.\n-   **Inflammation:** Influx of neutrophils and other immune cells into the epidermis and dermis.\n-   **Vascular Changes:** Dilation of blood vessels in the dermis.\n\nThis results in the characteristic erythematous, indurated, and scaly psoriatic plaque."
+          }
+        }
+      ]
+    }
+  ]
+}

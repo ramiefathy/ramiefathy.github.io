@@ -1,0 +1,94 @@
+{
+  "id": "root",
+  "name": "CTCL Workup",
+  "tooltip": {
+    "title": "Central Question",
+    "markdown": "The core goal is to investigate a chronic, recalcitrant skin rash that could be Cutaneous T-Cell Lymphoma (CTCL). The workup follows a logical path from suspicion to diagnosis, staging, and establishing prognosis."
+  },
+  "children": [
+    {
+      "id": "q1",
+      "name": "Diagnosis & Subtype",
+      "tooltip": {
+        "title": "Question 1: What is it?",
+        "markdown": "The first step is to confirm the diagnosis of CTCL and determine its specific subtype through a careful integration of clinical, pathologic, and molecular findings."
+      },
+      "children": [
+        {
+          "id": "skin_biopsy",
+          "name": "Skin Biopsy",
+          "tooltip": {
+            "title": "Skin Biopsy (Histopathology)",
+            "markdown": "-   **Purpose:** The cornerstone of diagnosis. Multiple biopsies from different areas may be needed.\n-   **Key MF/SS Features:** A superficial infiltrate of **atypical lymphocytes** with cerebriform nuclei.\n-   **Epidermotropism:** Atypical lymphocytes infiltrating the epidermis without significant spongiosis (inflammation).\n-   **Pautrier Microabscesses:** Intraepidermal clusters of atypical lymphocytes; pathognomonic but not always present.\n-   **Other signs:** Linear alignment of lymphocytes at the dermal-epidermal junction (\"tagging\"), haloed lymphocytes, lymphoid atypia."
+          }
+        },
+        {
+          "id": "tcr_skin",
+          "name": "TCR (Skin)",
+          "tooltip": {
+            "title": "TCR Gene Rearrangement (Skin)",
+            "markdown": "-   **Purpose:** Detects a dominant T-cell population (a clone), which supports a diagnosis of lymphoma.\n-   **Method:** PCR or High-Throughput Sequencing (HTS) of the T-cell receptor (TCR) gamma chain gene.\n-   **Interpretation:** A positive result (monoclonality) supports CTCL, but is **not diagnostic alone**, as reactive conditions and elderly individuals can sometimes have benign clones. An identical clone in two distinct skin sites is more specific for CTCL."
+          }
+        },
+        {
+          "id": "immunohistochemistry",
+          "name": "Immunohistochemistry",
+          "tooltip": {
+            "title": "Immunohistochemistry (IHC)",
+            "markdown": "-   **Purpose:** Stains for specific cell surface markers to determine the lineage and characteristics of the infiltrate.\n-   **Key Markers in MF/SS:** Typically CD3+, CD4+, CD8-, CD5+, with loss of CD7.\n-   **CD30:** Important for identifying CD30+ LPDs and large-cell transformation in MF."
+          }
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "name": "Staging & Prognosis",
+      "tooltip": {
+        "title": "Question 2: How bad is it?",
+        "markdown": "Once diagnosed, staging determines the extent of disease, which is the most important prognostic factor. This involves assessing skin, blood, lymph node, and visceral involvement."
+      },
+      "children": [
+        {
+          "id": "physical_exam",
+          "name": "Physical Exam",
+          "tooltip": {
+            "title": "Complete Skin Exam",
+            "markdown": "Assess the type of lesions (patch, plaque, tumor) and calculate the Body Surface Area (BSA) involved to determine the T-stage."
+          }
+        },
+        {
+          "id": "blood_work",
+          "name": "Blood Work",
+          "tooltip": {
+            "title": "Staging Blood Work",
+            "markdown": "To assess for systemic involvement (B-stage). Includes CBC with differential, comprehensive metabolic panel (CMP), and LDH."
+          }
+        },
+        {
+          "id": "flow_cytometry_q",
+          "name": "Flow Cytometry",
+          "tooltip": {
+            "title": "Peripheral Blood Flow Cytometry",
+            "markdown": "The key test to quantify blood involvement. It identifies and counts the number of malignant Sézary cells to determine the B-stage."
+          }
+        },
+        {
+          "id": "imaging",
+          "name": "Imaging",
+          "tooltip": {
+            "title": "Staging Imaging",
+            "markdown": "-   **Purpose:** To evaluate for lymph node and visceral involvement (N and M stages).\n-   **Method:** Typically a contrast-enhanced CT scan of the chest, abdomen, and pelvis. PET/CT may be used for aggressive disease or suspected transformation."
+          }
+        },
+        {
+          "id": "node_biopsy",
+          "name": "Lymph Node Biopsy",
+          "tooltip": {
+            "title": "Lymph Node Biopsy",
+            "markdown": "If clinically enlarged lymph nodes are present, an excisional biopsy is performed to pathologically stage the nodes (N-stage)."
+          }
+        }
+      ]
+    }
+  ]
+}

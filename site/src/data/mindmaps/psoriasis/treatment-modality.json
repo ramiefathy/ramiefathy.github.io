@@ -1,0 +1,140 @@
+{
+  "id": "root",
+  "name": "By Modality",
+  "tooltip": {
+    "title": "Therapeutic Armamentarium",
+    "markdown": "An overview of psoriasis treatment options, organized by their mode of delivery and mechanism."
+  },
+  "children": [
+    {
+      "id": "topical_tx",
+      "name": "Topical Therapies",
+      "tooltip": {
+        "title": "Topical Therapies",
+        "markdown": "First-line for limited or mild disease (<3-5% BSA) and used as adjuncts in moderate-to-severe disease."
+      },
+      "children": [
+        {
+          "id": "top_steroids",
+          "name": "Corticosteroids",
+          "tooltip": {
+            "title": "Topical Corticosteroids",
+            "markdown": "The mainstay of topical treatment. Available in various potencies and vehicles (creams, ointments, foams, solutions)."
+          }
+        },
+        {
+          "id": "vit_d",
+          "name": "Vitamin D Analogs",
+          "tooltip": {
+            "title": "Vitamin D Analogs",
+            "markdown": "(e.g., Calcipotriene, Calcitriol) Work by inhibiting keratinocyte proliferation. Often used in combination with steroids."
+          }
+        },
+        {
+          "id": "top_other",
+          "name": "Other Topicals",
+          "tooltip": {
+            "title": "Other Topical Agents",
+            "markdown": "Includes topical retinoids (Tazarotene), calcineurin inhibitors (for face/flexures), and newer agents like Tapinarof (Aryl hydrocarbon receptor agonist) and Roflumilast (PDE4 inhibitor)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "photo_tx",
+      "name": "Phototherapy",
+      "tooltip": {
+        "title": "Phototherapy",
+        "markdown": "The use of ultraviolet (UV) light to treat widespread psoriasis. A second-line option for moderate-to-severe disease."
+      },
+      "children": [
+        {
+          "id": "nb_uvb",
+          "name": "Narrowband UVB (NB-UVB)",
+          "tooltip": {
+            "title": "Narrowband UVB",
+            "markdown": "The most common and effective form of phototherapy, using a specific wavelength (311 nm) of UV light."
+          }
+        },
+        {
+          "id": "puva_tx",
+          "name": "PUVA",
+          "tooltip": {
+            "title": "PUVA",
+            "markdown": "Psoralen plus UVA light. Highly effective but less commonly used now due to increased skin cancer risk and logistical challenges."
+          }
+        },
+        {
+          "id": "excimer_tx",
+          "name": "Excimer Laser",
+          "tooltip": {
+            "title": "Excimer Laser",
+            "markdown": "A targeted form of UVB therapy for localized, persistent plaques."
+          }
+        }
+      ]
+    },
+    {
+      "id": "systemic_tx",
+      "name": "Systemic Therapies",
+      "tooltip": {
+        "title": "Systemic Therapies",
+        "markdown": "Oral or injectable medications for moderate-to-severe psoriasis and psoriatic arthritis that work throughout the body."
+      },
+      "children": [
+        {
+          "id": "oral_sys",
+          "name": "Traditional Oral Systemics",
+          "tooltip": {
+            "title": "Traditional Oral Systemics",
+            "markdown": "-   **Methotrexate:** An immunomodulator effective for both skin and joints.\n-   **Acitretin:** An oral retinoid, particularly useful for pustular psoriasis.\n-   **Cyclosporine:** A potent immunosuppressant used for rapid control of severe flares.\n-   **Apremilast:** An oral PDE4 inhibitor."
+          }
+        },
+        {
+          "id": "biologics_sys",
+          "name": "Biologic Agents",
+          "tooltip": {
+            "title": "Biologic Agents",
+            "markdown": "Targeted monoclonal antibodies or fusion proteins that block specific cytokines or immune cells."
+          },
+          "children": [
+            {
+              "id": "tnfi",
+              "name": "TNF-α inhibitors"
+            },
+            {
+              "id": "il17i",
+              "name": "IL-17 inhibitors"
+            },
+            {
+              "id": "il23i",
+              "name": "IL-23 inhibitors"
+            },
+            {
+              "id": "il1223i",
+              "name": "IL-12/23 inhibitors"
+            }
+          ]
+        },
+        {
+          "id": "jak_sys_modality",
+          "name": "Oral Targeted Synthetics",
+          "tooltip": {
+            "title": "Oral Targeted Synthetic DMARDs",
+            "markdown": "Small molecule drugs that inhibit intracellular signaling pathways."
+          },
+          "children": [
+            {
+              "id": "jak_inhib",
+              "name": "JAK inhibitors"
+            },
+            {
+              "id": "tyk2_inhib",
+              "name": "TYK2 inhibitors"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
