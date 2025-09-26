@@ -566,7 +566,7 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
       .append('circle')
       .attr('r', 12)
       .attr('fill', (d) => (highlightSet.has(d.data.id) ? '#f97316' : theme === 'dark' ? '#1f2937' : '#ffffff'))
-      .attr('stroke', highlightSet.has(d.data.id) ? '#f97316' : theme === 'dark' ? '#f9fafb' : '#1f2937')
+      .attr('stroke', (d) => (highlightSet.has(d.data.id) ? '#f97316' : theme === 'dark' ? '#f9fafb' : '#1f2937'))
       .attr('stroke-width', (d) => (highlightSet.has(d.data.id) ? 3 : 1.5));
 
     nodeGroup
