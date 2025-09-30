@@ -14,17 +14,13 @@ const {
   addDays,
   startOfWeek,
   endOfWeek,
-  differenceInDays,
   parseISO,
   addWeeks
 } = require('date-fns');
 const {
   TIME_SLOTS,
   normalizeAttending,
-  makeSlotKey,
-  makeGenericSlotKey,
-  buildSlotsForMoment,
-  getWeekKey
+  buildSlotsForMoment
 } = require('./lib/attending-utils.js');
 const { callGemini, ACTIONS } = require('./chatbot/gemini');
 const { handleAction } = require('./chatbot/action-handlers');
@@ -40,6 +36,9 @@ const { deserializeValue, serializeDocument } = require('./src/utils/serializati
 const { chunkArray } = require('./src/utils/arrays');
 const { getUserDetails, describeAssignmentType } = require('./src/utils/user');
 
+// Import scheduling modules
+const { generateSchedule } = require('./src/scheduling/autoSchedule');
+
 // ==================== Helper Functions ====================
 // (Extracted to src/utils/ and src/config/ modules)
 
@@ -53,6 +52,7 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
   const { institutionId, startDate, endDate, options = {} } = data;
 
   try {
+    // Validate institution
     const institutionRef = db.collection('institutions').doc(institutionId);
     const institutionDoc = await institutionRef.get();
     if (!institutionDoc.exists) {
@@ -63,6 +63,7 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
     const protectedTimes = institution.settings?.protectedTimes || [];
     const sites = institution.settings?.sites || [];
 
+    // Check permissions
     const memberDoc = await institutionRef
       .collection('members')
       .doc(context.auth.uid)
@@ -73,21 +74,7 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('permission-denied', 'Insufficient permissions');
     }
 
-    const [attendingsSnap, residentsSnap, existingAssignmentsSnap, rulesSnap] = await Promise.all([
-      institutionRef.collection('attendings').get(),
-      institutionRef.collection('residents').get(),
-      institutionRef.collection('assignments')
-        .where('date', '>=', startDate)
-        .where('date', '<=', endDate)
-        .get(),
-      institutionRef.collection('rules').get()
-    ]);
-
-    const rules = rulesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const attendings = attendingsSnap.docs.map(doc => normalizeAttending({ id: doc.id, ...doc.data() }, sites));
-    const residents = residentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const existingAssignments = existingAssignmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+    // Validate dates
     const startDateObj = parseISO(startDate);
     const endDateObj = parseISO(endDate);
 
@@ -99,314 +86,37 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('invalid-argument', 'End date must be on or after start date');
     }
 
-    let maxPairingsPerWeek = 2;
-    for (const rule of rules) {
-      const configured = (rule?.config && rule.config.maxPairingsPerWeek) || rule?.maxPairingsPerWeek;
-      const parsed = Number(configured);
-      if (Number.isFinite(parsed) && parsed > 0) {
-        maxPairingsPerWeek = parsed;
-        break;
-      }
-    }
+    // Fetch data in parallel
+    const [attendingsSnap, residentsSnap, existingAssignmentsSnap, rulesSnap] = await Promise.all([
+      institutionRef.collection('attendings').get(),
+      institutionRef.collection('residents').get(),
+      institutionRef.collection('assignments')
+        .where('date', '>=', startDate)
+        .where('date', '<=', endDate)
+        .get(),
+      institutionRef.collection('rules').get()
+    ]);
 
-    const existingAssignmentsBySpecificSlot = new Map();
-    const existingAssignmentsByGenericSlot = new Map();
-    const assignmentsByResidentSlot = new Map();
-    const residentWeekAssignmentCounts = new Map();
-    const pairingCounts = new Map();
+    const rules = rulesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const attendings = attendingsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const residents = residentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const existingAssignments = existingAssignmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    const pushToMap = (map, key, value) => {
-      if (!map.has(key)) {
-        map.set(key, []);
-      }
-      map.get(key).push(value);
-    };
-
-    existingAssignments.forEach(assignment => {
-      if (!assignment.date || !assignment.timeSlot) {
-        return;
-      }
-
-      const specificKey = makeSlotKey({
-        date: assignment.date,
-        timeSlot: assignment.timeSlot,
-        attendingId: assignment.attendingId,
-        clinicId: assignment.clinicId || 'noClinic'
-      });
-      pushToMap(existingAssignmentsBySpecificSlot, specificKey, assignment);
-
-      const genericKey = makeGenericSlotKey({
-        date: assignment.date,
-        timeSlot: assignment.timeSlot,
-        attendingId: assignment.attendingId
-      });
-      pushToMap(existingAssignmentsByGenericSlot, genericKey, assignment);
-
-      if (assignment.residentId) {
-        const residentSlotKey = `${assignment.residentId}|${assignment.date}|${assignment.timeSlot}`;
-        pushToMap(assignmentsByResidentSlot, residentSlotKey, assignment);
-
-        const weekKey = getWeekKey(assignment.date);
-        const residentWeekKey = `${assignment.residentId}|${weekKey}`;
-        residentWeekAssignmentCounts.set(
-          residentWeekKey,
-          (residentWeekAssignmentCounts.get(residentWeekKey) || 0) + 1
-        );
-
-        if (assignment.attendingId) {
-          const pairingKey = `${assignment.residentId}|${weekKey}|${assignment.attendingId}`;
-          pairingCounts.set(pairingKey, (pairingCounts.get(pairingKey) || 0) + 1);
-        }
-      }
+    // Generate schedule using modular algorithm
+    const newAssignments = generateSchedule({
+      attendings,
+      residents,
+      existingAssignments,
+      startDate,
+      endDate,
+      protectedTimes,
+      sites,
+      rules,
+      options,
+      userId: context.auth.uid
     });
 
-    const totalDays = differenceInDays(endDateObj, startDateObj) + 1;
-    const newAssignments = [];
-    const newAssignmentsBySlot = new Map();
-
-    for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
-      const currentDate = addDays(startDateObj, dayOffset);
-      const dateStr = format(currentDate, 'yyyy-MM-dd');
-      const dayOfWeek = currentDate.getDay();
-      const monthStr = format(currentDate, 'yyyy-MM');
-
-      if (!options.includeWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
-        continue;
-      }
-
-      for (const timeSlot of TIME_SLOTS) {
-        for (const resident of residents) {
-          if (!resident.continuityDay || !resident.continuityTime || !resident.continuitySiteId) {
-            continue;
-          }
-
-          if (resident.continuityTime !== timeSlot) {
-            continue;
-          }
-
-          const dayMap = {
-            sunday: 0,
-            monday: 1,
-            tuesday: 2,
-            wednesday: 3,
-            thursday: 4,
-            friday: 5,
-            saturday: 6
-          };
-
-          const targetDay = dayMap[resident.continuityDay?.toLowerCase?.()];
-          if (targetDay !== dayOfWeek) {
-            continue;
-          }
-
-          if (isResidentOnVacation(resident, currentDate)) {
-            continue;
-          }
-
-          if (hasProtectedTime(resident, currentDate, timeSlot, protectedTimes)) {
-            continue;
-          }
-
-          const residentSlotKey = `${resident.id}|${dateStr}|${timeSlot}`;
-          if (assignmentsByResidentSlot.has(residentSlotKey)) {
-            continue;
-          }
-
-          const continuityAssignment = {
-            date: dateStr,
-            timeSlot,
-            residentId: resident.id,
-            attendingId: null,
-            type: 'continuity',
-            siteId: resident.continuitySiteId,
-            createdBy: context.auth.uid,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-          };
-
-          const compliance = checkDutyHourCompliance(
-            [...existingAssignments, ...newAssignments],
-            resident.id,
-            continuityAssignment
-          );
-
-          if (compliance.compliant) {
-            newAssignments.push(continuityAssignment);
-            pushToMap(assignmentsByResidentSlot, residentSlotKey, continuityAssignment);
-
-            const weekKey = getWeekKey(dateStr);
-            const residentWeekKey = `${resident.id}|${weekKey}`;
-            residentWeekAssignmentCounts.set(
-              residentWeekKey,
-              (residentWeekAssignmentCounts.get(residentWeekKey) || 0) + 1
-            );
-          }
-        }
-
-        const slots = [];
-        attendings.forEach(attending => {
-          const momentSlots = buildSlotsForMoment(attending, dateStr, dayOfWeek, timeSlot);
-          if (momentSlots.length) {
-            slots.push(...momentSlots);
-          }
-        });
-
-        if (!slots.length) {
-          continue;
-        }
-
-        for (const slot of slots) {
-          const attending = attendings.find(a => a.id === slot.attendingId);
-          if (!attending) {
-            continue;
-          }
-
-          const specificKey = makeSlotKey({
-            date: slot.date,
-            timeSlot: slot.timeSlot,
-            attendingId: slot.attendingId,
-            clinicId: slot.assignmentClinicId || slot.clinicId || 'noClinic'
-          });
-
-          let existingForSlot = existingAssignmentsBySpecificSlot.get(specificKey) || [];
-          if (!existingForSlot.length) {
-            const genericKey = makeGenericSlotKey({
-              date: slot.date,
-              timeSlot: slot.timeSlot,
-              attendingId: slot.attendingId
-            });
-            existingForSlot = existingAssignmentsByGenericSlot.get(genericKey) || [];
-          }
-
-          if (!options.overwrite && existingForSlot.length >= slot.capacity) {
-            continue;
-          }
-
-          const newForSlot = newAssignmentsBySlot.get(slot.key) || [];
-          const baselineExisting = options.overwrite ? 0 : existingForSlot.length;
-          let capacityRemaining = slot.capacity - baselineExisting - newForSlot.length;
-          if (capacityRemaining <= 0) {
-            continue;
-          }
-
-          const candidates = [];
-
-          for (const resident of residents) {
-            if (isResidentOnVacation(resident, currentDate)) {
-              continue;
-            }
-
-            if (hasProtectedTime(resident, currentDate, timeSlot, protectedTimes)) {
-              continue;
-            }
-
-            const residentSlotKey = `${resident.id}|${dateStr}|${timeSlot}`;
-            if (assignmentsByResidentSlot.has(residentSlotKey)) {
-              continue;
-            }
-
-            const rotation = resident.rotationAssignments?.find(ra => ra.month === monthStr);
-            if (!rotation) {
-              continue;
-            }
-
-            const supportsRotation = Array.isArray(attending.rotationIds)
-              ? attending.rotationIds.includes(rotation.rotationId)
-              : false;
-
-            const siteMatch = slot.siteId && rotation.primarySiteId
-              ? slot.siteId === rotation.primarySiteId
-              : false;
-
-            if (!supportsRotation && !siteMatch) {
-              continue;
-            }
-
-            const compliance = checkDutyHourCompliance(
-              [...existingAssignments, ...newAssignments],
-              resident.id,
-              { date: dateStr, timeSlot }
-            );
-            if (!compliance.compliant) {
-              continue;
-            }
-
-            const weekKey = getWeekKey(dateStr);
-            const pairingKey = `${resident.id}|${weekKey}|${attending.id}`;
-            if (pairingCounts.get(pairingKey) >= maxPairingsPerWeek) {
-              continue;
-            }
-
-            const residentWeekKey = `${resident.id}|${weekKey}`;
-            const weeklyCount = residentWeekAssignmentCounts.get(residentWeekKey) || 0;
-
-            candidates.push({
-              resident,
-              supportsRotation,
-              siteMatch,
-              weeklyCount,
-              pairingCount: pairingCounts.get(pairingKey) || 0
-            });
-          }
-
-          if (!candidates.length) {
-            continue;
-          }
-
-          candidates.sort((a, b) => {
-            if (b.siteMatch !== a.siteMatch) return b.siteMatch - a.siteMatch;
-            if (b.supportsRotation !== a.supportsRotation) return b.supportsRotation - a.supportsRotation;
-            if (a.weeklyCount !== b.weeklyCount) return a.weeklyCount - b.weeklyCount;
-            return a.pairingCount - b.pairingCount;
-          });
-
-          for (const candidate of candidates) {
-            if (capacityRemaining <= 0) {
-              break;
-            }
-
-            const resident = candidate.resident;
-
-            const assignment = {
-              date: dateStr,
-              timeSlot,
-              residentId: resident.id,
-              attendingId: slot.attendingId,
-              type: 'clinical',
-              siteId: slot.siteId || '',
-              clinicId: slot.clinicId,
-              rotationId: resident.rotationAssignments?.find(ra => ra.month === monthStr)?.rotationId,
-              createdBy: context.auth.uid,
-              createdAt: admin.firestore.FieldValue.serverTimestamp(),
-              updatedAt: admin.firestore.FieldValue.serverTimestamp()
-            };
-
-            newAssignments.push(assignment);
-
-            if (!newAssignmentsBySlot.has(slot.key)) {
-              newAssignmentsBySlot.set(slot.key, []);
-            }
-            newAssignmentsBySlot.get(slot.key).push(assignment);
-
-            const residentSlotKey = `${resident.id}|${dateStr}|${timeSlot}`;
-            pushToMap(assignmentsByResidentSlot, residentSlotKey, assignment);
-
-            const weekKey = getWeekKey(dateStr);
-            const residentWeekKey = `${resident.id}|${weekKey}`;
-            residentWeekAssignmentCounts.set(
-              residentWeekKey,
-              (residentWeekAssignmentCounts.get(residentWeekKey) || 0) + 1
-            );
-
-            const pairingKey = `${resident.id}|${weekKey}|${slot.attendingId}`;
-            pairingCounts.set(pairingKey, (pairingCounts.get(pairingKey) || 0) + 1);
-
-            capacityRemaining -= 1;
-          }
-        }
-      }
-    }
-
+    // Write assignments to Firestore in batch
     const batch = db.batch();
     for (const assignment of newAssignments) {
       const docRef = institutionRef.collection('assignments').doc();
@@ -415,14 +125,14 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
 
     await batch.commit();
 
+    // Log audit trail
     await institutionRef.collection('auditLogs').add({
       action: 'auto_schedule',
       data: {
         startDate,
         endDate,
         assignmentsCreated: newAssignments.length,
-        options,
-        maxPairingsPerWeek
+        options
       },
       userId: context.auth.uid,
       timestamp: admin.firestore.FieldValue.serverTimestamp()
