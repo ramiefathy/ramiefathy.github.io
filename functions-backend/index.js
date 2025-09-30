@@ -39,6 +39,23 @@ const { getUserDetails, describeAssignmentType } = require('./src/utils/user');
 // Import scheduling modules
 const { generateSchedule } = require('./src/scheduling/autoSchedule');
 
+// Import backup modules
+const { createInstitutionBackup, restoreFromBackup } = require('./src/backup/backup');
+
+// Import notification modules
+const {
+  buildAssignmentChangeEmail,
+  buildDailyReminderEmail,
+  sendAssignmentChangeNotification,
+  sendDailyReminderNotification
+} = require('./src/notifications/email');
+
+// Import report modules
+const { generateSchedulePDF: generatePDF } = require('./src/reports/pdf');
+
+// Import sync modules
+const { importResidents, exportSchedule } = require('./src/sync/external');
+
 // ==================== Helper Functions ====================
 // (Extracted to src/utils/ and src/config/ modules)
 
@@ -222,74 +239,23 @@ exports.notifyScheduleChange = functions.firestore.document('institutions/{insti
         return null;
       }
 
-      const userDetails = await getUserDetails(memberDoc.docs[0].id);
-
-      if (!userDetails || !userDetails.email) {
-        console.log('No email found for user');
-        return null;
-      }
-
       // Check if notifications are enabled
       if (!institution.settings?.notificationsEnabled) {
         console.log('Notifications disabled for institution');
         return null;
       }
 
-      // Prepare email content
-      const assignmentType = describeAssignmentType(assignment.type);
-
-      const formattedChange = changeType.charAt(0).toUpperCase() + changeType.slice(1);
-      const emailSubject = `Schedule ${formattedChange}: ${assignment.date} ${assignment.timeSlot}`;
-
-      const emailHtmlParts = [
-        `<h2>Schedule ${formattedChange}</h2>`,
-        `<p>Dear ${resident.name || 'Resident'},</p>`,
-        `<p>Your schedule has been ${changeType}:</p>`,
-        '<ul>',
-        `<li><strong>Date:</strong> ${assignment.date}</li>`,
-        `<li><strong>Time:</strong> ${assignment.timeSlot}</li>`,
-        `<li><strong>Type:</strong> ${assignmentType}</li>`
-      ];
-
-      if (attending) {
-        emailHtmlParts.push(`<li><strong>Attending:</strong> ${attending.name}</li>`);
-      }
-
-      emailHtmlParts.push(`<li><strong>Site:</strong> ${siteName}</li>`);
-
-      if (siteAddress) {
-        emailHtmlParts.push(`<li><strong>Location:</strong> ${siteAddress}</li>`);
-      }
-
-      emailHtmlParts.push('</ul>');
-      emailHtmlParts.push(
-        '<p>Please log in to <a href="https://clinicscheduler.com">Clinic Scheduler Pro</a>',
-        'to view your complete schedule.</p>'
-      );
-      emailHtmlParts.push('<hr>');
-      emailHtmlParts.push(`<p><small>${institution.name}</small></p>`);
-
-      const emailHtml = emailHtmlParts.join('\n');
-
-      const emailTextLines = [
-        `Schedule ${formattedChange}: ${assignment.date} ${assignment.timeSlot}`,
-        `Type: ${assignmentType}`
-      ];
-
-      if (attending) {
-        emailTextLines.push(`Attending: ${attending.name}`);
-      }
-
-      emailTextLines.push(`Site: ${siteName}`);
-
-      if (siteAddress) {
-        emailTextLines.push(`Location: ${siteAddress}`);
-      }
-
-      const emailText = emailTextLines.join('\n');
-
-      // Send email notification
-      await sendEmail(userDetails.email, emailSubject, emailHtml, emailText);
+      // Use extracted notification module
+      await sendAssignmentChangeNotification({
+        changeType,
+        assignment,
+        resident,
+        attending,
+        siteName,
+        siteAddress,
+        institutionName: institution.name,
+        residentMemberId: memberDoc.docs[0].id
+      });
 
       console.log(`Notification sent for assignment ${assignmentId}`);
       return null;
@@ -611,42 +577,15 @@ exports.dailyReminders = functions.pubsub
             .collection('members').where('residentId', '==', assignment.residentId).limit(1).get();
 
           if (!memberDoc.empty) {
-            const userDetails = await getUserDetails(memberDoc.docs[0].id);
-
-            if (userDetails && userDetails.email) {
-              const assignmentType = describeAssignmentType(assignment.type);
-
-              const reminderHtmlParts = [
-                '<h2>Schedule Reminder</h2>',
-                `<p>Hi ${resident.name || 'Resident'},</p>`,
-                '<p>This is a reminder about your assignment today:</p>',
-                '<ul>',
-                `<li><strong>Time:</strong> ${assignment.timeSlot}</li>`,
-                `<li><strong>Type:</strong> ${assignmentType}</li>`
-              ];
-
-              if (attending) {
-                reminderHtmlParts.push(`<li><strong>Attending:</strong> ${attending.name}</li>`);
-              }
-
-              reminderHtmlParts.push(`<li><strong>Site:</strong> ${siteName}</li>`);
-
-              if (siteAddress) {
-                reminderHtmlParts.push(`<li><strong>Location:</strong> ${siteAddress}</li>`);
-              }
-
-              reminderHtmlParts.push('</ul>');
-
-              const reminderHtml = reminderHtmlParts.join('\n');
-              const reminderText = `Reminder: ${assignment.timeSlot} ${assignmentType} at ${siteName}`;
-
-              await sendEmail(
-                userDetails.email,
-                `Today's Schedule: ${assignment.timeSlot} - ${assignmentType}`,
-                reminderHtml,
-                reminderText
-              );
-            }
+            // Use extracted notification module
+            await sendDailyReminderNotification({
+              assignment,
+              resident,
+              attending,
+              siteName,
+              siteAddress,
+              residentMemberId: memberDoc.docs[0].id
+            });
           }
         }
       }
@@ -703,115 +642,23 @@ exports.generateSchedulePDF = functions.https.onCall(async (data, context) => {
       db.collection('institutions').doc(institutionId).collection('attendings').get()
     ]);
 
-    const residents = {};
-    const attendings = {};
+    // Prepare data for PDF generation
+    const residents = residentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const attendings = attendingsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const assignments = assignmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    residentsSnap.forEach(doc => {
-      residents[doc.id] = doc.data();
+    // Use extracted PDF generation module
+    const pdfBase64 = await generatePDF({
+      institutionName: institution.name,
+      startDate,
+      endDate,
+      assignments,
+      residents,
+      attendings,
+      sites,
+      rotations,
+      residentId
     });
-
-    attendingsSnap.forEach(doc => {
-      attendings[doc.id] = doc.data();
-    });
-
-    // Create PDF
-    const doc = new PDFDocument();
-    const chunks = [];
-
-    doc.on('data', chunk => chunks.push(chunk));
-
-    // Add header
-    doc.fontSize(20).text(institution.name, { align: 'center' });
-    doc.fontSize(16).text('Schedule Report', { align: 'center' });
-    doc.fontSize(12).text(`${startDate} to ${endDate}`, { align: 'center' });
-    doc.moveDown();
-
-    // Add resident filter if applicable
-    if (residentId && residents[residentId]) {
-      const residentInfo = `Resident: ${residents[residentId].name} (${residents[residentId].pgyStatus})`;
-      doc.fontSize(14).text(residentInfo, { align: 'center' });
-      doc.moveDown();
-    }
-
-    // Group assignments by date
-    const assignmentsByDate = {};
-    assignmentsSnap.forEach(assignmentDoc => {
-      const assignment = assignmentDoc.data();
-      const dateKey = assignment.date;
-      if (!assignmentsByDate[dateKey]) {
-        assignmentsByDate[dateKey] = [];
-      }
-      assignmentsByDate[dateKey].push(assignment);
-    });
-
-    // Add assignments to PDF
-    Object.keys(assignmentsByDate).sort().forEach(date => {
-      doc.fontSize(14).text(date, { underline: true });
-      doc.moveDown(0.5);
-
-      assignmentsByDate[date].forEach(assignment => {
-        const resident = residents[assignment.residentId];
-        const attending = assignment.attendingId ? attendings[assignment.attendingId] : null;
-        const site = sites.find(s => s.id === assignment.siteId);
-        const rotation = rotations.find(r => r.id === assignment.rotationId);
-
-        const assignmentType = describeAssignmentType(assignment.type, { variant: 'short' });
-
-        let text = `${assignment.timeSlot}: ${resident?.name || 'Unknown'}`;
-        if (attending) {
-          text += ` with ${attending.name}`;
-        }
-        text += ` at ${site?.name || 'Clinic'}`;
-        text += ` (${assignmentType})`;
-        if (rotation) {
-          text += ` - ${rotation.name}`;
-        }
-
-        doc.fontSize(10).text(text, { indent: 20 });
-      });
-
-      doc.moveDown();
-    });
-
-    // Add statistics page
-    doc.addPage();
-    doc.fontSize(16).text('Statistics', { underline: true });
-    doc.moveDown();
-
-    const totalAssignments = assignmentsSnap.size;
-    const uniqueResidents = new Set(assignmentsSnap.docs.map(d => d.data().residentId)).size;
-    const uniqueAttendings = new Set(assignmentsSnap.docs.map(d => d.data().attendingId).filter(id => id)).size;
-    const uniqueSites = new Set(assignmentsSnap.docs.map(d => d.data().siteId).filter(id => id)).size;
-
-    // Count by type
-    let clinicalCount = 0;
-    let continuityCount = 0;
-    let protectedCount = 0;
-
-    assignmentsSnap.forEach(assignmentDoc => {
-      const type = assignmentDoc.data().type;
-      if (type === 'continuity') continuityCount++;
-      else if (type === 'protected') protectedCount++;
-      else clinicalCount++;
-    });
-
-    doc.fontSize(12)
-      .text(`Total Assignments: ${totalAssignments}`)
-      .text(`Clinical: ${clinicalCount}`)
-      .text(`Continuity Clinics: ${continuityCount}`)
-      .text(`Protected Time: ${protectedCount}`)
-      .text(`Unique Residents: ${uniqueResidents}`)
-      .text(`Unique Attendings: ${uniqueAttendings}`)
-      .text(`Sites Used: ${uniqueSites}`);
-
-    doc.end();
-
-    // Wait for PDF generation to complete
-    await new Promise(resolve => doc.on('end', resolve));
-
-    // Convert to base64
-    const pdfBuffer = Buffer.concat(chunks);
-    const pdfBase64 = pdfBuffer.toString('base64');
 
     // Add audit log
     await db.collection('institutions').doc(institutionId)
@@ -1584,68 +1431,17 @@ exports.dailyBackup = functions.pubsub
   .onRun(async () => {
     try {
       const institutionsSnap = await db.collection('institutions').get();
-      const now = new Date();
 
       for (const institutionDoc of institutionsSnap.docs) {
         const institutionId = institutionDoc.id;
         const institutionRef = db.collection('institutions').doc(institutionId);
-        const backupId = format(now, 'yyyyMMddHHmmss');
-        const backupRef = institutionRef.collection('backups').doc(backupId);
 
-        const [assignmentsSnap, residentsSnap, attendingsSnap, rulesSnap] = await Promise.all([
-          institutionRef.collection('assignments').get(),
-          institutionRef.collection('residents').get(),
-          institutionRef.collection('attendings').get(),
-          institutionRef.collection('rules').get()
-        ]);
-
-        const summary = {
-          assignments: assignmentsSnap.size,
-          residents: residentsSnap.size,
-          attendings: attendingsSnap.size,
-          rules: rulesSnap.size
-        };
-
-        await backupRef.set({
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          createdBy: 'system',
-          generatedAt: now.toISOString(),
-          version: 1,
-          summary
-        });
-
-        const payloadRef = backupRef.collection('payload');
-
-        const writeChunks = async (name, snapshot) => {
-          const docs = snapshot.docs.map(serializeDocument);
-          if (docs.length === 0) {
-            await payloadRef.doc(`${name}_0000`).set({
-              items: [],
-              createdAt: admin.firestore.FieldValue.serverTimestamp()
-            });
-            return;
-          }
-
-          const chunks = chunkArray(docs, 100);
-          for (let index = 0; index < chunks.length; index += 1) {
-            const chunkId = `${name}_${String(index).padStart(4, '0')}`;
-            await payloadRef.doc(chunkId).set({
-              items: chunks[index],
-              createdAt: admin.firestore.FieldValue.serverTimestamp()
-            });
-          }
-        };
-
-        await writeChunks('assignments', assignmentsSnap);
-        await writeChunks('residents', residentsSnap);
-        await writeChunks('attendings', attendingsSnap);
-        await writeChunks('rules', rulesSnap);
-
-        await institutionRef.collection('auditLogs').add({
-          action: 'daily_backup_created',
-          data: { backupId, summary },
-          userId: 'system',
-          timestamp: admin.firestore.FieldValue.serverTimestamp()
+        // Use extracted backup module
+        await createInstitutionBackup({
+          db,
+          institutionId,
+          institutionRef,
+          userId: 'system'
         });
       }
     } catch (error) {
@@ -1695,70 +1491,20 @@ exports.restoreFromBackup = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('not-found', 'Backup snapshot not found');
     }
 
-    const payloadSnap = await institutionRef
-      .collection('backups')
-      .doc(backupId)
-      .collection('payload')
-      .get();
-
-    const collectItems = (name) => {
-      return payloadSnap.docs
-        .filter(doc => doc.id.startsWith(`${name}_`))
-        .sort((a, b) => a.id.localeCompare(b.id))
-        .flatMap(doc => doc.data().items || []);
-    };
-
-    const deleteCollection = async (collectionRef) => {
-      const batchSize = 500;
-      let snapshot = await collectionRef.limit(batchSize).get();
-      while (!snapshot.empty) {
-        const batch = db.batch();
-        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-        await batch.commit();
-        snapshot = await collectionRef.limit(batchSize).get();
-      }
-    };
-
-    const restoreCollection = async (collectionName, items) => {
-      if (items.length === 0) {
-        return;
-      }
-
-      const chunks = chunkArray(items, 400);
-      for (const chunk of chunks) {
-        const batch = db.batch();
-        chunk.forEach((item) => {
-          const docRef = institutionRef.collection(collectionName).doc(item.id);
-          batch.set(docRef, deserializeValue(item.data), { merge: true });
-        });
-        await batch.commit();
-      }
-    };
-
-    const restoredCounts = {};
-
-    for (const collectionName of targetCollections) {
-      const items = collectItems(collectionName);
-
-      if (clearExisting) {
-        await deleteCollection(institutionRef.collection(collectionName));
-      }
-
-      await restoreCollection(collectionName, items);
-      restoredCounts[collectionName] = items.length;
-    }
-
-    await institutionRef.collection('auditLogs').add({
-      action: 'restore_from_backup',
-      data: { backupId, targets: targetCollections, restoredCounts },
-      userId: context.auth.uid,
-      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    // Use extracted backup module
+    const result = await restoreFromBackup({
+      db,
+      institutionRef,
+      backupId,
+      targetCollections,
+      clearExisting,
+      userId: context.auth.uid
     });
 
     return {
       success: true,
-      restoredCounts,
-      backupId,
+      restoredCounts: result.restoredCounts,
+      backupId: result.backupId,
       institutionId
     };
   } catch (error) {
