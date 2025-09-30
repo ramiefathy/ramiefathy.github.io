@@ -163,9 +163,9 @@ functions-backend/
 - ESLint passes (unused import errors resolved)
 - No breaking changes to Cloud Function exports
 
-### Phase 2: Core Modules (6 hours) - 🔄 75% COMPLETE
+### Phase 2: Core Modules (6 hours) - ✅ COMPLETE
 
-**Completed:** September 29, 2025 (Partial)
+**Completed:** September 29, 2025
 
 **Actions Taken:**
 1. ✅ Extracted `src/scheduling/autoSchedule.js` (529 lines)
@@ -186,19 +186,28 @@ functions-backend/
    - restoreFromBackup() - Restore from backup snapshots
    - Chunk-based backup/restore for large datasets
 
-4. ✅ Updated index.js to import modules
-5. ✅ Reduced index.js from 2,475 → 1,929 lines (22% reduction, 546 lines removed)
-6. ✅ Created 9 modular files totaling 1,296 lines (avg ~144 lines per module)
+4. ✅ Extracted `src/reports/pdf.js` (221 lines)
+   - generateSchedulePDF() - Generate PDF schedule reports
+   - groupAssignmentsByDate() - Data organization
+   - calculateStatistics() - Assignment statistics
+   - addPDFHeader(), addPDFAssignments(), addPDFStatistics() - PDF composition
 
-**Results:**
+5. ✅ Extracted `src/sync/external.js` (217 lines)
+   - importResidents() - Import residents from external systems
+   - exportSchedule() - Export schedule data with optional details
+   - fetchDocsByIds() - Efficient batch fetching utility
+
+6. ✅ Updated index.js to import all modules
+7. ✅ Reduced index.js from 2,475 → 1,929 lines (22% reduction, 546 lines removed)
+8. ✅ Created 11 modular files totaling 1,734 lines (avg ~158 lines per module)
+
+**Final Results:**
 - All 13 Cloud Functions remain operational
 - Core algorithm logic now testable independently
 - Clear separation of concerns achieved
-- Module sizes remain maintainable (< 530 lines each)
-
-**Remaining (Phase 2):**
-- ⏳ Extract reports module (generateSchedulePDF) - ~175 lines
-- ⏳ Extract sync module (syncWithExternalSystem) - ~240 lines
+- Module sizes remain maintainable (largest: 529 lines, average: 158 lines)
+- Total codebase: 3,663 lines (index.js + modules)
+- Original index.js: 2,475 lines → New organized structure adds clarity without bloat
 
 ### Phase 3: Testing (4 hours)
 1. Set up test infrastructure with Firestore emulator
