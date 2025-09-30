@@ -4,6 +4,41 @@
 
 This directory contains all Cloud Functions for the Clinic Scheduler Pro application. These functions provide backend services including auto-scheduling, notifications, PDF generation, analytics, and more.
 
+## Architecture
+
+**Modular Structure** (Refactored September 2025)
+
+The codebase uses a modular architecture with separate files for configuration, utilities, and business logic:
+
+```
+functions-backend/
+├── src/
+│   ├── config/              # Configuration modules
+│   │   ├── firebase.js      # Firebase Admin initialization
+│   │   └── email.js         # Email service (SendGrid/SMTP)
+│   └── utils/               # Utility functions
+│       ├── validators.js    # Validation helpers (ACGME, vacations)
+│       ├── serialization.js # Firestore serialization for backup
+│       ├── arrays.js        # Array utilities (chunking, batching)
+│       └── user.js          # User management helpers
+├── lib/                     # External utilities
+│   └── attending-utils.js   # Attending-specific helpers
+├── chatbot/                 # Chatbot integration
+│   ├── gemini.js            # Gemini API client
+│   ├── action-handlers.js   # Intent handlers
+│   └── undo-store.js        # Undo functionality
+├── index.js                 # Main Cloud Functions exports (13 functions)
+└── REFACTOR-ANALYSIS.md     # Detailed refactoring documentation
+```
+
+**Benefits:**
+- **Testability**: Isolated modules can be unit tested independently
+- **Maintainability**: Smaller files (< 500 lines each) are easier to navigate
+- **Reusability**: Utility functions can be imported across multiple functions
+- **Collaboration**: Reduced merge conflicts with modular code
+
+See [REFACTOR-ANALYSIS.md](./REFACTOR-ANALYSIS.md) for detailed architecture documentation.
+
 ## Functions List
 
 ### 1. **autoSchedule**
@@ -78,6 +113,15 @@ This directory contains all Cloud Functions for the Clinic Scheduler Pro applica
 ### 12. **restoreFromBackup**
 - Type: HTTPS Callable
 - Purpose: Restore institution data from a backup
+
+### 13. **chatAssistant**
+- Type: HTTPS Callable
+- Purpose: Natural language chatbot for schedule management
+- Features:
+  - Gemini AI integration
+  - Intent detection and action handling
+  - Undo functionality
+  - Context-aware responses
 
 ## Setup
 
@@ -195,3 +239,7 @@ For issues or questions:
 2. Verify Firebase configuration
 3. Ensure all services are enabled
 4. Check quota usage in Firebase Console
+
+## Maintenance Scripts
+
+- `node scripts/backfill-members.js [--dry-run] [--project <projectId>]` — create missing `/members/{uid}` subcollection documents from the legacy `members` array. Run with `--dry-run` first and supply credentials via Application Default Credentials or a service account.
