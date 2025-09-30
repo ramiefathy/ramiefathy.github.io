@@ -163,11 +163,42 @@ functions-backend/
 - ESLint passes (unused import errors resolved)
 - No breaking changes to Cloud Function exports
 
-### Phase 2: Core Modules (6 hours)
-1. Extract scheduling module (autoSchedule, conflicts, validation)
-2. Extract notifications module (email, reminders)
-3. Extract backup module
-4. Update index.js to import and export
+### Phase 2: Core Modules (6 hours) - 🔄 75% COMPLETE
+
+**Completed:** September 29, 2025 (Partial)
+
+**Actions Taken:**
+1. ✅ Extracted `src/scheduling/autoSchedule.js` (529 lines)
+   - generateSchedule() - Main scheduling algorithm
+   - generateContinuityAssignments() - Continuity clinic scheduling
+   - generateClinicalAssignments() - Clinical assignment scheduling
+   - findCandidatesForSlot() - Candidate selection and ranking
+   - buildAssignmentMaps() - Tracking map construction
+
+2. ✅ Extracted `src/notifications/email.js` (185 lines)
+   - buildAssignmentChangeEmail() - Change notification templates
+   - buildDailyReminderEmail() - Daily reminder templates
+   - sendAssignmentChangeNotification() - Send change notifications
+   - sendDailyReminderNotification() - Send daily reminders
+
+3. ✅ Extracted `src/backup/backup.js` (188 lines)
+   - createInstitutionBackup() - Create Firestore backups
+   - restoreFromBackup() - Restore from backup snapshots
+   - Chunk-based backup/restore for large datasets
+
+4. ✅ Updated index.js to import modules
+5. ✅ Reduced index.js from 2,475 → 1,929 lines (22% reduction, 546 lines removed)
+6. ✅ Created 9 modular files totaling 1,296 lines (avg ~144 lines per module)
+
+**Results:**
+- All 13 Cloud Functions remain operational
+- Core algorithm logic now testable independently
+- Clear separation of concerns achieved
+- Module sizes remain maintainable (< 530 lines each)
+
+**Remaining (Phase 2):**
+- ⏳ Extract reports module (generateSchedulePDF) - ~175 lines
+- ⏳ Extract sync module (syncWithExternalSystem) - ~240 lines
 
 ### Phase 3: Testing (4 hours)
 1. Set up test infrastructure with Firestore emulator
