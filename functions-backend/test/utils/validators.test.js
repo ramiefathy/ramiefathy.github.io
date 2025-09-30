@@ -164,33 +164,50 @@ describe('Validator Utilities', () => {
 
     it('should return non-compliant if exceeds 80 hour weekly limit', () => {
       const residentId = 'res1';
-      // Create 20 half-day assignments (80 hours) spread across a week with gaps
+      // Create 20 half-day assignments (80 hours) within a SINGLE week
+      // Week starts Sunday 2025-10-12, ends Saturday 2025-10-18
       const assignments = [];
-      const startDate = new Date('2025-10-13'); // Monday, start of week
 
-      // Add assignments: M AM/PM, T off, W AM/PM, Th AM/PM, F AM/PM, Sa AM/PM, Su AM/PM
-      // That's 5 days * 2 slots = 10 slots per week
-      // We need 20 slots to hit 80 hours, so 2 full weeks
-      for (let day = 0; day < 10; day++) {
-        const date = new Date(startDate);
-        // Skip day 1 (Tuesday) to avoid consecutive days issue
-        const offset = day < 2 ? day : day + 1;
-        date.setDate(date.getDate() + offset);
+      // Add assignments across the week with gaps to avoid consecutive days
+      // Sunday: AM/PM, Monday: AM/PM, Tuesday: off, Wednesday: AM/PM, Thursday: AM/PM
+      // Friday: AM/PM, Saturday: AM/PM = 12 slots (48 hours)
+      // We need 20 slots total (80 hours), but spread across same week
 
+      const daysInWeek = [
+        '2025-10-12', // Sunday (week start)
+        '2025-10-12', // Sunday
+        '2025-10-13', // Monday
+        '2025-10-13', // Monday
+        // Skip Tuesday to avoid consecutive days
+        '2025-10-15', // Wednesday
+        '2025-10-15', // Wednesday
+        '2025-10-16', // Thursday
+        '2025-10-16', // Thursday
+        '2025-10-17', // Friday
+        '2025-10-17', // Friday
+        '2025-10-18', // Saturday
+        '2025-10-18', // Saturday
+        '2025-10-13', // Monday again
+        '2025-10-13', // Monday again
+        '2025-10-15', // Wednesday again
+        '2025-10-15', // Wednesday again
+        '2025-10-16', // Thursday again
+        '2025-10-16', // Thursday again
+        '2025-10-17', // Friday again
+        '2025-10-17'  // Friday again
+      ];
+
+      daysInWeek.forEach((date, idx) => {
         assignments.push({
           residentId: 'res1',
-          date: date.toISOString().split('T')[0],
-          timeSlot: 'AM'
+          date: date,
+          timeSlot: idx % 2 === 0 ? 'AM' : 'PM'
         });
-        assignments.push({
-          residentId: 'res1',
-          date: date.toISOString().split('T')[0],
-          timeSlot: 'PM'
-        });
-      }
+      });
 
+      // Try to add Tuesday AM (21st slot = 84 hours total)
       const newAssignment = {
-        date: '2025-10-14', // Tuesday in first week (within the week)
+        date: '2025-10-14', // Tuesday (within same week)
         timeSlot: 'AM',
         residentId: 'res1'
       };
