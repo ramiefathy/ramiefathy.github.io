@@ -20,7 +20,7 @@ GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "models/gemini-2.0-flash-
 # Potentially a faster model for real-time suggestions
 GEMINI_SUGGESTION_MODEL = os.getenv("GEMINI_SUGGESTION_MODEL", "models/gemini-2.0-flash-exp")
 
-SESSION_SECRET = os.getenv("SESSION_SECRET", "development-token")
+SESSION_SECRET = os.getenv("SESSION_SECRET")
 ALLOWED_ORIGINS = set(
     origin.strip()
     for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:4321").split(',')
@@ -29,3 +29,6 @@ ALLOWED_ORIGINS = set(
 
 if not GEMINI_API_KEY:
     print("WARNING: GEMINI_API_KEY is not set. The application will not be able to connect to the Gemini API.")
+
+if not SESSION_SECRET:
+    raise RuntimeError("SESSION_SECRET must be set before starting the AI Scribe service.")

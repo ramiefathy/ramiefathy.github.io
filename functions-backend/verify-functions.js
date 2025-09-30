@@ -6,12 +6,14 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 
 console.log('🔍 Verifying Firebase Functions Work Without Email\n');
 console.log('='.repeat(60));
 
 // Read the index.js file
-const indexContent = fs.readFileSync('index.js', 'utf8');
+const indexPath = path.join(__dirname, 'index.js');
+const indexContent = fs.readFileSync(indexPath, 'utf8');
 
 // Verification checks
 const checks = [];
@@ -105,8 +107,13 @@ checks.push({
 checks.push({
   name: 'Uses clinic schedule capacity',
   test: () => {
-    return indexContent.includes('clinicSession.capacity') ||
-           indexContent.includes('clinicSchedule');
+    const indicators = [
+      'slot.capacity',
+      'capacityRemaining',
+      'residentCapacity',
+      'maxResidents'
+    ];
+    return indicators.some(token => indexContent.includes(token));
   }
 });
 
