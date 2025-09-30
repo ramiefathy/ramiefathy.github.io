@@ -8,8 +8,6 @@
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const cors = require('cors')({ origin: true });
-const nodemailer = require('nodemailer');
-const sgMail = require('@sendgrid/mail');
 const PDFDocument = require('pdfkit');
 const {
   format,
@@ -18,7 +16,6 @@ const {
   endOfWeek,
   differenceInDays,
   parseISO,
-  isWithinInterval,
   addWeeks
 } = require('date-fns');
 const {
@@ -33,271 +30,18 @@ const { callGemini, ACTIONS } = require('./chatbot/gemini');
 const { handleAction } = require('./chatbot/action-handlers');
 const { recordUsage } = require('./chatbot/undo-store');
 
-// Initialize Firebase Admin
-admin.initializeApp();
-const db = admin.firestore();
-const auth = admin.auth();
+// Import from modular configuration
+const { db } = require('./src/config/firebase');
+const { sendEmail } = require('./src/config/email');
 
-// Configure email service (using SendGrid if API key is set, otherwise nodemailer)
-const SENDGRID_API_KEY = functions.config().sendgrid?.key;
-const EMAIL_FROM = functions.config().email?.from || 'noreply@clinicscheduler.com';
-
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY);
-}
-
-// Configure SMTP transporter for nodemailer (fallback)
-const mailTransporter = nodemailer.createTransport({
-  host: functions.config().smtp?.host || 'smtp.gmail.com',
-  port: functions.config().smtp?.port || 587,
-  secure: false,
-  auth: {
-    user: functions.config().smtp?.user,
-    pass: functions.config().smtp?.pass
-  }
-});
+// Import utility modules
+const { isResidentOnVacation, hasProtectedTime, checkDutyHourCompliance } = require('./src/utils/validators');
+const { deserializeValue, serializeDocument } = require('./src/utils/serialization');
+const { chunkArray } = require('./src/utils/arrays');
+const { getUserDetails, describeAssignmentType } = require('./src/utils/user');
 
 // ==================== Helper Functions ====================
-
-/**
- * Send email notification
- */
-async function sendEmail(to, subject, html, text) {
-  try {
-    if (SENDGRID_API_KEY) {
-      await sgMail.send({
-        to,
-        from: EMAIL_FROM,
-        subject,
-        text,
-        html
-      });
-    } else if (functions.config().smtp?.user) {
-      await mailTransporter.sendMail({
-        from: EMAIL_FROM,
-        to,
-        subject,
-        text,
-        html
-      });
-    } else {
-      console.log('Email service not configured. Skipping email to:', to);
-      return;
-    }
-    console.log(`Email sent to ${to}: ${subject}`);
-  } catch (error) {
-    console.error('Error sending email:', error);
-    // Don't throw - allow functions to continue even if email fails
-  }
-}
-
-/**
- * Get user details by ID
- */
-async function getUserDetails(userId) {
-  try {
-    const userRecord = await auth.getUser(userId);
-    return {
-      email: userRecord.email,
-      displayName: userRecord.displayName || userRecord.email.split('@')[0],
-      uid: userRecord.uid
-    };
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    return null;
-  }
-}
-
-/**
- * Check if resident is on vacation for a given date
- */
-function isResidentOnVacation(resident, date) {
-  if (!resident.vacationWeeks || resident.vacationWeeks.length === 0) {
-    return false;
-  }
-
-  return resident.vacationWeeks.some(vw => {
-    const vacationStart = parseISO(vw);
-    const vacationEnd = addDays(vacationStart, 6);
-    return isWithinInterval(date, { start: vacationStart, end: vacationEnd });
-  });
-}
-
-/**
- * Check if resident has protected time
- */
-function hasProtectedTime(resident, date, timeSlot, protectedTimes) {
-  const dayOfWeek = date.getDay();
-  const residentPGY = resident.pgyStatus || 'PGY-1';
-
-  return protectedTimes.some(pt =>
-    pt.dayOfWeek === dayOfWeek &&
-    pt.timeSlot === timeSlot &&
-    (pt.appliesTo === 'all' || pt.appliesTo === residentPGY)
-  );
-}
-
-// Serialization helpers for backup/restore flows
-function isDocumentReference(value) {
-  return !!value && typeof value === 'object' && value.constructor?.name === 'DocumentReference';
-}
-
-function serializeValue(value) {
-  if (value === null || value === undefined) {
-    return value;
-  }
-
-  if (value instanceof admin.firestore.Timestamp) {
-    return { __datatype: 'timestamp', value: value.toMillis() };
-  }
-
-  if (value instanceof admin.firestore.GeoPoint) {
-    return {
-      __datatype: 'geopoint',
-      latitude: value.latitude,
-      longitude: value.longitude
-    };
-  }
-
-  if (isDocumentReference(value)) {
-    return {
-      __datatype: 'document_reference',
-      path: value.path
-    };
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(item => serializeValue(item));
-  }
-
-  if (typeof value === 'object') {
-    const result = {};
-    for (const [key, val] of Object.entries(value)) {
-      result[key] = serializeValue(val);
-    }
-    return result;
-  }
-
-  return value;
-}
-
-function deserializeValue(value) {
-  if (value === null || value === undefined) {
-    return value;
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(item => deserializeValue(item));
-  }
-
-  if (typeof value === 'object') {
-    if (value.__datatype === 'timestamp') {
-      return admin.firestore.Timestamp.fromMillis(value.value);
-    }
-    if (value.__datatype === 'geopoint') {
-      return new admin.firestore.GeoPoint(value.latitude, value.longitude);
-    }
-    if (value.__datatype === 'document_reference') {
-      return db.doc(value.path);
-    }
-
-    const result = {};
-    for (const [key, val] of Object.entries(value)) {
-      result[key] = deserializeValue(val);
-    }
-    return result;
-  }
-
-  return value;
-}
-
-function serializeDocument(doc) {
-  return {
-    id: doc.id,
-    data: serializeValue(doc.data())
-  };
-}
-
-function chunkArray(items, size) {
-  const chunks = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
-}
-
-function describeAssignmentType(type, options = {}) {
-  const variant = options.variant || 'default';
-  if (type === 'continuity') {
-    return variant === 'short' ? 'Continuity' : 'Continuity Clinic';
-  }
-  if (type === 'protected') {
-    return variant === 'short' ? 'Protected' : 'Protected Time';
-  }
-  return 'Clinical';
-}
-
-/**
- * Check ACGME duty hour compliance
- */
-function checkDutyHourCompliance(assignments, residentId, newAssignment) {
-  // ACGME Rules:
-  // - Max 80 hours per week averaged over 4 weeks
-  // - Max 24 hours continuous duty + 4 hours for transitions
-  // - Min 8 hours off between shifts
-  // - Min 1 day off per week averaged over 4 weeks
-
-  const relevantAssignments = assignments.filter(a => a.residentId === residentId);
-  const weekStart = startOfWeek(parseISO(newAssignment.date), { weekStartsOn: 0 });
-  const weekEnd = endOfWeek(parseISO(newAssignment.date), { weekStartsOn: 0 });
-
-  // Check weekly hours
-  const weeklyAssignments = relevantAssignments.filter(a => {
-    const date = parseISO(a.date);
-    return isWithinInterval(date, { start: weekStart, end: weekEnd });
-  });
-
-  const weeklyHours = weeklyAssignments.length * 4; // Assuming 4 hours per half-day
-  const newTotalHours = weeklyHours + 4;
-
-  if (newTotalHours > 80) {
-    return {
-      compliant: false,
-      reason: `Would exceed 80-hour weekly limit (current: ${weeklyHours}h)`
-    };
-  }
-
-  // Check for minimum rest between shifts
-  const sameDay = relevantAssignments.filter(a => a.date === newAssignment.date);
-  if (sameDay.length > 0 && sameDay[0].timeSlot !== newAssignment.timeSlot) {
-    // Both AM and PM on same day is allowed
-    return { compliant: true };
-  }
-
-  // Check for consecutive days
-  const previousDay = format(addDays(parseISO(newAssignment.date), -1), 'yyyy-MM-dd');
-
-  // Simple check: no more than 6 consecutive days
-  let consecutiveDays = 1;
-  let checkDate = previousDay;
-  for (let i = 0; i < 6; i++) {
-    if (relevantAssignments.some(a => a.date === checkDate)) {
-      consecutiveDays++;
-    } else {
-      break;
-    }
-    checkDate = format(addDays(parseISO(checkDate), -1), 'yyyy-MM-dd');
-  }
-
-  if (consecutiveDays >= 6) {
-    return {
-      compliant: false,
-      reason: 'Would exceed 6 consecutive days of duty'
-    };
-  }
-
-  return { compliant: true };
-}
+// (Extracted to src/utils/ and src/config/ modules)
 
 // ==================== 1. AUTO-SCHEDULING FUNCTION ====================
 
