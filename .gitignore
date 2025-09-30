@@ -73,10 +73,13 @@ test-report.txt
 
 # === Environment Files ===
 .env
+.env.*
+!.env.example
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*.local
 
 # === Large Data Files (customize as needed) ===
 *.csv
@@ -84,6 +87,11 @@ test-report.txt
 *.xlsx
 *.xls
 *.parquet
+*.pdf
+*.docx
+
+# Exception: Keep documentation PDFs if needed
+# !docs/**/*.pdf
 
 # === PRIVATE CONTENT (Keep these patterns to protect sensitive data) ===
 private/
@@ -127,6 +135,23 @@ apps/*/config/*.json
 *.p12
 *.pfx
 secrets/
+*secret*
+*password*
+*credentials*.json
+service-account*.json
+
+# Firebase service accounts
+**/service-account*.json
+functions-backend/service-account*.json
 
 # Clinic Scheduler test credentials
 apps/clinic-scheduler-pro/functions-backend/service-account-test.json
+
+# === Audit and Analysis Files (Development artifacts) ===
+audit/
+
+# Exception: Keep security audit in root
+!SECURITY-AUDIT.md
+
+# Exception: Keep committed audit reports if needed
+!docs/audit/
