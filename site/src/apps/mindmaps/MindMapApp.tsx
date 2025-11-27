@@ -187,10 +187,12 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [presentationMode, setPresentationMode] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const minimapRef = useRef<SVGSVGElement>(null);
+  const initialHashProcessed = useRef(false);
 
   const storageKey = `mindmap:${manifest.id}:state:${STORAGE_VERSION}`;
   const notesKey = `mindmap:${manifest.id}:notes:${STORAGE_VERSION}`;
@@ -252,6 +254,114 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
     });
     return map;
   }, [flattened]);
+
+  // Deep linking: read URL hash on mount and navigate to node
+  useEffect(() => {
+    if (typeof window === 'undefined' || initialHashProcessed.current) return;
+
+    const hash = window.location.hash.slice(1); // Remove '#'
+    if (!hash) return;
+
+    // Hash format: tabId:nodeId or just nodeId
+    const [first, second] = hash.split(':');
+    const targetNodeId = second || first;
+    const targetTabId = second ? first : null;
+
+    const lookup = nodeLookup.get(targetNodeId);
+    if (lookup) {
+      initialHashProcessed.current = true;
+      const tabId = targetTabId || lookup.tabId;
+      setActiveTab(tabId);
+      // Expand path to this node
+      setCollapsedByTab((prev) => {
+        const next = { ...prev };
+        const current = new Set(next[tabId] ?? buildInitialCollapsed(tabs[tabId]));
+        lookup.idPath.forEach((id) => current.delete(id));
+        next[tabId] = current;
+        return next;
+      });
+      setSelectedNodeId(targetNodeId);
+      setHighlightedIds(lookup.idPath);
+    }
+  }, [nodeLookup, tabs]);
+
+  // Deep linking: update URL hash when node is selected
+  useEffect(() => {
+    if (typeof window === 'undefined' || !selectedNodeId) return;
+
+    const lookup = nodeLookup.get(selectedNodeId);
+    if (lookup) {
+      const hash = `${lookup.tabId}:${selectedNodeId}`;
+      // Use replaceState to avoid polluting browser history
+      window.history.replaceState(null, '', `#${hash}`);
+    }
+  }, [selectedNodeId, nodeLookup]);
+
+  // Handle hash changes (back/forward navigation)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (!hash) {
+        setSelectedNodeId(null);
+        return;
+      }
+
+      const [first, second] = hash.split(':');
+      const targetNodeId = second || first;
+      const lookup = nodeLookup.get(targetNodeId);
+
+      if (lookup && lookup.id !== selectedNodeId) {
+        setActiveTab(lookup.tabId);
+        setCollapsedByTab((prev) => {
+          const next = { ...prev };
+          const current = new Set(next[lookup.tabId] ?? new Set());
+          lookup.idPath.forEach((id) => current.delete(id));
+          next[lookup.tabId] = current;
+          return next;
+        });
+        setSelectedNodeId(targetNodeId);
+        setHighlightedIds(lookup.idPath);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [nodeLookup, selectedNodeId]);
+
+  // Copy link to clipboard
+  const copyNodeLink = useCallback(() => {
+    if (typeof window === 'undefined' || !selectedNodeId) return;
+
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }).catch(() => {
+      // Fallback for older browsers
+      const input = document.createElement('input');
+      input.value = url;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    });
+  }, [selectedNodeId]);
+
+  // Navigate to a node in breadcrumb
+  const navigateToBreadcrumbNode = useCallback((index: number) => {
+    if (!selectedNodeId) return;
+
+    const lookup = nodeLookup.get(selectedNodeId);
+    if (!lookup || index >= lookup.idPath.length) return;
+
+    const targetId = lookup.idPath[index];
+    setSelectedNodeId(targetId);
+    setHighlightedIds(lookup.idPath.slice(0, index + 1));
+  }, [selectedNodeId, nodeLookup]);
 
   const fuse = useMemo(() => {
     return new Fuse(flattened, {
@@ -401,14 +511,14 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
   }, [activeTab, collapsedByTab, tabs]);
 
   const selectedBreadcrumb = useMemo(() => {
-    if (!selectedNodeId) return [];
+    if (!selectedNodeId) return { path: [], idPath: [] };
     const lookup = nodeLookup.get(selectedNodeId);
     if (lookup) {
-      return lookup.path;
+      return { path: lookup.path, idPath: lookup.idPath };
     }
     const root = tabs[activeTab];
-    if (!root) return [];
-    return buildBreadcrumbPath(selectedNodeId, root);
+    if (!root) return { path: [], idPath: [] };
+    return { path: buildBreadcrumbPath(selectedNodeId, root), idPath: [] };
   }, [activeTab, nodeLookup, selectedNodeId, tabs]);
 
   const reducedMotion = prefersReducedMotion();
@@ -731,14 +841,38 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
           <div className="mindmap-minimap" aria-hidden="true">
             <svg ref={minimapRef} viewBox="0 0 600 600" />
           </div>
-          {selectedBreadcrumb.length > 0 && (
+          {selectedBreadcrumb.path.length > 0 && (
             <nav className="breadcrumbs" aria-label="Selected node breadcrumb">
-              {selectedBreadcrumb.map((segment, index) => (
-                <span key={segment}>
-                  {segment}
-                  {index < selectedBreadcrumb.length - 1 && ' › '}
-                </span>
-              ))}
+              <div className="breadcrumb-items">
+                {selectedBreadcrumb.path.map((segment, index) => (
+                  <span key={`${segment}-${index}`} className="breadcrumb-segment">
+                    {index < selectedBreadcrumb.path.length - 1 ? (
+                      <button
+                        type="button"
+                        className="breadcrumb-link"
+                        onClick={() => navigateToBreadcrumbNode(index)}
+                        title={`Navigate to ${segment}`}
+                      >
+                        {segment}
+                      </button>
+                    ) : (
+                      <span className="breadcrumb-current">{segment}</span>
+                    )}
+                    {index < selectedBreadcrumb.path.length - 1 && (
+                      <span className="breadcrumb-separator" aria-hidden="true"> › </span>
+                    )}
+                  </span>
+                ))}
+              </div>
+              <button
+                type="button"
+                className={clsx('breadcrumb-copy', copiedLink && 'copied')}
+                onClick={copyNodeLink}
+                title="Copy link to this node"
+                aria-label="Copy link to this node"
+              >
+                {copiedLink ? '✓ Copied!' : '🔗 Copy link'}
+              </button>
             </nav>
           )}
         </div>

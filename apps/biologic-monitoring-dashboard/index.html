@@ -17,6 +17,9 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body data-view="cards">
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <span aria-hidden="true">🌙</span>
+    </button>
     <main class="page">
       <section class="hero">
         <div class="hero__content">
@@ -91,10 +94,11 @@
           <span class="label">Actions</span>
           <div class="action-buttons">
             <button class="primary-btn" type="button" id="view-toggle">Switch to table view</button>
+            <button class="secondary-btn" type="button" id="lab-templates">Lab Templates</button>
             <button class="secondary-btn" type="button" id="reset-filters">Reset filters</button>
             <button class="secondary-btn" type="button" id="export-csv">Export CSV</button>
           </div>
-          <small>Switch views or clear filters to return to the full dataset.</small>
+          <small>Switch views, access lab order templates, or clear filters.</small>
         </div>
       </section>
 

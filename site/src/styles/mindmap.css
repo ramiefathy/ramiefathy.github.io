@@ -285,8 +285,118 @@
   font-size: 0.9rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  color: rgba(30, 64, 175, 0.9);
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.mindmap-app.dark .breadcrumbs {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(148, 163, 184, 0.15);
+}
+
+.breadcrumb-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.breadcrumb-segment {
+  display: inline-flex;
+  align-items: center;
+}
+
+.breadcrumb-link {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0.2rem 0.4rem;
+  margin: -0.2rem 0;
+  border-radius: 4px;
+  font-size: inherit;
+  color: rgba(30, 64, 175, 0.85);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.mindmap-app.dark .breadcrumb-link {
+  color: rgba(147, 197, 253, 0.9);
+}
+
+.breadcrumb-link:hover,
+.breadcrumb-link:focus-visible {
+  background: rgba(59, 130, 246, 0.12);
+  color: rgba(37, 99, 235, 1);
+}
+
+.mindmap-app.dark .breadcrumb-link:hover,
+.mindmap-app.dark .breadcrumb-link:focus-visible {
+  background: rgba(59, 130, 246, 0.25);
+  color: rgba(191, 219, 254, 1);
+}
+
+.breadcrumb-current {
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.95);
+  padding: 0.2rem 0.4rem;
+}
+
+.mindmap-app.dark .breadcrumb-current {
+  color: rgba(248, 250, 252, 0.95);
+}
+
+.breadcrumb-separator {
+  color: rgba(148, 163, 184, 0.6);
+  user-select: none;
+}
+
+.breadcrumb-copy {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(71, 85, 105, 0.9);
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+
+.mindmap-app.dark .breadcrumb-copy {
+  background: rgba(51, 65, 85, 0.8);
+  border-color: rgba(148, 163, 184, 0.2);
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.breadcrumb-copy:hover,
+.breadcrumb-copy:focus-visible {
+  border-color: rgba(59, 130, 246, 0.5);
+  color: rgba(37, 99, 235, 1);
+}
+
+.mindmap-app.dark .breadcrumb-copy:hover,
+.mindmap-app.dark .breadcrumb-copy:focus-visible {
+  border-color: rgba(96, 165, 250, 0.5);
+  color: rgba(147, 197, 253, 1);
+}
+
+.breadcrumb-copy.copied {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: rgba(5, 150, 105, 1);
+}
+
+.mindmap-app.dark .breadcrumb-copy.copied {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: rgba(52, 211, 153, 1);
 }
 
 .detail-panel {

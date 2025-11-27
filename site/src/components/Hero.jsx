@@ -1,8 +1,118 @@
 import { MeshGradient, ShaderMount } from '@paper-design/shaders-react';
 import { defaultObjectSizing, ShaderFitOptions, getShaderColorFromString, meshGradientMeta } from '@paper-design/shaders';
-import { motion } from 'framer-motion';
-import { memo, useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+
 const heroColors = ['#041020', '#0b2750', '#123d78', '#1c5aa2'];
+
+// Subtitles for typing animation
+const TYPING_SUBTITLES = [
+  'PGY-4 Dermatology Resident',
+  'AI & Medicine Researcher',
+  'Clinical Tool Developer',
+  'Incoming Rheum-Derm Fellow'
+];
+
+// Check for WebGL support
+const hasWebGLSupport = () => {
+  if (typeof window === 'undefined') return true;
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(canvas.getContext('webgl') || canvas.getContext('webgl2'));
+  } catch {
+    return false;
+  }
+};
+
+// Check if mobile device
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+  return window.innerWidth < 768;
+};
+
+// CSS-only animated gradient fallback for non-WebGL browsers
+const GradientFallback = memo(() => (
+  <div className="hero-gradient-fallback" aria-hidden="true">
+    <style>{`
+      .hero-gradient-fallback {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          #041020 0%,
+          #0b2750 25%,
+          #123d78 50%,
+          #1c5aa2 75%,
+          #0b2750 100%
+        );
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+      }
+
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .hero-gradient-fallback {
+          animation: none;
+          background-position: 50% 50%;
+        }
+      }
+    `}</style>
+  </div>
+));
+
+// Typing animation hook
+const useTypingAnimation = (texts, typingSpeed = 50, deletingSpeed = 30, pauseDuration = 2000) => {
+  const [displayText, setDisplayText] = useState('');
+  const [textIndex, setTextIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    // Check for reduced motion preference
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDisplayText(texts[0]);
+      return;
+    }
+
+    const currentText = texts[textIndex];
+
+    if (isPaused) {
+      const pauseTimer = setTimeout(() => {
+        setIsPaused(false);
+        setIsDeleting(true);
+      }, pauseDuration);
+      return () => clearTimeout(pauseTimer);
+    }
+
+    if (isDeleting) {
+      if (displayText.length === 0) {
+        setIsDeleting(false);
+        setTextIndex((prev) => (prev + 1) % texts.length);
+      } else {
+        const deleteTimer = setTimeout(() => {
+          setDisplayText(currentText.slice(0, displayText.length - 1));
+        }, deletingSpeed);
+        return () => clearTimeout(deleteTimer);
+      }
+    } else {
+      if (displayText === currentText) {
+        setIsPaused(true);
+      } else {
+        const typeTimer = setTimeout(() => {
+          setDisplayText(currentText.slice(0, displayText.length + 1));
+        }, typingSpeed);
+        return () => clearTimeout(typeTimer);
+      }
+    }
+  }, [displayText, textIndex, isDeleting, isPaused, texts, typingSpeed, deletingSpeed, pauseDuration]);
+
+  return displayText;
+};
 
 const MAX_COLORS = meshGradientMeta.maxColorCount;
 
@@ -158,18 +268,36 @@ const RippleMeshGradient = memo(
   }
 );
 
-const Hero = ({ profile }) => {
-
+const Hero = ({ profile, enableTypingAnimation = true }) => {
   const [ripple, setRipple] = useState({ x: 0.5, y: 0.5, strength: 0.12 });
+  const [hasWebGL, setHasWebGL] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const frameRef = useRef(0);
-  const lastPointer = useRef({ x: 0.5, y: 0.5, time: performance.now() });
+  const lastPointer = useRef({ x: 0.5, y: 0.5, time: typeof performance !== 'undefined' ? performance.now() : 0 });
+
+  // Typing animation for role text
+  const typedRole = useTypingAnimation(TYPING_SUBTITLES, 50, 30, 2500);
 
   const [primaryCta, secondaryCta] = profile.callToActions.slice(0, 2);
   const headline = `${profile.name}`;
   const emphasisWrapped = `<span class="hero-emphasis">${headline}</span>`;
 
-  const handleMouseMove = (event) => {
-    if (frameRef.current) return;
+  // Check WebGL and mobile on mount
+  useEffect(() => {
+    setHasWebGL(hasWebGLSupport());
+    setIsMobile(isMobileDevice());
+
+    const handleResize = () => {
+      setIsMobile(isMobileDevice());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Optimized mouse handler - reduced effect on mobile
+  const handleMouseMove = useCallback((event) => {
+    if (frameRef.current || isMobile) return;
 
     frameRef.current = requestAnimationFrame(() => {
       frameRef.current = 0;
@@ -184,14 +312,15 @@ const Hero = ({ profile }) => {
       const dx = x - px;
       const dy = y - py;
       const velocity = Math.sqrt(dx * dx + dy * dy) / (dt / 16.0);
-      const strength = Math.min(0.55, Math.max(0.12, velocity * 0.6));
+      // Reduce ripple effect intensity on mobile
+      const maxStrength = isMobile ? 0.35 : 0.55;
+      const strength = Math.min(maxStrength, Math.max(0.12, velocity * 0.6));
       lastPointer.current = { x, y, time: now };
       setRipple({ x, y, strength });
-
     });
-  };
+  }, [isMobile]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (frameRef.current) {
       cancelAnimationFrame(frameRef.current);
       frameRef.current = 0;
@@ -199,14 +328,21 @@ const Hero = ({ profile }) => {
 
     lastPointer.current = { x: 0.5, y: 0.5, time: performance.now() };
     setRipple({ x: 0.5, y: 0.5, strength: 0.12 });
-
-  };
+  }, []);
 
   useEffect(() => () => {
     if (frameRef.current) {
       cancelAnimationFrame(frameRef.current);
     }
   }, []);
+
+  // Mobile-optimized shader settings
+  const mobileDistortion = isMobile ? 0.8 : 1.15;
+  const mobileSwirl = isMobile ? 0.15 : 0.24;
+  const mobileSpeed = isMobile ? 0.4 : 0.6;
+  const rippleDistortion = isMobile ? 1.0 : 1.35;
+  const rippleSwirl = isMobile ? 0.35 : 0.55;
+  const rippleFrequency = isMobile ? 20 : 32;
 
   return (
     <section
@@ -216,27 +352,34 @@ const Hero = ({ profile }) => {
       onMouseLeave={handleMouseLeave}
     >
       <div className="hero-background">
-        <MeshGradient
+        {hasWebGL ? (
+          <>
+            <MeshGradient
+              colors={heroColors}
+              speed={mobileSpeed}
+              distortion={mobileDistortion}
+              swirl={mobileSwirl}
+              style={{ position: 'absolute', inset: 0, opacity: 0.65 }}
+            />
 
-          colors={heroColors}
+            {/* Only render ripple layer on non-mobile or if explicitly enabled */}
+            {!isMobile && (
+              <RippleMeshGradient
+                colors={heroColors}
+                speed={1.55}
+                distortion={rippleDistortion}
+                swirl={rippleSwirl}
+                rippleCenter={[ripple.x, ripple.y]}
+                rippleStrength={ripple.strength}
+                rippleFrequency={rippleFrequency}
+                style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.45 }}
+              />
+            )}
+          </>
+        ) : (
+          <GradientFallback />
+        )}
 
-          speed={0.6}
-          distortion={1.15}
-          swirl={0.24}
-          style={{ position: 'absolute', inset: 0, opacity: 0.65 }}
-        />
-
-        <RippleMeshGradient
-          colors={heroColors}
-          speed={1.55}
-          distortion={1.35}
-          swirl={0.55}
-          rippleCenter={[ripple.x, ripple.y]}
-          rippleStrength={ripple.strength}
-          rippleFrequency={32}
-          style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.45 }}
-
-        />
         <span
           key={ripple.token}
           className="hero-ripple"
@@ -257,6 +400,15 @@ const Hero = ({ profile }) => {
             className="hero-title"
             dangerouslySetInnerHTML={{ __html: emphasisWrapped }}
           />
+
+          {/* Typing animation subtitle */}
+          {enableTypingAnimation ? (
+            <p className="hero-role" aria-live="polite">
+              <span className="hero-role-text">{typedRole}</span>
+              <span className="hero-cursor" aria-hidden="true">|</span>
+            </p>
+          ) : null}
+
           <p className="hero-subtitle">{profile.summary}</p>
           <div className="hero-cta">
             <a className="button button--primary" href={primaryCta?.href ?? '/apps'} target={primaryCta?.external ? '_blank' : undefined} rel={primaryCta?.external ? 'noreferrer' : undefined}>
@@ -268,6 +420,40 @@ const Hero = ({ profile }) => {
           </div>
         </motion.div>
       </div>
+
+      {/* Additional styles for typing animation */}
+      <style>{`
+        .hero-role {
+          font-size: clamp(1rem, 2.5vw, 1.25rem);
+          color: rgba(255, 255, 255, 0.85);
+          margin-bottom: 1rem;
+          min-height: 1.5em;
+          font-weight: 500;
+        }
+
+        .hero-role-text {
+          display: inline;
+        }
+
+        .hero-cursor {
+          display: inline-block;
+          margin-left: 2px;
+          animation: blink 1s step-end infinite;
+          color: var(--primary-400, #60a5fa);
+        }
+
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hero-cursor {
+            animation: none;
+            opacity: 1;
+          }
+        }
+      `}</style>
     </section>
   );
 };

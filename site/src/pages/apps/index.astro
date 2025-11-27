@@ -1,8 +1,10 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import Header from '../../components/Header.jsx';
-import AppPreview from '../../components/AppPreview.astro';
+import AppsShowcase from '../../components/AppsShowcase.jsx';
 import apps from '../../data/apps.json';
+import collections from '../../data/collections.json';
+
 const active = apps.filter((app) => app.status === 'active');
 const beta = apps.filter((app) => app.status === 'beta');
 const archived = apps.filter((app) => app.status === 'legacy');
@@ -12,36 +14,16 @@ const archived = apps.filter((app) => app.status === 'legacy');
   <main>
     <section class="section" style="padding-top:4rem">
       <div class="section__inner">
-        <div class="section__intro" style="margin-bottom:3.5rem">
+        <div class="section__intro" style="margin-bottom:2.5rem">
           <h1 class="section__title">Modern Dermatology Workflows</h1>
           <p class="section__subtitle">Each application below is built for resident clinics, dermatology education, or translational research—and runs directly in the browser with no account required.</p>
         </div>
 
-        <div class="app-showcase">
-          {active.concat(beta).map((app, index) => (
-            <div class="app-showcase-card" data-app-tilt>
-              <div class={`app-showcase-row ${index % 2 === 1 ? 'app-showcase-row--reverse' : ''}`} data-app-tilt-target>
-                <div class="app-showcase-media">
-                  <AppPreview name={app.name} previewImage={app.previewImage} previewUrl={app.preview} accent={app.accent} />
-                </div>
-                <div class="app-showcase-body">
-                  <span class={`app-showcase-badge app-showcase-badge--${app.status}`}>{app.status === 'beta' ? 'In Beta' : 'Active'}</span>
-                  <h2 class="app-showcase-title">{app.name}</h2>
-                  <p class="app-showcase-description">{app.description}</p>
-                  <div class="app-showcase-tags">
-                    {app.stack.map((tag) => (
-                      <span class="tag">{tag}</span>
-                    ))}
-                  </div>
-                  <a class="button button--primary" href={app.href} target={app.href.startsWith('http') ? '_blank' : undefined} rel={app.href.startsWith('http') ? 'noreferrer' : undefined}>
-                    Visit the App
-                  </a>
-                </div>
-              </div>
-              <span class="app-showcase-glare" aria-hidden="true"></span>
-            </div>
-          ))}
-        </div>
+        <AppsShowcase
+          apps={apps}
+          collections={collections}
+          client:load
+        />
       </div>
     </section>
 
@@ -67,73 +49,16 @@ const archived = apps.filter((app) => app.status === 'legacy');
       </section>
     ) : null}
   </main>
+
   <style is:global>
-    .app-showcase {
-      display: flex;
-      flex-direction: column;
-      gap: 3.5rem;
-    }
-
-    .app-showcase-card {
-      --tilt-x: 0deg;
-      --tilt-y: 0deg;
-      --glare-x: 50%;
-      --glare-y: 50%;
-      position: relative;
-      border-radius: calc(var(--radius-xl) + 1.25rem);
-      padding: clamp(1.4rem, 3vw, 2rem);
-      background:
-        radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.12), transparent 55%),
-        radial-gradient(circle at 80% 10%, rgba(16, 185, 129, 0.14), transparent 50%),
-        rgba(255, 255, 255, 0.78);
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      box-shadow: 0 32px 60px rgba(15, 23, 42, 0.18);
-      transform: perspective(1200px) rotateX(var(--tilt-y)) rotateY(var(--tilt-x));
-      transform-style: preserve-3d;
-      transition: transform 180ms ease, box-shadow 220ms ease, border-color 220ms ease;
-      will-change: transform;
-    }
-
+    /* Tilt effect script enhancement */
     .app-showcase-card.is-hovered {
       box-shadow: 0 40px 70px rgba(15, 23, 42, 0.24);
       border-color: rgba(56, 189, 248, 0.24);
     }
 
-    .app-showcase-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2.5rem;
-      align-items: center;
-      position: relative;
-      z-index: 1;
-      transition: transform 220ms ease;
-    }
-
-    .app-showcase-row--reverse {
-      direction: rtl;
-    }
-
-    .app-showcase-row--reverse > * {
-      direction: ltr;
-    }
-
-    .app-showcase-media {
-      position: relative;
-    }
-
     .app-showcase-card.is-hovered .app-showcase-row {
       transform: translateZ(12px);
-    }
-
-    .app-showcase-glare {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at var(--glare-x) var(--glare-y), rgba(255, 255, 255, 0.55) 0%, rgba(94, 234, 212, 0.25) 35%, rgba(14, 165, 233, 0.12) 55%, transparent 75%);
-      opacity: 0;
-      transition: opacity 220ms ease;
     }
 
     .app-showcase-card.is-hovered .app-showcase-glare {
@@ -151,10 +76,15 @@ const archived = apps.filter((app) => app.status === 'legacy');
       }
     }
   </style>
+
   <script>
-    const cards = document.querySelectorAll('[data-app-tilt]');
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (!prefersReducedMotion.matches && cards.length) {
+    // Tilt effect for app cards
+    function initTiltEffect() {
+      const cards = document.querySelectorAll('[data-app-tilt]');
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      if (prefersReducedMotion.matches || !cards.length) return;
+
       cards.forEach((card) => {
         let frame = 0;
 
@@ -211,6 +141,25 @@ const archived = apps.filter((app) => app.status === 'legacy');
 
         reset();
       });
+    }
+
+    // Initialize on load and on navigation
+    initTiltEffect();
+    document.addEventListener('astro:after-swap', initTiltEffect);
+
+    // Re-initialize when React component updates (using MutationObserver)
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.addedNodes.length > 0) {
+          initTiltEffect();
+          break;
+        }
+      }
+    });
+
+    const showcase = document.querySelector('.apps-showcase-wrapper');
+    if (showcase) {
+      observer.observe(showcase, { childList: true, subtree: true });
     }
   </script>
 </MainLayout>

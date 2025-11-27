@@ -77,6 +77,8 @@ const dom = {
   viewToggle: document.querySelector('#view-toggle'),
   resetButton: document.querySelector('#reset-filters'),
   exportCsvButton: document.querySelector('#export-csv'),
+  labTemplatesButton: document.querySelector('#lab-templates'),
+  themeToggle: document.querySelector('#theme-toggle'),
   resultsContainer: document.querySelector('#results'),
   resultCount: document.querySelector('#result-count'),
   favoritesList: document.querySelector('#favorites-list'),
@@ -978,6 +980,8 @@ function showKeyboardShortcuts() {
         <div><dt><kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>/</kbd></dt><dd>Show keyboard shortcuts</dd></div>
         <div><dt><kbd>V</kbd></dt><dd>Toggle card/table view</dd></div>
         <div><dt><kbd>C</kbd></dt><dd>Clear all filters</dd></div>
+        <div><dt><kbd>D</kbd></dt><dd>Toggle dark mode</dd></div>
+        <div><dt><kbd>L</kbd></dt><dd>Open lab templates</dd></div>
         <div><dt><kbd>Shift</kbd> + <kbd>F</kbd></dt><dd>Toggle favorites panel</dd></div>
       </dl>
     </div>
@@ -998,6 +1002,178 @@ function showKeyboardShortcuts() {
     },
     { once: true }
   );
+}
+
+const THEME_STORAGE_KEY = 'biologic-dashboard:theme';
+
+function initializeTheme() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeToggleIcon(savedTheme);
+  } else {
+    // Check system preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (prefersDark) {
+      updateThemeToggleIcon('dark');
+    }
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+  updateThemeToggleIcon(newTheme);
+  showToast(`${newTheme === 'dark' ? 'Dark' : 'Light'} mode enabled`);
+}
+
+function updateThemeToggleIcon(theme) {
+  if (!dom.themeToggle) return;
+  const icon = dom.themeToggle.querySelector('span');
+  if (icon) {
+    icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+  dom.themeToggle.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`);
+}
+
+const LAB_TEMPLATES = [
+  {
+    id: 'biologic-baseline',
+    name: 'Biologic Baseline',
+    description: 'CBC, CMP, LFTs, Hep B/C, TB screen',
+    labs: ['CBC with differential', 'Comprehensive metabolic panel', 'Liver function tests (AST, ALT, ALP, bilirubin)', 'Hepatitis B surface antigen', 'Hepatitis B core antibody', 'Hepatitis C antibody', 'QuantiFERON-TB Gold or TB skin test', 'Lipid panel']
+  },
+  {
+    id: 'jak-inhibitor',
+    name: 'JAK Inhibitor Monitoring',
+    description: 'CBC, CMP, lipids, CK',
+    labs: ['CBC with differential', 'Comprehensive metabolic panel', 'Lipid panel (fasting)', 'Creatine kinase (CK)', 'Liver function tests']
+  },
+  {
+    id: 'methotrexate',
+    name: 'Methotrexate Monitoring',
+    description: 'CBC, CMP, LFTs',
+    labs: ['CBC with differential', 'Comprehensive metabolic panel', 'Liver function tests (AST, ALT, albumin)', 'Creatinine']
+  },
+  {
+    id: 'il17-inhibitor',
+    name: 'IL-17 Inhibitor',
+    description: 'TB screen, Hep B/C',
+    labs: ['QuantiFERON-TB Gold or TB skin test', 'Hepatitis B surface antigen', 'Hepatitis B core antibody', 'Hepatitis C antibody', 'CBC with differential']
+  },
+  {
+    id: 'cyclosporine',
+    name: 'Cyclosporine Monitoring',
+    description: 'BMP, BP, lipids',
+    labs: ['Basic metabolic panel (BMP)', 'Creatinine', 'Blood pressure measurement', 'Lipid panel', 'Magnesium', 'Uric acid']
+  },
+  {
+    id: 'mycophenolate',
+    name: 'Mycophenolate Monitoring',
+    description: 'CBC, CMP',
+    labs: ['CBC with differential', 'Comprehensive metabolic panel', 'Liver function tests', 'Pregnancy test (if applicable)']
+  }
+];
+
+function showLabTemplates() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal lab-template-modal" role="dialog" aria-modal="true">
+      <header>
+        <h2>📋 Lab Order Templates</h2>
+        <button type="button" class="icon-btn" data-action="close-modal">×</button>
+      </header>
+      <p class="muted">Click a template to copy the lab order list to your clipboard.</p>
+      <div class="template-grid">
+        ${LAB_TEMPLATES.map(template => `
+          <button class="lab-template-btn" type="button" data-template-id="${template.id}">
+            <h4>${template.name}</h4>
+            <p>${template.description}</p>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  dom.modalRoot.appendChild(modal);
+
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal || event.target.closest('[data-action="close-modal"]')) {
+      modal.remove();
+      return;
+    }
+
+    const templateBtn = event.target.closest('[data-template-id]');
+    if (templateBtn) {
+      const templateId = templateBtn.dataset.templateId;
+      const template = LAB_TEMPLATES.find(t => t.id === templateId);
+      if (template) {
+        const labList = `${template.name} Lab Order:\n\n${template.labs.map((lab, i) => `${i + 1}. ${lab}`).join('\n')}`;
+        copyToClipboard(labList, null);
+        showToast(`${template.name} labs copied to clipboard`);
+        modal.remove();
+      }
+    }
+  });
+
+  document.addEventListener(
+    'keydown',
+    function escListener(event) {
+      if (event.key === 'Escape') {
+        modal.remove();
+        document.removeEventListener('keydown', escListener);
+      }
+    },
+    { once: true }
+  );
+}
+
+function printQuickRefCard(entry) {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    showToast('Please allow popups for printing', true);
+    return;
+  }
+
+  const baselineTasks = (entry.baselineTasks || []).map(t => `<li>${t.label}</li>`).join('');
+  const monitoringItems = (entry.monitoringSchedule || []).map(m => `<li><strong>${m.timing}:</strong> ${m.description}</li>`).join('');
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Quick Reference - ${entry.name}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        h1 { font-size: 18px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        h2 { font-size: 14px; margin: 16px 0 8px; text-transform: uppercase; }
+        ul { margin: 0; padding-left: 20px; }
+        li { margin-bottom: 6px; font-size: 12px; }
+        .caution { font-style: italic; color: #666; margin-top: 16px; font-size: 11px; border-top: 1px solid #ccc; padding-top: 10px; }
+        .agents { color: #666; margin-bottom: 16px; font-size: 12px; }
+        @media print { body { padding: 0; } }
+      </style>
+    </head>
+    <body>
+      <h1>${entry.name}</h1>
+      <p class="agents">${entry.agents.join(', ')}</p>
+
+      <h2>Baseline Requirements</h2>
+      <ul>${baselineTasks || '<li>Refer to prescribing information</li>'}</ul>
+
+      <h2>Monitoring Schedule</h2>
+      <ul>${monitoringItems || '<li>Per specialist guidance</li>'}</ul>
+
+      <p class="caution"><strong>Cautions:</strong> ${entry.cautions || 'Review prescribing information'}</p>
+
+      <script>window.print(); window.close();</script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
 }
 
 function handleGlobalKeydown(event) {
@@ -1026,6 +1202,16 @@ function handleGlobalKeydown(event) {
 
   if (!meta && !event.shiftKey && event.key.toLowerCase() === 'c' && !isInputFocused) {
     resetAll();
+    return;
+  }
+
+  if (!meta && !event.shiftKey && event.key.toLowerCase() === 'd' && !isInputFocused) {
+    toggleTheme();
+    return;
+  }
+
+  if (!meta && !event.shiftKey && event.key.toLowerCase() === 'l' && !isInputFocused) {
+    showLabTemplates();
     return;
   }
 
@@ -1092,6 +1278,14 @@ function attachListeners() {
 
   dom.resetButton.addEventListener('click', () => resetAll());
   dom.exportCsvButton.addEventListener('click', () => exportCurrentViewAsCSV());
+
+  if (dom.themeToggle) {
+    dom.themeToggle.addEventListener('click', () => toggleTheme());
+  }
+
+  if (dom.labTemplatesButton) {
+    dom.labTemplatesButton.addEventListener('click', () => showLabTemplates());
+  }
 
   dom.resultsContainer.addEventListener('click', handleCardInteraction);
   dom.resultsContainer.addEventListener('change', handleChecklistChange);
@@ -1198,6 +1392,7 @@ function initialiseFilters() {
 }
 
 function initialise() {
+  initializeTheme();
   initialiseFilters();
   renderFavoritesList();
   renderRecentList();

@@ -1,7 +1,13 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import Header from '../components/Header.jsx';
+import Timeline from '../components/Timeline.jsx';
+import SkillsVisualization from '../components/SkillsVisualization.jsx';
+import PublicationMetrics from '../components/PublicationMetrics.jsx';
 import profile from '../data/profile.json';
+import timeline from '../data/timeline.json';
+import skills from '../data/skills.json';
+import scholarMetrics from '../data/scholarMetrics.json';
 ---
 <MainLayout title="About – Ramie Fathy, MD" description="Biography, training, leadership, and interests for Dr. Ramie Fathy.">
   <Header client:load />
@@ -12,46 +18,70 @@ import profile from '../data/profile.json';
           <h1 class="section__title">{profile.name}</h1>
           <p class="section__subtitle">{profile.summary}</p>
         </div>
-        <article style="background:white;border-radius:var(--radius-xl);padding:2.5rem;box-shadow:var(--shadow-md);border:1px solid rgba(148,163,184,0.18);">
-          <h2 style="margin-top:0;color:var(--secondary-900)">Clinical Training</h2>
-          <ul style="padding-left:1.2rem;color:var(--secondary-600);font-size:1rem">
+        <article class="about-card">
+          <h2>Clinical Training</h2>
+          <ul>
             <li>PGY-4 Dermatology Resident Physician, Johns Hopkins University School of Medicine.</li>
             <li>Incoming Rheumatology-Dermatology Fellow, Mass General Brigham.</li>
             <li>MD, Perelman School of Medicine at the University of Pennsylvania (Alpha Omega Alpha).</li>
             <li>AB in Molecular Biology, Princeton University (Summa Cum Laude, Phi Beta Kappa).</li>
           </ul>
 
-          <h2 style="color:var(--secondary-900)">Leadership & Service</h2>
-          <ul style="padding-left:1.2rem;color:var(--secondary-600);font-size:1rem">
+          <h2>Leadership & Service</h2>
+          <ul>
             <li>Vice President of Resident Affairs, Johns Hopkins House Staff Council.</li>
             <li>Member, American Academy of Dermatology Council on Science and Research (2025–2027).</li>
             <li>Founder & Director, Philadelphia Organization of Health Professions Students (COVID-19 response).</li>
             <li>Curriculum Representative, Penn Medicine Class of 2017.</li>
           </ul>
 
-          <h2 style="color:var(--secondary-900)">Research & Interests</h2>
-          <p style="color:var(--secondary-600);font-size:1rem">
+          <h2>Research & Interests</h2>
+          <p>
             My work spans inflammatory dermatoses, cutaneous oncology, patient-centered teledermatology, and responsible AI. I build clinical decision tools, study the equity implications of new technologies, and enjoy translating complex science into empathetic narratives for trainees, clinicians, and patients.
           </p>
 
-          <h2 style="color:var(--secondary-900)">Outside the Clinic</h2>
-          <p style="color:var(--secondary-600);font-size:1rem">
-            I love mentoring future physician-innovators, producing radio and podcast stories, and exploring Baltimore’s culinary community. When traveling, you’ll find me sketching architectural textures and searching for the best espresso shot in town.
+          <h2>Outside the Clinic</h2>
+          <p>
+            I love mentoring future physician-innovators, producing radio and podcast stories, and exploring Baltimore's culinary community. When traveling, you'll find me sketching architectural textures and searching for the best espresso shot in town.
           </p>
         </article>
       </div>
     </section>
 
-    <section class="section is-hidden" aria-hidden="true">
+    <!-- Career Timeline Section -->
+    <section class="section" style="background:linear-gradient(180deg, rgba(239,246,255,0.6), rgba(255,255,255,0.95))">
       <div class="section__inner" style="max-width:900px">
-        <div class="section__intro">
+        <div class="section__intro scroll-fade" data-scroll-fade>
           <h2 class="section__title">Career Timeline</h2>
-          <p class="section__subtitle">Interactive timeline coming soon. Milestones will cover formative research, residency highlights, and upcoming fellowship work.</p>
+          <p class="section__subtitle">From Princeton to Johns Hopkins to Mass General Brigham—milestones in education, training, and leadership.</p>
         </div>
-        <div class="timeline-placeholder"></div>
+        <Timeline client:visible data={timeline} />
       </div>
     </section>
 
+    <!-- Skills & Expertise Section -->
+    <section class="section">
+      <div class="section__inner" style="max-width:1000px">
+        <div class="section__intro scroll-fade" data-scroll-fade>
+          <h2 class="section__title">Skills & Expertise</h2>
+          <p class="section__subtitle">Clinical, technical, and research competencies developed over a decade of training and practice.</p>
+        </div>
+        <SkillsVisualization client:visible data={skills} />
+      </div>
+    </section>
+
+    <!-- Publication Metrics Section -->
+    <section class="section" style="background:linear-gradient(180deg, rgba(248,250,252,0.9), rgba(255,255,255,1))">
+      <div class="section__inner" style="max-width:900px">
+        <div class="section__intro scroll-fade" data-scroll-fade>
+          <h2 class="section__title">Scholarly Impact</h2>
+          <p class="section__subtitle">Metrics and visualizations of peer-reviewed publications and citations.</p>
+        </div>
+        <PublicationMetrics client:visible data={scholarMetrics} />
+      </div>
+    </section>
+
+    <!-- Personal Philosophy (Hidden for now) -->
     <section class="section is-hidden" aria-hidden="true">
       <div class="section__inner" style="max-width:760px">
         <div class="section__intro">
@@ -61,4 +91,56 @@ import profile from '../data/profile.json';
       </div>
     </section>
   </main>
+
+  <style>
+    .about-card {
+      background: white;
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    [data-theme='dark'] .about-card {
+      background: var(--secondary-800);
+      border-color: rgba(148, 163, 184, 0.25);
+    }
+
+    .about-card h2 {
+      color: var(--secondary-900);
+      margin-top: 0;
+    }
+
+    .about-card h2:not(:first-child) {
+      margin-top: 2rem;
+    }
+
+    [data-theme='dark'] .about-card h2 {
+      color: var(--secondary-100);
+    }
+
+    .about-card ul {
+      padding-left: 1.2rem;
+      color: var(--secondary-600);
+      font-size: 1rem;
+    }
+
+    [data-theme='dark'] .about-card ul {
+      color: var(--secondary-400);
+    }
+
+    .about-card li {
+      margin-bottom: 0.5rem;
+    }
+
+    .about-card p {
+      color: var(--secondary-600);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    [data-theme='dark'] .about-card p {
+      color: var(--secondary-400);
+    }
+  </style>
 </MainLayout>
