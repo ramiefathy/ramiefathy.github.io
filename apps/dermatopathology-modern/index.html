@@ -1594,6 +1594,47 @@
             return <span ref={iconRef} className="inline-flex align-middle" />;
         };
 
+        // Loading Spinner Component
+        const LoadingSpinner = ({ size = 'md', text = 'Loading...' }) => {
+            const sizeClasses = {
+                sm: 'w-4 h-4',
+                md: 'w-8 h-8',
+                lg: 'w-12 h-12'
+            };
+
+            return (
+                <div className="flex flex-col items-center justify-center py-12 gap-4" role="status" aria-live="polite">
+                    <div className={`${sizeClasses[size]} relative`}>
+                        <div className="absolute inset-0 rounded-full border-2 border-purple-200 dark:border-purple-900"></div>
+                        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-purple-500 animate-spin"></div>
+                    </div>
+                    {text && <span className="text-sm text-gray-400">{text}</span>}
+                    <span className="sr-only">{text}</span>
+                </div>
+            );
+        };
+
+        // Skeleton Loading Component for cards
+        const SkeletonCard = () => (
+            <div className="glass dark:glass-dark rounded-xl p-6 animate-pulse">
+                <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                        <div className="h-5 bg-gray-700 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-800 rounded w-1/2"></div>
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="w-8 h-8 bg-gray-700 rounded-lg"></div>
+                        <div className="w-8 h-8 bg-gray-700 rounded-lg"></div>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <div className="h-4 bg-gray-700 rounded w-full"></div>
+                    <div className="h-4 bg-gray-700 rounded w-5/6"></div>
+                    <div className="h-4 bg-gray-700 rounded w-4/6"></div>
+                </div>
+            </div>
+        );
+
         // Achievement Notification Component
         const AchievementNotification = ({ achievement, onDismiss }) => {
             if (!achievement) return null;
@@ -2994,43 +3035,148 @@
 
                         {selectedFinding && diagnoses.length > 0 && (
                             <>
-                                {/* Tab Selector */}
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                    {[
-                                        { id: 'grid', label: 'Grid', icon: 'grid' },
-                                        { id: 'flashcards', label: 'Flashcards', icon: 'layers' },
-                                        { id: 'network', label: 'Network', icon: 'share-2' },
-                                        { id: 'srs', label: 'Study', icon: 'brain' },
-                                        { id: 'table', label: 'Table', icon: 'table' },
-                                        { id: 'analytics', label: 'Analytics', icon: 'bar-chart' },
-                                        { id: 'statistics', label: 'Statistics', icon: 'pie-chart' },
-                                        { id: 'compare', label: 'Compare', icon: 'git-branch' },
-                                        { id: 'quiz', label: 'Quiz', icon: 'help-circle' }
-                                    ].map(({ id, label, icon }) => (
-                                        <button
-                                            key={id}
-                                            onClick={() => {
-                                                dispatch({ type: 'SET_ACTIVE_TAB', payload: id });
-                                                dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
+                                {/* Enhanced Tab Navigation with Grouped Categories */}
+                                <nav className="mb-6" role="tablist" aria-label="View mode selection">
+                                    {/* Mobile Dropdown (visible on small screens) */}
+                                    <div className="md:hidden relative">
+                                        <select
+                                            value={activeTab}
+                                            onChange={(e) => {
+                                                dispatch({ type: 'SET_ACTIVE_TAB', payload: e.target.value });
+                                                dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: e.target.value }});
                                                 setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
                                             }}
-                                            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                                                activeTab === id
-                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                                                    : 'glass dark:glass-dark hover:bg-gray-100 dark:hover:bg-gray-800'
-                                            }`}
+                                            className="w-full px-4 py-3 glass dark:glass-dark rounded-lg border border-gray-600 bg-gray-800 text-white appearance-none cursor-pointer"
+                                            aria-label="Select view mode"
                                         >
-                                            <Icon name={icon} className="w-4 h-4" />
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
+                                            <optgroup label="Content Views">
+                                                <option value="grid">Grid View</option>
+                                                <option value="flashcards">Flashcards</option>
+                                                <option value="network">Network Graph</option>
+                                                <option value="table">Table View</option>
+                                            </optgroup>
+                                            <optgroup label="Learning">
+                                                <option value="srs">Spaced Repetition</option>
+                                                <option value="quiz">Quiz Mode</option>
+                                            </optgroup>
+                                            <optgroup label="Analytics">
+                                                <option value="analytics">Analytics</option>
+                                                <option value="statistics">Statistics</option>
+                                                <option value="compare">Compare</option>
+                                            </optgroup>
+                                        </select>
+                                        <Icon name="chevron-down" className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                    </div>
+
+                                    {/* Desktop Grouped Tabs (hidden on mobile) */}
+                                    <div className="hidden md:block">
+                                        {/* Tab Groups */}
+                                        <div className="flex flex-col gap-3">
+                                            {/* Content Views Group */}
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wider w-20 shrink-0">Content</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {[
+                                                        { id: 'grid', label: 'Grid', icon: 'grid' },
+                                                        { id: 'flashcards', label: 'Cards', icon: 'layers' },
+                                                        { id: 'network', label: 'Network', icon: 'share-2' },
+                                                        { id: 'table', label: 'Table', icon: 'table' }
+                                                    ].map(({ id, label, icon }) => (
+                                                        <button
+                                                            key={id}
+                                                            role="tab"
+                                                            aria-selected={activeTab === id}
+                                                            aria-controls={`${id}-panel`}
+                                                            onClick={() => {
+                                                                dispatch({ type: 'SET_ACTIVE_TAB', payload: id });
+                                                                dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
+                                                                setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
+                                                            }}
+                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                                                activeTab === id
+                                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
+                                                                    : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
+                                                            }`}
+                                                        >
+                                                            <Icon name={icon} className="w-3.5 h-3.5" />
+                                                            <span>{label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Learning Group */}
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wider w-20 shrink-0">Learn</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {[
+                                                        { id: 'srs', label: 'Study (SRS)', icon: 'brain' },
+                                                        { id: 'quiz', label: 'Quiz', icon: 'help-circle' }
+                                                    ].map(({ id, label, icon }) => (
+                                                        <button
+                                                            key={id}
+                                                            role="tab"
+                                                            aria-selected={activeTab === id}
+                                                            aria-controls={`${id}-panel`}
+                                                            onClick={() => {
+                                                                dispatch({ type: 'SET_ACTIVE_TAB', payload: id });
+                                                                dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
+                                                                setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
+                                                            }}
+                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                                                activeTab === id
+                                                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25'
+                                                                    : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
+                                                            }`}
+                                                        >
+                                                            <Icon name={icon} className="w-3.5 h-3.5" />
+                                                            <span>{label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Analytics Group */}
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wider w-20 shrink-0">Track</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {[
+                                                        { id: 'analytics', label: 'Analytics', icon: 'bar-chart' },
+                                                        { id: 'statistics', label: 'Stats', icon: 'pie-chart' },
+                                                        { id: 'compare', label: 'Compare', icon: 'git-branch' }
+                                                    ].map(({ id, label, icon }) => (
+                                                        <button
+                                                            key={id}
+                                                            role="tab"
+                                                            aria-selected={activeTab === id}
+                                                            aria-controls={`${id}-panel`}
+                                                            onClick={() => {
+                                                                dispatch({ type: 'SET_ACTIVE_TAB', payload: id });
+                                                                dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
+                                                                setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
+                                                            }}
+                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                                                activeTab === id
+                                                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
+                                                                    : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
+                                                            }`}
+                                                        >
+                                                            <Icon name={icon} className="w-3.5 h-3.5" />
+                                                            <span>{label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </nav>
 
                                 {/* Main Content Area */}
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                     <div className="lg:col-span-2">
+                                        {/* Content Views with ARIA tabpanel roles */}
                                         {activeTab === 'grid' && (
-                                            <div key="grid-view" className="grid gap-4">
+                                            <div key="grid-view" id="grid-panel" role="tabpanel" aria-labelledby="tab-grid" className="grid gap-4 animate-fade-in">
                                                 {diagnoses.map((diagnosis, index) => (
                                                     <DiagnosisCard
                                                         key={diagnosis.name}
@@ -3046,35 +3192,51 @@
                                         )}
 
                                         {activeTab === 'flashcards' && (
-                                            <div key="flashcards-view"><FlashcardDeck diagnoses={diagnoses} /></div>
+                                            <div key="flashcards-view" id="flashcards-panel" role="tabpanel" aria-labelledby="tab-flashcards" className="animate-fade-in">
+                                                <FlashcardDeck diagnoses={diagnoses} />
+                                            </div>
                                         )}
 
                                         {activeTab === 'network' && (
-                                            <div key="network-view"><NetworkGraph finding={selectedFinding} diagnoses={diagnoses} /></div>
+                                            <div key="network-view" id="network-panel" role="tabpanel" aria-labelledby="tab-network" className="animate-fade-in">
+                                                <NetworkGraph finding={selectedFinding} diagnoses={diagnoses} />
+                                            </div>
                                         )}
 
                                         {activeTab === 'srs' && (
-                                            <div key="srs-view"><SRSView finding={selectedFinding} diagnoses={diagnoses} /></div>
+                                            <div key="srs-view" id="srs-panel" role="tabpanel" aria-labelledby="tab-srs" className="animate-fade-in">
+                                                <SRSView finding={selectedFinding} diagnoses={diagnoses} />
+                                            </div>
                                         )}
 
                                         {activeTab === 'table' && (
-                                            <div key="table-view"><TableView finding={selectedFinding} diagnoses={diagnoses} /></div>
+                                            <div key="table-view" id="table-panel" role="tabpanel" aria-labelledby="tab-table" className="animate-fade-in">
+                                                <TableView finding={selectedFinding} diagnoses={diagnoses} />
+                                            </div>
                                         )}
 
                                         {activeTab === 'analytics' && (
-                                            <div key="analytics-view"><AnalyticsView finding={selectedFinding} diagnoses={diagnoses} /></div>
+                                            <div key="analytics-view" id="analytics-panel" role="tabpanel" aria-labelledby="tab-analytics" className="animate-fade-in">
+                                                <AnalyticsView finding={selectedFinding} diagnoses={diagnoses} />
+                                            </div>
                                         )}
 
                                         {activeTab === 'statistics' && (
-                                            <div key="statistics-view"><StatisticsView srsInstance={srsSystem} /></div>
+                                            <div key="statistics-view" id="statistics-panel" role="tabpanel" aria-labelledby="tab-statistics" className="animate-fade-in">
+                                                <StatisticsView srsInstance={srsSystem} />
+                                            </div>
                                         )}
 
                                         {activeTab === 'compare' && (
-                                            <div key="compare-view"><CompareView findings={findings} /></div>
+                                            <div key="compare-view" id="compare-panel" role="tabpanel" aria-labelledby="tab-compare" className="animate-fade-in">
+                                                <CompareView findings={findings} />
+                                            </div>
                                         )}
 
                                         {activeTab === 'quiz' && (
-                                            <div key="quiz-view"><QuizView finding={selectedFinding} diagnoses={diagnoses} /></div>
+                                            <div key="quiz-view" id="quiz-panel" role="tabpanel" aria-labelledby="tab-quiz" className="animate-fade-in">
+                                                <QuizView finding={selectedFinding} diagnoses={diagnoses} />
+                                            </div>
                                         )}
                                     </div>
 

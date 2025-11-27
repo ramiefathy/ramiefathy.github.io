@@ -8,477 +8,83 @@
     <!-- Include the D3.js library -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            color: #334155;
-        }
-        .tab-container {
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-        #tab-bar {
-            padding-bottom: 180px; 
-            margin-bottom: -180px;
-        }
-        .tab {
-            cursor: pointer;
-            padding: 10px 16px;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s ease;
-            display: inline-block;
-            position: relative;
-            border-radius: 6px 6px 0 0;
-        }
-        .tab-group-blue { color: #3b82f6; }
-        .tab-group-purple { color: #8b5cf6; }
-        .tab-group-green { color: #22c55e; }
-        .tab-group-blue.active { font-weight: 600; background-color: #dbeafe; border-color: #3b82f6; }
-        .tab-group-purple.active { font-weight: 600; background-color: #ede9fe; border-color: #8b5cf6; }
-        .tab-group-green.active { font-weight: 600; background-color: #dcfce7; border-color: #22c55e; }
-        .dropdown {
-            display: none; position: absolute; background-color: white;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 10;
-            top: 100%; left: 0; border-radius: 0 0 8px 8px; overflow: hidden;
-        }
-        .dropdown-item {
-            color: #334155; padding: 12px 16px; text-decoration: none;
-            display: block; text-align: left; white-space: nowrap;
-        }
-        .dropdown-item:hover { background-color: #f1f5f9; }
-        .tab.dropdown-active .dropdown { display: block; }
-        @media (hover: hover) { .tab:hover .dropdown { display: block; } }
-        .mind-map-view { display: none; }
-        .mind-map-view.active { display: flex; align-items: center; justify-content: center; }
-        .loading-indicator { color: #64748b; font-size: 1.25rem; }
-        
-        /* D3-specific styles */
-        .node { cursor: pointer; }
-        .node-text { font-weight: 500; pointer-events: none; text-anchor: middle; dominant-baseline: central; fill: #1e293b; }
-        .link {
-            fill: none;
-            stroke: #cbd5e1;
-            stroke-width: 2px;
-            opacity: 0.6;
-        }
-        .node circle {
-            stroke: #4338ca;
-            stroke-width: 1.5px;
-            transition: stroke-width 0.2s ease, stroke 0.2s ease;
-        }
-        .node .collapsible { /* Visual cue for nodes that can be expanded */
-            stroke: #312e81;
-            stroke-width: 3px;
-        }
-        
-        .tooltip {
-            position: absolute; background-color: rgba(0, 0, 0, 0.85); color: white;
-            padding: 10px 15px; border-radius: 8px; font-size: 14px; line-height: 1.5;
-            max-width: 400px; visibility: hidden; opacity: 0;
-            transition: opacity 0.3s, visibility 0.3s; pointer-events: none; z-index: 20;
-        }
-        .tooltip-title { font-weight: 700; margin-bottom: 5px; color: #93c5fd; }
-        .tooltip-content ul { list-style-position: inside; padding-left: 0; margin: 0; }
-        .tooltip-content li { margin-bottom: 5px; }
-        .tooltip-content strong { color: #facc15; }
-    </style>
+    <link rel="stylesheet" href="css/main.css">
 </head>
 <body class="bg-slate-50 flex flex-col items-center justify-center min-h-screen p-4">
     <div class="w-full max-w-6xl text-center mb-4">
-        <h1 class="text-3xl md:text-4xl font-bold text-slate-800">CTCL Diagnostic Workup</h1>
-        <p class="text-slate-600 mt-2 text-lg">An interactive mind map of key labs and studies.</p>
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-800">Cutaneous T-Cell Lymphoma (CTCL)</h1>
+        <p class="text-slate-600 mt-2 text-lg">An Interactive Guide to Diagnosis, Staging, and Management.</p>
     </div>
 
-    <div class="w-full max-w-6xl">
+    <!-- Search Section -->
+    <div class="w-full max-w-6xl mb-4 relative z-20">
+        <div class="flex gap-2 justify-center">
+            <input type="text" id="search-input" placeholder="Search subtypes, tests, treatments..."
+                   class="w-full max-w-md px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <button id="clear-search" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition">
+                Clear
+            </button>
+        </div>
+        <!-- Container for Global Search Results -->
+        <div id="search-results-container" class="absolute top-full left-1/2 -translate-x-1/2 w-full max-w-md mt-1"></div>
+    </div>
+
+    <div class="w-full max-w-6xl px-2">
         <div class="border-b border-slate-200">
-            <div id="tab-bar" class="flex justify-center tab-container">
-                <div id="tab-question" class="tab active tab-group-blue" data-tab="question">View by Question</div>
-                <div id="tab-test" class="tab tab-group-blue" data-tab="test">View by Test Type</div>
-                <div id="tab-staging" class="tab tab-group-blue mr-4" data-tab="staging">Staging</div>
-                <div id="tab-subtypes" class="tab tab-group-purple mr-4">
-                    Subtypes ▾
-                    <div class="dropdown">
-                        <a href="#" class="dropdown-item" data-tab="subtypes-overall">Overall View</a>
-                        <a href="#" class="dropdown-item" data-tab="subtypes-immuno">By Immunophenotype</a>
-                        <a href="#" class="dropdown-item" data-tab="subtypes-pattern">By Histologic Pattern</a>
-                        <a href="#" class="dropdown-item" data-tab="subtypes-ebv">By EBV Association</a>
-                    </div>
+            <div id="tab-bar" class="tab-container">
+                <!-- First row: Workup & Staging -->
+                <div class="flex justify-center flex-wrap">
+                    <div id="tab-question" class="tab active tab-group-blue" data-tab="question">Workup: By Question</div>
+                    <div id="tab-test" class="tab tab-group-blue" data-tab="test">Workup: By Test</div>
+                    <div id="tab-staging" class="tab tab-group-blue" data-tab="staging">TNMB Staging</div>
                 </div>
-                <div id="tab-treatment" class="tab tab-group-green" data-tab="treatment">By Therapy Type</div>
-                <div id="tab-treatment-stage" class="tab tab-group-green" data-tab="treatment-stage">By Disease Stage</div>
+                <!-- Second row: Subtypes -->
+                <div class="flex justify-center flex-wrap mt-1">
+                    <div id="tab-subtypes-overall" class="tab tab-group-purple" data-tab="subtypes-overall">Subtypes: Overview</div>
+                    <div id="tab-subtypes-immuno" class="tab tab-group-purple" data-tab="subtypes-immuno">Subtypes: Immunophenotype</div>
+                    <div id="tab-subtypes-pattern" class="tab tab-group-purple" data-tab="subtypes-pattern">Subtypes: Histologic Pattern</div>
+                    <div id="tab-subtypes-ebv" class="tab tab-group-purple" data-tab="subtypes-ebv">Subtypes: EBV Association</div>
+                </div>
+                <!-- Third row: Treatment -->
+                <div class="flex justify-center flex-wrap mt-1">
+                    <div id="tab-treatment" class="tab tab-group-green" data-tab="treatment">Treatment: By Therapy Type</div>
+                    <div id="tab-treatment-stage" class="tab tab-group-green" data-tab="treatment-stage">Treatment: By Stage</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="mind-map-container" class="w-full max-w-6xl aspect-[4/3] bg-white rounded-xl shadow-lg border border-slate-200 mt-4">
-        <div id="view-question" class="mind-map-view active h-full"></div>
-        <div id="view-test" class="mind-map-view h-full"></div>
-        <div id="view-staging" class="mind-map-view h-full"></div>
-        <div id="view-subtypes-overall" class="mind-map-view h-full"></div>
-        <div id="view-subtypes-immuno" class="mind-map-view h-full"></div>
-        <div id="view-subtypes-pattern" class="mind-map-view h-full"></div>
-        <div id="view-subtypes-ebv" class="mind-map-view h-full"></div>
-        <div id="view-treatment" class="mind-map-view h-full"></div>
-        <div id="view-treatment-stage" class="mind-map-view h-full"></div>
+    <div id="mind-map-container" class="w-full max-w-6xl aspect-[4/3] bg-white rounded-xl shadow-lg border border-slate-200 mt-4 relative overflow-hidden">
+        <!-- UI Controls -->
+        <div class="absolute top-4 right-4 flex flex-col gap-2 z-10">
+            <div class="flex gap-2">
+                <button id="expand-all" class="px-3 py-1 bg-indigo-500 text-white rounded-lg text-sm hover:bg-indigo-600 transition" title="Expand All Nodes">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                </button>
+                <button id="collapse-all" class="px-3 py-1 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600 transition" title="Collapse All Nodes">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                </button>
+            </div>
+            <div class="flex gap-2">
+                <button id="zoom-in" class="px-3 py-1 bg-slate-500 text-white rounded-lg text-sm hover:bg-slate-600 transition" title="Zoom In (+)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path></svg>
+                </button>
+                <button id="zoom-out" class="px-3 py-1 bg-slate-500 text-white rounded-lg text-sm hover:bg-slate-600 transition" title="Zoom Out (-)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path></svg>
+                </button>
+                <button id="zoom-reset" class="px-3 py-1 bg-slate-500 text-white rounded-lg text-sm hover:bg-slate-600 transition" title="Reset Zoom (Ctrl+0)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+            </div>
+        </div>
+        <!-- Single view container - reduces HTML by 85% -->
+        <div id="mind-map-view-container" class="w-full h-full" data-current-tab="question"></div>
     </div>
     <div id="tooltip" class="tooltip"></div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        (function() {
-            // --- DATA STRUCTURES (Full content) ---
-            const classic_mf_tooltip = { title: 'Mycosis Fungoides (Classic)', content: '<ul><li><strong>Epidemiology:</strong> Most common CTCL (50-70% of cases). Incidence: 6-9 per million/year. Male:female 1.6-2:1. Peak age 55-60. Higher incidence in Black populations.</li><li><strong>Manifestations:</strong> Indolent course. Progresses from <strong>patches</strong> to <strong>plaques</strong> to <strong>tumors</strong>. Pruritus in >80%. Large cell transformation (>25% large cells) = poor prognosis.</li><li><strong>Histopathology:</strong> Atypical cerebriform lymphocytes. <strong>Epidermotropism</strong> without spongiosis. Pautrier microabscesses (pathognomonic but only in 10-20%).</li><li><strong>Molecular:</strong> TP53 mutations (10-15%), CDKN2A deletions (30-40% in transformed), JAK/STAT pathway (60-70% advanced).</li><li><strong>Prognosis by Stage:</strong> IA: 5yr DSS >95%. IB: 5yr DSS 85-95%. IIA: 5yr DSS 80-85%. IIB: 5yr DSS 60-75%. III-IV: 5yr DSS 15-55%.</li></ul>' };
-            const ss_tooltip = { title: 'Sézary Syndrome', content: '<ul><li><strong>Epidemiology:</strong> Rare CTCL (2-3% of cases). Incidence: 0.1-0.3 per million/year.</li><li><strong>Manifestations:</strong> Triad: <strong>erythroderma</strong> (>80% BSA), <strong>lymphadenopathy</strong>, <strong>Sézary cells</strong>. Severe pruritus >90%. Keratoderma, alopecia, ectropion common.</li><li><strong>B2 Criteria (need ONE):</strong> ≥1000/μL Sézary cells; CD4:CD8 ≥10 + clone; CD4+CD7- ≥40% or CD4+CD26- ≥30% + clone; Chromosomal abnormality. KIR3DL2/CD158k: 85% sensitive, 95% specific.</li><li><strong>Molecular:</strong> PLCG1 mutations ~10%, JAK/STAT pathway 60-70%, DNMT3A = poor prognosis.</li><li><strong>Prognosis:</strong> Median survival 2-4 years. 5-year DSS ~36%. First-line: ECP, mogamulizumab (FDA-approved first-line), retinoids±IFN.</li></ul>' };
-            const fmf_tooltip = { title: 'Folliculotropic MF (FMF)', content: '<ul><li><strong>Manifestations:</strong> A variant of MF characterized by infiltration of hair follicles. Presents as follicular-based patches, plaques, acneiform lesions, or tumors, often on the head and neck. Can cause alopecia, especially of the eyebrows.</li><li><strong>Histopathology:</strong> Characterized by perifollicular and follicular infiltrates of atypical T cells, often with associated follicular mucinosis (mucin deposition in the hair follicle). Epidermotropism is often sparse or absent.</li><li><strong>Prognosis:</strong> Traditionally considered more aggressive than classic MF due to deeper infiltration, making it less responsive to skin-directed therapies. However, recent studies suggest prognosis is stage-dependent, with early-stage FMF having a more favorable outcome than advanced-stage FMF.</li></ul>' };
-            const pagetoid_tooltip = { title: 'Pagetoid Reticulosis (Woringer-Kolopp)', content: '<ul><li><strong>Manifestations:</strong> Rare variant of MF presenting as a solitary, slowly growing, well-demarcated, psoriasiform or hyperkeratotic patch or plaque, typically on a distal extremity (hand or foot).</li><li><strong>Histopathology:</strong> Marked pagetoid (intraepidermal) proliferation of large atypical T-cells, which occupy the entire thickness of the epidermis.</li><li><strong>Prognosis:</strong> Excellent and indolent. It is not associated with systemic spread, and local treatment (excision or radiotherapy) is often curative. 5-year disease-specific survival is 100%.</li></ul>' };
-            const gss_tooltip = { title: 'Granulomatous Slack Skin', content: '<ul><li><strong>Manifestations:</strong> Extremely rare variant of MF. Characterized by the slow development of bulky, pendulous folds of lax, atrophic skin, classically in intertriginous areas like the axillae and groin.</li><li><strong>Histopathology:</strong> A granulomatous infiltrate with multinucleated giant cells that engulf elastic fibers (elastophagocytosis), leading to loss of skin elasticity.</li><li><strong>Prognosis:</strong> Very indolent clinical course. However, it is associated with an increased risk of developing a secondary lymphoid malignancy, most commonly Hodgkin lymphoma.</li></ul>' };
-            const pcalcl_tooltip = { title: 'Primary Cutaneous Anaplastic Large Cell Lymphoma (pcALCL)', content: '<ul><li><strong>Epidemiology:</strong> Part of CD30+ LPD spectrum (~25% of CTCLs with LyP). Median age 60 years. M:F ratio 2-3:1.</li><li><strong>Manifestations:</strong> Solitary/localized (80%), rapidly growing nodules/tumors. Ulceration in 40%. Spontaneous regression 20-25%. Leg involvement = poor prognosis.</li><li><strong>Histopathology:</strong> Large anaplastic cells, >75% CD30+. ALK-negative. May express cytotoxic markers (TIA-1, granzyme B, perforin).</li><li><strong>Treatment:</strong> Solitary: excision or RT (CR >95%). Multifocal: low-dose MTX, brentuximab vedotin (ORR 86%, CR 57%, median DoR 16.8 months).</li><li><strong>Prognosis:</strong> 5-year DSS >90% (non-leg), ~50% (leg). Cutaneous relapses 40%. Extracutaneous spread <10%.</li></ul>' };
-            const lyp_tooltip = { title: 'Lymphomatoid Papulosis (LyP)', content: '<ul><li><strong>Epidemiology:</strong> Incidence 1.2-1.9 per million/year. Median age 45. M:F 1.5:1. Can occur at any age (including children).</li><li><strong>Manifestations:</strong> Recurrent crops of 3-100 papulonodules that necrotize centrally, resolve in 3-12 weeks leaving scars. Continuous eruption of new lesions.</li><li><strong>Histologic Types:</strong> A (most common): CD30+ cells with neutrophils/eosinophils. B: MF-like. C: ALCL-like. D: CD8+ epidermotropic. E: angioinvasive (worse prognosis). F: folliculotropic.</li><li><strong>Associated Lymphomas:</strong> 10-20% lifetime risk (highest in first 10 years). MF (most common), pcALCL, Hodgkin. Type E = higher risk.</li><li><strong>Management:</strong> Often none needed. Options: topical steroids, phototherapy, low-dose MTX (10-25mg/week, best for suppression). Avoid aggressive therapy.</li><li><strong>Prognosis:</strong> 5-year survival >99%. Does not affect life expectancy unless secondary lymphoma develops.</li></ul>' };
-            const sptcl_tooltip = { title: 'Subcutaneous Panniculitis-like T-cell Lymphoma (SPTCL)', content: '<ul><li><strong>Epidemiology:</strong> Very rare (<1% of CTCLs). Median age 35 years. F>M (2:1). Associated with autoimmune disorders (20-30%), especially lupus.</li><li><strong>Manifestations:</strong> Subcutaneous nodules/plaques on legs, arms, trunk. Resembles panniculitis. B-symptoms common (fever, weight loss). αβ T-cell phenotype.</li><li><strong>Histopathology:</strong> CD8+ cytotoxic T-cells in subcutis. Characteristic "rimming" of adipocytes. No epidermis/dermis involvement. Express TIA-1, granzyme B, perforin.</li><li><strong>Complications:</strong> HLH in 15-20% (poor prognosis). Screen with ferritin, sIL-2R, triglycerides.</li><li><strong>Treatment:</strong> First-line: systemic steroids, cyclosporine. Refractory: combination chemotherapy. Consider HSCT for HLH.</li><li><strong>Prognosis:</strong> 5-year OS ~80-90% without HLH, <50% with HLH. Better prognosis than PCGD-TCL.</li></ul>' };
-            const pcgd_tooltip = { title: 'Primary Cutaneous Gamma-Delta T-cell Lymphoma (PCGD-TCL)', content: '<ul><li><strong>Manifestations:</strong> A rare and very aggressive CTCL composed of gamma-delta (γδ) T-cells. Presents with rapidly progressing, deeply ulcerated plaques, nodules, or tumors, often on the extremities.</li><li><strong>Histopathology:</strong> Infiltrate of atypical γδ T-cells in the dermis and/or subcutis, often with angiodestruction and necrosis.</li><li><strong>Prognosis:</strong> Very poor, with a median survival of approximately 15 months. Resistant to multi-agent chemotherapy.</li></ul>' };
-            const aectcl_tooltip = { title: 'Aggressive Epidermotropic CD8+ Cytotoxic T-cell Lymphoma', content: '<ul><li><strong>Manifestations:</strong> A rare and very aggressive CTCL characterized by widespread, eruptive papules, nodules, and tumors that show central ulceration and necrosis. It disseminates rapidly to visceral sites but often spares lymph nodes.</li><li><strong>Histopathology:</strong> A dense, band-like infiltrate of atypical epidermotropic CD8+ cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Aggressive clinical course with a median survival of less than 32 months (2.7 years).</li></ul>' };
-            const atll_tooltip = { title: 'Adult T-cell Leukemia/Lymphoma (ATLL)', content: '<ul><li><strong>Epidemiology:</strong> A peripheral T-cell neoplasm caused by the human T-cell leukemia virus 1 (HTLV-1). Endemic in areas like Japan, the Caribbean, and parts of South and Central America.</li><li><strong>Manifestations:</strong> ~25% of patients present with skin lesions that can mimic MF or Sézary syndrome. Acute ATLL is aggressive, featuring leukemia, lymphadenopathy, and hypercalcemia.</li><li><strong>Diagnosis:</strong> Presence of HTLV-1 antibodies is key. Blood smear shows characteristic "flower cells" (polylobated nuclei).</li><li><strong>Prognosis:</strong> Poor for acute and lymphomatous types, with a median survival of less than one year.</li></ul>'};
-            const pcsm_tooltip = { title: 'PC CD4+ Small/Medium TCLPD', content: '<ul><li><strong>Epidemiology:</strong> An indolent subtype, accounts for ~6% of CTCL.</li><li><strong>Manifestations:</strong> Typically presents as a solitary plaque or tumor on the face, neck, or upper trunk.</li><li><strong>Histopathology:</strong> A dense, nodular-to-diffuse dermal infiltrate of small to medium-sized pleomorphic CD4+ T-cells, with a significant admixture of reactive B-cells, eosinophils, and histiocytes.</li><li><strong>Prognosis:</strong> Excellent, with a 5-year survival rate of 100%. Due to its benign course, it is classified as a "lymphoproliferative disorder" (TCLPD) rather than a true lymphoma.</li></ul>'};
-            const acral_cd8_tooltip = { title: 'PC Acral CD8+ TCLPD', content: '<ul><li><strong>Manifestations:</strong> Presents as a solitary, slow-growing papule or nodule on an acral site, most commonly the ear.</li><li><strong>Histopathology:</strong> A dense, diffuse dermal infiltrate of monomorphous, medium-sized CD8+ cytotoxic T-cells, but with a very low proliferation rate.</li><li><strong>Prognosis:</strong> Excellent, with a 5-year survival of 100%. Despite an aggressive histologic appearance, the clinical behavior is indolent. Now classified as a "lymphoproliferative disorder" (TCLPD).</li></ul>'};
-            const enktcl_tooltip = { title: 'Extranodal NK/T-cell Lymphoma, Nasal Type', content: '<ul><li><strong>Manifestations:</strong> A highly aggressive lymphoma, nearly always EBV-positive. The skin is the second most common site after the nasal cavity. Presents as ulcerated plaques and tumors.</li><li><strong>Histopathology:</strong> An angiocentric and angiodestructive infiltrate of atypical NK-cells or cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Very aggressive with a poor prognosis. 5-year disease-specific survival is only 16%.</li></ul>'};
-            const mindMapDataByQuestion = {id:'root',name:'CTCL Workup',tooltip:{title:'Central Question',content:'The core goal is to investigate a chronic, recalcitrant skin rash that could be Cutaneous T-Cell Lymphoma (CTCL). The workup follows a logical path from suspicion to diagnosis, staging, and establishing prognosis.'},children:[{id:'q1',name:'Diagnosis & Subtype',tooltip:{title:'Question 1: What is it?',content:'The first step is to confirm the diagnosis of CTCL and determine its specific subtype through a careful integration of clinical, pathologic, and molecular findings.'},children:[{id:'skin_biopsy',name:'Skin Biopsy',tooltip:{title:'Skin Biopsy (Histopathology)',content:'<ul><li><strong>Purpose:</strong> The cornerstone of diagnosis. Multiple biopsies from different areas may be needed.</li><li><strong>Key MF/SS Features:</strong> A superficial infiltrate of <strong>atypical lymphocytes</strong> with cerebriform nuclei.</li><li><strong>Epidermotropism:</strong> Atypical lymphocytes infiltrating the epidermis without significant spongiosis (inflammation).</li><li><strong>Pautrier Microabscesses:</strong> Intraepidermal clusters of atypical lymphocytes; pathognomonic but not always present.</li><li><strong>Other signs:</strong> Linear alignment of lymphocytes at the dermal-epidermal junction ("tagging"), haloed lymphocytes, lymphoid atypia.</li></ul>'}},{id:'tcr_skin',name:'TCR (Skin)',tooltip:{title:'TCR Gene Rearrangement (Skin)',content:'<ul><li><strong>Purpose:</strong> Detects a dominant T-cell population (a clone), which supports a diagnosis of lymphoma.</li><li><strong>Method:</strong> PCR or High-Throughput Sequencing (HTS) of the T-cell receptor (TCR) gamma chain gene.</li><li><strong>Interpretation:</strong> A positive result (monoclonality) supports CTCL, but is <strong>not diagnostic alone</strong>, as reactive conditions and elderly individuals can sometimes have benign clones. An identical clone in two distinct skin sites is more specific for CTCL.</li></ul>'}},{id:'early_mf_algo',name:'Early MF Algorithm',tooltip:{title:'ISCL/EORTC Diagnostic Algorithm',content:'A point-based system for diagnosing early MF (<strong>≥4 points required</strong>).<ul><li><strong>Clinical (1-2 pts):</strong> Persistent/progressive patches/plaques, non-sun-exposed location, size/shape variation, poikiloderma.</li><li><strong>Histopathologic (1-2 pts):</strong> Superficial lymphoid infiltrate PLUS epidermotropism without spongiosis and/or lymphoid atypia.</li><li><strong>Molecular (1 pt):</strong> A clonal TCR gene rearrangement is present.</li><li><strong>Immunopathologic (1 pt):</strong> Loss of T-cell antigens (e.g., <50% CD2/3/5+ or <10% CD7+ T-cells).</li></ul>'}}]}, {id:'q2',name:'Staging & Extent',tooltip:{title:'Question 2: How extensive is it?',content:'Once diagnosed, TNMB (Tumor, Node, Metastasis, Blood) staging is performed to determine the disease burden, which is the most important prognostic factor.'},children:[{id:'imaging',name:'Imaging',tooltip:{title:'Radiologic Imaging (CT or PET-CT)',content:'<ul><li><strong>Purpose:</strong> To assess for lymphadenopathy (N stage) or visceral organ involvement (M stage).</li><li><strong>Indications:</strong> Recommended for any patient with Sézary syndrome, tumor-stage disease, palpable lymphadenopathy, or high-risk histologic features like large-cell transformation.</li><li><strong>Findings:</strong> Suspicious lymph nodes are typically defined as >1.5 cm in longest diameter and/or having increased standardized uptake value (SUV) on PET scan.</li></ul>'}},{id:'ln_biopsy',name:'LN Biopsy',tooltip:{title:'Lymph Node Biopsy',content:'<ul><li><strong>Purpose:</strong> To pathologically confirm if clinically abnormal lymph nodes contain lymphoma.</li><li><strong>Method:</strong> Excisional biopsy is preferred over core needle or fine needle aspirate to allow for assessment of nodal architecture.</li><li><strong>Interpretation:</strong> Histology is graded to determine the N-stage. Effacement (partial or complete replacement) of the normal nodal architecture by atypical lymphocytes constitutes high-grade involvement (N3).</li></ul>'}},{id:'tnmb',name:'TNMB Staging',tooltip:{title:'TNMB Staging System',content:'A comprehensive system to classify disease extent:<ul><li><strong>T (Skin):</strong> T1 (<10% BSA), T2 (≥10% BSA), T3 (Tumors), T4 (Erythroderma).</li><li><strong>N (Nodes):</strong> N0 (normal) to N3 (effaced) based on pathology. Nx if not biopsied.</li><li><strong>M (Viscera):</strong> M0 (none) or M1 (present).</li><li><strong>B (Blood):</strong> B0 (no significant involvement), B1 (low burden), B2 (high burden/leukemic).</li></ul>'}}]}, {id:'q3',name:'Systemic Involvement',tooltip:{title:'Question 3: Is it in the blood?',content:'This is critical for diagnosing Sézary Syndrome and staging advanced disease. Assessment is done via peripheral blood.'},children:[{id:'flow',name:'Flow Cytometry',tooltip:{title:'Flow Cytometry (Peripheral Blood)',content:'<ul><li><strong>Purpose:</strong> The preferred method to identify and quantify an aberrant T-cell population in the blood.</li><li><strong>Key Criteria for B2 Blood / SS:</strong> An absolute Sézary cell count of <strong>≥1,000 cells/μL</strong> is the primary criterion.</li><li><strong>Supportive Criteria:</strong> An expanded CD4+ T-cell population with a CD4:CD8 ratio >10, OR significant loss of pan-T-cell antigens (e.g., >40% of CD4+ cells are CD7-negative, or >30% are CD26-negative).</li></ul>'}},{id:'tcr_blood',name:'TCR (Blood)',tooltip:{title:'TCR Gene Rearrangement (Blood)',content:'<ul><li><strong>Purpose:</strong> To identify a dominant T-cell clone in the blood and compare it to the skin.</li><li><strong>Key Interpretation:</strong> Finding an <strong>identical T-cell clone</strong> in both the blood and a skin biopsy is a key criterion for B2 blood staging and the diagnosis of Sézary Syndrome.</li></ul>'}},{id:'smear',name:'Peripheral Smear',tooltip:{title:'Peripheral Blood Smear',content:'<ul><li><strong>Purpose:</strong> Manual microscopic examination of blood cells.</li><li><strong>Finding:</strong> Identification of "Sézary cells," which are atypical lymphocytes with characteristic cerebriform (convoluted, brain-like) nuclei. This method is subjective and has been largely replaced by flow cytometry for quantification.</li></ul>'}}]}, {id:'q4',name:'Baseline & Prognosis',tooltip:{title:'Question 4: What is the baseline health and prognosis?',content:'Routine labs are performed to establish baseline organ function, rule out mimics, and identify prognostic markers.'},children:[{id:'cbc',name:'CBC w/ Diff',tooltip:{title:'Complete Blood Count with Differential',content:'<ul><li><strong>Purpose:</strong> Provides the absolute lymphocyte count needed for Sézary cell calculation.</li><li><strong>Findings:</strong> May show lymphocytosis or eosinophilia, which are common in advanced CTCL.</li></ul>'}},{id:'cmp',name:'CMP',tooltip:{title:'Comprehensive Metabolic Panel',content:'<ul><li><strong>Purpose:</strong> To assess baseline kidney and liver function before initiating potential systemic therapies.</li></ul>'}},{id:'ldh',name:'LDH',tooltip:{title:'Lactate Dehydrogenase',content:'<ul><li><strong>Purpose:</strong> A non-specific tumor marker reflecting cell turnover and disease burden.</li><li><strong>Prognostic Value:</strong> An elevated LDH is an independent adverse prognostic factor in advanced MF/SS and can be a sign of large-cell transformation.</li></ul>'}},{id:'htlv',name:'HTLV-1/2 Serology',tooltip:{title:'HTLV-1/2 Serology',content:'<ul><li><strong>Purpose:</strong> To rule out Adult T-cell Leukemia/Lymphoma (ATLL), which is caused by the HTLV-1 retrovirus and can clinically mimic MF/SS.</li><li><strong>Indications:</strong> Recommended for all patients, especially those from endemic areas (Japan, Caribbean, Middle East) or with atypical features.</li></ul>'}}]}]};
-            const mindMapDataByTest = {id:'root',name:'CTCL Tests',tooltip:{title:'CTCL Workup by Test Type',content:'The diagnostic evaluation for CTCL integrates tests from multiple modalities, from routine blood work to advanced molecular and imaging studies.'},children:[{id:'basic_labs',name:'Basic Labs',tooltip:{title:'Basic Laboratory Studies',content:'These initial blood tests establish the patient\'s baseline health, assess overall disease burden, and identify key prognostic markers.'},children:[{id:'cbc_diff',name:'CBC w/ Diff',tooltip:{title:'Complete Blood Count with Differential',content:'<ul><li><strong>Purpose:</strong> Quantifies white blood cells, lymphocytes, and eosinophils. The absolute lymphocyte count is essential for calculating the absolute Sézary cell count.</li><li><strong>Relevance:</strong> Can reveal lymphocytosis or eosinophilia, common findings in advanced CTCL.</li></ul>'}},{id:'cmp_test',name:'CMP',tooltip:{title:'Comprehensive Metabolic Panel',content:'<ul><li><strong>Purpose:</strong> Assesses baseline liver (ALT, AST, bilirubin) and kidney (creatinine) function.</li><li><strong>Relevance:</strong> Critical before starting systemic therapies, many of which can be hepatotoxic or require dose adjustment for renal impairment.</li></ul>'}},{id:'ldh_test',name:'LDH',tooltip:{title:'Lactate Dehydrogenase',content:'<ul><li><strong>Purpose:</strong> A non-specific marker of cell turnover.</li><li><strong>Relevance:</strong> Elevated LDH is an independent adverse prognostic factor in advanced MF/SS, indicating higher tumor burden and potentially large-cell transformation.</li></ul>'}}]}, {id:'flow_cytometry',name:'Flow Cytometry (Blood)',tooltip:{title:'Flow Cytometry (Peripheral Blood)',content:'The primary method for quantifying blood involvement (B stage) and diagnosing Sézary Syndrome.'},children:[{id:'cd4_cd8',name:'CD4:CD8 Ratio',tooltip:{title:'CD4:CD8 Ratio',content:'<ul><li><strong>Purpose:</strong> Measures the ratio of helper (CD4+) to cytotoxic (CD8+) T-cells.</li><li><strong>Relevance:</strong> In SS, a clonal expansion of CD4+ cells often leads to a markedly elevated ratio (>10), which is a supportive criterion.</li></ul>'}},{id:'marker_loss',name:'T-Cell Marker Loss',tooltip:{title:'T-Cell Marker Loss',content:'<ul><li><strong>Purpose:</strong> Identifies an aberrant immunophenotype. Neoplastic T-cells often lose surface markers that are present on normal mature T-cells.</li><li><strong>Relevance:</strong> Loss of CD7 or CD26 on a significant percentage of CD4+ T-cells is a key diagnostic feature of a malignant clone in the blood.</li></ul>'}},{id:'abs_count',name:'Absolute Sézary Count',tooltip:{title:'Absolute Sézary Cell Count',content:'<ul><li><strong>Purpose:</strong> To directly quantify the number of malignant cells in circulation.</li><li><strong>Relevance:</strong> An absolute count of <strong>≥1,000 cells/μL</strong> with an abnormal phenotype and a documented clone is a major criterion for B2 blood involvement and a diagnosis of Sézary Syndrome.</li></ul>'}}]},{id:'molecular',name:'Biopsy & Molecular',tooltip:{title:'Biopsy & Molecular Testing',content:'Tissue-based and molecular analyses are essential for definitive diagnosis and clonality assessment.'},children:[{id:'skin_biopsy_test',name:'Skin Biopsy',tooltip:{title:'Skin Biopsy (Histopathology)',content:'<ul><li><strong>Purpose:</strong> The gold standard for initial diagnosis of MF.</li><li><strong>Method:</strong> A 4mm punch biopsy or deep shave from the most indurated lesion is recommended. Multiple biopsies increase diagnostic yield.</li><li><strong>Findings:</strong> Look for atypical cerebriform lymphocytes, epidermotropism, Pautrier microabscesses, and papillary dermal fibrosis.</li></ul>'}},{id:'tcr_test',name:'TCR Gene Rearrangement',tooltip:{title:'TCR Gene Rearrangement',content:'<ul><li><strong>Purpose:</strong> Detects monoclonality by identifying a dominant T-cell receptor gene sequence.</li><li><strong>Relevance:</strong> A positive clone in skin supports the diagnosis. An identical clone in both skin and blood confirms systemic involvement and is a criterion for B2 blood staging.</li></ul>'}},{id:'ln_biopsy_test',name:'Lymph Node Biopsy',tooltip:{title:'Lymph Node Biopsy',content:'<ul><li><strong>Purpose:</strong> To pathologically confirm lymphoma in clinically suspicious lymph nodes.</li><li><strong>Method:</strong> Excisional biopsy is preferred to allow for assessment of nodal architecture.</li><li><strong>Relevance:</strong> Determines the N stage. Partial or complete effacement of the architecture by atypical lymphocytes is indicative of a poor prognosis.</li></ul>'}}]},{id:'imaging_studies',name:'Imaging',tooltip:{title:'Radiologic Imaging',content:'Performed for staging in patients with advanced disease to assess for extracutaneous spread.'},children:[{id:'ct_scan',name:'CT Scan',tooltip:{title:'CT Scan with Contrast',content:'<ul><li><strong>Purpose:</strong> To detect enlarged lymph nodes and visceral organ involvement (liver, spleen, etc.).</li><li><strong>Indication:</strong> Used for staging patients with tumors (T3), erythroderma (T4), or palpable lymphadenopathy.</li></ul>'}},{id:'pet_ct',name:'PET-CT Scan',tooltip:{title:'PET-CT Scan',content:'<ul><li><strong>Purpose:</strong> More sensitive than CT for detecting metabolically active disease. Helps differentiate reactive from malignant lymph nodes and can detect early visceral involvement.</li><li><strong>Relevance:</strong> Particularly useful for identifying high-grade transformation, which is typically FDG-avid.</li></ul>'}}]}]};
-            const mindMapDataByStaging = {id:'root',name:'TNMB Staging',tooltip:{title:'MF/SS Staging System',content:'The TNMB system is the standard for staging Mycosis Fungoides (MF) and Sézary Syndrome (SS). The final clinical stage (IA through IVB) is determined by combining the individual T, N, M, and B scores.'},children:[{id:'t_skin',name:'T (Skin)',tooltip:{title:'T - Skin Involvement',content:'Based on the type and percentage of body surface area (BSA) affected by lesions.'},children:[{id:'t1',name:'T1',tooltip:{title:'T1: Limited Patch/Plaque',content:'Patches, papules, or plaques covering <10% of the skin surface. Subdivided into T1a (patches only) and T1b (plaques +/- patches).'}},{id:'t2',name:'T2',tooltip:{title:'T2: Generalized Patch/Plaque',content:'Patches, papules, or plaques covering ≥10% of the skin surface. Subdivided into T2a (patches only) and T2b (plaques +/- patches).'}},{id:'t3',name:'T3',tooltip:{title:'T3: Tumor(s)',content:'One or more tumors that are ≥1 cm in diameter.'}},{id:'t4',name:'T4',tooltip:{title:'T4: Erythroderma',content:'Confluence of erythema covering ≥80% of the skin surface.'}}]},{id:'n_nodes',name:'N (Nodes)',tooltip:{title:'N - Lymph Node Involvement',content:'Based on clinical palpation and, more definitively, on histopathology of a biopsied lymph node.'},children:[{id:'n0',name:'N0',tooltip:{title:'N0',content:'No clinically abnormal peripheral lymph nodes; no biopsy necessary.'}},{id:'n1',name:'N1',tooltip:{title:'N1',content:'Clinically abnormal nodes, but histopathology shows only dermatopathic changes without definitive lymphoma.'}},{id:'n2',name:'N2',tooltip:{title:'N2',content:'Clinically abnormal nodes with histopathology showing early lymphoma involvement but preserved nodal architecture.'}},{id:'n3',name:'N3 (Lymphoma)',tooltip:{title:'N3 (Lymphoma)',content:'Histopathology shows partial or complete effacement of the lymph node architecture by lymphoma.'}},{id:'nx',name:'NX',tooltip:{title:'NX',content:'Clinically abnormal lymph nodes that have not been biopsied for pathologic determination.'}}]},{id:'m_viscera',name:'M (Viscera)',tooltip:{title:'M - Visceral Involvement',content:'Assesses for metastasis to internal organs other than lymph nodes or skin.'},children:[{id:'m0',name:'M0',tooltip:{title:'M0',content:'No visceral organ involvement.'}},{id:'m1',name:'M1',tooltip:{title:'M1',content:'Visceral involvement confirmed by pathology (e.g., liver, lung, bone marrow). M1a is bone marrow only; M1b is other non-BM visceral involvement.'}}]},{id:'b_blood',name:'B (Blood)',tooltip:{title:'B - Blood Involvement',content:'Quantifies the burden of circulating malignant T-cells, primarily by flow cytometry.'},children:[{id:'b0',name:'B0',tooltip:{title:'B0: No Significant Involvement',content:'Absence of significant blood involvement; absolute Sézary count <250/μL and no positive T-cell clone.'}},{id:'b1',name:'B1',tooltip:{title:'B1: Low Blood Tumor Burden',content:'Does not meet the criteria for B0 or B2. Indicates a low level of circulating atypical cells.'}},{id:'b2',name:'B2',tooltip:{title:'B2: High Blood Tumor Burden',content:'A key criterion for Sézary Syndrome. Defined by ≥1000/μL circulating Sézary cells and a clonal TCR rearrangement in the blood that matches the skin.'}}]}]};
-            const mf_variants_object = { id: 'mf_variants', name: 'MF Variants', tooltip: { title: 'Mycosis Fungoides Variants', content: 'These are distinct clinicopathologic variants of MF included in the WHO-EORTC classification.' }, children: [{ id: 'fmf', name: 'Folliculotropic MF', tooltip: fmf_tooltip }, { id: 'pagetoid', name: 'Pagetoid Reticulosis', tooltip: pagetoid_tooltip }, { id: 'gss', name: 'Granulomatous Slack Skin', tooltip: gss_tooltip }]};
-            const mindMapDataBySubtypesOverall = {id:'root',name:'CTCL Subtypes',tooltip:{title:'Classification of Cutaneous T-Cell Lymphomas',content:'CTCL is a heterogeneous group of non-Hodgkin T-cell lymphomas. Subtypes are defined by distinct clinical, pathologic, and molecular characteristics, which determine their clinical behavior and prognosis.'},children:[{id:'mf_ss',name:'MF & SS Spectrum',tooltip:{title:'Mycosis Fungoides & Sézary Syndrome Spectrum',content:'The most common types of CTCL, representing a spectrum from indolent skin-limited disease to aggressive leukemic disease. They account for ~65% of all CTCLs.'},children:[{id:'classic_mf',name:'Classic MF',tooltip:classic_mf_tooltip},{id:'ss',name:'Sézary Syndrome',tooltip:ss_tooltip},mf_variants_object]},{id:'cd30_lpds',name:'CD30+ LPDs',tooltip:{title:'Primary Cutaneous CD30+ Lymphoproliferative Disorders',content:'A spectrum of diseases defined by the expression of the CD30 antigen. They generally have an excellent prognosis and account for ~25% of all CTCLs.'},children:[{id:'pcalcl',name:'PC-ALCL',tooltip:pcalcl_tooltip},{id:'lyp',name:'LyP',tooltip:lyp_tooltip}]},{id:'rare_subtypes',name:'Rarer Subtypes',tooltip:{title:'Rarer CTCL Subtypes',content:'A diverse group of less common CTCLs, many of which have an aggressive clinical course and poor prognosis. They account for ~10% of all CTCLs.'},children:[{id:'sptcl',name:'SPTCL',tooltip:sptcl_tooltip},{id:'pcgd',name:'PCGD-TCL',tooltip:pcgd_tooltip},{id:'aectcl',name:'CD8+ AECTCL',tooltip:aectcl_tooltip},{id:'atll',name:'ATLL',tooltip:atll_tooltip},{id:'pcsm',name:'PC CD4+ S/M TCLPD',tooltip:pcsm_tooltip},{id:'acral_cd8_overall',name:'PC Acral CD8+ TCLPD',tooltip:acral_cd8_tooltip},{id:'enktcl_overall',name:'ENKTCL',tooltip:enktcl_tooltip}]}]};
-            const mindMapDataByImmunophenotype = {id:'root',name:'By Immunophenotype',tooltip:{title:'Classification by Immunophenotype',content:'Grouping CTCL subtypes based on their characteristic T-cell surface marker expression provides a framework for understanding their lineage and potential biologic behavior.'},children:[{id:'cd4_pos',name:'CD4+ Predominant',tooltip:{title:'CD4-Positive Subtypes',content:'These lymphomas typically arise from a clonal expansion of CD4+ helper T-cells.'},children:[{id:'mf_ss_cd4',name:'MF / Sézary Syndrome',tooltip:ss_tooltip},{id:'atll_cd4',name:'ATLL',tooltip:atll_tooltip},{id:'pcsm_cd4',name:'PC CD4+ S/M TCLPD',tooltip:pcsm_tooltip}]},{id:'cd8_pos',name:'CD8+ Predominant',tooltip:{title:'CD8-Positive Subtypes',content:'These lymphomas typically arise from a clonal expansion of CD8+ cytotoxic T-cells.'},children:[{id:'sptcl_cd8',name:'SPTCL',tooltip:sptcl_tooltip},{id:'aectcl_cd8',name:'CD8+ AECTCL',tooltip:aectcl_tooltip},{id:'acral_cd8',name:'PC Acral CD8+ TCLPD',tooltip:acral_cd8_tooltip},{id:'hypo_mf', name: 'Hypopigmented MF', tooltip: { title: 'Hypopigmented Mycosis Fungoides', content: 'A clinical variant of MF often seen in younger and darkly pigmented individuals. It is typically characterized by a CD8+ phenotype, in contrast to the usual CD4+ phenotype of classic MF.'}}]},{id:'cd30_pos',name:'CD30+ Predominant',tooltip:{title:'CD30-Positive Subtypes',content:'These lymphoproliferative disorders are defined by strong expression of the CD30 activation marker on the majority of neoplastic cells.'},children:[{id:'pcalcl_cd30',name:'PC-ALCL',tooltip:pcalcl_tooltip},{id:'lyp_cd30',name:'LyP',tooltip:lyp_tooltip},{id:'mf_lct_cd30',name:'MF with LCT',tooltip:{title:'MF with Large Cell Transformation',content:'A poor prognostic feature in advanced MF. The large transformed cells often acquire strong CD30 expression, making it a therapeutic target for agents like brentuximab vedotin.'}}]},{id:'gamma_delta',name:'Gamma-Delta (γδ)',tooltip:{title:'Gamma-Delta T-Cell Subtypes',content:'Lymphomas arising from the γδ T-cell lineage, which are distinct from the more common αβ T-cell lymphomas.'},children:[{id:'pcgd_gd',name:'PCGD-TCL',tooltip:pcgd_tooltip}]},{id:'nk_cell', name: 'NK/T-Cell', tooltip: {title:'NK/T-Cell Subtypes', content: 'Lymphomas arising from Natural Killer (NK) cells or cytotoxic T-cells, often associated with EBV.'}, children: [{id:'enktcl_nk', name: 'ENKTCL, Nasal Type', tooltip: enktcl_tooltip}]}]};
-            const mindMapDataByPattern = {id:'root',name:'By Histologic Pattern',tooltip:{title:'Classification by Histologic Pattern',content:'Grouping CTCLs based on their primary site of infiltration within the skin can provide diagnostic clues and reflect their underlying biology.'},children:[{id:'epidermotropic',name:'Epidermotropic',tooltip:{title:'Epidermotropic Pattern',content:'The defining feature is the infiltration of neoplastic lymphocytes into the epidermis. This pattern is characteristic of early-stage Mycosis Fungoides.'},children:[{id:'mf_patch_epi',name:'MF (Patch/Plaque)',tooltip:classic_mf_tooltip},{id:'aectcl_epi',name:'CD8+ AECTCL',tooltip:aectcl_tooltip},{id:'lyp_epi',name:'LyP (Type B & D)',tooltip:lyp_tooltip},{id:'pagetoid_epi',name:'Pagetoid Reticulosis',tooltip:pagetoid_tooltip}]},{id:'dermal_mixed',name:'Dermal / Nodular',tooltip:{title:'Dermal or Nodular Pattern',content:'The infiltrate is primarily or exclusively located in the dermis, often forming nodules or diffuse sheets of cells. The epidermis is typically spared.'},children:[{id:'mf_tumor_dermal',name:'MF (Tumor Stage)',tooltip:classic_mf_tooltip},{id:'pcsm_dermal',name:'PC CD4+ S/M TCLPD',tooltip:pcsm_tooltip},{id:'pcalcl_dermal',name:'PC-ALCL',tooltip:pcalcl_tooltip},{id:'lyp_dermal',name:'LyP (Type A, C, E)',tooltip:lyp_tooltip},{id:'acral_cd8_dermal',name:'PC Acral CD8+ TCLPD',tooltip:acral_cd8_tooltip}]},{id:'subcutis',name:'Subcutis (Panniculitic)',tooltip:{title:'Panniculitic Pattern',content:'The lymphoma cells primarily infiltrate the subcutaneous fat, mimicking inflammatory panniculitis.'},children:[{id:'sptcl_sub',name:'SPTCL',tooltip:sptcl_tooltip},{id:'pcgd_sub',name:'PCGD-TCL',tooltip:pcgd_tooltip},{id:'enktcl_sub',name:'ENKTCL',tooltip:enktcl_tooltip}]}]};
-            const mindMapDataByEBV = {id:'root',name:'By EBV Association',tooltip:{title:'Classification by EBV Association',content:'The role of Epstein-Barr Virus (EBV) varies among lymphoproliferative disorders. In some, it is a key pathogenic driver, while in most CTCLs, it is absent.'},children:[{id:'ebv_pos',name:'EBV-Positive',tooltip:{title:'EBV-Positive Lymphoproliferative Disorders',content:'These lymphomas are pathogenically linked to EBV infection. EBV can be detected in the tumor cells via in-situ hybridization (EBER).'},children:[{id:'enktcl_ebv',name:'ENKTCL, Nasal Type',tooltip:enktcl_tooltip},{id:'caebv',name:'Chronic Active EBV Infection',tooltip:{title:'Chronic Active EBV Infection of T/NK-cell Type',content:'A systemic lymphoproliferative disorder driven by EBV, which can have significant cutaneous manifestations like hydroa vacciniforme-like lesions.'}},{id:'ebv_mcu',name:'EBV+ Mucocutaneous Ulcer',tooltip:{title:'EBV+ Mucocutaneous Ulcer',content:'An indolent, self-limited ulceration of the skin or mucosa, typically seen in elderly or immunosuppressed patients. It is a B-cell lymphoproliferative disorder, not a CTCL.'}}]},{id:'ebv_neg',name:'Typically EBV-Negative',tooltip:{title:'Typically EBV-Negative Lymphomas',content:'The vast majority of common CTCL subtypes are not associated with Epstein-Barr Virus.'},children:[{id:'mf_ss_ebv',name:'MF / Sézary Syndrome',tooltip:classic_mf_tooltip},{id:'cd30_lpd_ebv',name:'CD30+ LPDs',tooltip:pcalcl_tooltip},{id:'sptcl_ebv',name:'SPTCL',tooltip:sptcl_tooltip}]}]};
-            const mindMapDataByTreatment = {id:'root',name:'Treatment by Therapy Type',tooltip:{title:'CTCL Treatment Overview',content:'Treatment is stage-adapted, prioritizing immune-preserving, skin-directed therapies for early disease and escalating to systemic agents for advanced or refractory cases. The goal is long-term disease control and palliation, not cure.'},children:[{id:'sdt',name:'Skin-Directed Therapies',tooltip:{title:'Skin-Directed Therapies (SDT)',content:'Cornerstone of treatment for early-stage MF (IA-IIA). Can be used as adjunctive therapy at any stage to control skin-based symptoms.'},children:[{id:'topical_steroids',name:'Topical Corticosteroids',tooltip:{title:'Topical Corticosteroids',content:'<ul><li><strong>Mechanism:</strong> Anti-inflammatory, antimitotic, and immunosuppressive.</li><li><strong>Use:</strong> Preferred first-line option for Stage IA MF; adjunctive use for pruritus at all stages.</li><li><strong>Side Effects:</strong> Skin atrophy, striae, potential for adrenal suppression with widespread use of high-potency agents.</li></ul>'}},{id:'mechlorethamine',name:'Topical Mechlorethamine',tooltip:{title:'Topical Mechlorethamine (Nitrogen Mustard)',content:'<ul><li><strong>Mechanism:</strong> Topical alkylating agent (chemotherapy).</li><li><strong>Use:</strong> First- or second-line for Stage IA/IB MF.</li><li><strong>Side Effects:</strong> High rate of irritant or allergic contact dermatitis; hypo/hyperpigmentation.</li></ul>'}},{id:'phototherapy',name:'Phototherapy',tooltip:{title:'Phototherapy',content:'Used for generalized patch or plaque disease.'},children:[{id:'nb_uvb',name:'NB-UVB',tooltip:{title:'Narrowband UVB (NB-UVB)',content:'<ul><li><strong>Use:</strong> Effective for patch-stage disease (T1a/T2a).</li><li><strong>Considerations:</strong> Less deep penetration than PUVA.</li></ul>'}},{id:'puva',name:'PUVA',tooltip:{title:'Psoralen + UVA (PUVA)',content:'<ul><li><strong>Use:</strong> Deeper penetration makes it effective for thicker plaques (T1b/T2b).</li><li><strong>Considerations:</strong> Requires oral psoralen and eye protection.</li></ul>'}}]}, {id:'radiation',name:'Radiation Therapy',tooltip:{title:'Radiation Therapy',content:'Highly effective for inducing local responses.'},children:[{id:'localized_rt',name:'Localized Radiation',tooltip:{title:'Localized Radiation Therapy',content:'<ul><li><strong>Use:</strong> For solitary tumors (Stage IIB) or refractory plaques; also first-line for localized pcALCL.</li><li><strong>Dose:</strong> Low doses (e.g., 8 Gy in one fraction) can achieve high response rates.</li></ul>'}},{id:'tsebt',name:'TSEBT',tooltip:{title:'Total Skin Electron Beam Therapy (TSEBT)',content:'<ul><li><strong>Use:</strong> For widespread, thick, recalcitrant plaques or tumors.</li><li><strong>Dose:</strong> Low-dose regimens (10-12 Gy) are increasingly used to minimize toxicity and allow for re-treatment.</li></ul>'}},]}]},{id:'systemic',name:'Systemic Therapies',tooltip:{title:'Systemic Therapies',content:'Used for advanced-stage disease (≥IIB), erythrodermic disease, Sézary syndrome, or early-stage disease refractory to SDTs.'},children:[{id:'immunomodulators',name:'Immunomodulators',tooltip:{title:'Immunomodulatory Therapies',content:'Agents that work by modulating the patient\'s immune system to fight the lymphoma.'},children:[{id:'ecp',name:'ECP',tooltip:{title:'Extracorporeal Photopheresis (ECP)',content:'<ul><li><strong>Use:</strong> A first-line treatment for Sézary syndrome and erythrodermic MF.</li><li><strong>Mechanism:</strong> Induces apoptosis in malignant T-cells and promotes an anti-tumor immune response.</li></ul>'}},{id:'interferons',name:'Interferons',tooltip:{title:'Interferons (IFN-α)',content:'<ul><li><strong>Use:</strong> For advanced or refractory MF/SS. Often combined with other therapies.</li><li><strong>Mechanism:</strong> Antiproliferative and shifts immune response toward a Th1 (anti-tumor) profile.</li></ul>'}},{id:'retinoids_sys',name:'Systemic Retinoids',tooltip:{title:'Systemic Retinoids (Bexarotene)',content:'<ul><li><strong>Use:</strong> For advanced or refractory MF/SS.</li><li><strong>Mechanism:</strong> Binds to the retinoid X receptor (RXR), inducing apoptosis.</li><li><strong>Side Effects:</strong> Requires management of hypertriglyceridemia and central hypothyroidism.</li></ul>'}}]},{id:'targeted_biologics',name:'Targeted Biologics',tooltip:{title:'Targeted Biologics & Antibody-Drug Conjugates',content:'Modern agents targeting specific molecules on malignant cells.'},children:[{id:'brentuximab',name:'Brentuximab Vedotin',tooltip:{title:'Brentuximab Vedotin',content:'<ul><li><strong>Use:</strong> A preferred agent for tumor-stage MF, large cell transformation, and CD30+ LPDs.</li><li><strong>Mechanism:</strong> Antibody-drug conjugate targeting CD30.</li><li><strong>Side Effects:</strong> Dose-limiting peripheral neuropathy is common.</li></ul>'}},{id:'mogamulizumab',name:'Mogamulizumab',tooltip:{title:'Mogamulizumab',content:'<ul><li><strong>Use:</strong> A preferred agent for high-burden Sézary Syndrome and relapsed/refractory MF/SS.</li><li><strong>Mechanism:</strong> Monoclonal antibody targeting CCR4.</li><li><strong>Side Effects:</strong> Drug-associated rash is common and must be distinguished from disease progression.</li></ul>'}}]},{id:'chemo_sys',name:'Chemotherapy',tooltip:{title:'Systemic Chemotherapy',content:'Reserved for rapidly progressive, advanced, or refractory disease due to immunosuppressive effects and transient responses.'},children:[{id:'single_agent_chemo',name:'Single-Agent Chemo',tooltip:{title:'Single-Agent Chemotherapy',content:'<ul><li><strong>Examples:</strong> Gemcitabine, Pegylated Liposomal Doxorubicin, Pralatrexate.</li><li><strong>Use:</strong> Preferred over multi-agent chemo for advanced MF/SS when chemo is needed.</li></ul>'}},{id:'hdac_inhibitors',name:'HDAC Inhibitors',tooltip:{title:'HDAC Inhibitors (Vorinostat, Romidepsin)',content:'<ul><li><strong>Use:</strong> For relapsed/refractory MF/SS after prior systemic therapies.</li><li><strong>Mechanism:</strong> Epigenetic modifiers that induce cell cycle arrest and apoptosis.</li></ul>'}}]},{id:'hsct_sys',name:'Allogeneic HSCT',tooltip:{title:'Allogeneic Stem Cell Transplant (HSCT)',content:'<ul><li><strong>Use:</strong> The only potentially curative option, reserved for young, fit patients with aggressive, refractory disease.</li><li><strong>Risks:</strong> High risk of morbidity and mortality from graft-versus-host disease (GVHD) and infection.</li></ul>'}}]}]};
-            const mindMapDataByStage = {id:'root',name:'Treatment by Stage',tooltip:{title:'Treatment by Stage',content:'CTCL treatment follows a stage-adapted approach. Early-stage disease is managed with skin-directed therapies, while advanced disease requires systemic agents. The goal is long-term disease control, not cure.'},children:[{id:'early_mf',name:'Early-Stage MF (IA-IIA)',tooltip:{title:'Early-Stage Mycosis Fungoides (Stage IA to IIA)',content:'Primary goal is symptom palliation using skin-directed therapies.'},children:[{id:'stage_ia',name:'Stage IA (<10% BSA)',tooltip:{title:'Stage IA Management',content:'Focus on clearing limited skin lesions with minimal toxicity. "Watchful waiting" is an option for asymptomatic disease.'},children:[{id:'ia_first_line',name:'First-Line',tooltip:{title:'First-Line Therapies for Stage IA',content:'<ul><li><strong>Topical Corticosteroids:</strong> High-potency steroids are often the initial choice.</li><li><strong>Topical Mechlorethamine:</strong> An alternative first-line option.</li><li><strong>Phototherapy (NB-UVB):</strong> For widespread but thin patches.</li></ul>'}}, {id:'ia_refractory',name:'Refractory/Localized',tooltip:{title:'Refractory/Localized Stage IA Lesions',content:'<ul><li><strong>Localized Radiation:</strong> Highly effective for a single resistant plaque.</li><li><strong>Topical Retinoids/Imiquimod:</strong> Options for persistent localized disease.</li></ul>'}}]}, {id:'stage_ib_iia',name:'Stage IB/IIA (≥10% BSA)',tooltip:{title:'Stage IB / IIA Management',content:'Requires therapies that can cover larger skin surface areas. Systemic therapy may be added for refractory disease.'},children:[{id:'ib_primary',name:'Primary Therapies',tooltip:{title:'Primary Therapies for Stage IB/IIA',content:'<ul><li><strong>Phototherapy (PUVA):</strong> Preferred for thicker, more extensive plaques due to deeper penetration.</li><li><strong>TSEBT (Total Skin Electron Beam):</strong> Low-dose (10-12 Gy) is effective for widespread, recalcitrant plaques.</li><li><strong>Topical Mechlorethamine:</strong> Can be used for generalized disease.</li></ul>'}}, {id:'ib_adjunctive',name:'Adjunctive Systemic Therapies',tooltip:{title:'Adjunctive Systemic Therapies for Stage IB/IIA',content:'Added to skin-directed therapies for symptomatic or progressive disease. Low-toxicity agents like oral bexarotene or low-dose methotrexate are preferred initially.'}}]}]}, {id:'advanced_mf',name:'Advanced-Stage MF (IIB-IV) & SS',tooltip:{title:'Advanced-Stage MF & Sézary Syndrome',content:'Management requires systemic therapy to control skin, blood, lymph node, and/or visceral involvement. Skin-directed therapies are often used adjunctively.'},children:[{id:'stage_iib',name:'Stage IIB (Tumors)',tooltip:{title:'Stage IIB Management (Tumors)',content:'<ul><li><strong>Limited Tumors:</strong> Localized radiation is the primary treatment.</li><li><strong>Generalized Tumors:</strong> <strong>Brentuximab vedotin</strong> is a preferred systemic option due to its high efficacy against tumors. Other options include TSEBT, romidepsin, or pralatrexate.</li></ul>'}},{id:'stage_iii_ss',name:'Stage III (Erythroderma) & Sézary Syndrome',tooltip:{title:'Stage III & SS Management',content:'Treatment must target both widespread skin disease and systemic/blood involvement.'},children:[{id:'ss_first',name:'First-Line Systemic',tooltip:{title:'First-Line Systemic Therapies for SS/Stage III',content:'<ul><li><strong>ECP (Extracorporeal Photopheresis):</strong> A standard of care, especially for SS.</li><li><strong>Mogamulizumab:</strong> Highly effective for clearing blood, a preferred option for high-burden SS.</li><li><strong>Combinations:</strong> Can be combined with interferons or systemic retinoids.</li></ul>'}},{id:'ss_second',name:'Second-Line Systemic',tooltip:{title:'Second-Line Therapies for SS/Stage III',content:'For refractory disease. Options include Romidepsin, Alemtuzumab, or Pembrolizumab.'}}]},{id:'stage_iv',name:'Stage IV (Extracutaneous)',tooltip:{title:'Stage IV Management (Nodal/Visceral)',content:'Indicates aggressive disease requiring potent systemic therapy.'},children:[{id:'iv_primary',name:'Primary Options',tooltip:{title:'Primary Options for Stage IV',content:'Agents with proven efficacy in advanced disease: <strong>Brentuximab vedotin, Romidepsin, Pralatrexate</strong>.'}},{id:'iv_aggressive',name:'Aggressive/Refractory',tooltip:{title:'Aggressive or Refractory Stage IV',content:'<ul><li><strong>Single-Agent Chemo:</strong> Gemcitabine or liposomal doxorubicin for rapid disease control.</li><li><strong>Allogeneic HSCT:</strong> The only curative option, considered for eligible high-risk patients.</li></ul>'}}]}]}, {id:'cd30_lpd_tx',name:'CD30+ LPDs (pcALCL & LyP)',tooltip:{title:'Treatment of CD30+ LPDs',content:'Management is generally conservative due to the excellent prognosis.'},children:[{id:'cd30_localized',name:'Solitary / Localized Disease',tooltip:{title:'Solitary or Localized CD30+ LPDs',content:'Management for single or few lesions.'},children:[{id:'cd30_obs',name:'Observation',tooltip:{title:'Observation',content:'Reasonable for LyP due to spontaneous regression.'}},{id:'cd30_exc_rad',name:'Excision / Radiotherapy',tooltip:{title:'Excision or Radiotherapy',content:'First-line options for solitary pcALCL.'}},{id:'cd30_steroids',name:'Topical/Intralesional Corticosteroids',tooltip:{title:'Corticosteroids for CD30+ LPDs',content:'Can be used for localized lesions.'}}]}, {id:'cd30_widespread',name:'Multifocal / Widespread Disease',tooltip:{title:'Multifocal or Widespread CD30+ LPDs',content:'Management for multiple lesions.'},children:[{id:'cd30_mtx',name:'Low-Dose Methotrexate',tooltip:{title:'Low-Dose Methotrexate',content:'Most effective for widespread LyP and an option for multifocal pcALCL.'}},{id:'cd30_puva',name:'Phototherapy (PUVA)',tooltip:{title:'Phototherapy (PUVA)',content:'Effective for widespread LyP.'}},{id:'cd30_brentuximab',name:'Brentuximab Vedotin',tooltip:{title:'Brentuximab Vedotin',content:'Used for multifocal/symptomatic pcALCL and refractory LyP.'}}]}]}, {id:'rare_ctcl_tx',name:'Rare CTCL Subtypes',tooltip:{title:'Treatment of Rare CTCL Subtypes',content:'Approach depends on the specific subtype\'s behavior (indolent vs. aggressive).'},children:[{id:'rare_agg',name:'Aggressive Subtypes',tooltip:{title:'Aggressive Subtypes (PCGD-TCL, AECTCL)',content:'Rare, aggressive diseases with poor prognosis.'},children:[{id:'rare_chemo',name:'Multi-Agent Chemo',tooltip:{title:'Multi-Agent Chemotherapy',content:'Typically treated with regimens designed for peripheral T-cell lymphoma.'}}]}, {id:'rare_indolent',name:'Indolent Subtypes',tooltip:{title:'Indolent Subtypes (Acral CD8+, CD4+ S/M)',content:'Present with solitary lesions and have excellent prognosis.'},children:[{id:'rare_exc_rad',name:'Excision or Local RT',tooltip:{title:'Excision or Local Radiotherapy',content:'Typical treatment for indolent subtypes.'}}]}]}]};
-            
-            const tooltip = document.getElementById('tooltip');
-            const container = document.getElementById('mind-map-container');
-            const tabBar = document.getElementById('tab-bar');
-            const subtypesTab = document.getElementById('tab-subtypes');
-            const dataMap = {
-                'question': mindMapDataByQuestion, 'test': mindMapDataByTest, 'staging': mindMapDataByStaging,
-                'subtypes-overall': mindMapDataBySubtypesOverall, 'subtypes-immuno': mindMapDataByImmunophenotype,
-                'subtypes-pattern': mindMapDataByPattern, 'subtypes-ebv': mindMapDataByEBV, 'treatment': mindMapDataByTreatment,
-                'treatment-stage': mindMapDataByStage
-            };
-
-            // --- D3 Drawing Logic ---
-            function drawMindMap(data, svgId) {
-                const svgElement = document.getElementById(svgId);
-                if (!svgElement || !svgElement.parentElement) return;
-                
-                const container = svgElement.parentElement;
-                const width = container.clientWidth;
-                const height = container.clientHeight;
-                const isMobile = width < 768;
-                
-                const root = d3.hierarchy(data);
-                // Initialize all nodes with x0 and y0 to prevent NaN errors
-                root.descendants().forEach(d => {
-                    d.x0 = 0;
-                    d.y0 = 0;
-                });
-                
-                if (root.children) {
-                    root.children.forEach(collapse);
-                }
-
-                const svg = d3.select(svgElement)
-                    .attr("viewBox", [-width / 2, -height / 2, width, height]);
-                
-                svg.selectAll("*").remove();
-                const g = svg.append("g");
-
-                // Very aggressive separation function to completely eliminate overlap
-                const treeLayout = d3.tree()
-                    .size([2 * Math.PI, Math.min(width, height) / 2 - (isMobile ? 60 : 100)])
-                    .separation((a, b) => {
-                        // Much more aggressive separation especially at deeper levels
-                        if (a.parent === b.parent) {
-                            // Siblings at same level
-                            const depth = a.depth || 1;
-                            // Exponentially increase separation at deeper levels
-                            // Using 2.0 base for much stronger separation at deeper levels
-                            const depthFactor = Math.pow(2.0, depth);
-                            
-                            // Consider if nodes have children
-                            const aHasChildren = (a.children && a.children.length > 0) || (a._children && a._children.length > 0);
-                            const bHasChildren = (b.children && b.children.length > 0) || (b._children && b._children.length > 0);
-                            
-                            // Give extra space to nodes with children
-                            const childrenFactor = (aHasChildren || bHasChildren) ? 1.5 : 1;
-                            
-                            // Add base multiplier for minimum separation
-                            return depthFactor * childrenFactor * 1.5;
-                        }
-                        // Non-siblings get even more separation
-                        const depth = Math.max(a.depth || 1, b.depth || 1);
-                        return Math.pow(2.0, depth) * 2.5;
-                    });
-                
-                let i = 0;
-                root.eachBefore(d => d.id = `node-${i++}`);
-
-                
-                
-                function update(source) {
-                    const duration = 500;
-                    const treeData = treeLayout(root);
-                    const nodes = treeData.descendants().reverse();
-                    const links = treeData.links();
-
-                    // Dynamic sizing based on number of visible nodes
-                    const visibleNodeCount = nodes.filter(d => !d.children && !d._children ? true : 
-                                                              d.children ? true : false).length;
-                    
-                    // Calculate size multiplier based on visible nodes
-                    // Fewer nodes = larger size, more nodes = smaller size
-                    let sizeMultiplier = 1.0;
-                    if (visibleNodeCount <= 5) {
-                        sizeMultiplier = 1.4; // Very few nodes, make them larger
-                    } else if (visibleNodeCount <= 10) {
-                        sizeMultiplier = 1.2;
-                    } else if (visibleNodeCount <= 20) {
-                        sizeMultiplier = 1.0;
-                    } else if (visibleNodeCount <= 35) {
-                        sizeMultiplier = 0.85;
-                    } else {
-                        sizeMultiplier = 0.7; // Many nodes, make them smaller
-                    }
-                    
-                    // Base sizes that will be scaled
-                    const baseRadii = [isMobile ? 30 : 36, isMobile ? 24 : 28, isMobile ? 20 : 24, isMobile ? 16 : 20, isMobile ? 14 : 17];
-                    const baseFontSizes = [isMobile ? 9 : 11, isMobile ? 8 : 9, isMobile ? 7 : 8, isMobile ? 6 : 7, isMobile ? 5 : 6];
-                    
-                    // Apply dynamic scaling
-                    const radii = baseRadii.map(r => Math.round(r * sizeMultiplier));
-                    const fontSizes = baseFontSizes.map(s => Math.round(s * sizeMultiplier) + 'px');
-                    
-                    const colors = ['#a5b4fc', '#c7d2fe', '#e0e7ff', '#eef2ff', '#f9fafb'];
-                    
-                    // Debug log for testing
-                    console.log(`Visible nodes: ${visibleNodeCount}, Size multiplier: ${sizeMultiplier}`);
-                    
-                    const gLink = g.selectAll(".link-group").data([null]);
-                    gLink.enter().append("g").attr("class", "link-group").lower(); // Ensure links are behind nodes
-                    const gNode = g.selectAll(".node-group").data([null]);
-                    gNode.enter().append("g").attr("class", "node-group");
-
-                    const link = g.select(".link-group").selectAll(".link")
-                        .data(links, d => d.target.id);
-
-                    const linkEnter = link.enter().append("path")
-                        .attr("class", "link")
-                        .attr("d", d => {
-                            const o = {x: source.x0 || 0, y: source.y0 || 0};
-                            return d3.linkRadial()
-                                .angle(d => d.x || 0)
-                                .radius(d => d.y || 0)({source: o, target: o});
-                        });
-                    
-                    link.merge(linkEnter).transition().duration(duration)
-                        .attr("d", d3.linkRadial()
-                            .angle(d => d.x)
-                            .radius(d => d.y));
-
-                    link.exit().transition().duration(duration)
-                        .attr("d", d => {
-                            const o = {x: source.x || 0, y: source.y || 0};
-                            return d3.linkRadial()
-                                .angle(d => d.x || 0)
-                                .radius(d => d.y || 0)({source: o, target: o});
-                        })
-                        .remove();
-
-                    const node = g.select(".node-group").selectAll(".node")
-                        .data(nodes, d => d.id);
-                        
-                    const nodeEnter = node.enter().append("g")
-                        .attr("class", "node")
-                        .attr("transform", d => `translate(${radialPoint(source.x0 || 0, source.y0 || 0)})`)
-                        .on("click", click);
-                    
-                    nodeEnter.append("circle")
-                        .attr("r", 1e-6);
-
-                    nodeEnter.append("text")
-                        .attr("class", "node-text")
-                        .style("font-size", d => fontSizes[d.depth] || fontSizes[fontSizes.length-1])
-                        .each(function(d) { wrapText(this, d, radii); });
-                    
-                    const nodeUpdate = nodeEnter.merge(node);
-
-                    nodeUpdate.transition().duration(duration)
-                        .attr("transform", d => `translate(${radialPoint(d.x, d.y)})`);
-                        
-                    nodeUpdate.select("circle")
-                        .transition().duration(duration)
-                        .attr("r", d => radii[d.depth] || radii[radii.length-1])
-                        .attr("fill", d => colors[d.depth] || colors[colors.length-1])
-                        .attr("class", d => d._children ? "collapsible" : "");
-
-                    nodeUpdate
-                        .on('mousemove', (event, d) => {
-                            tooltip.style.visibility = 'visible';
-                            tooltip.style.opacity = '1';
-                            const tooltipRect = tooltip.getBoundingClientRect();
-                            let left = event.pageX + 15, top = event.pageY + 15;
-                            if (left + tooltipRect.width > window.innerWidth) left = event.pageX - tooltipRect.width - 15;
-                            if (top + tooltipRect.height > window.innerHeight) top = event.pageY - tooltipRect.height - 15;
-                            tooltip.style.left = `${left}px`;
-                            tooltip.style.top = `${top}px`;
-                            tooltip.innerHTML = `<div class="tooltip-title">${d.data.tooltip.title}</div><div class="tooltip-content">${d.data.tooltip.content}</div>`;
-                        }).on('mouseleave', () => {
-                            tooltip.style.visibility = 'hidden';
-                            tooltip.style.opacity = '0';
-                        });
-
-                    node.exit().transition().duration(duration)
-                        .attr("transform", d => `translate(${radialPoint(source.x || 0, source.y || 0)})`)
-                        .remove()
-                        .select("circle").attr("r", 1e-6);
-
-                    nodes.forEach(d => {
-                        d.x0 = d.x;
-                        d.y0 = d.y;
-                    });
-                }
-
-                function click(event, d) {
-                    if (event.defaultPrevented) return;
-                    if (d.children) {
-                        d._children = d.children;
-                        d.children = null;
-                    } else if (d._children) {
-                        d.children = d._children;
-                        d._children = null;
-                        // Initialize positions for newly visible children
-                        if (d.children) {
-                            d.children.forEach(child => {
-                                if (child.x0 === undefined) child.x0 = d.x0 || 0;
-                                if (child.y0 === undefined) child.y0 = d.y0 || 0;
-                            });
-                        }
-                    }
-                    update(d);
-                }
-
-                function collapse(d) {
-                    if(d.children) {
-                        d._children = d.children;
-                        d._children.forEach(collapse);
-                        d.children = null;
-                    }
-                    // Ensure x0 and y0 are initialized
-                    if (d.x0 === undefined) d.x0 = 0;
-                    if (d.y0 === undefined) d.y0 = 0;
-                }
-
-                function radialPoint(x, y) {
-                    return [(y = +y) * Math.cos(x -= Math.PI / 2), y * Math.sin(x)];
-                }
-
-                function wrapText(element, d, radii) {
-                    const textElement = d3.select(element);
-                    const words = d.data.name.split(/\s+/).filter(w => w.length > 0);
-                    const lineHeight = 1.1;
-                    const radius = radii[d.depth] || radii[radii.length-1];
-                    const maxLineWidth = (radius - 5) * 2;
-                    textElement.text(null);
-                    let line = [];
-                    const lines = [];
-                    let tempTspan = textElement.append("tspan");
-                    words.forEach(word => {
-                        line.push(word);
-                        tempTspan.text(line.join(" "));
-                        if (tempTspan.node().getComputedTextLength() > maxLineWidth && line.length > 1) {
-                            line.pop();
-                            lines.push(line.join(" "));
-                            line = [word];
-                        }
-                    });
-                    lines.push(line.join(" "));
-                    tempTspan.remove();
-                    const startY = -(lines.length - 1) * 0.5 * lineHeight;
-                    lines.forEach((lineText, i) => {
-                        textElement.append("tspan")
-                            .attr("x", 0)
-                            .attr("dy", i === 0 ? `${startY}em` : `${lineHeight}em`)
-                            .text(lineText);
-                    });
-                }
-                
-                update(root);
-            }
-            
-            // --- Core Application Logic ---
-            function switchTab(tabName) {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.mind-map-view').forEach(v => v.classList.remove('active'));
-                
-                const mainTabId = `tab-${tabName.startsWith('subtypes') ? 'subtypes' : (tabName.startsWith('treatment') ? tabName.split('-')[0] : tabName)}`;
-                const mainTabEl = document.getElementById(mainTabId);
-                if (mainTabEl) mainTabEl.classList.add('active');
-
-                const viewId = `view-${tabName}`;
-                const view = document.getElementById(viewId);
-                if (view) {
-                    view.classList.add('active');
-                    view.innerHTML = '<div class="loading-indicator">Loading Interactive Map...</div>';
-                    const svgId = `mind-map-svg-${tabName}`;
-                    const data = dataMap[tabName];
-                    if (data) {
-                        setTimeout(() => {
-                            view.innerHTML = `<svg id="${svgId}"></svg>`;
-                            drawMindMap(data, svgId);
-                        }, 10);
-                    }
-                }
-            }
-
-            // --- Event Listeners ---
-            tabBar.addEventListener('click', (e) => {
-                e.preventDefault();
-                const target = e.target;
-                
-                const dropdownItem = target.closest('.dropdown-item');
-                const targetTab = target.closest('.tab');
-
-                if (dropdownItem && dropdownItem.dataset.tab) {
-                    switchTab(dropdownItem.dataset.tab);
-                    if (subtypesTab) subtypesTab.classList.remove('dropdown-active');
-                } else if (targetTab && targetTab.id === 'tab-subtypes') {
-                    targetTab.classList.toggle('dropdown-active');
-                } else if (targetTab && targetTab.dataset.tab) {
-                    switchTab(targetTab.dataset.tab);
-                }
-            });
-
-            window.addEventListener('click', (e) => {
-                if (subtypesTab && !subtypesTab.contains(e.target)) {
-                    subtypesTab.classList.remove('dropdown-active');
-                }
-            });
-
-            let resizeTimer;
-            window.addEventListener('resize', () => {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(() => {
-                    const activeView = document.querySelector('.mind-map-view.active');
-                    if (activeView) {
-                        const activeTabName = activeView.id.replace('view-', '');
-                        switchTab(activeTabName);
-                    }
-                }, 250);
-            });
-            
-            // --- Initial Load ---
-            switchTab('question');
-
-        })();
-    });
-    </script>
+    <script src="js/data.js"></script>
+    <script src="../../shared/d3-renderer.js"></script>
+    <script src="../../shared/app.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
