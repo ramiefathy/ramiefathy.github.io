@@ -18,6 +18,7 @@ import type {
 import { SYNONYMS } from './synonyms';
 
 const STORAGE_VERSION = 'v1';
+const MOBILE_BREAKPOINT = 768;
 
 interface MindMapAppProps {
   dataset: MindMapDataset;
@@ -168,6 +169,124 @@ const prefersReducedMotion = () =>
 const prefersDarkMode = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
+const isTouchDevice = () =>
+  typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+// Hook to detect mobile viewport
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const checkMobile = () => setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
+    checkMobile();
+
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+}
+
+// Hook for touch gestures
+function useTouchGestures(
+  elementRef: React.RefObject<HTMLElement>,
+  handlers: {
+    onSwipeLeft?: () => void;
+    onSwipeRight?: () => void;
+    onDoubleTap?: (x: number, y: number) => void;
+    onLongPress?: (x: number, y: number) => void;
+  }
+) {
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const lastTapRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+
+      const touch = e.touches[0];
+      const now = Date.now();
+
+      touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: now };
+
+      // Check for double tap
+      if (lastTapRef.current) {
+        const timeDiff = now - lastTapRef.current.time;
+        const xDiff = Math.abs(touch.clientX - lastTapRef.current.x);
+        const yDiff = Math.abs(touch.clientY - lastTapRef.current.y);
+
+        if (timeDiff < 300 && xDiff < 30 && yDiff < 30) {
+          handlers.onDoubleTap?.(touch.clientX, touch.clientY);
+          lastTapRef.current = null;
+          return;
+        }
+      }
+
+      // Start long press timer
+      if (handlers.onLongPress) {
+        longPressTimerRef.current = window.setTimeout(() => {
+          handlers.onLongPress?.(touch.clientX, touch.clientY);
+        }, 500);
+      }
+    };
+
+    const handleTouchMove = () => {
+      // Cancel long press on move
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+
+      if (!touchStartRef.current || e.changedTouches.length !== 1) return;
+
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - touchStartRef.current.x;
+      const deltaY = touch.clientY - touchStartRef.current.y;
+      const deltaTime = Date.now() - touchStartRef.current.time;
+
+      // Record for double tap detection
+      lastTapRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+
+      // Swipe detection: must be fast and horizontal
+      if (deltaTime < 300 && Math.abs(deltaX) > 50 && Math.abs(deltaY) < 50) {
+        if (deltaX > 0) {
+          handlers.onSwipeRight?.();
+        } else {
+          handlers.onSwipeLeft?.();
+        }
+      }
+
+      touchStartRef.current = null;
+    };
+
+    element.addEventListener('touchstart', handleTouchStart, { passive: true });
+    element.addEventListener('touchmove', handleTouchMove, { passive: true });
+    element.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchmove', handleTouchMove);
+      element.removeEventListener('touchend', handleTouchEnd);
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
+    };
+  }, [elementRef, handlers]);
+}
+
 const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
   const { manifest, tabs } = dataset;
   const [activeTab, setActiveTab] = useState<string>(manifest.defaultTab);
@@ -189,10 +308,23 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
   const [showHelp, setShowHelp] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Mobile-specific state
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [detailPanelExpanded, setDetailPanelExpanded] = useState(false);
+  const [showMinimap, setShowMinimap] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [showZoomIndicator, setShowZoomIndicator] = useState(false);
+  const [gestureHint, setGestureHint] = useState<string | null>(null);
+  const [hasShownGestureHint, setHasShownGestureHint] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const minimapRef = useRef<SVGSVGElement>(null);
   const initialHashProcessed = useRef(false);
+  const tabsWrapperRef = useRef<HTMLDivElement>(null);
+  const detailPanelRef = useRef<HTMLElement>(null);
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
 
   const storageKey = `mindmap:${manifest.id}:state:${STORAGE_VERSION}`;
   const notesKey = `mindmap:${manifest.id}:notes:${STORAGE_VERSION}`;
@@ -505,6 +637,159 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
     [expandPath, tabs]
   );
 
+  // Mobile: Navigate to next/previous tab
+  const tabIds = useMemo(() => manifest.tabs.map((t) => t.id), [manifest.tabs]);
+
+  const goToNextTab = useCallback(() => {
+    const currentIndex = tabIds.indexOf(activeTab);
+    const nextIndex = (currentIndex + 1) % tabIds.length;
+    setActiveTab(tabIds[nextIndex]);
+  }, [activeTab, tabIds]);
+
+  const goToPreviousTab = useCallback(() => {
+    const currentIndex = tabIds.indexOf(activeTab);
+    const prevIndex = (currentIndex - 1 + tabIds.length) % tabIds.length;
+    setActiveTab(tabIds[prevIndex]);
+  }, [activeTab, tabIds]);
+
+  // Mobile: Double-tap to zoom/center
+  const handleDoubleTapZoom = useCallback(
+    (clientX: number, clientY: number) => {
+      const svg = svgRef.current;
+      if (!svg || !zoomRef.current) return;
+
+      const rect = svg.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+
+      const currentTransform = d3.zoomTransform(svg);
+      const newScale = currentTransform.k >= 2 ? 1 : 2.5;
+
+      d3.select(svg)
+        .transition()
+        .duration(300)
+        .call(
+          zoomRef.current.transform,
+          d3.zoomIdentity
+            .translate(rect.width / 2, rect.height / 2)
+            .scale(newScale)
+            .translate(-x, -y)
+        );
+    },
+    []
+  );
+
+  // Mobile: Long press to show node details
+  const handleLongPress = useCallback(
+    (clientX: number, clientY: number) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+
+      // Find the node element at this position
+      const element = document.elementFromPoint(clientX, clientY);
+      const nodeGroup = element?.closest('[data-node-id]');
+      if (nodeGroup) {
+        const nodeId = nodeGroup.getAttribute('data-node-id');
+        if (nodeId) {
+          setSelectedNodeId(nodeId);
+          setDetailPanelExpanded(true);
+          // Haptic feedback if available
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
+          }
+        }
+      }
+    },
+    []
+  );
+
+  // Setup touch gestures for tabs wrapper (swipe between tabs)
+  useTouchGestures(tabsWrapperRef as React.RefObject<HTMLElement>, {
+    onSwipeLeft: goToNextTab,
+    onSwipeRight: goToPreviousTab,
+  });
+
+  // Setup touch gestures for canvas (double-tap zoom)
+  useTouchGestures(containerRef as React.RefObject<HTMLElement>, {
+    onDoubleTap: handleDoubleTapZoom,
+    onLongPress: handleLongPress,
+  });
+
+  // Show gesture hint on first mobile visit
+  useEffect(() => {
+    if (!isMobile || hasShownGestureHint) return;
+
+    const hintKey = `mindmap:gesture-hint-shown:${STORAGE_VERSION}`;
+    const shown = safeLoad<boolean>(hintKey, false);
+    if (shown) {
+      setHasShownGestureHint(true);
+      return;
+    }
+
+    // Show gesture hint after a short delay
+    const timer = setTimeout(() => {
+      setGestureHint('Pinch to zoom • Double-tap to focus • Swipe tabs');
+      setHasShownGestureHint(true);
+      safeSave(hintKey, true);
+
+      // Hide hint after 4 seconds
+      setTimeout(() => setGestureHint(null), 4000);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [isMobile, hasShownGestureHint]);
+
+  // Close mobile menu when clicking backdrop
+  const handleMobileMenuBackdropClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setMobileMenuOpen(false);
+    }
+  }, []);
+
+  // Close mobile menu on escape
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [mobileMenuOpen]);
+
+  // Detail panel drag handling for bottom sheet
+  const handleDetailPanelDrag = useCallback((e: React.TouchEvent) => {
+    const panel = detailPanelRef.current;
+    if (!panel) return;
+
+    const touch = e.touches[0];
+    const startY = touch.clientY;
+
+    const handleMove = (moveEvent: TouchEvent) => {
+      const currentY = moveEvent.touches[0].clientY;
+      const deltaY = currentY - startY;
+
+      if (deltaY > 50) {
+        setDetailPanelExpanded(false);
+      } else if (deltaY < -50) {
+        setDetailPanelExpanded(true);
+      }
+    };
+
+    const handleEnd = () => {
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('touchend', handleEnd);
+    };
+
+    document.addEventListener('touchmove', handleMove, { passive: true });
+    document.addEventListener('touchend', handleEnd);
+  }, []);
+
+  // Toggle detail panel on click (mobile bottom sheet)
+  const toggleDetailPanel = useCallback(() => {
+    setDetailPanelExpanded((prev) => !prev);
+  }, []);
+
   const visibleTree = useMemo(() => {
     const collapsed = collapsedByTab[activeTab] ?? new Set<string>();
     return buildRenderableTree(tabs[activeTab], collapsed);
@@ -549,8 +834,18 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
       .scaleExtent([0.4, 4])
       .on('zoom', (event) => {
         g.attr('transform', event.transform.toString());
+        // Update zoom level for indicator
+        setZoomLevel(event.transform.k);
+        setShowZoomIndicator(true);
+        // Hide zoom indicator after a delay
+        clearTimeout((window as unknown as Record<string, number>).__zoomHideTimer);
+        (window as unknown as Record<string, number>).__zoomHideTimer = window.setTimeout(() => {
+          setShowZoomIndicator(false);
+        }, 1000);
       });
 
+    // Store zoom reference for programmatic control
+    zoomRef.current = zoom;
     d3.select(svg).call(zoom);
 
     type RenderNode = d3.HierarchyPointNode<RenderableNode> & { cartX?: number; cartY?: number };
@@ -752,20 +1047,25 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
     <div className={clsx('mindmap-app', theme, presentationMode && 'presentation-mode')}>
       <div className="mindmap-controls" aria-live="polite">
         <div className="control-row">
-          <div className="tabs" role="tablist" aria-label={`${manifest.title} tabs`}>
-            {manifest.tabs.map((tab) => (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={activeTab === tab.id}
-                aria-controls={`mindmap-panel-${tab.id}`}
-                className={clsx('tab', activeTab === tab.id && 'active')}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.name}
-              </button>
-            ))}
+          {/* Horizontally scrollable tabs wrapper for mobile */}
+          <div className="tabs-wrapper" ref={tabsWrapperRef}>
+            <div className="tabs" role="tablist" aria-label={`${manifest.title} tabs`}>
+              {manifest.tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={`mindmap-panel-${tab.id}`}
+                  className={clsx('tab', activeTab === tab.id && 'active')}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.name}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Desktop actions */}
           <div className="actions">
             <button type="button" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === 'light' ? '🌞' : '🌜'}
@@ -799,6 +1099,21 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
               ?
             </button>
           </div>
+
+          {/* Mobile menu toggle */}
+          <button
+            type="button"
+            className={clsx('mobile-menu-toggle', mobileMenuOpen && 'open')}
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-label="Open menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            <span className="hamburger-icon" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+          </button>
         </div>
         <div className="search-row">
           <label htmlFor="mindmap-search" className="sr-only">
@@ -833,14 +1148,118 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
         )}
       </div>
 
+      {/* Mobile slide-out menu */}
+      <div
+        className={clsx('mobile-actions-menu', mobileMenuOpen && 'open')}
+        onClick={handleMobileMenuBackdropClick}
+        aria-hidden={!mobileMenuOpen}
+      >
+        <div className="mobile-actions-content">
+          <button
+            type="button"
+            className="mobile-menu-close"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
+
+          <h3>View</h3>
+          <button type="button" onClick={() => { toggleTheme(); setMobileMenuOpen(false); }}>
+            {theme === 'light' ? '🌞' : '🌜'}
+            <span>{theme === 'light' ? 'Light mode' : 'Dark mode'}</span>
+          </button>
+          <button type="button" onClick={() => { toggleLayout(); setMobileMenuOpen(false); }}>
+            {layout === 'radial' ? '⟲' : '☰'}
+            <span>{layout === 'radial' ? 'Radial layout' : 'Tree layout'}</span>
+          </button>
+          <button type="button" onClick={() => { setPresentationMode((prev) => !prev); setMobileMenuOpen(false); }}>
+            📽️
+            <span>{presentationMode ? 'Exit presentation' : 'Presentation mode'}</span>
+          </button>
+
+          <h3>Navigation</h3>
+          <button type="button" onClick={() => { collapseAll(); setMobileMenuOpen(false); }}>
+            📁
+            <span>Collapse all</span>
+          </button>
+          <button type="button" onClick={() => { expandAll(); setMobileMenuOpen(false); }}>
+            📂
+            <span>Expand all</span>
+          </button>
+          <button type="button" onClick={() => { setShowMinimap((prev) => !prev); setMobileMenuOpen(false); }}>
+            🗺️
+            <span>{showMinimap ? 'Hide minimap' : 'Show minimap'}</span>
+          </button>
+
+          <h3>Export</h3>
+          <button type="button" onClick={() => { svgRef.current && exportSvgAsImage(svgRef.current, 'png'); setMobileMenuOpen(false); }}>
+            🖼️
+            <span>Export as PNG</span>
+          </button>
+          <button type="button" onClick={() => { svgRef.current && exportSvgAsImage(svgRef.current, 'pdf'); setMobileMenuOpen(false); }}>
+            📄
+            <span>Export as PDF</span>
+          </button>
+          <button type="button" onClick={() => { exportState(); setMobileMenuOpen(false); }}>
+            💾
+            <span>Export state</span>
+          </button>
+          <label>
+            📥
+            <span>Import state</span>
+            <input
+              type="file"
+              accept="application/json"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) {
+                  importState(file);
+                  event.target.value = '';
+                  setMobileMenuOpen(false);
+                }
+              }}
+            />
+          </label>
+
+          <h3>Help</h3>
+          <button type="button" onClick={() => { setShowHelp(true); setMobileMenuOpen(false); }}>
+            ❓
+            <span>Keyboard shortcuts & help</span>
+          </button>
+        </div>
+      </div>
+
       <div className="mindmap-layout">
         <div className="canvas-panel" aria-live="polite">
           <div ref={containerRef} className="mindmap-canvas" role="region" aria-label={`${manifest.title} visualization`}>
             <svg ref={svgRef} />
+
+            {/* Zoom indicator (mobile) */}
+            <div className={clsx('zoom-indicator', showZoomIndicator && 'visible')} aria-hidden="true">
+              {Math.round(zoomLevel * 100)}%
+            </div>
+
+            {/* Gesture hint (mobile) */}
+            <div className={clsx('gesture-hint', gestureHint && 'visible')} aria-hidden="true">
+              {gestureHint}
+            </div>
           </div>
-          <div className="mindmap-minimap" aria-hidden="true">
+
+          {/* Minimap with toggle for mobile */}
+          <div className={clsx('mindmap-minimap', showMinimap && 'visible')} aria-hidden="true">
             <svg ref={minimapRef} viewBox="0 0 600 600" />
           </div>
+
+          {/* Minimap toggle button (mobile only) */}
+          <button
+            type="button"
+            className="minimap-toggle"
+            onClick={() => setShowMinimap((prev) => !prev)}
+            aria-label={showMinimap ? 'Hide minimap' : 'Show minimap'}
+          >
+            {showMinimap ? '🗺️ ✕' : '🗺️'}
+          </button>
           {selectedBreadcrumb.path.length > 0 && (
             <nav className="breadcrumbs" aria-label="Selected node breadcrumb">
               <div className="breadcrumb-items">
@@ -876,8 +1295,25 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
             </nav>
           )}
         </div>
-        <aside className="detail-panel" aria-live="polite">
-          <h2>Details</h2>
+        <aside
+          ref={detailPanelRef}
+          className={clsx('detail-panel', detailPanelExpanded && 'expanded')}
+          aria-live="polite"
+          onTouchStart={handleDetailPanelDrag}
+        >
+          {/* Bottom sheet drag handle (mobile only) */}
+          <div
+            className="sheet-handle"
+            onClick={toggleDetailPanel}
+            role="button"
+            aria-label={detailPanelExpanded ? 'Collapse details' : 'Expand details'}
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && toggleDetailPanel()}
+          />
+
+          <h2 onClick={toggleDetailPanel} style={{ cursor: isMobile ? 'pointer' : 'default' }}>
+            Details {isMobile && (detailPanelExpanded ? '▼' : '▲')}
+          </h2>
           {selectedNodeId ? (
             <>
               <div className="tooltip-content" dangerouslySetInnerHTML={{ __html: selectedTooltipHtml }} />
@@ -917,6 +1353,16 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
         </aside>
       </div>
 
+      {/* Floating Action Button (mobile) - Quick access to detail panel */}
+      <button
+        type="button"
+        className="mobile-fab"
+        onClick={() => setDetailPanelExpanded((prev) => !prev)}
+        aria-label={detailPanelExpanded ? 'Collapse details' : 'View details'}
+      >
+        {detailPanelExpanded ? '✕' : '📋'}
+      </button>
+
       {showHelp && (
         <div className="help-overlay" role="dialog" aria-modal="true">
           <div className="help-content">
@@ -927,6 +1373,17 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
               <li>Press ? at any time to open or close this help.</li>
               <li>Toggle between radial and vertical layouts with the ⟲/☰ button.</li>
               <li>Export your current state or annotations to share across devices.</li>
+            </ul>
+
+            <h2>Touch gestures (mobile)</h2>
+            <ul>
+              <li><strong>Pinch</strong> to zoom in and out of the mind map.</li>
+              <li><strong>Drag</strong> with one finger to pan around.</li>
+              <li><strong>Double-tap</strong> to zoom in on a specific area (tap again to reset).</li>
+              <li><strong>Long-press</strong> on a node to view its details.</li>
+              <li><strong>Swipe left/right</strong> on tabs to switch between views.</li>
+              <li><strong>Drag</strong> the bottom sheet handle to expand or collapse details.</li>
+              <li>Use the <strong>☰ menu</strong> button for more options.</li>
             </ul>
             <button type="button" onClick={() => setShowHelp(false)}>
               Close
