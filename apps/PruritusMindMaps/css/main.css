@@ -133,3 +133,81 @@ body { font-family: 'Inter', sans-serif; }
         padding: 10px 12px;
     }
 }
+
+/* Theme picker styles */
+.theme-option {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.theme-option:hover {
+    transform: scale(1.15);
+}
+
+.theme-option.active {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Search results dropdown */
+.search-results-list {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.search-result-item {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+}
+
+.search-result-item:hover {
+    background: #f8fafc;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item .match-text {
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.search-result-item .match-text mark {
+    background: #fef08a;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+.search-result-item .tab-name {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* Bookmark panel styles */
+#bookmarks-panel {
+    padding: 8px;
+}
+
+.bookmark-item {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.bookmark-item:last-child {
+    border-bottom: none;
+}

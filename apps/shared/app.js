@@ -7,6 +7,46 @@ function initializeMindMapApp(appConfig) {
         storageKey = 'mindMapExpansionState'
     } = appConfig;
 
+    // --- Color Theme Presets ---
+    const COLOR_THEMES = {
+        default: {
+            name: 'Default Blue',
+            nodes: ['#93c5fd', '#bfdbfe', '#dbeafe', '#eff6ff', '#f8fafc'],
+            collapsible: '#1d4ed8',
+            background: '#f8fafc'
+        },
+        forest: {
+            name: 'Forest Green',
+            nodes: ['#86efac', '#bbf7d0', '#dcfce7', '#f0fdf4', '#fafaf9'],
+            collapsible: '#15803d',
+            background: '#f0fdf4'
+        },
+        sunset: {
+            name: 'Sunset Orange',
+            nodes: ['#fdba74', '#fed7aa', '#ffedd5', '#fff7ed', '#fefefe'],
+            collapsible: '#c2410c',
+            background: '#fff7ed'
+        },
+        lavender: {
+            name: 'Lavender Purple',
+            nodes: ['#c4b5fd', '#ddd6fe', '#ede9fe', '#f5f3ff', '#fefefe'],
+            collapsible: '#7c3aed',
+            background: '#f5f3ff'
+        },
+        ocean: {
+            name: 'Ocean Teal',
+            nodes: ['#5eead4', '#99f6e4', '#ccfbf1', '#f0fdfa', '#fafafa'],
+            collapsible: '#0f766e',
+            background: '#f0fdfa'
+        },
+        dark: {
+            name: 'Dark Mode',
+            nodes: ['#475569', '#64748b', '#94a3b8', '#cbd5e1', '#e2e8f0'],
+            collapsible: '#3b82f6',
+            background: '#1e293b'
+        }
+    };
+
     // --- DOM Elements ---
     const elements = {
         tabBar: document.getElementById('tab-bar'),
@@ -61,7 +101,314 @@ function initializeMindMapApp(appConfig) {
         activeRenderer: null,
         expansionState: {},
         searchTimeout: null,
+        bookmarks: [],
+        currentTheme: 'default',
     };
+
+    // --- BOOKMARKS FUNCTIONALITY ---
+    function loadBookmarks() {
+        try {
+            const saved = localStorage.getItem(`${storageKey}_bookmarks`);
+            state.bookmarks = saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            state.bookmarks = [];
+        }
+    }
+
+    function saveBookmarks() {
+        localStorage.setItem(`${storageKey}_bookmarks`, JSON.stringify(state.bookmarks));
+        renderBookmarksUI();
+    }
+
+    function addBookmark(nodeName, tabKey, path) {
+        const bookmark = {
+            id: Date.now().toString(),
+            name: nodeName,
+            tab: tabKey,
+            path: path,
+            createdAt: new Date().toISOString()
+        };
+
+        // Check for duplicates
+        const exists = state.bookmarks.some(b => b.name === nodeName && b.tab === tabKey);
+        if (!exists) {
+            state.bookmarks.push(bookmark);
+            saveBookmarks();
+            showNotification(`Bookmarked: ${nodeName}`);
+        } else {
+            showNotification('Already bookmarked');
+        }
+    }
+
+    function removeBookmark(bookmarkId) {
+        state.bookmarks = state.bookmarks.filter(b => b.id !== bookmarkId);
+        saveBookmarks();
+    }
+
+    function renderBookmarksUI() {
+        let bookmarksPanel = document.getElementById('bookmarks-panel');
+        if (!bookmarksPanel) return;
+
+        if (state.bookmarks.length === 0) {
+            bookmarksPanel.innerHTML = '<p class="text-slate-500 text-sm p-2">No bookmarks yet. Click the star icon on nodes to bookmark them.</p>';
+            return;
+        }
+
+        bookmarksPanel.innerHTML = state.bookmarks.map(b => `
+            <div class="bookmark-item flex items-center justify-between p-2 hover:bg-slate-100 rounded cursor-pointer" data-bookmark-id="${b.id}">
+                <span class="bookmark-name text-sm truncate flex-1" title="${b.name}">${b.name}</span>
+                <button class="remove-bookmark text-slate-400 hover:text-red-500 ml-2" data-id="${b.id}">×</button>
+            </div>
+        `).join('');
+
+        // Add event listeners
+        bookmarksPanel.querySelectorAll('.bookmark-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('remove-bookmark')) {
+                    const bookmark = state.bookmarks.find(b => b.id === item.dataset.bookmarkId);
+                    if (bookmark) {
+                        navigateToNode(bookmark.tab, bookmark.path);
+                    }
+                }
+            });
+        });
+
+        bookmarksPanel.querySelectorAll('.remove-bookmark').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeBookmark(btn.dataset.id);
+            });
+        });
+    }
+
+    // --- COLOR THEME FUNCTIONALITY ---
+    function loadTheme() {
+        const saved = localStorage.getItem(`${storageKey}_theme`);
+        state.currentTheme = saved && COLOR_THEMES[saved] ? saved : 'default';
+        applyTheme(state.currentTheme);
+    }
+
+    function applyTheme(themeKey) {
+        const themeConfig = COLOR_THEMES[themeKey];
+        if (!themeConfig) return;
+
+        state.currentTheme = themeKey;
+        localStorage.setItem(`${storageKey}_theme`, themeKey);
+
+        // Apply background color
+        document.body.style.backgroundColor = themeConfig.background;
+
+        // Update theme config for renderer
+        if (theme.colors) {
+            theme.colors.nodes = themeConfig.nodes;
+            theme.colors.collapsible = themeConfig.collapsible;
+        }
+
+        // Re-render if already active
+        if (state.activeRenderer) {
+            switchTab(state.activeTab);
+        }
+
+        // Update theme picker UI
+        document.querySelectorAll('.theme-option').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.theme === themeKey);
+        });
+    }
+
+    function renderThemePicker() {
+        let themePicker = document.getElementById('theme-picker');
+        if (!themePicker) return;
+
+        themePicker.innerHTML = Object.entries(COLOR_THEMES).map(([key, config]) => `
+            <button class="theme-option ${key === state.currentTheme ? 'active' : ''}"
+                    data-theme="${key}"
+                    title="${config.name}"
+                    style="background: linear-gradient(135deg, ${config.nodes[0]}, ${config.nodes[2]});">
+            </button>
+        `).join('');
+
+        themePicker.querySelectorAll('.theme-option').forEach(btn => {
+            btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+        });
+    }
+
+    // --- EXPORT FUNCTIONALITY ---
+    function exportAsSVG() {
+        const svg = elements.mindMapContainer.querySelector('svg');
+        if (!svg) {
+            showNotification('No mind map to export');
+            return;
+        }
+
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgData], { type: 'image/svg+xml' });
+        downloadBlob(blob, `mindmap-${state.activeTab}.svg`);
+        showNotification('SVG exported successfully');
+    }
+
+    function exportAsPNG() {
+        const svg = elements.mindMapContainer.querySelector('svg');
+        if (!svg) {
+            showNotification('No mind map to export');
+            return;
+        }
+
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        const svgRect = svg.getBoundingClientRect();
+        canvas.width = svgRect.width * 2;
+        canvas.height = svgRect.height * 2;
+
+        img.onload = function() {
+            ctx.fillStyle = COLOR_THEMES[state.currentTheme]?.background || '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                downloadBlob(blob, `mindmap-${state.activeTab}.png`);
+                showNotification('PNG exported successfully');
+            }, 'image/png');
+        };
+
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    }
+
+    function exportAsJSON() {
+        const exportData = {
+            tab: state.activeTab,
+            data: data[state.activeTab],
+            expansionState: state.expansionState[state.activeTab],
+            exportedAt: new Date().toISOString()
+        };
+
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        downloadBlob(blob, `mindmap-${state.activeTab}.json`);
+        showNotification('JSON exported successfully');
+    }
+
+    function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    function showNotification(message) {
+        let notification = document.getElementById('mindmap-notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'mindmap-notification';
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #1e293b;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                z-index: 9999;
+                opacity: 0;
+                transition: opacity 0.3s;
+            `;
+            document.body.appendChild(notification);
+        }
+
+        notification.textContent = message;
+        notification.style.opacity = '1';
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+        }, 2500);
+    }
+
+    // --- ENHANCED UI: Create toolbar ---
+    function createEnhancedToolbar() {
+        const container = elements.mindMapContainer.parentElement;
+        if (!container) return;
+
+        // Check if toolbar already exists
+        if (document.getElementById('mindmap-toolbar')) return;
+
+        const toolbar = document.createElement('div');
+        toolbar.id = 'mindmap-toolbar';
+        toolbar.className = 'flex items-center justify-between gap-4 p-2 bg-white border-b border-slate-200 rounded-t-xl';
+        toolbar.innerHTML = `
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-slate-600">Theme:</span>
+                <div id="theme-picker" class="flex gap-1"></div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="toggle-bookmarks" class="px-3 py-1 text-sm bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition" title="Show Bookmarks">
+                    ⭐ Bookmarks
+                </button>
+                <div class="relative">
+                    <button id="export-menu-btn" class="px-3 py-1 text-sm bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition">
+                        📥 Export
+                    </button>
+                    <div id="export-menu" class="hidden absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 min-w-[120px]">
+                        <button id="export-svg" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">SVG</button>
+                        <button id="export-png" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">PNG</button>
+                        <button id="export-json" class="block w-full text-left px-4 py-2 text-sm hover:bg-slate-50">JSON</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Insert toolbar before the mind map container
+        container.insertBefore(toolbar, elements.mindMapContainer);
+
+        // Create bookmarks panel (initially hidden)
+        const bookmarksPanel = document.createElement('div');
+        bookmarksPanel.id = 'bookmarks-panel';
+        bookmarksPanel.className = 'hidden absolute left-4 top-16 bg-white border border-slate-200 rounded-lg shadow-lg z-40 w-64 max-h-80 overflow-y-auto';
+        bookmarksPanel.style.display = 'none';
+        container.style.position = 'relative';
+        container.appendChild(bookmarksPanel);
+
+        // Setup toolbar event listeners
+        setupToolbarEvents();
+    }
+
+    function setupToolbarEvents() {
+        const toggleBookmarks = document.getElementById('toggle-bookmarks');
+        const bookmarksPanel = document.getElementById('bookmarks-panel');
+        const exportMenuBtn = document.getElementById('export-menu-btn');
+        const exportMenu = document.getElementById('export-menu');
+
+        if (toggleBookmarks && bookmarksPanel) {
+            toggleBookmarks.addEventListener('click', () => {
+                const isHidden = bookmarksPanel.style.display === 'none';
+                bookmarksPanel.style.display = isHidden ? 'block' : 'none';
+                renderBookmarksUI();
+            });
+        }
+
+        if (exportMenuBtn && exportMenu) {
+            exportMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportMenu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', () => {
+                exportMenu.classList.add('hidden');
+            });
+
+            document.getElementById('export-svg')?.addEventListener('click', exportAsSVG);
+            document.getElementById('export-png')?.addEventListener('click', exportAsPNG);
+            document.getElementById('export-json')?.addEventListener('click', exportAsJSON);
+        }
+
+        renderThemePicker();
+    }
 
     // --- CORE FUNCTIONS ---
     function switchTab(tabName) {
@@ -289,9 +636,15 @@ function initializeMindMapApp(appConfig) {
     // --- INITIALIZATION ---
     function init() {
         loadStateFromLocalStorage();
+        loadBookmarks();
+        createEnhancedToolbar();
+        loadTheme();
         setupEventListeners();
         switchTab(state.activeTab);
     }
+
+    // Expose addBookmark function for external use (e.g., from node context menu)
+    window.mindMapAddBookmark = addBookmark;
 
     init();
 }
