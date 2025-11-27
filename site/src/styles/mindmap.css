@@ -523,6 +523,283 @@
   border: 0;
 }
 
+/* ============================================
+   MOBILE ENHANCEMENTS
+   ============================================ */
+
+/* Mobile menu toggle button */
+.mobile-menu-toggle {
+  display: none;
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: all 160ms ease;
+}
+
+.mindmap-app.dark .mobile-menu-toggle {
+  background: rgba(30, 41, 59, 0.85);
+  color: inherit;
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.mobile-menu-toggle:hover,
+.mobile-menu-toggle:focus-visible {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Hamburger icon */
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 20px;
+}
+
+.hamburger-icon span {
+  display: block;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: transform 200ms ease;
+}
+
+.mobile-menu-toggle.open .hamburger-icon span:nth-child(1) {
+  transform: rotate(45deg) translate(4px, 4px);
+}
+
+.mobile-menu-toggle.open .hamburger-icon span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-toggle.open .hamburger-icon span:nth-child(3) {
+  transform: rotate(-45deg) translate(4px, -4px);
+}
+
+/* Mobile actions menu */
+.mobile-actions-menu {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 200ms ease;
+}
+
+.mobile-actions-menu.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-actions-content {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(320px, 85vw);
+  background: var(--mindmap-card);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.mobile-actions-menu.open .mobile-actions-content {
+  transform: translateX(0);
+}
+
+.mindmap-app.dark .mobile-actions-content {
+  background: var(--mindmap-card-dark);
+}
+
+.mobile-actions-content h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: rgba(100, 116, 139, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mobile-actions-content button,
+.mobile-actions-content label {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mobile-menu-close {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0.5rem;
+  margin: -0.5rem -0.5rem 0 auto;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: inherit;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Floating Action Button */
+.mobile-fab {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+  cursor: pointer;
+  z-index: 30;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.mobile-fab:hover,
+.mobile-fab:focus-visible {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(59, 130, 246, 0.5);
+}
+
+.mobile-fab:active {
+  transform: scale(0.95);
+}
+
+/* Bottom Sheet for Detail Panel */
+.detail-panel-sheet {
+  display: none;
+}
+
+.sheet-handle {
+  display: none;
+  width: 40px;
+  height: 4px;
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 2px;
+  margin: 0 auto 1rem;
+}
+
+.mindmap-app.dark .sheet-handle {
+  background: rgba(148, 163, 184, 0.3);
+}
+
+/* Horizontally Scrollable Tabs */
+.tabs-wrapper {
+  display: contents;
+}
+
+/* Gesture hint overlay */
+.gesture-hint {
+  display: none;
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.85);
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+.gesture-hint.visible {
+  opacity: 1;
+}
+
+.mindmap-app.dark .gesture-hint {
+  background: rgba(51, 65, 85, 0.95);
+}
+
+/* Pinch zoom feedback */
+.zoom-indicator {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.85);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.zoom-indicator.visible {
+  opacity: 1;
+}
+
+.mindmap-app.dark .zoom-indicator {
+  background: rgba(51, 65, 85, 0.95);
+}
+
+/* Minimap toggle button */
+.minimap-toggle {
+  display: none;
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  z-index: 15;
+}
+
+.mindmap-app.dark .minimap-toggle {
+  background: rgba(30, 41, 59, 0.85);
+  color: inherit;
+}
+
+/* ============================================
+   TABLET BREAKPOINT (max-width: 980px)
+   ============================================ */
 @media (max-width: 980px) {
   .mindmap-layout {
     grid-template-columns: 1fr;
@@ -536,8 +813,379 @@
   .detail-panel {
     order: 2;
   }
+
+  /* Larger touch targets for tablets */
+  .tab {
+    min-height: 44px;
+    padding: 0.75rem 1.25rem;
+  }
+
+  .actions button,
+  .actions label {
+    min-height: 44px;
+    padding: 0.65rem 1rem;
+  }
+
+  .search-row input[type='search'] {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  .search-row button {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
+/* ============================================
+   LARGE PHONE BREAKPOINT (max-width: 768px)
+   ============================================ */
+@media (max-width: 768px) {
+  .mindmap-page {
+    gap: 1.5rem;
+    padding-bottom: 5rem; /* Space for FAB */
+  }
+
+  .mindmap-hero {
+    padding: 1.5rem 0;
+  }
+
+  .mindmap-hero__content {
+    gap: 1rem;
+  }
+
+  .mindmap-runtime {
+    width: 96%;
+  }
+
+  .mindmap-app {
+    padding: 1rem;
+    gap: 1rem;
+    border-radius: 1.25rem;
+  }
+
+  /* Show mobile menu toggle, hide desktop actions */
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .actions {
+    display: none;
+  }
+
+  .mobile-actions-menu {
+    display: block;
+  }
+
+  /* Show floating action button */
+  .mobile-fab {
+    display: flex;
+  }
+
+  /* Horizontal scrollable tabs */
+  .tabs-wrapper {
+    display: block;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+
+  .tabs-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabs {
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .tab {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .control-row {
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+  }
+
+  /* Full viewport height canvas */
+  .mindmap-canvas {
+    min-height: calc(100dvh - 280px);
+    min-height: calc(100vh - 280px);
+    touch-action: none;
+  }
+
+  /* Convert detail panel to bottom sheet */
+  .detail-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 60vh;
+    border-radius: 1.5rem 1.5rem 0 0;
+    padding: 0.75rem 1.25rem 1.5rem;
+    transform: translateY(calc(100% - 60px));
+    transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+    z-index: 25;
+    box-shadow: 0 -8px 40px rgba(15, 23, 42, 0.15);
+    overflow-y: auto;
+  }
+
+  .detail-panel.expanded {
+    transform: translateY(0);
+  }
+
+  .sheet-handle {
+    display: block;
+  }
+
+  /* Show gesture hint */
+  .gesture-hint {
+    display: block;
+  }
+
+  /* Show zoom indicator */
+  .zoom-indicator {
+    display: block;
+  }
+
+  /* Make minimap toggleable */
+  .mindmap-minimap {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 100px;
+    height: 100px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 200ms ease, visibility 200ms ease;
+    z-index: 10;
+  }
+
+  .mindmap-minimap.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .minimap-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .canvas-panel {
+    position: relative;
+  }
+
+  /* Search results as overlay */
+  .search-results {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    max-height: 50vh;
+    z-index: 20;
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.2);
+  }
+
+  .search-result {
+    min-height: 48px;
+  }
+
+  /* Breadcrumbs compact */
+  .breadcrumbs {
+    font-size: 0.8rem;
+    padding: 0.6rem 0.75rem;
+    gap: 0.4rem 0.75rem;
+  }
+
+  .breadcrumb-copy {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .breadcrumb-items {
+    max-width: calc(100% - 100px);
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .breadcrumb-items::-webkit-scrollbar {
+    display: none;
+  }
+
+  .breadcrumb-segment {
+    flex-shrink: 0;
+  }
+}
+
+/* ============================================
+   SMALL PHONE BREAKPOINT (max-width: 480px)
+   ============================================ */
+@media (max-width: 480px) {
+  .mindmap-page {
+    gap: 1rem;
+  }
+
+  .mindmap-hero {
+    padding: 1rem 0;
+  }
+
+  .mindmap-hero__content h1 {
+    font-size: 1.75rem;
+  }
+
+  .mindmap-hero__content p {
+    font-size: 0.95rem;
+  }
+
+  .mindmap-runtime {
+    width: 100%;
+  }
+
+  .mindmap-app {
+    padding: 0.75rem;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .mindmap-canvas {
+    min-height: calc(100dvh - 240px);
+    min-height: calc(100vh - 240px);
+    border-radius: 1rem;
+  }
+
+  .tabs {
+    gap: 0.5rem;
+  }
+
+  .tab {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.9rem;
+  }
+
+  .search-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .search-row input[type='search'] {
+    width: 100%;
+  }
+
+  .search-row button {
+    align-self: flex-end;
+  }
+
+  /* Bottom sheet adjustments */
+  .detail-panel {
+    max-height: 70vh;
+    padding: 0.5rem 1rem 1.25rem;
+  }
+
+  .detail-panel h2 {
+    font-size: 1rem;
+  }
+
+  .detail-panel textarea {
+    min-height: 80px;
+  }
+
+  /* FAB position adjustment */
+  .mobile-fab {
+    bottom: 16px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+  }
+
+  /* Help overlay mobile */
+  .help-content {
+    padding: 1.5rem;
+    width: 95%;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .help-content ul {
+    gap: 0.75rem;
+  }
+
+  /* Hide minimap on very small screens by default */
+  .mindmap-minimap {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+/* ============================================
+   LANDSCAPE PHONE
+   ============================================ */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mindmap-canvas {
+    min-height: calc(100dvh - 140px);
+    min-height: calc(100vh - 140px);
+  }
+
+  .detail-panel {
+    max-height: 50vh;
+    transform: translateY(calc(100% - 48px));
+  }
+
+  .mindmap-hero {
+    display: none;
+  }
+}
+
+/* ============================================
+   TOUCH DEVICE ENHANCEMENTS
+   ============================================ */
+@media (hover: none) and (pointer: coarse) {
+  /* Ensure all interactive elements are touch-friendly */
+  .tab,
+  .actions button,
+  .actions label,
+  .search-result,
+  .breadcrumb-link,
+  .breadcrumb-copy,
+  .help-content button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover states that don't work well on touch */
+  .tab:hover,
+  .actions button:hover,
+  .actions label:hover,
+  .search-result:hover {
+    transform: none;
+  }
+
+  /* Add active states for touch feedback */
+  .tab:active,
+  .actions button:active,
+  .actions label:active,
+  .search-result:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+
+  .mobile-fab:active {
+    transform: scale(0.9);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -546,5 +1194,11 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .detail-panel,
+  .mobile-actions-content,
+  .mobile-actions-menu {
+    transition: none !important;
   }
 }
