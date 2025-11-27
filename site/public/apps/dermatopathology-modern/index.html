@@ -210,6 +210,16 @@
             100% { transform: scale(1.1) rotate(2deg); }
         }
 
+        /* Fade In Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
         /* 3D Card Flip */
         .preserve-3d {
             transform-style: preserve-3d;
@@ -2988,37 +2998,141 @@
 
                         {selectedFinding && diagnoses.length > 0 && (
                             <>
-                                {/* Tab Selector */}
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                    {[
-                                        { id: 'grid', label: 'Grid', icon: 'grid' },
-                                        { id: 'flashcards', label: 'Flashcards', icon: 'layers' },
-                                        { id: 'network', label: 'Network', icon: 'share-2' },
-                                        { id: 'srs', label: 'Study', icon: 'brain' },
-                                        { id: 'table', label: 'Table', icon: 'table' },
-                                        { id: 'analytics', label: 'Analytics', icon: 'bar-chart' },
-                                        { id: 'statistics', label: 'Statistics', icon: 'pie-chart' },
-                                        { id: 'compare', label: 'Compare', icon: 'git-branch' },
-                                        { id: 'quiz', label: 'Quiz', icon: 'help-circle' }
-                                    ].map(({ id, label, icon }) => (
-                                        <button
-                                            key={id}
-                                            onClick={() => {
-                                                dispatch({ type: 'SET_ACTIVE_TAB', payload: id });
-                                                dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
+                                {/* Tab Selector - Grouped Navigation */}
+                                <nav className="mb-6" role="tablist" aria-label="View mode selection">
+                                    {/* Mobile Dropdown (visible on small screens) */}
+                                    <div className="md:hidden relative">
+                                        <select
+                                            value={activeTab}
+                                            onChange={(e) => {
+                                                dispatch({ type: 'SET_ACTIVE_TAB', payload: e.target.value });
+                                                dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: e.target.value }});
                                                 setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
                                             }}
-                                            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                                                activeTab === id
-                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                                                    : 'glass dark:glass-dark hover:bg-gray-100 dark:hover:bg-gray-800'
-                                            }`}
+                                            className="w-full px-4 py-3 glass dark:glass-dark rounded-lg text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            aria-label="Select view mode"
                                         >
-                                            <Icon name={icon} className="w-4 h-4" />
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
+                                            <optgroup label="Content Views">
+                                                <option value="grid">Grid View</option>
+                                                <option value="flashcards">Flashcards</option>
+                                                <option value="network">Network Graph</option>
+                                                <option value="table">Table View</option>
+                                            </optgroup>
+                                            <optgroup label="Learning">
+                                                <option value="srs">Spaced Repetition</option>
+                                                <option value="quiz">Quiz Mode</option>
+                                            </optgroup>
+                                            <optgroup label="Analytics">
+                                                <option value="analytics">Analytics</option>
+                                                <option value="statistics">Statistics</option>
+                                                <option value="compare">Compare</option>
+                                            </optgroup>
+                                        </select>
+                                        <Icon name="chevron-down" className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                    </div>
+
+                                    {/* Desktop Grouped Tabs (hidden on mobile) */}
+                                    <div className="hidden md:block">
+                                        {/* Tab Groups */}
+                                        <div className="flex flex-col gap-3">
+                                            {/* Content Views Group */}
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wider w-20 shrink-0">Content</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {[
+                                                        { id: 'grid', label: 'Grid', icon: 'grid' },
+                                                        { id: 'flashcards', label: 'Cards', icon: 'layers' },
+                                                        { id: 'network', label: 'Network', icon: 'share-2' },
+                                                        { id: 'table', label: 'Table', icon: 'table' }
+                                                    ].map(({ id, label, icon }) => (
+                                                        <button
+                                                            key={id}
+                                                            role="tab"
+                                                            aria-selected={activeTab === id}
+                                                            aria-controls={`${id}-panel`}
+                                                            onClick={() => {
+                                                                dispatch({ type: 'SET_ACTIVE_TAB', payload: id });
+                                                                dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
+                                                                setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
+                                                            }}
+                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                                                activeTab === id
+                                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
+                                                                    : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
+                                                            }`}
+                                                        >
+                                                            <Icon name={icon} className="w-3.5 h-3.5" />
+                                                            <span>{label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Learning Group */}
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wider w-20 shrink-0">Learn</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {[
+                                                        { id: 'srs', label: 'Study', icon: 'brain' },
+                                                        { id: 'quiz', label: 'Quiz', icon: 'help-circle' }
+                                                    ].map(({ id, label, icon }) => (
+                                                        <button
+                                                            key={id}
+                                                            role="tab"
+                                                            aria-selected={activeTab === id}
+                                                            aria-controls={`${id}-panel`}
+                                                            onClick={() => {
+                                                                dispatch({ type: 'SET_ACTIVE_TAB', payload: id });
+                                                                dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
+                                                                setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
+                                                            }}
+                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                                                activeTab === id
+                                                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
+                                                                    : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
+                                                            }`}
+                                                        >
+                                                            <Icon name={icon} className="w-3.5 h-3.5" />
+                                                            <span>{label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Analytics Group */}
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wider w-20 shrink-0">Track</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {[
+                                                        { id: 'analytics', label: 'Analytics', icon: 'bar-chart' },
+                                                        { id: 'statistics', label: 'Stats', icon: 'pie-chart' },
+                                                        { id: 'compare', label: 'Compare', icon: 'git-branch' }
+                                                    ].map(({ id, label, icon }) => (
+                                                        <button
+                                                            key={id}
+                                                            role="tab"
+                                                            aria-selected={activeTab === id}
+                                                            aria-controls={`${id}-panel`}
+                                                            onClick={() => {
+                                                                dispatch({ type: 'SET_ACTIVE_TAB', payload: id });
+                                                                dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
+                                                                setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
+                                                            }}
+                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                                                activeTab === id
+                                                                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25'
+                                                                    : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
+                                                            }`}
+                                                        >
+                                                            <Icon name={icon} className="w-3.5 h-3.5" />
+                                                            <span>{label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </nav>
 
                                 {/* Main Content Area */}
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
