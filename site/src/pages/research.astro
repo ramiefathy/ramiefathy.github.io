@@ -1,7 +1,7 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import Header from '../components/Header.jsx';
-import ScholarFeed from '../components/ScholarFeed.jsx';
+import ScholarFeedEnhanced from '../components/ScholarFeedEnhanced.jsx';
 ---
 <MainLayout title="Research – Ramie Fathy, MD" description="Recent publications, presentations, and scholarly projects.">
   <Header client:load />
@@ -15,13 +15,13 @@ import ScholarFeed from '../components/ScholarFeed.jsx';
           </p>
         </div>
         <p class="muted-callout">
-          Entries are curated from recent Google Scholar exports and refreshed periodically. Use the search and year filters to focus on specific topics or timeframes.
+          Filter by year or type. Export citations in BibTeX, RIS, or EndNote formats. View the co-author network to explore research collaborations.
         </p>
       </div>
     </section>
     <section class="section" style="padding-top:0">
       <div class="section__inner">
-        <ScholarFeed client:load />
+        <ScholarFeedEnhanced client:load />
       </div>
     </section>
   </main>
