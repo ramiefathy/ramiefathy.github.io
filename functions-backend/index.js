@@ -33,7 +33,6 @@ const { sendEmail } = require('./src/config/email');
 // Import utility modules
 const { isResidentOnVacation, hasProtectedTime, checkDutyHourCompliance } = require('./src/utils/validators');
 const { deserializeValue, serializeDocument } = require('./src/utils/serialization');
-const { chunkArray } = require('./src/utils/arrays');
 const { getUserDetails, describeAssignmentType } = require('./src/utils/user');
 
 // Import scheduling modules
@@ -54,7 +53,7 @@ const {
 const { generateSchedulePDF: generatePDF } = require('./src/reports/pdf');
 
 // Import sync modules
-const { importResidents, exportSchedule } = require('./src/sync/external');
+const syncExternal = require('./src/sync/external');
 
 // ==================== Helper Functions ====================
 // (Extracted to src/utils/ and src/config/ modules)
@@ -915,199 +914,55 @@ exports.syncWithExternalSystem = functions.https.onRequest((req, res) => {
         return;
       }
 
-      const fetchDocsByIds = async (collectionRef, ids) => {
-        const docs = [];
-        const idChunks = chunkArray(ids, 10);
-        for (const chunk of idChunks) {
-          const snap = await collectionRef
-            .where(admin.firestore.FieldPath.documentId(), 'in', chunk)
-            .get();
-          docs.push(...snap.docs);
-        }
-        return docs;
-      };
-
       if (action === 'import_residents') {
-        if (!Array.isArray(payload.residents) || payload.residents.length === 0) {
-          res.status(400).json({ success: false, error: 'missing-residents' });
-          return;
-        }
-
-        const batch = db.batch();
-        let imported = 0;
-        let skipped = 0;
-
-        payload.residents.forEach((resident) => {
-          if (!resident) {
-            skipped += 1;
-            return;
-          }
-
-          const identifier = resident.id || resident.uid || resident.externalId;
-          let docId = null;
-
-          if (identifier && typeof identifier === 'string') {
-            docId = identifier.trim();
-          } else if (resident.email) {
-            docId = resident.email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-          }
-
-          const residentRef = docId
-            ? institutionRef.collection('residents').doc(docId)
-            : institutionRef.collection('residents').doc();
-
-          const cleanName = resident.name?.trim();
-          const cleanEmail = resident.email?.trim();
-
-          if (!cleanName && !cleanEmail) {
-            skipped += 1;
-            return;
-          }
-
-          const residentPayload = {
-            name: cleanName || cleanEmail || 'Unnamed Resident',
-            email: cleanEmail || null,
-            pgyStatus: resident.pgyStatus || 'PGY-1',
-            rotationAssignments: Array.isArray(resident.rotationAssignments) ? resident.rotationAssignments : [],
-            vacationWeeks: Array.isArray(resident.vacationWeeks) ? resident.vacationWeeks : [],
-            protectedTimes: Array.isArray(resident.protectedTimes) ? resident.protectedTimes : [],
-            continuityDay: resident.continuityDay || null,
-            continuityTime: resident.continuityTime || null,
-            continuitySiteId: resident.continuitySiteId || null,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-          };
-
-          if (!resident.createdAt) {
-            residentPayload.createdAt = admin.firestore.FieldValue.serverTimestamp();
-          }
-
-          batch.set(residentRef, residentPayload, { merge: true });
-          imported += 1;
+        const result = await syncExternal.importResidents({
+          db,
+          institutionRef,
+          residents: payload.residents,
+          options
         });
 
-        if (imported === 0) {
-          res.status(400).json({ success: false, error: 'no-valid-residents', skipped });
+        if (result?.error) {
+          res.status(400).json({
+            success: false,
+            error: result.error,
+            imported: result.imported ?? 0,
+            skipped: result.skipped ?? 0
+          });
           return;
         }
-
-        await batch.commit();
-
-        await institutionRef.collection('auditLogs').add({
-          action: 'external_import_residents',
-          data: { imported, skipped, source: options.source || 'webhook' },
-          userId: 'external-system',
-          timestamp: admin.firestore.FieldValue.serverTimestamp()
-        });
 
         res.status(200).json({
           success: true,
           action,
           institutionId,
-          imported,
-          skipped
+          imported: result?.imported ?? 0,
+          skipped: result?.skipped ?? 0
         });
         return;
       }
 
       if (action === 'export_schedule') {
-        const startDate = payload.startDate;
-        const endDate = payload.endDate;
-        const limit = Math.min(payload.limit || 1000, 5000);
-        const includeDetails = payload.includeDetails !== false;
+        const result = await syncExternal.exportSchedule({
+          institutionRef,
+          startDate: payload.startDate,
+          endDate: payload.endDate,
+          limit: payload.limit,
+          includeDetails: payload.includeDetails,
+          options
+        });
 
-        if (!startDate || !endDate) {
-          res.status(400).json({ success: false, error: 'missing-date-range' });
+        if (result?.error) {
+          res.status(400).json({ success: false, error: result.error });
           return;
         }
 
-        const assignmentsQuery = institutionRef.collection('assignments')
-          .where('date', '>=', startDate)
-          .where('date', '<=', endDate)
-          .orderBy('date')
-          .orderBy('timeSlot')
-          .limit(limit);
-
-        const assignmentsSnap = await assignmentsQuery.get();
-
-        const assignments = assignmentsSnap.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            date: data.date,
-            timeSlot: data.timeSlot,
-            residentId: data.residentId || null,
-            attendingId: data.attendingId || null,
-            siteId: data.siteId || null,
-            rotationId: data.rotationId || null,
-            type: data.type || 'clinical',
-            virtual: !!data.virtual,
-            createdAt: data.createdAt?.toMillis?.() || null,
-            updatedAt: data.updatedAt?.toMillis?.() || null
-          };
-        });
-
-        const response = {
+        res.status(200).json({
           success: true,
           action,
           institutionId,
-          startDate,
-          endDate,
-          count: assignments.length,
-          assignments
-        };
-
-        if (includeDetails && assignments.length > 0) {
-          const residentIds = Array.from(
-            new Set(assignments.map(a => a.residentId).filter(Boolean))
-          );
-          const attendingIds = Array.from(
-            new Set(assignments.map(a => a.attendingId).filter(Boolean))
-          );
-
-          const residentDocs = residentIds.length > 0
-            ? await fetchDocsByIds(institutionRef.collection('residents'), residentIds)
-            : [];
-          const attendingDocs = attendingIds.length > 0
-            ? await fetchDocsByIds(institutionRef.collection('attendings'), attendingIds)
-            : [];
-
-          if (residentDocs.length > 0) {
-            response.residents = {};
-            residentDocs.forEach((doc) => {
-              const data = doc.data();
-              response.residents[doc.id] = {
-                name: data.name || null,
-                email: data.email || null,
-                pgyStatus: data.pgyStatus || null
-              };
-            });
-          }
-
-          if (attendingDocs.length > 0) {
-            response.attendings = {};
-            attendingDocs.forEach((doc) => {
-              const data = doc.data();
-              response.attendings[doc.id] = {
-                name: data.name || null,
-                email: data.email || null
-              };
-            });
-          }
-        }
-
-        await institutionRef.collection('auditLogs').add({
-          action: 'external_export_schedule',
-          data: {
-            startDate,
-            endDate,
-            count: assignments.length,
-            destination: options.destination || 'external-system'
-          },
-          userId: 'external-system',
-          timestamp: admin.firestore.FieldValue.serverTimestamp()
+          ...result
         });
-
-        res.status(200).json(response);
         return;
       }
 
@@ -1287,7 +1142,16 @@ exports.exportComplianceData = functions.https.onCall(async (data, context) => {
     };
   } catch (error) {
     console.error('Error exporting compliance data:', error);
-    throw new functions.https.HttpsError('internal', error.message);
+
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+
+    if (error?.code && typeof error.code === 'string') {
+      throw new functions.https.HttpsError(error.code, error.message);
+    }
+
+    throw new functions.https.HttpsError('internal', error.message || 'Unknown error');
   }
 });
 

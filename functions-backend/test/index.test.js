@@ -5,6 +5,9 @@
 const assert = require('assert');
 const sinon = require('sinon');
 
+const { db } = require('../src/config/firebase');
+const syncExternal = require('../src/sync/external');
+
 // Initialize Firebase Functions Test SDK
 // Use emulator host if available to avoid hitting live project when credentials missing
 const firebaseConfig = { projectId: 'clinic-scheduler-test' };
@@ -16,6 +19,59 @@ const test = require('firebase-functions-test')(functionsTestOptions);
 
 // Import your functions after initializing test SDK
 const functions = require('../index');
+
+function createMockReq({ method = 'POST', headers = {}, body = {} } = {}) {
+  return {
+    method,
+    headers: { ...headers },
+    body
+  };
+}
+
+function createMockRes() {
+  let doneResolver;
+  const res = {
+    statusCode: 200,
+    headers: {},
+    body: null,
+    finished: false,
+    whenDone() {
+      if (this.finished) {
+        return Promise.resolve();
+      }
+      return new Promise((resolve) => {
+        doneResolver = resolve;
+      });
+    },
+    setHeader(name, value) {
+      this.headers[name.toLowerCase()] = value;
+    },
+    getHeader(name) {
+      return this.headers[name.toLowerCase()];
+    },
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(payload) {
+      this.body = payload;
+      this.finished = true;
+      if (doneResolver) {
+        doneResolver();
+      }
+      return this;
+    },
+    end(payload) {
+      this.body = payload ?? this.body;
+      this.finished = true;
+      if (doneResolver) {
+        doneResolver();
+      }
+      return this;
+    }
+  };
+  return res;
+}
 
 describe('Cloud Functions', () => {
 
@@ -168,14 +224,196 @@ describe('Cloud Functions', () => {
   });
 
   describe('syncWithExternalSystem', () => {
-    it('should expose an HTTPS handler', () => {
-      assert.strictEqual(typeof functions.syncWithExternalSystem, 'function');
+    const institutionId = 'test-institution';
+    const webhookHeaders = {
+      'x-webhook-secret': 'test-secret',
+      origin: 'https://example.com'
+    };
+
+    function stubInstitutionLookup() {
+      const institutionSnapshot = {
+        exists: true,
+        data: () => ({ name: 'Test Institution' })
+      };
+
+      sinon.stub(db, 'collection').callsFake((path) => {
+        if (path === 'institutions') {
+          return {
+            doc: (id) => ({
+              id,
+              get: () => Promise.resolve(institutionSnapshot)
+            })
+          };
+        }
+        throw new Error(`Unexpected collection path: ${path}`);
+      });
+    }
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('delegates resident import to external helper', async () => {
+      stubInstitutionLookup();
+      const importStub = sinon.stub(syncExternal, 'importResidents').resolves({ imported: 2, skipped: 1 });
+
+      const req = createMockReq({
+        headers: webhookHeaders,
+        body: {
+          action: 'import_residents',
+          institutionId,
+          payload: {
+            residents: [{ name: 'Resident A', email: 'resident@example.com' }]
+          },
+          options: { source: 'api' }
+        }
+      });
+
+      const res = createMockRes();
+      const done = res.whenDone();
+      functions.syncWithExternalSystem(req, res);
+      await done;
+
+      sinon.assert.calledOnce(importStub);
+      sinon.assert.calledWithMatch(importStub, {
+        residents: req.body.payload.residents,
+        options: req.body.options,
+        institutionRef: sinon.match.object
+      });
+      assert.strictEqual(res.statusCode, 200);
+      assert.deepStrictEqual(res.body, {
+        success: true,
+        action: 'import_residents',
+        institutionId,
+        imported: 2,
+        skipped: 1
+      });
+    });
+
+    it('returns descriptive error when import helper fails', async () => {
+      stubInstitutionLookup();
+      sinon.stub(syncExternal, 'importResidents').resolves({
+        imported: 0,
+        skipped: 3,
+        error: 'no-valid-residents'
+      });
+
+      const req = createMockReq({
+        headers: webhookHeaders,
+        body: {
+          action: 'import_residents',
+          institutionId,
+          payload: {
+            residents: []
+          }
+        }
+      });
+
+      const res = createMockRes();
+      const done = res.whenDone();
+      functions.syncWithExternalSystem(req, res);
+      await done;
+
+      assert.strictEqual(res.statusCode, 400);
+      assert.deepStrictEqual(res.body, {
+        success: false,
+        error: 'no-valid-residents',
+        imported: 0,
+        skipped: 3
+      });
+    });
+
+    it('delegates schedule export to external helper and returns payload', async () => {
+      stubInstitutionLookup();
+      const exportStub = sinon.stub(syncExternal, 'exportSchedule').resolves({
+        startDate: '2024-01-01',
+        endDate: '2024-01-05',
+        count: 1,
+        assignments: [{ id: 'assignment-1' }]
+      });
+
+      const req = createMockReq({
+        headers: webhookHeaders,
+        body: {
+          action: 'export_schedule',
+          institutionId,
+          payload: {
+            startDate: '2024-01-01',
+            endDate: '2024-01-05',
+            limit: 100,
+            includeDetails: true
+          },
+          options: { destination: 'api' }
+        }
+      });
+
+      const res = createMockRes();
+      const done = res.whenDone();
+      functions.syncWithExternalSystem(req, res);
+      await done;
+
+      sinon.assert.calledOnce(exportStub);
+      sinon.assert.calledWithMatch(exportStub, {
+        institutionRef: sinon.match.object,
+        startDate: '2024-01-01',
+        endDate: '2024-01-05',
+        limit: 100,
+        includeDetails: true,
+        options: req.body.options
+      });
+      assert.strictEqual(res.statusCode, 200);
+      assert.deepStrictEqual(res.body, {
+        success: true,
+        action: 'export_schedule',
+        institutionId,
+        startDate: '2024-01-01',
+        endDate: '2024-01-05',
+        count: 1,
+        assignments: [{ id: 'assignment-1' }]
+      });
     });
   });
 
   describe('exportComplianceData', () => {
+    afterEach(() => {
+      sinon.restore();
+    });
+
     it('should require admin permissions', async () => {
       const wrapped = test.wrap(functions.exportComplianceData);
+
+      const institutionSnapshot = {
+        exists: true,
+        data: () => ({ settings: {} })
+      };
+
+      const memberSnapshot = {
+        exists: true,
+        data: () => ({ role: 'member' })
+      };
+
+      const institutionRef = {
+        get: () => Promise.resolve(institutionSnapshot),
+        collection: (name) => {
+          if (name === 'members') {
+            return {
+              doc: () => ({
+                get: () => Promise.resolve(memberSnapshot)
+              })
+            };
+          }
+          throw new Error(`Unexpected subcollection: ${name}`);
+        }
+      };
+
+      sinon.stub(db, 'collection').callsFake((path) => {
+        if (path === 'institutions') {
+          return {
+            doc: () => institutionRef
+          };
+        }
+        throw new Error(`Unexpected collection path: ${path}`);
+      });
 
       try {
         await wrapped({
@@ -185,11 +423,10 @@ describe('Cloud Functions', () => {
         }, {
           auth: { uid: 'test-user' }
         });
-        // In a real test, this would check Firestore for permissions
-        assert.ok(true);
+        assert.fail('Expected permission-denied error');
       } catch (error) {
-        // Expected if user is not admin
-        assert.ok(error.code === 'permission-denied' || true);
+        assert.strictEqual(error.code, 'permission-denied');
+        assert.strictEqual(error.message, 'Administrator role required');
       }
     });
 

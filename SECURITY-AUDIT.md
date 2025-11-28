@@ -10,6 +10,12 @@
 
 The repository has good security hygiene with comprehensive `.gitignore` patterns. **No private keys or service accounts exposed**. Firebase API keys are present in public client code, which is **acceptable and intended** for client-side Firebase applications, provided proper security rules are configured.
 
+## Progress Update (October 1, 2025)
+
+- ✅ Firestore security rules compile cleanly in the local emulator (`firebase emulators:exec --only firestore`)
+- ⚠️ Firestore rules deployment requires authorized Firebase credentials (`firebase deploy --only firestore:rules` currently returns 403)
+- ⚠️ Google Cloud Console steps for API key restrictions and App Check provisioning remain manual follow-ups
+
 ## Findings
 
 ### 1. Firebase Web API Keys (LOW RISK - Expected Behavior)

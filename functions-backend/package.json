@@ -9,6 +9,7 @@
   "scripts": {
     "lint": "eslint .",
     "test": "mocha 'test/**/*.test.js' --reporter spec",
+    "test:coverage": "nyc --reporter=html --reporter=text mocha 'test/**/*.test.js'",
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
@@ -31,6 +32,7 @@
     "eslint": "^8.57.1",
     "firebase-functions-test": "^3.4.1",
     "mocha": "^10.8.2",
+    "nyc": "^15.1.0",
     "sinon": "^21.0.0"
   },
   "private": true

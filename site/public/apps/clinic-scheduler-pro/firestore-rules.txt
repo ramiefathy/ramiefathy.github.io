@@ -1,90 +1,162 @@
 // Firestore Security Rules for Clinic Scheduler Pro
-// Copy these rules to Firebase Console > Firestore Database > Rules
+// Deploy these rules via: firebase deploy --only firestore:rules
+// Or copy to Firebase Console > Firestore Database > Rules
+//
+// IMPORTANT: These rules enforce role-based access control.
+// Roles: admin, program_admin, chief_resident, scheduler, member
+//
+// The canonical source is /firestore.rules at the repository root.
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // ==================== Helper Functions ====================
+
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Check if user is a member of the institution - VERY PERMISSIVE FOR NOW
+    // Check if user is a member of the institution
     function isInstitutionMember(institutionId) {
-      return isSignedIn();
-      // Simplified - any signed in user can access any institution
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid));
     }
 
-    // Check if user is admin - VERY PERMISSIVE FOR NOW
+    // Check if user has admin-level role (can manage settings, members)
     function isInstitutionAdmin(institutionId) {
-      return isSignedIn();
-      // Simplified - any signed in user has admin access
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid)).data.role in ['admin', 'program_admin', 'chief_resident'];
     }
 
-    // Check if user can schedule - VERY PERMISSIVE FOR NOW
+    // Check if user can schedule (admin roles + scheduler)
     function isScheduler(institutionId) {
-      return isSignedIn();
-      // Simplified - any signed in user can schedule
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/institutions/$(institutionId)/members/$(request.auth.uid)).data.role in ['admin', 'program_admin', 'chief_resident', 'scheduler'];
     }
 
-    // Institution rules
-    match /institutions/{institutionId} {
-      allow read: if isInstitutionMember(institutionId);
-      allow create: if isSignedIn();
-      allow update: if isInstitutionAdmin(institutionId);
-      allow delete: if false; // Never allow deletion of institutions
+    // ==================== Institution Rules ====================
 
-      // Institution members subcollection
+    match /institutions/{institutionId} {
+      // Any member can read their institution
+      allow read: if isInstitutionMember(institutionId);
+
+      // Any signed-in user can create a new institution (they become admin)
+      allow create: if isSignedIn();
+
+      // Only admins can update institution settings
+      allow update: if isInstitutionAdmin(institutionId);
+
+      // Institutions cannot be deleted via client
+      allow delete: if false;
+
+      // ==================== Members Subcollection ====================
       match /members/{userId} {
+        // Members can read the member list
         allow read: if isInstitutionMember(institutionId);
+
+        // Admins can manage members, users can update their own record
         allow write: if isInstitutionAdmin(institutionId) || request.auth.uid == userId;
       }
 
-      // Attendings subcollection
+      // ==================== Attendings Subcollection ====================
       match /attendings/{attendingId} {
+        // Members can read attendings
         allow read: if isInstitutionMember(institutionId);
+
+        // Schedulers can create/update/delete attendings
         allow write: if isScheduler(institutionId);
       }
 
-      // Residents subcollection
+      // ==================== Residents Subcollection ====================
       match /residents/{residentId} {
+        // Members can read residents
         allow read: if isInstitutionMember(institutionId);
+
+        // Schedulers can create/update/delete residents
         allow write: if isScheduler(institutionId);
       }
 
-      // Schedule assignments subcollection
+      // ==================== Assignments Subcollection ====================
       match /assignments/{assignmentId} {
+        // Members can read assignments
         allow read: if isInstitutionMember(institutionId);
+
+        // Schedulers can create/update/delete assignments
         allow write: if isScheduler(institutionId);
       }
 
-      // Rules subcollection
+      // ==================== Rules Subcollection ====================
       match /rules/{ruleId} {
+        // Members can read rules
         allow read: if isInstitutionMember(institutionId);
+
+        // Schedulers can create/update/delete rules
         allow write: if isScheduler(institutionId);
       }
 
-      // Audit logs subcollection
+      // ==================== Audit Logs Subcollection ====================
       match /auditLogs/{logId} {
+        // Only admins can read audit logs
         allow read: if isInstitutionAdmin(institutionId);
+
+        // Members can create audit logs (auto-generated on actions)
         allow create: if isInstitutionMember(institutionId);
-        allow update, delete: if false; // Audit logs are immutable
+
+        // Audit logs are immutable - no updates or deletes
+        allow update, delete: if false;
+      }
+
+      // ==================== Backups Subcollection ====================
+      match /backups/{backupId} {
+        // Only Cloud Functions can read/write backups
+        allow read, write: if false;
+
+        // Backup payload chunks
+        match /payload/{chunkId} {
+          allow read, write: if false;
+        }
+      }
+
+      // ==================== Chatbot Undo Stacks ====================
+      match /chatbotUndoStacks/{stackId} {
+        // Only Cloud Functions manage undo stacks
+        allow read, write: if false;
+      }
+
+      // ==================== Chatbot Usage Tracking ====================
+      match /chatbotUsage/{usageId} {
+        // Only Cloud Functions manage usage tracking
+        allow read, write: if false;
       }
     }
 
-    // User profiles (global)
+    // ==================== User Profiles (Global) ====================
     match /users/{userId} {
+      // Any signed-in user can read user profiles (for member lookup)
       allow read: if isSignedIn();
+
+      // Users can only write their own profile
       allow write: if request.auth.uid == userId;
     }
 
-    // Institution invites
+    // ==================== Invite Codes (Global) ====================
     match /inviteCodes/{inviteCode} {
-      allow read: if true; // Anyone with the code can read
+      // Anyone can read invite codes (to validate them)
+      allow read: if true;
+
+      // Any signed-in user can create invite codes
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && resource.data.createdBy == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
+
+      // Only the creator can update/delete their invite codes
+      allow update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
+    }
+
+    // ==================== Backups Collection (Global) ====================
+    // Note: Institution-specific backups are under /institutions/{id}/backups/
+    // This global collection is for cross-institution backup metadata (Cloud Functions only)
+    match /backups/{backupId} {
+      allow read, write: if false;
     }
   }
 }

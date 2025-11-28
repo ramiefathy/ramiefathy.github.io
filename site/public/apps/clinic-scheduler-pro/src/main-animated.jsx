@@ -1,5 +1,38 @@
-// Source for Clinic Scheduler Pro browser bundle. Run `npm run clinic:scheduler:build` after editing.
-const { useState, useEffect, useCallback, useMemo, useRef, createContext, useContext } = React;
+import React, {
+    useState,
+    useEffect,
+    useCallback,
+    useMemo,
+    useRef,
+    createContext,
+    useContext
+} from 'react';
+import * as ReactDOMLegacy from 'react-dom';
+import * as ReactDOMClient from 'react-dom/client';
+import { motion, AnimatePresence } from 'framer-motion';
+import * as dateFns from 'date-fns';
+// PapaParse removed - CSV export uses native JavaScript
+import * as Recharts from 'recharts';
+import { iconMap } from './utils/icons';
+import { attachFirebaseGlobals } from './firebase';
+import './index.css';
+
+const ReactDOM = Object.assign({}, ReactDOMLegacy, ReactDOMClient);
+if (!ReactDOM.createRoot && ReactDOMClient.createRoot) {
+    ReactDOM.createRoot = ReactDOMClient.createRoot.bind(ReactDOMClient);
+}
+if (!ReactDOM.hydrateRoot && ReactDOMClient.hydrateRoot) {
+    ReactDOM.hydrateRoot = ReactDOMClient.hydrateRoot.bind(ReactDOMClient);
+}
+
+const globalScope = typeof window !== 'undefined' ? window : globalThis;
+globalScope.React = React;
+globalScope.ReactDOM = ReactDOM;
+globalScope.Recharts = Recharts;
+globalScope.dateFns = dateFns;
+globalScope['framer-motion'] = { motion, AnimatePresence };
+attachFirebaseGlobals(globalScope);
+
 const { createPortal } = ReactDOM;
 const ToastDispatchContext = createContext(null);
 const ToastStateContext = createContext([]);
@@ -101,25 +134,19 @@ const ToastItem = ({ toast, onDismiss }) => {
 
 const Toaster = () => null;
 const { format, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, getDay, addDays } = window['date-fns'];
-const { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = window.Recharts;
+const { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
 
 // Copy the rest of the content from the current index.html but with CSS animations instead of framer-motion
 // This is a template showing how to use CSS animations instead
 
-// Icon Component (same as stable version)
+// Icon Component using selective imports
 const Icon = ({ name, size = 24, className = "" }) => {
-    const iconRef = useRef(null);
-
-    useEffect(() => {
-        if (iconRef.current && window.lucide) {
-            const icon = window.lucide.icons[name];
-            if (icon) {
-                iconRef.current.innerHTML = icon.toSvg({ size, class: className });
-            }
-        }
-    }, [name, size, className]);
-
-    return <span ref={iconRef} className="inline-flex" />;
+    const IconComponent = iconMap[name];
+    if (!IconComponent) {
+        console.warn(`Icon "${name}" not found in iconMap`);
+        return null;
+    }
+    return <IconComponent size={size} className={className} />;
 };
 
 const App = () => {
