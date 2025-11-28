@@ -169,9 +169,6 @@ const prefersReducedMotion = () =>
 const prefersDarkMode = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-const isTouchDevice = () =>
-  typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-
 // Hook to detect mobile viewport
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -189,19 +186,15 @@ function useIsMobile() {
   return isMobile;
 }
 
-// Hook for touch gestures
-function useTouchGestures(
+// Hook for swipe gestures on tabs (doesn't interfere with canvas D3 zoom)
+function useSwipeGestures(
   elementRef: React.RefObject<HTMLElement>,
   handlers: {
     onSwipeLeft?: () => void;
     onSwipeRight?: () => void;
-    onDoubleTap?: (x: number, y: number) => void;
-    onLongPress?: (x: number, y: number) => void;
   }
 ) {
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-  const lastTapRef = useRef<{ x: number; y: number; time: number } | null>(null);
-  const longPressTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const element = elementRef.current;
@@ -209,47 +202,11 @@ function useTouchGestures(
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
-
       const touch = e.touches[0];
-      const now = Date.now();
-
-      touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: now };
-
-      // Check for double tap
-      if (lastTapRef.current) {
-        const timeDiff = now - lastTapRef.current.time;
-        const xDiff = Math.abs(touch.clientX - lastTapRef.current.x);
-        const yDiff = Math.abs(touch.clientY - lastTapRef.current.y);
-
-        if (timeDiff < 300 && xDiff < 30 && yDiff < 30) {
-          handlers.onDoubleTap?.(touch.clientX, touch.clientY);
-          lastTapRef.current = null;
-          return;
-        }
-      }
-
-      // Start long press timer
-      if (handlers.onLongPress) {
-        longPressTimerRef.current = window.setTimeout(() => {
-          handlers.onLongPress?.(touch.clientX, touch.clientY);
-        }, 500);
-      }
-    };
-
-    const handleTouchMove = () => {
-      // Cancel long press on move
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-        longPressTimerRef.current = null;
-      }
+      touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-        longPressTimerRef.current = null;
-      }
-
       if (!touchStartRef.current || e.changedTouches.length !== 1) return;
 
       const touch = e.changedTouches[0];
@@ -257,11 +214,8 @@ function useTouchGestures(
       const deltaY = touch.clientY - touchStartRef.current.y;
       const deltaTime = Date.now() - touchStartRef.current.time;
 
-      // Record for double tap detection
-      lastTapRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
-
       // Swipe detection: must be fast and horizontal
-      if (deltaTime < 300 && Math.abs(deltaX) > 50 && Math.abs(deltaY) < 50) {
+      if (deltaTime < 300 && Math.abs(deltaX) > 60 && Math.abs(deltaY) < 40) {
         if (deltaX > 0) {
           handlers.onSwipeRight?.();
         } else {
@@ -273,16 +227,11 @@ function useTouchGestures(
     };
 
     element.addEventListener('touchstart', handleTouchStart, { passive: true });
-    element.addEventListener('touchmove', handleTouchMove, { passive: true });
     element.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
       element.removeEventListener('touchstart', handleTouchStart);
-      element.removeEventListener('touchmove', handleTouchMove);
       element.removeEventListener('touchend', handleTouchEnd);
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-      }
     };
   }, [elementRef, handlers]);
 }
@@ -652,68 +601,13 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
     setActiveTab(tabIds[prevIndex]);
   }, [activeTab, tabIds]);
 
-  // Mobile: Double-tap to zoom/center
-  const handleDoubleTapZoom = useCallback(
-    (clientX: number, clientY: number) => {
-      const svg = svgRef.current;
-      if (!svg || !zoomRef.current) return;
-
-      const rect = svg.getBoundingClientRect();
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
-
-      const currentTransform = d3.zoomTransform(svg);
-      const newScale = currentTransform.k >= 2 ? 1 : 2.5;
-
-      d3.select(svg)
-        .transition()
-        .duration(300)
-        .call(
-          zoomRef.current.transform,
-          d3.zoomIdentity
-            .translate(rect.width / 2, rect.height / 2)
-            .scale(newScale)
-            .translate(-x, -y)
-        );
-    },
-    []
-  );
-
-  // Mobile: Long press to show node details
-  const handleLongPress = useCallback(
-    (clientX: number, clientY: number) => {
-      const svg = svgRef.current;
-      if (!svg) return;
-
-      // Find the node element at this position
-      const element = document.elementFromPoint(clientX, clientY);
-      const nodeGroup = element?.closest('[data-node-id]');
-      if (nodeGroup) {
-        const nodeId = nodeGroup.getAttribute('data-node-id');
-        if (nodeId) {
-          setSelectedNodeId(nodeId);
-          setDetailPanelExpanded(true);
-          // Haptic feedback if available
-          if (navigator.vibrate) {
-            navigator.vibrate(50);
-          }
-        }
-      }
-    },
-    []
-  );
-
-  // Setup touch gestures for tabs wrapper (swipe between tabs)
-  useTouchGestures(tabsWrapperRef as React.RefObject<HTMLElement>, {
+  // Setup swipe gestures for tabs wrapper only (doesn't interfere with canvas D3 zoom)
+  useSwipeGestures(tabsWrapperRef as React.RefObject<HTMLElement>, {
     onSwipeLeft: goToNextTab,
     onSwipeRight: goToPreviousTab,
   });
 
-  // Setup touch gestures for canvas (double-tap zoom)
-  useTouchGestures(containerRef as React.RefObject<HTMLElement>, {
-    onDoubleTap: handleDoubleTapZoom,
-    onLongPress: handleLongPress,
-  });
+  // D3 handles all canvas touch interactions (pinch-zoom, pan, node tap)
 
   // Show gesture hint on first mobile visit
   useEffect(() => {
@@ -728,7 +622,7 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
 
     // Show gesture hint after a short delay
     const timer = setTimeout(() => {
-      setGestureHint('Pinch to zoom • Double-tap to focus • Swipe tabs');
+      setGestureHint('Pinch to zoom • Drag to pan • Tap nodes to select');
       setHasShownGestureHint(true);
       safeSave(hintKey, true);
 
@@ -757,32 +651,38 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [mobileMenuOpen]);
 
-  // Detail panel drag handling for bottom sheet
-  const handleDetailPanelDrag = useCallback((e: React.TouchEvent) => {
-    const panel = detailPanelRef.current;
-    if (!panel) return;
+  // Detail panel drag handling for bottom sheet - track drag distance
+  const sheetDragRef = useRef<{ startY: number; startTransform: boolean } | null>(null);
+
+  const handleSheetTouchStart = useCallback((e: React.TouchEvent) => {
+    // Only handle touches on the handle area
+    const target = e.target as HTMLElement;
+    if (!target.classList.contains('sheet-handle') && target.tagName !== 'H2') return;
 
     const touch = e.touches[0];
-    const startY = touch.clientY;
+    sheetDragRef.current = { startY: touch.clientY, startTransform: detailPanelExpanded };
+  }, [detailPanelExpanded]);
 
-    const handleMove = (moveEvent: TouchEvent) => {
-      const currentY = moveEvent.touches[0].clientY;
-      const deltaY = currentY - startY;
+  const handleSheetTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!sheetDragRef.current) return;
 
-      if (deltaY > 50) {
+    const touch = e.touches[0];
+    const deltaY = touch.clientY - sheetDragRef.current.startY;
+
+    // Threshold for toggle
+    if (Math.abs(deltaY) > 40) {
+      if (deltaY > 0 && sheetDragRef.current.startTransform) {
         setDetailPanelExpanded(false);
-      } else if (deltaY < -50) {
+        sheetDragRef.current = null;
+      } else if (deltaY < 0 && !sheetDragRef.current.startTransform) {
         setDetailPanelExpanded(true);
+        sheetDragRef.current = null;
       }
-    };
+    }
+  }, []);
 
-    const handleEnd = () => {
-      document.removeEventListener('touchmove', handleMove);
-      document.removeEventListener('touchend', handleEnd);
-    };
-
-    document.addEventListener('touchmove', handleMove, { passive: true });
-    document.addEventListener('touchend', handleEnd);
+  const handleSheetTouchEnd = useCallback(() => {
+    sheetDragRef.current = null;
   }, []);
 
   // Toggle detail panel on click (mobile bottom sheet)
@@ -1299,7 +1199,9 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
           ref={detailPanelRef}
           className={clsx('detail-panel', detailPanelExpanded && 'expanded')}
           aria-live="polite"
-          onTouchStart={handleDetailPanelDrag}
+          onTouchStart={handleSheetTouchStart}
+          onTouchMove={handleSheetTouchMove}
+          onTouchEnd={handleSheetTouchEnd}
         >
           {/* Bottom sheet drag handle (mobile only) */}
           <div
@@ -1378,11 +1280,10 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
             <h2>Touch gestures (mobile)</h2>
             <ul>
               <li><strong>Pinch</strong> to zoom in and out of the mind map.</li>
-              <li><strong>Drag</strong> with one finger to pan around.</li>
-              <li><strong>Double-tap</strong> to zoom in on a specific area (tap again to reset).</li>
-              <li><strong>Long-press</strong> on a node to view its details.</li>
-              <li><strong>Swipe left/right</strong> on tabs to switch between views.</li>
-              <li><strong>Drag</strong> the bottom sheet handle to expand or collapse details.</li>
+              <li><strong>Drag</strong> with one finger to pan around the map.</li>
+              <li><strong>Tap</strong> on a node to select it and view details.</li>
+              <li><strong>Swipe</strong> the tabs to scroll through views.</li>
+              <li><strong>Drag</strong> the bottom panel handle to expand or collapse.</li>
               <li>Use the <strong>☰ menu</strong> button for more options.</li>
             </ul>
             <button type="button" onClick={() => setShowHelp(false)}>
