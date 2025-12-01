@@ -19,6 +19,7 @@
     "site:test:e2e": "npm --prefix site run test:e2e",
     "site:test:e2e:update": "npm --prefix site run test:e2e:update",
     "clinic:scheduler:build": "babel site/public/apps/clinic-scheduler-pro/src/main.jsx --out-file site/public/apps/clinic-scheduler-pro/assets/main.js --presets @babel/preset-react && babel site/public/apps/clinic-scheduler-pro/src/main-animated.jsx --out-file site/public/apps/clinic-scheduler-pro/assets/main-animated.js --presets @babel/preset-react && rm -rf site/public/apps/clinic-scheduler-pro/assets/lib && mkdir -p site/public/apps/clinic-scheduler-pro/assets/lib && cp -R site/public/apps/clinic-scheduler-pro/src/lib/* site/public/apps/clinic-scheduler-pro/assets/lib/ 2>/dev/null || true",
+    "skinoculars:build": "npm --prefix site/public/apps/Skinoculars install && npm --prefix site/public/apps/Skinoculars run build",
     "test:unit": "echo 'Unit tests will be configured in Phase 3' && exit 0",
     "test:e2e": "npx firebase emulators:exec --only firestore,auth 'npx playwright test --reporter=list'",
     "perf:run": "npx firebase emulators:exec --only firestore 'node tests/perf/run-all.js'",

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 /**
  * Interactive Career Timeline Component
@@ -13,6 +13,7 @@ export default function Timeline({ data }) {
   const [selectedId, setSelectedId] = useState(null);
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: '-50px' });
+  const prefersReducedMotion = useReducedMotion();
 
   if (!data?.milestones?.length) {
     return null;
@@ -50,9 +51,9 @@ export default function Timeline({ data }) {
               <motion.article
                 key={milestone.id}
                 className={`timeline-item ${isSelected ? 'is-selected' : ''}`}
-                initial={{ opacity: 0, y: 30 }}
+                initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: index * 0.1 }}
               >
                 {/* Year marker */}
                 <div className="timeline-year">
@@ -95,10 +96,10 @@ export default function Timeline({ data }) {
                       <motion.div
                         id={`timeline-details-${milestone.id}`}
                         className="timeline-details"
-                        initial={{ opacity: 0, height: 0 }}
+                        initial={prefersReducedMotion ? { opacity: 1, height: 'auto' } : { opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
+                        exit={prefersReducedMotion ? { opacity: 1, height: 'auto' } : { opacity: 0, height: 0 }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
                       >
                         <p className="timeline-description">{milestone.description}</p>
                         {milestone.highlights?.length > 0 && (

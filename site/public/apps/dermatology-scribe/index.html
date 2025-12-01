@@ -294,7 +294,8 @@
         let currentMode = null;
         let isRecording = false;
         let recognition = null;
-        let apiKey = localStorage.getItem('dermie.apiKey') || '';
+        // API key held in memory only for the active tab (not persisted).
+        let apiKey = '';
 
         // Initialize Speech Recognition
         if (window.SpeechRecognition || window.webkitSpeechRecognition) {
@@ -308,12 +309,10 @@
         // API Key Management
         function saveApiKey() {
             const input = document.getElementById('apiKeyInput');
-            if (input.value) {
-                apiKey = input.value;
-                localStorage.setItem('dermie.apiKey', apiKey);
-                showNotification('API Key saved successfully', 'success');
-                input.value = '';
-            }
+            if (!input.value) return;
+            apiKey = input.value.trim();
+            showNotification('API Key stored in-memory for this session', 'success');
+            input.value = '';
         }
 
         // Mode Selection

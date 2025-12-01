@@ -11,7 +11,12 @@ pip install -r requirements.txt
 python app.py
 ```
 
-By default the server listens on `ws://0.0.0.0:8765`. Clients must supply the `token` query parameter or `X-Auth-Token` header that matches `SESSION_SECRET` in `.env`.
+By default the server listens on `ws://0.0.0.0:8765`.
+
+### Authentication (JWT + legacy secret)
+- Preferred: send `Authorization: Bearer <jwt>` or `?token=<jwt>` where the JWT is signed with `SESSION_SECRET` using HS256.
+- Legacy clients may still send the raw `SESSION_SECRET` via `X-Auth-Token` or `?token=`. When accepted, the server replies in `connection_ack` with a short‑lived JWT (15 minutes). Clients should reconnect using that JWT for subsequent sessions.
+- Invalid or missing tokens close the socket with code `4008`.
 
 > **Tip:** generate a long random `SESSION_SECRET` for production deployments and update `ALLOWED_ORIGINS` to include trusted frontends (e.g., `https://ramiefathy.github.io`).
 
@@ -32,4 +37,3 @@ By default the server listens on `ws://0.0.0.0:8765`. Clients must supply the `t
 - Enable HTTPS termination at the proxy layer and forward traffic to the websocket port.
 - Rotate `SESSION_SECRET` periodically and update the client configuration through the UI.
 - Logging is written to stdout and can be captured by your hosting provider.
-

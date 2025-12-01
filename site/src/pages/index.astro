@@ -11,7 +11,8 @@ const featuredApps = apps
 <MainLayout title="Ramie Fathy, MD – Dermatology & AI" description={profile.summary}>
   <Header client:load />
 
-  <Hero client:load profile={profile} />
+  <main id="main-content">
+  <Hero client:visible profile={profile} />
 
   <div class="ad-slot" aria-label="Sponsored banner">
     <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2958059905874922" data-ad-slot="1498241199" data-ad-format="auto" data-full-width-responsive="true"></ins>
@@ -119,4 +120,5 @@ const featuredApps = apps
       </div>
     </div>
   </section>
+  </main>
 </MainLayout>

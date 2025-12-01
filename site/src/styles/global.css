@@ -55,6 +55,23 @@ html[data-theme='dark'] {
   --tag-text: rgba(186, 230, 253, 0.9);
 }
 
+.skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: -9999px;
+  z-index: 100;
+  padding: 0.65rem 1rem;
+  background: var(--primary-600);
+  color: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.skip-link:focus-visible {
+  left: 1rem;
+  outline: 2px solid white;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -80,6 +97,11 @@ a {
 
 a:hover {
   color: var(--primary-600);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary-600);
+  outline-offset: 3px;
 }
 
 .sr-only {
