@@ -910,8 +910,15 @@ class FirebaseService {
         if (!this.currentInstitution) throw new Error('No institution selected');
 
         try {
-            // Generate a unique invite code
-            const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+            // Generate a cryptographically secure invite code
+            // Uses characters that avoid confusion (excludes 0, O, 1, I, L)
+            const generateSecureCode = (length = 8) => {
+                const array = new Uint8Array(length);
+                window.crypto.getRandomValues(array);
+                const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+                return Array.from(array, byte => chars[byte % chars.length]).join('');
+            };
+            const code = generateSecureCode(8);
 
             // Store invite code in Firestore
             await window.firebase.firestore.setDoc(
@@ -935,6 +942,23 @@ class FirebaseService {
             return { success: true, code };
         } catch (error) {
             console.error('Error creating invite code:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async bulkInviteMembers(invites) {
+        if (!this.currentInstitution) throw new Error('No institution selected');
+        if (!this.currentUser) throw new Error('Not authenticated');
+
+        try {
+            const bulkInvite = window.firebase.functions.httpsCallable('bulkInviteMembers');
+            const result = await bulkInvite({
+                institutionId: this.currentInstitution,
+                invites
+            });
+            return result.data || { success: true };
+        } catch (error) {
+            console.error('Error sending bulk invites:', error);
             return { success: false, error: error.message };
         }
     }
@@ -968,8 +992,8 @@ class FirebaseService {
     }
 
     countAdminMembers(members = []) {
-        return members.filter(m => this.isAdminRole(m.role)).length;
-    }
+            return members.filter(m => this.isAdminRole(m.role)).length;
+        }
 
     async ensureMembershipDocs(institutionIds = [], defaults = {}) {
         if (!this.currentUser || !Array.isArray(institutionIds)) return;
@@ -1213,6 +1237,15 @@ class FirebaseService {
 
             const inviteData = inviteDoc.data();
 
+            // If this invite was created via bulk email flow, enforce email match
+            if (inviteData.recipientEmail) {
+                const userEmail = (this.currentUser.email || '').toLowerCase().trim();
+                const inviteEmail = String(inviteData.recipientEmail || '').toLowerCase().trim();
+                if (!userEmail || userEmail !== inviteEmail) {
+                    return { success: false, error: 'This invite is tied to a different email address' };
+                }
+            }
+
             if (inviteData.expiresAt && inviteData.expiresAt.toDate() < new Date()) {
                 return { success: false, error: 'Invite code has expired' };
             }
@@ -1298,6 +1331,88 @@ class FirebaseService {
             };
         } catch (error) {
             console.error('Error redeeming invite code:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // ==================== Schedule Change Requests ====================
+
+    async addScheduleRequest(request) {
+        if (!this.currentInstitution) throw new Error('No institution selected');
+        if (!this.currentUser) throw new Error('Not authenticated');
+
+        try {
+            const payload = {
+                ...request,
+                status: request.status || 'pending',
+                requestedBy: this.currentUser.uid,
+                createdAt: window.firebase.firestore.serverTimestamp(),
+                updatedAt: window.firebase.firestore.serverTimestamp()
+            };
+
+            const docRef = await window.firebase.firestore.addDoc(
+                window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'scheduleRequests'),
+                payload
+            );
+
+            await this.addAuditLog('schedule_request_created', {
+                id: docRef.id,
+                assignmentId: request.assignmentId,
+                requestType: request.requestType
+            });
+
+            return { success: true, id: docRef.id };
+        } catch (error) {
+            console.error('Error creating schedule request:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    listenToScheduleRequests(callback) {
+        if (!this.currentInstitution) {
+            callback([]);
+            return () => {};
+        }
+
+        const query = window.firebase.firestore.query(
+            window.firebase.firestore.collection(this.db, 'institutions', this.currentInstitution, 'scheduleRequests'),
+            window.firebase.firestore.orderBy('createdAt', 'desc')
+        );
+
+        const unsubscribe = window.firebase.firestore.onSnapshot(
+            query,
+            (snapshot) => {
+                const data = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                callback(data);
+            },
+            (error) => {
+                console.error('Schedule requests listener error:', error);
+                callback([]);
+            }
+        );
+
+        return unsubscribe;
+    }
+
+    async updateScheduleRequest(id, updates) {
+        if (!this.currentInstitution) throw new Error('No institution selected');
+
+        try {
+            await window.firebase.firestore.updateDoc(
+                window.firebase.firestore.doc(this.db, 'institutions', this.currentInstitution, 'scheduleRequests', id),
+                {
+                    ...updates,
+                    updatedAt: window.firebase.firestore.serverTimestamp()
+                }
+            );
+
+            await this.addAuditLog('schedule_request_updated', { id, updates });
+            return { success: true };
+        } catch (error) {
+            console.error('Error updating schedule request:', error);
             return { success: false, error: error.message };
         }
     }

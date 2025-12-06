@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 // Contexts
-import { useApp } from '../../contexts/AppContext';
+import { useApp, usePermissions } from '../../contexts/AppContext';
 import { toast } from '../../contexts/ToastContext';
 
 // Components
@@ -546,7 +546,8 @@ const AttendingScheduleAdjuster = ({ attending, sites, onApply, onRemove, onClos
 
 // ==================== Schedule Calendar Component ====================
 const ScheduleCalendar = ({ initialFilter, onNavigateToPerson, onOpenChatAssistant }) => {
-    const { firebaseService, institution } = useApp();
+    const { firebaseService, institution, user } = useApp();
+    const { canSchedule } = usePermissions();
     const sites = institution?.settings?.sites || [];
     const [viewMode, setViewMode] = useState(() => {
         return localStorage.getItem('scheduleViewMode') || 'month';
@@ -561,6 +562,10 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson, onOpenChatAssista
     const [loading, setLoading] = useState(true);
     const [deletingIds, setDeletingIds] = useState(new Set());
     const [showAttendingAdjuster, setShowAttendingAdjuster] = useState(false);
+    const [requestAssignment, setRequestAssignment] = useState(null);
+    const [requestType, setRequestType] = useState('change');
+    const [requestNote, setRequestNote] = useState('');
+    const [submittingRequest, setSubmittingRequest] = useState(false);
 
     // Individual schedule view states
     const [scheduleFilter, setScheduleFilter] = useState(initialFilter?.type || 'all');
@@ -957,6 +962,54 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson, onOpenChatAssista
                 newSet.delete(assignmentId);
                 return newSet;
             });
+        }
+    };
+
+    const openRequestModal = (assignment) => {
+        setRequestAssignment(assignment);
+        setRequestType('change');
+        setRequestNote('');
+    };
+
+    const handleSubmitScheduleRequest = async (event) => {
+        event.preventDefault();
+        if (!requestAssignment) return;
+
+        if (!requestNote || !requestNote.trim()) {
+            toast.error('Please include a note describing the requested change');
+            return;
+        }
+
+        try {
+            setSubmittingRequest(true);
+
+            const payload = {
+                assignmentId: requestAssignment.id,
+                assignmentDate: requestAssignment.date,
+                timeSlot: requestAssignment.timeSlot,
+                residentId: requestAssignment.residentId || null,
+                attendingId: requestAssignment.attendingId || null,
+                siteId: requestAssignment.siteId || null,
+                rotationId: requestAssignment.rotationId || null,
+                clinicId: requestAssignment.clinicId || null,
+                requestType,
+                note: requestNote.trim(),
+                requestedByName: user?.name || user?.email || '',
+                requestorRole: requestAssignment.residentId ? 'resident' : 'physician'
+            };
+
+            const result = await firebaseService.addScheduleRequest(payload);
+            if (result.success) {
+                toast.success('Schedule change request submitted for review');
+                setRequestAssignment(null);
+            } else {
+                toast.error(result.error || 'Failed to submit request');
+            }
+        } catch (error) {
+            console.error('Error submitting schedule request:', error);
+            toast.error('Failed to submit request');
+        } finally {
+            setSubmittingRequest(false);
         }
     };
 
@@ -1521,22 +1574,38 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson, onOpenChatAssista
                                                                 )}
                                                             </div>
                                                             {!assignment.virtual && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDeleteAssignment(assignment.id);
-                                                                    }}
-                                                                    className={`text-gray-400 hover:text-red-600 ${
-                                                                        deletingIds.has(assignment.id) ? 'animate-spin' : ''
-                                                                    }`}
-                                                                    disabled={deletingIds.has(assignment.id)}
-                                                                >
-                                                                    {deletingIds.has(assignment.id) ? (
-                                                                        <div className="animate-spin h-3.5 w-3.5 border-2 border-red-600 border-t-transparent rounded-full"></div>
-                                                                    ) : (
-                                                                        <Icon name="x" size={14} />
+                                                                <div className="flex items-center gap-2">
+                                                                    {!canSchedule && (
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                openRequestModal(assignment);
+                                                                            }}
+                                                                            className="text-primary-600 hover:text-primary-700 text-xs font-medium flex items-center gap-1"
+                                                                        >
+                                                                            <Icon name="message-circle" size={12} />
+                                                                            Request change
+                                                                        </button>
                                                                     )}
-                                                                </button>
+                                                                    {canSchedule && (
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleDeleteAssignment(assignment.id);
+                                                                            }}
+                                                                            className={`text-gray-400 hover:text-red-600 ${
+                                                                                deletingIds.has(assignment.id) ? 'animate-spin' : ''
+                                                                            }`}
+                                                                            disabled={deletingIds.has(assignment.id)}
+                                                                        >
+                                                                            {deletingIds.has(assignment.id) ? (
+                                                                                <div className="animate-spin h-3.5 w-3.5 border-2 border-red-600 border-t-transparent rounded-full"></div>
+                                                                            ) : (
+                                                                                <Icon name="x" size={14} />
+                                                                            )}
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             )}
                                                         </div>
                                                     </div>
@@ -1766,6 +1835,89 @@ const ScheduleCalendar = ({ initialFilter, onNavigateToPerson, onOpenChatAssista
                         onRemove={(override) => handleRemoveAttendingOverride(selectedAttending.id, override)}
                         onClose={() => setShowAttendingAdjuster(false)}
                     />
+                </Modal>
+            )}
+
+            {/* Schedule Change Request Modal */}
+            {requestAssignment && (
+                <Modal
+                    isOpen={true}
+                    onClose={() => setRequestAssignment(null)}
+                    title="Request Schedule Change"
+                >
+                    <form onSubmit={handleSubmitScheduleRequest} className="space-y-4">
+                        <div className="space-y-2 text-sm text-gray-700">
+                            <div className="flex justify-between">
+                                <span className="font-medium">Date</span>
+                                <span>{requestAssignment.date}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="font-medium">Time</span>
+                                <span>{requestAssignment.timeSlot}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="font-medium">Resident</span>
+                                <span>
+                                    {(() => {
+                                        const resident = residents.find(r => r.id === requestAssignment.residentId);
+                                        return resident?.name || 'Unassigned';
+                                    })()}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="font-medium">Attending</span>
+                                <span>
+                                    {(() => {
+                                        const attending = normalizedAttendings.find(a => a.id === requestAssignment.attendingId);
+                                        return attending?.name || 'Unassigned';
+                                    })()}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Request Type
+                            </label>
+                            <select
+                                value={requestType}
+                                onChange={(e) => setRequestType(e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg text-sm"
+                            >
+                                <option value="change">Change this assignment</option>
+                                <option value="swap">Swap with another assignment</option>
+                                <option value="coverage">Request coverage for this clinic</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Reason / Details
+                            </label>
+                            <textarea
+                                value={requestNote}
+                                onChange={(e) => setRequestNote(e.target.value)}
+                                rows={4}
+                                className="w-full px-3 py-2 border rounded-lg text-sm"
+                                placeholder="Describe what change you are requesting and why, including any preferred dates or coverage options."
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => setRequestAssignment(null)}
+                                disabled={submittingRequest}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={submittingRequest}>
+                                {submittingRequest ? 'Submitting...' : 'Submit Request'}
+                            </Button>
+                        </div>
+                    </form>
                 </Modal>
             )}
         </div>
