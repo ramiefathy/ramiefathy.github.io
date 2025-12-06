@@ -27,6 +27,9 @@ import {
 export interface SkinSceneHandle {
   resetView: () => void;
   captureScreenshot: () => string | null;
+  getRenderer: () => THREE.WebGLRenderer | null;
+  setAnchorScale: (scale: number) => void;
+  resetAnchor: () => void;
 }
 
 interface SkinSceneProps {
@@ -74,13 +77,13 @@ const BASE_PARAMS: ModelParameters = {
   adipocyteCount: 200
 };
 
-function computeParameters(diseaseId: DiseaseId, lodConfig?: LODConfig): ModelParameters {
+function computeParameters(diseaseId: DiseaseId, lodConfig?: LODConfig, xrMultiplier: number = 1): ModelParameters {
   const profile: DiseaseProfile | undefined = DISEASE_PROFILES.find(p => p.id === diseaseId);
   const base = BASE_PARAMS;
   const p: ModelParameters = { ...base };
 
   // Apply LOD instance multiplier to all counts
-  const instanceMultiplier = lodConfig?.instanceMultiplier ?? 1.0;
+  const instanceMultiplier = (lodConfig?.instanceMultiplier ?? 1.0) * xrMultiplier;
   p.flakeCount = Math.round(base.flakeCount * instanceMultiplier);
   p.keratinocyteCount = Math.round(base.keratinocyteCount * instanceMultiplier);
   p.collagenFiberCount = Math.round(base.collagenFiberCount * instanceMultiplier);
@@ -186,6 +189,20 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
       // Render once to ensure latest frame
       renderer.render(scene, camera);
       return renderer.domElement.toDataURL('image/png');
+    },
+    getRenderer: () => rendererRef.current,
+    setAnchorScale: (scale: number) => {
+      const anchor = anchorGroupRef.current;
+      if (!anchor) return;
+      anchor.scale.setScalar(scale);
+      anchor.updateMatrixWorld(true);
+    },
+    resetAnchor: () => {
+      const anchor = anchorGroupRef.current;
+      if (!anchor) return;
+      anchor.position.set(0, 0, 0);
+      anchor.quaternion.identity();
+      anchor.updateMatrixWorld(true);
     }
   }), []);
 
@@ -239,6 +256,15 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
   const keratinocyteFrontRef = useRef<THREE.Mesh | null>(null);
   const lastFrameTimeRef = useRef<number>(performance.now());
   const woundSystemsGroupRef = useRef<THREE.Group | null>(null);
+  const anchorGroupRef = useRef<THREE.Group | null>(null);
+  const isXrPresentingRef = useRef<boolean>(false);
+
+  // WebXR hit-test state for AR placement
+  const xrRefSpaceRef = useRef<XRReferenceSpace | null>(null);
+  const viewerSpaceRef = useRef<XRReferenceSpace | null>(null);
+  const hitTestSourceRef = useRef<XRHitTestSource | null>(null);
+  const lastHitMatrixRef = useRef<THREE.Matrix4 | null>(null);
+  const reticleRef = useRef<THREE.Mesh | null>(null);
 
   // Refs to access current props in animation loop without re-renders
   const timelineIdRef = useRef(timelineId);
@@ -264,6 +290,20 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
     phRef.current = { value: phValue };
   }, [phValue]);
 
+  // Keep palette ref in sync and rebuild colors on change
+  useEffect(() => {
+    if (palette && paletteRef.current !== palette) {
+      paletteRef.current = palette as PaletteId;
+      // Rebuild anatomy with new palette
+      const lodConfig = getLODConfig(zoomLevelId);
+      const params = computeParameters(diseaseId, lodConfig, isXrPresentingRef.current ? 0.6 : 1);
+      clearAnatomy();
+      buildAnatomy(params);
+      applyExplode(explodeValue);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [palette]);
+
   const structureRootsRef = useRef<Record<string, THREE.Object3D>>({});
   const hoveredIdRef = useRef<string | null>(null);
   const onSelectStructureRef = useRef(onSelectStructure);
@@ -282,6 +322,26 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
     mouseRef.current.y = -((clientY - rect.top) / rect.height) * 2 + 1;
     raycasterRef.current.setFromCamera(mouseRef.current, cameraRef.current);
     const intersects = raycasterRef.current.intersectObjects(sceneRef.current.children, true);
+    for (const i of intersects) {
+      const obj: any = i.object;
+      const type =
+        obj.userData?.type ||
+        obj.userData?.parentType ||
+        obj.parent?.userData?.type;
+      if (type) {
+        return type as string;
+      }
+    }
+    return null;
+  }, []);
+
+  // Ray-based picking (for XR controllers/hands)
+  const pickStructureFromRay = useCallback((origin: THREE.Vector3, direction: THREE.Vector3): string | null => {
+    if (!sceneRef.current) return null;
+    const raycaster = raycasterRef.current;
+    raycaster.ray.origin.copy(origin);
+    raycaster.ray.direction.copy(direction).normalize();
+    const intersects = raycaster.intersectObjects(sceneRef.current.children, true);
     for (const i of intersects) {
       const obj: any = i.object;
       const type =
@@ -1230,6 +1290,12 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
     scene.fog = new THREE.FogExp2(0x0f172a, 0.02);
     sceneRef.current = scene;
 
+    // Anchor root for AR placement (wrap all anatomy)
+    const anchorGroup = new THREE.Group();
+    anchorGroup.name = 'AnchorGroup';
+    scene.add(anchorGroup);
+    anchorGroupRef.current = anchorGroup;
+
     const container = mountRef.current;
     const containerWidth = container.clientWidth || window.innerWidth;
     const containerHeight = container.clientHeight || window.innerHeight;
@@ -1310,17 +1376,28 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
     const cutawayPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
     cutawayPlaneRef.current = cutawayPlane;
 
+    const anchorGroupInstance = anchorGroupRef.current!;
+
     const epidermisGroup = new THREE.Group();
     epidermisGroupRef.current = epidermisGroup;
-    scene.add(epidermisGroup);
+    anchorGroupInstance.add(epidermisGroup);
 
     const dermisGroup = new THREE.Group();
     dermisGroupRef.current = dermisGroup;
-    scene.add(dermisGroup);
+    anchorGroupInstance.add(dermisGroup);
 
     const hypodermisGroup = new THREE.Group();
     hypodermisGroupRef.current = hypodermisGroup;
-    scene.add(hypodermisGroup);
+    anchorGroupInstance.add(hypodermisGroup);
+
+    // AR reticle
+    const reticleGeo = new THREE.RingGeometry(0.08, 0.1, 32);
+    const reticleMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide });
+    const reticle = new THREE.Mesh(reticleGeo, reticleMat);
+    reticle.rotation.x = -Math.PI / 2;
+    reticle.visible = false;
+    scene.add(reticle);
+    reticleRef.current = reticle;
 
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
@@ -1351,6 +1428,61 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
       const id = pickStructureId(event);
       onSelectStructureRef.current?.(id ?? null);
     };
+
+    // XR controller select → pick structure or place anchor
+    const addControllerHandler = (index: number) => {
+      const controller = renderer.xr.getController(index);
+      controller.addEventListener('select', () => {
+        // If we have a recent hit test pose, place the anchor; otherwise pick structures
+      if (renderer.xr.isPresenting && lastHitMatrixRef.current && anchorGroupRef.current) {
+        anchorGroupRef.current.matrix.copy(lastHitMatrixRef.current);
+        anchorGroupRef.current.matrix.decompose(
+          anchorGroupRef.current.position,
+          anchorGroupRef.current.quaternion,
+          anchorGroupRef.current.scale
+        );
+        anchorGroupRef.current.updateMatrixWorld(true);
+
+        // Apply XR LOD rebuild once anchor is placed to ensure counts are reduced
+        const lodConfig = getLODConfig(zoomLevelId);
+        const params = computeParameters(diseaseId, lodConfig, 0.6);
+        clearAnatomy();
+        buildAnatomy(params);
+        applyExplode(explodeValue);
+      } else {
+          const tempMatrix = new THREE.Matrix4();
+          tempMatrix.identity().extractRotation(controller.matrixWorld);
+          const direction = new THREE.Vector3(0, 0, -1).applyMatrix4(tempMatrix);
+          const origin = new THREE.Vector3().setFromMatrixPosition(controller.matrixWorld);
+          const id = pickStructureFromRay(origin, direction);
+          if (id) {
+            onSelectStructureRef.current?.(id);
+          }
+        }
+      });
+      scene.add(controller);
+    };
+    addControllerHandler(0);
+    addControllerHandler(1);
+
+    // Setup AR hit-test on session start
+    const handleSessionStart = async () => {
+      const session = renderer.xr.getSession();
+      if (!session) return;
+      xrRefSpaceRef.current = await session.requestReferenceSpace('local-floor').catch(() => null);
+      viewerSpaceRef.current = await session.requestReferenceSpace('viewer').catch(() => null);
+      if (viewerSpaceRef.current) {
+        hitTestSourceRef.current = await (session as any).requestHitTestSource?.({ space: viewerSpaceRef.current }).catch(() => null);
+      }
+      session.addEventListener('end', () => {
+        hitTestSourceRef.current?.cancel?.();
+        hitTestSourceRef.current = null;
+        viewerSpaceRef.current = null;
+        xrRefSpaceRef.current = null;
+        if (reticleRef.current) reticleRef.current.visible = false;
+      });
+    };
+    renderer.xr.addEventListener('sessionstart', handleSessionStart);
 
     // Throttled mousemove for better performance
     let lastMoveTime = 0;
@@ -1386,15 +1518,36 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(mountRef.current);
 
-    const animate = () => {
+    const renderLoop = (_time: number, frame?: XRFrame) => {
       if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return;
-      animationFrameRef.current = requestAnimationFrame(animate);
 
       // Per-frame wound system updates - uses refs to access current values
       const now = performance.now();
       const dt = (now - lastFrameTimeRef.current) / 1000;
       lastFrameTimeRef.current = now;
       const clampedDt = Math.min(dt, 0.1); // Cap at 100ms to prevent huge jumps
+
+      // AR hit-test reticle update
+      isXrPresentingRef.current = rendererRef.current.xr.isPresenting;
+
+      if (rendererRef.current.xr.isPresenting && frame && hitTestSourceRef.current) {
+        const refSpace = xrRefSpaceRef.current ?? rendererRef.current.xr.getReferenceSpace();
+        const results = frame.getHitTestResults(hitTestSourceRef.current);
+        if (results.length > 0) {
+          const pose = refSpace ? results[0].getPose(refSpace) : null;
+          if (pose) {
+            const mat = new THREE.Matrix4().fromArray(pose.transform.matrix as unknown as number[]);
+            lastHitMatrixRef.current = mat;
+            if (reticleRef.current) {
+              reticleRef.current.visible = true;
+              reticleRef.current.position.setFromMatrixPosition(mat);
+              reticleRef.current.quaternion.setFromRotationMatrix(mat);
+            }
+          }
+        } else if (reticleRef.current) {
+          reticleRef.current.visible = false;
+        }
+      }
 
     if (timelineIdRef.current === 'wound_healing') {
       const t = THREE.MathUtils.clamp(timelineTRef.current, 0, 1);
@@ -1466,13 +1619,31 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
         }
       }
 
-      controlsRef.current?.update();
+      // Disable orbit controls when XR is presenting (headset controls pose)
+      if (rendererRef.current.xr.isPresenting) {
+        controlsRef.current && (controlsRef.current.enabled = false);
+        // Transparent background and no fog for passthrough AR
+        if (sceneRef.current) {
+          sceneRef.current.background = null;
+          sceneRef.current.fog = null as any;
+        }
+        // XR performance profile
+        rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+        rendererRef.current.shadowMap.enabled = false;
+      } else {
+        controlsRef.current && (controlsRef.current.enabled = true);
+        controlsRef.current?.update();
+        rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        rendererRef.current.shadowMap.enabled = true;
+        // Shadow map textures are managed internally by Three.js
+      }
+
       rendererRef.current.render(sceneRef.current, cameraRef.current);
     };
-    animate();
+    renderer.setAnimationLoop(renderLoop);
 
     const lodConfig = getLODConfig(zoomLevelId);
-    const params = computeParameters(diseaseId, lodConfig);
+    const params = computeParameters(diseaseId, lodConfig, isXrPresentingRef.current ? 0.6 : 1);
     clearAnatomy();
     buildAnatomy(params);
     applyExplode(explodeValue);
@@ -1488,7 +1659,7 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
     const handleContextRestored = () => {
       console.log('WebGL context restored');
       const restoredLodConfig = getLODConfig(zoomLevelId);
-      const restoredParams = computeParameters(diseaseId, restoredLodConfig);
+      const restoredParams = computeParameters(diseaseId, restoredLodConfig, isXrPresentingRef.current ? 0.6 : 1);
       clearAnatomy();
       buildAnatomy(restoredParams);
       applyExplode(explodeValue);
@@ -1499,11 +1670,10 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
     renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
 
     return () => {
+      renderer.xr.removeEventListener('sessionstart', handleSessionStart);
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      renderer.setAnimationLoop(null);
       window.removeEventListener('resize', handleResize);
       resizeObserver.disconnect();
       domElement.removeEventListener('click', handleClick);
@@ -1533,6 +1703,13 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
         }
       }
 
+      if (reticleRef.current && sceneRef.current) {
+        sceneRef.current.remove(reticleRef.current);
+        reticleRef.current.geometry.dispose();
+        (reticleRef.current.material as THREE.Material).dispose();
+        reticleRef.current = null;
+      }
+
       sceneRef.current = null;
       cameraRef.current = null;
       rendererRef.current = null;
@@ -1543,7 +1720,7 @@ export const SkinScene = forwardRef<SkinSceneHandle, SkinSceneProps>(({
   useEffect(() => {
     if (!sceneRef.current) return;
     const lodConfig = getLODConfig(zoomLevelId);
-    const params = computeParameters(diseaseId, lodConfig);
+    const params = computeParameters(diseaseId, lodConfig, isXrPresentingRef.current ? 0.6 : 1);
     clearAnatomy();
     buildAnatomy(params);
     applyExplode(explodeValue);

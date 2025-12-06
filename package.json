@@ -12,7 +12,7 @@
     "serve": "python -m http.server 8000",
     "test": "echo \"GitHub Pages static hosting - no build process needed\" && exit 0",
     "site:dev": "npm --prefix site run dev",
-    "site:build": "npm --prefix site run build",
+    "site:build": "npm run skinoculars:build && npm --prefix site run build",
     "site:preview": "npm --prefix site run preview",
     "site:test": "npm --prefix site run test",
     "site:test:watch": "npm --prefix site run test:watch",

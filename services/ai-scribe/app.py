@@ -75,6 +75,7 @@ gemini_service = None
 rate_limiter = RateLimiter(max_requests=60, window_seconds=60)  # 60 messages/minute per client
 RATE_LIMIT_ALERT_THRESHOLD = int(os.getenv("RATE_LIMIT_ALERT_THRESHOLD", "20"))
 JWT_TTL_MINUTES = 15
+LEGACY_SUBJECT = "legacy-client"
 
 
 def issue_jwt(subject: str) -> str:
@@ -92,6 +93,28 @@ def verify_jwt(token: str):
         return jwt.decode(token, config.SESSION_SECRET, algorithms=["HS256"])
     except jwt.PyJWTError as exc:
         raise ValueError(f"Invalid token: {exc}")
+
+
+def build_client_key(claims_sub: str | None, session_id: str | None, remote_address):
+    """
+    Generate a rate-limit bucket key with better isolation for legacy clients.
+
+    - Modern clients keep using their JWT subject for per-user limiting.
+    - Legacy (shared-secret) clients get a unique key per connection using the server-issued
+      session_id; if unavailable, fall back to the client IP to avoid global coupling.
+    """
+
+    if claims_sub and claims_sub != LEGACY_SUBJECT:
+        return claims_sub
+
+    if session_id:
+        return f"{LEGACY_SUBJECT}:{session_id}"
+
+    if remote_address:
+        ip = remote_address[0] if isinstance(remote_address, tuple) else str(remote_address)
+        return f"{LEGACY_SUBJECT}:{ip}"
+
+    return LEGACY_SUBJECT
 
 
 def get_gemini_service():
@@ -188,7 +211,7 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
         # Accept either a signed JWT or the shared secret (for legacy clients); if shared secret, issue a short-lived JWT.
         if presented_token:
             if presented_token == config.SESSION_SECRET:
-                claims = {"sub": "legacy-client"}
+                claims = {"sub": LEGACY_SUBJECT}
                 issued_jwt = issue_jwt(claims["sub"])
             else:
                 try:
@@ -202,9 +225,8 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
             await websocket.close(code=4008, reason="Authentication required")
             return
 
-        client_key = claims.get("sub") or (websocket.remote_address[0] if websocket.remote_address else "unknown")
-
         session_id = session_manager.create_session()
+        client_key = build_client_key(claims.get("sub") if claims else None, session_id, websocket.remote_address)
         log_event("connection", session_id=session_id, client=client_key, path=path, address=str(websocket.remote_address))
         ack_payload = {"type": "connection_ack", "sessionId": session_id, "message": "Connected to AI Scribe Server"}
         if issued_jwt:

@@ -13,19 +13,9 @@ import { Icon, Button, Card, LoadingSpinner, Modal } from '../shared';
 
 // Utils
 import { ExportUtils } from '../../utils/export';
-import { generateId, normalizeAttendingRecord } from '../../utils/helpers';
+import { generateId, normalizeAttendingRecord, DAYS_OF_WEEK } from '../../utils/helpers';
 
 // Constants
-const DAYS_OF_WEEK = [
-    { id: 0, name: 'Sunday', short: 'Sun' },
-    { id: 1, name: 'Monday', short: 'Mon' },
-    { id: 2, name: 'Tuesday', short: 'Tue' },
-    { id: 3, name: 'Wednesday', short: 'Wed' },
-    { id: 4, name: 'Thursday', short: 'Thu' },
-    { id: 5, name: 'Friday', short: 'Fri' },
-    { id: 6, name: 'Saturday', short: 'Sat' }
-];
-
 const TIME_SLOTS = ['AM', 'PM'];
 
 // Attending Form Component

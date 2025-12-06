@@ -22,6 +22,10 @@ interface SettingsModalProps {
   onHydrationChange: (value: number) => void;
   phValue: number;
   onPhChange: (value: number) => void;
+  palette: string;
+  onPaletteChange: (value: string) => void;
+  collagenReduced: boolean;
+  onCollagenChange: (value: boolean) => void;
 }
 
 type SettingsTab = 'general' | 'display' | 'accessibility' | 'about';
@@ -41,7 +45,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   hydration,
   onHydrationChange,
   phValue,
-  onPhChange
+  onPhChange,
+  palette,
+  onPaletteChange,
+  collagenReduced,
+  onCollagenChange
 }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [reducedMotion, setReducedMotion] = useState(() =>
@@ -205,6 +213,51 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   className={`
                     absolute top-1 w-4 h-4 rounded-full bg-white transition-transform
                     ${autoRotate ? 'left-6' : 'left-1'}
+                  `}
+                />
+              </button>
+            </div>
+
+            {/* Palette */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Color Palette
+              </label>
+              <select
+                value={palette}
+                onChange={e => onPaletteChange(e.target.value)}
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+              >
+                <option value="clinical">Clinical (natural)</option>
+                <option value="he">H&E stain</option>
+                <option value="masson">Masson trichrome</option>
+              </select>
+              <p className="text-xs text-slate-500 mt-1">
+                Swap materials to clinical or histology-inspired palettes.
+              </p>
+            </div>
+
+            {/* Collagen density */}
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-medium text-slate-300">
+                  Collagen Density
+                </label>
+                <p className="text-xs text-slate-500">
+                  Reduce collagen instances for clarity or performance.
+                </p>
+              </div>
+              <button
+                onClick={() => onCollagenChange(!collagenReduced)}
+                className={`
+                  relative w-11 h-6 rounded-full transition-colors
+                  ${collagenReduced ? 'bg-blue-600' : 'bg-slate-700'}
+                `}
+              >
+                <div
+                  className={`
+                    absolute top-1 w-4 h-4 rounded-full bg-white transition-transform
+                    ${collagenReduced ? 'left-6' : 'left-1'}
                   `}
                 />
               </button>

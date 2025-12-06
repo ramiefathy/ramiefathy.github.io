@@ -8,6 +8,7 @@ interface XRButtonProps {
   onSessionStart?: () => void;
   onSessionEnd?: () => void;
   className?: string;
+  domOverlayRoot?: HTMLElement | null;
 }
 
 export const XRButton: React.FC<XRButtonProps> = ({
@@ -15,7 +16,8 @@ export const XRButton: React.FC<XRButtonProps> = ({
   mode = 'immersive-vr',
   onSessionStart,
   onSessionEnd,
-  className
+  className,
+  domOverlayRoot
 }) => {
   const [capabilities, setCapabilities] = useState<WebXRCapabilities | null>(null);
   const [isPresenting, setIsPresenting] = useState(false);
@@ -69,6 +71,9 @@ export const XRButton: React.FC<XRButtonProps> = ({
 
       if (mode === 'immersive-ar') {
         sessionInit.optionalFeatures?.push('hit-test', 'dom-overlay', 'light-estimation');
+        if (domOverlayRoot) {
+          (sessionInit as any).domOverlay = { root: domOverlayRoot };
+        }
       }
 
       const session = await xr.requestSession(mode, sessionInit);
@@ -186,7 +191,8 @@ export const XRModeSelector: React.FC<{
   onSessionStart?: () => void;
   onSessionEnd?: () => void;
   className?: string;
-}> = ({ renderer, onSessionStart, onSessionEnd, className }) => {
+  domOverlayRoot?: HTMLElement | null;
+}> = ({ renderer, onSessionStart, onSessionEnd, className, domOverlayRoot }) => {
   const [capabilities, setCapabilities] = useState<WebXRCapabilities | null>(null);
 
   useEffect(() => {

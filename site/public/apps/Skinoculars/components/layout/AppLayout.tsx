@@ -58,6 +58,11 @@ interface AppLayoutProps {
 
   // Accessibility
   highContrast?: boolean;
+  isXrPresenting?: boolean;
+  onAnchorRecenter?: () => void;
+  anchorScale?: number;
+  onAnchorScaleChange?: (value: number) => void;
+  onPaletteCycle?: () => void;
 
   // Cutaway (cross-section view)
   cutawayEnabled?: boolean;
@@ -100,6 +105,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   onTimelineTChange,
   onSettingsClick,
   highContrast = false,
+  isXrPresenting = false,
+  onAnchorRecenter,
+  anchorScale = 0.35,
+  onAnchorScaleChange,
+  onPaletteCycle,
   onHelpClick,
   cutawayEnabled = false,
   onCutawayToggle,

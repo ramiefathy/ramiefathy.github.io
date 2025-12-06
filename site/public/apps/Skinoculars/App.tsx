@@ -3,7 +3,8 @@
  * Refactored to use new layout system
  */
 
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import * as THREE from 'three';
 import { SkinScene, SkinSceneHandle } from './components/SkinScene';
 import { InfoPanel } from './components/InfoPanel';
 import { ComparisonView } from './components/ComparisonView';
@@ -28,6 +29,8 @@ import { TOURS } from './tours';
 import { DEFAULT_METRICS } from './metrics';
 import { PaletteId } from './palettes';
 import { Phototype, PHOTOTYPES, DEFAULT_UV_STATE, UVState, DEFAULT_PH_STATE, PHState } from './behavior';
+import { XRModeSelector } from './components/XRButton';
+import XRHUD from './components/XRHUD';
 
 // Help Modal Component
 const HelpModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
@@ -99,6 +102,40 @@ const HelpModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
 const App: React.FC = () => {
   const sceneRef = useRef<SkinSceneHandle>(null);
   const { isMobile } = useMediaQuery();
+  const [xrRenderer, setXrRenderer] = useState<THREE.WebGLRenderer | null>(null);
+  const [isXrPresenting, setIsXrPresenting] = useState(false);
+  const [anchorScale, setAnchorScale] = useState(0.35);
+
+  // Poll once for renderer availability (set by SkinScene)
+  useEffect(() => {
+    let cancelled = false;
+    const poll = () => {
+      if (cancelled) return;
+      const r = sceneRef.current?.getRenderer() ?? null;
+      if (r) {
+        setXrRenderer(r);
+      } else {
+        requestAnimationFrame(poll);
+      }
+    };
+    poll();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Track XR presenting state
+  useEffect(() => {
+    if (!xrRenderer) return;
+    const onStart = () => setIsXrPresenting(true);
+    const onEnd = () => setIsXrPresenting(false);
+    xrRenderer.xr.addEventListener('sessionstart', onStart);
+    xrRenderer.xr.addEventListener('sessionend', onEnd);
+    // initialize if already presenting
+    setIsXrPresenting(xrRenderer.xr.isPresenting);
+    return () => {
+      xrRenderer.xr.removeEventListener('sessionstart', onStart);
+      xrRenderer.xr.removeEventListener('sessionend', onEnd);
+    };
+  }, [xrRenderer]);
 
   // App mode
   const [mode, setMode] = useState<AppMode>('study');
@@ -201,6 +238,22 @@ const App: React.FC = () => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('dermoviz-collagen-reduced', String(reduced));
     }
+  }, []);
+
+  const handlePaletteCycle = useCallback(() => {
+    const order: PaletteId[] = ['clinical', 'he', 'masson'];
+    const idx = order.indexOf(palette);
+    const next = order[(idx + 1) % order.length];
+    setPalette(next);
+  }, [palette]);
+
+  const handleAnchorScaleChange = useCallback((value: number) => {
+    setAnchorScale(value);
+    sceneRef.current?.setAnchorScale(value);
+  }, []);
+
+  const handleAnchorRecenter = useCallback(() => {
+    sceneRef.current?.resetAnchor();
   }, []);
 
   // Listen for settings changes (when modal updates localStorage)
@@ -506,6 +559,11 @@ const App: React.FC = () => {
         onSettingsClick={() => setShowSettings(true)}
         onHelpClick={() => setShowHelp(true)}
         highContrast={highContrast}
+        isXrPresenting={isXrPresenting}
+        onAnchorRecenter={handleAnchorRecenter}
+        anchorScale={anchorScale}
+        onAnchorScaleChange={handleAnchorScaleChange}
+        onPaletteCycle={handlePaletteCycle}
         cutawayEnabled={cutawayEnabled}
         onCutawayToggle={() => setCutawayEnabled(v => !v)}
         infoPanel={
@@ -527,18 +585,22 @@ const App: React.FC = () => {
           onSelectStructure={handleSelectStructure}
           onHoverStructure={handleHover}
           diseaseId={diseaseId}
-          timelineId={timelineId}
-          timelineT={timelineT}
-          zoomLevelId={zoomLevelId}
-          activeTourId={activeTourId}
-          activeTourStepIndex={activeTourStepIndex}
-          clippingNormalized={clippingNormalized}
-          autoRotate={autoRotate}
-          palette={palette}
-          collagenReduced={collagenReduced}
-          onLoadingChange={handleLoadingChange}
-          cutawayEnabled={cutawayEnabled}
-        />
+        timelineId={timelineId}
+        timelineT={timelineT}
+        zoomLevelId={zoomLevelId}
+        activeTourId={activeTourId}
+        activeTourStepIndex={activeTourStepIndex}
+        clippingNormalized={clippingNormalized}
+        autoRotate={autoRotate}
+        palette={palette}
+        phototype={phototype}
+        uvState={uvState}
+        hydration={hydration}
+        phValue={phState.value}
+        collagenReduced={collagenReduced}
+        onLoadingChange={handleLoadingChange}
+        cutawayEnabled={cutawayEnabled}
+      />
 
         {/* Phase HUD for wound healing timeline */}
         {timelineId === 'wound_healing' && !isMobile && (
@@ -625,8 +687,34 @@ const App: React.FC = () => {
           onHydrationChange={setHydration}
           phValue={phState.value}
           onPhChange={v => setPhState({ value: v })}
+          palette={palette}
+          onPaletteChange={(value: string) => setPalette(value as PaletteId)}
+          collagenReduced={collagenReduced}
+          onCollagenChange={handleCollagenDensityChange}
         />
       )}
+
+      {/* XR mode selector */}
+      <div className="fixed bottom-4 left-4 z-40 pointer-events-auto">
+        <XRModeSelector
+          renderer={xrRenderer}
+          domOverlayRoot={document.getElementById('xr-overlay')}
+        />
+      </div>
+
+      {/* XR DOM overlay root */}
+      <div id="xr-overlay" className="fixed inset-0 pointer-events-none z-30" />
+
+      {/* XR HUD overlay */}
+      <XRHUD
+        isPresenting={isXrPresenting}
+        onRecenter={handleAnchorRecenter}
+        scale={anchorScale}
+        onScaleChange={handleAnchorScaleChange}
+        onPaletteCycle={handlePaletteCycle}
+        collagenReduced={collagenReduced}
+        onCollagenToggle={() => handleCollagenDensityChange(!collagenReduced)}
+      />
 
       {/* Comparison View */}
       {showComparison && (

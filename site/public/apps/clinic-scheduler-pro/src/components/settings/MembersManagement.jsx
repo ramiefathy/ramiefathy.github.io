@@ -39,29 +39,26 @@ const MembersManagement = () => {
         loadMembers();
     }, [firebaseService.currentInstitution]);
 
-    const generateInviteCode = () => {
-        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+    const generateInviteCode = async () => {
+        try {
+            // createInviteCode generates a secure 8-char code using crypto.getRandomValues
+            // and stores it in Firestore, returning { success: true, code } on success
+            const result = await firebaseService.createInviteCode({
+                institutionId: firebaseService.currentInstitution,
+                institutionName: institution.name,
+                role: 'member'
+            });
 
-        const inviteData = {
-            code,
-            institutionId: firebaseService.currentInstitution,
-            institutionName: institution.name,
-            createdBy: user.uid,
-            createdAt: new Date().toISOString(),
-            expiresAt: expiresAt.toISOString(),
-            used: false
-        };
-
-        // In a real implementation, save this to Firebase
-        firebaseService.createInviteCode(inviteData).then(() => {
-            setInviteCode(code);
-            setShowInviteModal(true);
-            toast.success('Invite code generated');
-        }).catch(error => {
-            toast.error('Failed to generate invite code');
-        });
+            if (result.success) {
+                setInviteCode(result.code); // Use the crypto-secure 8-char code
+                setShowInviteModal(true);
+                toast.success('Invite code generated');
+            } else {
+                toast.error(result.error || 'Failed to generate invite code');
+            }
+        } catch (error) {
+            toast.error('Error generating invite code');
+        }
     };
 
     const handleRoleChange = async (memberId, newRole) => {
