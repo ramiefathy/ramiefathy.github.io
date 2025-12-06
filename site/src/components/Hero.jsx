@@ -272,6 +272,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
   const [ripple, setRipple] = useState({ x: 0.5, y: 0.5, strength: 0.12 });
   const [hasWebGL, setHasWebGL] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const frameRef = useRef(0);
   const lastPointer = useRef({ x: 0.5, y: 0.5, time: typeof performance !== 'undefined' ? performance.now() : 0 });
 
@@ -287,12 +288,20 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
     setHasWebGL(hasWebGLSupport());
     setIsMobile(isMobileDevice());
 
+    const motionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleMotionChange = (event) => setPrefersReducedMotion(event.matches);
+    setPrefersReducedMotion(motionMedia.matches);
+    motionMedia.addEventListener('change', handleMotionChange);
+
     const handleResize = () => {
       setIsMobile(isMobileDevice());
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      motionMedia.removeEventListener('change', handleMotionChange);
+    };
   }, []);
 
   // Optimized mouse handler - reduced effect on mobile
@@ -404,8 +413,8 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
           {/* Typing animation subtitle */}
           {enableTypingAnimation ? (
             <p className="hero-role" aria-live="polite">
-              <span className="hero-role-text">{typedRole}</span>
-              <span className="hero-cursor" aria-hidden="true">|</span>
+              <span className="hero-role-text">{prefersReducedMotion ? TYPING_SUBTITLES[0] : typedRole}</span>
+              {!prefersReducedMotion && <span className="hero-cursor" aria-hidden="true">|</span>}
             </p>
           ) : null}
 

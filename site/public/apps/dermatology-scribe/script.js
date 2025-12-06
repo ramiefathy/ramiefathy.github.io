@@ -4,7 +4,7 @@
 const websocketUrlInput = document.getElementById('websocketUrlInput');
 let storedWebsocketPreference = null;
 try {
-    storedWebsocketPreference = window.localStorage.getItem('dermascribe.websocketUrl');
+    storedWebsocketPreference = window.sessionStorage.getItem('dermascribe.websocketUrl');
 } catch (err) {
     console.warn('Unable to read websocket URL preference from localStorage', err);
 }
@@ -40,7 +40,7 @@ function setWebsocketUrl(url) {
     if (!url) return;
     websocketUrl = url.trim();
     try {
-        window.localStorage.setItem('dermascribe.websocketUrl', websocketUrl);
+        window.sessionStorage.setItem('dermascribe.websocketUrl', websocketUrl);
     } catch (err) {
         console.warn('Unable to persist websocket URL preference', err);
     }
@@ -108,19 +108,15 @@ const SUGGESTION_WORD_THRESHOLD = 25;
 const SUGGESTION_NEW_WORDS_INTERVAL = 40; 
 let isFetchingSuggestion = false;
 let shownSuggestionTexts = new Set(); 
-let sessionToken = window.localStorage.getItem('dermascribe.sessionToken') || 'development-token';
+// Session token is held in-memory; user provides it per session.
+let sessionToken = '';
 
 if (updateTokenBtn) {
     updateTokenBtn.addEventListener('click', () => {
-        const nextToken = prompt('Enter the shared access token for the AI Scribe backend:', sessionToken || '');
+        const nextToken = prompt('Enter the shared access token for the AI Scribe backend (not stored):', sessionToken || '');
         if (nextToken && nextToken.trim().length > 0) {
             sessionToken = nextToken.trim();
-            try {
-                window.localStorage.setItem('dermascribe.sessionToken', sessionToken);
-            } catch (err) {
-                console.warn('Unable to persist session token', err);
-            }
-            displayStatusMessage('Token updated. Reconnecting...', 'transcriptionOutput');
+            displayStatusMessage('Token updated for this session. Reconnecting...', 'transcriptionOutput');
             reconnectWebSocket();
         }
     });
@@ -176,6 +172,10 @@ if (SpeechRecognition) {
 function connectWebSocket() {
     if (!websocketUrl) {
         displayError('WebSocket URL is not configured. Please enter a valid endpoint.', 'transcriptionOutput');
+        return;
+    }
+    if (!sessionToken) {
+        displayError('Session token is required before connecting. Click "Update Token" to enter it for this session.', 'transcriptionOutput');
         return;
     }
 

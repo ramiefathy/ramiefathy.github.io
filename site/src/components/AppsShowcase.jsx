@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import AppDemoModal from './AppDemoModal.jsx';
 import { isEnabled, isAdmin } from '../lib/featureFlags.js';
 
@@ -72,6 +72,8 @@ export default function AppsShowcase({ apps, collections }) {
   const [showReviews, setShowReviews] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [analyticsData, setAnalyticsData] = useState({});
+  const [visibleCount, setVisibleCount] = useState(8);
+  const loadMoreRef = useRef(null);
 
   // Load analytics on mount
   useEffect(() => {
@@ -91,6 +93,28 @@ export default function AppsShowcase({ apps, collections }) {
     if (!collection) return activeApps;
     return activeApps.filter(app => collection.apps.includes(app.slug));
   }, [activeApps, activeCollection, collections]);
+
+  // Reset windowed view when filter changes
+  useEffect(() => {
+    setVisibleCount(8);
+  }, [activeCollection, filteredApps.length]);
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleCount((count) => count + 6);
+          }
+        });
+      },
+      { rootMargin: '250px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [filteredApps.length]);
 
   // Get collection for an app
   const getAppCollections = useCallback((slug) => {
@@ -118,6 +142,7 @@ export default function AppsShowcase({ apps, collections }) {
   const analyticsEnabled = isEnabled('appAnalytics');
   const adminReviewsEnabled = isEnabled('privateReviews') && isAdmin();
   const adminAnalyticsEnabled = analyticsEnabled && isAdmin();
+  const prefersReducedMotion = useReducedMotion();
 
   // Calculate total stats
   const totalStats = useMemo(() => {
@@ -170,9 +195,9 @@ export default function AppsShowcase({ apps, collections }) {
       {collectionsEnabled && activeCollection !== 'all' && (
         <motion.div
           className="collection-description"
-          initial={{ opacity: 0, y: -10 }}
+          initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
+          exit={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: -10 }}
         >
           {collections.find(c => c.id === activeCollection)?.description}
         </motion.div>
@@ -181,7 +206,7 @@ export default function AppsShowcase({ apps, collections }) {
       {/* Apps Grid */}
       <div className="app-showcase">
         <AnimatePresence mode="popLayout">
-          {filteredApps.map((app, index) => {
+          {filteredApps.slice(0, visibleCount).map((app, index) => {
             const isExternal = app.href?.startsWith('http');
             const appCollections = getAppCollections(app.slug);
             const appStats = analyticsData[app.slug] || { views: 0, demoOpens: 0 };
@@ -191,10 +216,10 @@ export default function AppsShowcase({ apps, collections }) {
                 key={app.slug}
                 className="app-showcase-card"
                 layout
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={prefersReducedMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
+                exit={prefersReducedMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
                 data-app-tilt
               >
                 <div
@@ -281,6 +306,11 @@ export default function AppsShowcase({ apps, collections }) {
               </motion.div>
             );
           })}
+          {visibleCount < filteredApps.length && (
+            <div className="app-load-more" ref={loadMoreRef} aria-live="polite">
+              Loading more applications…
+            </div>
+          )}
         </AnimatePresence>
       </div>
 
@@ -476,6 +506,12 @@ export default function AppsShowcase({ apps, collections }) {
           display: flex;
           flex-direction: column;
           gap: 3.5rem;
+        }
+
+        .app-load-more {
+          text-align: center;
+          padding: 1rem;
+          color: var(--secondary-500, #64748b);
         }
 
         .app-showcase-card {

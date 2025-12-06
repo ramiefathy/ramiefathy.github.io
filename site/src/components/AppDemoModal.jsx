@@ -10,6 +10,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function AppDemoModal({ app, isOpen, onClose }) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const prefersReducedMotion = typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
 
   // Handle escape key
   useEffect(() => {
@@ -74,7 +77,7 @@ export default function AppDemoModal({ app, isOpen, onClose }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
           onClick={onClose}
           role="dialog"
           aria-modal="true"
@@ -85,7 +88,7 @@ export default function AppDemoModal({ app, isOpen, onClose }) {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: 'easeOut' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -125,14 +128,14 @@ export default function AppDemoModal({ app, isOpen, onClose }) {
             {/* Content */}
             <div className="demo-modal-content">
               {isLoading && (
-                <div className="demo-loading">
+                <div className="demo-loading" role="status" aria-live="polite">
                   <div className="demo-spinner" />
                   <p>Loading preview...</p>
                 </div>
               )}
 
               {hasError && (
-                <div className="demo-error">
+                <div className="demo-error" role="status" aria-live="assertive">
                   <p>Unable to load preview</p>
                   <a
                     href={app.href}

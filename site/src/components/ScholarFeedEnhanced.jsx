@@ -123,7 +123,9 @@ const ScholarFeedEnhanced = () => {
   const [typeFilter, setTypeFilter] = useState('');
   const [showExport, setShowExport] = useState(null);
   const [showNetwork, setShowNetwork] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(15);
   const networkRef = useRef(null);
+  const loadMoreRef = useRef(null);
 
   // Feature flags
   const exportEnabled = isEnabled('citationExport');
@@ -140,6 +142,28 @@ const ScholarFeedEnhanced = () => {
       return matchesQuery && matchesYear && matchesType;
     });
   }, [query, yearFilter, typeFilter]);
+
+  // Reset visible window on filter change
+  useEffect(() => {
+    setVisibleCount(15);
+  }, [query, yearFilter, typeFilter]);
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleCount((count) => count + 15);
+          }
+        });
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [filtered.length]);
 
   // Build network from filtered publications
   const network = useMemo(() => buildCoauthorNetwork(filtered), [filtered]);
@@ -382,7 +406,7 @@ const ScholarFeedEnhanced = () => {
       {/* Publications list */}
       {filtered.length ? (
         <ul className="scholar-list">
-          {filtered.map((entry, index) => (
+          {filtered.slice(0, visibleCount).map((entry, index) => (
             <motion.li
               key={`${entry.title}-${entry.year}`}
               className="scholar-item"
@@ -442,6 +466,11 @@ const ScholarFeedEnhanced = () => {
               </div>
             </motion.li>
           ))}
+          {visibleCount < filtered.length && (
+            <li className="scholar-load-more" ref={loadMoreRef} aria-live="polite">
+              Loading more publications…
+            </li>
+          )}
         </ul>
       ) : (
         <p className="scholar-status">No publications match the current filters.</p>
@@ -671,6 +700,12 @@ const ScholarFeedEnhanced = () => {
           display: flex;
           flex-direction: column;
           gap: 1rem;
+        }
+
+        .scholar-load-more {
+          text-align: center;
+          padding: 0.75rem;
+          color: var(--secondary-500, #64748b);
         }
 
         .scholar-item {

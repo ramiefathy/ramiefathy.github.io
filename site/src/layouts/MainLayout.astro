@@ -34,6 +34,8 @@ const {
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2958059905874922" crossorigin="anonymous"></script>
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div id="scroll-fade-status" class="sr-only" role="status" aria-live="polite"></div>
     <slot />
     <footer class="layout-footer">
       <p>© {new Date().getFullYear()} Ramie Fathy, MD. All rights reserved.</p>
@@ -53,20 +55,47 @@ const {
     <script>
       (function(){
         const elements = document.querySelectorAll('[data-scroll-fade]');
-        if (!('IntersectionObserver' in window) || !elements.length) {
+        const status = document.getElementById('scroll-fade-status');
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        const revealAll = () => {
           elements.forEach((el) => el.classList.add('is-visible'));
+          if (status) status.textContent = '';
+        };
+
+        if (!elements.length) return;
+
+        if (!('IntersectionObserver' in window) || prefersReducedMotion.matches) {
+          revealAll();
           return;
         }
+
         const observer = new IntersectionObserver((entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
               entry.target.classList.add('is-visible');
               observer.unobserve(entry.target);
+              if (status) status.textContent = entry.target.getAttribute('data-scroll-label') || 'Section content is ready';
             }
           });
         }, { threshold: 0.15 });
         elements.forEach((el) => observer.observe(el));
+        prefersReducedMotion.addEventListener('change', () => {
+          if (prefersReducedMotion.matches) {
+            observer.disconnect();
+            revealAll();
+          }
+        });
       })();
+    </script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.warn('Service worker registration failed', err);
+          });
+        });
+      }
     </script>
   </body>
 </html>

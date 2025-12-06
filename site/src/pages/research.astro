@@ -5,7 +5,7 @@ import ScholarFeedEnhanced from '../components/ScholarFeedEnhanced.jsx';
 ---
 <MainLayout title="Research – Ramie Fathy, MD" description="Recent publications, presentations, and scholarly projects.">
   <Header client:load />
-  <main>
+  <main id="main-content">
     <section class="section">
       <div class="section__inner scroll-fade" data-scroll-fade>
         <div class="section__intro">
@@ -21,7 +21,7 @@ import ScholarFeedEnhanced from '../components/ScholarFeedEnhanced.jsx';
     </section>
     <section class="section" style="padding-top:0">
       <div class="section__inner">
-        <ScholarFeedEnhanced client:load />
+        <ScholarFeedEnhanced client:visible />
       </div>
     </section>
   </main>

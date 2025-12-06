@@ -11,7 +11,7 @@ const archived = apps.filter((app) => app.status === 'legacy');
 ---
 <MainLayout title="Applications – Ramie Fathy, MD" description="Interactive dermatology tools and prototypes developed by Dr. Ramie Fathy.">
   <Header client:load />
-  <main>
+  <main id="main-content">
     <section class="section" style="padding-top:4rem">
       <div class="section__inner">
         <div class="section__intro" style="margin-bottom:2.5rem">
@@ -22,7 +22,7 @@ const archived = apps.filter((app) => app.status === 'legacy');
         <AppsShowcase
           apps={apps}
           collections={collections}
-          client:load
+          client:visible
         />
       </div>
     </section>
@@ -83,7 +83,22 @@ const archived = apps.filter((app) => app.status === 'legacy');
       const cards = document.querySelectorAll('[data-app-tilt]');
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-      if (prefersReducedMotion.matches || !cards.length) return;
+      const disableTilt = () => {
+        cards.forEach((card) => {
+          card.classList.remove('is-hovered');
+          card.style.removeProperty('--tilt-x');
+          card.style.removeProperty('--tilt-y');
+          card.style.removeProperty('--glare-x');
+          card.style.removeProperty('--glare-y');
+        });
+      };
+
+      if (!cards.length) return;
+
+      if (prefersReducedMotion.matches) {
+        disableTilt();
+        return;
+      }
 
       cards.forEach((card) => {
         let frame = 0;

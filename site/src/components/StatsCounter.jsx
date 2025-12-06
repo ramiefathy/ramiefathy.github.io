@@ -14,11 +14,27 @@ function easeOutExpo(t) {
 function AnimatedNumber({ value, suffix = '', duration = 2000 }) {
   const [displayValue, setDisplayValue] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
 
   useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = (event) => setPrefersReducedMotion(event.matches);
+    setPrefersReducedMotion(media.matches);
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
+  }, []);
+
+  useEffect(() => {
     if (!isInView || hasAnimated) return;
+
+    if (prefersReducedMotion) {
+      setDisplayValue(value);
+      setHasAnimated(true);
+      return;
+    }
 
     setHasAnimated(true);
     const startTime = performance.now();
@@ -36,10 +52,10 @@ function AnimatedNumber({ value, suffix = '', duration = 2000 }) {
     };
 
     requestAnimationFrame(animate);
-  }, [isInView, value, duration, hasAnimated]);
+  }, [isInView, value, duration, hasAnimated, prefersReducedMotion]);
 
   return (
-    <span ref={ref} className="stats-number">
+    <span ref={ref} className="stats-number" aria-live="polite">
       {displayValue.toLocaleString()}{suffix}
     </span>
   );

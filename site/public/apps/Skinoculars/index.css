@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+/* Focus styles for keyboard navigation */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+input:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* High contrast mode */
+.high-contrast {
+  /* Increase text contrast */
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --border-color: #ffffff;
+  --bg-panel: #0f172a;
+}
+
+.high-contrast,
+.high-contrast * {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* High contrast text */
+.high-contrast h1,
+.high-contrast h2,
+.high-contrast h3,
+.high-contrast h4,
+.high-contrast h5,
+.high-contrast h6,
+.high-contrast p,
+.high-contrast span,
+.high-contrast label,
+.high-contrast button {
+  color: #ffffff !important;
+}
+
+/* High contrast muted text gets brighter */
+.high-contrast .text-slate-400,
+.high-contrast .text-slate-500,
+.high-contrast .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+/* High contrast borders */
+.high-contrast .border-slate-600,
+.high-contrast .border-slate-700,
+.high-contrast .border-slate-800 {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* High contrast panel backgrounds */
+.high-contrast .bg-slate-800,
+.high-contrast .bg-slate-800\/50,
+.high-contrast .bg-slate-900,
+.high-contrast .bg-slate-900\/90,
+.high-contrast .bg-slate-900\/95 {
+  background-color: #0f172a !important;
+}
+
+/* High contrast buttons */
+.high-contrast button:not(:disabled) {
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.high-contrast button:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* High contrast focus outlines */
+.high-contrast button:focus-visible,
+.high-contrast select:focus-visible,
+.high-contrast input:focus-visible,
+.high-contrast [tabindex]:focus-visible {
+  outline: 3px solid #60a5fa !important;
+  outline-offset: 2px;
+}
+
+/* High contrast active/selected states */
+.high-contrast .bg-blue-600,
+.high-contrast .bg-blue-600\/20 {
+  background-color: #2563eb !important;
+  border: 2px solid #60a5fa !important;
+}
+
+/* High contrast form inputs */
+.high-contrast input[type="range"] {
+  accent-color: #60a5fa !important;
+}
+
+.high-contrast input[type="checkbox"] {
+  accent-color: #60a5fa !important;
+}
+
+.high-contrast select {
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  background-color: #1e293b !important;
+}

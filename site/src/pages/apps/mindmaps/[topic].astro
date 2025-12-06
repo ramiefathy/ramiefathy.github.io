@@ -30,7 +30,7 @@ const otherMaps = available.filter((manifest) => manifest.id !== dataset.manifes
 ---
 <MainLayout title={`${dataset.manifest.title} – Interactive Mind Map`} description={`Interactive dermatology mind map for ${dataset.manifest.title}.`}>
   <Header client:load />
-  <main class="mindmap-page">
+  <main id="main-content" class="mindmap-page">
     <section class="mindmap-hero">
       <div class="mindmap-hero__content">
         <h1>{dataset.manifest.title}</h1>

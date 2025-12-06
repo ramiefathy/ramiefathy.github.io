@@ -5,8 +5,6 @@ import { marked } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
 import clsx from 'clsx';
 import saveAs from 'file-saver';
-import { toPng } from 'html-to-image';
-import jsPDF from 'jspdf';
 import type {
   LayoutMode,
   MindMapDataset,
@@ -143,24 +141,29 @@ export function markdownToHtml(tooltip?: MindMapTooltip): string {
   return DOMPurify.sanitize(raw);
 }
 
-function exportSvgAsImage(svg: SVGSVGElement, type: 'png' | 'pdf') {
+async function exportSvgAsImage(svg: SVGSVGElement, type: 'png' | 'pdf') {
   const container = svg.parentElement;
   if (!container) return;
   const width = container.clientWidth;
   const height = container.clientHeight;
-  return toPng(container, { width, height, cacheBust: true })
-    .then((dataUrl) => {
-      if (type === 'png') {
-        saveAs(dataUrl, 'mind-map.png');
-      } else {
-        const pdf = new jsPDF({ orientation: width > height ? 'landscape' : 'portrait', unit: 'px', format: [width, height] });
-        pdf.addImage(dataUrl, 'PNG', 0, 0, width, height);
-        pdf.save('mind-map.pdf');
-      }
-    })
-    .catch((error) => {
-      console.error('Failed to export mind map', error);
-    });
+  try {
+    const [{ toPng }, jsPDFModule] = await Promise.all([
+      import('html-to-image'),
+      import('jspdf')
+    ]);
+    const jsPDF = jsPDFModule.default;
+    const dataUrl = await toPng(container, { width, height, cacheBust: true });
+
+    if (type === 'png') {
+      saveAs(dataUrl, 'mind-map.png');
+    } else {
+      const pdf = new jsPDF({ orientation: width > height ? 'landscape' : 'portrait', unit: 'px', format: [width, height] });
+      pdf.addImage(dataUrl, 'PNG', 0, 0, width, height);
+      pdf.save('mind-map.pdf');
+    }
+  } catch (error) {
+    console.error('Failed to export mind map', error);
+  }
 }
 
 const prefersReducedMotion = () =>

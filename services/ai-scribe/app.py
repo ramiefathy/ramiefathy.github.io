@@ -4,6 +4,10 @@ import websockets
 import json
 import os
 import logging
+import time
+from collections import deque
+from datetime import datetime, timedelta, timezone
+import jwt
 from dotenv import load_dotenv
 
 # Import local modules
@@ -27,9 +31,90 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def log_event(action: str, **fields):
+    payload = {"action": action, **fields}
+    try:
+        logger.info(json.dumps(payload))
+    except Exception:
+        logger.info(f"{action} | {fields}")
+
+
+# Simple sliding-window rate limiter with metrics
+class RateLimiter:
+    def __init__(self, max_requests: int, window_seconds: int):
+        self.max_requests = max_requests
+        self.window = window_seconds
+        self.events = {}
+        self.metrics = {}
+
+    def allow(self, key: str):
+        now = time.time()
+        q = self.events.setdefault(key, deque())
+        metric = self.metrics.setdefault(key, {"allowed": 0, "blocked": 0, "last_block": None})
+        # Drop old events
+        while q and q[0] <= now - self.window:
+            q.popleft()
+        if len(q) >= self.max_requests:
+            metric["blocked"] += 1
+            metric["last_block"] = now
+            retry_after = max(1, int(self.window - (now - q[0])))
+            if metric["blocked"] % RATE_LIMIT_ALERT_THRESHOLD == 0:
+                log_event("rate_limit_alert", client=key, blocked=metric["blocked"], window=self.window)
+            return False, retry_after
+        q.append(now)
+        metric["allowed"] += 1
+        return True, None
+
+    def snapshot(self):
+        return self.metrics.copy()
+
+
 # Initialize services
 session_manager = SessionManager()
 gemini_service = None
+rate_limiter = RateLimiter(max_requests=60, window_seconds=60)  # 60 messages/minute per client
+RATE_LIMIT_ALERT_THRESHOLD = int(os.getenv("RATE_LIMIT_ALERT_THRESHOLD", "20"))
+JWT_TTL_MINUTES = 15
+LEGACY_SUBJECT = "legacy-client"
+
+
+def issue_jwt(subject: str) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": subject,
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=JWT_TTL_MINUTES)).timestamp()),
+    }
+    return jwt.encode(payload, config.SESSION_SECRET, algorithm="HS256")
+
+
+def verify_jwt(token: str):
+    try:
+        return jwt.decode(token, config.SESSION_SECRET, algorithms=["HS256"])
+    except jwt.PyJWTError as exc:
+        raise ValueError(f"Invalid token: {exc}")
+
+
+def build_client_key(claims_sub: str | None, session_id: str | None, remote_address):
+    """
+    Generate a rate-limit bucket key with better isolation for legacy clients.
+
+    - Modern clients keep using their JWT subject for per-user limiting.
+    - Legacy (shared-secret) clients get a unique key per connection using the server-issued
+      session_id; if unavailable, fall back to the client IP to avoid global coupling.
+    """
+
+    if claims_sub and claims_sub != LEGACY_SUBJECT:
+        return claims_sub
+
+    if session_id:
+        return f"{LEGACY_SUBJECT}:{session_id}"
+
+    if remote_address:
+        ip = remote_address[0] if isinstance(remote_address, tuple) else str(remote_address)
+        return f"{LEGACY_SUBJECT}:{ip}"
+
+    return LEGACY_SUBJECT
 
 
 def get_gemini_service():
@@ -97,6 +182,7 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
     Handles WebSocket connections and messages from clients.
     """
     session_id = None
+    client_key = None
     try:
         origin = websocket.request_headers.get('Origin')
         if origin and origin not in config.ALLOWED_ORIGINS:
@@ -104,22 +190,61 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
             await websocket.close(code=4003, reason="Origin not allowed")
             return
 
+        bearer_header = websocket.request_headers.get('Authorization')
         auth_header = websocket.request_headers.get('X-Auth-Token')
         query_token = None
         if path and '?' in path:
             parsed = urlparse(path)
             query_token = parse_qs(parsed.query).get('token', [None])[0]
-        token = auth_header or query_token
-        if token is None or token != config.SESSION_SECRET:
-            logger.warning("Rejected connection due to missing or invalid session token")
+
+        raw_token = auth_header or query_token
+        presented_token = None
+
+        if bearer_header and bearer_header.lower().startswith("bearer "):
+            presented_token = bearer_header.split(" ", 1)[1].strip()
+        elif raw_token:
+            presented_token = raw_token.strip()
+
+        claims = None
+        issued_jwt = None
+
+        # Accept either a signed JWT or the shared secret (for legacy clients); if shared secret, issue a short-lived JWT.
+        if presented_token:
+            if presented_token == config.SESSION_SECRET:
+                claims = {"sub": LEGACY_SUBJECT}
+                issued_jwt = issue_jwt(claims["sub"])
+            else:
+                try:
+                    claims = verify_jwt(presented_token)
+                except ValueError as exc:
+                    logger.warning(f"Rejected connection due to invalid JWT: {exc}")
+                    await websocket.close(code=4008, reason="Authentication required")
+                    return
+        else:
+            logger.warning("Rejected connection due to missing token")
             await websocket.close(code=4008, reason="Authentication required")
             return
 
         session_id = session_manager.create_session()
-        logger.info(f"Client connected: {websocket.remote_address}, Path: {path}, Session ID: {session_id}")
-        await websocket.send(json.dumps({"type": "connection_ack", "sessionId": session_id, "message": "Connected to AI Scribe Server"}))
+        client_key = build_client_key(claims.get("sub") if claims else None, session_id, websocket.remote_address)
+        log_event("connection", session_id=session_id, client=client_key, path=path, address=str(websocket.remote_address))
+        ack_payload = {"type": "connection_ack", "sessionId": session_id, "message": "Connected to AI Scribe Server"}
+        if issued_jwt:
+            ack_payload["token"] = issued_jwt
+        await websocket.send(json.dumps(ack_payload))
 
         async for message_str in websocket:
+            message_start = time.perf_counter()
+            message_type = "unknown"
+            allowed, retry_after = rate_limiter.allow(client_key)
+            if not allowed:
+                await websocket.send(json.dumps({
+                    "type": "error",
+                    "message": "Rate limit exceeded. Please slow down and retry.",
+                    "retryAfter": retry_after
+                }))
+                log_event("rate_limited", client=client_key, session_id=session_id, retry_after=retry_after)
+                continue
             message = json.loads(message_str)
             message_type = message.get("type")
             data = message.get("data", {})
@@ -309,6 +434,16 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                 logger.warning(f"Unknown message type received: {message_type} from {current_session_id_to_use}")
                 await websocket.send(json.dumps({"type": "error", "message": f"Unknown message type: {message_type}"}))
 
+            duration_ms = int((time.perf_counter() - message_start) * 1000)
+            log_event(
+                "message_processed",
+                session_id=session_id,
+                client=client_key,
+                message_type=message_type,
+                latency_ms=duration_ms,
+                rate_limit=rate_limiter.snapshot().get(client_key, {})
+            )
+
     except websockets.exceptions.ConnectionClosedOK:
         logger.info(f"Client disconnected: {websocket.remote_address}, Session ID: {session_id}")
     except websockets.exceptions.ConnectionClosedError as e:
@@ -323,7 +458,7 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
     finally:
         if session_id:
             session_manager.remove_session(session_id)
-            logger.info(f"Session {session_id} cleaned up.")
+            log_event("session_cleanup", session_id=session_id, client=client_key, rate_limit=rate_limiter.snapshot().get(client_key, {}))
 
 async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=None):
     session = session_manager.get_session(session_id)
