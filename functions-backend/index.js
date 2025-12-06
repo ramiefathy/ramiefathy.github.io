@@ -7,6 +7,7 @@
 // Use 1st gen API surface per Firebase guidance for Node.js 20 runtime
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
+const crypto = require('crypto');
 const cors = require('cors')({ origin: true });
 const PDFDocument = require('pdfkit');
 const {
@@ -57,6 +58,33 @@ const syncExternal = require('./src/sync/external');
 
 // ==================== Helper Functions ====================
 // (Extracted to src/utils/ and src/config/ modules)
+
+function generateSecureInviteCode(length = 8) {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.randomBytes(length);
+  let code = '';
+  for (let i = 0; i < length; i += 1) {
+    code += chars[bytes[i] % chars.length];
+  }
+  return code;
+}
+
+function mapAccountTypeToRole(accountType) {
+  switch (accountType) {
+    case 'admin':
+      return 'admin';
+    case 'program_coordinator':
+      return 'program_admin';
+    case 'chief_resident':
+      return 'chief_resident';
+    case 'physician':
+      return 'member';
+    case 'resident':
+      return 'member';
+    default:
+      return 'member';
+  }
+}
 
 // ==================== 1. AUTO-SCHEDULING FUNCTION ====================
 
@@ -161,6 +189,153 @@ exports.autoSchedule = functions.https.onCall(async (data, context) => {
     };
   } catch (error) {
     console.error('Auto-scheduling error:', error);
+    throw new functions.https.HttpsError('internal', error.message);
+  }
+});
+
+// ==================== 1b. BULK INVITE MEMBERS FUNCTION ====================
+
+exports.bulkInviteMembers = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+  }
+
+  const { institutionId, invites } = data || {};
+
+  if (!institutionId || !Array.isArray(invites) || invites.length === 0) {
+    throw new functions.https.HttpsError('invalid-argument', 'institutionId and non-empty invites array are required');
+  }
+
+  if (invites.length > 50) {
+    throw new functions.https.HttpsError('invalid-argument', 'Too many invites in a single request (max 50).');
+  }
+
+  try {
+    const institutionRef = db.collection('institutions').doc(institutionId);
+    const institutionSnap = await institutionRef.get();
+
+    if (!institutionSnap.exists) {
+      throw new functions.https.HttpsError('not-found', 'Institution not found');
+    }
+
+    const institution = institutionSnap.data();
+    const members = Array.isArray(institution.members) ? institution.members : [];
+    const callerMember = members.find((m) => m.userId === context.auth.uid) || null;
+    const allowedRoles = ['admin', 'program_admin', 'chief_resident', 'scheduler'];
+
+    if (!callerMember || !allowedRoles.includes(callerMember.role)) {
+      throw new functions.https.HttpsError('permission-denied', 'Insufficient permissions to invite members');
+    }
+
+    const now = admin.firestore.Timestamp.now();
+    const expiresAt = admin.firestore.Timestamp.fromDate(
+      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    );
+
+    const results = [];
+
+    for (const rawInvite of invites) {
+      try {
+        const name = (rawInvite && rawInvite.name ? String(rawInvite.name) : '').trim();
+        const email = (rawInvite && rawInvite.email ? String(rawInvite.email) : '').trim();
+        const programRole = rawInvite && rawInvite.programRole ? String(rawInvite.programRole) : null;
+        const accountType = rawInvite && rawInvite.accountType ? String(rawInvite.accountType) : 'member';
+
+        if (!email) {
+          throw new Error('Email is required');
+        }
+
+        const internalRole = mapAccountTypeToRole(accountType);
+        const code = generateSecureInviteCode(8);
+
+        const inviteDocRef = db.collection('inviteCodes').doc(code);
+
+        await inviteDocRef.set({
+          institutionId,
+          role: internalRole,
+          recipientName: name,
+          recipientEmail: email.toLowerCase(),
+          programRole,
+          createdBy: context.auth.uid,
+          createdAt: now,
+          expiresAt,
+          used: false,
+          singleUse: true
+        });
+
+        const subject = `Invitation to join ${institution.name || 'Clinic Scheduler Pro'}`;
+        const loginUrl = 'https://clinicscheduler.com'; // Frontend entrypoint
+
+        const safeName = name || 'Colleague';
+        const roleLabel = (() => {
+          switch (accountType) {
+            case 'admin':
+              return 'Admin';
+            case 'program_coordinator':
+              return 'Program Coordinator';
+            case 'chief_resident':
+              return 'Chief Resident';
+            case 'physician':
+              return 'Physician (read-only)';
+            case 'resident':
+              return 'Resident (read-only)';
+            default:
+              return 'Member';
+          }
+        })();
+
+        const html = [
+          `<h2>Clinic Scheduler Invitation</h2>`,
+          `<p>Hi ${safeName},</p>`,
+          `<p>${institution.name || 'Your program'} has invited you to join Clinic Scheduler as a <strong>${roleLabel}</strong>.</p>`,
+          `<p>To accept this invitation:</p>`,
+          '<ol>',
+          `<li>Go to <a href="${loginUrl}">${loginUrl}</a>.</li>`,
+          '<li>Create an account or sign in.</li>',
+          `<li>Enter the invite code <strong>${code}</strong> when prompted.</li>`,
+          '</ol>',
+          '<p>This code is single-use and will expire in 7 days.</p>',
+          '<hr>',
+          `<p><small>Sent by ${callerMember.name || 'Clinic Scheduler Admin'}</small></p>`
+        ].join('\n');
+
+        const textLines = [
+          `Clinic Scheduler Invitation`,
+          ``,
+          `Hi ${safeName},`,
+          `${institution.name || 'Your program'} has invited you to join Clinic Scheduler as a ${roleLabel}.`,
+          ``,
+          `To accept, go to ${loginUrl}, create an account or sign in,`,
+          `and enter invite code: ${code}`,
+          ``,
+          `This code is single-use and will expire in 7 days.`
+        ];
+
+        const text = textLines.join('\n');
+
+        await sendEmail(email, subject, html, text);
+
+        results.push({ email, success: true });
+      } catch (inviteError) {
+        console.error('Bulk invite error for row:', inviteError);
+        results.push({
+          email: rawInvite && rawInvite.email ? String(rawInvite.email) : null,
+          success: false,
+          error: inviteError.message
+        });
+      }
+    }
+
+    const sent = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success);
+
+    return {
+      success: failed.length === 0,
+      sent,
+      failed
+    };
+  } catch (error) {
+    console.error('bulkInviteMembers error:', error);
     throw new functions.https.HttpsError('internal', error.message);
   }
 });

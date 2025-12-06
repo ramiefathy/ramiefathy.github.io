@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Contexts
-import { useApp } from '../contexts/AppContext';
+import { useApp, usePermissions } from '../contexts/AppContext';
 import { toast, Toaster } from '../contexts/ToastContext';
 
 // Components
@@ -14,6 +14,7 @@ import { Icon, LoadingSpinner, Modal } from './shared';
 import LoginPage from './auth/LoginPage';
 import Dashboard from './dashboard/Dashboard';
 import ScheduleCalendar from './schedule/ScheduleCalendar';
+import ScheduleRequests from './schedule/ScheduleRequests';
 import AttendingsList from './people/AttendingsList';
 import ResidentsList from './people/ResidentsList';
 import RulesList from './rules/RulesList';
@@ -22,6 +23,7 @@ import ChatAssistantPanel, { AssistantGuideView } from './chat/ChatAssistantPane
 
 const App = () => {
     const { user, loading, firebaseService } = useApp();
+    const { canSchedule } = usePermissions();
     const [activeView, setActiveView] = useState('dashboard');
     const [scheduleFilterData, setScheduleFilterData] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -55,6 +57,7 @@ const App = () => {
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
         { id: 'schedule', label: 'Schedule', icon: 'calendar' },
+        ...(canSchedule ? [{ id: 'requests', label: 'Requests', icon: 'inbox' }] : []),
         { id: 'attendings', label: 'Attendings', icon: 'users' },
         { id: 'residents', label: 'Residents', icon: 'user-check' },
         { id: 'rules', label: 'Rules', icon: 'shield-check' },
@@ -227,7 +230,7 @@ const App = () => {
                                 {/* Navigation Items */}
                                 <nav className="flex-1 p-4">
                                     <ul className="space-y-2">
-                                        {navItems.map(item => (
+                        {navItems.map(item => (
                                             <li key={item.id}>
                                                 <button
                                                     onClick={() => handleNavClick(item.id)}
@@ -278,6 +281,7 @@ const App = () => {
                         onOpenChatAssistant={() => setShowChatAssistant(true)}
                     />
                 )}
+                {activeView === 'requests' && <ScheduleRequests />}
                 {activeView === 'attendings' && <AttendingsList navigateToSchedule={navigateToSchedule} />}
                 {activeView === 'residents' && <ResidentsList navigateToSchedule={navigateToSchedule} />}
                 {activeView === 'rules' && <RulesList />}

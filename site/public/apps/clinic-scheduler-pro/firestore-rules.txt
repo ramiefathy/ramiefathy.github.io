@@ -107,6 +107,23 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+      // ==================== Schedule Requests Subcollection ====================
+      match /scheduleRequests/{requestId} {
+        // Members can create requests for their institution
+        allow create: if isInstitutionMember(institutionId)
+          && request.resource.data.requestedBy == request.auth.uid;
+
+        // Schedulers can read all requests; members can read their own
+        allow read: if isScheduler(institutionId)
+          || (isInstitutionMember(institutionId) && resource.data.requestedBy == request.auth.uid);
+
+        // Only schedulers can update (approve/reject) requests
+        allow update: if isScheduler(institutionId);
+
+        // Requests cannot be deleted via client
+        allow delete: if false;
+      }
+
       // ==================== Backups Subcollection ====================
       match /backups/{backupId} {
         // Only Cloud Functions can read/write backups
