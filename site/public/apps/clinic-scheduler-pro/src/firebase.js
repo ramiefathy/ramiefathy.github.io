@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -68,6 +69,23 @@ function initFirebase() {
   }
 
   functionsInstance = getFunctions(appInstance);
+  // Optional App Check (requires site key set via Vite env or process env)
+  const appCheckSiteKey =
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_APP_CHECK_KEY) ||
+    process.env.FIREBASE_APP_CHECK_KEY;
+
+  if (typeof window !== 'undefined' && appCheckSiteKey) {
+    try {
+      initializeAppCheck(appInstance, {
+        provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
+        isTokenAutoRefreshEnabled: true
+      });
+      console.info('App Check initialized');
+    } catch (error) {
+      console.warn('App Check initialization failed', error);
+    }
+  }
+
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
     connectFunctionsEmulator(functionsInstance, 'localhost', 5001);
   }

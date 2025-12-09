@@ -1064,9 +1064,26 @@ exports.syncWithExternalSystem = functions.https.onRequest((req, res) => {
     const secret = functions.config().webhook?.secret;
     const providedSecret = req.headers['x-webhook-secret'] || req.headers['x-api-key'];
 
-    if (secret && providedSecret !== secret) {
-      res.status(401).json({ success: false, error: 'invalid-secret' });
-      return;
+    // Enforce webhook secret when configured; otherwise require a valid Firebase ID token.
+    if (secret) {
+      if (providedSecret !== secret) {
+        res.status(401).json({ success: false, error: 'invalid-secret' });
+        return;
+      }
+    } else {
+      const authHeader = req.headers.authorization || '';
+      const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+      if (!idToken) {
+        res.status(401).json({ success: false, error: 'unauthenticated' });
+        return;
+      }
+      try {
+        await admin.auth().verifyIdToken(idToken);
+      } catch (err) {
+        console.error('Invalid ID token for syncWithExternalSystem', err);
+        res.status(401).json({ success: false, error: 'unauthenticated' });
+        return;
+      }
     }
 
     const { action, institutionId, payload = {}, options = {} } = req.body || {};
