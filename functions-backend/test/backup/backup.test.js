@@ -16,11 +16,10 @@ describe('Backup Module', () => {
   let mockInstitutionRef;
   let mockBackupRef;
   let mockPayloadRef;
-  let serverTimestampStub;
 
   beforeEach(() => {
     // Stub serverTimestamp
-    serverTimestampStub = sinon.stub(admin.firestore.FieldValue, 'serverTimestamp').returns('TIMESTAMP');
+    sinon.stub(admin.firestore.FieldValue, 'serverTimestamp').returns('TIMESTAMP');
 
     // Mock Firestore database
     mockDb = {
@@ -60,7 +59,7 @@ describe('Backup Module', () => {
         }
         return {
           get: sinon.stub().resolves({ docs: [], size: 0, empty: true }),
-          doc: sinon.stub().callsFake((id) => ({
+          doc: sinon.stub().callsFake((_id) => ({
             set: sinon.stub().resolves()
           })),
           limit: sinon.stub().returnsThis()
@@ -309,7 +308,7 @@ describe('Backup Module', () => {
       ];
 
       const mockBackupCollection = {
-        doc: sinon.stub().callsFake((backupId) => ({
+        doc: sinon.stub().callsFake((_backupId) => ({
           collection: sinon.stub().withArgs('payload').returns({
             get: sinon.stub().resolves({ docs: mockPayloadDocs })
           })
@@ -376,7 +375,7 @@ describe('Backup Module', () => {
         get: sinon.stub()
           .onFirstCall().resolves({ docs: mockExistingDocs, empty: false })
           .onSecondCall().resolves({ docs: [], empty: true }),
-        doc: sinon.stub().callsFake((id) => ({ set: sinon.stub().resolves() }))
+        doc: sinon.stub().callsFake((_id) => ({ set: sinon.stub().resolves() }))
       };
 
       mockInstitutionRef.collection.withArgs('assignments').returns(mockAssignmentsCollection);

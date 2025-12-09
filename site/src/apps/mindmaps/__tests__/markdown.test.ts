@@ -1,5 +1,25 @@
-import { describe, expect, it } from 'vitest';
-import { markdownToHtml } from '../MindMapApp';
+import { describe, expect, it, vi, beforeAll } from 'vitest';
+
+vi.mock('isomorphic-dompurify', () => ({
+  default: {
+    sanitize: (html: string) => html.replace(/<script.*?>.*?<\/script>/gis, '')
+  }
+}));
+
+vi.mock('jspdf', () => ({
+  jsPDF: class {
+    addPage() {}
+    addImage() {}
+    text() {}
+    save() {}
+  }
+}));
+
+let markdownToHtml: typeof import('../MindMapApp').markdownToHtml;
+
+beforeAll(async () => {
+  ({ markdownToHtml } = await import('../MindMapApp'));
+});
 
 describe('markdownToHtml', () => {
   it('renders markdown bullet lists', () => {

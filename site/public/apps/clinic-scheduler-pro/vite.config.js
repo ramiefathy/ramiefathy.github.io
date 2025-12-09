@@ -30,7 +30,7 @@ export default defineConfig({
             return 'assets/[name]-[hash][extname]';
           }
           if (name.endsWith('.css')) {
-            return 'styles/[name]';
+            return 'styles/[name][extname]';
           }
           return 'chunks/[name]-[hash][extname]';
         },

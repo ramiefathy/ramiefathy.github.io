@@ -20,6 +20,8 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
     const [formData, setFormData] = useState({
         name: resident.name || '',
         pgyStatus: resident.pgyStatus || 'PGY-1',
+        areEligible: resident.areEligible ?? false,
+        areActive: resident.areActive ?? false,
         continuityDay: resident.continuityDay || '',
         continuityTime: resident.continuityTime || '',
         continuitySiteId: resident.continuitySiteId || '',
@@ -28,7 +30,8 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
         vacationWeeks: resident.vacationWeeks || [],
         ...resident
     });
-
+    const [halfDayDate, setHalfDayDate] = useState('');
+    const [halfDaySlot, setHalfDaySlot] = useState('AM');
     const [editingMonth, setEditingMonth] = useState(null);
 
     const getMonthName = (monthStr) => {
@@ -94,6 +97,33 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
                     <option value="PGY-4">PGY-4</option>
                     <option value="PGY-5+">PGY-5+</option>
                 </select>
+            </div>
+
+            <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">ARE (Additional Research Elective)</label>
+                <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.areEligible}
+                            onChange={(e) => setFormData({ ...formData, areEligible: e.target.checked })}
+                            className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Eligible for ARE</span>
+                    </label>
+                    {formData.areEligible && (
+                        <label className="flex items-center gap-2 ml-6">
+                            <input
+                                type="checkbox"
+                                checked={formData.areActive}
+                                onChange={(e) => setFormData({ ...formData, areActive: e.target.checked })}
+                                className="rounded"
+                            />
+                            <span className="text-sm text-gray-700">Currently using ARE time</span>
+                        </label>
+                    )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">For PGY-2+ residents with approved research time</p>
             </div>
 
             <div>
@@ -248,6 +278,70 @@ const ResidentForm = ({ resident, onSave, onCancel }) => {
                                     </div>
                                 );
                             })}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Half Days Off</label>
+                <p className="text-xs text-gray-500 mb-2">Select specific dates when this resident is unavailable (AM or PM)</p>
+                <div className="space-y-2">
+                    <div className="flex gap-2 items-center">
+                        <input
+                            type="date"
+                            className="px-3 py-2 border rounded-lg"
+                            value={halfDayDate || ''}
+                            onChange={(e) => setHalfDayDate(e.target.value)}
+                        />
+                        <select
+                            className="px-3 py-2 border rounded-lg"
+                            value={halfDaySlot}
+                            onChange={(e) => setHalfDaySlot(e.target.value)}
+                        >
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                if (!halfDayDate) return;
+                                const newEntry = { date: halfDayDate, timeSlot: halfDaySlot };
+                                const exists = formData.halfDaysOff?.some(
+                                    h => h.date === halfDayDate && h.timeSlot === halfDaySlot
+                                );
+                                if (exists) return;
+                                setFormData({
+                                    ...formData,
+                                    halfDaysOff: [...(formData.halfDaysOff || []), newEntry]
+                                });
+                                setHalfDayDate('');
+                            }}
+                        >
+                            Add
+                        </Button>
+                    </div>
+                    {formData.halfDaysOff?.length > 0 && (
+                        <div className="space-y-1 max-h-32 overflow-y-auto border rounded-lg p-2">
+                            {formData.halfDaysOff.sort((a, b) => a.date.localeCompare(b.date)).map((off, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-1 hover:bg-gray-50 rounded">
+                                    <span className="text-sm">
+                                        {new Date(off.date).toLocaleDateString()} ({off.timeSlot})
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData({
+                                                ...formData,
+                                                halfDaysOff: formData.halfDaysOff.filter((_, i) => i !== idx)
+                                            });
+                                        }}
+                                        className="text-red-600 hover:text-red-700"
+                                    >
+                                        <Icon name="x" size={14} />
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>

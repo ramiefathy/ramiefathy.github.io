@@ -3,17 +3,19 @@
 @tailwind utilities;
 
 :root {
-    --body-bg: #f0fdfa;
+    --body-bg: radial-gradient(circle at 20% 20%, rgba(16, 149, 164, 0.12), transparent 26%),
+                radial-gradient(circle at 80% 0%, rgba(62, 184, 206, 0.14), transparent 30%),
+                #e9f9fb;
     --surface-bg: rgba(255, 255, 255, 0.82);
     --surface-border: rgba(148, 163, 184, 0.18);
-    --text-color: rgba(15, 60, 82, 0.86);
-    --muted-text: rgba(71, 85, 105, 0.7);
-    --glass-bg: rgba(255, 255, 255, 0.1);
+    --text-color: rgba(12, 60, 78, 0.9);
+    --muted-text: rgba(71, 85, 105, 0.72);
+    --glass-bg: rgba(255, 255, 255, 0.08);
     --glass-border: rgba(255, 255, 255, 0.18);
     --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.06);
     --shadow-md: 0 10px 20px rgba(15, 23, 42, 0.1);
-    --shadow-lg: 0 20px 45px rgba(15, 23, 42, 0.15);
-    --shadow-xl: 0 25px 50px rgba(15, 23, 42, 0.25);
+    --shadow-lg: 0 18px 45px rgba(12, 74, 110, 0.18);
+    --shadow-xl: 0 25px 60px rgba(12, 74, 110, 0.28);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -57,18 +59,18 @@
 }
 
 * {
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Inter', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 body {
-    background: linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 100%);
+    background: var(--body-bg);
     min-height: 100vh;
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     color: var(--text-color);
+    -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Sans', 'Inter', sans-serif;
     letter-spacing: -0.01em;
 }
 
@@ -90,6 +92,53 @@ h1, h2, h3, h4, h5, h6 {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #0d9488, #0f766e);
+}
+
+.glass-card {
+    background: var(--surface-bg);
+    border: 1px solid var(--surface-border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-lg);
+    border-radius: 1rem;
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(20px);
+    border-radius: 1rem;
+}
+
+.fade-in-up {
+    animation: fade-in-up 320ms ease forwards;
+}
+
+.scale-in {
+    animation: scale-in 260ms ease forwards;
+}
+
+.mesh-bg {
+    background: var(--body-bg);
+}
+
+@keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 .calendar-grid {

@@ -34,13 +34,12 @@ import {
 import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyC-f7H_RLTbwaKOhwDiYPfF3knzPMKWVeQ',
-  authDomain: 'autoclinicscheduler.firebaseapp.com',
-  projectId: 'autoclinicscheduler',
-  storageBucket: 'autoclinicscheduler.firebasestorage.app',
-  messagingSenderId: '1032685115214',
-  appId: '1:1032685115214:web:fec2c2ed4999a8eb84701f',
-  measurementId: 'G-JHWKCQNPNR'
+  apiKey: 'AIzaSyAjc_1u8c90BTo7LKr2gQEbqLGtRpAirYw',
+  authDomain: 'clinic-scheduler-pro-2025.firebaseapp.com',
+  projectId: 'clinic-scheduler-pro-2025',
+  storageBucket: 'clinic-scheduler-pro-2025.firebasestorage.app',
+  messagingSenderId: '639544487868',
+  appId: '1:639544487868:web:9cb610869424e858c8c5b9'
 };
 
 let appInstance;

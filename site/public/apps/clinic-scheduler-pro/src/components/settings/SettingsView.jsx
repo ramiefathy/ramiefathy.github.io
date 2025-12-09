@@ -86,6 +86,12 @@ const RotationForm = ({ rotation, sites, existingRotations, onSave, onCancel }) 
         siteIds: rotation.siteIds || [],
         isMultiSite: rotation.isMultiSite || false,
         requirements: rotation.requirements || {},
+        // Scheduling rules
+        allowsSST: rotation.allowsSST ?? true,
+        allowsARE: rotation.allowsARE ?? false,
+        requiresClinics: rotation.requiresClinics ?? true,
+        isConsultService: rotation.isConsultService ?? false,
+        isFloat: rotation.isFloat ?? false,
         ...rotation
     });
 
@@ -148,6 +154,59 @@ const RotationForm = ({ rotation, sites, existingRotations, onSave, onCancel }) 
                     ))}
                 </div>
             </div>
+
+            {/* Scheduling Rules Section */}
+            <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Scheduling Rules</label>
+                <div className="space-y-3">
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.requiresClinics}
+                            onChange={(e) => setFormData({ ...formData, requiresClinics: e.target.checked })}
+                            className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Requires clinic staffing</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.isConsultService}
+                            onChange={(e) => setFormData({ ...formData, isConsultService: e.target.checked, requiresClinics: e.target.checked ? false : formData.requiresClinics })}
+                            className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Consult service (CC only, no clinics)</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.isFloat}
+                            onChange={(e) => setFormData({ ...formData, isFloat: e.target.checked })}
+                            className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Float rotation (covers vacations)</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.allowsSST}
+                            onChange={(e) => setFormData({ ...formData, allowsSST: e.target.checked })}
+                            className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Allows SST (Self-Study Time)</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.allowsARE}
+                            onChange={(e) => setFormData({ ...formData, allowsARE: e.target.checked })}
+                            className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Allows ARE (Additional Research Elective)</span>
+                    </label>
+                </div>
+            </div>
+
             <div className="flex justify-end gap-2">
                 <Button variant="secondary" onClick={onCancel}>Cancel</Button>
                 <Button type="submit">Save Rotation</Button>
@@ -350,11 +409,10 @@ const SettingsView = () => {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                                activeTab === tab.id
-                                    ? 'border-primary-500 text-primary-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
+                            className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === tab.id
+                                ? 'border-primary-500 text-primary-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
                         >
                             <Icon name={tab.icon} size={16} />
                             {tab.name}
@@ -368,30 +426,30 @@ const SettingsView = () => {
                     {activeTab === 'general' && (
                         <div>
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Institution Settings</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Institution Name</label>
-                                <input
-                                    type="text"
-                                    value={settings.institutionName}
-                                    onChange={(e) => setSettings({ ...settings, institutionName: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
-                                />
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Institution Name</label>
+                                    <input
+                                        type="text"
+                                        value={settings.institutionName}
+                                        onChange={(e) => setSettings({ ...settings, institutionName: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-lg"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
+                                    <select
+                                        value={settings.timezone}
+                                        onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
+                                        className="w-full px-3 py-2 border rounded-lg"
+                                    >
+                                        <option value="America/New_York">Eastern Time</option>
+                                        <option value="America/Chicago">Central Time</option>
+                                        <option value="America/Denver">Mountain Time</option>
+                                        <option value="America/Los_Angeles">Pacific Time</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
-                                <select
-                                    value={settings.timezone}
-                                    onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
-                                >
-                                    <option value="America/New_York">Eastern Time</option>
-                                    <option value="America/Chicago">Central Time</option>
-                                    <option value="America/Denver">Mountain Time</option>
-                                    <option value="America/Los_Angeles">Pacific Time</option>
-                                </select>
-                            </div>
-                        </div>
                         </div>
                     )}
 
@@ -469,6 +527,20 @@ const SettingsView = () => {
                                             <div className="text-sm text-gray-500">
                                                 {rotation.isMultiSite ? 'Multi-site' : 'Single site'} •
                                                 {rotation.siteIds?.length || 0} site(s)
+                                            </div>
+                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                {rotation.isConsultService && (
+                                                    <span className="px-1.5 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">Consult</span>
+                                                )}
+                                                {rotation.isFloat && (
+                                                    <span className="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded">Float</span>
+                                                )}
+                                                {rotation.allowsSST && (
+                                                    <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">SST</span>
+                                                )}
+                                                {rotation.allowsARE && (
+                                                    <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded">ARE</span>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="flex gap-2">

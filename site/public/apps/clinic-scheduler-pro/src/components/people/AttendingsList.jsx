@@ -39,6 +39,7 @@ const AttendingForm = ({ attending, onSave, onCancel }) => {
         return {
             name: normalized.name || '',
             rotationIds: normalized.rotationIds || [],
+            requiredRotationId: normalized.requiredRotationId || null,
             clinics,
             scheduleOverrides: normalized.scheduleOverrides || [],
             email: normalized.email || '',
@@ -147,6 +148,7 @@ const AttendingForm = ({ attending, onSave, onCancel }) => {
             ...attending,
             name: formData.name.trim(),
             rotationIds: formData.rotationIds || [],
+            requiredRotationId: formData.requiredRotationId || null,
             clinics: cleanedClinics,
             scheduleOverrides: formData.scheduleOverrides || [],
             email: formData.email?.trim() || '',
@@ -244,6 +246,23 @@ const AttendingForm = ({ attending, onSave, onCancel }) => {
             </div>
 
             <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Required Rotation (for Surgeons)</label>
+                <p className="text-xs text-gray-500 mb-2">If set, only residents on this rotation can be assigned</p>
+                <select
+                    value={formData.requiredRotationId || ''}
+                    onChange={(e) => setFormData(current => ({ ...current, requiredRotationId: e.target.value || null }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                >
+                    <option value="">No requirement (any rotation)</option>
+                    {rotations.map(rotation => (
+                        <option key={rotation.id} value={rotation.id}>
+                            {rotation.name} ({rotation.code})
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div>
                 <div className="flex items-center justify-between mb-3">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Clinics & Default Schedule</label>
@@ -338,13 +357,12 @@ const AttendingForm = ({ attending, onSave, onCancel }) => {
                                                                             <button
                                                                                 type="button"
                                                                                 onClick={() => toggleClinicSession(clinic.id, day.id, slot)}
-                                                                                className={`w-full h-10 rounded border text-xs transition-colors ${
-                                                                                    isSelected
-                                                                                        ? 'bg-primary-100 border-primary-300 text-primary-700'
-                                                                                        : isWeekend
+                                                                                className={`w-full h-10 rounded border text-xs transition-colors ${isSelected
+                                                                                    ? 'bg-primary-100 border-primary-300 text-primary-700'
+                                                                                    : isWeekend
                                                                                         ? 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
                                                                                         : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-                                                                                }`}
+                                                                                    }`}
                                                                             >
                                                                                 {isSelected ? 'Scheduled' : '—'}
                                                                             </button>
@@ -480,37 +498,37 @@ const AttendingsList = ({ navigateToSchedule }) => {
                                     return sum + (sessions * capacity);
                                 }, 0) || 0;
                                 return (
-                                <tr key={attending.id} className="border-b hover:bg-gray-50">
-                                    <td className="py-3 px-4">{attending.name}</td>
-                                    <td className="py-3 px-4">{sessionCount} default sessions/week</td>
-                                    <td className="py-3 px-4">{totalCapacity} resident slots/week</td>
-                                    <td className="py-3 px-4">
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => navigateToSchedule('attending', attending.id)}
-                                                className="text-blue-600 hover:text-blue-700"
-                                                title="View Schedule"
-                                            >
-                                                <Icon name="calendar" size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => setEditingAttending(normalizeAttendingRecord(attending, sites))}
-                                                className="text-primary-600 hover:text-primary-700"
-                                                title="Edit"
-                                            >
-                                                <Icon name="pencil" size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(attending.id)}
-                                                className="text-red-600 hover:text-red-700"
-                                                title="Delete"
-                                            >
-                                                <Icon name="trash" size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
+                                    <tr key={attending.id} className="border-b hover:bg-gray-50">
+                                        <td className="py-3 px-4">{attending.name}</td>
+                                        <td className="py-3 px-4">{sessionCount} default sessions/week</td>
+                                        <td className="py-3 px-4">{totalCapacity} resident slots/week</td>
+                                        <td className="py-3 px-4">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => navigateToSchedule('attending', attending.id)}
+                                                    className="text-blue-600 hover:text-blue-700"
+                                                    title="View Schedule"
+                                                >
+                                                    <Icon name="calendar" size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => setEditingAttending(normalizeAttendingRecord(attending, sites))}
+                                                    className="text-primary-600 hover:text-primary-700"
+                                                    title="Edit"
+                                                >
+                                                    <Icon name="pencil" size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(attending.id)}
+                                                    className="text-red-600 hover:text-red-700"
+                                                    title="Delete"
+                                                >
+                                                    <Icon name="trash" size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
                             })}
                         </tbody>
                     </table>

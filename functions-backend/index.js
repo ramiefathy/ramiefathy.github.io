@@ -9,7 +9,6 @@ const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 const cors = require('cors')({ origin: true });
-const PDFDocument = require('pdfkit');
 const {
   format,
   addDays,
@@ -33,8 +32,7 @@ const { sendEmail } = require('./src/config/email');
 
 // Import utility modules
 const { isResidentOnVacation, hasProtectedTime, checkDutyHourCompliance } = require('./src/utils/validators');
-const { deserializeValue, serializeDocument } = require('./src/utils/serialization');
-const { getUserDetails, describeAssignmentType } = require('./src/utils/user');
+const { getUserDetails } = require('./src/utils/user');
 
 // Import scheduling modules
 const { generateSchedule } = require('./src/scheduling/autoSchedule');
@@ -44,8 +42,6 @@ const { createInstitutionBackup, restoreFromBackup } = require('./src/backup/bac
 
 // Import notification modules
 const {
-  buildAssignmentChangeEmail,
-  buildDailyReminderEmail,
   sendAssignmentChangeNotification,
   sendDailyReminderNotification
 } = require('./src/notifications/email');
@@ -1562,7 +1558,10 @@ exports.chatAssistant = functions.region('us-central1').https.onCall(async (data
   const hasDirectAction = directAction && typeof directAction.name === 'string';
 
   if (!institutionId || (!trimmedMessage && !hasDirectAction)) {
-    throw new functions.https.HttpsError('invalid-argument', 'Please provide an institutionId and either a message or a direct action.');
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Please provide an institutionId and either a message or a direct action.'
+    );
   }
 
   const usageAllowed = await recordUsage({

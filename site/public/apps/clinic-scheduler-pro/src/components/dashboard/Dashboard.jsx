@@ -12,8 +12,8 @@ import { toast } from '../../contexts/ToastContext';
 // Components
 import { Icon, Button, Card } from '../shared';
 
-// Date functions from window globals
-const { startOfWeek, endOfWeek, parseISO } = window['date-fns'];
+// Date functions
+import { startOfWeek, endOfWeek, parseISO } from 'date-fns';
 
 const Dashboard = () => {
     const { attendings, residents, assignments, rules, institution, firebaseService } = useApp();
@@ -49,11 +49,11 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 fade-in-up">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-                    <p className="text-gray-600">Real-time overview of your scheduling system</p>
+                    <h2 className="text-2xl font-bold text-medical-900">Dashboard</h2>
+                    <p className="text-medical-700">Real-time overview of coverage, demand, and activity</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Button
@@ -114,9 +114,9 @@ const Dashboard = () => {
                         <Icon name="download" size={16} className="mr-2" />
                         Export PDF
                     </Button>
-                    <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-lg">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm text-green-700 font-medium">Live Sync</span>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-medical-100 rounded-lg">
+                        <div className="w-2 h-2 bg-medical-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm text-medical-700 font-medium">Live Sync</span>
                     </div>
                 </div>
             </div>
@@ -130,14 +130,16 @@ const Dashboard = () => {
                         transition={{ delay: index * 0.1 }}
                         whileHover={{ scale: 1.02 }}
                     >
-                        <Card hover className="card-shadow-hover">
-                            <div className="flex items-center justify-between">
+                        <Card hover className="glass-card overflow-hidden relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-medical-50 via-white to-medical-50 opacity-80 pointer-events-none" />
+                            <div className="absolute -right-10 -top-10 w-24 h-24 bg-medical-200 rounded-full blur-3xl opacity-40" />
+                            <div className="relative flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-600">{stat.label}</p>
-                                    <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                                    <p className="text-sm text-medical-700">{stat.label}</p>
+                                    <p className="text-3xl font-bold text-medical-900 mt-1">{stat.value}</p>
                                 </div>
-                                <div className={`p-3 rounded-lg ${getColorClasses(stat.color)}`}>
-                                    <Icon name={stat.icon} size={24} />
+                                <div className={`p-3 rounded-xl shadow-glass ${getColorClasses(stat.color)}`}>
+                                    <Icon name={stat.icon} size={22} />
                                 </div>
                             </div>
                         </Card>

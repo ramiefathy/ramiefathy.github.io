@@ -14,7 +14,7 @@ const { chunkArray } = require('../utils/arrays');
  * @returns {Object} Backup summary
  */
 async function createInstitutionBackup(params) {
-  const { db, institutionId, institutionRef, userId = 'system' } = params;
+  const { institutionId, institutionRef, userId = 'system' } = params;
 
   const now = new Date();
   const backupId = format(now, 'yyyyMMddHHmmss');

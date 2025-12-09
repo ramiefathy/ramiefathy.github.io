@@ -77,6 +77,11 @@ export const AppProvider = ({ children }) => {
         firebaseService
     };
 
+    // Expose for dev tools / seed scripts
+    if (typeof window !== 'undefined') {
+        window.__APP__ = value;
+    }
+
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 

@@ -25,7 +25,7 @@ for (let i = 0; i < args.length; i += 1) {
 
 if (admin.apps.length === 0) {
   admin.initializeApp({
-    projectId,
+    projectId
   });
 }
 
@@ -61,7 +61,7 @@ async function backfill() {
         email: member?.email || null,
         role: member?.role || 'member',
         joinedAt: member?.joinedAt || admin.firestore.FieldValue.serverTimestamp(),
-        backfilledAt: admin.firestore.FieldValue.serverTimestamp(),
+        backfilledAt: admin.firestore.FieldValue.serverTimestamp()
       };
       writes.push({ userId, payload });
     });

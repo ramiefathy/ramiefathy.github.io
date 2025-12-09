@@ -9,7 +9,6 @@ const {
   generateSchedule,
   buildAssignmentMaps,
   generateContinuityAssignments,
-  generateClinicalAssignments,
   findCandidatesForSlot
 } = require('../../src/scheduling/autoSchedule');
 

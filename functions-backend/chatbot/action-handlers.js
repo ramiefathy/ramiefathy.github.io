@@ -735,7 +735,10 @@ async function handleSummarizeCoverage(args = {}, context) {
     const siteName = assignment.siteId ? siteLookup.get(assignment.siteId) || null : null;
 
     const residentLabel = resident?.name || assignment.residentName || assignment.residentId || 'Unassigned';
-    const attendingLabel = attending?.name || assignment.attendingName || assignment.attendingId || 'Unassigned attending';
+    const attendingLabel = attending?.name
+      || assignment.attendingName
+      || assignment.attendingId
+      || 'Unassigned attending';
     let label = `${residentLabel} -> ${attendingLabel}`;
     if (clinic?.name) {
       label += ` at ${clinic.name}`;

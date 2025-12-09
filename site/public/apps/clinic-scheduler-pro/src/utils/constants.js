@@ -29,7 +29,13 @@ export const ASSIGNMENT_TYPES = {
     CLINICAL: 'clinical',
     CONTINUITY: 'continuity',
     DIDACTICS: 'didactics',
-    PROTECTED: 'protected'
+    PROTECTED: 'protected',
+    SST: 'sst',           // Self-Study Time
+    ARE: 'are',           // Additional Research Elective
+    CONSULT: 'consult',   // Consult service (JHH, BV/Peds)
+    SURGERY: 'surgery',   // MDE/Mohs surgery
+    VACATION: 'vacation', // Vacation marker
+    FLOAT: 'float'        // Float coverage
 };
 
 // Assignment statuses

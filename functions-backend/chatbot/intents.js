@@ -157,7 +157,12 @@ const INTENT_SCHEMAS = {
     description: 'Undo one or more of the most recent chatbot actions for the user',
     required: [],
     properties: {
-      steps: { type: ['integer', 'null'], minimum: 1, maximum: 25, description: 'Number of actions to undo, defaults to 1.' }
+      steps: {
+        type: ['integer', 'null'],
+        minimum: 1,
+        maximum: 25,
+        description: 'Number of actions to undo, defaults to 1.'
+      }
     }
   },
   [ACTIONS.INFO_ONLY]: {
@@ -171,9 +176,21 @@ const INTENT_SCHEMAS = {
     description: 'Summarize clinic coverage across assignments for a specific day or range',
     required: [],
     properties: {
-      date: { type: ['string', 'null'], format: 'date', description: 'Single date to summarize (defaults to today).' },
-      startDate: { type: ['string', 'null'], format: 'date', description: 'Inclusive range start when summarizing multiple days.' },
-      endDate: { type: ['string', 'null'], format: 'date', description: 'Inclusive range end when summarizing multiple days.' }
+      date: {
+        type: ['string', 'null'],
+        format: 'date',
+        description: 'Single date to summarize (defaults to today).'
+      },
+      startDate: {
+        type: ['string', 'null'],
+        format: 'date',
+        description: 'Inclusive range start when summarizing multiple days.'
+      },
+      endDate: {
+        type: ['string', 'null'],
+        format: 'date',
+        description: 'Inclusive range end when summarizing multiple days.'
+      }
     }
   },
   [ACTIONS.BULK_CREATE_RESIDENTS]: {

@@ -20,6 +20,7 @@ import ResidentsList from './people/ResidentsList';
 import RulesList from './rules/RulesList';
 import SettingsView from './settings/SettingsView';
 import ChatAssistantPanel, { AssistantGuideView } from './chat/ChatAssistantPanel';
+import AboutPage from './about/AboutPage';
 
 const App = () => {
     const { user, loading, firebaseService } = useApp();
@@ -62,7 +63,8 @@ const App = () => {
         { id: 'residents', label: 'Residents', icon: 'user-check' },
         { id: 'rules', label: 'Rules', icon: 'shield-check' },
         { id: 'assistant-guide', label: 'Assistant Guide', icon: 'bot' },
-        { id: 'settings', label: 'Settings', icon: 'settings' }
+        { id: 'settings', label: 'Settings', icon: 'settings' },
+        { id: 'about', label: 'About', icon: 'info' }
     ];
 
     const handleSignOut = async () => {
@@ -71,7 +73,7 @@ const App = () => {
     };
 
     return (
-        <div className="min-h-screen font-body" style={{ background: 'linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 100%)' }}>
+        <div className="min-h-screen font-body mesh-bg">
             {/* Premium Navigation Header */}
             <motion.nav
                 initial={{ y: -100 }}
@@ -234,11 +236,10 @@ const App = () => {
                                             <li key={item.id}>
                                                 <button
                                                     onClick={() => handleNavClick(item.id)}
-                                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                                                        activeView === item.id
+                                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeView === item.id
                                                             ? 'bg-gradient-to-r from-medical-500 to-medical-600 text-white shadow-lg'
                                                             : 'hover:bg-medical-50 text-medical-700'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <Icon name={item.icon} size={20} />
                                                     <span className="font-medium">{item.label}</span>
@@ -287,6 +288,7 @@ const App = () => {
                 {activeView === 'rules' && <RulesList />}
                 {activeView === 'assistant-guide' && <AssistantGuideView />}
                 {activeView === 'settings' && <SettingsView />}
+                {activeView === 'about' && <AboutPage />}
             </main>
 
             {/* Global Chat Assistant Launcher */}

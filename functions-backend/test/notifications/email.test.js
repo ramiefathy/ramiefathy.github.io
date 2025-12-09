@@ -218,7 +218,7 @@ describe('Email Notifications', () => {
 
       const result = buildDailyReminderEmail(params);
 
-      assert.strictEqual(result.subject, "Today's Schedule: AM - Clinical");
+      assert.strictEqual(result.subject, 'Today\'s Schedule: AM - Clinical');
       assert.ok(result.html.includes('Schedule Reminder'));
       assert.ok(result.html.includes('Dr. Kim'));
       assert.ok(result.html.includes('Dr. Chen'));
@@ -239,7 +239,7 @@ describe('Email Notifications', () => {
 
       const result = buildDailyReminderEmail(params);
 
-      assert.strictEqual(result.subject, "Today's Schedule: PM - Continuity Clinic");
+      assert.strictEqual(result.subject, 'Today\'s Schedule: PM - Continuity Clinic');
       assert.ok(result.html.includes('Continuity Clinic'));
     });
 
@@ -255,7 +255,7 @@ describe('Email Notifications', () => {
 
       const result = buildDailyReminderEmail(params);
 
-      assert.strictEqual(result.subject, "Today's Schedule: AM - Protected Time");
+      assert.strictEqual(result.subject, 'Today\'s Schedule: AM - Protected Time');
       assert.ok(result.html.includes('Protected Time'));
     });
 

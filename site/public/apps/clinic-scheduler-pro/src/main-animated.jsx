@@ -29,7 +29,7 @@ const globalScope = typeof window !== 'undefined' ? window : globalThis;
 globalScope.React = React;
 globalScope.ReactDOM = ReactDOM;
 globalScope.Recharts = Recharts;
-globalScope.dateFns = dateFns;
+globalScope['date-fns'] = dateFns;
 globalScope['framer-motion'] = { motion, AnimatePresence };
 attachFirebaseGlobals(globalScope);
 

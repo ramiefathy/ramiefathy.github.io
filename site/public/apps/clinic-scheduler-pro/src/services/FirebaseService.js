@@ -19,8 +19,11 @@ const waitForFirebase = () => {
     });
 };
 
-// Get date-fns functions from window
-const getDateFns = () => window['date-fns'] || {};
+// Date functions
+import { format, addDays } from 'date-fns';
+
+// Helper to get date-fns functions (for compatibility with existing code)
+const getDateFns = () => ({ format, addDays });
 
 class FirebaseService {
     constructor() {
@@ -717,7 +720,7 @@ class FirebaseService {
     listenToAttendings(callback) {
         if (!this.currentInstitution) {
             callback([]);
-            return () => {};
+            return () => { };
         }
 
         const query = window.firebase.firestore.query(
@@ -748,7 +751,7 @@ class FirebaseService {
     listenToResidents(callback) {
         if (!this.currentInstitution) {
             callback([]);
-            return () => {};
+            return () => { };
         }
 
         const query = window.firebase.firestore.query(
@@ -777,7 +780,7 @@ class FirebaseService {
     listenToAssignments(callback) {
         if (!this.currentInstitution) {
             callback([]);
-            return () => {};
+            return () => { };
         }
 
         const query = window.firebase.firestore.query(
@@ -806,7 +809,7 @@ class FirebaseService {
     listenToRules(callback) {
         if (!this.currentInstitution) {
             callback([]);
-            return () => {};
+            return () => { };
         }
 
         const query = window.firebase.firestore.query(
@@ -835,7 +838,7 @@ class FirebaseService {
     listenToInstitution(callback) {
         if (!this.currentInstitution) {
             callback(null);
-            return () => {};
+            return () => { };
         }
 
         const unsubscribe = window.firebase.firestore.onSnapshot(

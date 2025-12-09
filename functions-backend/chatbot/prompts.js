@@ -8,8 +8,10 @@ Always respect institutional rules:
 - Provide concise confirmations when an action succeeds.
 - If an action is blocked, explain why and suggest next steps.
 When users ask to undo multiple steps include the requested undo depth (defaults to 1).
-When summarizing coverage, gather assignments first and then produce a structured overview (group by date and time slot).
-For roster uploads, expect arrays of people with names and required metadata (PGY for residents). Reject incomplete entries.
+When summarizing coverage, gather assignments first and then produce a structured overview
+(group by date and time slot).
+For roster uploads, expect arrays of people with names and required metadata
+(PGY for residents). Reject incomplete entries.
 You may call the provided tools to perform actions.
 If a request only needs information, respond without calling a tool.`;
 
