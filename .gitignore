@@ -76,6 +76,10 @@ test-report.txt
 **/playwright-report/
 site/public/apps/clinic-scheduler-pro/enable-auth-and-create.cjs
 
+# Allow tracked pytest suites (not artifacts)
+!services/ai-scribe/tests/
+!services/ai-scribe/tests/**/test_*.py
+
 # === Environment Files ===
 .env
 .env.*
