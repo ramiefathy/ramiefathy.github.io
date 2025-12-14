@@ -238,6 +238,49 @@ body {
   background: rgba(15, 20, 25, 0.3);
 }
 
+/* ========== Demo Disclaimer ========== */
+.disclaimer-banner {
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.08);
+  border-radius: var(--border-radius-sm);
+  padding: 0.9rem 1rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.disclaimer-banner strong {
+  color: var(--warning);
+}
+
+.disclaimer-banner a {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+/* ========== Streaming UI ========== */
+.streaming-indicator {
+  display: inline-block;
+  margin-left: 0.35rem;
+  color: var(--accent-primary);
+  animation: streamingPulse 1.1s ease-in-out infinite;
+}
+
+.ai-content.streaming {
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12);
+}
+
+.streaming-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@keyframes streamingPulse {
+  0% { opacity: 0.25; }
+  50% { opacity: 1; }
+  100% { opacity: 0.25; }
+}
+
 /* ========== Grid Layout ========== */
 .main-grid {
   display: grid;

@@ -153,14 +153,27 @@ class FocusMode {
   createControls() {
     const controls = document.createElement('div');
     controls.className = 'focus-mode-controls';
-    controls.innerHTML = `
-      <button onclick="focusMode.exit()" aria-label="Exit focus mode">
-        <span class="material-symbols-outlined">close_fullscreen</span> Exit Focus
-      </button>
-      <button onclick="document.getElementById('saveButton').click()" aria-label="Save session">
-        <span class="material-symbols-outlined">save</span> Save
-      </button>
+    const exitButton = document.createElement('button');
+    exitButton.type = 'button';
+    exitButton.setAttribute('aria-label', 'Exit focus mode');
+    exitButton.innerHTML = `
+      <span class="material-symbols-outlined">close_fullscreen</span> Exit Focus
     `;
+    exitButton.addEventListener('click', () => this.exit());
+
+    const saveButton = document.createElement('button');
+    saveButton.type = 'button';
+    saveButton.setAttribute('aria-label', 'Save session');
+    saveButton.innerHTML = `
+      <span class="material-symbols-outlined">save</span> Save
+    `;
+    saveButton.addEventListener('click', () => {
+      // Prefer the header save button if present, otherwise fall back to the global save shortcut.
+      document.getElementById('saveSessionBtn')?.click();
+    });
+
+    controls.appendChild(exitButton);
+    controls.appendChild(saveButton);
     document.body.appendChild(controls);
   }
 
@@ -844,7 +857,6 @@ function initializeUIEnhancements() {
   // Initialize managers
   window.themeManager = new ThemeManager();
   window.quickActionsBar = new QuickActionsBar();
-  window.commandPalette = new CommandPalette();
   window.accessibilityManager = new AccessibilityManager();
   window.layoutManager = new LayoutManager();
   window.focusMode = new FocusMode();
