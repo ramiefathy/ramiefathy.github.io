@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,8 @@
     <title>RAMIE - AI Dermatology Scribe</title>
 
     <!-- Material Icons -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
     <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +19,7 @@
     <!-- Styles -->
     <link rel="stylesheet" href="style-modern.css">
 </head>
+
 <body>
     <!-- Landing Page (Initial View) -->
     <div id="landingPage" class="landing-container">
@@ -32,33 +35,41 @@
                 Choose an interaction mode below to begin a new session.
             </p>
 
-            <!-- API Configuration -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <span class="card-title">
-                        <span class="material-symbols-outlined card-title-icon">key</span>
-                        Configure API Key
-                    </span>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-3" style="font-size: 0.875rem;">
-                        Enter your Gemini API Key. This key is stored locally in your browser.
-                        For server-side AI features, the application is typically configured with an API key
-                        via environment variables on the server.
-                    </p>
-                    <div class="form-group">
-                        <label class="form-label">Gemini API Key</label>
-                        <input type="password" class="form-input" id="apiKeyInput" placeholder="Enter your API key">
-                    </div>
-                    <button class="btn-modern btn-primary" style="width: 100%;" onclick="saveApiKey()">
-                        Save API Key
-                    </button>
-                </div>
-            </div>
+	            <!-- Backend Connection (WebSocket) -->
+	            <div class="card mb-4">
+	                <div class="card-header">
+	                    <span class="card-title">
+	                        <span class="material-symbols-outlined card-title-icon">link</span>
+	                        Backend Connection
+	                    </span>
+	                </div>
+	                <div class="card-body">
+	                    <p class="text-muted mb-3" style="font-size: 0.875rem;">
+	                        Configure the AI Scribe backend WebSocket endpoint and access token. These values are stored locally in your browser.
+	                    </p>
+	                    <div class="form-group">
+	                        <label class="form-label">WebSocket URL</label>
+	                        <input type="text" class="form-input" id="websocketUrlInput" placeholder="e.g., ws://localhost:8765 or wss://your-host:8765">
+	                    </div>
+	                    <div class="form-group">
+	                        <label class="form-label">Access Token</label>
+	                        <input type="password" class="form-input" id="sessionTokenInput" placeholder="Enter backend token (shared secret or JWT)">
+	                        <div class="flex items-center gap-2 mt-2">
+	                            <input type="checkbox" id="rememberTokenCheckbox">
+	                            <label for="rememberTokenCheckbox" class="text-muted" style="font-size: 0.75rem;">
+	                                Remember token on this device
+	                            </label>
+	                        </div>
+	                    </div>
+	                    <button class="btn-modern btn-primary" style="width: 100%;" id="saveBackendConfigBtn" type="button">
+	                        Save Backend Settings
+	                    </button>
+	                </div>
+	            </div>
 
             <!-- Mode Selection -->
             <div class="mode-grid">
-                <div class="mode-card" onclick="startChatMode()">
+                <div class="mode-card" id="startChatModeCard" role="button" tabindex="0">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined mode-icon">chat</span>
                         <div>
@@ -71,7 +82,7 @@
                     </div>
                 </div>
 
-                <div class="mode-card" onclick="startTranscriptionMode()">
+                <div class="mode-card" id="startTranscriptionModeCard" role="button" tabindex="0">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined mode-icon">mic</span>
                         <div>
@@ -84,7 +95,7 @@
                     </div>
                 </div>
 
-                <div class="mode-card" onclick="viewSavedSessions()">
+                <div class="mode-card" id="viewSavedSessionsCard" role="button" tabindex="0">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined mode-icon">folder_open</span>
                         <div>
@@ -119,7 +130,10 @@
 
                 <div class="header-actions">
                     <span id="sessionMode" class="status-badge status-idle">Live Session Mode</span>
-                    <button class="btn-modern btn-ghost btn-icon" onclick="backToHome()" title="Back to Home">
+                    <button class="btn-modern btn-ghost btn-icon" id="saveSessionBtn" type="button" title="Save session (Ctrl+S)">
+                        <span class="material-symbols-outlined">save</span>
+                    </button>
+                    <button class="btn-modern btn-ghost btn-icon" id="backToHomeBtn" type="button" title="Back to Home">
                         <span class="material-symbols-outlined">home</span>
                     </button>
                 </div>
@@ -136,6 +150,9 @@
                         Live Transcription
                     </span>
                     <div class="flex gap-2">
+                        <button class="btn-modern btn-ghost btn-icon" id="transcriptionImageUploadBtn" type="button" title="Analyze Image">
+                            <span class="material-symbols-outlined">image</span>
+                        </button>
                         <button id="clearTranscriptBtn" class="btn-modern btn-ghost btn-icon" title="Clear">
                             <span class="material-symbols-outlined">clear_all</span>
                         </button>
@@ -194,27 +211,29 @@
                     </button>
                 </div>
                 <div class="panel-content">
-                    <div id="managementOutput">
-                        <p class="text-muted mb-3">AI-suggested investigations, treatments, and referrals.</p>
+	                    <div id="managementOutput">
+	                        <p class="text-muted mb-3">AI-suggested investigations, treatments, and referrals.</p>
 
                         <div class="form-group">
                             <label class="form-label">Diagnoses (comma-separated)</label>
                             <input type="text" class="form-input" id="diagnosesInput"
-                                   placeholder="e.g., Hypertension, Type 2 Diabetes">
+                                placeholder="e.g., Hypertension, Type 2 Diabetes">
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Transcript Summary</label>
                             <textarea class="form-textarea" id="transcriptSummary"
-                                      placeholder="Enter patient transcript or summary..."></textarea>
+                                placeholder="Enter patient transcript or summary..."></textarea>
                         </div>
 
-                        <p class="text-muted mt-3" style="font-size: 0.75rem;">
-                            Fill in diagnoses & transcript, then click "Generate Plan". The plan will appear here.
-                        </p>
-                    </div>
-                </div>
-            </div>
+	                        <p class="text-muted mt-3" style="font-size: 0.75rem;">
+	                            Fill in diagnoses & transcript, then click "Generate Plan". The plan will appear here.
+	                        </p>
+	
+	                        <div id="managementPlanResult" class="mt-4"></div>
+	                    </div>
+	                </div>
+	            </div>
 
             <!-- Panel 4: Clinical SOAP Note -->
             <div class="card panel">
@@ -233,7 +252,8 @@
 
                         <div class="mt-4" style="text-align: center;">
                             <p class="text-accent">
-                                Generate a management plan first. The SOAP note will appear here after clicking "Generate Note".
+                                Generate a management plan first. The SOAP note will appear here after clicking
+                                "Generate Note".
                             </p>
                         </div>
                     </div>
@@ -249,17 +269,21 @@
                         <span class="material-symbols-outlined card-title-icon">chat</span>
                         Live Chat
                     </span>
-                    <div class="flex gap-2">
-                        <button class="btn-modern btn-ghost" onclick="saveRawChat()">
-                            <span class="material-symbols-outlined">save</span>
-                            Save Raw Chat
-                        </button>
-                        <button class="btn-modern btn-primary" onclick="finalizeAndGenerateNote()">
-                            <span class="material-symbols-outlined">edit_note</span>
-                            Finalize & Generate Note
-                        </button>
-                    </div>
-                </div>
+	                    <div class="flex gap-2">
+	                        <button class="btn-modern btn-ghost" id="chatSaveSessionBtn" type="button">
+	                            <span class="material-symbols-outlined">save</span>
+	                            Save Session
+	                        </button>
+	                        <button class="btn-modern btn-ghost" id="chatViewOutputsBtn" type="button">
+	                            <span class="material-symbols-outlined">article</span>
+	                            View Outputs
+	                        </button>
+	                        <button class="btn-modern btn-primary" id="chatFinalizeBtn" type="button">
+	                            <span class="material-symbols-outlined">edit_note</span>
+	                            Finalize & Generate Note
+	                        </button>
+	                    </div>
+	                </div>
 
                 <div class="chat-messages" id="chatMessages">
                     <div class="chat-message chat-message-ai">
@@ -267,20 +291,19 @@
                             <span class="material-symbols-outlined" style="color: #0f1419;">smart_toy</span>
                         </div>
                         <div class="chat-content">
-                            <p>Hello! I am RAMIE, your Realtime Medical Explorer assistant. How can I help you today?</p>
+                            <p>Hello! I am RAMIE, your Realtime Medical Explorer assistant. How can I help you today?
+                            </p>
                             <p class="text-muted mt-2" style="font-size: 0.75rem;">08:47 PM</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="chat-input-container">
-                    <input type="text" class="chat-input" id="chatInput"
-                           placeholder="Type your message..."
-                           onkeypress="if(event.key==='Enter') sendChatMessage()">
-                    <button class="btn-modern btn-ghost btn-icon" title="Attach Image">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
+                    <button class="btn-modern btn-ghost btn-icon" id="chatAttachImageBtn" type="button" title="Attach Image">
                         <span class="material-symbols-outlined">attach_file</span>
                     </button>
-                    <button class="btn-modern btn-primary" onclick="sendChatMessage()">
+                    <button class="btn-modern btn-primary" id="chatSendBtn" type="button">
                         Send
                     </button>
                 </div>
@@ -289,902 +312,8 @@
     </div>
 
     <!-- JavaScript -->
-    <script>
-        // Global state
-        let currentMode = null;
-        let isRecording = false;
-        let recognition = null;
-        let apiKey = localStorage.getItem('dermie.apiKey') || '';
-        let sessionStartTime = null;
-        let sessionAnalytics = {
-            transcriptionWords: 0,
-            aiGenerations: 0,
-            exportCount: 0
-        };
-
-        // Note Templates Library
-        const NOTE_TEMPLATES = {
-            'general-skin': {
-                name: 'General Skin Exam',
-                template: `**Chief Complaint:** [CC]
-
-**History of Present Illness:**
-Patient presents with [duration] history of [description] involving [location].
-Associated symptoms include: [symptoms]
-Aggravating factors: [factors]
-Relieving factors: [factors]
-
-**Physical Examination:**
-- Distribution: [localized/generalized]
-- Primary lesion: [type]
-- Secondary changes: [none/scaling/crusting/lichenification]
-- Color: [description]
-
-**Assessment:**
-1. [Diagnosis]
-
-**Plan:**
-- [Treatment]
-- Follow-up: [timeframe]`
-            },
-            'acne': {
-                name: 'Acne Vulgaris',
-                template: `**Chief Complaint:** Acne
-
-**HPI:**
-[Age]-year-old [gender] with [duration] history of acne.
-Location: [face/back/chest]
-Current treatments: [list]
-Previous treatments tried: [list]
-
-**Physical Exam:**
-- Comedones: [open/closed] - quantity [few/moderate/many]
-- Papules: [count estimate]
-- Pustules: [count estimate]
-- Nodules/Cysts: [present/absent]
-- Scarring: [none/atrophic/hypertrophic/post-inflammatory]
-
-**Assessment:**
-Acne vulgaris, [mild/moderate/severe], [comedonal/papulopustular/nodulocystic]
-
-**Plan:**
-- Topical: [retinoid/benzoyl peroxide/antibiotic]
-- Oral: [if applicable]
-- Lifestyle: Non-comedogenic products, avoid picking
-- F/U: [timeframe]`
-            },
-            'psoriasis': {
-                name: 'Psoriasis',
-                template: `**Chief Complaint:** Psoriasis evaluation
-
-**HPI:**
-[Duration] history of psoriasis.
-Current involvement: [scalp/elbows/knees/nails/other]
-Psoriatic arthritis symptoms: [present/absent]
-Prior treatments: [list]
-Current therapy: [list]
-
-**Physical Exam:**
-- Distribution: [pattern]
-- Plaques: [well-demarcated/ill-defined], [silvery scale/other]
-- Nails: [pitting/onycholysis/oil spots]
-- BSA estimate: [percentage]%
-- PASI score: [if calculated]
-
-**Assessment:**
-Psoriasis vulgaris, [mild/moderate/severe]
-BSA: [%], PASI: [score]
-
-**Plan:**
-- Topicals: [steroid class/vitamin D analog]
-- Systemic: [if indicated]
-- Phototherapy: [if applicable]
-- Labs: [if on systemic therapy]
-- F/U: [timeframe]`
-            },
-            'eczema': {
-                name: 'Atopic Dermatitis/Eczema',
-                template: `**Chief Complaint:** Eczema/Atopic dermatitis
-
-**HPI:**
-[Duration] history of eczema.
-Current flare duration: [timeframe]
-Triggers identified: [list]
-Associated atopy: [asthma/allergic rhinitis/food allergies]
-Current treatments: [list]
-
-**Physical Exam:**
-- Distribution: [flexural/extensor/generalized]
-- Acute findings: [erythema/vesicles/weeping]
-- Chronic findings: [lichenification/hyperpigmentation]
-- Excoriations: [present/absent]
-- Secondary infection: [yes/no]
-
-**Assessment:**
-Atopic dermatitis, [mild/moderate/severe]
-[Acute flare/Chronic/Acute on chronic]
-
-**Plan:**
-- Emollients: [specific recommendation]
-- Topical corticosteroid: [potency and location]
-- Antihistamine: [if pruritus severe]
-- Infection tx: [if indicated]
-- F/U: [timeframe]`
-            }
-        };
-
-        // Quick Macro Shortcuts
-        const QUICK_MACROS = {
-            '.bp': 'Blood pressure: ___ mmHg',
-            '.nad': 'No acute distress',
-            '.wnl': 'Within normal limits',
-            '.nka': 'No known allergies',
-            '.nkda': 'No known drug allergies',
-            '.rlq': 'Right lower quadrant',
-            '.ruq': 'Right upper quadrant',
-            '.llq': 'Left lower quadrant',
-            '.luq': 'Left upper quadrant',
-            '.htn': 'Hypertension',
-            '.dm': 'Diabetes mellitus',
-            '.sob': 'Shortness of breath',
-            '.cp': 'Chest pain',
-            '.ha': 'Headache',
-            '.abd': 'Abdominal',
-            '.bilat': 'Bilateral',
-            '.prn': 'As needed',
-            '.bid': 'Twice daily',
-            '.tid': 'Three times daily',
-            '.qd': 'Once daily',
-            '.qhs': 'At bedtime',
-            '.topical': 'Apply topically to affected area',
-            '.fu': 'Follow up in',
-            '.rto': 'Return to office',
-            '.skin': 'Skin examination shows',
-            '.lesion': 'Lesion characteristics:',
-            '.biopsy': 'Recommend skin biopsy for definitive diagnosis',
-            '.path': 'Pathology results pending',
-            '.photo': 'Consider phototherapy',
-            '.derm': 'Dermatology referral recommended'
-        };
-
-        // Keyboard shortcuts configuration
-        const KEYBOARD_SHORTCUTS = {
-            'ctrl+k': { action: 'openCommandPalette', description: 'Open command palette' },
-            'ctrl+s': { action: 'saveSession', description: 'Save current session' },
-            'ctrl+e': { action: 'exportNote', description: 'Export note' },
-            'ctrl+t': { action: 'openTemplates', description: 'Open templates' },
-            'ctrl+shift+r': { action: 'toggleRecording', description: 'Toggle recording' },
-            'escape': { action: 'closeModals', description: 'Close modals' }
-        };
-
-        // Initialize Speech Recognition
-        if (window.SpeechRecognition || window.webkitSpeechRecognition) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
-        }
-
-        // API Key Management
-        function saveApiKey() {
-            const input = document.getElementById('apiKeyInput');
-            if (input.value) {
-                apiKey = input.value;
-                localStorage.setItem('dermie.apiKey', apiKey);
-                showNotification('API Key saved successfully', 'success');
-                input.value = '';
-            }
-        }
-
-        // Mode Selection
-        function startChatMode() {
-            currentMode = 'chat';
-            document.getElementById('landingPage').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('chatView').classList.remove('hidden');
-            document.getElementById('transcriptionView').classList.add('hidden');
-            document.getElementById('sessionMode').textContent = 'Chat Mode';
-            document.getElementById('sessionMode').classList.remove('status-idle');
-            document.getElementById('sessionMode').classList.add('status-processing');
-        }
-
-        function startTranscriptionMode() {
-            currentMode = 'transcription';
-            document.getElementById('landingPage').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('transcriptionView').classList.remove('hidden');
-            document.getElementById('chatView').classList.add('hidden');
-            document.getElementById('sessionMode').textContent = 'Live Transcription Mode';
-            document.getElementById('sessionMode').classList.remove('status-idle');
-            document.getElementById('sessionMode').classList.add('status-recording');
-            setupTranscription();
-        }
-
-        function viewSavedSessions() {
-            showNotification('Saved sessions feature coming soon', 'info');
-        }
-
-        function backToHome() {
-            currentMode = null;
-            document.getElementById('mainApp').classList.add('hidden');
-            document.getElementById('landingPage').classList.remove('hidden');
-            if (recognition && isRecording) {
-                recognition.stop();
-                isRecording = false;
-            }
-        }
-
-        // Transcription Setup
-        function setupTranscription() {
-            const startBtn = document.getElementById('startBtn');
-            const stopBtn = document.getElementById('stopBtn');
-            const clearBtn = document.getElementById('clearTranscriptBtn');
-
-            startBtn.addEventListener('click', startRecording);
-            stopBtn.addEventListener('click', stopRecording);
-            clearBtn.addEventListener('click', clearTranscript);
-
-            document.getElementById('generatePlanBtn').addEventListener('click', generateManagementPlan);
-            document.getElementById('generateNoteBtn').addEventListener('click', generateSOAPNote);
-        }
-
-        function startRecording() {
-            if (!recognition) {
-                showNotification('Speech recognition not supported', 'error');
-                return;
-            }
-
-            isRecording = true;
-            document.getElementById('startBtn').classList.add('hidden');
-            document.getElementById('stopBtn').classList.remove('hidden');
-            document.getElementById('transcriptionOutput').innerHTML =
-                '<p class="text-accent">Listening...</p>';
-
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
-
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
-                    } else {
-                        interimTranscript += transcript;
-                    }
-                }
-
-                const output = document.getElementById('transcriptionOutput');
-                if (finalTranscript || interimTranscript) {
-                    output.innerHTML = `
-                        <p class="transcript-text">${finalTranscript}</p>
-                        <p class="text-muted" style="font-style: italic;">${interimTranscript}</p>
-                    `;
-                }
-
-                // Auto-generate DDx after significant transcript
-                if (finalTranscript.split(' ').length > 50) {
-                    generateDifferentialDiagnosis(finalTranscript);
-                }
-            };
-
-            recognition.start();
-        }
-
-        function stopRecording() {
-            isRecording = false;
-            if (recognition) recognition.stop();
-            document.getElementById('stopBtn').classList.add('hidden');
-            document.getElementById('startBtn').classList.remove('hidden');
-
-            // Final DDx generation
-            const transcript = document.getElementById('transcriptionOutput').textContent;
-            if (transcript && transcript.length > 100) {
-                generateDifferentialDiagnosis(transcript);
-            }
-        }
-
-        function clearTranscript() {
-            document.getElementById('transcriptionOutput').innerHTML =
-                '<p class="transcript-placeholder">Press \'Start\' to begin transcription...</p>';
-        }
-
-        // AI Generation Functions (Placeholders)
-        function generateDifferentialDiagnosis(transcript) {
-            const output = document.getElementById('differentialOutput');
-            output.innerHTML = `
-                <div class="loading-spinner"></div>
-                <p class="text-muted">Generating differential diagnosis...</p>
-            `;
-
-            // Simulated response (replace with actual AI call)
-            setTimeout(() => {
-                output.innerHTML = `
-                    <h4 class="text-accent mb-3">Differential Diagnosis:</h4>
-                    <ol class="diagnosis-list">
-                        <li><strong>Contact Dermatitis</strong> - Based on erythematous papular presentation</li>
-                        <li><strong>Atopic Dermatitis</strong> - Consider given distribution and pruritus</li>
-                        <li><strong>Psoriasis</strong> - Less likely but consider if plaques present</li>
-                    </ol>
-                `;
-            }, 2000);
-        }
-
-        function generateManagementPlan() {
-            const diagnoses = document.getElementById('diagnosesInput').value;
-            const summary = document.getElementById('transcriptSummary').value;
-
-            if (!diagnoses) {
-                showNotification('Please enter diagnoses', 'warning');
-                return;
-            }
-
-            const output = document.getElementById('managementOutput');
-            output.innerHTML = `
-                <div class="loading-spinner"></div>
-                <p class="text-muted">Generating management plan...</p>
-            `;
-
-            // Simulated response
-            setTimeout(() => {
-                output.innerHTML = `
-                    <h4 class="text-accent mb-3">Management Plan:</h4>
-                    <div class="plan-section">
-                        <h5>Investigations:</h5>
-                        <ul>
-                            <li>Patch testing if contact dermatitis suspected</li>
-                            <li>Total IgE and specific IgE if atopic</li>
-                        </ul>
-                    </div>
-                    <div class="plan-section mt-3">
-                        <h5>Treatment:</h5>
-                        <ul>
-                            <li>Topical corticosteroids - moderate potency</li>
-                            <li>Emollients for barrier repair</li>
-                            <li>Antihistamines for pruritus</li>
-                        </ul>
-                    </div>
-                `;
-            }, 2000);
-        }
-
-        function generateSOAPNote() {
-            const output = document.getElementById('soapNoteOutput');
-            output.innerHTML = `
-                <div class="loading-spinner"></div>
-                <p class="text-muted">Generating SOAP note...</p>
-            `;
-
-            // Simulated response
-            setTimeout(() => {
-                output.innerHTML = `
-                    <h4 class="text-accent mb-3">SOAP Note:</h4>
-                    <div class="soap-section">
-                        <h5>Subjective:</h5>
-                        <p>Patient presents with 2-week history of erythematous papular rash on bilateral forearms with mild pruritus.</p>
-                    </div>
-                    <div class="soap-section mt-3">
-                        <h5>Objective:</h5>
-                        <p>Examination reveals bilateral symmetric papular eruption on forearms, no vesicles or scaling noted.</p>
-                    </div>
-                    <div class="soap-section mt-3">
-                        <h5>Assessment:</h5>
-                        <p>Contact dermatitis vs atopic dermatitis</p>
-                    </div>
-                    <div class="soap-section mt-3">
-                        <h5>Plan:</h5>
-                        <p>Start topical corticosteroids, patch testing if no improvement in 2 weeks.</p>
-                    </div>
-                `;
-            }, 2000);
-        }
-
-        // Chat Functions
-        function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-
-            if (!message) return;
-
-            // Add user message
-            addChatMessage(message, 'user');
-            input.value = '';
-
-            // Simulated AI response
-            setTimeout(() => {
-                addChatMessage('I understand your concern. Can you provide more details about the symptoms?', 'ai');
-            }, 1000);
-        }
-
-        function addChatMessage(text, sender) {
-            const messagesContainer = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message chat-message-${sender}`;
-
-            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-            messageDiv.innerHTML = `
-                <div class="chat-avatar">
-                    <span class="material-symbols-outlined" style="color: #0f1419;">
-                        ${sender === 'user' ? 'person' : 'smart_toy'}
-                    </span>
-                </div>
-                <div class="chat-content">
-                    <p>${text}</p>
-                    <p class="text-muted mt-2" style="font-size: 0.75rem;">${time}</p>
-                </div>
-            `;
-
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        function saveRawChat() {
-            showNotification('Chat saved successfully', 'success');
-        }
-
-        function finalizeAndGenerateNote() {
-            showNotification('Generating clinical note from chat...', 'info');
-            sessionAnalytics.aiGenerations++;
-        }
-
-        // Template Library Functions
-        function openTemplates() {
-            const modal = document.createElement('div');
-            modal.className = 'modal-backdrop';
-            modal.id = 'templatesModal';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 700px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
-                    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 style="margin: 0; color: var(--text-primary);">📋 Note Templates</h2>
-                        <button class="btn-modern btn-ghost btn-icon" onclick="closeModal('templatesModal')">
-                            <span class="material-symbols-outlined">close</span>
-                        </button>
-                    </div>
-                    <p class="text-muted mb-4">Select a template to insert into your note.</p>
-                    <div class="template-grid" style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
-                        ${Object.entries(NOTE_TEMPLATES).map(([key, tmpl]) => `
-                            <button class="template-card" onclick="insertTemplate('${key}')" style="
-                                padding: 1rem;
-                                background: var(--bg-tertiary);
-                                border: 1px solid var(--border-color);
-                                border-radius: var(--border-radius);
-                                text-align: left;
-                                cursor: pointer;
-                                transition: all 0.2s;
-                            ">
-                                <h4 style="margin: 0 0 0.5rem; color: var(--accent-primary);">${tmpl.name}</h4>
-                                <p class="text-muted" style="font-size: 0.75rem; margin: 0;">Click to insert</p>
-                            </button>
-                        `).join('')}
-                    </div>
-                    <div class="macro-section" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                        <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">⌨️ Quick Macros</h3>
-                        <p class="text-muted mb-3" style="font-size: 0.875rem;">Type these shortcuts in any text field to expand:</p>
-                        <div style="display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); max-height: 200px; overflow-y: auto;">
-                            ${Object.entries(QUICK_MACROS).slice(0, 12).map(([key, value]) => `
-                                <div style="font-size: 0.75rem;">
-                                    <code style="background: var(--bg-primary); padding: 2px 6px; border-radius: 4px;">${key}</code>
-                                    <span class="text-muted"> → ${value.substring(0, 25)}${value.length > 25 ? '...' : ''}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal('templatesModal');
-            });
-        }
-
-        function insertTemplate(templateKey) {
-            const template = NOTE_TEMPLATES[templateKey];
-            if (!template) return;
-
-            // Insert into transcript summary if in transcription mode
-            const transcriptSummary = document.getElementById('transcriptSummary');
-            if (transcriptSummary && currentMode === 'transcription') {
-                transcriptSummary.value = template.template;
-                showNotification(`${template.name} template inserted`, 'success');
-            } else if (currentMode === 'chat') {
-                // Insert into chat input
-                const chatInput = document.getElementById('chatInput');
-                if (chatInput) {
-                    chatInput.value = `Use this template:\n\n${template.template}`;
-                }
-                showNotification(`${template.name} template ready to send`, 'success');
-            }
-            closeModal('templatesModal');
-        }
-
-        // Macro expansion for text inputs
-        function setupMacroExpansion(inputElement) {
-            inputElement.addEventListener('input', (e) => {
-                const value = e.target.value;
-                for (const [macro, expansion] of Object.entries(QUICK_MACROS)) {
-                    if (value.endsWith(macro + ' ') || value.endsWith(macro)) {
-                        const hasSpace = value.endsWith(macro + ' ');
-                        const newValue = value.replace(
-                            hasSpace ? macro + ' ' : macro,
-                            expansion + ' '
-                        );
-                        e.target.value = newValue;
-                        showNotification(`Expanded: ${macro}`, 'info');
-                        break;
-                    }
-                }
-            });
-        }
-
-        // Export Functions
-        function exportNote(format = 'text') {
-            const content = getFullNoteContent();
-            if (!content) {
-                showNotification('No content to export', 'warning');
-                return;
-            }
-
-            sessionAnalytics.exportCount++;
-
-            switch (format) {
-                case 'text':
-                    downloadFile(content, 'clinical-note.txt', 'text/plain');
-                    break;
-                case 'markdown':
-                    downloadFile(content, 'clinical-note.md', 'text/markdown');
-                    break;
-                case 'html':
-                    const htmlContent = `<!DOCTYPE html>
-<html><head><title>Clinical Note</title><style>
-body{font-family:Arial,sans-serif;max-width:800px;margin:2rem auto;padding:1rem;line-height:1.6;}
-h1,h2,h3,h4,h5{color:#333;}
-</style></head><body>
-${content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}
-</body></html>`;
-                    downloadFile(htmlContent, 'clinical-note.html', 'text/html');
-                    break;
-                default:
-                    downloadFile(content, 'clinical-note.txt', 'text/plain');
-            }
-            showNotification(`Note exported as ${format.toUpperCase()}`, 'success');
-        }
-
-        function getFullNoteContent() {
-            let content = '';
-
-            if (currentMode === 'transcription') {
-                const transcript = document.getElementById('transcriptionOutput')?.textContent || '';
-                const ddx = document.getElementById('differentialOutput')?.textContent || '';
-                const plan = document.getElementById('managementOutput')?.textContent || '';
-                const soap = document.getElementById('soapNoteOutput')?.textContent || '';
-
-                content = `CLINICAL NOTE - ${new Date().toLocaleString()}\n\n`;
-                content += `=== TRANSCRIPT ===\n${transcript}\n\n`;
-                content += `=== DIFFERENTIAL DIAGNOSIS ===\n${ddx}\n\n`;
-                content += `=== MANAGEMENT PLAN ===\n${plan}\n\n`;
-                content += `=== SOAP NOTE ===\n${soap}\n`;
-            } else if (currentMode === 'chat') {
-                const messages = document.querySelectorAll('.chat-message .chat-content p:first-child');
-                content = `CHAT SESSION - ${new Date().toLocaleString()}\n\n`;
-                messages.forEach((msg, i) => {
-                    content += `${i % 2 === 0 ? 'AI' : 'User'}: ${msg.textContent}\n\n`;
-                });
-            }
-
-            return content;
-        }
-
-        function downloadFile(content, filename, mimeType) {
-            const blob = new Blob([content], { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-
-        // Export Modal
-        function openExportModal() {
-            const modal = document.createElement('div');
-            modal.className = 'modal-backdrop';
-            modal.id = 'exportModal';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 400px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
-                    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 style="margin: 0; color: var(--text-primary);">📤 Export Note</h2>
-                        <button class="btn-modern btn-ghost btn-icon" onclick="closeModal('exportModal')">
-                            <span class="material-symbols-outlined">close</span>
-                        </button>
-                    </div>
-                    <p class="text-muted mb-4">Choose an export format:</p>
-                    <div style="display: grid; gap: 0.75rem;">
-                        <button class="btn-modern btn-primary" style="width: 100%;" onclick="exportNote('text'); closeModal('exportModal');">
-                            <span class="material-symbols-outlined">description</span>
-                            Plain Text (.txt)
-                        </button>
-                        <button class="btn-modern btn-primary" style="width: 100%;" onclick="exportNote('markdown'); closeModal('exportModal');">
-                            <span class="material-symbols-outlined">code</span>
-                            Markdown (.md)
-                        </button>
-                        <button class="btn-modern btn-primary" style="width: 100%;" onclick="exportNote('html'); closeModal('exportModal');">
-                            <span class="material-symbols-outlined">html</span>
-                            HTML (.html)
-                        </button>
-                        <button class="btn-modern btn-ghost" style="width: 100%;" onclick="copyNoteToClipboard(); closeModal('exportModal');">
-                            <span class="material-symbols-outlined">content_copy</span>
-                            Copy to Clipboard
-                        </button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal('exportModal');
-            });
-        }
-
-        function copyNoteToClipboard() {
-            const content = getFullNoteContent();
-            if (content) {
-                navigator.clipboard.writeText(content).then(() => {
-                    showNotification('Note copied to clipboard', 'success');
-                }).catch(() => {
-                    showNotification('Failed to copy', 'error');
-                });
-            }
-        }
-
-        // Session Analytics
-        function startSession() {
-            sessionStartTime = new Date();
-            sessionAnalytics = {
-                transcriptionWords: 0,
-                aiGenerations: 0,
-                exportCount: 0
-            };
-        }
-
-        function getSessionDuration() {
-            if (!sessionStartTime) return 'N/A';
-            const diff = new Date() - sessionStartTime;
-            const minutes = Math.floor(diff / 60000);
-            const seconds = Math.floor((diff % 60000) / 1000);
-            return `${minutes}m ${seconds}s`;
-        }
-
-        function showSessionAnalytics() {
-            const modal = document.createElement('div');
-            modal.className = 'modal-backdrop';
-            modal.id = 'analyticsModal';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 400px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
-                    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 style="margin: 0; color: var(--text-primary);">📊 Session Analytics</h2>
-                        <button class="btn-modern btn-ghost btn-icon" onclick="closeModal('analyticsModal')">
-                            <span class="material-symbols-outlined">close</span>
-                        </button>
-                    </div>
-                    <div style="display: grid; gap: 1rem;">
-                        <div class="stat-card" style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--border-radius);">
-                            <p class="text-muted" style="margin: 0; font-size: 0.75rem;">Session Duration</p>
-                            <p style="margin: 0.25rem 0 0; font-size: 1.5rem; color: var(--accent-primary);">${getSessionDuration()}</p>
-                        </div>
-                        <div class="stat-card" style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--border-radius);">
-                            <p class="text-muted" style="margin: 0; font-size: 0.75rem;">Transcription Words</p>
-                            <p style="margin: 0.25rem 0 0; font-size: 1.5rem; color: var(--accent-primary);">${sessionAnalytics.transcriptionWords}</p>
-                        </div>
-                        <div class="stat-card" style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--border-radius);">
-                            <p class="text-muted" style="margin: 0; font-size: 0.75rem;">AI Generations</p>
-                            <p style="margin: 0.25rem 0 0; font-size: 1.5rem; color: var(--accent-primary);">${sessionAnalytics.aiGenerations}</p>
-                        </div>
-                        <div class="stat-card" style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--border-radius);">
-                            <p class="text-muted" style="margin: 0; font-size: 0.75rem;">Exports</p>
-                            <p style="margin: 0.25rem 0 0; font-size: 1.5rem; color: var(--accent-primary);">${sessionAnalytics.exportCount}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal('analyticsModal');
-            });
-        }
-
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.remove();
-        }
-
-        // Command Palette
-        function openCommandPalette() {
-            const modal = document.createElement('div');
-            modal.className = 'modal-backdrop';
-            modal.id = 'commandPalette';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 500px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1rem;">
-                    <input type="text" id="commandSearch" placeholder="Type a command..." style="
-                        width: 100%;
-                        padding: 0.75rem 1rem;
-                        background: var(--bg-tertiary);
-                        border: 1px solid var(--border-color);
-                        border-radius: var(--border-radius);
-                        color: var(--text-primary);
-                        font-size: 1rem;
-                        margin-bottom: 0.75rem;
-                    " autofocus>
-                    <div id="commandList" style="max-height: 300px; overflow-y: auto;">
-                        ${generateCommandList()}
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal('commandPalette');
-            });
-
-            const searchInput = document.getElementById('commandSearch');
-            searchInput.addEventListener('input', (e) => {
-                document.getElementById('commandList').innerHTML = generateCommandList(e.target.value);
-            });
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') closeModal('commandPalette');
-            });
-        }
-
-        function generateCommandList(filter = '') {
-            const commands = [
-                { name: 'Open Templates', icon: 'description', action: "openTemplates(); closeModal('commandPalette');" },
-                { name: 'Export Note', icon: 'download', action: "openExportModal(); closeModal('commandPalette');" },
-                { name: 'Session Analytics', icon: 'analytics', action: "showSessionAnalytics(); closeModal('commandPalette');" },
-                { name: 'Start Recording', icon: 'mic', action: "startRecording(); closeModal('commandPalette');" },
-                { name: 'Stop Recording', icon: 'stop', action: "stopRecording(); closeModal('commandPalette');" },
-                { name: 'Clear Transcript', icon: 'clear_all', action: "clearTranscript(); closeModal('commandPalette');" },
-                { name: 'Generate DDx', icon: 'psychology', action: "generateDifferentialDiagnosis(''); closeModal('commandPalette');" },
-                { name: 'Generate SOAP Note', icon: 'note_add', action: "generateSOAPNote(); closeModal('commandPalette');" },
-                { name: 'Back to Home', icon: 'home', action: "backToHome(); closeModal('commandPalette');" },
-                { name: 'Keyboard Shortcuts', icon: 'keyboard', action: "showKeyboardShortcuts(); closeModal('commandPalette');" }
-            ];
-
-            const filtered = filter
-                ? commands.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
-                : commands;
-
-            return filtered.map(cmd => `
-                <button onclick="${cmd.action}" style="
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    width: 100%;
-                    padding: 0.75rem 1rem;
-                    background: transparent;
-                    border: none;
-                    border-radius: var(--border-radius);
-                    color: var(--text-primary);
-                    cursor: pointer;
-                    text-align: left;
-                " onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
-                    <span class="material-symbols-outlined">${cmd.icon}</span>
-                    <span>${cmd.name}</span>
-                </button>
-            `).join('');
-        }
-
-        function showKeyboardShortcuts() {
-            const modal = document.createElement('div');
-            modal.className = 'modal-backdrop';
-            modal.id = 'shortcutsModal';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 450px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
-                    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 style="margin: 0; color: var(--text-primary);">⌨️ Keyboard Shortcuts</h2>
-                        <button class="btn-modern btn-ghost btn-icon" onclick="closeModal('shortcutsModal')">
-                            <span class="material-symbols-outlined">close</span>
-                        </button>
-                    </div>
-                    <div style="display: grid; gap: 0.5rem;">
-                        ${Object.entries(KEYBOARD_SHORTCUTS).map(([key, config]) => `
-                            <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--bg-tertiary); border-radius: 6px;">
-                                <span class="text-muted">${config.description}</span>
-                                <kbd style="background: var(--bg-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">${key}</kbd>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal('shortcutsModal');
-            });
-        }
-
-        // Global keyboard handler
-        function handleGlobalKeydown(e) {
-            const key = [];
-            if (e.ctrlKey || e.metaKey) key.push('ctrl');
-            if (e.shiftKey) key.push('shift');
-            if (e.altKey) key.push('alt');
-            key.push(e.key.toLowerCase());
-            const combo = key.join('+');
-
-            const shortcut = KEYBOARD_SHORTCUTS[combo];
-            if (shortcut) {
-                e.preventDefault();
-                switch (shortcut.action) {
-                    case 'openCommandPalette': openCommandPalette(); break;
-                    case 'saveSession': saveRawChat(); break;
-                    case 'exportNote': openExportModal(); break;
-                    case 'openTemplates': openTemplates(); break;
-                    case 'toggleRecording':
-                        isRecording ? stopRecording() : startRecording();
-                        break;
-                    case 'closeModals':
-                        document.querySelectorAll('.modal-backdrop').forEach(m => m.remove());
-                        break;
-                }
-            }
-        }
-
-        // Utility Functions
-        function showNotification(message, type = 'info') {
-            // Simple notification (can be enhanced with a proper notification system)
-            console.log(`[${type.toUpperCase()}] ${message}`);
-
-            // Create temporary notification
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 80px;
-                right: 20px;
-                padding: 1rem 1.5rem;
-                background: var(--bg-tertiary);
-                border: 1px solid var(--accent-primary);
-                border-radius: var(--border-radius);
-                color: var(--text-primary);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
-            notification.textContent = message;
-
-            document.body.appendChild(notification);
-            setTimeout(() => notification.remove(), 3000);
-        }
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check for saved API key
-            if (apiKey) {
-                document.getElementById('apiKeyInput').placeholder = 'API Key already configured';
-            }
-
-            // Setup global keyboard shortcuts
-            document.addEventListener('keydown', handleGlobalKeydown);
-
-            // Setup macro expansion on text inputs
-            const textInputs = document.querySelectorAll('input[type="text"], textarea');
-            textInputs.forEach(input => setupMacroExpansion(input));
-
-            // Watch for dynamically added inputs
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    mutation.addedNodes.forEach((node) => {
-                        if (node.nodeType === 1) {
-                            const inputs = node.querySelectorAll ? node.querySelectorAll('input[type="text"], textarea') : [];
-                            inputs.forEach(input => setupMacroExpansion(input));
-                            if (node.matches && node.matches('input[type="text"], textarea')) {
-                                setupMacroExpansion(node);
-                            }
-                        }
-                    });
-                });
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
-    </script>
+    <script src="ui-enhancements.js" defer></script>
+    <script src="app.js" defer></script>
 
     <!-- Modal backdrop styles -->
     <style>
@@ -1200,8 +329,13 @@ ${content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .modal-content {
@@ -1209,14 +343,256 @@ ${content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'
         }
 
         @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .template-card:hover {
             border-color: var(--accent-primary) !important;
             transform: translateY(-2px);
         }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-primary);
+            color: var(--text-inverse);
+            transform: scale(1.1);
+        }
+
+        /* Quick Actions Bar */
+        .quick-actions-bar {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
+            padding: 8px 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 999;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .quick-actions-bar.dragging {
+            cursor: grabbing;
+        }
+
+        .qa-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .qa-btn:hover {
+            background: var(--accent-muted);
+            color: var(--accent-primary);
+        }
+
+        .qa-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .qa-separator {
+            width: 1px;
+            background: var(--border-primary);
+            margin: 4px 0;
+        }
+
+        /* Command Palette */
+        .command-palette-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 15vh;
+            z-index: 10000;
+            animation: fadeIn 0.15s ease;
+        }
+
+        .command-palette {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--border-radius);
+            width: 500px;
+            max-width: 90vw;
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.15s ease;
+        }
+
+        .command-palette input {
+            width: 100%;
+            padding: 16px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            font-size: 16px;
+            outline: none;
+        }
+
+        .command-palette input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        #command-suggestions {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .command-suggestion {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.1s ease;
+        }
+
+        .command-suggestion:hover,
+        .command-suggestion.selected {
+            background: var(--bg-hover);
+        }
+
+        .command-suggestion .icon {
+            font-size: 18px;
+        }
+
+        .command-suggestion .text {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .command-suggestion .shortcut {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            background: var(--bg-primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Focus Mode */
+        body.focus-mode .modern-header,
+        body.focus-mode .quick-actions-bar,
+        body.focus-mode .theme-toggle {
+            display: none;
+        }
+
+        body.focus-mode .main-grid {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        .focus-mode-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .focus-mode-controls button {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .focus-mode-controls button:hover {
+            background: var(--accent-primary);
+            color: var(--text-inverse);
+        }
+
+        /* Skip Links for Accessibility */
+        .skip-links-container {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            z-index: 10001;
+        }
+
+        .skip-links {
+            position: absolute;
+            background: var(--accent-primary);
+            color: var(--text-inverse);
+            padding: 8px 16px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .skip-links:focus {
+            top: 40px;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </body>
+
 </html>

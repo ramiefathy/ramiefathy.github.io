@@ -28,20 +28,40 @@ IV. Organization and Style:
 * Address each complaint systematically. Maintain a narrative flow. Be objective and factual. Limit content strictly to what is relevant.
 """
 
-INITIAL_GENERATION_PROMPT_TEMPLATE = lambda transcript: f"""
-You are an expert medical scribe AI for a dermatologist. Your task is to generate a clinical note AND a case analysis from the provided physician-patient consultation transcript.
-The clinical note should be written from the **physician's perspective (first-person)**.
+DEMO_SAFETY_INSTRUCTIONS = """
+IMPORTANT CONTEXT (DEMO / EDUCATION):
+- This is a demo/education tool and must NOT be used for medical decision-making.
+- Do NOT output real patient identifiers. If the transcript contains names, MRNs, DOBs, addresses, phone numbers, or other identifying info, replace them with "[REDACTED]".
+- Do NOT fabricate facts. If something is not stated, write "Not discussed" or "Unknown" rather than guessing.
+- Avoid confident/absolute language for diagnoses. Use uncertainty-aware phrasing (e.g., "consider", "possible", "less likely").
+- Avoid medication dosing unless explicitly stated in the transcript. When suggesting treatments, keep them high-level and advise verifying with current guidelines.
+"""
 
-PART 1: CLINICAL NOTE
-Follow this exact structure and use these exact headers for the clinical note (do NOT include "SECTION: " before the headers):
-CHIEF COMPLAINT
-HISTORY OF PRESENT ILLNESS (Write this section in paragraph form, following these HPI guidelines: {HPI_GUIDELINES})
-PAST MEDICAL HISTORY (If not mentioned, state "None reported by patient." or similar)
-MEDICATIONS (If none, state "Patient reports no current medications." or similar)
-ALLERGIES (If none, state "No known drug allergies." or similar)
-OBJECTIVE FINDINGS (List specific dermatologic findings using proper terminology, in bullet points. Example: "- Erythematous papules on bilateral elbows." If image findings are included in the transcript under a "CLINICAL IMAGE FINDINGS" header, incorporate them here.)
-ASSESSMENT (Your primary assessment or diagnosis based on the encounter.)
-PLAN (Your treatment plan, patient education, and follow-up instructions.)
+INITIAL_GENERATION_PROMPT_TEMPLATE = lambda transcript: f"""
+{DEMO_SAFETY_INSTRUCTIONS}
+
+	You are an expert medical scribe AI for a dermatologist. Your task is to generate a clinical note AND a case analysis from the provided physician-patient consultation transcript.
+	The clinical note should be written from the **physician's perspective (first-person)**.
+	
+	PART 1: CLINICAL NOTE
+	Follow this exact structure and use these exact headers for the clinical note (do NOT include "SECTION: " before the headers). Each header must appear on its own line:
+	CHIEF COMPLAINT
+	HISTORY OF PRESENT ILLNESS
+	PAST MEDICAL HISTORY
+	MEDICATIONS
+	ALLERGIES
+	OBJECTIVE FINDINGS
+	ASSESSMENT
+	PLAN
+
+	Section guidance:
+	- HISTORY OF PRESENT ILLNESS: paragraph form, following these HPI guidelines: {HPI_GUIDELINES}
+	- PAST MEDICAL HISTORY: If not mentioned, state "None reported by patient." or similar.
+	- MEDICATIONS: If none, state "Patient reports no current medications." or similar.
+	- ALLERGIES: If none, state "No known drug allergies." or similar.
+	- OBJECTIVE FINDINGS: List specific dermatologic findings using proper terminology, in bullet points. Example: "- Erythematous papules on bilateral elbows." If image findings are included in the transcript under a "CLINICAL IMAGE FINDINGS" header, incorporate them here.
+	- ASSESSMENT: Your primary assessment or diagnosis based on the encounter.
+	- PLAN: Your treatment plan, patient education, and follow-up instructions.
 
 PART 2: AI ANALYSIS & WORKUP
 After the clinical note, provide your analysis using this exact separator "AI_ANALYSIS_SEPARATOR_V2", followed by these exact headers (do NOT include "SECTION: " before the headers):
@@ -67,18 +87,24 @@ Transcript (may include image findings at the end under a "CLINICAL IMAGE FINDIN
 """
 
 NOTE_REFINEMENT_PROMPT_TEMPLATE = lambda transcript, current_note, feedback: f"""
+{DEMO_SAFETY_INSTRUCTIONS}
+
 You are an expert medical scribe AI for a dermatologist. You previously generated a clinical note. The physician has provided feedback or clarifications.
-Refine the **Current Drafted Note** based on the **Physician's Feedback/Clarification**.
-The original consultation transcript (which may include image findings and prior physician inputs) is provided for context.
-The refined note should maintain the first-person physician perspective and the established section structure (do NOT include "SECTION: " before the headers):
-CHIEF COMPLAINT
-HISTORY OF PRESENT ILLNESS (paragraph form, following these HPI guidelines: {HPI_GUIDELINES})
-PAST MEDICAL HISTORY
-MEDICATIONS
-ALLERGIES
-OBJECTIVE FINDINGS (bullet points, incorporate any image findings from the transcript)
-ASSESSMENT
-PLAN
+	Refine the **Current Drafted Note** based on the **Physician's Feedback/Clarification**.
+	The original consultation transcript (which may include image findings and prior physician inputs) is provided for context.
+	The refined note should maintain the first-person physician perspective and the established section structure (do NOT include "SECTION: " before the headers). Each header must appear on its own line:
+	CHIEF COMPLAINT
+	HISTORY OF PRESENT ILLNESS
+	PAST MEDICAL HISTORY
+	MEDICATIONS
+	ALLERGIES
+	OBJECTIVE FINDINGS
+	ASSESSMENT
+	PLAN
+
+	Section guidance:
+	- HISTORY OF PRESENT ILLNESS: paragraph form, following these HPI guidelines: {HPI_GUIDELINES}
+	- OBJECTIVE FINDINGS: bullet points; incorporate any image findings from the transcript.
 
 Original Consultation Transcript (for context):
 ---
@@ -99,6 +125,8 @@ Do NOT include the "AI_ANALYSIS_SEPARATOR_V2" or any differential diagnosis/work
 """
 
 AI_ANALYSIS_REFINEMENT_PROMPT_TEMPLATE = lambda transcript, current_analysis, feedback: f"""
+{DEMO_SAFETY_INSTRUCTIONS}
+
 You are an expert dermatology AI assistant. You previously provided a "CASE SUMMARY", "DIFFERENTIAL DIAGNOSIS (ORDERED BY LIKELIHOOD)", "RATIONALE FOR DIFFERENTIALS", "POTENTIAL \"DON'T MISS\" DIAGNOSES (IF APPLICABLE)", "SUGGESTED WORKUP (FOR TOP DIFFERENTIALS)", and "ADDITIONAL WORKUP (FOR \"DON'T MISS\" DIAGNOSES, IF APPLICABLE AND PERTINENT)".
 The physician has provided additional context or information.
 Please refine your **Current AI Analysis** based on this new information.
@@ -136,10 +164,17 @@ Example: "Image shows multiple erythematous, annular plaques with central cleari
 Do not provide a diagnosis or treatment plan. Just describe the findings.
 """
 
-CONVERSATIONAL_CASE_DISCUSSION_PROMPT_TEMPLATE = lambda transcript, draft_note, ai_analysis, physician_query: f"""
+CONVERSATIONAL_CASE_DISCUSSION_PROMPT_TEMPLATE = lambda transcript, draft_note, ai_analysis, physician_query, discussion_history: f"""
+{DEMO_SAFETY_INSTRUCTIONS}
+
 You are a helpful AI assistant for a dermatologist. The dermatologist is currently reviewing a case.
 Provided below is the full consultation transcript, the AI-generated draft clinical note, and the AI-generated case analysis (DDx, workup).
 The physician's current query or statement is: "{physician_query}"
+
+Conversation History (most recent last):
+---
+{discussion_history if discussion_history else "None yet."}
+---
 
 Your tasks are:
 1.  If the physician asks a question (e.g., "What are the side effects of X?", "Tell me more about Y disease."), answer it based on the provided transcript, draft note, AI analysis, or your general dermatology knowledge.
@@ -167,6 +202,8 @@ Your Response:
 """
 
 REALTIME_SUGGESTION_PROMPT_TEMPLATE = lambda transcript_segment, already_suggested_texts: f"""
+{DEMO_SAFETY_INSTRUCTIONS}
+
 You are an AI assistant for a dermatologist, providing real-time suggestions during a patient encounter.
 Based on the following recent segment of the consultation transcript, provide 1-2 concise, actionable suggestions for the physician. These could be clarifying questions to ask the patient, specific physical exam maneuvers to consider, or key details to ensure are documented.
 Focus on what would be most helpful *at this moment* in the consultation to build a comprehensive understanding and potential differential diagnosis.
@@ -181,4 +218,3 @@ Recent Transcript Segment:
 
 Suggestions (1-2 lines max, each suggestion on a new line, or "No specific suggestions at this moment."):
 """
-

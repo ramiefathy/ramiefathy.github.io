@@ -5,10 +5,10 @@ import json
 import os
 import logging
 import time
+import base64
 from collections import deque
 from datetime import datetime, timedelta, timezone
 import jwt
-from dotenv import load_dotenv
 
 # Import local modules
 import config 
@@ -23,9 +23,6 @@ from prompts import (
     CONVERSATIONAL_CASE_DISCUSSION_PROMPT_TEMPLATE,
     REALTIME_SUGGESTION_PROMPT_TEMPLATE
 )
-
-# Load environment variables from .env file
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env')) 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
@@ -85,14 +82,31 @@ def issue_jwt(subject: str) -> str:
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(minutes=JWT_TTL_MINUTES)).timestamp()),
     }
-    return jwt.encode(payload, config.SESSION_SECRET, algorithm="HS256")
+    return jwt.encode(payload, config.JWT_SIGNING_SECRET, algorithm="HS256")
 
 
 def verify_jwt(token: str):
     try:
-        return jwt.decode(token, config.SESSION_SECRET, algorithms=["HS256"])
+        return jwt.decode(token, config.JWT_SIGNING_SECRET, algorithms=["HS256"])
     except jwt.PyJWTError as exc:
         raise ValueError(f"Invalid token: {exc}")
+
+
+def decode_ramie_auth_subprotocol(encoded_token: str) -> str | None:
+    """
+    Decode a base64url token supplied via the WebSocket subprotocol header.
+
+    Browsers don't allow setting custom headers for WebSocket connections, so we
+    support passing an auth token as a subprotocol entry:
+      Sec-WebSocket-Protocol: ramie-auth.<base64url(token)>
+    """
+
+    try:
+        padded = encoded_token + ("=" * (-len(encoded_token) % 4))
+        raw = base64.urlsafe_b64decode(padded.encode("utf-8"))
+        return raw.decode("utf-8")
+    except Exception:
+        return None
 
 
 def build_client_key(claims_sub: str | None, session_id: str | None, remote_address):
@@ -142,13 +156,15 @@ async def ensure_gemini_service(websocket):
     return service
 
 # --- Custom HTTP Request Processing for Health Checks ---
-async def process_http_request(path, request_headers):
+async def process_http_request(connection, request):
     """
     Handles initial HTTP requests.
     Responds to Render's health checks (often GET or HEAD on /)
     to prevent WebSocket handshake errors from these pings.
     """
-    upgrade_header = request_headers.get('Upgrade')
+    path = getattr(request, "path", None)
+    headers = getattr(request, "headers", None)
+    upgrade_header = headers.get("Upgrade") if headers else None
     logger.debug(f"process_http_request received: Path='{path}', Upgrade='{upgrade_header}'")
 
     # If it's a WebSocket upgrade request, let the library handle it
@@ -159,45 +175,53 @@ async def process_http_request(path, request_headers):
     # Treat requests to the root path (or missing path) as health checks regardless of method.
     if path in (None, '', '/'):
         logger.info(f"Responding to HTTP health check (path: '{path}').")
-        response_headers_list = [
-            ("Content-Type", "text/plain"),
-            ("Content-Length", "2"),
-            ("Connection", "close"), 
-        ]
-        # The websockets library expects a tuple: (status_code, headers, body_bytes)
-        return (200, response_headers_list, b"OK")
+        return connection.respond(200, "OK")
     
     logger.warning(f"Unhandled HTTP request for path: '{path}'. Returning 404.")
-    response_headers_list = [
-        ("Content-Type", "text/plain"),
-        ("Content-Length", "9"),
-        ("Connection", "close"),
-    ]
-    return (404, response_headers_list, b"Not Found")
+    return connection.respond(404, "Not Found")
 
 
 # --- WebSocket Handler ---
-async def handler(websocket, path=None): # path is provided by websockets.serve
+async def handler(websocket):
     """
     Handles WebSocket connections and messages from clients.
     """
     session_id = None
     client_key = None
     try:
-        origin = websocket.request_headers.get('Origin')
+        request = getattr(websocket, "request", None)
+        request_headers = getattr(request, "headers", None)
+        request_path = getattr(request, "path", "") if request else ""
+
+        origin = request_headers.get("Origin") if request_headers else None
         if origin and origin not in config.ALLOWED_ORIGINS:
             logger.warning(f"Rejected connection from disallowed origin: {origin}")
             await websocket.close(code=4003, reason="Origin not allowed")
             return
 
-        bearer_header = websocket.request_headers.get('Authorization')
-        auth_header = websocket.request_headers.get('X-Auth-Token')
-        query_token = None
-        if path and '?' in path:
-            parsed = urlparse(path)
-            query_token = parse_qs(parsed.query).get('token', [None])[0]
+        subprotocol_token = None
+        subprotocol_header = request_headers.get("Sec-WebSocket-Protocol") if request_headers else None
+        if subprotocol_header:
+            offered = [p.strip() for p in subprotocol_header.split(",") if p.strip()]
+            for proto in offered:
+                if proto.startswith("ramie-auth."):
+                    encoded = proto[len("ramie-auth.") :]
+                    subprotocol_token = decode_ramie_auth_subprotocol(encoded)
+                    if not subprotocol_token:
+                        logger.warning("Rejected invalid ramie-auth subprotocol token (decode failed).")
+                    break
 
-        raw_token = auth_header or query_token
+        bearer_header = request_headers.get("Authorization") if request_headers else None
+        auth_header = request_headers.get("X-Auth-Token") if request_headers else None
+        query_token = None
+
+        effective_path = request_path or ""
+        parsed = urlparse(effective_path)
+        redacted_path = parsed.path
+        if parsed.query:
+            query_token = parse_qs(parsed.query).get("token", [None])[0]
+
+        raw_token = auth_header or subprotocol_token or query_token
         presented_token = None
 
         if bearer_header and bearer_header.lower().startswith("bearer "):
@@ -227,7 +251,15 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
 
         session_id = session_manager.create_session()
         client_key = build_client_key(claims.get("sub") if claims else None, session_id, websocket.remote_address)
-        log_event("connection", session_id=session_id, client=client_key, path=path, address=str(websocket.remote_address))
+        log_event(
+            "connection",
+            session_id=session_id,
+            client=client_key,
+            path=redacted_path,
+            token_in_query=bool(query_token),
+            token_in_subprotocol=bool(subprotocol_token),
+            address=str(websocket.remote_address),
+        )
         ack_payload = {"type": "connection_ack", "sessionId": session_id, "message": "Connected to AI Scribe Server"}
         if issued_jwt:
             ack_payload["token"] = issued_jwt
@@ -260,22 +292,38 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
 
             if message_type == "start_new_session":
                 logger.info(f"Starting new session explicitly for {current_session_id_to_use}")
-                session.reset_session_data() 
+                session.reset_session_data()
                 await websocket.send(json.dumps({"type": "status", "message": "New session initialized. Ready to record."}))
-            
+
             elif message_type == "transcript_segment":
                 segment = data.get("segment", "")
-                is_final = data.get("is_final", False)
-                
+                is_final = data.get("is_final", data.get("isFinal", False))
+
+                is_discussion = bool(data.get("is_discussion", data.get("isDiscussion", False)))
+                if is_discussion:
+                    # Do not pollute the encounter transcript with "discussion" microphone input.
+                    if isinstance(segment, str) and segment.strip():
+                        session.add_discussion_entry("physician", segment.strip())
+                    continue
+
                 session.add_transcript_segment(segment, is_final)
                 current_word_count = len(session.full_transcript.split())
-                suggestion_trigger_threshold = 20 
+                suggestion_trigger_threshold = 20
                 if is_final and current_word_count > session.last_suggestion_word_count + suggestion_trigger_threshold:
                     session.last_suggestion_word_count = current_word_count
-                    asyncio.create_task(trigger_realtime_suggestions(websocket, current_session_id_to_use, data.get("modelName")))
+                    asyncio.create_task(
+                        trigger_realtime_suggestions(
+                            websocket, current_session_id_to_use, data.get("modelName")
+                        )
+                    )
 
             elif message_type == "stop_finalize_recording":
                 logger.info(f"Finalizing recording for session {current_session_id_to_use}")
+                provided_transcript = data.get("transcript")
+                if isinstance(provided_transcript, str) and provided_transcript.strip():
+                    # Allow the client to provide an authoritative final transcript (e.g., chat-to-note flow),
+                    # rather than relying exclusively on previously streamed transcript segments.
+                    session.full_transcript = provided_transcript.strip()
                 session.stop_timer() 
                 await websocket.send(json.dumps({"type": "status", "message": "Finalizing note and analysis..."}))
                 service = await ensure_gemini_service(websocket)
@@ -296,6 +344,79 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                 except Exception as e:
                     logger.error(f"Error during final generation for {current_session_id_to_use}: {e}", exc_info=True)
                     await websocket.send(json.dumps({"type": "error", "message": f"Error generating final note/analysis: {str(e)}"}))
+
+            elif message_type == "stream_generate":
+                # Streaming generation - sends chunks as they arrive.
+                # Supported stream types:
+                # - note: generates initial note + analysis (server updates session on completion)
+                # - chat: streams a conversational response (server updates discussion history)
+                logger.info(f"Streaming generation for session {current_session_id_to_use}")
+                stream_type = data.get("streamType", "note")
+                model_name_pref = data.get("modelName", config.GEMINI_DEFAULT_MODEL)
+
+                transcript_override = data.get("transcript")
+                if isinstance(transcript_override, str) and transcript_override.strip():
+                    session.full_transcript = transcript_override.strip()
+
+                service = await ensure_gemini_service(websocket)
+                if not service:
+                    continue
+
+                if stream_type == "note":
+                    prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
+                elif stream_type == "chat":
+                    physician_input = data.get("text", "")
+                    discussion_history_text = "\n".join(
+                        f"{entry.get('speaker', 'unknown')}: {entry.get('text', '')}"
+                        for entry in session.discussion_history[-20:]
+                    )
+                    if isinstance(physician_input, str) and physician_input.strip():
+                        session.add_discussion_entry("physician", physician_input.strip())
+                    prompt = CONVERSATIONAL_CASE_DISCUSSION_PROMPT_TEMPLATE(
+                        session.full_transcript,
+                        session.current_draft_note,
+                        session.current_ai_analysis,
+                        physician_input,
+                        discussion_history_text
+                    )
+                else:
+                    custom_prompt = data.get("prompt")
+                    prompt = custom_prompt if isinstance(custom_prompt, str) and custom_prompt.strip() else INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
+
+                try:
+                    full_response = ""
+                    async for chunk_text, is_done in service.stream_gemini_api(prompt, model_name=model_name_pref):
+                        if chunk_text:
+                            full_response += chunk_text
+                            await websocket.send(json.dumps({
+                                "type": "stream_chunk",
+                                "text": chunk_text,
+                                "done": bool(is_done),
+                                "streamType": stream_type
+                            }))
+
+                        if is_done:
+                            complete_payload = {
+                                "type": "stream_complete",
+                                "fullText": full_response,
+                                "streamType": stream_type
+                            }
+
+                            if stream_type == "note":
+                                note_text, analysis_text = service.parse_initial_generation(full_response)
+                                session.update_draft_note(note_text)
+                                session.update_ai_analysis(analysis_text)
+                                complete_payload["noteText"] = note_text
+                                complete_payload["analysisText"] = analysis_text
+                            elif stream_type == "chat":
+                                session.add_discussion_entry("ai", full_response)
+
+                            await websocket.send(json.dumps(complete_payload))
+                            break
+                except Exception as e:
+                    logger.error(f"Error during streaming for {current_session_id_to_use}: {e}", exc_info=True)
+                    await websocket.send(json.dumps({"type": "error", "message": f"Streaming error: {str(e)}"}))
+
 
             elif message_type == "analyze_image":
                 image_base64 = data.get("imageBase64")
@@ -348,11 +469,22 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                         logger.error(f"Error during regeneration after image integration for {current_session_id_to_use}: {e}", exc_info=True)
                         await websocket.send(json.dumps({"type": "error", "message": f"Error regenerating after image: {str(e)}"}))
 
-
             elif message_type == "discussion_input":
                 physician_input = data.get("text", "")
                 model_name_pref = data.get("modelName", config.GEMINI_DEFAULT_MODEL)
-                session.add_discussion_entry("physician", physician_input)
+                transcript_override = data.get("transcript")
+                intent = data.get("intent")
+
+                if isinstance(transcript_override, str) and transcript_override.strip():
+                    session.full_transcript = transcript_override.strip()
+
+                discussion_history_text = "\n".join(
+                    f"{entry.get('speaker', 'unknown')}: {entry.get('text', '')}"
+                    for entry in session.discussion_history[-20:]
+                )
+
+                if isinstance(physician_input, str) and physician_input.strip():
+                    session.add_discussion_entry("physician", physician_input.strip())
 
                 await websocket.send(json.dumps({"type": "status", "message": "AI is processing your input..."}))
 
@@ -364,8 +496,10 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                     session.full_transcript,
                     session.current_draft_note,
                     session.current_ai_analysis,
-                    physician_input
+                    physician_input,
+                    discussion_history_text
                 )
+
                 try:
                     ai_response_text = await service.call_gemini_api(conv_prompt, model_name=model_name_pref)
                     session.add_discussion_entry("ai", ai_response_text)
@@ -374,22 +508,52 @@ async def handler(websocket, path=None): # path is provided by websockets.serve
                         "text": ai_response_text
                     }))
 
+                    # For certain UI intents (e.g., management plan generation), we want the AI response
+                    # but we *do not* want to automatically regenerate notes/analysis.
+                    if intent in ("management_plan", "general_question"):
+                        continue
+
                     lower_ai_response = ai_response_text.lower()
-                    new_info_keywords_in_ai_response = ["will update the note and analysis", "updating the note and analysis", "regenerating with new information", "i've updated the note and analysis", "i will update both"]
-                    note_update_keywords_in_ai_response = ["will update the clinical note", "updating the clinical note", "i've updated the clinical note"]
-                    
-                    physician_new_info_keywords = ["patient also reports", "new finding:", "update on symptoms:", "i forgot to mention:", "add to history:", "observed that:", "test result shows", "labs are back", "correction to symptoms", "additional detail is", "the image shows"]
-                    
-                    should_regenerate_all = any(k in lower_ai_response for k in new_info_keywords_in_ai_response) or \
-                                            any(k in physician_input.lower() for k in physician_new_info_keywords)
+                    new_info_keywords_in_ai_response = [
+                        "will update the note and analysis",
+                        "updating the note and analysis",
+                        "regenerating with new information",
+                        "i've updated the note and analysis",
+                        "i will update both",
+                    ]
+                    note_update_keywords_in_ai_response = [
+                        "will update the clinical note",
+                        "updating the clinical note",
+                        "i've updated the clinical note",
+                    ]
+
+                    physician_new_info_keywords = [
+                        "patient also reports",
+                        "new finding:",
+                        "update on symptoms:",
+                        "i forgot to mention:",
+                        "add to history:",
+                        "observed that:",
+                        "test result shows",
+                        "labs are back",
+                        "correction to symptoms",
+                        "additional detail is",
+                        "the image shows",
+                    ]
+
+                    should_regenerate_all = any(k in lower_ai_response for k in new_info_keywords_in_ai_response) or any(
+                        k in physician_input.lower() for k in physician_new_info_keywords
+                    )
 
                     should_update_note_only = any(k in lower_ai_response for k in note_update_keywords_in_ai_response) and not should_regenerate_all
 
-
                     if should_regenerate_all:
                         logger.info(f"Discussion triggered full regeneration for session {current_session_id_to_use}")
-                        session.add_transcript_segment(f"\n\n--- PHYSICIAN INPUT (DISCUSSION LEADING TO REGEN) ---\n{physician_input}\n--- END PHYSICIAN INPUT ---\n", True)
-                        
+                        session.add_transcript_segment(
+                            f"\n\n--- PHYSICIAN INPUT (DISCUSSION LEADING TO REGEN) ---\n{physician_input}\n--- END PHYSICIAN INPUT ---\n",
+                            True
+                        )
+
                         regen_prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
                         regen_response_text = await service.call_gemini_api(regen_prompt, model_name=model_name_pref)
                         new_note, new_analysis = service.parse_initial_generation(regen_response_text)
@@ -512,19 +676,32 @@ async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=
         logger.error(f"Error fetching real-time suggestions for {session_id}: {e}", exc_info=True)
         await websocket.send(json.dumps({"type": "error", "area": "suggestions", "message": "Error fetching suggestions."}))
 
+def select_subprotocol(connection, offered_subprotocols):
+    """
+    Select a subprotocol to echo back to browser clients.
+
+    Browsers may close the connection if they request subprotocols and the server doesn't
+    select one. We support dynamic auth subprotocols of the form:
+      ramie-auth.<base64url(token)>
+    """
+    for proto in offered_subprotocols or []:
+        if isinstance(proto, str) and proto.startswith("ramie-auth."):
+            return proto
+    return None
+
 
 async def main():
-    host = "0.0.0.0"
+    host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 8765)) 
     
     logger.info(f"Starting WebSocket server on {host}:{port}")
-    # Pass process_request to websockets.serve to handle HTTP health checks
     async with websockets.serve(
-        handler, 
-        host, 
-        port, 
-        max_size=10*1024*1024, # Increased max_size for image data
-        process_request=process_http_request 
+        handler,
+        host,
+        port,
+        max_size=10 * 1024 * 1024,  # Increased max_size for image data
+        process_request=process_http_request,
+        select_subprotocol=select_subprotocol,
     ):
         await asyncio.Future()
 
