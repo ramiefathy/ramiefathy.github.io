@@ -19,6 +19,12 @@ jobs:
           node-version: '20'
       - name: Install site dependencies
         run: npm --prefix site install
+      - name: Install Playwright (Chromium)
+        working-directory: site
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright e2e (smoke)
+        working-directory: site
+        run: npm run test:e2e
       - name: Build site
         run: npm run site:build
       - name: Check CDN Links

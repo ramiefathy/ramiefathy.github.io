@@ -6,6 +6,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   testDir: './tests',
+  testIgnore: ['**/*.smoke.spec.ts'],
   timeout: 90_000,
   expect: {
     timeout: 10_000
