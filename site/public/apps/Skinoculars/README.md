@@ -8,6 +8,21 @@ This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/drive/1Qxr_rK2ngb0OhpTRaOgGOUgOIOkVF-3g
 
+## Deploy (GitHub Pages / Astro)
+
+The main site links to the **production** Skinoculars entrypoint at:
+
+- `/apps/Skinoculars/dist/index.html`
+
+This repository deploys the Astro site (`site/dist`) and serves everything in `site/public/` as static files. It does **not** automatically build nested Vite apps under `site/public/apps/*` during the Astro build.
+
+If you change Skinoculars source code, you must rebuild and commit the Vite output:
+
+1. `cd site/public/apps/Skinoculars`
+2. `npm install`
+3. `npm run build`
+4. Commit the updated `site/public/apps/Skinoculars/dist/` folder.
+
 ## Run Locally
 
 **Prerequisites:**  Node.js
