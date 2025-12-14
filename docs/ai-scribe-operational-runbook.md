@@ -11,8 +11,12 @@ This runbook captures the operational procedures for the **AI Dermatology Scribe
 - **Protocol:** Secure WebSocket (TLS terminated at the proxy)
 - **Dependencies:**
   - Google Gemini API (`GEMINI_API_KEY`)
-  - Persistent session state stored in-memory (stateless; restart-safe)
-  - Clients must supply `SESSION_SECRET` token via query string (`?token=`) or `X-Auth-Token` header
+  - Session state stored **in-memory per WebSocket connection** (restart clears sessions)
+  - Clients must authenticate with either:
+    - a JWT signed with `JWT_SIGNING_SECRET` (HS256), or
+    - the legacy shared secret `SESSION_SECRET` (server will issue a short-lived JWT)
+  - Browser clients should send the token via WebSocket subprotocol (`Sec-WebSocket-Protocol: ramie-auth.<base64url(token)>`)
+  - `?token=` remains supported as a legacy fallback but is discouraged
 
 ## Configuration Checklist
 
@@ -23,6 +27,7 @@ This runbook captures the operational procedures for the **AI Dermatology Scribe
 | `GEMINI_VISION_MODEL` | Model used for image analysis | Same as above |
 | `GEMINI_SUGGESTION_MODEL` | Model for realtime hints | Same as above |
 | `SESSION_SECRET` | Shared authentication token | Rotate quarterly; coordinate with frontend release |
+| `JWT_SIGNING_SECRET` | JWT signing/verifying secret (HS256) | Rotate with `SESSION_SECRET`; keep distinct when possible |
 | `ALLOWED_ORIGINS` | CSV of permitted `Origin` headers | Update when adding new frontend host |
 
 > **Tip:** Store secrets in Render/Heroku config (or your platform equivalent) and track them in the `docs/production-ready` orientation file when rotated.

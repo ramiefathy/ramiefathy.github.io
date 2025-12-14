@@ -211,3 +211,24 @@ button:active {
     transform: scale(0.98);
 }
 
+/* Dark mode contrast enhancements */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #0b1220;
+        color: #e2e8f0;
+    }
+    .card, .panel, .note-item, .app-shell, .container, .surface, .glass, .modal-content {
+        background-color: #0f172a;
+        color: #e2e8f0;
+        border-color: #334155;
+    }
+    input, textarea, select {
+        background-color: #0f172a;
+        color: #e2e8f0;
+        border: 1px solid #334155;
+    }
+    .btn, button {
+        background-color: #1d4ed8;
+        color: #e0f2fe;
+    }
+}

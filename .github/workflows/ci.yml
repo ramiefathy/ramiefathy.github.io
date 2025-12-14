@@ -27,6 +27,14 @@ jobs:
         run: npm run test:e2e
       - name: Build site
         run: npm run site:build
+      - name: Guard against simulated RAMIE scribe
+        run: |
+          echo "Checking that the deployed RAMIE AI Scribe is not simulated..."
+          if grep -R -n -E "AI Generation Functions \\(Placeholders\\)|Simulated response" site/dist/apps/dermatology-scribe/index.html; then
+            echo "❌ Simulation markers detected in deployed scribe entrypoint"
+            exit 1
+          fi
+          echo "✅ No simulation markers found"
       - name: Check CDN Links
         run: |
           echo "Checking CDN URLs used in clinic-scheduler-pro..."
@@ -53,3 +61,5 @@ jobs:
           pip install -r services/ai-scribe/requirements.txt
       - name: Lint (syntax check)
         run: python -m compileall services/ai-scribe
+      - name: Run backend tests
+        run: python -m pytest services/ai-scribe/tests -q
