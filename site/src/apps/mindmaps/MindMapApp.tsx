@@ -1269,9 +1269,9 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
       </button>
 
       {showHelp && (
-        <div className="help-overlay" role="dialog" aria-modal="true">
+        <div className="help-overlay" role="dialog" aria-modal="true" aria-labelledby="mindmap-help-title">
           <div className="help-content">
-            <h2>Keyboard & feature guide</h2>
+            <h2 id="mindmap-help-title">Keyboard & feature guide</h2>
             <ul>
               <li>Use Tab to move between controls, Enter/Space to toggle nodes.</li>
               <li>Arrow Up/Down move focus between nearby nodes.</li>
@@ -1282,12 +1282,24 @@ const MindMapApp: React.FC<MindMapAppProps> = ({ dataset }) => {
 
             <h2>Touch gestures (mobile)</h2>
             <ul>
-              <li><strong>Pinch</strong> to zoom in and out of the mind map.</li>
-              <li><strong>Drag</strong> with one finger to pan around the map.</li>
-              <li><strong>Tap</strong> on a node to select it and view details.</li>
-              <li><strong>Swipe</strong> the tabs to scroll through views.</li>
-              <li><strong>Drag</strong> the bottom panel handle to expand or collapse.</li>
-              <li>Use the <strong>☰ menu</strong> button for more options.</li>
+              <li>
+                <strong>Pinch</strong> to zoom in and out of the mind map.
+              </li>
+              <li>
+                <strong>Drag</strong> with one finger to pan around the map.
+              </li>
+              <li>
+                <strong>Tap</strong> on a node to select it and view details.
+              </li>
+              <li>
+                <strong>Swipe</strong> the tabs to scroll through views.
+              </li>
+              <li>
+                <strong>Drag</strong> the bottom panel handle to expand or collapse.
+              </li>
+              <li>
+                Use the <strong>☰ menu</strong> button for more options.
+              </li>
             </ul>
             <button type="button" onClick={() => setShowHelp(false)}>
               Close
