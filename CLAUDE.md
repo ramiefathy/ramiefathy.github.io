@@ -44,7 +44,10 @@ python app.py
 - **Astro Framework**: Static site generator with file-based routing in `site/src/pages/`
 - **React Integration**: Interactive components using Framer Motion for animations and @paper-design/shaders-react for visual effects
 - **Data Organization**: Structured content in `site/src/data/` for publications, apps metadata, and research
-- **Interactive Apps**: Standalone HTML/JS applications in `site/public/apps/` loaded as static assets
+- **Interactive Apps**:
+  - Most apps are shipped as static assets in `site/public/apps/` and linked from the app catalog in `site/src/data/apps.json`.
+  - Some apps are intentionally hosted externally (subdomain + separate repo). Example:
+    - **Skinoculars** is hosted at `https://skinoculars.ramiefathy.com/` and should remain listed in `site/src/data/apps.json`.
 
 ### Backend Architecture
 - **WebSocket Service**: Python-based real-time transcription service in `services/ai-scribe/`

@@ -46,6 +46,11 @@ Completed implementation plans, superseded approaches, and future concepts.
 
 Documentation living with applications:
 
+### Skinoculars
+- Canonical URL: `https://skinoculars.ramiefathy.com/`
+- Source/deploy repo: `ramiefathy/Skinoculars`
+- Integration + redirect details: [Skinoculars Subdomain Hosting](skinoculars-subdomain.md)
+
 ### Clinic Scheduler Pro
 - [README](../site/public/apps/clinic-scheduler-pro/README.md) - User guide
 - [Firebase Setup](../site/public/apps/clinic-scheduler-pro/firebase-setup.md) - Technical setup
