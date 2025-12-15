@@ -17,17 +17,7 @@
     "site:test": "npm --prefix site run test",
     "site:test:watch": "npm --prefix site run test:watch",
     "site:test:e2e": "npm --prefix site run test:e2e",
-    "site:test:e2e:update": "npm --prefix site run test:e2e:update",
-    "clinic:scheduler:build": "npm --prefix site/public/apps/clinic-scheduler-pro run build",
-    "test:unit": "echo 'Unit tests will be configured in Phase 3' && exit 0",
-    "test:e2e": "npx firebase emulators:exec --only firestore,auth 'npx playwright test --reporter=list'",
-    "perf:run": "npx firebase emulators:exec --only firestore 'node tests/perf/run-all.js'",
-    "perf:seed": "npx firebase emulators:exec --only firestore 'node tests/perf/seed-large-institution.js'",
-    "test:integration": "npx firebase emulators:exec --only firestore,auth 'node tests/integration/firebase-service.test.js'",
-    "clinic:smoke": "npm run test:unit && npm run clinic:scheduler:build && npm test --prefix functions-backend && node functions-backend/verify-functions.js && python -m compileall services/ai-scribe",
-    "backfill:members": "node functions-backend/scripts/backfill-members.js --dry-run",
-    "backfill:members:apply": "node functions-backend/scripts/backfill-members.js",
-    "deploy:rules": "firebase deploy --only firestore:rules"
+    "site:test:e2e:update": "npm --prefix site run test:e2e:update"
   },
   "keywords": [
     "dermatology",
@@ -37,26 +27,7 @@
   ],
   "author": "Dr. Ramie Fathy",
   "license": "MIT",
-  "devDependencies": {
-    "@babel/cli": "^7.28.3",
-    "@babel/core": "^7.28.4",
-    "@babel/preset-react": "^7.27.1"
-  },
   "engines": {
     "node": "^18.19.0 || ^20.11.0"
-  },
-  "dependencies": {
-    "firebase": "^10.13.1"
-  },
-  "comments": {
-    "dependencies": {
-      "firebase": "Client SDK for Firebase Authentication/Firestore used by clinic-scheduler-pro"
-    },
-    "removed": {
-      "testing-tools": "Moved to site/package.json (playwright, vitest, testing-library)",
-      "firebase-tools": "Moved to site/package.json for emulator support",
-      "firebase-admin": "Moved to functions-backend/package.json (backend only)",
-      "vertexai": "Moved to functions-backend/package.json (backend only)"
-    }
   }
 }
