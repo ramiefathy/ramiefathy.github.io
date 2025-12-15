@@ -1,30 +1,16 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Skinoculars', () => {
-  test('loads the static dist entrypoint (no 404) and fetches built assets', async ({ page }) => {
-    const entrypoint = '/apps/Skinoculars/dist/index.html';
-    const jsAssetRegex = /\/apps\/Skinoculars\/dist\/assets\/index-[^/]+\.js(?:\?|$)/;
-    const cssAssetRegex = /\/apps\/Skinoculars\/dist\/assets\/index-[^/]+\.css(?:\?|$)/;
+  test('apps catalog links to canonical skinoculars.ramiefathy.com URL', async ({ page }) => {
+    await page.goto('/apps');
 
-    const jsResponsePromise = page.waitForResponse((response) => jsAssetRegex.test(response.url()));
-    const cssResponsePromise = page.waitForResponse((response) => cssAssetRegex.test(response.url()));
+    const skinocularsCard = page.locator('.app-showcase-card', {
+      has: page.getByRole('heading', { level: 2, name: 'Skinoculars' })
+    });
+    await expect(skinocularsCard).toHaveCount(1);
 
-    const response = await page.goto(entrypoint, { waitUntil: 'domcontentloaded' });
-    expect(response?.ok()).toBeTruthy();
-
-    await expect(page.locator('#root')).toHaveCount(1);
-
-    const moduleScripts = page.locator('script[type="module"][src^="./assets/"]');
-    await expect(moduleScripts).not.toHaveCount(0);
-
-    const stylesheets = page.locator('link[rel="stylesheet"][href^="./assets/"]');
-    await expect(stylesheets).not.toHaveCount(0);
-
-    const jsResponse = await jsResponsePromise;
-    expect(jsResponse.ok()).toBeTruthy();
-
-    const cssResponse = await cssResponsePromise;
-    expect(cssResponse.ok()).toBeTruthy();
+    const visitLink = skinocularsCard.getByRole('link', { name: 'Visit the App' });
+    await expect(visitLink).toHaveAttribute('href', 'https://skinoculars.ramiefathy.com/');
+    await expect(visitLink).toHaveAttribute('target', '_blank');
   });
 });
-
