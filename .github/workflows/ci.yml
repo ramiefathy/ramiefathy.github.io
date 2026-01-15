@@ -19,12 +19,8 @@ jobs:
           node-version: '20'
       - name: Install site dependencies
         run: npm --prefix site install
-      - name: Install Playwright (Chromium)
-        working-directory: site
-        run: npx playwright install --with-deps chromium
-      - name: Run Playwright e2e (smoke)
-        working-directory: site
-        run: npm run test:e2e
+      - name: Run site unit tests
+        run: npm run site:test
       - name: Build site
         run: npm run site:build
       - name: Guard against simulated RAMIE scribe
