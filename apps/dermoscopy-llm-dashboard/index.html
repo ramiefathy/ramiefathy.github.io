@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dermoscopy LLM Evaluation Dashboard – Ramie Fathy, MD</title>
+  <meta name="description" content="Interactive dashboard exploring multimodal LLM performance on dermoscopic image classification across 17 models and 6 prompting strategies.">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.10.3/umd/Recharts.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #1a1a1a; }
+    #root { min-height: 100vh; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; text-decoration: none; font-size: 13px; margin-bottom: 16px; transition: color 0.15s; }
+    .back-link:hover { color: #111; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+    const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, Cell, ReferenceLine } = Recharts;
+
+    // Embedded study data
+    const DATA = {"modelSummary": [{"model": "gemini-3-pro-preview-low-thinking-media-high", "provider": "gemini", "n_trials": 600, "accuracy": 0.825, "sensitivity": 0.8919, "specificity": 0.9167, "mean_latency": 33.49, "mean_cost": 0.01097, "total_cost": 6.58, "mean_tokens": 4709.0}, {"model": "gemini-3-pro-preview-high-thinking-media-high", "provider": "gemini", "n_trials": 600, "accuracy": 0.8183, "sensitivity": 0.8986, "specificity": 0.8654, "mean_latency": 40.2, "mean_cost": 0.01067, "total_cost": 6.4, "mean_tokens": 5986.0}, {"model": "gemini-2.5-pro", "provider": "gemini", "n_trials": 600, "accuracy": 0.7833, "sensitivity": 0.9527, "specificity": 0.6987, "mean_latency": 12.51, "mean_cost": 0.00916, "total_cost": 5.49, "mean_tokens": 1964.0}, {"model": "o3", "provider": "openai", "n_trials": 600, "accuracy": 0.7783, "sensitivity": 0.8896, "specificity": 0.891, "mean_latency": 11.28, "mean_cost": 0.01943, "total_cost": 11.66, "mean_tokens": 2741.0}, {"model": "gpt-5", "provider": "openai", "n_trials": 600, "accuracy": 0.755, "sensitivity": 0.8784, "specificity": 0.8462, "mean_latency": 26.86, "mean_cost": 0.02249, "total_cost": 13.49, "mean_tokens": 2871.0}, {"model": "gpt-4.1", "provider": "openai", "n_trials": 600, "accuracy": 0.7517, "sensitivity": 0.8851, "specificity": 0.8718, "mean_latency": 5.43, "mean_cost": 0.01381, "total_cost": 8.28, "mean_tokens": 2572.0}, {"model": "o4-mini-2025-04-16", "provider": "openai", "n_trials": 600, "accuracy": 0.725, "sensitivity": 0.8829, "specificity": 0.8269, "mean_latency": 5.98, "mean_cost": 0.03636, "total_cost": 21.81, "mean_tokens": 6205.0}, {"model": "gemini-2.5-flash", "provider": "gemini", "n_trials": 600, "accuracy": 0.7233, "sensitivity": 0.8964, "specificity": 0.7308, "mean_latency": 5.35, "mean_cost": 0.00886, "total_cost": 5.32, "mean_tokens": 1698.0}, {"model": "gpt-4o", "provider": "openai", "n_trials": 600, "accuracy": 0.71, "sensitivity": 0.8536, "specificity": 0.8205, "mean_latency": 3.36, "mean_cost": 0.01328, "total_cost": 7.97, "mean_tokens": 2537.0}, {"model": "gemini-3-pro-preview-low-thinking", "provider": "gemini", "n_trials": 600, "accuracy": 0.69, "sensitivity": 0.7703, "specificity": 0.9167, "mean_latency": 20.32, "mean_cost": 0.01067, "total_cost": 6.4, "mean_tokens": 6094.0}, {"model": "gemini-3-pro-preview-high-thinking", "provider": "gemini", "n_trials": 600, "accuracy": 0.6867, "sensitivity": 0.7748, "specificity": 0.891, "mean_latency": 21.54, "mean_cost": 0.01821, "total_cost": 10.92, "mean_tokens": 6123.0}, {"model": "gpt-5-mini", "provider": "openai", "n_trials": 600, "accuracy": 0.6667, "sensitivity": 0.7793, "specificity": 0.9167, "mean_latency": 9.75, "mean_cost": 0.02766, "total_cost": 16.59, "mean_tokens": 4510.0}, {"model": "gemini-2.5-flash-lite", "provider": "gemini", "n_trials": 600, "accuracy": 0.665, "sensitivity": 0.8874, "specificity": 0.6923, "mean_latency": 1.62, "mean_cost": 0.00845, "total_cost": 5.07, "mean_tokens": 1027.0}, {"model": "gemini-3-pro-image-preview", "provider": "gemini", "n_trials": 600, "accuracy": 0.6533, "sensitivity": 0.8333, "specificity": 0.8333, "mean_latency": 18.31, "mean_cost": 0.01052, "total_cost": 6.31, "mean_tokens": 2184.0}, {"model": "gemini-2.0-flash-lite", "provider": "gemini", "n_trials": 600, "accuracy": 0.615, "sensitivity": 0.8559, "specificity": 0.6795, "mean_latency": 1.66, "mean_cost": 0.01055, "total_cost": 6.33, "mean_tokens": 1376.0}, {"model": "gemini-2.0-flash", "provider": "gemini", "n_trials": 600, "accuracy": 0.5917, "sensitivity": 0.7117, "specificity": 0.859, "mean_latency": 1.78, "mean_cost": 0.0105, "total_cost": 6.3, "mean_tokens": 1374.0}, {"model": "gpt-5-nano", "provider": "openai", "n_trials": 600, "accuracy": 0.585, "sensitivity": 0.8716, "specificity": 0.5, "mean_latency": 8.81, "mean_cost": 0.04091, "total_cost": 24.55, "mean_tokens": 6014.0}], "armSummary": [{"arm": 1, "name": "Zero-shot with label list", "accuracy": 0.7453, "n_trials": 1700}, {"arm": 2, "name": "Few-shot with exemplars", "accuracy": 0.7641, "n_trials": 1700}, {"arm": 3, "name": "Primer board (exemplar per label)", "accuracy": 0.7765, "n_trials": 1700}, {"arm": 4, "name": "Few-shot with anti-anchoring", "accuracy": 0.7671, "n_trials": 1700}, {"arm": 5, "name": "Zero-shot free-form", "accuracy": 0.56, "n_trials": 1700}, {"arm": 6, "name": "Few-shot free-form", "accuracy": 0.6306, "n_trials": 1700}], "modelArmMatrix": [{"model": "gemini-3-pro-preview-high-thinking-media-high", "arm1": 0.89, "arm2": 0.87, "arm3": 0.89, "arm4": 0.9, "arm5": 0.61, "arm6": 0.75}, {"model": "gemini-3-pro-preview-low-thinking-media-high", "arm1": 0.88, "arm2": 0.92, "arm3": 0.88, "arm4": 0.87, "arm5": 0.71, "arm6": 0.69}, {"model": "o3", "arm1": 0.82, "arm2": 0.84, "arm3": 0.85, "arm4": 0.83, "arm5": 0.62, "arm6": 0.71}, {"model": "gemini-2.5-pro", "arm1": 0.81, "arm2": 0.83, "arm3": 0.84, "arm4": 0.84, "arm5": 0.65, "arm6": 0.73}, {"model": "gpt-4.1", "arm1": 0.79, "arm2": 0.8, "arm3": 0.84, "arm4": 0.83, "arm5": 0.61, "arm6": 0.64}, {"model": "gpt-5", "arm1": 0.79, "arm2": 0.78, "arm3": 0.82, "arm4": 0.79, "arm5": 0.62, "arm6": 0.73}, {"model": "gemini-2.5-flash", "arm1": 0.75, "arm2": 0.79, "arm3": 0.83, "arm4": 0.77, "arm5": 0.56, "arm6": 0.64}, {"model": "o4-mini-2025-04-16", "arm1": 0.79, "arm2": 0.77, "arm3": 0.82, "arm4": 0.82, "arm5": 0.54, "arm6": 0.61}, {"model": "gpt-4o", "arm1": 0.8, "arm2": 0.75, "arm3": 0.79, "arm4": 0.74, "arm5": 0.55, "arm6": 0.63}, {"model": "gemini-2.5-flash-lite", "arm1": 0.76, "arm2": 0.71, "arm3": 0.76, "arm4": 0.7, "arm5": 0.43, "arm6": 0.63}, {"model": "gemini-3-pro-preview-high-thinking", "arm1": 0.72, "arm2": 0.67, "arm3": 0.72, "arm4": 0.73, "arm5": 0.65, "arm6": 0.63}, {"model": "gpt-5-mini", "arm1": 0.67, "arm2": 0.76, "arm3": 0.75, "arm4": 0.77, "arm5": 0.47, "arm6": 0.58}, {"model": "gemini-3-pro-preview-low-thinking", "arm1": 0.67, "arm2": 0.75, "arm3": 0.67, "arm4": 0.72, "arm5": 0.69, "arm6": 0.64}, {"model": "gemini-2.0-flash-lite", "arm1": 0.62, "arm2": 0.68, "arm3": 0.74, "arm4": 0.7, "arm5": 0.4, "arm6": 0.55}, {"model": "gemini-3-pro-image-preview", "arm1": 0.68, "arm2": 0.7, "arm3": 0.68, "arm4": 0.69, "arm5": 0.62, "arm6": 0.55}, {"model": "gpt-5-nano", "arm1": 0.62, "arm2": 0.66, "arm3": 0.56, "arm4": 0.68, "arm5": 0.44, "arm6": 0.55}, {"model": "gemini-2.0-flash", "arm1": 0.61, "arm2": 0.71, "arm3": 0.76, "arm4": 0.66, "arm5": 0.35, "arm6": 0.46}], "modelDiagMatrix": [{"model": "gemini-2.0-flash", "basal_cell_carcinoma": 0.676, "dermatofibroma": 0.433, "lichen_planus": 0.778, "melanocytic_nevus": 0.5, "melanoma": 0.481, "seborrheic_keratosis": 0.722, "squamous_cell_carcinoma": 0.45, "verruca_vulgaris": 0.792}, {"model": "gemini-2.0-flash-lite", "basal_cell_carcinoma": 0.644, "dermatofibroma": 0.133, "lichen_planus": 0.5, "melanocytic_nevus": 0.4, "melanoma": 0.765, "seborrheic_keratosis": 0.481, "squamous_cell_carcinoma": 0.567, "verruca_vulgaris": 0.708}, {"model": "gemini-2.5-flash", "basal_cell_carcinoma": 0.743, "dermatofibroma": 0.6, "lichen_planus": 0.778, "melanocytic_nevus": 0.4, "melanoma": 0.821, "seborrheic_keratosis": 0.556, "squamous_cell_carcinoma": 0.683, "verruca_vulgaris": 0.875}, {"model": "gemini-2.5-flash-lite", "basal_cell_carcinoma": 0.743, "dermatofibroma": 0.2, "lichen_planus": 0.5, "melanocytic_nevus": 0.367, "melanoma": 0.802, "seborrheic_keratosis": 0.481, "squamous_cell_carcinoma": 0.567, "verruca_vulgaris": 0.75}, {"model": "gemini-2.5-pro", "basal_cell_carcinoma": 0.901, "dermatofibroma": 0.667, "lichen_planus": 0.889, "melanocytic_nevus": 0.333, "melanoma": 0.877, "seborrheic_keratosis": 0.481, "squamous_cell_carcinoma": 0.567, "verruca_vulgaris": 0.917}, {"model": "gpt-4.1", "basal_cell_carcinoma": 0.811, "dermatofibroma": 0.833, "lichen_planus": 0.722, "melanocytic_nevus": 0.633, "melanoma": 0.765, "seborrheic_keratosis": 0.704, "squamous_cell_carcinoma": 0.517, "verruca_vulgaris": 0.875}, {"model": "gpt-4o", "basal_cell_carcinoma": 0.806, "dermatofibroma": 0.7, "lichen_planus": 0.667, "melanocytic_nevus": 0.467, "melanoma": 0.716, "seborrheic_keratosis": 0.815, "squamous_cell_carcinoma": 0.367, "verruca_vulgaris": 0.75}, {"model": "gpt-5", "basal_cell_carcinoma": 0.833, "dermatofibroma": 0.833, "lichen_planus": 0.667, "melanocytic_nevus": 0.533, "melanoma": 0.735, "seborrheic_keratosis": 0.704, "squamous_cell_carcinoma": 0.6, "verruca_vulgaris": 0.917}, {"model": "gpt-5-mini", "basal_cell_carcinoma": 0.662, "dermatofibroma": 0.733, "lichen_planus": 0.556, "melanocytic_nevus": 0.767, "melanoma": 0.63, "seborrheic_keratosis": 0.778, "squamous_cell_carcinoma": 0.55, "verruca_vulgaris": 0.875}, {"model": "gpt-5-nano", "basal_cell_carcinoma": 0.563, "dermatofibroma": 0.267, "lichen_planus": 0.056, "melanocytic_nevus": 0.333, "melanoma": 0.901, "seborrheic_keratosis": 0.204, "squamous_cell_carcinoma": 0.65, "verruca_vulgaris": 0.458}, {"model": "o3", "basal_cell_carcinoma": 0.82, "dermatofibroma": 0.833, "lichen_planus": 0.778, "melanocytic_nevus": 0.733, "melanoma": 0.747, "seborrheic_keratosis": 0.704, "squamous_cell_carcinoma": 0.7, "verruca_vulgaris": 0.958}, {"model": "o4-mini-2025-04-16", "basal_cell_carcinoma": 0.694, "dermatofibroma": 0.667, "lichen_planus": 0.611, "melanocytic_nevus": 0.733, "melanoma": 0.877, "seborrheic_keratosis": 0.556, "squamous_cell_carcinoma": 0.6, "verruca_vulgaris": 0.833}, {"model": "gemini-3-pro-preview-high-thinking", "basal_cell_carcinoma": 0.784, "dermatofibroma": 0.867, "lichen_planus": 1.0, "melanocytic_nevus": 0.333, "melanoma": 0.562, "seborrheic_keratosis": 0.648, "squamous_cell_carcinoma": 0.583, "verruca_vulgaris": 0.958}, {"model": "gemini-3-pro-preview-low-thinking", "basal_cell_carcinoma": 0.788, "dermatofibroma": 0.867, "lichen_planus": 1.0, "melanocytic_nevus": 0.433, "melanoma": 0.525, "seborrheic_keratosis": 0.63, "squamous_cell_carcinoma": 0.667, "verruca_vulgaris": 0.958}, {"model": "gemini-3-pro-image-preview", "basal_cell_carcinoma": 0.64, "dermatofibroma": 0.533, "lichen_planus": 0.722, "melanocytic_nevus": 0.3, "melanoma": 0.778, "seborrheic_keratosis": 0.593, "squamous_cell_carcinoma": 0.517, "verruca_vulgaris": 0.958}, {"model": "gemini-3-pro-preview-high-thinking-media-high", "basal_cell_carcinoma": 0.869, "dermatofibroma": 0.9, "lichen_planus": 1.0, "melanocytic_nevus": 0.6, "melanoma": 0.858, "seborrheic_keratosis": 0.63, "squamous_cell_carcinoma": 0.667, "verruca_vulgaris": 0.917}, {"model": "gemini-3-pro-preview-low-thinking-media-high", "basal_cell_carcinoma": 0.829, "dermatofibroma": 0.933, "lichen_planus": 1.0, "melanocytic_nevus": 0.667, "melanoma": 0.87, "seborrheic_keratosis": 0.667, "squamous_cell_carcinoma": 0.75, "verruca_vulgaris": 0.958}], "diagnoses": ["basal cell carcinoma", "dermatofibroma", "lichen planus", "melanocytic nevus", "melanoma", "seborrheic keratosis", "squamous cell carcinoma", "verruca vulgaris"], "diagnosisSummary": [{"diagnosis": "verruca vulgaris", "is_malignant": false, "n_samples": 408, "accuracy": 0.8505}, {"diagnosis": "basal cell carcinoma", "is_malignant": true, "n_samples": 3774, "accuracy": 0.753}, {"diagnosis": "melanoma", "is_malignant": true, "n_samples": 2754, "accuracy": 0.7481}, {"diagnosis": "lichen planus", "is_malignant": false, "n_samples": 306, "accuracy": 0.7190}, {"diagnosis": "dermatofibroma", "is_malignant": false, "n_samples": 510, "accuracy": 0.6471}, {"diagnosis": "seborrheic keratosis", "is_malignant": false, "n_samples": 918, "accuracy": 0.6089}, {"diagnosis": "squamous cell carcinoma", "is_malignant": true, "n_samples": 1020, "accuracy": 0.5882}, {"diagnosis": "melanocytic nevus", "is_malignant": false, "n_samples": 510, "accuracy": 0.502}], "errorDistribution": [{"type": "correct", "count": 7214}, {"type": "within_malignant", "count": 961}, {"type": "malignant_to_benign", "count": 904}, {"type": "benign_to_malignant", "count": 506}, {"type": "within_benign", "count": 319}, {"type": "pred_other", "count": 296}], "confusionMatrix": [{"gt_parent": "basal cell carcinoma", "pred_parent": "basal cell carcinoma", "count": 2842}, {"gt_parent": "basal cell carcinoma", "pred_parent": "dermatofibroma", "count": 11}, {"gt_parent": "basal cell carcinoma", "pred_parent": "lichen planus", "count": 1}, {"gt_parent": "basal cell carcinoma", "pred_parent": "melanocytic nevus", "count": 62}, {"gt_parent": "basal cell carcinoma", "pred_parent": "melanoma", "count": 387}, {"gt_parent": "basal cell carcinoma", "pred_parent": "other", "count": 110}, {"gt_parent": "basal cell carcinoma", "pred_parent": "seborrheic keratosis", "count": 91}, {"gt_parent": "basal cell carcinoma", "pred_parent": "squamous cell carcinoma", "count": 247}, {"gt_parent": "basal cell carcinoma", "pred_parent": "verruca vulgaris", "count": 23}, {"gt_parent": "dermatofibroma", "pred_parent": "basal cell carcinoma", "count": 19}, {"gt_parent": "dermatofibroma", "pred_parent": "dermatofibroma", "count": 330}, {"gt_parent": "dermatofibroma", "pred_parent": "lichen planus", "count": 1}, {"gt_parent": "dermatofibroma", "pred_parent": "melanocytic nevus", "count": 102}, {"gt_parent": "dermatofibroma", "pred_parent": "melanoma", "count": 13}, {"gt_parent": "dermatofibroma", "pred_parent": "other", "count": 15}, {"gt_parent": "dermatofibroma", "pred_parent": "seborrheic keratosis", "count": 22}, {"gt_parent": "dermatofibroma", "pred_parent": "squamous cell carcinoma", "count": 2}, {"gt_parent": "dermatofibroma", "pred_parent": "verruca vulgaris", "count": 6}, {"gt_parent": "lichen planus", "pred_parent": "basal cell carcinoma", "count": 2}, {"gt_parent": "lichen planus", "pred_parent": "dermatofibroma", "count": 1}, {"gt_parent": "lichen planus", "pred_parent": "lichen planus", "count": 220}, {"gt_parent": "lichen planus", "pred_parent": "melanocytic nevus", "count": 6}, {"gt_parent": "lichen planus", "pred_parent": "melanoma", "count": 8}, {"gt_parent": "lichen planus", "pred_parent": "other", "count": 44}, {"gt_parent": "lichen planus", "pred_parent": "seborrheic keratosis", "count": 18}, {"gt_parent": "lichen planus", "pred_parent": "squamous cell carcinoma", "count": 5}, {"gt_parent": "lichen planus", "pred_parent": "verruca vulgaris", "count": 2}, {"gt_parent": "melanocytic nevus", "pred_parent": "basal cell carcinoma", "count": 13}, {"gt_parent": "melanocytic nevus", "pred_parent": "dermatofibroma", "count": 41}, {"gt_parent": "melanocytic nevus", "pred_parent": "lichen planus", "count": 2}, {"gt_parent": "melanocytic nevus", "pred_parent": "melanocytic nevus", "count": 256}, {"gt_parent": "melanocytic nevus", "pred_parent": "melanoma", "count": 111}, {"gt_parent": "melanocytic nevus", "pred_parent": "other", "count": 18}, {"gt_parent": "melanocytic nevus", "pred_parent": "seborrheic keratosis", "count": 49}, {"gt_parent": "melanocytic nevus", "pred_parent": "squamous cell carcinoma", "count": 4}, {"gt_parent": "melanocytic nevus", "pred_parent": "verruca vulgaris", "count": 16}, {"gt_parent": "melanoma", "pred_parent": "basal cell carcinoma", "count": 272}, {"gt_parent": "melanoma", "pred_parent": "dermatofibroma", "count": 27}, {"gt_parent": "melanoma", "pred_parent": "lichen planus", "count": 4}, {"gt_parent": "melanoma", "pred_parent": "melanocytic nevus", "count": 95}, {"gt_parent": "melanoma", "pred_parent": "melanoma", "count": 2061}, {"gt_parent": "melanoma", "pred_parent": "other", "count": 63}, {"gt_parent": "melanoma", "pred_parent": "seborrheic keratosis", "count": 99}, {"gt_parent": "melanoma", "pred_parent": "squamous cell carcinoma", "count": 97}, {"gt_parent": "melanoma", "pred_parent": "verruca vulgaris", "count": 36}, {"gt_parent": "seborrheic keratosis", "pred_parent": "basal cell carcinoma", "count": 52}, {"gt_parent": "seborrheic keratosis", "pred_parent": "dermatofibroma", "count": 20}, {"gt_parent": "seborrheic keratosis", "pred_parent": "lichen planus", "count": 34}, {"gt_parent": "seborrheic keratosis", "pred_parent": "melanocytic nevus", "count": 22}, {"gt_parent": "seborrheic keratosis", "pred_parent": "melanoma", "count": 99}, {"gt_parent": "seborrheic keratosis", "pred_parent": "other", "count": 34}, {"gt_parent": "seborrheic keratosis", "pred_parent": "seborrheic keratosis", "count": 559}, {"gt_parent": "seborrheic keratosis", "pred_parent": "squamous cell carcinoma", "count": 33}, {"gt_parent": "seborrheic keratosis", "pred_parent": "verruca vulgaris", "count": 65}, {"gt_parent": "squamous cell carcinoma", "pred_parent": "basal cell carcinoma", "count": 51}, {"gt_parent": "squamous cell carcinoma", "pred_parent": "dermatofibroma", "count": 3}, {"gt_parent": "squamous cell carcinoma", "pred_parent": "lichen planus", "count": 10}, {"gt_parent": "squamous cell carcinoma", "pred_parent": "melanocytic nevus", "count": 3}, {"gt_parent": "squamous cell carcinoma", "pred_parent": "melanoma", "count": 124}, {"gt_parent": "squamous cell carcinoma", "pred_parent": "other", "count": 10}, {"gt_parent": "squamous cell carcinoma", "pred_parent": "seborrheic keratosis", "count": 144}, {"gt_parent": "squamous cell carcinoma", "pred_parent": "squamous cell carcinoma", "count": 600}, {"gt_parent": "squamous cell carcinoma", "pred_parent": "verruca vulgaris", "count": 75}, {"gt_parent": "verruca vulgaris", "pred_parent": "basal cell carcinoma", "count": 0}, {"gt_parent": "verruca vulgaris", "pred_parent": "dermatofibroma", "count": 3}, {"gt_parent": "verruca vulgaris", "pred_parent": "lichen planus", "count": 0}, {"gt_parent": "verruca vulgaris", "pred_parent": "melanocytic nevus", "count": 5}, {"gt_parent": "verruca vulgaris", "pred_parent": "melanoma", "count": 1}, {"gt_parent": "verruca vulgaris", "pred_parent": "other", "count": 2}, {"gt_parent": "verruca vulgaris", "pred_parent": "seborrheic keratosis", "count": 38}, {"gt_parent": "verruca vulgaris", "pred_parent": "squamous cell carcinoma", "count": 12}, {"gt_parent": "verruca vulgaris", "pred_parent": "verruca vulgaris", "count": 347}], "latencyData": [{"model": "gemini-2.5-flash-lite", "mean": 1.62, "std": 1.1, "min": 0.63, "max": 20.79, "median": 1.41}, {"model": "gemini-2.0-flash-lite", "mean": 1.66, "std": 0.39, "min": 0.89, "max": 5.55, "median": 1.6}, {"model": "gemini-2.0-flash", "mean": 1.78, "std": 0.61, "min": 1.03, "max": 14.1, "median": 1.66}, {"model": "gpt-4o", "mean": 3.36, "std": 1.39, "min": 1.32, "max": 18.62, "median": 3.06}, {"model": "gemini-2.5-flash", "mean": 5.35, "std": 2.17, "min": 1.84, "max": 21.5, "median": 4.77}, {"model": "gpt-4.1", "mean": 5.43, "std": 1.62, "min": 2.56, "max": 18.97, "median": 5.09}, {"model": "o4-mini-2025-04-16", "mean": 5.98, "std": 4.2, "min": 2.02, "max": 47.87, "median": 4.94}, {"model": "gpt-5-nano", "mean": 8.81, "std": 3.67, "min": 2.91, "max": 36.29, "median": 8.11}, {"model": "gpt-5-mini", "mean": 9.75, "std": 3.7, "min": 4.48, "max": 27.76, "median": 8.91}, {"model": "o3", "mean": 11.28, "std": 6.67, "min": 3.5, "max": 52.67, "median": 9.62}, {"model": "gemini-2.5-pro", "mean": 12.51, "std": 4.07, "min": 5.97, "max": 33.76, "median": 11.61}, {"model": "gemini-3-pro-image-preview", "mean": 18.31, "std": 14.55, "min": 7.04, "max": 278.83, "median": 15.43}, {"model": "gemini-3-pro-preview-low-thinking", "mean": 20.32, "std": 11.38, "min": 8.13, "max": 103.84, "median": 17.4}, {"model": "gemini-3-pro-preview-high-thinking", "mean": 21.54, "std": 21.27, "min": 6.53, "max": 417.46, "median": 17.52}, {"model": "gpt-5", "mean": 26.86, "std": 29.87, "min": 6.5, "max": 622.21, "median": 21.48}, {"model": "gemini-3-pro-preview-low-thinking-media-high", "mean": 33.49, "std": 73.79, "min": 3.82, "max": 571.69, "median": 17.7}, {"model": "gemini-3-pro-preview-high-thinking-media-high", "mean": 40.2, "std": 64.92, "min": 7.01, "max": 553.39, "median": 22.06}], "costPerformance": [{"model": "gemini-2.0-flash", "provider": "gemini", "accuracy": 0.5917, "cost": 10.503, "latency": 1.78}, {"model": "gemini-2.0-flash-lite", "provider": "gemini", "accuracy": 0.615, "cost": 10.545, "latency": 1.66}, {"model": "gemini-2.5-flash", "provider": "gemini", "accuracy": 0.7233, "cost": 8.864, "latency": 5.35}, {"model": "gemini-2.5-flash-lite", "provider": "gemini", "accuracy": 0.665, "cost": 8.45, "latency": 1.62}, {"model": "gemini-2.5-pro", "provider": "gemini", "accuracy": 0.7833, "cost": 9.155, "latency": 12.51}, {"model": "gpt-4.1", "provider": "openai", "accuracy": 0.7517, "cost": 13.807, "latency": 5.43}, {"model": "gpt-4o", "provider": "openai", "accuracy": 0.71, "cost": 13.279, "latency": 3.36}, {"model": "gpt-5", "provider": "openai", "accuracy": 0.755, "cost": 22.486, "latency": 26.86}, {"model": "gpt-5-mini", "provider": "openai", "accuracy": 0.6667, "cost": 27.658, "latency": 9.75}, {"model": "gpt-5-nano", "provider": "openai", "accuracy": 0.585, "cost": 40.913, "latency": 8.81}, {"model": "o3", "provider": "openai", "accuracy": 0.7783, "cost": 19.432, "latency": 11.28}, {"model": "o4-mini-2025-04-16", "provider": "openai", "accuracy": 0.725, "cost": 36.358, "latency": 5.98}, {"model": "gemini-3-pro-preview-high-thinking", "provider": "gemini", "accuracy": 0.6867, "cost": 18.206, "latency": 21.54}, {"model": "gemini-3-pro-preview-low-thinking", "provider": "gemini", "accuracy": 0.69, "cost": 10.673, "latency": 20.32}, {"model": "gemini-3-pro-image-preview", "provider": "gemini", "accuracy": 0.6533, "cost": 10.519, "latency": 18.31}, {"model": "gemini-3-pro-preview-high-thinking-media-high", "provider": "gemini", "accuracy": 0.8183, "cost": 10.666, "latency": 40.2}, {"model": "gemini-3-pro-preview-low-thinking-media-high", "provider": "gemini", "accuracy": 0.825, "cost": 10.966, "latency": 33.49}], "overallStats": {"totalTrials": 10200, "uniqueImages": 100, "uniqueModels": 17, "promptingArms": 6, "overallAccuracy": 0.7073, "malignantSensitivity": 0.854, "benignSpecificity": 0.809, "totalCost": 169.49, "meanLatency": 13.43}};
+
+    // Colors
+    const COLORS = {
+      openai: { primary: '#2563eb', light: '#60a5fa', bg: '#eff6ff', dark: '#1d4ed8',
+        models: { 'o3': '#1e40af', 'o4-mini-2025-04-16': '#2563eb', 'gpt-5': '#3b82f6', 'gpt-4.1': '#60a5fa', 'gpt-4o': '#93c5fd', 'gpt-5-mini': '#7dd3fc', 'gpt-5-nano': '#bae6fd' }
+      },
+      gemini: { primary: '#16a34a', light: '#4ade80', bg: '#f0fdf4', dark: '#15803d',
+        models: { 'gemini-3-pro-preview-low-thinking-media-high': '#14532d', 'gemini-3-pro-preview-high-thinking-media-high': '#166534', 'gemini-2.5-pro': '#15803d', 'gemini-3-pro-preview-high-thinking': '#16a34a', 'gemini-3-pro-preview-low-thinking': '#22c55e', 'gemini-2.5-flash': '#4ade80', 'gemini-3-pro-image-preview': '#86efac', 'gemini-2.5-flash-lite': '#bbf7d0', 'gemini-2.0-flash': '#a7f3d0', 'gemini-2.0-flash-lite': '#d1fae5' }
+      }
+    };
+
+    const getModelColor = (model, provider) => {
+      if (provider === 'openai') return COLORS.openai.models[model] || COLORS.openai.primary;
+      return COLORS.gemini.models[model] || COLORS.gemini.primary;
+    };
+
+    const shortModelName = (name) => {
+      const map = { 'gemini-3-pro-preview-low-thinking-media-high': 'G3P-LT-HiMed', 'gemini-3-pro-preview-high-thinking-media-high': 'G3P-HT-HiMed', 'gemini-3-pro-preview-high-thinking': 'G3P-HT', 'gemini-3-pro-preview-low-thinking': 'G3P-LT', 'gemini-3-pro-image-preview': 'G3P-Img', 'gemini-2.5-pro': 'Gemini-2.5-Pro', 'gemini-2.5-flash': 'Gemini-2.5-Flash', 'gemini-2.5-flash-lite': 'Gemini-2.5-FL', 'gemini-2.0-flash': 'Gemini-2.0-Flash', 'gemini-2.0-flash-lite': 'Gemini-2.0-FL', 'o4-mini-2025-04-16': 'o4-mini' };
+      return map[name] || name;
+    };
+
+    const armNames = { 1: 'Zero-shot (label list)', 2: 'Few-shot (exemplars)', 3: 'Primer board', 4: 'Anti-anchoring', 5: 'Zero-shot (free-form)', 6: 'Few-shot (free-form)' };
+    const diagLabels = { 'basal_cell_carcinoma': 'BCC', 'melanoma': 'Melanoma', 'squamous_cell_carcinoma': 'SCC', 'seborrheic_keratosis': 'Seb. Keratosis', 'melanocytic_nevus': 'Nevus', 'dermatofibroma': 'Dermatofibroma', 'verruca_vulgaris': 'Verruca', 'lichen_planus': 'Lichen Planus', 'basal cell carcinoma': 'BCC', 'squamous cell carcinoma': 'SCC', 'seborrheic keratosis': 'Seb. Keratosis', 'melanocytic nevus': 'Nevus', 'verruca vulgaris': 'Verruca', 'lichen planus': 'Lichen Planus' };
+
+    // Styles
+    const S = {
+      container: { maxWidth: 1400, margin: '0 auto', padding: '20px 32px' },
+      header: { borderBottom: '2px solid #e5e7eb', paddingBottom: 20, marginBottom: 24 },
+      title: { fontSize: 24, fontWeight: 700, margin: 0, color: '#111' },
+      subtitle: { fontSize: 14, color: '#6b7280', marginTop: 6 },
+      nav: { display: 'flex', gap: 2, marginBottom: 24, background: '#f3f4f6', padding: 4, borderRadius: 8, flexWrap: 'wrap' },
+      navBtn: { padding: '10px 16px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#6b7280', borderRadius: 6 },
+      navBtnActive: { background: 'white', color: '#111', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
+      filterBar: { display: 'flex', gap: 12, padding: '14px 18px', background: '#f9fafb', borderRadius: 8, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' },
+      select: { padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: 'white' },
+      card: { background: 'white', border: '1px solid #e5e7eb', borderRadius: 10, padding: 20, marginBottom: 20 },
+      cardTitle: { fontSize: 15, fontWeight: 600, marginBottom: 16, color: '#111' },
+      table: { width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 13 },
+      th: { textAlign: 'left', padding: '12px 14px', background: '#f9fafb', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#374151', borderBottom: '2px solid #e5e7eb' },
+      td: { padding: '12px 14px', borderBottom: '1px solid #f3f4f6' },
+      badge: { display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600 },
+      rankBadge: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '50%', fontSize: 12, fontWeight: 700 },
+      grid2: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 24 },
+      checkbox: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', padding: '4px 8px', borderRadius: 4 }
+    };
+
+    // Model Selector
+    const ModelSelector = ({ selectedModels, setSelectedModels }) => {
+      const [providerFilter, setProviderFilter] = useState('all');
+      const models = DATA.modelSummary.filter(m => providerFilter === 'all' || m.provider === providerFilter);
+      const toggleModel = (model) => selectedModels.includes(model) ? setSelectedModels(selectedModels.filter(m => m !== model)) : setSelectedModels([...selectedModels, model]);
+      const selectAll = () => setSelectedModels(models.map(m => m.model));
+      const clearAll = () => setSelectedModels([]);
+
+      return (
+        <div style={S.filterBar}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', textTransform: 'uppercase' }}>Provider:</span>
+          <select style={S.select} value={providerFilter} onChange={e => setProviderFilter(e.target.value)}>
+            <option value="all">All</option>
+            <option value="openai">OpenAI</option>
+            <option value="gemini">Gemini</option>
+          </select>
+          <button onClick={selectAll} style={{ ...S.navBtn, padding: '6px 12px', fontSize: 11 }}>Select All</button>
+          <button onClick={clearAll} style={{ ...S.navBtn, padding: '6px 12px', fontSize: 11 }}>Clear</button>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {models.map(m => (
+              <label key={m.model} style={{ ...S.checkbox, background: selectedModels.includes(m.model) ? (m.provider === 'openai' ? COLORS.openai.bg : COLORS.gemini.bg) : 'transparent', border: `1px solid ${selectedModels.includes(m.model) ? (m.provider === 'openai' ? COLORS.openai.light : COLORS.gemini.light) : '#e5e7eb'}`, borderRadius: 6 }}>
+                <input type="checkbox" checked={selectedModels.includes(m.model)} onChange={() => toggleModel(m.model)} style={{ accentColor: m.provider === 'openai' ? COLORS.openai.primary : COLORS.gemini.primary }} />
+                <span style={{ color: m.provider === 'openai' ? COLORS.openai.dark : COLORS.gemini.dark }}>{shortModelName(m.model)}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    // Stat Card
+    const StatCard = ({ value, label, color = '#111', format = 'number' }) => (
+      <div style={{ ...S.card, padding: '16px 20px', marginBottom: 0 }}>
+        <div style={{ fontSize: 26, fontWeight: 700, color, marginBottom: 4 }}>
+          {format === 'percent' ? `${(value * 100).toFixed(1)}%` : format === 'currency' ? `$${value.toFixed(2)}` : value.toLocaleString()}
+        </div>
+        <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 500 }}>{label}</div>
+      </div>
+    );
+
+    // Overview Tab
+    const OverviewTab = ({ selectedModels }) => {
+      const stats = DATA.overallStats;
+      return (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 32 }}>
+            <StatCard value={stats.totalTrials} label="Total Trials" />
+            <StatCard value={stats.uniqueModels} label="Models" />
+            <StatCard value={stats.promptingArms} label="Prompt Arms" />
+            <StatCard value={stats.overallAccuracy} label="Accuracy" format="percent" color={COLORS.gemini.primary} />
+            <StatCard value={stats.malignantSensitivity} label="Sensitivity" format="percent" color={COLORS.openai.primary} />
+            <StatCard value={stats.benignSpecificity} label="Specificity" format="percent" color={COLORS.gemini.primary} />
+          </div>
+          <div style={S.grid2}>
+            <div style={S.card}>
+              <div style={S.cardTitle}>Accuracy by Prompting Strategy</div>
+              <div style={{ height: 280 }}>
+                <ResponsiveContainer>
+                  <BarChart data={DATA.armSummary} layout="vertical" margin={{ left: 150, right: 30 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis type="number" domain={[0, 1]} tickFormatter={v => `${(v*100).toFixed(0)}%`} tick={{ fontSize: 11 }} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={140} />
+                    <Tooltip formatter={v => `${(v*100).toFixed(1)}%`} />
+                    <Bar dataKey="accuracy" radius={[0, 4, 4, 0]}>
+                      {DATA.armSummary.map((e, i) => <Cell key={i} fill={e.accuracy > 0.7 ? COLORS.gemini.primary : e.accuracy > 0.6 ? '#f59e0b' : '#ef4444'} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div style={S.card}>
+              <div style={S.cardTitle}>Accuracy by Diagnosis</div>
+              <div style={{ height: 280 }}>
+                <ResponsiveContainer>
+                  <BarChart data={DATA.diagnosisSummary} layout="vertical" margin={{ left: 110, right: 30 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis type="number" domain={[0, 1]} tickFormatter={v => `${(v*100).toFixed(0)}%`} tick={{ fontSize: 11 }} />
+                    <YAxis type="category" dataKey="diagnosis" tick={{ fontSize: 11 }} width={100} tickFormatter={d => diagLabels[d] || d} />
+                    <Tooltip formatter={v => `${(v*100).toFixed(1)}%`} />
+                    <Bar dataKey="accuracy" radius={[0, 4, 4, 0]}>
+                      {DATA.diagnosisSummary.map((e, i) => <Cell key={i} fill={e.is_malignant ? '#dc2626' : COLORS.gemini.primary} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginTop: 8, fontSize: 11 }}>
+                <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#dc2626', borderRadius: 2, marginRight: 6 }}></span>Malignant</span>
+                <span><span style={{ display: 'inline-block', width: 12, height: 12, background: COLORS.gemini.primary, borderRadius: 2, marginRight: 6 }}></span>Benign</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Leaderboard Tab
+    const LeaderboardTab = ({ selectedModels }) => {
+      const [rankBy, setRankBy] = useState('overall');
+      const [diagFilter, setDiagFilter] = useState('all');
+      const [armFilter, setArmFilter] = useState('all');
+      const [sortKey, setSortKey] = useState('accuracy');
+      const [sortDir, setSortDir] = useState('desc');
+      const diagKeys = ['basal_cell_carcinoma', 'melanoma', 'squamous_cell_carcinoma', 'seborrheic_keratosis', 'melanocytic_nevus', 'dermatofibroma', 'verruca_vulgaris', 'lichen_planus'];
+
+      const rankedData = useMemo(() => {
+        let data = DATA.modelSummary.filter(m => selectedModels.includes(m.model)).map(m => {
+          let acc = m.accuracy;
+          if (rankBy === 'diagnosis' && diagFilter !== 'all') {
+            const d = DATA.modelDiagMatrix.find(x => x.model === m.model);
+            acc = d ? d[diagFilter] || 0 : 0;
+          } else if (rankBy === 'arm' && armFilter !== 'all') {
+            const a = DATA.modelArmMatrix.find(x => x.model === m.model);
+            acc = a ? a[`arm${armFilter}`] || 0 : 0;
+          }
+          return { ...m, displayAccuracy: acc };
+        });
+        const key = sortKey === 'accuracy' ? 'displayAccuracy' : sortKey;
+        data.sort((a, b) => (sortDir === 'desc' ? -1 : 1) * ((a[key] || 0) - (b[key] || 0)));
+        return data.map((d, i) => ({ ...d, rank: i + 1 }));
+      }, [selectedModels, rankBy, diagFilter, armFilter, sortKey, sortDir]);
+
+      const handleSort = (k) => { if (sortKey === k) setSortDir(d => d === 'desc' ? 'asc' : 'desc'); else { setSortKey(k); setSortDir('desc'); } };
+
+      return (
+        <div>
+          <div style={S.filterBar}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Rank By:</span>
+            <select style={S.select} value={rankBy} onChange={e => { setRankBy(e.target.value); setDiagFilter('all'); setArmFilter('all'); }}>
+              <option value="overall">Overall Accuracy</option>
+              <option value="diagnosis">By Diagnosis</option>
+              <option value="arm">By Prompting Strategy</option>
+            </select>
+            {rankBy === 'diagnosis' && (
+              <select style={S.select} value={diagFilter} onChange={e => setDiagFilter(e.target.value)}>
+                <option value="all">All Diagnoses</option>
+                {diagKeys.map(d => <option key={d} value={d}>{diagLabels[d] || d}</option>)}
+              </select>
+            )}
+            {rankBy === 'arm' && (
+              <select style={S.select} value={armFilter} onChange={e => setArmFilter(e.target.value)}>
+                <option value="all">All Arms</option>
+                {[1,2,3,4,5,6].map(a => <option key={a} value={a}>Arm {a}: {armNames[a]}</option>)}
+              </select>
+            )}
+          </div>
+          {(rankBy !== 'overall' && (diagFilter !== 'all' || armFilter !== 'all')) && (
+            <div style={{ background: '#fef3c7', padding: '12px 16px', borderRadius: 8, marginBottom: 20, fontSize: 13, color: '#92400e' }}>
+              <strong>Filtered View:</strong> Rankings based on {rankBy === 'diagnosis' ? `${diagLabels[diagFilter]} accuracy` : `${armNames[parseInt(armFilter)]} performance`}
+            </div>
+          )}
+          <table style={S.table}>
+            <thead>
+              <tr>
+                <th style={{ ...S.th, width: 60 }}>Rank</th>
+                <th style={S.th}>Model</th>
+                <th style={{ ...S.th, width: 90 }}>Provider</th>
+                <th style={{ ...S.th, cursor: 'pointer' }} onClick={() => handleSort('accuracy')}>Accuracy {sortKey === 'accuracy' && (sortDir === 'desc' ? '↓' : '↑')}</th>
+                <th style={{ ...S.th, cursor: 'pointer' }} onClick={() => handleSort('sensitivity')}>Sensitivity</th>
+                <th style={{ ...S.th, cursor: 'pointer' }} onClick={() => handleSort('specificity')}>Specificity</th>
+                <th style={{ ...S.th, cursor: 'pointer' }} onClick={() => handleSort('mean_latency')}>Latency</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rankedData.map((m, i) => {
+                const color = getModelColor(m.model, m.provider);
+                return (
+                  <tr key={m.model} style={{ background: i === 0 ? (m.provider === 'openai' ? COLORS.openai.bg : COLORS.gemini.bg) : 'transparent' }}>
+                    <td style={S.td}><span style={{ ...S.rankBadge, background: i < 3 ? color : '#f3f4f6', color: i < 3 ? 'white' : '#374151' }}>{m.rank}</span></td>
+                    <td style={{ ...S.td, fontWeight: 600, color }}>{shortModelName(m.model)}</td>
+                    <td style={S.td}><span style={{ ...S.badge, background: m.provider === 'openai' ? COLORS.openai.bg : COLORS.gemini.bg, color: m.provider === 'openai' ? COLORS.openai.dark : COLORS.gemini.dark }}>{m.provider}</span></td>
+                    <td style={{ ...S.td, fontWeight: 700, color }}>{(m.displayAccuracy * 100).toFixed(1)}%</td>
+                    <td style={S.td}>{(m.sensitivity * 100).toFixed(1)}%</td>
+                    <td style={S.td}>{(m.specificity * 100).toFixed(1)}%</td>
+                    <td style={S.td}>{m.mean_latency.toFixed(1)}s</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div style={{ ...S.card, marginTop: 32 }}>
+            <div style={S.cardTitle}>Model Accuracy Comparison</div>
+            <div style={{ height: 380 }}>
+              <ResponsiveContainer>
+                <BarChart data={rankedData} margin={{ left: 20, right: 20, bottom: 90 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="model" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={90} tickFormatter={shortModelName} interval={0} />
+                  <YAxis domain={[0.4, 0.9]} tickFormatter={v => `${(v*100).toFixed(0)}%`} tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={v => `${(v*100).toFixed(1)}%`} labelFormatter={shortModelName} />
+                  <ReferenceLine y={0.7} stroke="#f59e0b" strokeDasharray="5 5" />
+                  <Bar dataKey="displayAccuracy" radius={[4, 4, 0, 0]}>
+                    {rankedData.map((m, i) => <Cell key={i} fill={getModelColor(m.model, m.provider)} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Heatmaps Tab
+    const HeatmapsTab = ({ selectedModels }) => {
+      const [view, setView] = useState('arm');
+      const arms = [1, 2, 3, 4, 5, 6];
+      const diagKeys = ['basal_cell_carcinoma', 'melanoma', 'squamous_cell_carcinoma', 'seborrheic_keratosis', 'melanocytic_nevus', 'dermatofibroma', 'verruca_vulgaris', 'lichen_planus'];
+      const filteredArm = DATA.modelArmMatrix.filter(m => selectedModels.includes(m.model));
+      const filteredDiag = DATA.modelDiagMatrix.filter(m => selectedModels.includes(m.model));
+      const getColor = (v, min = 0.3, max = 0.95) => { if (!v) return '#f9fafb'; const n = Math.max(0, Math.min(1, (v - min) / (max - min))); return n < 0.33 ? '#ef4444' : n < 0.66 ? '#f59e0b' : '#22c55e'; };
+
+      return (
+        <div>
+          <div style={S.filterBar}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>View:</span>
+            <button onClick={() => setView('arm')} style={{ ...S.navBtn, background: view === 'arm' ? COLORS.openai.primary : 'white', color: view === 'arm' ? 'white' : '#374151', border: '1px solid #d1d5db' }}>Model × Arm</button>
+            <button onClick={() => setView('diagnosis')} style={{ ...S.navBtn, background: view === 'diagnosis' ? COLORS.gemini.primary : 'white', color: view === 'diagnosis' ? 'white' : '#374151', border: '1px solid #d1d5db' }}>Model × Diagnosis</button>
+          </div>
+          {view === 'arm' ? (
+            <div style={S.card}>
+              <div style={S.cardTitle}>Accuracy by Model and Prompting Strategy</div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={S.table}>
+                  <thead>
+                    <tr>
+                      <th style={{ ...S.th, width: 180 }}>Model</th>
+                      {arms.map(a => <th key={a} style={{ ...S.th, textAlign: 'center', width: 90 }}>Arm {a}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredArm.map(row => {
+                      const info = DATA.modelSummary.find(m => m.model === row.model);
+                      return (
+                        <tr key={row.model}>
+                          <td style={{ ...S.td, fontWeight: 600, color: getModelColor(row.model, info?.provider) }}>{shortModelName(row.model)}</td>
+                          {arms.map(a => (
+                            <td key={a} style={{ ...S.td, padding: 4 }}>
+                              <div style={{ background: getColor(row[`arm${a}`], 0.35, 0.92), padding: '10px 8px', textAlign: 'center', borderRadius: 4, fontWeight: 600, fontSize: 13, color: row[`arm${a}`] > 0.65 ? 'white' : '#1f2937' }}>
+                                {row[`arm${a}`] ? (row[`arm${a}`] * 100).toFixed(0) + '%' : '-'}
+                              </div>
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div style={S.card}>
+              <div style={S.cardTitle}>Accuracy by Model and Diagnosis</div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={S.table}>
+                  <thead>
+                    <tr>
+                      <th style={{ ...S.th, width: 180 }}>Model</th>
+                      {diagKeys.map(d => <th key={d} style={{ ...S.th, textAlign: 'center', width: 80, fontSize: 10 }}>{diagLabels[d]}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredDiag.map(row => {
+                      const info = DATA.modelSummary.find(m => m.model === row.model);
+                      return (
+                        <tr key={row.model}>
+                          <td style={{ ...S.td, fontWeight: 600, color: getModelColor(row.model, info?.provider) }}>{shortModelName(row.model)}</td>
+                          {diagKeys.map(d => (
+                            <td key={d} style={{ ...S.td, padding: 4 }}>
+                              <div style={{ background: getColor(row[d], 0.1, 1.0), padding: '10px 4px', textAlign: 'center', borderRadius: 4, fontWeight: 600, fontSize: 12, color: row[d] > 0.55 ? 'white' : '#1f2937' }}>
+                                {row[d] ? (row[d] * 100).toFixed(0) + '%' : '-'}
+                              </div>
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 16, fontSize: 12 }}>
+            <span><span style={{ display: 'inline-block', width: 20, height: 12, background: '#ef4444', borderRadius: 2, marginRight: 6 }}></span>&lt;50%</span>
+            <span><span style={{ display: 'inline-block', width: 20, height: 12, background: '#f59e0b', borderRadius: 2, marginRight: 6 }}></span>50-70%</span>
+            <span><span style={{ display: 'inline-block', width: 20, height: 12, background: '#22c55e', borderRadius: 2, marginRight: 6 }}></span>&gt;70%</span>
+          </div>
+        </div>
+      );
+    };
+
+    // Errors Tab
+    const ErrorsTab = () => {
+      const data = DATA.errorDistribution.map(e => ({ ...e, label: e.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), percent: (e.count / DATA.overallStats.totalTrials * 100).toFixed(1) }));
+      const colors = { 'correct': COLORS.gemini.primary, 'within_malignant': '#f59e0b', 'malignant_to_benign': '#dc2626', 'benign_to_malignant': '#7c3aed', 'within_benign': COLORS.openai.primary, 'pred_other': '#6b7280' };
+
+      return (
+        <div style={S.grid2}>
+          <div style={S.card}>
+            <div style={S.cardTitle}>Error Type Distribution</div>
+            <div style={{ height: 320 }}>
+              <ResponsiveContainer>
+                <BarChart data={data} layout="vertical" margin={{ left: 130, right: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis type="number" tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="label" tick={{ fontSize: 12 }} width={120} />
+                  <Tooltip formatter={(v, n, p) => [`${v.toLocaleString()} (${p.payload.percent}%)`, 'Count']} />
+                  <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                    {data.map((e, i) => <Cell key={i} fill={colors[e.type]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div>
+            <div style={{ ...S.card, background: '#fef2f2', border: '1px solid #fecaca' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: '#991b1b' }}>Clinical Impact Summary</div>
+              <div style={{ fontSize: 13, color: '#7f1d1d' }}>
+                <div style={{ marginBottom: 8 }}><strong style={{ fontSize: 20 }}>{data.find(e => e.type === 'malignant_to_benign')?.count.toLocaleString()}</strong> missed malignancies ({data.find(e => e.type === 'malignant_to_benign')?.percent}%)</div>
+                <div style={{ marginBottom: 8 }}><strong style={{ fontSize: 20 }}>{data.find(e => e.type === 'benign_to_malignant')?.count.toLocaleString()}</strong> false alarms ({data.find(e => e.type === 'benign_to_malignant')?.percent}%)</div>
+                <div><strong style={{ fontSize: 20 }}>{data.find(e => e.type === 'within_malignant')?.count.toLocaleString()}</strong> cancer type confusions ({data.find(e => e.type === 'within_malignant')?.percent}%)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Performance Tab
+    const PerformanceTab = ({ selectedModels }) => {
+      const filteredCost = DATA.costPerformance.filter(m => selectedModels.includes(m.model));
+      const filteredLatency = DATA.latencyData.filter(m => selectedModels.includes(m.model));
+
+      return (
+        <div>
+          <div style={{ ...S.card, marginBottom: 48 }}>
+            <div style={S.cardTitle}>Cost-Efficiency Frontier</div>
+            <div style={{ height: 420 }}>
+              <ResponsiveContainer>
+                <ScatterChart margin={{ left: 20, right: 60, top: 20, bottom: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis type="number" dataKey="cost" name="Cost" tick={{ fontSize: 11 }} label={{ value: 'Cost per trial (¢)', position: 'bottom', offset: 10, fontSize: 12 }} />
+                  <YAxis type="number" dataKey="accuracy" domain={[0.55, 0.85]} tickFormatter={v => `${(v*100).toFixed(0)}%`} tick={{ fontSize: 11 }} label={{ value: 'Accuracy', angle: -90, position: 'insideLeft', fontSize: 12 }} />
+                  <Tooltip content={({ payload }) => { if (!payload?.length) return null; const d = payload[0].payload; return (<div style={{ background: 'white', border: '1px solid #e5e7eb', padding: 12, borderRadius: 8 }}><div style={{ fontWeight: 700, marginBottom: 6, color: getModelColor(d.model, d.provider) }}>{shortModelName(d.model)}</div><div style={{ fontSize: 12 }}>Accuracy: <strong>{(d.accuracy * 100).toFixed(1)}%</strong></div><div style={{ fontSize: 12 }}>Cost: <strong>{d.cost.toFixed(2)}¢/trial</strong></div></div>); }} />
+                  <Scatter data={filteredCost}>
+                    {filteredCost.map((d, i) => <Cell key={i} fill={getModelColor(d.model, d.provider)} r={8} />)}
+                  </Scatter>
+                </ScatterChart>
+              </ResponsiveContainer>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 16, fontSize: 12 }}>
+              <span><span style={{ display: 'inline-block', width: 14, height: 14, background: COLORS.openai.primary, borderRadius: '50%', marginRight: 8 }}></span>OpenAI</span>
+              <span><span style={{ display: 'inline-block', width: 14, height: 14, background: COLORS.gemini.primary, borderRadius: '50%', marginRight: 8 }}></span>Gemini</span>
+            </div>
+          </div>
+          <div style={S.card}>
+            <div style={S.cardTitle}>Mean Response Latency</div>
+            <div style={{ height: 380 }}>
+              <ResponsiveContainer>
+                <BarChart data={filteredLatency} margin={{ left: 20, right: 20, bottom: 90 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="model" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={90} tickFormatter={shortModelName} interval={0} />
+                  <YAxis tick={{ fontSize: 11 }} label={{ value: 'Latency (s)', angle: -90, position: 'insideLeft', fontSize: 11 }} />
+                  <Tooltip content={({ payload }) => { if (!payload?.length) return null; const d = payload[0].payload; return (<div style={{ background: 'white', border: '1px solid #e5e7eb', padding: 12, borderRadius: 8 }}><div style={{ fontWeight: 700, marginBottom: 6 }}>{shortModelName(d.model)}</div><div style={{ fontSize: 12 }}>Mean: {d.mean.toFixed(2)}s</div><div style={{ fontSize: 12 }}>Median: {d.median.toFixed(2)}s</div></div>); }} />
+                  <Bar dataKey="mean" radius={[4, 4, 0, 0]}>
+                    {filteredLatency.map((d, i) => { const info = DATA.modelSummary.find(m => m.model === d.model); return <Cell key={i} fill={getModelColor(d.model, info?.provider)} />; })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Main App
+    function App() {
+      const [tab, setTab] = useState('overview');
+      const [selectedModels, setSelectedModels] = useState(DATA.modelSummary.map(m => m.model));
+      const tabs = [
+        { id: 'overview', label: 'Overview', icon: '📊' },
+        { id: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
+        { id: 'heatmaps', label: 'Heatmaps', icon: '🗺️' },
+        { id: 'errors', label: 'Error Analysis', icon: '⚠️' },
+        { id: 'performance', label: 'Cost & Latency', icon: '⚡' },
+      ];
+
+      return (
+        <div style={S.container}>
+          <a href="/apps" className="back-link">← Back to Apps</a>
+          <header style={S.header}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+              <div>
+                <h1 style={S.title}>Dermoscopy LLM Evaluation Dashboard</h1>
+                <p style={S.subtitle}>Multimodal LLM performance across 17 models, 6 prompting strategies, 8 diagnoses</p>
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <span style={{ ...S.badge, background: COLORS.openai.bg, color: COLORS.openai.dark, padding: '6px 12px' }}>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: COLORS.openai.primary, display: 'inline-block', marginRight: 8 }}></span>OpenAI
+                </span>
+                <span style={{ ...S.badge, background: COLORS.gemini.bg, color: COLORS.gemini.dark, padding: '6px 12px' }}>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: COLORS.gemini.primary, display: 'inline-block', marginRight: 8 }}></span>Gemini
+                </span>
+              </div>
+            </div>
+          </header>
+          <nav style={S.nav}>
+            {tabs.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{ ...S.navBtn, ...(tab === t.id ? S.navBtnActive : {}) }}>
+                <span style={{ marginRight: 6 }}>{t.icon}</span>{t.label}
+              </button>
+            ))}
+          </nav>
+          <ModelSelector selectedModels={selectedModels} setSelectedModels={setSelectedModels} />
+          <main style={{ minHeight: 500 }}>
+            {tab === 'overview' && <OverviewTab selectedModels={selectedModels} />}
+            {tab === 'leaderboard' && <LeaderboardTab selectedModels={selectedModels} />}
+            {tab === 'heatmaps' && <HeatmapsTab selectedModels={selectedModels} />}
+            {tab === 'errors' && <ErrorsTab />}
+            {tab === 'performance' && <PerformanceTab selectedModels={selectedModels} />}
+          </main>
+          <footer style={{ marginTop: 48, paddingTop: 20, borderTop: '1px solid #e5e7eb', fontSize: 12, color: '#9ca3af', textAlign: 'center' }}>
+            <p>Dermoscopy LLM Evaluation Study • 10,200 trials • Data from Nov 2025</p>
+            <p style={{ marginTop: 8 }}>© 2025 Ramie Fathy, MD. All rights reserved.</p>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
