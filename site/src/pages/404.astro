@@ -1,0 +1,26 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Header from '../components/Header.jsx';
+---
+<MainLayout title="404 – Page Not Found" description="The page you requested does not exist.">
+  <Header client:load />
+  <main id="main-content">
+    <section class="section" style="padding-top:6rem;background:linear-gradient(180deg, rgba(239,246,255,0.6), rgba(255,255,255,0.96))">
+      <div class="section__inner" style="max-width:920px">
+        <div class="card scroll-fade" data-scroll-fade style="padding:2.25rem">
+          <p class="section__kicker">404</p>
+          <h1 class="section__title" style="text-align:left;margin-top:0">Page not found</h1>
+          <p class="section__subtitle" style="text-align:left;max-width:52ch">
+            The URL may be mistyped, or the page may have moved during a redesign.
+          </p>
+          <div class="section__actions" style="margin-top:1.75rem">
+            <a class="button button--primary" href="/">Back to Home</a>
+            <a class="button button--secondary" href="/apps">Explore Apps</a>
+            <a class="button button--secondary" href="/contact">Contact</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</MainLayout>
+

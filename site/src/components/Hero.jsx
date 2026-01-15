@@ -67,7 +67,7 @@ const GradientFallback = memo(() => (
 
 // Typing animation hook
 const useTypingAnimation = (texts, typingSpeed = 50, deletingSpeed = 30, pauseDuration = 2000) => {
-  const [displayText, setDisplayText] = useState('');
+  const [displayText, setDisplayText] = useState(texts?.[0] ?? '');
   const [textIndex, setTextIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -273,6 +273,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
   const [hasWebGL, setHasWebGL] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const isServer = typeof window === 'undefined';
   const frameRef = useRef(0);
   const lastPointer = useRef({ x: 0.5, y: 0.5, time: typeof performance !== 'undefined' ? performance.now() : 0 });
 
@@ -398,11 +399,10 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
       </div>
       <div className="hero-content">
         <motion.div
-          className="hero-copy scroll-fade"
-          initial={{ opacity: 0, y: 30 }}
+          className="hero-copy"
+          initial={{ opacity: 1, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: 'easeOut' }}
-          data-scroll-fade
         >
           <h1
             id="hero-title"
@@ -413,7 +413,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
           {/* Typing animation subtitle */}
           {enableTypingAnimation ? (
             <p className="hero-role" aria-live="polite">
-              <span className="hero-role-text">{prefersReducedMotion ? TYPING_SUBTITLES[0] : typedRole}</span>
+              <span className="hero-role-text">{prefersReducedMotion || isServer ? TYPING_SUBTITLES[0] : typedRole}</span>
               {!prefersReducedMotion && <span className="hero-cursor" aria-hidden="true">|</span>}
             </p>
           ) : null}

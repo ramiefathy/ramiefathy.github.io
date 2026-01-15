@@ -212,7 +212,7 @@ Three significant pull requests were merged, completely transforming the applica
 ### GitHub Repository
 - **Repository:** ramiefathy/ramiefathy.github.io
 - **Branch:** master (production)
-- **CI/CD:** GitHub Actions + Netlify
+- **CI/CD:** GitHub Actions + Cloudflare Pages
 
 ### Recent Pull Requests
 1. **PR #36:** UI/UX Enhancements - [Merged]

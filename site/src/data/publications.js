@@ -5,7 +5,8 @@ export const publications = [
     venue: 'Journal of the American Academy of Dermatology. 2025 (in press).',
     year: 2025,
     url: 'https://www.sciencedirect.com/science/article/pii/S0190962224016811',
-    tags: ['AI', 'Dermatology']
+    tags: ['AI', 'Dermatology'],
+    featured: true
   },
   {
     title: 'Demographic differences and the impact of research years for reapplicants to dermatology residency programs: A retrospective cohort study',
@@ -45,7 +46,8 @@ export const publications = [
     venue: 'Journal of the American Academy of Dermatology. 2022;87(3):678-680.',
     year: 2022,
     url: 'https://www.jaad.org/article/S0190-9622(22)00041-7/fulltext',
-    tags: ['Teledermatology', 'Pediatrics']
+    tags: ['Teledermatology', 'Pediatrics'],
+    featured: true
   },
   {
     title: 'Therapeutic targets for vaccination in polyomavirus-driven Merkel cell carcinoma',
@@ -85,7 +87,8 @@ export const publications = [
     venue: 'Journal of the American Academy of Dermatology. 2022;86(3):e113-e114.',
     year: 2022,
     url: 'https://www.jaad.org/article/S0190-9622(21)01229-X/fulltext',
-    tags: ['Equity', 'Education']
+    tags: ['Equity', 'Education'],
+    featured: true
   },
   {
     title: 'Climate change and inpatient dermatology: A call to action',
@@ -93,6 +96,7 @@ export const publications = [
     venue: 'Current Dermatology Reports. 2020;9(4):199-204.',
     year: 2020,
     url: 'https://link.springer.com/article/10.1007/s40572-020-00296-3',
-    tags: ['Climate', 'Policy']
+    tags: ['Climate', 'Policy'],
+    featured: true
   }
 ];

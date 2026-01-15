@@ -1,6 +1,6 @@
 # Dr. Ramie Fathy – Personal & Professional Portfolio
 
-This repository powers [ramiefathy.github.io](https://ramiefathy.github.io) and its Netlify mirror. It combines:
+This repository powers [ramiefathy.com](https://ramiefathy.com) (deployed via Cloudflare) and contains:
 
 - **Astro static site** (`/site`) for the primary pages and navigation
 - **Interactive tools** (`/site/public/apps`) including the AI Dermatology Scribe, Dermatopathology Navigator, DermaScore calculators, and PDF utilities
@@ -120,7 +120,7 @@ The `/legacy` route lists archived HTML reports and application prototypes. Thes
 - Add automated lint/test/CI workflows for the Astro site and AI Scribe backend.
 - Harden the AI Scribe client with authentication and rate limiting as the deployment plan evolves.
 
-For any questions, contact **hello@ramiefathy.com**.
+For any questions, contact **ramiefathy@gmail.com**.
 
 ## Landing UI Upgrade
 

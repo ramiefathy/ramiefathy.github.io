@@ -1,7 +1,7 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import Header from '../../components/Header.jsx';
-import AppsShowcase from '../../components/AppsShowcase.jsx';
+import AppsGallery from '../../components/AppsGallery.jsx';
 import apps from '../../data/apps.json';
 import collections from '../../data/collections.json';
 
@@ -19,7 +19,7 @@ const archived = apps.filter((app) => app.status === 'legacy');
           <p class="section__subtitle">Each application below is built for resident clinics, dermatology education, or translational research—and runs directly in the browser with no account required.</p>
         </div>
 
-        <AppsShowcase
+        <AppsGallery
           apps={apps}
           collections={collections}
           client:visible
@@ -50,131 +50,4 @@ const archived = apps.filter((app) => app.status === 'legacy');
     ) : null}
   </main>
 
-  <style is:global>
-    /* Tilt effect script enhancement */
-    .app-showcase-card.is-hovered {
-      box-shadow: 0 40px 70px rgba(15, 23, 42, 0.24);
-      border-color: rgba(56, 189, 248, 0.24);
-    }
-
-    .app-showcase-card.is-hovered .app-showcase-row {
-      transform: translateZ(12px);
-    }
-
-    .app-showcase-card.is-hovered .app-showcase-glare {
-      opacity: 1;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .app-showcase-card {
-        transform: none !important;
-        transition: none;
-      }
-
-      .app-showcase-card.is-hovered .app-showcase-row {
-        transform: none;
-      }
-    }
-  </style>
-
-  <script>
-    // Tilt effect for app cards
-    function initTiltEffect() {
-      const cards = document.querySelectorAll('[data-app-tilt]');
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-      const disableTilt = () => {
-        cards.forEach((card) => {
-          card.classList.remove('is-hovered');
-          card.style.removeProperty('--tilt-x');
-          card.style.removeProperty('--tilt-y');
-          card.style.removeProperty('--glare-x');
-          card.style.removeProperty('--glare-y');
-        });
-      };
-
-      if (!cards.length) return;
-
-      if (prefersReducedMotion.matches) {
-        disableTilt();
-        return;
-      }
-
-      cards.forEach((card) => {
-        let frame = 0;
-
-        const reset = () => {
-          card.style.setProperty('--tilt-x', '0deg');
-          card.style.setProperty('--tilt-y', '0deg');
-          card.style.setProperty('--glare-x', '50%');
-          card.style.setProperty('--glare-y', '50%');
-          card.classList.remove('is-hovered');
-        };
-
-        const applyTilt = (clientX, clientY) => {
-          const rect = card.getBoundingClientRect();
-          const x = clientX - rect.left;
-          const y = clientY - rect.top;
-          const rotateY = ((x / rect.width) - 0.5) * 14;
-          const rotateX = ((y / rect.height) - 0.5) * -12;
-
-          card.style.setProperty('--tilt-x', `${rotateY.toFixed(2)}deg`);
-          card.style.setProperty('--tilt-y', `${rotateX.toFixed(2)}deg`);
-          card.style.setProperty('--glare-x', `${(x / rect.width) * 100}%`);
-          card.style.setProperty('--glare-y', `${(y / rect.height) * 100}%`);
-        };
-
-        card.addEventListener('pointermove', (event) => {
-          const { clientX, clientY } = event;
-          if (frame) return;
-          frame = requestAnimationFrame(() => {
-            frame = 0;
-            applyTilt(clientX, clientY);
-          });
-        });
-
-        card.addEventListener('pointerenter', (event) => {
-          card.classList.add('is-hovered');
-          applyTilt(event.clientX, event.clientY);
-        });
-
-        const clearFrame = () => {
-          if (frame) {
-            cancelAnimationFrame(frame);
-            frame = 0;
-          }
-        };
-
-        const tearDown = () => {
-          clearFrame();
-          reset();
-        };
-
-        card.addEventListener('pointerleave', tearDown);
-        card.addEventListener('pointerup', tearDown);
-        card.addEventListener('pointercancel', tearDown);
-
-        reset();
-      });
-    }
-
-    // Initialize on load and on navigation
-    initTiltEffect();
-    document.addEventListener('astro:after-swap', initTiltEffect);
-
-    // Re-initialize when React component updates (using MutationObserver)
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.addedNodes.length > 0) {
-          initTiltEffect();
-          break;
-        }
-      }
-    });
-
-    const showcase = document.querySelector('.apps-showcase-wrapper');
-    if (showcase) {
-      observer.observe(showcase, { childList: true, subtree: true });
-    }
-  </script>
 </MainLayout>
