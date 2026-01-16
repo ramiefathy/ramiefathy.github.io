@@ -37,17 +37,19 @@ test.describe('Dermoscopy LLM evaluation dashboard', () => {
     await waitForDashboardData(page);
 
     const stats = page.locator('.llm-dashboard__stats-grid .llm-dashboard__stat');
-    await expect(stats).toHaveCount(6);
-    await expect(page.locator('.llm-dashboard__stats-grid').getByText('Total trials', { exact: true })).toBeVisible();
+    await expect(stats).toHaveCount(8);
+    await expect(page.locator('.llm-dashboard__stats-grid').getByText('Models selected', { exact: true })).toBeVisible();
+    await expect(page.locator('.llm-dashboard__stats-grid').getByText('Trials in view', { exact: true })).toBeVisible();
+    await expect(page.locator('.llm-dashboard__stats-grid').getByText('Accuracy', { exact: true })).toBeVisible();
 
     await page.getByRole('tab', { name: 'Leaderboard' }).click();
-    await expect(page.locator('.llm-dashboard__table tbody tr')).toHaveCount(17);
+    await expect(page.locator('.llm-dashboard__table-shell').first().locator('tbody tr')).toHaveCount(17);
 
     await page.getByRole('tab', { name: 'Heatmaps' }).click();
     await expect(page.locator('table.llm-dashboard__heat-table tbody tr')).toHaveCount(17);
 
-    await page.getByRole('tab', { name: 'Cost & latency' }).click();
-    await expect(page.locator('.llm-dashboard__scatter svg')).toBeVisible();
+    await page.getByRole('tab', { name: 'Tradeoffs' }).click();
+    await expect(page.locator('.llm-dashboard__scatter svg').first()).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Mean response latency' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Clear' }).click();
@@ -55,6 +57,6 @@ test.describe('Dermoscopy LLM evaluation dashboard', () => {
     await expect(page.getByRole('heading', { name: 'No models selected' })).toBeVisible();
 
     await page.getByRole('tab', { name: 'Overview' }).click();
-    await expect(stats).toHaveCount(6);
+    await expect(stats).toHaveCount(8);
   });
 });

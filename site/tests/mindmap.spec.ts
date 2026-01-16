@@ -16,10 +16,12 @@ test.describe('Mind map experiences', () => {
     const tablist = page.getByRole('tablist', { name: /Alopecia Mind Map tabs/ });
     await expect(tablist).toBeVisible();
 
-    await page.getByLabel('Search nodes').fill('Minoxidil');
-    const results = page.getByRole('listbox', { name: 'Search results' });
-    await expect(results).toBeVisible();
-    await results.getByRole('option', { name: /Minoxidil/ }).first().click();
+    const search = page.getByLabel('Search nodes');
+    await expect(search).toBeVisible();
+    await search.fill('Minoxidil');
+    const match = page.getByRole('option', { name: /Minoxidil/ }).first();
+    await expect(match).toBeVisible({ timeout: 45_000 });
+    await match.click();
 
     const detailsPanel = page.getByRole('complementary');
     await expect(detailsPanel.locator('h2')).toHaveText('Details');

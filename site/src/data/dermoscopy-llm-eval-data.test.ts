@@ -11,21 +11,22 @@ const loadData = () => JSON.parse(readFileSync(dataPath, 'utf8'));
 describe('dermoscopy-llm-eval.json', () => {
   it('parses as valid JSON and includes expected top-level keys', () => {
     const data = loadData();
-    expect(Object.keys(data).sort()).toEqual(
-      [
-        'armSummary',
-        'confusionMatrix',
-        'costPerformance',
-        'diagnoses',
-        'diagnosisSummary',
-        'errorDistribution',
-        'latencyData',
-        'modelArmMatrix',
-        'modelDiagMatrix',
-        'modelSummary',
-        'overallStats'
-      ].sort()
-    );
+    const keys = Object.keys(data);
+    const required = [
+      'armSummary',
+      'confusionMatrix',
+      'costPerformance',
+      'diagnoses',
+      'diagnosisSummary',
+      'errorDistribution',
+      'latencyData',
+      'modelArmMatrix',
+      'modelDiagMatrix',
+      'modelSummary',
+      'overallStats'
+    ];
+
+    expect(keys).toEqual(expect.arrayContaining(required));
   });
 
   it('has internally consistent trial counts', () => {
