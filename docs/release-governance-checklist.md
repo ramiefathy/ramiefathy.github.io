@@ -27,7 +27,7 @@ _Last updated: September 25, 2025_
 2. **Astro Site / Scheduler Bundle**
    - [ ] `npm run clinic:scheduler:build`
    - [ ] `npm run site:build`
-   - [ ] Deploy static assets (`netlify deploy`, `firebase hosting:channel:deploy`, or GitHub Pages sync)
+   - [ ] Deploy static assets (Cloudflare Pages deploy, `firebase hosting:channel:deploy`, or GitHub Pages sync)
 3. **AI Scribe Service**
    - [ ] Confirm `services/ai-scribe/.env` has `SESSION_SECRET`, Gemini keys
    - [ ] Redeploy service (Docker/image or server restart)

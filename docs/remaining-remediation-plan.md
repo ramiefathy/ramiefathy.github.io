@@ -47,7 +47,7 @@ Open items to complete (ordered by dependency/impact):
 
 7) CI & staging
    - CI: add Playwright smoke (home, about, apps, research) and coverage for Vitest. Update `.github/workflows/ci.yml`.
-   - Staging: Netlify preview + Render/Firebase staging env; ensure tests run on PRs against staging endpoints.
+   - Staging: Cloudflare Pages preview + Render/Firebase staging env; ensure tests run on PRs against staging endpoints.
 
 8) Content/SEO
    - JSON-LD (Person/Article) and OG images for home/about/apps/blog.

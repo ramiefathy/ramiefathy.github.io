@@ -6,7 +6,7 @@ const NAV_LINKS = [
   { label: 'Apps & Projects', href: '/apps' },
   { label: 'Research', href: '/research' },
   { label: 'Blog', href: '/blog' },
-  { label: 'Contact', href: '/#contact' }
+  { label: 'Contact', href: '/contact' }
 ];
 
 const Header = () => {

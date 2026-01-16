@@ -4,9 +4,21 @@ import Header from '../components/Header.jsx';
 import Hero from '../components/Hero.jsx';
 import profile from '../data/profile.json';
 import apps from '../data/apps.json';
+import { publications } from '../data/publications.js';
 const featuredApps = apps
   .filter((app) => app.status === 'active' && app.slug !== 'dermatology-scribe')
   .slice(0, 3);
+
+const featuredPublications = [...publications]
+  .filter((entry) => entry.featured)
+  .sort((a, b) => b.year - a.year)
+  .slice(0, 4);
+
+const years = [...new Set(publications.map((entry) => entry.year))].filter(Boolean).sort((a, b) => a - b);
+const startYear = years[0] ?? new Date().getFullYear();
+const endYear = years[years.length - 1] ?? startYear;
+const publicationYears = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
+const featuredYears = new Set(featuredPublications.map((entry) => entry.year));
 ---
 <MainLayout title="Ramie Fathy, MD – Dermatology & AI" description={profile.summary}>
   <Header client:load />
@@ -82,41 +94,82 @@ const featuredApps = apps
     </div>
   </section>
 
+  <section id="publications" class="section" style="background:linear-gradient(180deg, rgba(239,246,255,0.55), rgba(255,255,255,0.96))">
+    <div class="section__inner scroll-fade" data-scroll-fade>
+      <div class="section__intro section__intro--split">
+        <div>
+          <p class="section__kicker">Scholarship</p>
+          <h2 class="section__title">Selected Publications</h2>
+          <p class="section__subtitle">
+            A curated set of work spanning clinical dermatology, medical education, equity, and the responsible application of AI.
+          </p>
+        </div>
+        <div class="section__actions">
+          <a class="button button--secondary" href="/research">Explore All Research</a>
+        </div>
+      </div>
+
+      <div class="pub-grid">
+        {featuredPublications.map((entry, index) => (
+          <article class="pub-card scroll-fade" data-scroll-fade data-enter-delay={`${index * 90}ms`}>
+            <div class="pub-card__meta">
+              <span class="pub-card__year">{entry.year}</span>
+              {entry.tags?.slice(0, 2).map((tag) => (
+                <span class="tag tag--muted">{tag}</span>
+              ))}
+            </div>
+            <h3 class="pub-card__title">{entry.title}</h3>
+            <p class="pub-card__venue">{entry.venue}</p>
+            <p class="pub-card__authors">{entry.authors}</p>
+            <a class="pub-card__cta" href={entry.url} target="_blank" rel="noreferrer">
+              Read paper <span aria-hidden="true">→</span>
+            </a>
+          </article>
+        ))}
+      </div>
+
+      <div class="pub-timeline scroll-fade" data-scroll-fade data-enter-delay="160ms" aria-hidden="true">
+        <div class="pub-timeline__track" style={`--timeline-count:${publicationYears.length}`}>
+          {publicationYears.map((year) => (
+            <div class={`pub-timeline__node ${featuredYears.has(year) ? 'pub-timeline__node--featured' : ''}`}>
+              <span class="pub-timeline__dot"></span>
+              <span class="pub-timeline__year">{year}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="contact" class="section" style="background:linear-gradient(180deg, rgba(248,250,252,0.95), rgba(255,255,255,1))">
     <div class="section__inner scroll-fade" data-scroll-fade style="max-width:780px">
       <div class="section__intro">
         <h2 class="section__title">Get in Touch</h2>
-        <p class="section__subtitle">Collaborations, speaking invitations, and media inquiries are welcome. Leave a note and I’ll respond as soon as possible.</p>
+        <p class="section__subtitle">Collaborations, speaking invitations, and media inquiries are welcome. For the fastest response, email directly or use the dedicated contact page.</p>
       </div>
       <div class="card">
-        <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="contact-form">
-          <input type="hidden" name="form-name" value="contact" />
-          <p class="is-hidden">
-            <label>
-              Don’t fill this out if you’re human:
-              <input name="bot-field" />
-            </label>
-          </p>
-          <div class="form-row">
-            <label>
-              Name
-              <input type="text" name="name" required />
-            </label>
-            <label>
-              Email
-              <input type="email" name="email" required />
-            </label>
-          </div>
-          <label>
-            Subject
-            <input type="text" name="subject" />
-          </label>
-          <label>
-            Message
-            <textarea name="message" rows="5" required></textarea>
-          </label>
-          <button class="button button--primary" type="submit">Send Message</button>
-        </form>
+        <div class="contact-card__links" aria-label="Contact options">
+          <a class="contact-link" href={profile.contact.email}>
+            <span class="contact-link__icon" aria-hidden="true">✉︎</span>
+            <span class="contact-link__label">Email</span>
+            <span class="contact-link__value">{profile.contact.email.replace(/^mailto:/, '')}</span>
+          </a>
+          <a class="contact-link" href="/contact">
+            <span class="contact-link__icon" aria-hidden="true">↗</span>
+            <span class="contact-link__label">Contact page</span>
+            <span class="contact-link__value">Compose a message</span>
+          </a>
+          <a class="contact-link" href={profile.contact.linkedin} target="_blank" rel="noreferrer">
+            <span class="contact-link__icon" aria-hidden="true">in</span>
+            <span class="contact-link__label">LinkedIn</span>
+            <span class="contact-link__value">Connect</span>
+          </a>
+          <a class="contact-link" href={profile.contact.scholar} target="_blank" rel="noreferrer">
+            <span class="contact-link__icon" aria-hidden="true">G</span>
+            <span class="contact-link__label">Google Scholar</span>
+            <span class="contact-link__value">Publications</span>
+          </a>
+        </div>
       </div>
     </div>
   </section>

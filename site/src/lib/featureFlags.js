@@ -22,7 +22,7 @@ export const flags = {
   // About page features
   interactiveTimeline: true,  // Career timeline visualization
   skillsVisualization: true,  // Radar chart for skills
-  publicationMetrics: true,   // h-index, citations chart
+  publicationMetrics: false,  // h-index, citations chart
 
   // Apps catalog features
   appAnalytics: false,       // View counts, engagement metrics
