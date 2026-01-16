@@ -17,6 +17,20 @@ import ScholarFeedEnhanced from '../components/ScholarFeedEnhanced.jsx';
         <p class="muted-callout">
           Filter by year or type. Export citations in BibTeX, RIS, or EndNote formats. View the co-author network to explore research collaborations.
         </p>
+
+        <div class="research-dashboard-card scroll-fade" data-scroll-fade data-enter-delay="120ms">
+          <div class="research-dashboard-card__body">
+            <p class="research-dashboard-card__kicker">Interactive dashboard</p>
+            <h2 class="research-dashboard-card__title">Dermoscopy LLM Evaluation</h2>
+            <p class="research-dashboard-card__text">
+              Explore model performance across prompting strategies, diagnoses, and cost/latency tradeoffs in an interactive view of one of my studies.
+            </p>
+          </div>
+          <div class="research-dashboard-card__actions">
+            <a class="button button--primary" href="/research/dermoscopy-llm-dashboard">Open dashboard</a>
+            <a class="button button--secondary" href="/data/dermoscopy-llm-eval.json">View data</a>
+          </div>
+        </div>
       </div>
     </section>
     <section class="section" style="padding-top:0">
@@ -26,3 +40,73 @@ import ScholarFeedEnhanced from '../components/ScholarFeedEnhanced.jsx';
     </section>
   </main>
 </MainLayout>
+
+<style>
+  .research-dashboard-card {
+    margin: 2.5rem auto 0;
+    max-width: 920px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.35rem 1.5rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background:
+      radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18), transparent 60%),
+      radial-gradient(circle at 90% 30%, rgba(217, 70, 239, 0.14), transparent 55%),
+      rgba(255, 255, 255, 0.62);
+    box-shadow: var(--shadow-md);
+  }
+
+  html[data-theme='dark'] .research-dashboard-card {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.2), transparent 60%),
+      radial-gradient(circle at 90% 30%, rgba(217, 70, 239, 0.18), transparent 55%),
+      rgba(12, 26, 41, 0.7);
+    border-color: rgba(148, 163, 184, 0.12);
+  }
+
+  .research-dashboard-card__kicker {
+    margin: 0 0 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(56, 189, 248, 0.9);
+  }
+
+  .research-dashboard-card__title {
+    margin: 0;
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+    color: var(--text-color);
+  }
+
+  .research-dashboard-card__text {
+    margin: 0.65rem 0 0;
+    color: var(--muted-text);
+    max-width: 34rem;
+  }
+
+  .research-dashboard-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 720px) {
+    .research-dashboard-card {
+      padding: 1.2rem 1.1rem;
+      text-align: left;
+    }
+
+    .research-dashboard-card__actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+</style>
