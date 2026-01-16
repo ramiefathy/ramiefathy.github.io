@@ -65,55 +65,6 @@ const GradientFallback = memo(() => (
   </div>
 ));
 
-// Typing animation hook
-const useTypingAnimation = (texts, typingSpeed = 50, deletingSpeed = 30, pauseDuration = 2000) => {
-  const [displayText, setDisplayText] = useState(texts?.[0] ?? '');
-  const [textIndex, setTextIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-
-  useEffect(() => {
-    // Check for reduced motion preference
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setDisplayText(texts[0]);
-      return;
-    }
-
-    const currentText = texts[textIndex];
-
-    if (isPaused) {
-      const pauseTimer = setTimeout(() => {
-        setIsPaused(false);
-        setIsDeleting(true);
-      }, pauseDuration);
-      return () => clearTimeout(pauseTimer);
-    }
-
-    if (isDeleting) {
-      if (displayText.length === 0) {
-        setIsDeleting(false);
-        setTextIndex((prev) => (prev + 1) % texts.length);
-      } else {
-        const deleteTimer = setTimeout(() => {
-          setDisplayText(currentText.slice(0, displayText.length - 1));
-        }, deletingSpeed);
-        return () => clearTimeout(deleteTimer);
-      }
-    } else {
-      if (displayText === currentText) {
-        setIsPaused(true);
-      } else {
-        const typeTimer = setTimeout(() => {
-          setDisplayText(currentText.slice(0, displayText.length + 1));
-        }, typingSpeed);
-        return () => clearTimeout(typeTimer);
-      }
-    }
-  }, [displayText, textIndex, isDeleting, isPaused, texts, typingSpeed, deletingSpeed, pauseDuration]);
-
-  return displayText;
-};
-
 const MAX_COLORS = meshGradientMeta.maxColorCount;
 
 const rippleMeshGradientFragmentShader = `#version 300 es
@@ -277,8 +228,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
   const frameRef = useRef(0);
   const lastPointer = useRef({ x: 0.5, y: 0.5, time: typeof performance !== 'undefined' ? performance.now() : 0 });
 
-  // Typing animation for role text
-  const typedRole = useTypingAnimation(TYPING_SUBTITLES, 50, 30, 2500);
+  const [roleIndex, setRoleIndex] = useState(0);
 
   const [primaryCta, secondaryCta] = profile.callToActions.slice(0, 2);
   const headline = `${profile.name}`;
@@ -304,6 +254,21 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
       motionMedia.removeEventListener('change', handleMotionChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (!enableTypingAnimation) return undefined;
+    if (prefersReducedMotion) {
+      setRoleIndex(0);
+      return undefined;
+    }
+    if (isServer) return undefined;
+
+    const interval = window.setInterval(() => {
+      setRoleIndex((current) => (current + 1) % TYPING_SUBTITLES.length);
+    }, 2600);
+
+    return () => window.clearInterval(interval);
+  }, [enableTypingAnimation, isServer, prefersReducedMotion]);
 
   // Optimized mouse handler - reduced effect on mobile
   const handleMouseMove = useCallback((event) => {
@@ -413,8 +378,18 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
           {/* Typing animation subtitle */}
           {enableTypingAnimation ? (
             <p className="hero-role" aria-live="polite">
-              <span className="hero-role-text">{prefersReducedMotion || isServer ? TYPING_SUBTITLES[0] : typedRole}</span>
-              {!prefersReducedMotion && <span className="hero-cursor" aria-hidden="true">|</span>}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={prefersReducedMotion || isServer ? 'static' : roleIndex}
+                  className="hero-role-text"
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                  transition={{ duration: 0.38, ease: 'easeOut' }}
+                >
+                  {prefersReducedMotion || isServer ? TYPING_SUBTITLES[0] : TYPING_SUBTITLES[roleIndex]}
+                </motion.span>
+              </AnimatePresence>
             </p>
           ) : null}
 
@@ -441,26 +416,14 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
         }
 
         .hero-role-text {
-          display: inline;
-        }
-
-        .hero-cursor {
-          display: inline-block;
-          margin-left: 2px;
-          animation: blink 1s step-end infinite;
-          color: var(--primary-400, #60a5fa);
-        }
-
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .hero-cursor {
-            animation: none;
-            opacity: 1;
-          }
+          display: inline-flex;
+          align-items: baseline;
+          gap: 0.45rem;
+          padding: 0.18rem 0.65rem;
+          border-radius: 999px;
+          border: 1px solid rgba(148, 163, 184, 0.18);
+          background: rgba(2, 6, 23, 0.25);
+          box-shadow: 0 18px 40px rgba(2, 6, 23, 0.35);
         }
       `}</style>
     </section>

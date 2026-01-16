@@ -26,6 +26,13 @@ function truncateStack(stack, limit = 3) {
   return stack.slice(0, limit);
 }
 
+function appMonogram(name) {
+  if (typeof name !== 'string') return '⋯';
+  const parts = name.split(/\s+/).filter(Boolean);
+  const letters = parts.map((part) => part[0]).join('');
+  return letters.slice(0, 2).toUpperCase();
+}
+
 export default function AppsGallery({ apps, collections }) {
   const prefersReducedMotion = useReducedMotion();
   const collectionsEnabled = isEnabled('appCollections');
@@ -68,6 +75,7 @@ export default function AppsGallery({ apps, collections }) {
 
   const spotlightRef = useRef(null);
   const railRef = useRef(null);
+  const railListRef = useRef(null);
   const spotlightMediaRef = useRef(null);
   const primaryCtaRef = useRef(null);
 
@@ -123,6 +131,8 @@ export default function AppsGallery({ apps, collections }) {
     const items = Array.from(rail.querySelectorAll('[data-app-rail-item]'));
     if (!items.length) return;
 
+    const rootEl = railListRef.current;
+    const root = rootEl && rootEl.scrollHeight > rootEl.clientHeight ? rootEl : null;
     const ratios = new Map();
     let frame = 0;
 
@@ -159,7 +169,8 @@ export default function AppsGallery({ apps, collections }) {
       },
       {
         threshold: [0.25, 0.4, 0.55, 0.7, 0.85],
-        rootMargin: '0px 0px -35% 0px'
+        rootMargin: '0px 0px -35% 0px',
+        root
       }
     );
 
@@ -395,7 +406,19 @@ export default function AppsGallery({ apps, collections }) {
                     />
                   ) : (
                     <div className="apps-gallery-preview-placeholder" aria-hidden="true">
-                      <span>{activeApp.name.slice(0, 1)}</span>
+                      <div className="apps-gallery-preview-placeholder__monogram">
+                        <span>{appMonogram(activeApp.name)}</span>
+                      </div>
+                      <p className="apps-gallery-preview-placeholder__title">{activeApp.name}</p>
+                      {activeApp.stack?.length > 0 && (
+                        <div className="apps-gallery-preview-placeholder__chips">
+                          {truncateStack(activeApp.stack, 3).map((tag) => (
+                            <span key={tag} className="apps-gallery-preview-placeholder__chip">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </motion.div>
@@ -503,7 +526,7 @@ export default function AppsGallery({ apps, collections }) {
             ))}
           </nav>
 
-          <div className="apps-gallery-list" role="list">
+          <div className="apps-gallery-list" role="list" ref={railListRef}>
             {filteredApps.map((app) => {
               const isActive = app.slug === activeApp.slug;
               const accentPair = getAccentForApp(app, collections);
@@ -573,6 +596,111 @@ export default function AppsGallery({ apps, collections }) {
           --gallery-accent-1: ${DEFAULT_ACCENT[0]};
           --gallery-accent-2: ${DEFAULT_ACCENT[1]};
           outline: none;
+        }
+
+        .collection-tabs {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.75rem;
+          margin-bottom: 1.75rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+          position: relative;
+          z-index: 3;
+        }
+
+        .collection-tab {
+          -webkit-appearance: none;
+          appearance: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.55rem;
+          padding: 0.55rem 1rem;
+          border-radius: 999px;
+          border: 1px solid rgba(148, 163, 184, 0.22);
+          background: rgba(255, 255, 255, 0.7);
+          color: rgba(15, 23, 42, 0.78);
+          font-family: var(--font-body);
+          font-size: 0.88rem;
+          font-weight: 650;
+          cursor: pointer;
+          transition: transform 160ms var(--ease-spring), border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, color 160ms ease;
+        }
+
+        [data-theme='dark'] .collection-tab {
+          background: rgba(15, 23, 42, 0.65);
+          border-color: rgba(148, 163, 184, 0.18);
+          color: rgba(226, 232, 240, 0.8);
+        }
+
+        .collection-tab:hover {
+          transform: translateY(-2px);
+          border-color: var(--collection-color, rgba(56, 189, 248, 0.65));
+          background: var(--collection-bg, rgba(56, 189, 248, 0.08));
+          box-shadow: 0 18px 35px rgba(15, 23, 42, 0.1);
+        }
+
+        [data-theme='dark'] .collection-tab:hover {
+          box-shadow: 0 18px 35px rgba(0, 0, 0, 0.35);
+        }
+
+        .collection-tab.is-active {
+          border-color: var(--collection-color, rgba(56, 189, 248, 0.75));
+          background: var(--collection-bg, rgba(56, 189, 248, 0.12));
+          color: var(--collection-color, rgba(56, 189, 248, 0.95));
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+        }
+
+        [data-theme='dark'] .collection-tab.is-active {
+          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+        }
+
+        .collection-tab-icon {
+          font-size: 1rem;
+        }
+
+        .collection-tab-name {
+          white-space: nowrap;
+        }
+
+        .collection-tab-count {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 1.7rem;
+          padding: 0.15rem 0.55rem;
+          border-radius: 999px;
+          border: 1px solid rgba(148, 163, 184, 0.18);
+          background: rgba(148, 163, 184, 0.16);
+          color: rgba(15, 23, 42, 0.65);
+          font-size: 0.75rem;
+          font-weight: 750;
+        }
+
+        [data-theme='dark'] .collection-tab-count {
+          background: rgba(148, 163, 184, 0.14);
+          color: rgba(226, 232, 240, 0.75);
+          border-color: rgba(148, 163, 184, 0.14);
+        }
+
+        .collection-tab.is-active .collection-tab-count {
+          border-color: transparent;
+          background: var(--collection-color, rgba(56, 189, 248, 0.95));
+          color: rgba(255, 255, 255, 0.95);
+        }
+
+        @media (max-width: 520px) {
+          .collection-tabs {
+            gap: 0.6rem;
+          }
+
+          .collection-tab {
+            padding: 0.5rem 0.85rem;
+          }
+
+          .collection-tab-count {
+            display: none;
+          }
         }
 
         .apps-gallery-layout {
@@ -697,17 +825,88 @@ export default function AppsGallery({ apps, collections }) {
           height: 100%;
           min-height: 240px;
           border-radius: 18px;
-          display: grid;
-          place-items: center;
-          font-family: var(--font-display);
-          font-size: clamp(2.25rem, 4vw, 3rem);
-          letter-spacing: 0.06em;
-          color: rgba(15, 23, 42, 0.75);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 0.85rem;
+          padding: 1.5rem;
+          text-align: center;
+          color: rgba(255, 255, 255, 0.92);
           background: linear-gradient(135deg, var(--gallery-accent-1), var(--gallery-accent-2));
+          position: relative;
+          overflow: hidden;
         }
 
-        [data-theme='dark'] .apps-gallery-preview-placeholder {
-          color: rgba(255, 255, 255, 0.92);
+        .apps-gallery-preview-placeholder::before {
+          content: '';
+          position: absolute;
+          inset: -1px;
+          background:
+            radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.35), transparent 55%),
+            radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.22), transparent 55%),
+            repeating-linear-gradient(
+              135deg,
+              rgba(255, 255, 255, 0.08) 0,
+              rgba(255, 255, 255, 0.08) 18px,
+              rgba(255, 255, 255, 0.02) 18px,
+              rgba(255, 255, 255, 0.02) 36px
+            );
+          opacity: 0.55;
+          pointer-events: none;
+        }
+
+        .apps-gallery-preview-placeholder > * {
+          position: relative;
+          z-index: 1;
+        }
+
+        .apps-gallery-preview-placeholder__monogram {
+          width: 92px;
+          height: 92px;
+          border-radius: 26px;
+          display: grid;
+          place-items: center;
+          background: rgba(255, 255, 255, 0.18);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+          backdrop-filter: blur(12px);
+        }
+
+        .apps-gallery-preview-placeholder__monogram span {
+          font-family: var(--font-display);
+          font-size: 2.35rem;
+          letter-spacing: 0.12em;
+          text-shadow: 0 18px 40px rgba(2, 6, 23, 0.25);
+        }
+
+        .apps-gallery-preview-placeholder__title {
+          margin: 0;
+          font-family: var(--font-display);
+          font-size: 1.1rem;
+          letter-spacing: -0.01em;
+          opacity: 0.95;
+        }
+
+        .apps-gallery-preview-placeholder__chips {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 0.5rem;
+          margin-top: 0.2rem;
+        }
+
+        .apps-gallery-preview-placeholder__chip {
+          display: inline-flex;
+          align-items: center;
+          padding: 0.3rem 0.65rem;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.22);
+          background: rgba(255, 255, 255, 0.16);
+          font-weight: 700;
+          font-size: 0.78rem;
+          color: rgba(255, 255, 255, 0.9);
+          white-space: nowrap;
         }
 
         .apps-gallery-spotlight-glow {
@@ -871,6 +1070,11 @@ export default function AppsGallery({ apps, collections }) {
           flex-direction: column;
           gap: 1.35rem;
           min-width: 0;
+          position: sticky;
+          top: 6rem;
+          align-self: start;
+          max-height: calc(100vh - 7.25rem);
+          overflow: hidden;
         }
 
         .apps-gallery-rail-head {
@@ -925,6 +1129,26 @@ export default function AppsGallery({ apps, collections }) {
         .apps-gallery-list {
           display: grid;
           gap: 1rem;
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          padding: 0.25rem 0.45rem 0.65rem 0.25rem;
+          scrollbar-gutter: stable;
+        }
+
+        @media (max-width: 900px) {
+          .apps-gallery-rail {
+            position: relative;
+            top: auto;
+            max-height: none;
+            overflow: visible;
+          }
+
+          .apps-gallery-list {
+            overflow: visible;
+            padding: 0;
+          }
         }
 
         .apps-gallery-card {

@@ -28,16 +28,11 @@ const emailAddress = profile.contact.email.replace(/^mailto:/, '');
           <aside class="contact-card scroll-fade" data-scroll-fade data-enter-delay="140ms" aria-label="Direct contact links">
             <h2 class="contact-card__title">Direct</h2>
             <div class="contact-card__links">
-              <a class="contact-link" href={profile.contact.email}>
+              <a class="contact-link" href={profile.contact.email} data-copy-email title="Click to copy email address">
                 <span class="contact-link__icon" aria-hidden="true">✉︎</span>
                 <span class="contact-link__label">Email</span>
                 <span class="contact-link__value">{emailAddress}</span>
               </a>
-              <button class="contact-link contact-link--button" type="button" data-copy-email>
-                <span class="contact-link__icon" aria-hidden="true">⎘</span>
-                <span class="contact-link__label">Copy email</span>
-                <span class="contact-link__value">Copy to clipboard</span>
-              </button>
               <a class="contact-link" href={profile.contact.linkedin} target="_blank" rel="noreferrer">
                 <span class="contact-link__icon" aria-hidden="true">in</span>
                 <span class="contact-link__label">LinkedIn</span>

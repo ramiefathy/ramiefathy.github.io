@@ -9,15 +9,30 @@ const NAV_LINKS = [
   { label: 'Contact', href: '/contact' }
 ];
 
+function isActiveLink(pathname, href) {
+  if (!pathname || !href) return false;
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 const Header = () => {
   const [theme, setTheme] = useState('light');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activePath, setActivePath] = useState('');
   const previousOverflow = useRef('');
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const current = document.documentElement.dataset.theme || 'light';
     setTheme(current);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const updatePath = () => setActivePath(window.location.pathname || '/');
+    updatePath();
+    window.addEventListener('popstate', updatePath);
+    return () => window.removeEventListener('popstate', updatePath);
   }, []);
 
   useEffect(() => {
@@ -68,7 +83,7 @@ const Header = () => {
             <a
               key={`desktop-${link.label}`}
               href={link.href}
-              className="header-link"
+              className={`header-link ${isActiveLink(activePath, link.href) ? 'is-active' : ''}`}
               target={link.href.startsWith('http') ? '_blank' : undefined}
               rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
             >
@@ -109,7 +124,7 @@ const Header = () => {
             <a
               key={`mobile-${link.label}`}
               href={link.href}
-              className="header-drawer__link"
+              className={`header-drawer__link ${isActiveLink(activePath, link.href) ? 'is-active' : ''}`}
               target={link.href.startsWith('http') ? '_blank' : undefined}
               rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
               onClick={closeMenu}
