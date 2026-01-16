@@ -256,7 +256,10 @@ export default function AppsGallery({ apps, collections }) {
       if (!activeApp || filteredApps.length === 0) return;
       if (event.defaultPrevented) return;
 
+      const isDirectTarget = event.currentTarget === event.target;
+
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        if (!isDirectTarget) return;
         event.preventDefault();
         const direction = event.key === 'ArrowDown' ? 1 : -1;
         const nextIndex = (activeIndex + direction + filteredApps.length) % filteredApps.length;
@@ -273,6 +276,7 @@ export default function AppsGallery({ apps, collections }) {
       }
 
       if (event.key === 'Enter') {
+        if (!isDirectTarget) return;
         event.preventDefault();
         if (!activeApp.href) return;
         if (isExternalLink(activeApp.href)) {

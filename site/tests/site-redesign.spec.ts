@@ -118,8 +118,15 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
     await expect(spotlight.locator('.apps-gallery-spotlight-details')).toBeVisible();
     await expect(spotlight.locator('.apps-gallery-spotlight-details')).toContainText('Primary stack');
 
-    await gallery.click();
+    // Regression guard: Enter on nested controls should NOT be hijacked by the gallery key handler.
+    await detailsButton.focus();
+    await page.keyboard.press('Enter');
+    await expect(detailsButton).toHaveAttribute('aria-expanded', 'false');
+    await expect(page).toHaveURL(/\/apps\/?$/);
+
+    await gallery.focus();
     await page.keyboard.press('ArrowDown');
+    await expect(spotlightTitle).toBeVisible();
     await expect(spotlightTitle).not.toHaveText('Dermatopathology Navigator');
   });
 
