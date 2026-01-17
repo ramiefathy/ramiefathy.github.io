@@ -1,154 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-
-const DATA_URL = '/data/dermoscopy-llm-eval.json';
-
-const PROVIDER_COLORS = {
-  openai: {
-    name: 'OpenAI',
-    primary: '#2563eb',
-    surface: 'rgba(37, 99, 235, 0.12)',
-    border: 'rgba(37, 99, 235, 0.25)'
-  },
-  gemini: {
-    name: 'Gemini',
-    primary: '#16a34a',
-    surface: 'rgba(22, 163, 74, 0.12)',
-    border: 'rgba(22, 163, 74, 0.25)'
-  }
-};
-
-const ARM_NAMES = {
-  1: 'Zero-shot (label list)',
-  2: 'Few-shot (exemplars)',
-  3: 'Primer board',
-  4: 'Anti-anchoring',
-  5: 'Zero-shot (free-form)',
-  6: 'Few-shot (free-form)'
-};
-
-const ARM_KEYS = [1, 2, 3, 4, 5, 6];
-
-const DIAG_KEYS = [
-  'basal_cell_carcinoma',
-  'melanoma',
-  'squamous_cell_carcinoma',
-  'seborrheic_keratosis',
-  'melanocytic_nevus',
-  'dermatofibroma',
-  'verruca_vulgaris',
-  'lichen_planus'
-];
-
-const DIAG_LABELS = {
-  basal_cell_carcinoma: 'BCC',
-  melanoma: 'Melanoma',
-  squamous_cell_carcinoma: 'SCC',
-  seborrheic_keratosis: 'Seb. Keratosis',
-  melanocytic_nevus: 'Nevus',
-  dermatofibroma: 'Dermatofibroma',
-  verruca_vulgaris: 'Verruca',
-  lichen_planus: 'Lichen Planus',
-  'basal cell carcinoma': 'BCC',
-  'squamous cell carcinoma': 'SCC',
-  'seborrheic keratosis': 'Seb. Keratosis',
-  'melanocytic nevus': 'Nevus',
-  'verruca vulgaris': 'Verruca',
-  'lichen planus': 'Lichen Planus'
-};
-
-const MODEL_SHORT_NAMES = {
-  'gemini-3-pro-preview-low-thinking-media-high': 'G3P-LT-HiMed',
-  'gemini-3-pro-preview-high-thinking-media-high': 'G3P-HT-HiMed',
-  'gemini-3-pro-preview-high-thinking': 'G3P-HT',
-  'gemini-3-pro-preview-low-thinking': 'G3P-LT',
-  'gemini-3-pro-image-preview': 'G3P-Img',
-  'gemini-2.5-pro': 'Gemini 2.5 Pro',
-  'gemini-2.5-flash': 'Gemini 2.5 Flash',
-  'gemini-2.5-flash-lite': 'Gemini 2.5 Flash-Lite',
-  'gemini-2.0-flash': 'Gemini 2.0 Flash',
-  'gemini-2.0-flash-lite': 'Gemini 2.0 Flash-Lite',
-  'gpt-5': 'GPT-5',
-  'gpt-5-mini': 'GPT-5 Mini',
-  'gpt-5-nano': 'GPT-5 Nano',
-  'gpt-4o': 'GPT-4o',
-  'gpt-4.1': 'GPT-4.1 (Preview)',
-  'o3': 'o3',
-  'o4-mini-2025-04-16': 'o4-mini'
-};
-
-function shortModelName(name) {
-  return MODEL_SHORT_NAMES[name] || name;
-}
-
-const ERROR_TYPE_META = {
-  correct: {
-    label: 'Correct',
-    color: 'rgba(22,163,74,0.92)'
-  },
-  within_malignant: {
-    label: 'Within malignant',
-    color: 'rgba(245,158,11,0.92)'
-  },
-  malignant_to_benign: {
-    label: 'False negative',
-    color: 'rgba(220,38,38,0.92)'
-  },
-  benign_to_malignant: {
-    label: 'False positive',
-    color: 'rgba(124,58,237,0.92)'
-  },
-  within_benign: {
-    label: 'Within benign',
-    color: 'rgba(37,99,235,0.92)'
-  },
-  pred_other: {
-    label: 'Non-diagnostic',
-    color: 'rgba(100,116,139,0.92)'
-  }
-};
-
-function getProviderPalette(provider) {
-  return PROVIDER_COLORS[provider] || { name: provider, primary: 'var(--primary-600)', surface: 'rgba(59, 130, 246, 0.12)', border: 'rgba(59, 130, 246, 0.25)' };
-}
-
-function formatPercent(value, digits = 1) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return '–';
-  return `${(value * 100).toFixed(digits)}%`;
-}
-
-function formatNumber(value) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return '–';
-  return value.toLocaleString();
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function safeDivide(numerator, denominator) {
-  if (!denominator) return 0;
-  return numerator / denominator;
-}
-
-function wilsonInterval(successes, n, z = 1.96) {
-  if (typeof successes !== 'number' || typeof n !== 'number' || n <= 0) return [null, null];
-  const phat = successes / n;
-  const denom = 1 + (z * z) / n;
-  const center = (phat + (z * z) / (2 * n)) / denom;
-  const half = (z * Math.sqrt((phat * (1 - phat) + (z * z) / (4 * n)) / n)) / denom;
-  return [Math.max(0, center - half), Math.min(1, center + half)];
-}
-
-function formatCents(value, digits = 1) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return '–';
-  return `${value.toFixed(digits)}¢`;
-}
-
-function formatUSD(value, digits = 2) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return '–';
-  return `$${value.toFixed(digits)}`;
-}
+import { ARM_KEYS, ARM_NAMES, DATA_URL, DIAG_KEYS, DIAG_LABELS, ERROR_TYPE_META, PROVIDER_COLORS } from './dermoscopy-dashboard/constants.js';
+import { clamp, formatCents, formatNumber, formatPercent, formatUSD, getProviderPalette, safeDivide, shortModelName, wilsonInterval } from './dermoscopy-dashboard/formatters.js';
+import { useMountAnimationReady } from './dermoscopy-dashboard/hooks.js';
 
 function StatCard({ value, label, tone = 'neutral', format = 'number' }) {
   const formatted = useMemo(() => {
@@ -169,6 +23,7 @@ function StatCard({ value, label, tone = 'neutral', format = 'number' }) {
 }
 
 function BarList({ items, maxValue, valueFormatter = (value) => formatPercent(value, 1) }) {
+  const animationReady = useMountAnimationReady();
   const derivedMax = useMemo(() => {
     if (typeof maxValue === 'number' && maxValue > 0) return maxValue;
     return Math.max(1, ...items.map((item) => (typeof item.value === 'number' ? item.value : 0)));
@@ -178,6 +33,7 @@ function BarList({ items, maxValue, valueFormatter = (value) => formatPercent(va
     <div className="llm-dashboard__bar-list">
       {items.map((item) => {
         const width = derivedMax ? clamp((item.value / derivedMax) * 100, 0, 100) : 0;
+        const animatedWidth = animationReady ? `${width}%` : '0%';
         return (
           <div key={item.key || item.label} className="llm-dashboard__bar-row">
             <div className="llm-dashboard__bar-meta">
@@ -185,7 +41,7 @@ function BarList({ items, maxValue, valueFormatter = (value) => formatPercent(va
               <span className="llm-dashboard__bar-value">{valueFormatter(item.value, item)}</span>
             </div>
             <div className="llm-dashboard__bar-track" aria-hidden="true">
-              <div className="llm-dashboard__bar-fill" style={{ width: `${width}%`, background: item.color }} />
+              <div className="llm-dashboard__bar-fill" style={{ width: animatedWidth, background: item.color }} />
             </div>
           </div>
         );
@@ -200,6 +56,7 @@ function CIBarList({
   valueFormatter = (value) => formatPercent(value, 1),
   showCILabel = true
 }) {
+  const animationReady = useMountAnimationReady();
   const derivedMax = useMemo(() => {
     if (typeof maxValue === 'number' && maxValue > 0) return maxValue;
     return Math.max(1, ...items.map((item) => (typeof item.value === 'number' ? item.value : 0)));
@@ -219,6 +76,7 @@ function CIBarList({
       {items.map((item) => {
         const value = typeof item.value === 'number' ? item.value : 0;
         const width = derivedMax ? clamp((value / derivedMax) * 100, 0, 100) : 0;
+        const animatedWidth = animationReady ? `${width}%` : '0%';
         const ciLow = typeof item.ciLow === 'number' ? item.ciLow : null;
         const ciHigh = typeof item.ciHigh === 'number' ? item.ciHigh : null;
         const ciLeft = ciLow !== null ? clamp((ciLow / derivedMax) * 100, 0, 100) : null;
@@ -233,7 +91,7 @@ function CIBarList({
             </div>
 
             <div className="llm-dashboard__ci-track" aria-hidden="true">
-              <div className="llm-dashboard__ci-fill" style={{ width: `${width}%`, background: item.color }} />
+              <div className="llm-dashboard__ci-fill" style={{ width: animatedWidth, background: item.color }} />
               {ciLeft !== null && ciWidth !== null && (
                 <div className="llm-dashboard__ci-error" style={{ left: `${ciLeft}%`, width: `${ciWidth}%` }}>
                   <span className="llm-dashboard__ci-cap llm-dashboard__ci-cap--left" />
@@ -428,7 +286,7 @@ function ScatterPlot({
         <defs>
           <linearGradient id="llm-scatter-axis" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="rgba(56,189,248,0.75)" />
-            <stop offset="100%" stopColor="rgba(217,70,239,0.55)" />
+            <stop offset="100%" stopColor="rgba(15,118,110,0.65)" />
           </linearGradient>
         </defs>
 
@@ -629,7 +487,7 @@ function OverviewTab({ data, selectedModels }) {
       return {
         label: DIAG_LABELS[diag] || diag,
         value: acc,
-        color: isMalignant ? 'rgba(220,38,38,0.9)' : 'rgba(22,163,74,0.9)',
+        color: isMalignant ? 'rgba(220,38,38,0.9)' : 'rgba(15,118,110,0.9)',
         total: agg.total
       };
     });
@@ -662,7 +520,7 @@ function OverviewTab({ data, selectedModels }) {
               Malignant
             </span>
             <span className="llm-dashboard__legend-item">
-              <span className="llm-dashboard__legend-swatch" style={{ background: 'rgba(22,163,74,0.9)' }} />
+              <span className="llm-dashboard__legend-swatch" style={{ background: 'rgba(15,118,110,0.9)' }} />
               Benign
             </span>
           </div>
@@ -725,6 +583,11 @@ function LeaderboardTab({ data, selectedModels }) {
     }
     setSortKey(key);
     setSortDir('desc');
+  };
+
+  const getAriaSort = (key) => {
+    if (sortKey !== key) return undefined;
+    return sortDir === 'asc' ? 'ascending' : 'descending';
   };
 
   const chartItems = useMemo(() => {
@@ -806,7 +669,7 @@ function LeaderboardTab({ data, selectedModels }) {
         value,
         ciLow,
         ciHigh,
-        color: isMalignant ? 'rgba(220,38,38,0.9)' : 'rgba(22,163,74,0.9)'
+        color: isMalignant ? 'rgba(220,38,38,0.9)' : 'rgba(15,118,110,0.9)'
       };
     });
   }, [data.diagnoses, data.diagnosisSummary, data.modelDiagCounts, detailModel]);
@@ -912,20 +775,31 @@ function LeaderboardTab({ data, selectedModels }) {
         <table className="llm-dashboard__table">
           <thead>
             <tr>
-              <th>Rank</th>
-              <th>Model</th>
-              <th>Provider</th>
-              <th className="llm-dashboard__th-sort" onClick={() => handleSort('accuracy')} role="button" tabIndex={0}>
-                Accuracy {sortKey === 'accuracy' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
+              <th scope="col">Rank</th>
+              <th scope="col">Model</th>
+              <th scope="col">Provider</th>
+              <th scope="col" className="llm-dashboard__th-sort" aria-sort={getAriaSort('accuracy')}>
+                <button type="button" className="llm-dashboard__sort-button" onClick={() => handleSort('accuracy')}>
+                  Accuracy
+                  <span className="llm-dashboard__sort-indicator" aria-hidden="true">
+                    {sortKey === 'accuracy' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
+                  </span>
+                </button>
               </th>
-              <th className="llm-dashboard__th-sort" onClick={() => handleSort('sensitivity')} role="button" tabIndex={0}>
-                Sensitivity
+              <th scope="col" className="llm-dashboard__th-sort" aria-sort={getAriaSort('sensitivity')}>
+                <button type="button" className="llm-dashboard__sort-button" onClick={() => handleSort('sensitivity')}>
+                  Sensitivity
+                </button>
               </th>
-              <th className="llm-dashboard__th-sort" onClick={() => handleSort('specificity')} role="button" tabIndex={0}>
-                Specificity
+              <th scope="col" className="llm-dashboard__th-sort" aria-sort={getAriaSort('specificity')}>
+                <button type="button" className="llm-dashboard__sort-button" onClick={() => handleSort('specificity')}>
+                  Specificity
+                </button>
               </th>
-              <th className="llm-dashboard__th-sort" onClick={() => handleSort('mean_latency')} role="button" tabIndex={0}>
-                Latency
+              <th scope="col" className="llm-dashboard__th-sort" aria-sort={getAriaSort('mean_latency')}>
+                <button type="button" className="llm-dashboard__sort-button" onClick={() => handleSort('mean_latency')}>
+                  Latency
+                </button>
               </th>
             </tr>
           </thead>
@@ -1020,7 +894,7 @@ function LeaderboardTab({ data, selectedModels }) {
                   <td style={{ textAlign: 'right' }}>
                     Arm {row.bestArm} ({formatPercent(row.bestValue, 1)})
                   </td>
-                  <td style={{ textAlign: 'right', fontWeight: 700, color: row.uplift >= 0 ? 'rgba(22,163,74,0.92)' : 'rgba(220,38,38,0.92)' }}>
+                  <td style={{ textAlign: 'right', fontWeight: 700, color: row.uplift >= 0 ? 'rgba(15,118,110,0.92)' : 'rgba(220,38,38,0.92)' }}>
                     {row.uplift >= 0 ? '+' : ''}
                     {(row.uplift * 100).toFixed(1)}pp
                   </td>
@@ -2041,7 +1915,7 @@ function HeadToHeadTab({ data, selectedModels }) {
           const diff = winRate - 0.5;
           const intensity = clamp(Math.abs(diff) / 0.25, 0, 1);
           const alpha = 0.08 + intensity * 0.58;
-          const background = diff >= 0 ? `rgba(22,163,74,${alpha})` : `rgba(220,38,38,${alpha})`;
+          const background = diff >= 0 ? `rgba(15,118,110,${alpha})` : `rgba(220,38,38,${alpha})`;
 
           return { key: `${row.model}::${col.model}`, winRate, wins, losses, ties, background };
         })
@@ -2612,7 +2486,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
         }
 
         .llm-dashboard__stat--success .llm-dashboard__stat-value {
-          color: rgba(22, 163, 74, 0.92);
+          color: rgba(15, 118, 110, 0.92);
         }
 
         .llm-dashboard__grid-two {
@@ -2716,6 +2590,13 @@ export default function DermoscopyLLMEvaluationDashboard() {
           border-radius: 999px;
           width: 0;
           transition: width 520ms var(--ease-spring);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .llm-dashboard__bar-fill,
+          .llm-dashboard__ci-fill {
+            transition: none;
+          }
         }
 
         .llm-dashboard__legend {
@@ -3151,7 +3032,33 @@ export default function DermoscopyLLMEvaluationDashboard() {
         }
 
         .llm-dashboard__th-sort {
+          user-select: none;
+        }
+
+        .llm-dashboard__sort-button {
+          appearance: none;
+          border: 0;
+          background: transparent;
+          font: inherit;
+          color: inherit;
           cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          width: 100%;
+          padding: 0;
+          text-align: left;
+        }
+
+        .llm-dashboard__sort-button:focus-visible {
+          outline: 2px solid rgba(56, 189, 248, 0.6);
+          outline-offset: 3px;
+          border-radius: 0.6rem;
+        }
+
+        .llm-dashboard__sort-indicator {
+          font-weight: 900;
+          opacity: 0.78;
         }
 
         .llm-dashboard__pill {

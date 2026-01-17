@@ -59,4 +59,28 @@ test.describe('Dermoscopy LLM evaluation dashboard', () => {
     await page.getByRole('tab', { name: 'Overview' }).click();
     await expect(stats).toHaveCount(8);
   });
+
+  test('leaderboard sorting is keyboard accessible and exposes aria-sort', async ({ page }) => {
+    await page.goto('/research/dermoscopy-llm-dashboard', { waitUntil: 'domcontentloaded' });
+    await waitForDashboardData(page);
+
+    await page.getByRole('tab', { name: 'Leaderboard' }).click();
+
+    const table = page.locator('.llm-dashboard__table').first();
+    const firstModelCell = table.locator('tbody tr').first().locator('td').nth(1);
+    const initialTopModel = (await firstModelCell.textContent())?.trim();
+
+    const accuracyHeader = table.getByRole('columnheader', { name: /^Accuracy/i });
+    await expect(accuracyHeader).toHaveAttribute('aria-sort', 'descending');
+
+    const accuracySortButton = accuracyHeader.getByRole('button', { name: /^Accuracy/i });
+    await accuracySortButton.focus();
+    await page.keyboard.press('Enter');
+
+    await expect(accuracyHeader).toHaveAttribute('aria-sort', 'ascending');
+    await expect.poll(async () => (await firstModelCell.textContent())?.trim()).not.toBe(initialTopModel);
+
+    await page.keyboard.press('Space');
+    await expect(accuracyHeader).toHaveAttribute('aria-sort', 'descending');
+  });
 });
