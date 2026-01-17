@@ -2834,44 +2834,67 @@ export default function DermoscopyLLMEvaluationDashboard() {
           gap: 0.9rem;
         }
 
-        .llm-dashboard__ci-row {
-          display: grid;
-          grid-template-columns: minmax(190px, 240px) minmax(0, 1fr) minmax(130px, 190px);
-          gap: 0.95rem;
-          align-items: center;
-          padding: 0.25rem 0;
-        }
+	        .llm-dashboard__ci-row {
+	          display: grid;
+	          grid-template-columns: 1fr auto;
+	          grid-template-areas:
+	            'label value'
+	            'track track';
+	          gap: 0.55rem 0.95rem;
+	          align-items: center;
+	          padding: 0.2rem 0;
+	        }
 
-        @media (max-width: 720px) {
-          .llm-dashboard__ci-row {
-            grid-template-columns: 1fr;
-          }
-        }
+	        @media (max-width: 720px) {
+	          .llm-dashboard__ci-row {
+	            grid-template-columns: 1fr;
+	            grid-template-areas:
+	              'label'
+	              'track'
+	              'value';
+	          }
+	        }
 
-        .llm-dashboard__ci-label-main {
-          font-weight: 850;
-          color: rgba(15, 23, 42, 0.9);
-        }
+	        .llm-dashboard__ci-label {
+	          grid-area: label;
+	        }
+
+	        .llm-dashboard__ci-label-main {
+	          font-weight: 850;
+	          color: rgba(15, 23, 42, 0.9);
+	        }
 
         html[data-theme='dark'] .llm-dashboard__ci-label-main {
           color: rgba(226, 242, 254, 0.92);
         }
 
-        .llm-dashboard__ci-label-sub {
-          display: block;
-          margin-top: 0.2rem;
-          font-size: 0.78rem;
-          font-weight: 650;
-          color: var(--muted-text);
-        }
+	        .llm-dashboard__ci-label-sub {
+	          display: block;
+	          margin-top: 0.2rem;
+	          font-size: 0.78rem;
+	          font-weight: 650;
+	          color: var(--muted-text);
+	        }
 
-        .llm-dashboard__ci-track {
-          position: relative;
-          height: 14px;
-          border-radius: 999px;
-          background: rgba(148, 163, 184, 0.18);
-          overflow: hidden;
-        }
+	        .llm-dashboard__ci-track {
+	          grid-area: track;
+	          position: relative;
+	          height: 14px;
+	          border-radius: 999px;
+	          background: rgba(148, 163, 184, 0.18);
+	          overflow: hidden;
+	        }
+
+	        .llm-dashboard__ci-value {
+	          grid-area: value;
+	          text-align: right;
+	        }
+
+	        @media (max-width: 720px) {
+	          .llm-dashboard__ci-value {
+	            text-align: left;
+	          }
+	        }
 
         html[data-theme='dark'] .llm-dashboard__ci-track {
           background: rgba(148, 163, 184, 0.12);
