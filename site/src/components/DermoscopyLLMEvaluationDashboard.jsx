@@ -2054,7 +2054,7 @@ function ModelSelector({ data, selectedModels, setSelectedModels }) {
             Select all
           </button>
           <button type="button" className="llm-dashboard__ghost" onClick={clearAll}>
-            Clear
+            Clear all
           </button>
         </div>
       </div>
@@ -2080,6 +2080,82 @@ function ModelSelector({ data, selectedModels, setSelectedModels }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function ModelPicker({ data, selectedModels, setSelectedModels }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  const providerCounts = useMemo(() => {
+    const byModel = new Map(data.modelSummary.map((entry) => [entry.model, entry.provider]));
+    let openai = 0;
+    let gemini = 0;
+    for (const modelId of selectedModels) {
+      const provider = byModel.get(modelId);
+      if (provider === 'openai') openai += 1;
+      if (provider === 'gemini') gemini += 1;
+    }
+    return { openai, gemini };
+  }, [data.modelSummary, selectedModels]);
+
+  const clearAll = () => setSelectedModels([]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!rootRef.current) return;
+      if (rootRef.current.contains(event.target)) return;
+      setOpen(false);
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div className="llm-dashboard__model-picker" ref={rootRef}>
+      <div className="llm-dashboard__model-picker-bar">
+        <div className="llm-dashboard__model-picker-summary" aria-live="polite">
+          <strong>{selectedModels.length}</strong> models selected · OpenAI <strong>{providerCounts.openai}</strong> · Gemini <strong>{providerCounts.gemini}</strong>
+        </div>
+        <div className="llm-dashboard__model-picker-actions">
+          <button
+            type="button"
+            className="llm-dashboard__ghost"
+            aria-expanded={open}
+            aria-controls="llm-model-picker-panel"
+            aria-haspopup="dialog"
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? 'Hide selection' : 'Select models'}
+          </button>
+          <button type="button" className="llm-dashboard__ghost" onClick={clearAll} disabled={!selectedModels.length}>
+            Clear
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <div id="llm-model-picker-panel" className="llm-dashboard__model-picker-panel">
+          <ModelSelector data={data} selectedModels={selectedModels} setSelectedModels={setSelectedModels} />
+          <div className="llm-dashboard__model-picker-footer">
+            <button type="button" className="llm-dashboard__ghost" onClick={() => setOpen(false)}>
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2187,11 +2263,11 @@ export default function DermoscopyLLMEvaluationDashboard() {
         </div>
       )}
 
-      {data && (
-        <>
-          <nav className="llm-dashboard__nav" role="tablist" aria-label="Dashboard sections">
-            {tabs.map((entry) => (
-              <button
+	      {data && (
+	        <>
+	          <nav className="llm-dashboard__nav" role="tablist" aria-label="Dashboard sections">
+	            {tabs.map((entry) => (
+	              <button
                 key={entry.id}
                 type="button"
                 className={`llm-dashboard__tab-btn ${tab === entry.id ? 'is-active' : ''}`}
@@ -2203,15 +2279,15 @@ export default function DermoscopyLLMEvaluationDashboard() {
               >
                 {entry.label}
               </button>
-            ))}
-          </nav>
-
-          <ModelSelector data={data} selectedModels={selectedModels} setSelectedModels={setSelectedModels} />
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={tab}
-              id={`llm-panel-${tab}`}
+	            ))}
+	          </nav>
+	
+	          <ModelPicker data={data} selectedModels={selectedModels} setSelectedModels={setSelectedModels} />
+	
+	          <AnimatePresence mode="wait">
+	            <motion.div
+	              key={tab}
+	              id={`llm-panel-${tab}`}
               role="tabpanel"
               aria-labelledby={`llm-tab-${tab}`}
               className="llm-dashboard__panel"
@@ -2324,12 +2400,12 @@ export default function DermoscopyLLMEvaluationDashboard() {
           color: rgba(226, 242, 254, 0.92);
         }
 
-        .llm-dashboard__selector {
-          border-radius: var(--radius-lg);
-          border: 1px solid rgba(148, 163, 184, 0.2);
-          background: rgba(255, 255, 255, 0.55);
-          padding: 1rem;
-        }
+	        .llm-dashboard__selector {
+	          border-radius: var(--radius-lg);
+	          border: 1px solid rgba(148, 163, 184, 0.2);
+	          background: rgba(255, 255, 255, 0.55);
+	          padding: 1rem;
+	        }
 
         html[data-theme='dark'] .llm-dashboard__selector {
           background: rgba(12, 26, 41, 0.6);
@@ -2401,11 +2477,52 @@ export default function DermoscopyLLMEvaluationDashboard() {
           box-shadow: 0 18px 35px rgba(15, 23, 42, 0.12);
         }
 
-        .llm-dashboard__selector-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-          gap: 0.5rem;
-        }
+	        .llm-dashboard__selector-grid {
+	          display: grid;
+	          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+	          gap: 0.5rem;
+	        }
+
+	        .llm-dashboard__model-picker {
+	          border-radius: var(--radius-lg);
+	          border: 1px solid rgba(148, 163, 184, 0.2);
+	          background: rgba(255, 255, 255, 0.55);
+	          padding: 0.75rem 0.9rem;
+	        }
+
+	        html[data-theme='dark'] .llm-dashboard__model-picker {
+	          background: rgba(12, 26, 41, 0.6);
+	          border-color: rgba(148, 163, 184, 0.16);
+	        }
+
+	        .llm-dashboard__model-picker-bar {
+	          display: flex;
+	          justify-content: space-between;
+	          align-items: center;
+	          gap: 0.75rem;
+	          flex-wrap: wrap;
+	        }
+
+	        .llm-dashboard__model-picker-summary {
+	          font-weight: 650;
+	          color: var(--text-color);
+	        }
+
+	        .llm-dashboard__model-picker-actions {
+	          display: inline-flex;
+	          gap: 0.5rem;
+	          flex-wrap: wrap;
+	        }
+
+	        .llm-dashboard__model-picker-panel {
+	          margin-top: 0.75rem;
+	        }
+
+	        .llm-dashboard__model-picker-footer {
+	          display: flex;
+	          justify-content: flex-end;
+	          margin-top: 0.75rem;
+	        }
 
         .llm-dashboard__checkbox {
           display: inline-flex;
