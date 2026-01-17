@@ -220,13 +220,17 @@ const RippleMeshGradient = memo(
 );
 
 const Hero = ({ profile, enableTypingAnimation = true }) => {
-  const [ripple, setRipple] = useState({ x: 0.5, y: 0.5, strength: 0.12 });
+  // Parallax + ripple state (token is used to re-trigger the CSS ripple animation without remounting every frame).
+  const [ripple, setRipple] = useState({ x: 0.5, y: 0.5, strength: 0.12, token: 0 });
   const [hasWebGL, setHasWebGL] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const isServer = typeof window === 'undefined';
+  const stageRef = useRef(null);
   const frameRef = useRef(0);
   const lastPointer = useRef({ x: 0.5, y: 0.5, time: typeof performance !== 'undefined' ? performance.now() : 0 });
+  const rippleTokenRef = useRef(0);
+  const lastPulseRef = useRef({ time: typeof performance !== 'undefined' ? performance.now() : 0 });
 
   const [roleIndex, setRoleIndex] = useState(0);
 
@@ -270,9 +274,9 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
     return () => window.clearInterval(interval);
   }, [enableTypingAnimation, isServer, prefersReducedMotion]);
 
-  // Optimized mouse handler - reduced effect on mobile
+  // Premium mouse interaction (desktop): subtle parallax + slightly stronger ripple feedback.
   const handleMouseMove = useCallback((event) => {
-    if (frameRef.current || isMobile) return;
+    if (frameRef.current || isMobile || prefersReducedMotion) return;
 
     frameRef.current = requestAnimationFrame(() => {
       frameRef.current = 0;
@@ -287,13 +291,33 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
       const dx = x - px;
       const dy = y - py;
       const velocity = Math.sqrt(dx * dx + dy * dy) / (dt / 16.0);
-      // Reduce ripple effect intensity on mobile
-      const maxStrength = isMobile ? 0.35 : 0.55;
-      const strength = Math.min(maxStrength, Math.max(0.12, velocity * 0.6));
+
+      // Continuous parallax (small, tasteful).
+      const parallaxX = (x - 0.5) * 18;
+      const parallaxY = (y - 0.5) * 14;
+      if (stageRef.current) {
+        stageRef.current.style.setProperty('--hero-parallax-x', `${parallaxX.toFixed(2)}px`);
+        stageRef.current.style.setProperty('--hero-parallax-y', `${parallaxY.toFixed(2)}px`);
+      }
+
+      // Ripple strength scales with movement speed (desktop only).
+      const maxStrength = 0.72;
+      const strength = Math.min(maxStrength, Math.max(0.14, velocity * 0.78));
+
+      // Re-trigger the CSS ripple pulse only for meaningful movement bursts (debounced).
+      const pulseThreshold = 0.75;
+      const pulseDebounceMs = 160;
+      const timeSincePulse = now - lastPulseRef.current.time;
+      const shouldPulse = velocity > pulseThreshold && timeSincePulse > pulseDebounceMs;
+      if (shouldPulse) {
+        rippleTokenRef.current += 1;
+        lastPulseRef.current.time = now;
+      }
+
       lastPointer.current = { x, y, time: now };
-      setRipple({ x, y, strength });
+      setRipple({ x, y, strength, token: rippleTokenRef.current });
     });
-  }, [isMobile]);
+  }, [isMobile, prefersReducedMotion]);
 
   const handleMouseLeave = useCallback(() => {
     if (frameRef.current) {
@@ -301,8 +325,13 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
       frameRef.current = 0;
     }
 
+    if (stageRef.current) {
+      stageRef.current.style.setProperty('--hero-parallax-x', '0px');
+      stageRef.current.style.setProperty('--hero-parallax-y', '0px');
+    }
+
     lastPointer.current = { x: 0.5, y: 0.5, time: performance.now() };
-    setRipple({ x: 0.5, y: 0.5, strength: 0.12 });
+    setRipple((prev) => ({ ...prev, x: 0.5, y: 0.5, strength: 0.12 }));
   }, []);
 
   useEffect(() => () => {
@@ -323,6 +352,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
     <section
       className="hero-stage"
       aria-labelledby="hero-title"
+      ref={stageRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -347,7 +377,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
                 rippleCenter={[ripple.x, ripple.y]}
                 rippleStrength={ripple.strength}
                 rippleFrequency={rippleFrequency}
-                style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.45 }}
+                style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.6 }}
               />
             )}
           </>
@@ -358,7 +388,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
         <span
           key={ripple.token}
           className="hero-ripple"
-          style={{ '--ripple-x': `${ripple.x}%`, '--ripple-y': `${ripple.y}%` }}
+          style={{ '--ripple-x': `${(ripple.x * 100).toFixed(2)}%`, '--ripple-y': `${(ripple.y * 100).toFixed(2)}%` }}
         />
         <div className="hero-gradient-overlay" />
       </div>
