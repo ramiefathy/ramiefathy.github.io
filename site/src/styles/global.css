@@ -346,6 +346,9 @@ html[data-theme='dark'] .theme-toggle {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  transform: translate3d(calc(var(--hero-parallax-x, 0px) * 0.35), calc(var(--hero-parallax-y, 0px) * 0.35), 0) scale(1.02);
+  will-change: transform;
+  transition: transform 180ms ease-out;
 }
 
 .hero-ripple {
@@ -395,6 +398,9 @@ html[data-theme='dark'] .theme-toggle {
     linear-gradient(135deg, rgba(3, 17, 36, 0.8), rgba(4, 23, 54, 0.92));
   mix-blend-mode: screen;
   pointer-events: none;
+  transform: translate3d(calc(var(--hero-parallax-x, 0px) * -0.18), calc(var(--hero-parallax-y, 0px) * -0.18), 0);
+  will-change: transform;
+  transition: transform 180ms ease-out;
 }
 
 .hero-content {
