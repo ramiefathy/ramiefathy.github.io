@@ -154,12 +154,12 @@ The following are generated files and should NOT be committed:
 - **Index:** See `/docs/archived/README.md` for status and timeline
 
 ### Application Documentation
-- **Location:** Within app directory (`/site/public/apps/{app-name}/`)
-- **Purpose:** App-specific setup, usage, and technical details
+- **In-repo apps:** documentation lives alongside the app under `site/public/apps/{app-name}/`.
+- **External apps (subdomains):** documentation lives in the external repo, with integration notes in `docs/`.
 - **Examples:**
-  - `clinic-scheduler-pro/README.md` - User guide and setup
-  - `clinic-scheduler-pro/firebase-setup.md` - Firebase configuration
-  - `dermatopathology-modern/PROJECT-HANDOFF-DOCUMENT.md` - Technical handoff
+  - `docs/skinoculars-subdomain.md` - Skinoculars canonical URL + redirects
+  - `docs/clinisched-subdomain.md` - Clinisched canonical URL + redirects
+  - `site/public/apps/dermatopathology-modern/PROJECT-HANDOFF-DOCUMENT.md` - Dermatopathology Navigator handoff
 
 ### When to Create Documentation
 - **DO create:** Operational runbooks, release checklists, handoff documents
@@ -168,41 +168,27 @@ The following are generated files and should NOT be committed:
 - **DON'T create:** Implementation plans unless explicitly requested
 - **DON'T create:** Duplicate documentation - link to canonical source instead
 
-## Clinic Scheduler Pro
+## Clinisched (Clinic Scheduler)
 
-### Overview
-**Clinic Scheduler Pro** is a Firebase-powered clinical scheduling application located in `/site/public/apps/clinic-scheduler-pro/`. It's a React-based single-page application with real-time data synchronization for managing medical institution schedules, attendings, residents, and assignments.
+Clinisched is hosted as a standalone app on its own subdomain and intentionally does **not** live in this repository.
 
-### Development Commands
+- Canonical URL: `https://clinisched.ramiefathy.com/`
+- Source/deploy repo: `ramiefathy/clinisched` (private)
+- Main-site listing: `site/src/data/apps.json` (slug `scheduler-pro`) must point to the canonical URL
+- Regression guard: `site/tests/clinic-scheduler-pro.spec.ts` ensures the link stays correct
+
+Development happens in the Clinisched repo:
+
 ```bash
-# Build the React bundle after editing source files
-npm run clinic:scheduler:build
+# Frontend
+npm install
+npm run dev
+npm run build
+npm run preview
 
-# Serve locally for testing
-cd site/public/apps/clinic-scheduler-pro && python -m http.server 8000
+# Backend
+npm install --prefix functions-backend
+npm test --prefix functions-backend
 ```
 
-### Architecture
-- **Frontend**: Standalone React SPA using CDN-loaded dependencies (React 18, Tailwind CSS, Framer Motion, Lucide icons)
-- **Source Files**: React JSX components in `site/public/apps/clinic-scheduler-pro/src/main.jsx` and `src/main-animated.jsx`
-- **Build Process**: Babel transpilation to browser-compatible JS bundles in `assets/` (in-place, no duplication)
-- **Single Source of Truth**: All source and built files in `site/public/apps/clinic-scheduler-pro/`
-- **Firebase Services**:
-  - **Authentication**: Email/password authentication with persistent sessions
-  - **Firestore Database**: Real-time data sync for institutions, members, attendings, residents, assignments
-  - **Security Rules**: Role-based access control (admin, scheduler, member) defined in root `firestore.rules`
-  - **Cloud Functions**: Backend logic in `/functions-backend/` (Node.js 20)
-
-### Key Features
-- Multi-tenant institution management with role-based permissions
-- Real-time schedule updates with drag-and-drop interface
-- Audit logging for all data modifications
-- Offline persistence with automatic sync when reconnected
-- Protected time slots and continuity clinic management
-- Natural language chatbot for scheduling (Gemini-powered)
-
-### Firebase Configuration
-- Firebase config is embedded in `index.html` for the `autoclinicscheduler` project
-- Requires enabling Authentication (Email/Password), Firestore, and Cloud Functions in Firebase Console
-- Security rules must be deployed from root `firestore.rules` for proper access control
-- Cloud Functions deployed from `/functions-backend/` directory
+See `docs/clinisched-subdomain.md` for Cloudflare redirect rules and integration notes.

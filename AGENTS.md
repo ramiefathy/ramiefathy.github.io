@@ -11,6 +11,10 @@
   - Canonical URL: `https://skinoculars.ramiefathy.com/`
   - Source/deploy repo: `ramiefathy/Skinoculars` (GitHub Pages + custom domain)
   - The main site should **keep** the Skinoculars listing in `site/src/data/apps.json` pointing to the canonical URL.
+- **Clinisched** is intentionally hosted as a **standalone repo + subdomain**:
+  - Canonical URL: `https://clinisched.ramiefathy.com/`
+  - Source/deploy repo: `ramiefathy/clinisched` (GitHub Pages + custom domain)
+  - The main site should **keep** the Clinisched listing in `site/src/data/apps.json` pointing to the canonical URL.
 - The legacy in-site path `/apps/Skinoculars/...` is no longer shipped from this repo; it is handled via **Cloudflare redirect rules**. Do not re-add `site/public/apps/Skinoculars/` here unless there is a deliberate architecture reversal.
 
 ## Build, Test, and Development Commands
