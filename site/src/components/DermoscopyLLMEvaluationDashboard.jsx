@@ -286,7 +286,7 @@ function ScatterPlot({
         <defs>
           <linearGradient id="llm-scatter-axis" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="rgba(56,189,248,0.75)" />
-            <stop offset="100%" stopColor="rgba(15,118,110,0.65)" />
+            <stop offset="100%" stopColor="rgba(217,70,239,0.55)" />
           </linearGradient>
         </defs>
 
@@ -487,7 +487,7 @@ function OverviewTab({ data, selectedModels }) {
       return {
         label: DIAG_LABELS[diag] || diag,
         value: acc,
-        color: isMalignant ? 'rgba(220,38,38,0.9)' : 'rgba(15,118,110,0.9)',
+        color: isMalignant ? 'rgba(220,38,38,0.9)' : 'rgba(22,163,74,0.9)',
         total: agg.total
       };
     });
@@ -520,7 +520,7 @@ function OverviewTab({ data, selectedModels }) {
               Malignant
             </span>
             <span className="llm-dashboard__legend-item">
-              <span className="llm-dashboard__legend-swatch" style={{ background: 'rgba(15,118,110,0.9)' }} />
+              <span className="llm-dashboard__legend-swatch" style={{ background: 'rgba(22,163,74,0.9)' }} />
               Benign
             </span>
           </div>
@@ -669,7 +669,7 @@ function LeaderboardTab({ data, selectedModels }) {
         value,
         ciLow,
         ciHigh,
-        color: isMalignant ? 'rgba(220,38,38,0.9)' : 'rgba(15,118,110,0.9)'
+        color: isMalignant ? 'rgba(220,38,38,0.9)' : 'rgba(22,163,74,0.9)'
       };
     });
   }, [data.diagnoses, data.diagnosisSummary, data.modelDiagCounts, detailModel]);
@@ -894,7 +894,7 @@ function LeaderboardTab({ data, selectedModels }) {
                   <td style={{ textAlign: 'right' }}>
                     Arm {row.bestArm} ({formatPercent(row.bestValue, 1)})
                   </td>
-                  <td style={{ textAlign: 'right', fontWeight: 700, color: row.uplift >= 0 ? 'rgba(15,118,110,0.92)' : 'rgba(220,38,38,0.92)' }}>
+                  <td style={{ textAlign: 'right', fontWeight: 700, color: row.uplift >= 0 ? 'rgba(22,163,74,0.92)' : 'rgba(220,38,38,0.92)' }}>
                     {row.uplift >= 0 ? '+' : ''}
                     {(row.uplift * 100).toFixed(1)}pp
                   </td>
@@ -1915,7 +1915,7 @@ function HeadToHeadTab({ data, selectedModels }) {
           const diff = winRate - 0.5;
           const intensity = clamp(Math.abs(diff) / 0.25, 0, 1);
           const alpha = 0.08 + intensity * 0.58;
-          const background = diff >= 0 ? `rgba(15,118,110,${alpha})` : `rgba(220,38,38,${alpha})`;
+          const background = diff >= 0 ? `rgba(22,163,74,${alpha})` : `rgba(220,38,38,${alpha})`;
 
           return { key: `${row.model}::${col.model}`, winRate, wins, losses, ties, background };
         })

@@ -9,9 +9,9 @@ export const PROVIDER_COLORS = {
   },
   gemini: {
     name: 'Gemini',
-    primary: '#0f766e',
-    surface: 'rgba(15, 118, 110, 0.12)',
-    border: 'rgba(15, 118, 110, 0.25)'
+    primary: '#16a34a',
+    surface: 'rgba(22, 163, 74, 0.12)',
+    border: 'rgba(22, 163, 74, 0.25)'
   }
 };
 
@@ -77,7 +77,7 @@ export const MODEL_SHORT_NAMES = {
 export const ERROR_TYPE_META = {
   correct: {
     label: 'Correct',
-    color: 'rgba(15,118,110,0.92)'
+    color: 'rgba(22,163,74,0.92)'
   },
   within_malignant: {
     label: 'Within malignant',
@@ -89,7 +89,7 @@ export const ERROR_TYPE_META = {
   },
   benign_to_malignant: {
     label: 'False positive',
-    color: 'rgba(14,165,233,0.92)'
+    color: 'rgba(124,58,237,0.92)'
   },
   within_benign: {
     label: 'Within benign',
@@ -100,4 +100,3 @@ export const ERROR_TYPE_META = {
     color: 'rgba(100,116,139,0.92)'
   }
 };
-
