@@ -1503,6 +1503,7 @@ function PerformanceTab({ data, selectedModels }) {
   const [tradeoffArm, setTradeoffArm] = useState(1);
   const [tradeoffAxis, setTradeoffAxis] = useState('latency');
   const [safetyView, setSafetyView] = useState('malignant');
+  const [figureIndex, setFigureIndex] = useState(0);
 
   const points = useMemo(() => {
     return data.costPerformance
@@ -1673,36 +1674,41 @@ function PerformanceTab({ data, selectedModels }) {
     return { axis, rows };
   }, [data.modelArmTradeoffs, data.modelSummary, selectedModels, tradeoffArm, tradeoffAxis]);
 
-  return (
-    <div className="llm-dashboard__tab">
-      <div className="llm-dashboard__card">
-        <h2 className="llm-dashboard__card-title">Cost-efficiency frontier</h2>
-        <p className="llm-dashboard__card-subtitle">Each point is a model, plotted by cost per trial and overall accuracy.</p>
-        <ScatterPlot
-          points={points}
-          xLabel="Cost per trial (¢)"
-          yLabel="Accuracy"
-          xFormatter={(tick) => tick.toFixed(0)}
-          yFormatter={(tick) => `${Math.round(tick * 100)}%`}
-          xTooltipLabel="Cost"
-          yTooltipLabel="Accuracy"
-          xTooltipFormatter={(value) => `${value.toFixed(2)}¢/trial`}
-          yTooltipFormatter={(value) => formatPercent(value, 1)}
-        />
-        <div className="llm-dashboard__legend">
-          {Object.entries(PROVIDER_COLORS).map(([provider, palette]) => (
-            <span key={provider} className="llm-dashboard__legend-item">
-              <span className="llm-dashboard__legend-swatch" style={{ background: palette.primary }} />
-              {palette.name}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="llm-dashboard__grid-two">
-        <div className="llm-dashboard__card">
-          <h2 className="llm-dashboard__card-title">Accuracy vs mean latency</h2>
-          <p className="llm-dashboard__card-subtitle">Model-level tradeoff between response time and diagnostic accuracy.</p>
+  const tradeoffFigures = useMemo(
+    () => [
+      {
+        id: 'cost-frontier',
+        title: 'Cost-efficiency frontier',
+        subtitle: 'Each point is a model, plotted by cost per trial and overall accuracy.',
+        body: (
+          <>
+            <ScatterPlot
+              points={points}
+              xLabel="Cost per trial (¢)"
+              yLabel="Accuracy"
+              xFormatter={(tick) => tick.toFixed(0)}
+              yFormatter={(tick) => `${Math.round(tick * 100)}%`}
+              xTooltipLabel="Cost"
+              yTooltipLabel="Accuracy"
+              xTooltipFormatter={(value) => `${value.toFixed(2)}¢/trial`}
+              yTooltipFormatter={(value) => formatPercent(value, 1)}
+            />
+            <div className="llm-dashboard__legend">
+              {Object.entries(PROVIDER_COLORS).map(([provider, palette]) => (
+                <span key={provider} className="llm-dashboard__legend-item">
+                  <span className="llm-dashboard__legend-swatch" style={{ background: palette.primary }} />
+                  {palette.name}
+                </span>
+              ))}
+            </div>
+          </>
+        )
+      },
+      {
+        id: 'accuracy-latency',
+        title: 'Accuracy vs mean latency',
+        subtitle: 'Model-level tradeoff between response time and diagnostic accuracy.',
+        body: (
           <ScatterPlot
             points={accuracyLatencyPoints}
             xLabel="Mean latency (s)"
@@ -1714,11 +1720,13 @@ function PerformanceTab({ data, selectedModels }) {
             xTooltipFormatter={(value) => `${value.toFixed(2)}s`}
             yTooltipFormatter={(value) => formatPercent(value, 1)}
           />
-        </div>
-
-        <div className="llm-dashboard__card">
-          <h2 className="llm-dashboard__card-title">Accuracy vs mean total tokens</h2>
-          <p className="llm-dashboard__card-subtitle">Model-level tradeoff between token usage and diagnostic accuracy.</p>
+        )
+      },
+      {
+        id: 'accuracy-tokens',
+        title: 'Accuracy vs mean total tokens',
+        subtitle: 'Model-level tradeoff between token usage and diagnostic accuracy.',
+        body: (
           <ScatterPlot
             points={accuracyTokenPoints}
             xLabel="Mean tokens"
@@ -1730,67 +1738,180 @@ function PerformanceTab({ data, selectedModels }) {
             xTooltipFormatter={(value) => `${Math.round(value)} tokens`}
             yTooltipFormatter={(value) => formatPercent(value, 1)}
           />
-        </div>
-      </div>
+        )
+      },
+      {
+        id: 'arm-tradeoffs',
+        title: 'Per-arm accuracy tradeoffs',
+        subtitle: 'Compare models within a specific prompting arm, switching the x-axis to latency, tokens, or cost.',
+        body: (
+          <>
+            <div className="llm-dashboard__filters">
+              <div className="llm-dashboard__filter">
+                <span className="llm-dashboard__filter-label">Arm</span>
+                <select className="llm-dashboard__select" value={tradeoffArm} onChange={(event) => setTradeoffArm(Number(event.target.value))}>
+                  {ARM_KEYS.map((arm) => (
+                    <option key={arm} value={arm}>
+                      Arm {arm}: {ARM_NAMES[arm]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="llm-dashboard__filter">
+                <span className="llm-dashboard__filter-label">X-axis</span>
+                <select className="llm-dashboard__select" value={tradeoffAxis} onChange={(event) => setTradeoffAxis(event.target.value)}>
+                  <option value="latency">Latency</option>
+                  <option value="tokens">Tokens</option>
+                  <option value="cost">Cost</option>
+                </select>
+              </div>
+            </div>
 
-      <div className="llm-dashboard__card llm-dashboard__card--tight">
-        <h2 className="llm-dashboard__card-title">Per-arm accuracy tradeoffs</h2>
-        <p className="llm-dashboard__card-subtitle">Compare models within a specific prompting arm, switching the x-axis to latency, tokens, or cost.</p>
-
-        <div className="llm-dashboard__filters">
-          <div className="llm-dashboard__filter">
-            <span className="llm-dashboard__filter-label">Arm</span>
-            <select className="llm-dashboard__select" value={tradeoffArm} onChange={(event) => setTradeoffArm(Number(event.target.value))}>
-              {ARM_KEYS.map((arm) => (
-                <option key={arm} value={arm}>
-                  Arm {arm}: {ARM_NAMES[arm]}
-                </option>
+            <ScatterPlot
+              points={armTradeoffPoints.rows}
+              xLabel={armTradeoffPoints.axis.label}
+              yLabel="Accuracy"
+              xFormatter={(tick) => tick.toFixed(0)}
+              yFormatter={(tick) => `${Math.round(tick * 100)}%`}
+              xTooltipLabel={armTradeoffPoints.axis.tooltip}
+              yTooltipLabel="Accuracy"
+              xTooltipFormatter={(value) => armTradeoffPoints.axis.formatter(value)}
+              yTooltipFormatter={(value) => formatPercent(value, 1)}
+            />
+          </>
+        )
+      },
+      {
+        id: 'sensitivity-specificity',
+        title: 'Sensitivity vs specificity',
+        subtitle: 'Each point is a model, plotted by malignant sensitivity and benign specificity.',
+        body: (
+          <>
+            <ScatterPlot
+              points={clinicalPoints}
+              xLabel="Sensitivity"
+              yLabel="Specificity"
+              xFormatter={(tick) => `${Math.round(tick * 100)}%`}
+              yFormatter={(tick) => `${Math.round(tick * 100)}%`}
+              xTooltipLabel="Sensitivity"
+              yTooltipLabel="Specificity"
+              xTooltipFormatter={(value) => formatPercent(value, 1)}
+              yTooltipFormatter={(value) => formatPercent(value, 1)}
+            />
+            <div className="llm-dashboard__legend">
+              {Object.entries(PROVIDER_COLORS).map(([provider, palette]) => (
+                <span key={provider} className="llm-dashboard__legend-item">
+                  <span className="llm-dashboard__legend-swatch" style={{ background: palette.primary }} />
+                  {palette.name}
+                </span>
               ))}
-            </select>
+            </div>
+          </>
+        )
+      }
+    ],
+    [
+      accuracyLatencyPoints,
+      accuracyTokenPoints,
+      armTradeoffPoints.axis,
+      armTradeoffPoints.rows,
+      clinicalPoints,
+      points,
+      tradeoffArm,
+      tradeoffAxis
+    ]
+  );
+
+  useEffect(() => {
+    if (!tradeoffFigures.length) return;
+    setFigureIndex((value) => Math.min(value, tradeoffFigures.length - 1));
+  }, [tradeoffFigures.length]);
+
+  const currentFigure = tradeoffFigures[Math.min(figureIndex, Math.max(tradeoffFigures.length - 1, 0))];
+  const gotoPrevFigure = () => {
+    setFigureIndex((value) => (tradeoffFigures.length ? (value - 1 + tradeoffFigures.length) % tradeoffFigures.length : 0));
+  };
+  const gotoNextFigure = () => {
+    setFigureIndex((value) => (tradeoffFigures.length ? (value + 1) % tradeoffFigures.length : 0));
+  };
+
+  return (
+    <div className="llm-dashboard__tab">
+      <div
+        className="llm-dashboard__card llm-dashboard__carousel"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowLeft') gotoPrevFigure();
+          if (event.key === 'ArrowRight') gotoNextFigure();
+        }}
+        aria-label="Tradeoffs figures carousel"
+      >
+        <div className="llm-dashboard__carousel-head">
+          <div className="llm-dashboard__carousel-title">
+            <h2 className="llm-dashboard__card-title">{currentFigure?.title || 'Tradeoffs figure'}</h2>
+            {currentFigure?.subtitle && <p className="llm-dashboard__card-subtitle">{currentFigure.subtitle}</p>}
           </div>
-          <div className="llm-dashboard__filter">
-            <span className="llm-dashboard__filter-label">X-axis</span>
-            <select className="llm-dashboard__select" value={tradeoffAxis} onChange={(event) => setTradeoffAxis(event.target.value)}>
-              <option value="latency">Latency</option>
-              <option value="tokens">Tokens</option>
-              <option value="cost">Cost</option>
-            </select>
+          <div className="llm-dashboard__carousel-meta" aria-label="Figure navigation">
+            <button type="button" className="llm-dashboard__ghost" onClick={gotoPrevFigure} aria-label="Previous figure">
+              ← Prev
+            </button>
+            <div className="llm-dashboard__carousel-count" aria-live="polite">
+              Figure <strong>{tradeoffFigures.length ? figureIndex + 1 : 0}</strong> of <strong>{tradeoffFigures.length}</strong>
+            </div>
+            <button type="button" className="llm-dashboard__ghost" onClick={gotoNextFigure} aria-label="Next figure">
+              Next →
+            </button>
           </div>
         </div>
 
-        <ScatterPlot
-          points={armTradeoffPoints.rows}
-          xLabel={armTradeoffPoints.axis.label}
-          yLabel="Accuracy"
-          xFormatter={(tick) => (tradeoffAxis === 'latency' ? tick.toFixed(0) : tick.toFixed(0))}
-          yFormatter={(tick) => `${Math.round(tick * 100)}%`}
-          xTooltipLabel={armTradeoffPoints.axis.tooltip}
-          yTooltipLabel="Accuracy"
-          xTooltipFormatter={(value) => armTradeoffPoints.axis.formatter(value)}
-          yTooltipFormatter={(value) => formatPercent(value, 1)}
-        />
-      </div>
+        <div className="llm-dashboard__carousel-body">
+          <button
+            type="button"
+            className="llm-dashboard__carousel-arrow llm-dashboard__carousel-arrow--left"
+            onClick={gotoPrevFigure}
+            aria-label="Previous figure"
+            title="Previous"
+          >
+            ‹
+          </button>
 
-      <div className="llm-dashboard__card">
-        <h2 className="llm-dashboard__card-title">Sensitivity vs specificity</h2>
-        <p className="llm-dashboard__card-subtitle">Each point is a model, plotted by malignant sensitivity and benign specificity.</p>
-        <ScatterPlot
-          points={clinicalPoints}
-          xLabel="Sensitivity"
-          yLabel="Specificity"
-          xFormatter={(tick) => `${Math.round(tick * 100)}%`}
-          yFormatter={(tick) => `${Math.round(tick * 100)}%`}
-          xTooltipLabel="Sensitivity"
-          yTooltipLabel="Specificity"
-          xTooltipFormatter={(value) => formatPercent(value, 1)}
-          yTooltipFormatter={(value) => formatPercent(value, 1)}
-        />
-        <div className="llm-dashboard__legend">
-          {Object.entries(PROVIDER_COLORS).map(([provider, palette]) => (
-            <span key={provider} className="llm-dashboard__legend-item">
-              <span className="llm-dashboard__legend-swatch" style={{ background: palette.primary }} />
-              {palette.name}
-            </span>
+          <div className="llm-dashboard__carousel-stage" aria-live="polite">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentFigure?.id || 'tradeoff-figure'}
+                className="llm-dashboard__carousel-slide"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {currentFigure?.body || null}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <button
+            type="button"
+            className="llm-dashboard__carousel-arrow llm-dashboard__carousel-arrow--right"
+            onClick={gotoNextFigure}
+            aria-label="Next figure"
+            title="Next"
+          >
+            ›
+          </button>
+        </div>
+
+        <div className="llm-dashboard__carousel-dots" aria-label="Figure list">
+          {tradeoffFigures.map((figure, idx) => (
+            <button
+              key={figure.id}
+              type="button"
+              className={`llm-dashboard__carousel-dot ${idx === figureIndex ? 'is-active' : ''}`}
+              onClick={() => setFigureIndex(idx)}
+              aria-label={`Show figure ${idx + 1}: ${figure.title}`}
+              aria-pressed={idx === figureIndex}
+              title={figure.title}
+            />
           ))}
         </div>
       </div>
@@ -2518,16 +2639,147 @@ export default function DermoscopyLLMEvaluationDashboard() {
 	          margin-top: 0.75rem;
 	        }
 
-	        .llm-dashboard__model-picker-footer {
-	          display: flex;
-	          justify-content: flex-end;
-	          margin-top: 0.75rem;
-	        }
+		        .llm-dashboard__model-picker-footer {
+		          display: flex;
+		          justify-content: flex-end;
+		          margin-top: 0.75rem;
+		        }
 
-        .llm-dashboard__checkbox {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
+		        .llm-dashboard__carousel {
+		          outline: none;
+		        }
+
+		        .llm-dashboard__carousel:focus-visible {
+		          outline: 2px solid rgba(56, 189, 248, 0.6);
+		          outline-offset: 3px;
+		        }
+
+		        .llm-dashboard__carousel-head {
+		          display: flex;
+		          justify-content: space-between;
+		          align-items: flex-start;
+		          gap: 1rem;
+		          flex-wrap: wrap;
+		          margin-bottom: 0.75rem;
+		        }
+
+		        .llm-dashboard__carousel-title .llm-dashboard__card-subtitle {
+		          margin-bottom: 0;
+		        }
+
+		        .llm-dashboard__carousel-meta {
+		          display: flex;
+		          gap: 0.6rem;
+		          flex-wrap: wrap;
+		          align-items: center;
+		          justify-content: flex-end;
+		        }
+
+		        .llm-dashboard__carousel-count {
+		          font-size: 0.85rem;
+		          font-weight: 650;
+		          color: var(--muted-text);
+		          padding: 0.25rem 0.6rem;
+		          border-radius: 999px;
+		          border: 1px solid rgba(148, 163, 184, 0.22);
+		          background: rgba(255, 255, 255, 0.55);
+		        }
+
+		        html[data-theme='dark'] .llm-dashboard__carousel-count {
+		          background: rgba(15, 23, 42, 0.45);
+		          border-color: rgba(148, 163, 184, 0.16);
+		        }
+
+		        .llm-dashboard__carousel-body {
+		          position: relative;
+		        }
+
+		        .llm-dashboard__carousel-stage {
+		          padding: 0 3.25rem;
+		        }
+
+		        @media (max-width: 720px) {
+		          .llm-dashboard__carousel-stage {
+		            padding: 0;
+		          }
+		        }
+
+		        .llm-dashboard__carousel-arrow {
+		          position: absolute;
+		          top: 50%;
+		          transform: translateY(-50%);
+		          width: 44px;
+		          height: 44px;
+		          border-radius: 999px;
+		          border: 1px solid rgba(148, 163, 184, 0.22);
+		          background: rgba(255, 255, 255, 0.85);
+		          box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+		          cursor: pointer;
+		          font-size: 1.8rem;
+		          line-height: 1;
+		          font-weight: 800;
+		          color: rgba(15, 23, 42, 0.85);
+		          display: grid;
+		          place-items: center;
+		          transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out), background 160ms var(--ease-out);
+		          user-select: none;
+		        }
+
+		        .llm-dashboard__carousel-arrow:hover {
+		          transform: translateY(-50%) scale(1.03);
+		          box-shadow: 0 26px 60px rgba(15, 23, 42, 0.16);
+		        }
+
+		        html[data-theme='dark'] .llm-dashboard__carousel-arrow {
+		          background: rgba(15, 23, 42, 0.65);
+		          border-color: rgba(148, 163, 184, 0.16);
+		          color: rgba(226, 242, 254, 0.92);
+		          box-shadow: 0 26px 60px rgba(0, 0, 0, 0.35);
+		        }
+
+		        .llm-dashboard__carousel-arrow--left {
+		          left: 0.5rem;
+		        }
+
+		        .llm-dashboard__carousel-arrow--right {
+		          right: 0.5rem;
+		        }
+
+		        @media (max-width: 720px) {
+		          .llm-dashboard__carousel-arrow {
+		            display: none;
+		          }
+		        }
+
+		        .llm-dashboard__carousel-dots {
+		          display: flex;
+		          justify-content: center;
+		          flex-wrap: wrap;
+		          gap: 0.4rem;
+		          margin-top: 0.85rem;
+		        }
+
+		        .llm-dashboard__carousel-dot {
+		          width: 10px;
+		          height: 10px;
+		          border-radius: 999px;
+		          border: 1px solid rgba(148, 163, 184, 0.35);
+		          background: rgba(148, 163, 184, 0.22);
+		          cursor: pointer;
+		          padding: 0;
+		          transition: transform 160ms var(--ease-out), background 160ms var(--ease-out);
+		        }
+
+		        .llm-dashboard__carousel-dot.is-active {
+		          background: rgba(56, 189, 248, 0.8);
+		          border-color: rgba(56, 189, 248, 0.9);
+		          transform: scale(1.1);
+		        }
+
+	        .llm-dashboard__checkbox {
+	          display: inline-flex;
+	          align-items: center;
+	          gap: 0.5rem;
           padding: 0.55rem 0.75rem;
           border-radius: 0.95rem;
           border: 1px solid rgba(148, 163, 184, 0.25);
