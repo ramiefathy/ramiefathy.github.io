@@ -30,9 +30,9 @@ const isMobileDevice = () => {
   return window.innerWidth < 768;
 };
 
-// CSS-only animated gradient fallback for non-WebGL browsers
-const GradientFallback = memo(() => (
-  <div className="hero-gradient-fallback" aria-hidden="true">
+// CSS-only animated gradient fallback (also used as SSR/background base layer to prevent abrupt "pop-in")
+const GradientFallback = memo(({ style }) => (
+  <div className="hero-gradient-fallback" aria-hidden="true" style={style}>
     <style>{`
       .hero-gradient-fallback {
         position: absolute;
@@ -46,7 +46,7 @@ const GradientFallback = memo(() => (
           #0b2750 100%
         );
         background-size: 400% 400%;
-        animation: gradientShift 15s ease infinite;
+        animation: gradientShift 22s ease infinite;
       }
 
       @keyframes gradientShift {
@@ -225,6 +225,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
   const [hasWebGL, setHasWebGL] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [webglVisible, setWebglVisible] = useState(false);
   const isServer = typeof window === 'undefined';
   const stageRef = useRef(null);
   const frameRef = useRef(0);
@@ -258,6 +259,20 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
       motionMedia.removeEventListener('change', handleMotionChange);
     };
   }, []);
+
+  // Fade in WebGL layers after hydration so the background doesn't "snap" in abruptly.
+  useEffect(() => {
+    if (isServer) return undefined;
+    if (!hasWebGL || isMobile || prefersReducedMotion) {
+      setWebglVisible(false);
+      return undefined;
+    }
+
+    let raf = requestAnimationFrame(() => {
+      raf = requestAnimationFrame(() => setWebglVisible(true));
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [hasWebGL, isMobile, prefersReducedMotion, isServer]);
 
   useEffect(() => {
     if (!enableTypingAnimation) return undefined;
@@ -357,6 +372,13 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
       onMouseLeave={handleMouseLeave}
     >
       <div className="hero-background">
+        <GradientFallback
+          style={{
+            opacity: hasWebGL ? (webglVisible ? 0.35 : 1) : 1,
+            transition: 'opacity 900ms ease'
+          }}
+        />
+
         {hasWebGL ? (
           <>
             <MeshGradient
@@ -364,7 +386,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
               speed={mobileSpeed}
               distortion={mobileDistortion}
               swirl={mobileSwirl}
-              style={{ position: 'absolute', inset: 0, opacity: 0.65 }}
+              style={{ position: 'absolute', inset: 0, opacity: webglVisible ? 0.65 : 0, transition: 'opacity 700ms ease' }}
             />
 
             {/* Only render ripple layer on non-mobile or if explicitly enabled */}
@@ -377,13 +399,11 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
                 rippleCenter={[ripple.x, ripple.y]}
                 rippleStrength={ripple.strength}
                 rippleFrequency={rippleFrequency}
-                style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: 0.6 }}
+                style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: webglVisible ? 0.6 : 0, transition: 'opacity 700ms ease' }}
               />
             )}
           </>
-        ) : (
-          <GradientFallback />
-        )}
+        ) : null}
 
         <span
           key={ripple.token}
