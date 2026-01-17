@@ -278,11 +278,17 @@ function ScatterPlot({
 	    return { x, y, point: activePoint };
 	  }, [activePoint, scaleX, scaleY]);
 
-	  const tooltipAlign = useMemo(() => {
-	    if (!tooltip) return 'right';
-	    // Keep the tooltip from spilling past the right edge on responsive layouts.
-	    return tooltip.x / dims.width > 0.72 ? 'left' : 'right';
-	  }, [tooltip]);
+  const tooltipPlacement = useMemo(() => {
+    if (!tooltip) return { alignX: 'right', alignY: 'above' };
+    // Keep the tooltip inside the panel on responsive layouts.
+    // - Flip to the left earlier than the true edge to account for tooltip width.
+    // - Flip below when near the top so it doesn't get cut off.
+    const rx = tooltip.x / dims.width;
+    const ry = tooltip.y / dims.height;
+    const alignX = rx > 0.6 ? 'left' : 'right';
+    const alignY = ry < 0.26 ? 'below' : 'above';
+    return { alignX, alignY };
+  }, [tooltip]);
 
   const handleLeave = () => setActivePoint(null);
 
@@ -363,13 +369,19 @@ function ScatterPlot({
         </g>
       </svg>
 
-	      {tooltip && (
-	        <div
-	          className={`llm-dashboard__tooltip ${tooltipAlign === 'left' ? 'is-left' : ''}`}
-	          style={{
-	            left: `${(tooltip.x / dims.width) * 100}%`,
-	            top: `${(tooltip.y / dims.height) * 100}%`
-	          }}
+      {tooltip && (
+        <div
+          className={[
+            'llm-dashboard__tooltip',
+            tooltipPlacement.alignX === 'left' ? 'is-left' : '',
+            tooltipPlacement.alignY === 'below' ? 'is-below' : ''
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          style={{
+            left: `${(tooltip.x / dims.width) * 100}%`,
+            top: `${(tooltip.y / dims.height) * 100}%`
+          }}
 	          role="status"
           aria-live="polite"
         >
@@ -2744,11 +2756,11 @@ export default function DermoscopyLLMEvaluationDashboard() {
 		        }
 
 		        .llm-dashboard__carousel-arrow--left {
-		          left: 0.5rem;
+		          left: -0.35rem;
 		        }
 
 		        .llm-dashboard__carousel-arrow--right {
-		          right: 0.5rem;
+		          right: -0.35rem;
 		        }
 
 		        @media (max-width: 720px) {
@@ -3537,24 +3549,32 @@ export default function DermoscopyLLMEvaluationDashboard() {
           display: block;
         }
 
-	        .llm-dashboard__tooltip {
-	          position: absolute;
-	          min-width: 190px;
-	          transform: translate(12px, -105%);
-	          z-index: 5;
-	          padding: 0.75rem 0.85rem;
-	          border-radius: 1rem;
-	          background: rgba(255, 255, 255, 0.92);
+        .llm-dashboard__tooltip {
+          position: absolute;
+          min-width: 190px;
+          transform: translate(12px, -105%);
+          z-index: 5;
+          padding: 0.75rem 0.85rem;
+          border-radius: 1rem;
+          background: rgba(255, 255, 255, 0.92);
           border: 1px solid rgba(148, 163, 184, 0.28);
           box-shadow: 0 22px 38px rgba(15, 23, 42, 0.18);
           pointer-events: none;
           color: rgba(15, 23, 42, 0.9);
-	          font-size: 0.85rem;
-	        }
+          font-size: 0.85rem;
+        }
 
-	        .llm-dashboard__tooltip.is-left {
-	          transform: translate(calc(-100% - 12px), -105%);
-	        }
+        .llm-dashboard__tooltip.is-left {
+          transform: translate(calc(-100% - 12px), -105%);
+        }
+
+        .llm-dashboard__tooltip.is-below {
+          transform: translate(12px, 12px);
+        }
+
+        .llm-dashboard__tooltip.is-left.is-below {
+          transform: translate(calc(-100% - 12px), 12px);
+        }
 
         html[data-theme='dark'] .llm-dashboard__tooltip {
           background: rgba(15, 23, 42, 0.92);
