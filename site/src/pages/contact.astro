@@ -209,7 +209,15 @@ const emailAddress = profile.contact.email.replace(/^mailto:/, '');
       };
 
       if (copyButton) {
-        copyButton.addEventListener('click', async () => {
+        copyButton.addEventListener('click', async (event) => {
+          // Copy-to-clipboard should not trigger mailto navigation. Allow power-users to open
+          // the mail client with modifier-click (cmd/ctrl/etc).
+          if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button === 1)) {
+            return;
+          }
+          if (event) {
+            event.preventDefault();
+          }
           try {
             await navigator.clipboard.writeText(email);
             announce('Email copied to clipboard.');
