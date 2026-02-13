@@ -18,9 +18,16 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="style-modern.css">
+    <link rel="stylesheet" href="../shared/legacy-tokens.css">
+    <link rel="stylesheet" href="../shared/legacy-primitives.css">
+    <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-status.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
 </head>
 
-<body>
+<body class="legacy-focus-ring" data-legacy-shell="true">
+    <div id="recovery-banner" class="legacy-status-panel hidden" role="status" aria-live="polite"></div>
     <!-- Landing Page (Initial View) -->
     <div id="landingPage" class="landing-container">
         <div class="landing-card">

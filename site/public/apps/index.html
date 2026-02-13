@@ -4,13 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Apps Collection</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./vendor/tailwindcss.browser.js"></script>
+    <link rel="stylesheet" href="./shared/legacy-tokens.css">
+    <link rel="stylesheet" href="./shared/legacy-primitives.css">
+    <link rel="stylesheet" href="./shared/legacy-shell.css">
+    <script src="./shared/legacy-shell.js" defer></script>
+    <script src="./shared/legacy-guidance.js" defer></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="bg-slate-50 min-h-screen legacy-focus-ring" data-legacy-shell="true">
     <header class="bg-slate-800 text-white p-6 shadow-lg">
         <div class="container mx-auto">
             <h1 class="text-3xl font-bold mb-2">AI Apps Collection</h1>
@@ -35,8 +40,8 @@
                         <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">Healthcare</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-orange-600 font-semibold">⚠️ Deprecated</span>
-                        <a href="./dermatology-scribe/" class="inline-flex items-center bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors">
+                        <span class="text-green-600 font-semibold">✓ Active</span>
+                        <a href="./dermatology-scribe/" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                             Launch App
                             <span class="material-symbols-outlined ml-1 text-sm">arrow_outward</span>
                         </a>
@@ -106,6 +111,13 @@
     </footer>
 
     <script>
+        if (window.LegacyGuidance?.maybeShow) {
+            window.LegacyGuidance.maybeShow('apps-collection-index', [
+                'Use launch links to open each tool in a dedicated page.',
+                'Use the shell Theme button for contrast preferences and Reset to clear shell guidance state.',
+                'Use browser Back to return to this catalog quickly after evaluating any app.'
+            ]);
+        }
         // Update current year
         document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>

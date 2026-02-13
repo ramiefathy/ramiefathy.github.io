@@ -2,6 +2,11 @@
 <html>
 <head>
     <title>Test Fixes - WebGL and Dark Mode</title>
+    <link rel="stylesheet" href="../shared/legacy-tokens.css">
+    <link rel="stylesheet" href="../shared/legacy-primitives.css">
+    <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
     <style>
         body {
             margin: 0;
@@ -48,7 +53,7 @@
         }
     </style>
 </head>
-<body>
+<body class="legacy-focus-ring" data-legacy-shell="true">
     <h1>Fix Verification Tests</h1>
 
     <div class="test-section">
@@ -79,8 +84,16 @@
         <div id="icon-status"></div>
     </div>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../vendor/lucide.min.js"></script>
     <script>
+        if (window.LegacyGuidance?.maybeShow) {
+            window.LegacyGuidance.maybeShow('dermatopathology-modern-test-fixes', [
+                'Run each test section in order and confirm status chips stay green.',
+                'Use keyboard navigation to validate focus behavior on all controls.',
+                'Use shell Reset to clear local state between manual verification runs.'
+            ]);
+        }
+
         // Test 1: WebGL Shader
         function testWebGL() {
             const canvas = document.getElementById('canvas-test');

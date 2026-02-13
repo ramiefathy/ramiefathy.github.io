@@ -7,7 +7,13 @@
     <title>UI Enhancements Test - AI Dermatology Scribe</title>
 
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../vendor/tailwindcss.browser.js"></script>
+    <link rel="stylesheet" href="../shared/legacy-tokens.css">
+    <link rel="stylesheet" href="../shared/legacy-primitives.css">
+    <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
+    <script src="../shared/legacy-status.js" defer></script>
 
     <!-- Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -85,7 +91,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-slate-50">
+<body class="min-h-screen bg-slate-50 legacy-focus-ring" data-legacy-shell="true">
 
     <!-- Header -->
     <header class="bg-slate-800 text-white p-4 shadow-md sticky top-0 z-50">
@@ -320,6 +326,22 @@
     <script>
         // Additional demo-specific code
         console.log('UI Enhancements Test Page Loaded');
+
+        if (window.LegacyGuidance?.maybeShow) {
+            window.LegacyGuidance.maybeShow('dermatology-scribe-ui-demo', [
+                'Try keyboard shortcuts listed on this page to validate command actions.',
+                'Use the sample panel controls to verify focus, contrast, and interaction states.',
+                'Use shell Theme and Reset for quick accessibility and state testing.'
+            ]);
+        }
+
+        const transcriptionContainer = document.getElementById('transcriptionOutput');
+        if (window.LegacyStatus && transcriptionContainer) {
+            window.LegacyStatus.showEmpty(
+                transcriptionContainer,
+                'No sample transcription yet. Use the Upload Sample Audio action to run a preflight-ready demo path.'
+            );
+        }
 
         // Show welcome message
         setTimeout(() => {

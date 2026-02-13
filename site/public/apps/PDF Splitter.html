@@ -4,9 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Chapter Splitter (Manual Input)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/downloadjs@1.4.7/download.min.js"></script>
+    <script src="./vendor/tailwindcss.browser.js"></script>
+    <script src="./vendor/pdf-lib.min.js"></script>
+    <script src="./vendor/download.min.js"></script>
+    <link rel="stylesheet" href="./shared/legacy-tokens.css">
+    <link rel="stylesheet" href="./shared/legacy-primitives.css">
+    <link rel="stylesheet" href="./shared/legacy-shell.css">
+    <script src="./shared/legacy-shell.js" defer></script>
+    <script src="./shared/legacy-status.js" defer></script>
+    <script src="./shared/legacy-guidance.js" defer></script>
 
     <style>
         /* Custom styles for better appearance */
@@ -84,7 +90,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 legacy-focus-ring" data-legacy-shell="true">
 
     <div class="bg-white p-6 md:p-8 rounded-lg shadow-md w-full max-w-2xl">
         <h1 class="text-2xl font-semibold mb-6 text-center text-gray-700">PDF Chapter Splitter (Manual Input)</h1>
@@ -102,6 +108,7 @@
         <div class="mb-6 border-b pb-6">
             <label class="block text-lg font-medium text-gray-700 mb-3">2. Define Chapters/Sections</label>
             <p class="text-sm text-gray-600 mb-4">Enter a name and the starting page number for each chapter or section you want to extract. The section will include pages from its start page up to the page before the next section starts (or the end of the document).</p>
+            <div id="preflight-summary" class="legacy-empty-state mb-4">Select a PDF and define chapter start pages to view preflight checks.</div>
             <div id="chapterInputs" class="space-y-3 mb-4">
                 <div class="flex items-center space-x-2 chapter-input-row">
                      <div class="flex-1">
@@ -157,10 +164,35 @@
         const loadingIndicator = document.getElementById('loadingIndicator');
         const downloadLinksContainer = document.getElementById('downloadLinks');
         const messageArea = document.getElementById('messageArea');
+        const preflightSummary = document.getElementById('preflight-summary');
+        const statusHost = document.createElement('div');
+        document.querySelector('.bg-white.p-6')?.appendChild(statusHost);
 
         let selectedFile = null;
         let originalPdfDoc = null;
         let totalPages = 0;
+
+        function renderPreflight() {
+            if (!selectedFile) {
+                preflightSummary.textContent = 'Select a PDF and define chapter start pages to view preflight checks.';
+                return;
+            }
+            const chapterRows = Array.from(chapterInputsContainer.querySelectorAll('.chapter-input-row'));
+            const chapterInputs = chapterRows
+                .map((row) => ({
+                    name: row.querySelector('.chapter-name')?.value?.trim() || '',
+                    page: Number(row.querySelector('.chapter-page')?.value || 0)
+                }))
+                .filter((entry) => entry.name && entry.page > 0);
+
+            if (!chapterInputs.length) {
+                preflightSummary.textContent = `Loaded ${selectedFile.name} (${totalPages || '?'} pages). Add chapter rows to continue.`;
+                return;
+            }
+            const invalidStarts = chapterInputs.filter((entry) => totalPages && entry.page > totalPages).length;
+            const warning = invalidStarts ? ` Warning: ${invalidStarts} chapter start(s) exceed page count.` : '';
+            preflightSummary.innerHTML = `<strong>Preflight</strong><br>${selectedFile.name}<br>${chapterInputs.length} chapter output(s) planned.${warning}`;
+        }
 
         // --- Event Listeners ---
 
@@ -205,6 +237,7 @@
 
                     pageCountDisplay.textContent = `Total Pages: ${totalPages}`;
                     console.log('Updated pageCountDisplay.');
+                    renderPreflight();
 
                     setChapterInputMaxPage();
                     checkSplitButtonState(); // Check if chapters are already defined
@@ -220,6 +253,7 @@
                     }
                     // --- FIX: Ensure resetState is called on error to clear partially set state ---
                     resetState(); // Reset state fully on error
+                    window.LegacyStatus?.showError(statusHost, 'Could not parse the selected PDF. Please choose a different file.');
                 } finally {
                      console.log('Exiting file processing try...catch...finally block.');
                      loadingIndicator.classList.add('hidden');
@@ -243,13 +277,16 @@
             setChapterInputMaxPage(newRow.querySelector('.chapter-page')); // Set max page for new input
             chapterInputsContainer.appendChild(newRow);
             checkSplitButtonState(); // Check if split button should be enabled
+            renderPreflight();
         });
 
         splitButton.addEventListener('click', handleSplitPdf);
 
         // Add event listener to container for dynamic inputs
         chapterInputsContainer.addEventListener('input', checkSplitButtonState);
+        chapterInputsContainer.addEventListener('input', renderPreflight);
         chapterInputsContainer.addEventListener('change', checkSplitButtonState); // Handles number input changes
+        chapterInputsContainer.addEventListener('change', renderPreflight);
 
         // --- Core Functions ---
 
@@ -263,6 +300,7 @@
             splitButton.disabled = true;
             messageArea.textContent = '';
             loadingIndicator.classList.add('hidden'); // Ensure loader is hidden on reset
+            renderPreflight();
             downloadLinksContainer.innerHTML = '<p class="text-sm text-gray-500">Split chapters will appear here for download.</p>';
             // Remove all but the first chapter input row
             while (chapterInputsContainer.children.length > 1) {
@@ -332,6 +370,7 @@
             if (!selectedFile || totalPages <= 0) {
                 messageArea.textContent = 'Please select a valid PDF file and ensure page count is loaded.';
                 console.log('Split aborted: No file selected or page count unknown.');
+                window.LegacyStatus?.showError(statusHost, 'Select a valid PDF before splitting.')
                 return;
             }
 
@@ -365,6 +404,7 @@
             if (!isValid || chapterDefs.length === 0) {
                  if (isValid && chapterDefs.length === 0) messageArea.textContent = 'Please define at least one chapter.';
                  console.log('Split aborted: Validation failed or no chapters defined.');
+                 window.LegacyStatus?.showError(statusHost, 'Please fix chapter names and page numbers before splitting.')
                 return;
             }
 
@@ -390,6 +430,7 @@
 
              if (!isValid) {
                  console.log('Split aborted: Invalid end page calculated or chapter overlap detected.');
+                 window.LegacyStatus?.showError(statusHost, 'Chapter ordering is invalid. Resolve overlaps and retry.')
                  return;
              }
              console.log('Calculated end pages:', chapterDefs);
@@ -400,6 +441,7 @@
             messageArea.textContent = ''; // Clear previous errors before starting
             downloadLinksContainer.innerHTML = ''; // Clear previous links
             console.log('Starting PDF processing...');
+            window.LegacyStatus?.showLoading(statusHost, 'Splitting selected PDF into chapter files.')
 
             try {
                 console.log('Loading full PDF document for splitting...');
@@ -443,8 +485,10 @@
                  if (chaptersGenerated === 0 && messageArea.textContent === '') {
                     messageArea.textContent = 'No chapters were generated. Please check your page number inputs.';
                     console.log('Processing finished, but no download links were generated.');
+                    window.LegacyStatus?.showError(statusHost, 'No chapter outputs generated. Adjust chapter definitions and retry.')
                  } else if (messageArea.textContent === '') {
                     console.log(`Processing finished. ${chaptersGenerated} chapter(s) generated.`);
+                    window.LegacyStatus?.showSuccess(statusHost, `Generated ${chaptersGenerated} chapter PDF file(s).`)
                  }
 
             } catch (error) {
@@ -456,6 +500,7 @@
                  }
                  // Clear potentially broken download links if split fails mid-way
                  downloadLinksContainer.innerHTML = '<p class="text-sm text-gray-500">An error occurred during splitting.</p>';
+                 window.LegacyStatus?.showRetry(statusHost, 'Splitting failed. Validate chapter ranges and try again.', () => handleSplitPdf())
             } finally {
                 loadingIndicator.classList.add('hidden');
                 // Re-enable split button *only* if the file is still considered valid and chapters are defined
@@ -487,6 +532,12 @@
 
         // Initial setup
         resetState(); // Call reset on initial load to ensure clean state
+        window.LegacyGuidance?.maybeShow('pdf-splitter', [
+            'Choose a PDF and verify page count is loaded.',
+            'Add chapter names and start pages.',
+            'Review preflight summary before splitting.',
+            'Download each generated chapter file.'
+        ]);
         console.log('Initial script setup complete. Waiting for file selection.');
 
     </script>

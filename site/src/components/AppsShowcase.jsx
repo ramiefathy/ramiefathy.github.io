@@ -422,7 +422,7 @@ export default function AppsShowcase({ apps, collections }) {
         />
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .apps-showcase-wrapper {
           width: 100%;
         }
@@ -972,7 +972,7 @@ export default function AppsShowcase({ apps, collections }) {
             transition: none;
           }
         }
-      `}</style>
+      ` }} />
     </div>
   );
 }

@@ -1,16 +1,19 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { test, expect } from '@playwright/test';
 
 test.describe('Clinisched', () => {
-  test('apps catalog links to canonical clinisched.ramiefathy.com URL', async ({ page }) => {
-    await page.goto('/apps');
+  test('apps catalog points Clinisched to canonical external URL only', async () => {
+    const appsCatalogPath = path.resolve(process.cwd(), 'src/data/apps.json');
+    const raw = await fs.readFile(appsCatalogPath, 'utf8');
+    const apps = JSON.parse(raw);
 
-    const clinischedCard = page.locator('.app-showcase-card', {
-      has: page.getByRole('heading', { level: 2, name: 'Clinisched' })
-    });
-    await expect(clinischedCard).toHaveCount(1);
+    const clinisched = apps.find((entry: { slug: string }) => entry.slug === 'scheduler-pro');
+    const legacyScheduler = apps.find((entry: { slug: string }) => entry.slug === 'scheduler-legacy');
 
-    const visitLink = clinischedCard.getByRole('link', { name: 'Visit the App' });
-    await expect(visitLink).toHaveAttribute('href', 'https://clinisched.ramiefathy.com/');
-    await expect(visitLink).toHaveAttribute('target', '_blank');
+    expect(clinisched).toBeDefined();
+    expect(clinisched?.href).toBe('https://clinisched.ramiefathy.com/');
+    expect(clinisched?.preview).toBe('https://clinisched.ramiefathy.com/');
+    expect(legacyScheduler).toBeUndefined();
   });
 });

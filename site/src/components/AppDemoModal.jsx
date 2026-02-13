@@ -164,7 +164,7 @@ export default function AppDemoModal({ app, isOpen, onClose }) {
             </footer>
           </motion.div>
 
-          <style>{`
+          <style dangerouslySetInnerHTML={{ __html: `
             .demo-modal-backdrop {
               position: fixed;
               inset: 0;
@@ -388,7 +388,7 @@ export default function AppDemoModal({ app, isOpen, onClose }) {
                 justify-content: space-between;
               }
             }
-          `}</style>
+          ` }} />
         </motion.div>
       )}
     </AnimatePresence>

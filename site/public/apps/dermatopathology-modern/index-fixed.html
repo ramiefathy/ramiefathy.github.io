@@ -6,14 +6,19 @@
     <title>Dermatopathology Navigator - Modern UI</title>
 
     <!-- External Dependencies -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/framer-motion@11.0.3/dist/framer-motion.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <script src="../vendor/react.production.min.js"></script>
+    <script src="../vendor/react-dom.production.min.js"></script>
+    <script src="../vendor/babel.min.js"></script>
+    <script src="../vendor/tailwindcss.browser.js"></script>
+    <script src="../vendor/framer-motion.min.js"></script>
+    <script src="../vendor/lucide.min.js"></script>
+    <script src="../vendor/fuse.min.js"></script>
+    <script src="../vendor/d3.min.js"></script>
+    <link rel="stylesheet" href="../shared/legacy-tokens.css">
+    <link rel="stylesheet" href="../shared/legacy-primitives.css">
+    <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
 
     <!-- Modern Font Stack -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -261,7 +266,7 @@
         }
     </script>
 </head>
-<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 legacy-focus-ring" data-legacy-shell="true">
     <!-- React Root -->
     <div id="root"></div>
 
@@ -271,7 +276,8 @@
     <!-- Main App Component -->
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo, useCallback, createContext, useContext, useReducer } = React;
-        const { motion, AnimatePresence } = window.FramerMotion || {
+        const framerMotionApi = window.FramerMotion || window.Motion;
+        const { motion, AnimatePresence } = framerMotionApi || {
             motion: {
                 div: (props) => React.createElement('div', props),
                 button: (props) => React.createElement('button', props)
@@ -1176,6 +1182,15 @@
                 <App />
             </StateProvider>
         );
+    </script>
+    <script>
+        if (window.LegacyGuidance?.maybeShow) {
+            window.LegacyGuidance.maybeShow('dermatopathology-modern-fixed', [
+                'Start with search or category filters, then select one finding to open context.',
+                'Use keyboard navigation with visible focus rings to move through controls.',
+                'Use shell Help/Reset controls when state becomes noisy during exploration.'
+            ]);
+        }
     </script>
 </body>
 </html>

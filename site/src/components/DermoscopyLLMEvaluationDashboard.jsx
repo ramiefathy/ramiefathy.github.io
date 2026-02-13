@@ -2438,7 +2438,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
         </span>
       </footer>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .llm-dashboard {
           display: flex;
           flex-direction: column;
@@ -3685,7 +3685,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
             grid-template-columns: 1fr;
           }
         }
-      `}</style>
+      ` }} />
     </section>
   );
 }

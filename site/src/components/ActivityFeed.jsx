@@ -198,7 +198,7 @@ export default function ActivityFeed({ activities, publications = [], blogs = []
         )}
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .activity-section {
           padding: 3rem 1.5rem;
         }
@@ -374,7 +374,7 @@ export default function ActivityFeed({ activities, publications = [], blogs = []
           border-color: var(--primary-500, #3b82f6);
           color: var(--primary-400, #60a5fa);
         }
-      `}</style>
+      ` }} />
     </section>
   );
 }

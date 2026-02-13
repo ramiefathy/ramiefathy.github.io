@@ -146,7 +146,7 @@ export default function PublicationMetrics({ data }) {
         </div>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .metrics-section {
           padding: 2rem 1rem;
         }
@@ -386,7 +386,7 @@ export default function PublicationMetrics({ data }) {
             grid-template-columns: 80px 1fr 25px;
           }
         }
-      `}</style>
+      ` }} />
     </section>
   );
 }

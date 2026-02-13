@@ -33,7 +33,7 @@ const isMobileDevice = () => {
 // CSS-only animated gradient fallback (also used as SSR/background base layer to prevent abrupt "pop-in")
 const GradientFallback = memo(({ style }) => (
   <div className="hero-gradient-fallback" aria-hidden="true" style={style}>
-    <style>{`
+    <style dangerouslySetInnerHTML={{ __html: `
       .hero-gradient-fallback {
         position: absolute;
         inset: 0;
@@ -61,7 +61,7 @@ const GradientFallback = memo(({ style }) => (
           background-position: 50% 50%;
         }
       }
-    `}</style>
+    ` }} />
   </div>
 ));
 
@@ -456,7 +456,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
       </div>
 
       {/* Additional styles for typing animation */}
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .hero-role {
           font-size: clamp(1rem, 2.5vw, 1.25rem);
           color: rgba(255, 255, 255, 0.85);
@@ -475,7 +475,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
           background: rgba(2, 6, 23, 0.25);
           box-shadow: 0 18px 40px rgba(2, 6, 23, 0.35);
         }
-      `}</style>
+      ` }} />
     </section>
   );
 };

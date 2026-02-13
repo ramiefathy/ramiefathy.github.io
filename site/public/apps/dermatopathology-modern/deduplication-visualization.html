@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dermatopathology Data Deduplication Analysis</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../vendor/tailwindcss.browser.js"></script>
+    <script src="../vendor/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../shared/legacy-tokens.css">
+    <link rel="stylesheet" href="../shared/legacy-primitives.css">
+    <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
 </head>
-<body class="bg-gray-900 text-white p-8">
+<body class="bg-gray-900 text-white p-8 legacy-focus-ring" data-legacy-shell="true">
     <div class="max-w-7xl mx-auto">
         <h1 class="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
             Dermatopathology Data Deduplication Analysis
@@ -204,6 +209,14 @@
     </div>
 
     <script>
+        if (window.LegacyGuidance?.maybeShow) {
+            window.LegacyGuidance.maybeShow('dermatopathology-dedup-viz', [
+                'Review summary cards first, then inspect grouped findings and chart sections.',
+                'Use keyboard Tab to navigate sections with explicit focus visibility.',
+                'Use shell Help for quick usage reminders and Reset to clear guidance state.'
+            ]);
+        }
+
         // Create category distribution chart
         const ctx = document.getElementById('categoryChart').getContext('2d');
         new Chart(ctx, {

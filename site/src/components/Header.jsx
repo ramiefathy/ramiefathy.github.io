@@ -72,7 +72,7 @@ const Header = () => {
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <header className="header-shell" data-scroll-fade>
+    <header className="header-shell">
       <div className="header-inner">
         <a href="/" aria-label="Ramie Fathy home" className="header-logo">
           <img src="/favicon.ico" width="32" height="32" alt="Ramie Fathy logo" />

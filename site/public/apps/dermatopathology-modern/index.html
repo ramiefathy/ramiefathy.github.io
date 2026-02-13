@@ -6,14 +6,19 @@
     <title>Dermatopathology Navigator - Modern UI</title>
 
     <!-- External Dependencies -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/framer-motion@11.0.3/dist/framer-motion.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <script src="../vendor/react.production.min.js"></script>
+    <script src="../vendor/react-dom.production.min.js"></script>
+    <script src="../vendor/babel.min.js"></script>
+    <script src="../vendor/tailwindcss.browser.js"></script>
+    <script src="../vendor/framer-motion.min.js"></script>
+    <script src="../vendor/lucide.min.js"></script>
+    <script src="../vendor/fuse.min.js"></script>
+    <script src="../vendor/d3.min.js"></script>
+    <link rel="stylesheet" href="../shared/legacy-tokens.css">
+    <link rel="stylesheet" href="../shared/legacy-primitives.css">
+    <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
 
     <!-- Modern Font Stack -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -308,7 +313,7 @@
         }
     </script>
 </head>
-<body class="font-sans antialiased">
+<body class="font-sans antialiased legacy-focus-ring" data-legacy-shell="true">
     <!-- Shader Background Canvas -->
     <canvas id="shader-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;"></canvas>
 
@@ -777,12 +782,24 @@
     <!-- Main App Component -->
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo, useCallback, createContext, useContext, useReducer } = React;
-        const { motion, AnimatePresence } = window.FramerMotion || {
+        const framerMotionApi = window.FramerMotion || window.Motion;
+        const { motion, AnimatePresence } = framerMotionApi || {
             motion: {
                 div: (props) => React.createElement('div', props),
                 button: (props) => React.createElement('button', props)
             },
             AnimatePresence: ({children}) => children
+        };
+
+        const GEMINI_API_KEY_STORAGE_KEY = 'dermpath_session_gemini_api_key';
+        const safeParseJson = (rawValue, fallbackValue) => {
+            if (!rawValue) return fallbackValue;
+            try {
+                return JSON.parse(rawValue);
+            } catch (error) {
+                console.warn('Failed to parse stored JSON payload, using fallback.', error);
+                return fallbackValue;
+            }
         };
 
         // Simple state management using useReducer
@@ -827,8 +844,8 @@
             // AI Assistant state
             showAIChat: false,
             showApiKeyModal: false,
-            geminiApiKey: localStorage.getItem('gemini_api_key') || '',
-            aiChatHistory: JSON.parse(localStorage.getItem('ai_chat_history') || '[]'),
+            geminiApiKey: sessionStorage.getItem(GEMINI_API_KEY_STORAGE_KEY) || '',
+            aiChatHistory: safeParseJson(localStorage.getItem('ai_chat_history'), []),
             aiChatLoading: false,
             aiError: null
         };
@@ -943,8 +960,13 @@
                 case 'TOGGLE_API_KEY_MODAL':
                     return { ...state, showApiKeyModal: !state.showApiKeyModal };
                 case 'SET_GEMINI_API_KEY':
-                    localStorage.setItem('gemini_api_key', action.payload);
-                    return { ...state, geminiApiKey: action.payload, showApiKeyModal: false };
+                    const normalizedApiKey = (action.payload || '').trim();
+                    if (normalizedApiKey) {
+                        sessionStorage.setItem(GEMINI_API_KEY_STORAGE_KEY, normalizedApiKey);
+                    } else {
+                        sessionStorage.removeItem(GEMINI_API_KEY_STORAGE_KEY);
+                    }
+                    return { ...state, geminiApiKey: normalizedApiKey, showApiKeyModal: false };
                 case 'ADD_AI_MESSAGE':
                     const updatedHistory = [...state.aiChatHistory, action.payload];
                     localStorage.setItem('ai_chat_history', JSON.stringify(updatedHistory));
@@ -3875,6 +3897,15 @@
                 <App />
             </StateProvider>
         );
+    </script>
+    <script>
+        if (window.LegacyGuidance?.maybeShow) {
+            window.LegacyGuidance.maybeShow('dermatopathology-modern', [
+                'Use search or categories first, then open a diagnosis card for details.',
+                'Use keyboard Tab/Shift+Tab to move between controls and visible focus rings.',
+                'Use the shell Help/Reset controls for quick recovery without leaving the page.'
+            ]);
+        }
     </script>
 </body>
 </html>

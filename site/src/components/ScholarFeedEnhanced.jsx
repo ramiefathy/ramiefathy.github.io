@@ -476,7 +476,7 @@ const ScholarFeedEnhanced = () => {
         <p className="scholar-status">No publications match the current filters.</p>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .scholar-feed-enhanced {
           width: 100%;
         }
@@ -852,7 +852,7 @@ const ScholarFeedEnhanced = () => {
             width: 100%;
           }
         }
-      `}</style>
+      ` }} />
     </section>
   );
 };

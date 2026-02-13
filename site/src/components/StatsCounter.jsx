@@ -113,7 +113,7 @@ export default function StatsCounter({ stats }) {
         </p>
       )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .stats-section {
           padding: 3rem 1.5rem;
           background: linear-gradient(180deg, rgba(239, 246, 255, 0.6), rgba(255, 255, 255, 0.9));
@@ -207,7 +207,7 @@ export default function StatsCounter({ stats }) {
             transition: none;
           }
         }
-      `}</style>
+      ` }} />
     </section>
   );
 }
