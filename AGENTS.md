@@ -33,6 +33,7 @@
 - Run `npm run site:build` before commits to catch integration regressions.
 - Execute `python -m compileall services/ai-scribe` to mirror the CI lint job.
 - Smoke test interactive tools in `site/public/apps`, verifying `localStorage.dermascribe.sessionToken` flows where applicable.
+- Canonical test surface inventory: `docs/site-test-inventory.md` (tests parse this file). **Update it** whenever you add/remove/rename Astro routes, shipped legacy HTML apps, or change canonical external-app URLs.
 
 ## Commit & Pull Request Guidelines
 - Follow Conventional Commits (`feat:`, `chore:`, `style:`). Reference issues when applicable.
