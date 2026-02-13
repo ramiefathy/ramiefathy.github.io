@@ -131,7 +131,7 @@ export default function Timeline({ data }) {
         </div>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .timeline-section {
           padding: 2rem 1rem;
         }
@@ -412,7 +412,7 @@ export default function Timeline({ data }) {
             border-top: 4px solid;
           }
         }
-      `}</style>
+      ` }} />
     </section>
   );
 }

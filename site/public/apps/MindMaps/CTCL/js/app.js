@@ -1,6 +1,20 @@
 // js/app.js - CTCL Mind Maps
 
 document.addEventListener('DOMContentLoaded', () => {
+    function safeParseJson(rawValue, fallbackValue) {
+        if (!rawValue) return fallbackValue;
+        try {
+            return JSON.parse(rawValue);
+        } catch (error) {
+            console.warn('Failed to parse stored JSON payload, using fallback.', error);
+            return fallbackValue;
+        }
+    }
+
+    function escapeRegExp(value) {
+        return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
     // --- DOM Elements ---
     const elements = {
         tabBar: document.getElementById('tab-bar'),
@@ -9,12 +23,18 @@ document.addEventListener('DOMContentLoaded', () => {
         mindMapContainer: document.getElementById('mind-map-view-container'),
         searchInput: document.getElementById('search-input'),
         searchResultsContainer: document.getElementById('search-results-container'),
+        searchNextBtn: document.getElementById('search-next'),
+        searchPrevBtn: document.getElementById('search-prev'),
         clearSearchBtn: document.getElementById('clear-search'),
         zoomInBtn: document.getElementById('zoom-in'),
         zoomOutBtn: document.getElementById('zoom-out'),
         zoomResetBtn: document.getElementById('zoom-reset'),
+        fitScreenBtn: document.getElementById('fit-screen'),
         expandAllBtn: document.getElementById('expand-all'),
         collapseAllBtn: document.getElementById('collapse-all'),
+        selectedNodeTitle: document.getElementById('selected-node-title'),
+        selectedNodeContent: document.getElementById('selected-node-content'),
+        selectedNodeBreadcrumb: document.getElementById('selected-node-breadcrumb')
     };
 
     // --- Application State ---
@@ -23,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
         activeRenderer: null,
         expansionState: {},
         searchTimeout: null,
+        searchResults: [],
+        activeSearchIndex: -1
     };
 
     // --- CORE FUNCTIONS ---
@@ -50,7 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = mindMapData[tabName];
             if (data) {
                 state.activeRenderer = MindMapRenderer(elements.mindMapContainer, data, {
-                    onNodeClick: saveCurrentExpansionState
+                    onNodeClick: saveCurrentExpansionState,
+                    onNodeSelect: renderSelectedNode
                 });
 
                 const savedState = state.expansionState[tabName];
@@ -69,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedExpansion = localStorage.getItem('ctclMap_expansionState');
 
         state.activeTab = savedTab || 'question';
-        state.expansionState = savedExpansion ? JSON.parse(savedExpansion) : {};
+        state.expansionState = safeParseJson(savedExpansion, {});
     }
 
     function saveStateToLocalStorage() {
@@ -120,33 +143,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderSearchResults(results, query) {
         clearSearchResults();
-        if (results.length === 0) return;
+        state.searchResults = results.slice(0, 15);
+        state.activeSearchIndex = state.searchResults.length ? 0 : -1;
+        if (state.searchResults.length === 0) {
+            updateSearchNavigation();
+            return;
+        }
 
         const list = document.createElement('div');
         list.className = 'search-results-list';
+        list.setAttribute('role', 'listbox');
 
-        const regex = new RegExp(`(${query})`, 'gi');
+        const escapedQuery = escapeRegExp(query);
+        const regex = new RegExp(`(${escapedQuery})`, 'gi');
 
-        results.slice(0, 15).forEach(result => {
+        state.searchResults.forEach((result, index) => {
             const item = document.createElement('a');
             item.className = 'search-result-item';
+            item.setAttribute('role', 'option');
+            item.dataset.searchIndex = String(index);
+            if (index === state.activeSearchIndex) {
+                item.classList.add('search-result-item-active');
+            }
             item.innerHTML = `
                 <span class="match-text">${result.name.replace(regex, `<mark>$1</mark>`)}</span>
                 <span class="tab-name">in ${result.tabName}</span>
             `;
             item.onclick = (e) => {
                 e.preventDefault();
-                navigateToNode(result.tab, result.path);
+                activateSearchResult(index, true);
                 clearSearchResults();
                 elements.searchInput.value = result.name;
             };
             list.appendChild(item);
         });
         elements.searchResultsContainer.appendChild(list);
+        updateSearchNavigation();
     }
 
     function clearSearchResults() {
         elements.searchResultsContainer.innerHTML = '';
+        state.searchResults = [];
+        state.activeSearchIndex = -1;
+        updateSearchNavigation();
     }
 
     function navigateToNode(tab, path) {
@@ -157,6 +196,42 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 200);
         } else {
             state.activeRenderer?.expandToNode(path);
+        }
+    }
+
+    function renderSelectedNode(node) {
+        if (!node) return;
+        if (elements.selectedNodeTitle) {
+            elements.selectedNodeTitle.textContent = node.name || 'Selected node';
+        }
+        if (elements.selectedNodeContent) {
+            const content = String(node.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            elements.selectedNodeContent.textContent = content || 'No details available for this node.';
+        }
+        if (elements.selectedNodeBreadcrumb) {
+            elements.selectedNodeBreadcrumb.textContent = Array.isArray(node.breadcrumb) ? node.breadcrumb.join(' › ') : '';
+        }
+    }
+
+    function updateSearchNavigation() {
+        const hasResults = state.searchResults.length > 0;
+        if (elements.searchNextBtn) elements.searchNextBtn.disabled = !hasResults;
+        if (elements.searchPrevBtn) elements.searchPrevBtn.disabled = !hasResults;
+    }
+
+    function activateSearchResult(index, navigate = false) {
+        if (!state.searchResults.length) return;
+        const normalized = (index + state.searchResults.length) % state.searchResults.length;
+        state.activeSearchIndex = normalized;
+        const result = state.searchResults[normalized];
+        const optionNodes = elements.searchResultsContainer.querySelectorAll('.search-result-item');
+        optionNodes.forEach((node) => node.classList.remove('search-result-item-active'));
+        const activeNode = elements.searchResultsContainer.querySelector(`.search-result-item[data-search-index="${normalized}"]`);
+        activeNode?.classList.add('search-result-item-active');
+        activeNode?.scrollIntoView({ block: 'nearest' });
+        if (navigate && result) {
+            navigateToNode(result.tab, result.path);
+            elements.searchInput.value = result.name;
         }
     }
 
@@ -203,15 +278,33 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(state.searchTimeout);
             state.searchTimeout = setTimeout(() => handleSearch(e.target.value), 300);
         });
+        elements.searchInput.addEventListener('keydown', (e) => {
+            if (!state.searchResults.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activateSearchResult(state.activeSearchIndex + 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activateSearchResult(state.activeSearchIndex - 1);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                activateSearchResult(state.activeSearchIndex, true);
+            } else if (e.key === 'Escape') {
+                clearSearchResults();
+            }
+        });
         elements.clearSearchBtn.addEventListener('click', () => {
             elements.searchInput.value = '';
             clearSearchResults();
         });
+        elements.searchNextBtn?.addEventListener('click', () => activateSearchResult(state.activeSearchIndex + 1, true));
+        elements.searchPrevBtn?.addEventListener('click', () => activateSearchResult(state.activeSearchIndex - 1, true));
 
         // Zoom and view controls
         elements.zoomInBtn.addEventListener('click', () => state.activeRenderer?.svg.transition().call(state.activeRenderer.zoom.scaleBy, 1.2));
         elements.zoomOutBtn.addEventListener('click', () => state.activeRenderer?.svg.transition().call(state.activeRenderer.zoom.scaleBy, 0.8));
         elements.zoomResetBtn.addEventListener('click', () => state.activeRenderer?.svg.transition().call(state.activeRenderer.zoom.transform, d3.zoomIdentity));
+        elements.fitScreenBtn?.addEventListener('click', () => state.activeRenderer?.fitToScreen());
         elements.expandAllBtn.addEventListener('click', () => {
             state.activeRenderer?.expandAll();
             saveCurrentExpansionState();
@@ -224,6 +317,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INITIALIZATION ---
     function init() {
+        window.LegacyGuidance?.maybeShow('mindmap-ctcl', [
+            'Use search to jump to any concept quickly.',
+            'Use Prev/Next to cycle through matches.',
+            'Click a node to pin details in the Selected Node panel.',
+            'Use Fit to Screen when zoomed deep into branches.'
+        ]);
         loadStateFromLocalStorage();
         setupEventListeners();
         switchTab(state.activeTab);

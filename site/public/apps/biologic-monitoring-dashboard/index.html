@@ -14,9 +14,14 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="../shared/legacy-tokens.css" />
+    <link rel="stylesheet" href="../shared/legacy-primitives.css" />
+    <link rel="stylesheet" href="../shared/legacy-shell.css" />
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body data-view="cards">
+  <body class="legacy-focus-ring" data-view="cards" data-legacy-shell="true">
     <main class="page">
       <section class="hero">
         <div class="hero__content">
@@ -105,6 +110,15 @@
     </main>
 
     <div id="modal-root"></div>
+    <script>
+      if (window.LegacyGuidance?.maybeShow) {
+        window.LegacyGuidance.maybeShow('biologic-monitoring-dashboard', [
+          'Start with Quick search, then narrow using dropdown filters.',
+          'Use category pills and view toggle to compare treatments quickly.',
+          'Use Reset filters to return to the full monitoring reference.'
+        ])
+      }
+    </script>
     <script type="module" src="./app.js"></script>
   </body>
 </html>

@@ -1,7 +1,7 @@
 // js/d3-renderer.js
 
 function MindMapRenderer(container, data, options = {}) {
-    const { onNodeClick } = options;
+    const { onNodeClick, onNodeSelect } = options;
     const tooltip = d3.select('#tooltip');
 
     // --- Configuration ---
@@ -20,9 +20,7 @@ function MindMapRenderer(container, data, options = {}) {
 
     // --- Setup SVG and Main Group ---
     const { width, height } = container.getBoundingClientRect();
-    
-    // *** DEBUG: Add validation for container dimensions ***
-    console.log('Container dimensions:', { width, height });
+
     if (!width || !height || width <= 0 || height <= 0) {
         console.error('Invalid container dimensions:', { width, height });
         return null;
@@ -36,13 +34,9 @@ function MindMapRenderer(container, data, options = {}) {
         .attr("viewBox", [-width / 2, -height / 2, width, height])
         .style("font", "10px sans-serif");
     
-    // *** FIX: Append the SVG to the DOM IMMEDIATELY ***
-    // This ensures that all subsequent measurements like getComputedTextLength() will work.
     container.append(svg.node());
 
     const g = svg.append("g");
-    
-    // *** FIX: Create separate groups for links and nodes to ensure proper layering ***
     const linksGroup = g.append("g").attr("class", "links-group");
     const nodesGroup = g.append("g").attr("class", "nodes-group");
 
@@ -56,29 +50,70 @@ function MindMapRenderer(container, data, options = {}) {
 
     // --- Hierarchy and Layout ---
     const root = d3.hierarchy(data);
-    root.descendants().forEach((d, i) => { 
+    root.descendants().forEach((d, i) => {
         d.id = d.data.id || `node-${i}`;
-        // *** FIX: Set initial coordinates to center (0,0) for radial layout ***
         d.x0 = 0; // angle
         d.y0 = 0; // radius from center
     });
-    
-    // *** FIX: Calculate tree radius and run initial layout ***
+
     const treeRadius = Math.min(width, height) / 2 - (isMobile ? 60 : 100);
-    console.log('Tree layout parameters:', { width, height, treeRadius, isMobile });
-    
+
     if (!treeRadius || treeRadius <= 0) {
         console.error('Invalid tree radius:', treeRadius);
         return null;
     }
-    
-    // *** Apply initial fixed sector positioning ***
+
+    const toFiniteNumber = (value, fallback = 0) => {
+        const parsed = typeof value === 'number' ? value : Number(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    };
+
+    const safeNodePoint = (node, fallbackNode = null) => {
+        const fallbackX = fallbackNode
+            ? toFiniteNumber(fallbackNode.x, toFiniteNumber(fallbackNode.x0, 0))
+            : 0;
+        const fallbackY = fallbackNode
+            ? toFiniteNumber(fallbackNode.y, toFiniteNumber(fallbackNode.y0, 0))
+            : 0;
+
+        return {
+            x: toFiniteNumber(node?.x, toFiniteNumber(node?.x0, fallbackX)),
+            y: toFiniteNumber(node?.y, toFiniteNumber(node?.y0, fallbackY))
+        };
+    };
+
+    const linkGenerator = d3.linkRadial()
+        .angle(point => point.x)
+        .radius(point => point.y);
+
+    const safeCollapsedPath = (sourceNode) => {
+        const sourcePoint = safeNodePoint(sourceNode);
+        try {
+            return linkGenerator({ source: sourcePoint, target: sourcePoint }) || 'M0,0L0,0';
+        } catch {
+            return 'M0,0L0,0';
+        }
+    };
+
+    const safeLinkPath = (linkDatum) => {
+        const sourcePoint = safeNodePoint(linkDatum?.source);
+        const targetPoint = safeNodePoint(linkDatum?.target, linkDatum?.source);
+        try {
+            return linkGenerator({ source: sourcePoint, target: targetPoint }) || 'M0,0L0,0';
+        } catch {
+            return 'M0,0L0,0';
+        }
+    };
+
     applyFixedSectorPositioning(root);
     
     // Set initial positions for all nodes
     root.descendants().forEach(d => {
-        d.x0 = d.x || 0;
-        d.y0 = d.y || 0;
+        const point = safeNodePoint(d);
+        d.x = point.x;
+        d.y = point.y;
+        d.x0 = point.x;
+        d.y0 = point.y;
     });
     
     // Initial collapse of all nodes beyond the first level
@@ -86,47 +121,48 @@ function MindMapRenderer(container, data, options = {}) {
         root.children.forEach(collapse);
     }
     
-    // *** FIXED ANGULAR SECTORS: Custom positioning to prevent redistribution ***
+    // Fixed angular sectors for stable branch positioning.
     function applyFixedSectorPositioning(rootNode) {
-        // Get main branches (direct children of root)
         const mainBranches = rootNode.children || [];
+        if (mainBranches.length === 0) {
+            rootNode.x = 0;
+            rootNode.y = 0;
+            return rootNode;
+        }
+
         const sectorSize = (2 * Math.PI) / mainBranches.length;
         const padding = 0.1; // Small padding between sectors
-        
-        console.log('Applying fixed sectors for', mainBranches.length, 'main branches');
-        
+
         // Position root at center
         rootNode.x = 0;
         rootNode.y = 0;
-        
+
         // Assign fixed sectors to main branches
         mainBranches.forEach((branch, index) => {
             const sectorStart = index * sectorSize + padding;
             const sectorEnd = (index + 1) * sectorSize - padding;
             const sectorCenter = (sectorStart + sectorEnd) / 2;
-            
+
             // Position main branch at fixed angle
-            branch.x = sectorCenter;
-            branch.y = treeRadius * 0.45; // Position at 45% of radius for more spacing from center
-            
-            console.log(`Branch ${branch.data.id}: sector ${sectorStart.toFixed(2)} to ${sectorEnd.toFixed(2)}, center ${sectorCenter.toFixed(2)}`);
-            
+            branch.x = toFiniteNumber(sectorCenter);
+            branch.y = toFiniteNumber(treeRadius * 0.45); // Position at 45% of radius for more spacing from center
+
             // Position children within the branch's sector
             if (branch.children && branch.children.length > 0) {
                 const childSectorSize = (sectorEnd - sectorStart) / branch.children.length;
-                
+
                 branch.children.forEach((child, childIndex) => {
                     const childAngle = sectorStart + (childIndex + 0.5) * childSectorSize;
-                    child.x = childAngle;
-                    child.y = treeRadius * 0.75; // Position at 75% of radius for better spacing
-                    
+                    child.x = toFiniteNumber(childAngle, branch.x);
+                    child.y = toFiniteNumber(treeRadius * 0.75, branch.y); // Position at 75% of radius for better spacing
+
                     // Position grandchildren if they exist
                     if (child.children && child.children.length > 0) {
                         const grandChildSectorSize = childSectorSize / child.children.length;
                         child.children.forEach((grandChild, grandIndex) => {
                             const grandChildAngle = childAngle - childSectorSize/2 + (grandIndex + 0.5) * grandChildSectorSize;
-                            grandChild.x = grandChildAngle;
-                            grandChild.y = treeRadius * 0.95; // Position at 95% of radius for better spacing
+                            grandChild.x = toFiniteNumber(grandChildAngle, child.x);
+                            grandChild.y = toFiniteNumber(treeRadius * 0.95, child.y); // Position at 95% of radius for better spacing
                         });
                     }
                 });
@@ -139,8 +175,13 @@ function MindMapRenderer(container, data, options = {}) {
     // --- Render Function ---
     function update(source) {
         const duration = CONFIG.animation.duration;
-        
-        // *** Use custom fixed sector positioning instead of D3 tree layout ***
+
+        const sourcePoint = safeNodePoint(source);
+        source.x = sourcePoint.x;
+        source.y = sourcePoint.y;
+        source.x0 = toFiniteNumber(source.x0, sourcePoint.x);
+        source.y0 = toFiniteNumber(source.y0, sourcePoint.y);
+
         const treeData = applyFixedSectorPositioning(root);
         const nodes = treeData.descendants().reverse();
         const links = treeData.links();
@@ -151,54 +192,28 @@ function MindMapRenderer(container, data, options = {}) {
         linksGroup.selectAll(".link").data(links, d => d.target.id)
             .join(
                 enter => enter.append("path").attr("class", "link")
-                    .attr("d", d => {
-                        const o = { x: source.x0 || 0, y: source.y0 || 0 };
-                        // *** DEBUG: Check for NaN in link source coordinates ***
-                        if (isNaN(o.x) || isNaN(o.y)) {
-                            console.error('NaN in link source coordinates:', { source: source, o: o });
-                            o.x = 0; o.y = 0;
-                        }
-                        return d3.linkRadial()({ source: o, target: o });
-                    }),
+                    .attr("d", () => safeCollapsedPath(source)),
                 update => update,
-                exit => exit.transition().duration(duration).attr("d", d => {
-                    const o = { x: source.x || 0, y: source.y || 0 };
-                    // *** DEBUG: Check for NaN in link exit coordinates ***
-                    if (isNaN(o.x) || isNaN(o.y)) {
-                        console.error('NaN in link exit coordinates:', { source: source, o: o });
-                        o.x = 0; o.y = 0;
-                    }
-                    return d3.linkRadial()({ source: o, target: o });
-                }).remove()
+                exit => exit.transition().duration(duration)
+                    .attr("d", () => safeCollapsedPath(source))
+                    .remove()
             )
             .transition().duration(duration)
-            .attr("d", d => {
-                // *** FIX: Robust coordinate validation and safe path generation ***
-                try {
-                    const sourceX = d.source.x || 0;
-                    const sourceY = d.source.y || 0;
-                    const targetX = d.target.x || 0;
-                    const targetY = d.target.y || 0;
-                    
-                    if (isNaN(sourceX) || isNaN(sourceY) || isNaN(targetX) || isNaN(targetY)) {
-                        console.warn('Invalid coordinates, using safe path');
-                        return "M0,0L0,0";
-                    }
-                    
-                    return d3.linkRadial().angle(d => d.x || 0).radius(d => d.y || 0)(d);
-                } catch (error) {
-                    console.error('Error generating link path:', error);
-                    return "M0,0L0,0";
-                }
-            });
+            .attr("d", d => safeLinkPath(d));
 
         // --- Nodes ---
+        const nodeTranslate = (node, fallbackNode = null) => {
+            const { x, y } = safeNodePoint(node, fallbackNode);
+            const [tx, ty] = radialPoint(x, y);
+            return `translate(${tx},${ty})`;
+        };
+
         nodesGroup.selectAll(".node").data(nodes, d => d.id)
             .join(
                 enter => {
                     const nodeEnter = enter.append("g")
                         .attr("class", "node")
-                        .attr("transform", d => `translate(${radialPoint(source.x0, source.y0)})`)
+                        .attr("transform", () => nodeTranslate(source))
                         .on("click", clickHandler);
 
                     nodeEnter.append("circle").attr("r", 1e-6);
@@ -209,20 +224,26 @@ function MindMapRenderer(container, data, options = {}) {
                 },
                 update => update,
                 exit => exit.transition().duration(duration)
-                    .attr("transform", d => `translate(${radialPoint(source.x, source.y)})`).remove()
+                    .attr("transform", () => nodeTranslate(source)).remove()
                     .select("circle").attr("r", 1e-6)
             )
             .attr("tabindex", -1) // For focus
             .on('mousemove', tooltipMoveHandler)
             .on('mouseleave', tooltipLeaveHandler)
             .transition().duration(duration)
-            .attr("transform", d => `translate(${radialPoint(d.x, d.y)})`)
+            .attr("transform", d => nodeTranslate(d, source))
             .select("circle")
             .attr("r", d => radii[d.depth] || radii[radii.length-1])
             .attr("fill", d => CONFIG.colors.nodes[d.depth] || CONFIG.colors.nodes[CONFIG.colors.nodes.length-1])
             .attr("class", d => d._children ? "collapsible" : "");
-        
-        nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
+
+        nodes.forEach(d => {
+            const point = safeNodePoint(d);
+            d.x = point.x;
+            d.y = point.y;
+            d.x0 = point.x;
+            d.y0 = point.y;
+        });
     }
 
     // --- Helper Functions ---
@@ -239,13 +260,10 @@ function MindMapRenderer(container, data, options = {}) {
         return { radii };
     }
 
-    function radialPoint(x, y) { 
-        // *** DEBUG: Add validation for radial point calculations ***
-        if (isNaN(x) || isNaN(y)) {
-            console.error('NaN values in radialPoint:', { x, y });
-            return [0, 0]; // Return safe default
-        }
-        return [(y = +y) * Math.cos(x -= Math.PI / 2), y * Math.sin(x)]; 
+    function radialPoint(x, y) {
+        const safeX = toFiniteNumber(x);
+        const safeY = toFiniteNumber(y);
+        return [safeY * Math.cos(safeX - Math.PI / 2), safeY * Math.sin(safeX - Math.PI / 2)];
     }
     
     function collapse(d) {
@@ -293,6 +311,14 @@ function MindMapRenderer(container, data, options = {}) {
             d._children = null;
         }
         update(d);
+        if (onNodeSelect) {
+            onNodeSelect({
+                id: d.data.id,
+                name: d.data.name,
+                content: d.data.tooltip?.content || '',
+                breadcrumb: d.ancestors().map(node => node.data.name).reverse()
+            });
+        }
         if (onNodeClick) {
             onNodeClick();
         }
@@ -302,7 +328,7 @@ function MindMapRenderer(container, data, options = {}) {
         tooltip.style('visibility', 'visible').style('opacity', '1');
         const [x, y] = d3.pointer(event, document.body);
         tooltip.style('left', `${x + 15}px`).style('top', `${y + 15}px`);
-        tooltip.html(`<div class="tooltip-title">${d.data.tooltip.title}</div><div class="tooltip-content">${d.data.tooltip.content}</div>`);
+        tooltip.html(`<div class="tooltip-title">${d.data.tooltip?.title || d.data.name}</div><div class="tooltip-content">${d.data.tooltip?.content || ''}</div>`);
     }
 
     function tooltipLeaveHandler() {
@@ -348,8 +374,20 @@ function MindMapRenderer(container, data, options = {}) {
                 const targetNode = nodesGroup.selectAll(".node").filter(d => d.data.id === path[path.length - 1]);
                 targetNode.classed('search-highlight', true);
                 targetNode.node()?.focus();
+                const targetDatum = targetNode.datum();
+                if (targetDatum && onNodeSelect) {
+                    onNodeSelect({
+                        id: targetDatum.data.id,
+                        name: targetDatum.data.name,
+                        content: targetDatum.data.tooltip?.content || '',
+                        breadcrumb: targetDatum.ancestors().map(node => node.data.name).reverse()
+                    });
+                }
                 setTimeout(() => targetNode.classed('search-highlight', false), 2500);
             }, CONFIG.animation.duration);
+        },
+        fitToScreen() {
+            svg.transition().duration(350).call(zoom.transform, d3.zoomIdentity.scale(0.95));
         },
         getExpansionState() {
             return root.descendants().filter(d => d.children).map(d => d.data.id);

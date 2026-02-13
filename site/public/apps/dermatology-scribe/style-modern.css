@@ -1,48 +1,82 @@
 /* Modern RAMIE-Style Design for AI Dermatology Scribe */
 
 /* ========== CSS Variables ========== */
+/*
+  This app is a standalone legacy HTML page under /apps. To keep it visually consistent
+  with the rest of the site (Astro + shared legacy tokens), we map its internal variables
+  onto the shared legacy tokens by default, and only opt into the original dark "RAMIE"
+  palette when the shell toggles `.legacy-dark` on <html>.
+*/
 :root {
-  /* Dark Theme Colors - RAMIE Style */
-  --bg-primary: #0f1419; /* Deep navy background */
-  --bg-secondary: #1a1f29; /* Slightly lighter navy */
-  --bg-tertiary: #242a38; /* Card backgrounds */
-  --bg-hover: #2d3548; /* Hover state */
-  --bg-input: #1e2430; /* Input fields */
+  /* Light defaults: match shared legacy app tokens */
+  --bg-primary: var(--legacy-bg, #f5f7fb);
+  --bg-secondary: var(--legacy-surface, #ffffff);
+  --bg-tertiary: var(--legacy-surface, #ffffff);
+  --bg-hover: var(--legacy-surface-muted, #f1f5f9);
+  --bg-input: var(--legacy-surface, #ffffff);
 
-  /* Text Colors */
-  --text-primary: #e2e8f0; /* Main text */
-  --text-secondary: #94a3b8; /* Secondary text */
-  --text-tertiary: #64748b; /* Muted text */
-  --text-inverse: #0f1419; /* Text on bright backgrounds */
+  --text-primary: var(--legacy-text, #0f172a);
+  --text-secondary: var(--legacy-text-muted, #475569);
+  --text-tertiary: color-mix(in oklab, var(--legacy-text-muted, #475569), transparent 35%);
+  --text-inverse: #ffffff;
 
-  /* Accent Colors - Cyan/Turquoise */
-  --accent-primary: #4dd0e1; /* Main cyan accent */
-  --accent-secondary: #26c6da; /* Darker cyan */
-  --accent-hover: #67e8f9; /* Lighter cyan on hover */
-  --accent-muted: rgba(77, 208, 225, 0.1); /* Muted cyan background */
+  /* Accent colors: align to site primary */
+  --accent-primary: var(--legacy-primary, #2563eb);
+  --accent-secondary: var(--legacy-primary-strong, #1d4ed8);
+  --accent-hover: color-mix(in oklab, var(--legacy-primary, #2563eb), white 12%);
+  --accent-muted: color-mix(in oklab, var(--legacy-primary, #2563eb), transparent 88%);
 
-  /* Status Colors */
-  --success: #4dd0e1; /* Using cyan for success */
+  --success: var(--legacy-success, #15803d);
+  --warning: var(--legacy-warning, #b45309);
+  --error: var(--legacy-danger, #b91c1c);
+  --info: color-mix(in oklab, var(--legacy-primary, #2563eb), white 28%);
+
+  --border-primary: color-mix(in oklab, var(--legacy-border, #cbd5e1), transparent 45%);
+  --border-secondary: var(--legacy-border, #cbd5e1);
+  --border-focus: var(--legacy-primary, #2563eb);
+
+  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 10px 22px rgba(15, 23, 42, 0.12);
+  --shadow-lg: var(--legacy-shadow, 0 12px 30px rgba(15, 23, 42, 0.14));
+  --shadow-xl: 0 24px 60px rgba(15, 23, 42, 0.18);
+
+  --border-radius: 12px;
+  --border-radius-sm: 10px;
+  --border-radius-lg: 18px;
+  --header-height: 64px;
+}
+
+.legacy-dark {
+  /* Dark palette: original RAMIE look */
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a1f29;
+  --bg-tertiary: #242a38;
+  --bg-hover: #2d3548;
+  --bg-input: #1e2430;
+
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-inverse: #0f1419;
+
+  --accent-primary: #4dd0e1;
+  --accent-secondary: #26c6da;
+  --accent-hover: #67e8f9;
+  --accent-muted: rgba(77, 208, 225, 0.1);
+
+  --success: #4dd0e1;
   --warning: #fbbf24;
   --error: #ef4444;
   --info: #60a5fa;
 
-  /* Borders */
-  --border-primary: rgba(148, 163, 184, 0.1); /* Very subtle borders */
+  --border-primary: rgba(148, 163, 184, 0.1);
   --border-secondary: rgba(148, 163, 184, 0.2);
   --border-focus: var(--accent-primary);
 
-  /* Shadows */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.6);
-
-  /* Layout */
-  --border-radius: 12px;
-  --border-radius-sm: 8px;
-  --border-radius-lg: 16px;
-  --header-height: 64px;
 }
 
 /* ========== Global Styles ========== */
@@ -53,8 +87,8 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, #0a0e13 100%);
+  font-family: var(--legacy-font-sans, -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif);
+  background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
@@ -64,7 +98,7 @@ body {
 
 /* ========== Header ========== */
 .modern-header {
-  background: rgba(15, 20, 25, 0.95);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-primary);
   height: var(--header-height);

@@ -4,9 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Text Extractor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+    <script src="./vendor/tailwindcss.browser.js"></script>
+    <script src="./vendor/pdf-lib.min.js" defer></script>
+    <script src="./vendor/pdf.min.js" defer></script>
+    <link rel="stylesheet" href="./shared/legacy-tokens.css">
+    <link rel="stylesheet" href="./shared/legacy-primitives.css">
+    <link rel="stylesheet" href="./shared/legacy-shell.css">
+    <script src="./shared/legacy-shell.js" defer></script>
+    <script src="./shared/legacy-status.js" defer></script>
+    <script src="./shared/legacy-guidance.js" defer></script>
     <style>
         /* Custom styles for better appearance */
         body {
@@ -43,7 +49,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4 legacy-focus-ring" data-legacy-shell="true">
     <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg">
         <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">PDF Text Extractor</h1>
         <p class="text-sm text-gray-600 mb-4 text-center">Extracts text, attempting basic paragraph formatting based on line spacing. Original layout, fonts, and images are lost. Some special characters might be removed.</p>
@@ -52,6 +58,7 @@
             <label for="pdfFile" class="block text-sm font-medium text-gray-700 mb-2">Select PDF file:</label>
             <input type="file" id="pdfFile" accept=".pdf" class="file-input">
         </div>
+        <div id="preflight-summary" class="legacy-empty-state mb-4">Choose a PDF to preview expected extraction output.</div>
 
         <button id="extractBtn" class="btn w-full">Extract Formatted Text & Create New PDF</button>
 
@@ -82,6 +89,18 @@
             const statusDiv = document.getElementById('status');
             const loaderDiv = document.getElementById('loader');
             const downloadLinkContainer = document.getElementById('downloadLinkContainer');
+            const preflightSummary = document.getElementById('preflight-summary');
+            const statusHost = document.createElement('div');
+            document.querySelector('.bg-white.p-8')?.appendChild(statusHost);
+
+            function renderPreflight(file) {
+                if (!file) {
+                    preflightSummary.textContent = 'Choose a PDF to preview expected extraction output.';
+                    return;
+                }
+                const fileSizeMb = (file.size / 1024 / 1024).toFixed(2);
+                preflightSummary.innerHTML = `<strong>Preflight</strong><br>${file.name}<br>${fileSizeMb} MB input.<br>Output: text-only PDF with simplified layout.`;
+            }
 
             // --- Helper Function to Sanitize Text for WinAnsiEncoding ---
             // Removes characters not encodable in WinAnsi
@@ -175,11 +194,14 @@
             extractBtn.addEventListener('click', async () => {
                 const file = pdfFileInput.files[0];
                 if (!file || file.type !== 'application/pdf') {
-                    statusDiv.textContent = 'Please select a valid PDF file.'; return;
+                    statusDiv.textContent = 'Please select a valid PDF file.';
+                    window.LegacyStatus?.showError(statusHost, 'Select a valid PDF to extract text.')
+                    return;
                 }
 
                 extractBtn.disabled = true; statusDiv.textContent = 'Reading PDF...';
                 loaderDiv.classList.remove('hidden'); downloadLinkContainer.innerHTML = '';
+                window.LegacyStatus?.showLoading(statusHost, 'Extracting text and generating a compact output PDF.')
 
                 try {
                     const arrayBuffer = await file.arrayBuffer();
@@ -258,6 +280,7 @@
 
                     downloadLinkContainer.appendChild(downloadLink);
                     statusDiv.textContent = `Extraction complete. Original: ${originalSizeMB} MB, New: ${newSizeMB} MB (${reduction}% reduction). Basic paragraph formatting applied. Unsupported characters removed.`;
+                    window.LegacyStatus?.showSuccess(statusHost, `Extraction complete (${reduction}% smaller output).`);
 
                 } catch (error) {
                     console.error('PDF Text Extraction Error:', error);
@@ -274,11 +297,22 @@
                          errorMessage = `Error during PDF creation: Unsupported character (${error.message}).`; // Should not happen now, but keep for debugging
                     }
                      statusDiv.textContent = errorMessage;
+                     window.LegacyStatus?.showRetry(statusHost, 'Extraction failed. Check file integrity and retry.', () => extractBtn.click())
                 } finally {
                     extractBtn.disabled = false;
                     loaderDiv.classList.add('hidden');
                 }
             });
+
+            pdfFileInput.addEventListener('change', () => {
+                renderPreflight(pdfFileInput.files[0]);
+            });
+
+            window.LegacyGuidance?.maybeShow('pdf-text-extractor', [
+                'Choose one PDF source file from your device.',
+                'Review preflight expectations before extraction.',
+                'Run extraction and download the text-only output PDF.'
+            ]);
         }); // End DOMContentLoaded
     </script>
 </body>

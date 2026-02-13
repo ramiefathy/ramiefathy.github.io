@@ -1,30 +1,57 @@
 		        // ========== WebSocket Backend Integration ==========
 		        const DEFAULT_WS_PORT = 8765;
-		        const WS_URL_STORAGE_KEY = 'dermascribe.websocketUrl';
-		        const TOKEN_STORAGE_KEY = 'dermascribe.sessionToken';
-		        const JWT_TOKEN_STORAGE_KEY = 'dermascribe.sessionJwt';
-		        const REMEMBER_AUTH_STORAGE_KEY = 'dermascribe.rememberBackendAuth';
-		
-		        function getRememberAuthEnabled() {
-		            return localStorage.getItem(REMEMBER_AUTH_STORAGE_KEY) === 'true';
-		        }
-		
-		        function getStoredValue(key) {
-		            return sessionStorage.getItem(key) || localStorage.getItem(key) || '';
-		        }
-		
-		        function setStoredValue(key, value, remember) {
-		            const cleaned = (value || '').trim();
-		            if (remember) {
-		                if (cleaned) localStorage.setItem(key, cleaned);
-		                else localStorage.removeItem(key);
-		                sessionStorage.removeItem(key);
-		            } else {
-		                if (cleaned) sessionStorage.setItem(key, cleaned);
-		                else sessionStorage.removeItem(key);
-		                localStorage.removeItem(key);
-		            }
-		        }
+			        const WS_URL_STORAGE_KEY = 'dermascribe.websocketUrl';
+			        const TOKEN_STORAGE_KEY = 'dermascribe.sessionToken';
+			        const JWT_TOKEN_STORAGE_KEY = 'dermascribe.sessionJwt';
+			        const REMEMBER_AUTH_STORAGE_KEY = 'dermascribe.rememberBackendAuth';
+			        const SENSITIVE_STORAGE_KEYS = new Set([
+			            TOKEN_STORAGE_KEY,
+			            JWT_TOKEN_STORAGE_KEY
+			        ]);
+
+			        function isSensitiveStorageKey(key) {
+			            return SENSITIVE_STORAGE_KEYS.has(key);
+			        }
+			
+			        function getRememberAuthEnabled() {
+			            return localStorage.getItem(REMEMBER_AUTH_STORAGE_KEY) === 'true';
+			        }
+			
+			        function getStoredValue(key) {
+			            if (isSensitiveStorageKey(key)) {
+			                return sessionStorage.getItem(key) || '';
+			            }
+			            return sessionStorage.getItem(key) || localStorage.getItem(key) || '';
+			        }
+			
+			        function setStoredValue(key, value, remember) {
+			            const cleaned = (value || '').trim();
+			            if (isSensitiveStorageKey(key)) {
+			                if (cleaned) {
+			                    sessionStorage.setItem(key, cleaned);
+			                } else {
+			                    sessionStorage.removeItem(key);
+			                }
+			                localStorage.removeItem(key);
+			                return;
+			            }
+
+			            if (remember) {
+			                if (cleaned) {
+			                    localStorage.setItem(key, cleaned);
+			                } else {
+			                    localStorage.removeItem(key);
+			                }
+			                sessionStorage.removeItem(key);
+			            } else {
+			                if (cleaned) {
+			                    sessionStorage.setItem(key, cleaned);
+			                } else {
+			                    sessionStorage.removeItem(key);
+			                }
+			                localStorage.removeItem(key);
+			            }
+			        }
 		
 		        function getWebSocketUrl() {
 		            const stored = getStoredValue(WS_URL_STORAGE_KEY);
@@ -69,6 +96,22 @@
 		        const AUTOSAVE_INTERVAL_MS = 30000;
 		        let autosaveTimerId = null;
 		        let autosaveDirty = false;
+
+		        function setRecoveryBanner(message, variant = 'info') {
+		            const banner = document.getElementById('recovery-banner');
+		            if (!banner) return;
+		            banner.classList.remove('hidden');
+		            banner.classList.toggle('is-success', variant === 'success');
+		            banner.classList.toggle('is-error', variant === 'error');
+		            banner.innerHTML = `<h3>Session Recovery</h3><p>${message}</p>`;
+		        }
+
+		        function hideRecoveryBanner() {
+		            const banner = document.getElementById('recovery-banner');
+		            if (!banner) return;
+		            banner.classList.add('hidden');
+		            banner.innerHTML = '';
+		        }
 		
 		        function base64urlEncode(text) {
 		            const bytes = new TextEncoder().encode(text);
@@ -2106,6 +2149,9 @@ ${formatInlineMarkdownSafe(content)}
                 if (!silent) {
                     showNotification('Session saved successfully', 'success');
                 }
+                if (type !== 'autosave') {
+                    window.LegacyShell?.setSaved(true);
+                }
                 return true;
             } catch (error) {
                 console.error('Error saving session:', error);
@@ -2170,6 +2216,7 @@ ${formatInlineMarkdownSafe(content)}
 
 	        function markAutosaveDirty() {
 	            autosaveDirty = true;
+	            window.LegacyShell?.setSaved(false);
 	        }
 
 	        function startAutosave() {
@@ -2238,6 +2285,14 @@ ${formatInlineMarkdownSafe(content)}
 
 	        async function checkForAutosaveRecovery() {
 	            try {
+	                const seededRecovery = localStorage.getItem('legacy_recovery_seed');
+	                if (seededRecovery) {
+	                    const parsedSeed = JSON.parse(seededRecovery);
+	                    const whenSeed = parsedSeed?.timestamp ? new Date(parsedSeed.timestamp).toLocaleString() : 'an earlier snapshot';
+	                    setRecoveryBanner(`Recovered from ${whenSeed} snapshot (confidence: High).`);
+	                    localStorage.removeItem('legacy_recovery_seed');
+	                }
+
 	                const autosave = await getLatestAutosaveDraft();
 	                if (!autosave) return;
 
@@ -2255,9 +2310,13 @@ ${formatInlineMarkdownSafe(content)}
 	                if (shouldRecover) {
 	                    await loadSavedSession(autosave.id);
 	                    showNotification('Recovered autosaved draft', 'success');
+	                    setRecoveryBanner(`Recovered from ${when} snapshot (confidence: High).`, 'success');
+	                } else {
+	                    setRecoveryBanner(`Recovery available from ${when} snapshot (confidence: Medium).`, 'info');
 	                }
 	            } catch (error) {
 	                console.warn('Autosave recovery check failed:', error);
+	                setRecoveryBanner('Autosave recovery check failed. Start a new session or load a saved session.', 'error');
 	            }
 	        }
 
@@ -2632,6 +2691,11 @@ ${formatInlineMarkdownSafe(content)}
 		            // Connect to WebSocket backend (only if token is configured)
 		            connectWebSocket();
 		            checkForAutosaveRecovery();
+		            window.LegacyGuidance?.maybeShow('dermatology-scribe-legacy', [
+		                'Configure backend connection settings before starting a mode.',
+		                'Use Save Session regularly to keep a durable local copy.',
+		                'If recovery appears, verify content and continue or start fresh.'
+		            ]);
 		
 		            // Global event delegation for CSP-safe modal actions
 		            document.addEventListener('click', handleDataActionClick);

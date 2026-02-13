@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Merger Pro</title>
+    <link rel="stylesheet" href="./shared/legacy-tokens.css">
+    <link rel="stylesheet" href="./shared/legacy-primitives.css">
+    <link rel="stylesheet" href="./shared/legacy-shell.css">
+    <script src="./shared/legacy-shell.js" defer></script>
+    <script src="./shared/legacy-status.js" defer></script>
+    <script src="./shared/legacy-guidance.js" defer></script>
     <style>
         /* General body styling */
         body {
@@ -124,15 +130,16 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
     </style>
-    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="./vendor/pdf-lib.min.js"></script>
     <link rel="stylesheet" href="../../style.css" type="text/css" />
 </head>
-<body>
+<body class="legacy-focus-ring" data-legacy-shell="true">
     <div id="app-container">
         <h1>PDF Merger Pro</h1>
         <p>Easily combine multiple PDF files into a single, organized document. Select your files below and click "Merge PDFs".</p>
 
         <input type="file" id="pdfFilesInput" accept=".pdf" multiple>
+        <div id="preflight-summary" class="legacy-empty-state">Choose at least two PDF files to generate a preflight summary.</div>
 
         <button id="mergeButton" onclick="handleMergePdfs()">Merge PDFs</button>
 
@@ -150,6 +157,24 @@
         const mergeButton = document.getElementById('mergeButton');
         const statusDiv = document.getElementById('status');
         const loader = document.getElementById('loader');
+        const preflightSummary = document.getElementById('preflight-summary');
+
+        const statusHost = document.createElement('div');
+        document.getElementById('app-container').appendChild(statusHost);
+
+        function renderPreflight(files) {
+            if (!files || files.length < 2) {
+                preflightSummary.textContent = 'Choose at least two PDF files to generate a preflight summary.';
+                return;
+            }
+            let estimatedSize = 0;
+            const names = Array.from(files).map((file) => {
+                estimatedSize += file.size;
+                return file.name;
+            });
+            const estimatedSizeMb = (estimatedSize / 1024 / 1024).toFixed(2);
+            preflightSummary.innerHTML = `<strong>Preflight</strong><br>${files.length} files selected (${estimatedSizeMb} MB total).<br>Output: merged_document.pdf<br>Files: ${names.join(', ')}`;
+        }
 
         /**
          * Asynchronously handles the PDF merging process.
@@ -162,6 +187,7 @@
             if (files.length < 2) {
                 statusDiv.textContent = '⚠️ Please select at least two PDF files to merge.';
                 statusDiv.style.color = '#dc3545'; // Error color
+                window.LegacyStatus?.showError(statusHost, 'Need at least two PDFs before merge can run.')
                 return;
             }
 
@@ -170,6 +196,7 @@
             loader.style.display = 'block';
             statusDiv.textContent = '🚀 Starting merge process...';
             statusDiv.style.color = '#007bff'; // Processing color
+            window.LegacyStatus?.showLoading(statusHost, 'Validating selected PDFs and preparing merge.')
 
             try {
                 // Create a new PDFDocument instance to hold the merged PDF
@@ -213,6 +240,7 @@
 
                 statusDiv.textContent = '✅ Merge complete! Initiating download...';
                 statusDiv.style.color = '#28a745'; // Success color
+                window.LegacyStatus?.showSuccess(statusHost, `Merged ${files.length} PDFs into merged_document.pdf.`)
 
                 // Trigger the download of the merged PDF
                 triggerDownload(mergedPdfBytes, "merged_document.pdf");
@@ -221,6 +249,7 @@
                 console.error('Error during PDF merging:', error);
                 statusDiv.textContent = `❌ Error: ${error.message}. Some PDFs might be corrupted or incompatible. Please check console for details.`;
                 statusDiv.style.color = '#dc3545'; // Error color
+                window.LegacyStatus?.showRetry(statusHost, 'Merge failed. Verify files and retry.', () => handleMergePdfs())
             } finally {
                 // Re-enable the button and hide the loader, regardless of success or failure
                 mergeButton.disabled = false;
@@ -262,11 +291,19 @@
             if (pdfFilesInput.files.length > 0) {
                 statusDiv.textContent = `${pdfFilesInput.files.length} file(s) selected. Click "Merge PDFs" to combine.`;
                 statusDiv.style.color = '#555e6e'; // Default text color
+                renderPreflight(pdfFilesInput.files);
             } else {
                 statusDiv.textContent = 'Select your PDF files to begin.';
                 statusDiv.style.color = '#555e6e';
+                renderPreflight(pdfFilesInput.files);
             }
         });
+
+        window.LegacyGuidance?.maybeShow('pdf-merger', [
+            'Select at least two PDF files from your device.',
+            'Review the preflight summary before running merge.',
+            'Use Merge PDFs and download the generated output.'
+        ]);
     </script>
 </body>
 </html>

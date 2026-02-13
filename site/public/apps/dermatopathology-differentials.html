@@ -6,7 +6,13 @@
     <title>Dermatopathology Differentials</title>
 
     <!-- External Libraries -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./vendor/tailwindcss.browser.js"></script>
+    <link rel="stylesheet" href="./shared/legacy-tokens.css">
+    <link rel="stylesheet" href="./shared/legacy-primitives.css">
+    <link rel="stylesheet" href="./shared/legacy-shell.css">
+    <script src="./shared/legacy-shell.js" defer></script>
+    <script src="./shared/legacy-status.js" defer></script>
+    <script src="./shared/legacy-guidance.js" defer></script>
 
     <!-- Custom CSS -->
     <style>
@@ -320,6 +326,22 @@
             to { transform: translateX(100%); opacity: 0; }
         }
 
+        @media (min-width: 1200px) {
+            main.container {
+                display: grid;
+                grid-template-columns: minmax(320px, 420px) 1fr;
+                gap: 1rem;
+                align-items: start;
+            }
+            main.container > .mb-6 {
+                position: sticky;
+                top: 5.4rem;
+            }
+            #results-container {
+                min-height: 72vh;
+            }
+        }
+
         /* Print Styles */
         @media print {
             body { background-color: white; color: black; }
@@ -332,7 +354,7 @@
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased legacy-focus-ring" data-legacy-shell="true">
 
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300">
@@ -457,12 +479,16 @@
     <!-- Toast Notification Container -->
     <div id="toast-container"></div>
     
+    <script src="./vendor/d3.min.js"></script>
+    <script src="./vendor/fuse.min.js"></script>
+
     <!-- Data and App Logic -->
     <script type="module">
-    import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.8.5/+esm';
-    import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/+esm';
     import { SpacedRepetitionSystem } from './spacedRepetition.js';
     import { dermDifferentialData } from './dermatopathology-differentials-data.js';
+
+    const d3 = window.d3;
+    const Fuse = window.Fuse;
 
     const STORAGE_KEY = 'dermatopathologyDifferentialsState';
     const LEGACY_STORAGE_KEY = 'dermpathNavigatorState';
@@ -473,8 +499,8 @@
     const loadPdfLib = () => {
         if (!pdfLibPromise) {
             pdfLibPromise = Promise.all([
-                import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm'),
-                import('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.23/+esm')
+                import('./vendor/jspdf.es.min.js'),
+                import('./vendor/jspdf-autotable.esm.js')
             ]);
         }
         return pdfLibPromise;
@@ -482,7 +508,7 @@
 
     const loadXlsxLib = () => {
         if (!xlsxLibPromise) {
-            xlsxLibPromise = import('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm');
+            xlsxLibPromise = import('./vendor/xlsx.mjs');
         }
         return xlsxLibPromise;
     };
@@ -598,6 +624,11 @@
 
             dom.loadingOverlay.style.opacity = '0';
             setTimeout(() => dom.loadingOverlay.style.display = 'none', 300);
+            window.LegacyGuidance?.maybeShow('dermpath-differentials', [
+                'Use the left panel to search findings or select from the dropdown.',
+                'Review contextual differential details in the right results panel.',
+                'Use tabs for list, table, flashcards, and analytics views.'
+            ]);
             
             console.log("Application initialized successfully.");
         };
@@ -853,6 +884,9 @@
             const html = diagnoses.map(dx => {
                 const isFavorite = !!state.favorites[dx.name];
                 const hasNote = !!state.notes[dx.name];
+                const safeNoteHtml = hasNote
+                    ? escapeHtml(state.notes[dx.name]).replace(/\n/g, '<br>')
+                    : '';
                 return `
                 <div class="diagnosis-card bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 mb-4" data-diagnosis-name="${dx.name}">
                     <div class="flex justify-between items-start">
@@ -874,7 +908,7 @@
                     </div>
                     <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
                         <p><strong>Key Features:</strong> ${dx.keyFeatures}</p>
-                        ${state.notes[dx.name] ? `<div class="mt-2 p-2 bg-blue-50 dark:bg-blue-900/50 border-l-4 border-blue-400 text-sm"><p class="font-semibold">My Note:</p><p>${state.notes[dx.name].replace(/\n/g, '<br>')}</p></div>` : ''}
+                        ${safeNoteHtml ? `<div class="mt-2 p-2 bg-blue-50 dark:bg-blue-900/50 border-l-4 border-blue-400 text-sm"><p class="font-semibold">My Note:</p><p>${safeNoteHtml}</p></div>` : ''}
                     </div>
                 </div>`;
             }).join('');
@@ -1610,6 +1644,15 @@
             if (Array.isArray(sources)) return sources.join(', ');
             if (typeof sources === 'string') return sources;
             return 'Unknown';
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
         
         function toggleFavorite(diagnosisName, findingName) {

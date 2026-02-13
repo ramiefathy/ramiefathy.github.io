@@ -1,0 +1,95 @@
+.legacy-shell {
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--legacy-space-3);
+  margin-bottom: var(--legacy-space-4);
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--legacy-border);
+  border-radius: var(--legacy-radius-md);
+  background: color-mix(in oklab, var(--legacy-surface), white 12%);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.legacy-shell__group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.legacy-shell__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--legacy-text-muted);
+  margin-right: 0.35rem;
+}
+
+.legacy-shell__action {
+  border: 1px solid var(--legacy-border);
+  background: var(--legacy-surface);
+  border-radius: var(--legacy-radius-sm);
+  padding: 0.3rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--legacy-text);
+  transition: all var(--legacy-duration-fast);
+}
+
+.legacy-shell__action:hover {
+  background: var(--legacy-surface-muted);
+}
+
+.legacy-shell__help {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.legacy-shell__help[aria-hidden='false'] {
+  display: flex;
+}
+
+.legacy-shell__help-card {
+  width: min(560px, 92vw);
+  border-radius: var(--legacy-radius-lg);
+  border: 1px solid var(--legacy-border);
+  background: var(--legacy-surface);
+  box-shadow: var(--legacy-shadow);
+  padding: var(--legacy-space-5);
+}
+
+.legacy-shell__help-card h2 {
+  margin: 0 0 var(--legacy-space-2);
+}
+
+.legacy-shell__help-card p {
+  margin: 0 0 var(--legacy-space-4);
+  color: var(--legacy-text-muted);
+}
+
+.legacy-shell__help-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.legacy-shell__status {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .legacy-shell {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

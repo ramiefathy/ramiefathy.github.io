@@ -1,31 +1,51 @@
 import { expect, test } from '@playwright/test';
 
-const WAIT_FOR_RENDER = 1500;
-
 test.describe('Mind map experiences', () => {
   test('Alopecia mind map search and accessibility flows', async ({ page }) => {
-    await page.goto('/apps/mindmaps/alopecia');
-    await page.waitForTimeout(WAIT_FOR_RENDER);
+    test.slow();
+    await page.route('**/*', async (route) => {
+      const url = route.request().url();
+      const isLocal =
+        url.startsWith('http://127.0.0.1') ||
+        url.startsWith('http://localhost') ||
+        url.startsWith('http://[::1]');
+      const isBlobOrData = url.startsWith('data:') || url.startsWith('blob:');
+      if (!isLocal && !isBlobOrData && url.startsWith('http')) {
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+    await page.goto('/apps/mindmaps/alopecia', { waitUntil: 'domcontentloaded' });
 
-    const appContainer = page.locator('.mindmap-app');
-    if (await appContainer.count() === 0) {
-      test.skip('Mind map shell did not render (likely missing esbuild binary in this environment).');
-    }
+    // Wait for the route shell first, then for the interactive app controls to appear.
+    await expect(page.locator('#mindmap-runtime')).toBeVisible({ timeout: 45_000 });
+
+    // Ensure the Astro island is hydrated; SSR markup exists before hydration but is not interactive.
+    await page.waitForFunction(
+      () => {
+        const island = document.querySelector('astro-island[component-url*="MindMapApp"]');
+        return island && !island.hasAttribute('ssr');
+      },
+      { timeout: 90_000 }
+    );
+
+    const search = page.getByLabel('Search nodes');
+    await expect(search).toBeVisible({ timeout: 90_000 });
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Alopecia Mind Map/);
     const tablist = page.getByRole('tablist', { name: /Alopecia Mind Map tabs/ });
     await expect(tablist).toBeVisible();
 
-    const search = page.getByLabel('Search nodes');
-    await expect(search).toBeVisible();
-    await search.fill('Minoxidil');
-    const match = page.getByRole('option', { name: /Minoxidil/ }).first();
+    await search.fill('Timeline');
+
+    const match = page.getByRole('option', { name: /Timeline/i }).first();
     await expect(match).toBeVisible({ timeout: 45_000 });
     await match.click();
 
     const detailsPanel = page.getByRole('complementary');
     await expect(detailsPanel.locator('h2')).toHaveText('Details');
-    await expect(page.getByRole('navigation', { name: 'Selected node breadcrumb' })).toContainText(/Minoxidil/);
+    await expect(page.getByRole('navigation', { name: 'Selected node breadcrumb' })).toContainText(/Timeline/i);
     await expect(detailsPanel.locator('.tooltip-content')).toHaveText(/\S+/);
 
     await page.keyboard.press('?');

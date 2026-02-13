@@ -1,5 +1,15 @@
 // UI Enhancements Module for AI Dermatology Scribe
 
+const safeParseJson = (rawValue, fallbackValue) => {
+  if (!rawValue) return fallbackValue
+  try {
+    return JSON.parse(rawValue)
+  } catch (error) {
+    console.warn('Failed to parse stored JSON payload, using fallback.', error)
+    return fallbackValue
+  }
+}
+
 // ========== Theme Manager ==========
 class ThemeManager {
   constructor() {
@@ -776,7 +786,7 @@ class LayoutManager {
     };
 
     // Load custom layouts from localStorage
-    const customLayouts = JSON.parse(localStorage.getItem('dermascribe.customLayouts') || '{}');
+    const customLayouts = safeParseJson(localStorage.getItem('dermascribe.customLayouts'), {});
 
     return { ...defaultLayouts, ...customLayouts };
   }
@@ -838,7 +848,7 @@ class LayoutManager {
   }
 
   saveCustomLayout(name, configuration) {
-    const customLayouts = JSON.parse(localStorage.getItem('dermascribe.customLayouts') || '{}');
+    const customLayouts = safeParseJson(localStorage.getItem('dermascribe.customLayouts'), {});
     customLayouts[name] = { name, ...configuration };
     localStorage.setItem('dermascribe.customLayouts', JSON.stringify(customLayouts));
 

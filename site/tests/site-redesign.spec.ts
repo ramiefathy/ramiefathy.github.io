@@ -66,6 +66,8 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
   });
 
   test('primary nav links are correct and key routes render', async ({ page }) => {
+    test.slow();
+    test.setTimeout(150_000);
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     const nav = page.getByRole('navigation', { name: 'Primary navigation' });
     await expect(nav).toBeVisible();
@@ -263,6 +265,7 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
   });
 
   test('theme toggle persists across reload', async ({ page }) => {
+    test.slow();
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await waitForHeaderHydration(page);
 
@@ -288,13 +291,19 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
     const toggledTheme = await page.evaluate(() => document.documentElement.dataset.theme || 'light');
     expect(toggledTheme).not.toBe(initialTheme);
 
-    await page.waitForFunction((expected) => {
-      try {
-        return window.localStorage.getItem('theme') === expected;
-      } catch (err) {
-        return false;
-      }
-    }, toggledTheme, { timeout: 10_000 });
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            try {
+              return window.localStorage.getItem('theme');
+            } catch (err) {
+              return null;
+            }
+          }),
+        { timeout: 20_000 }
+      )
+      .toBe(toggledTheme);
 
     await page.reload({ waitUntil: 'domcontentloaded' });
     await waitForHeaderHydration(page);

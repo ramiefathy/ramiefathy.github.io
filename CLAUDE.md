@@ -28,6 +28,12 @@ npm run site:build
 npm run site:preview
 ```
 
+### Canonical Test Surface Inventory (IMPORTANT)
+The canonical list of user-facing pages/apps that must be covered by automated checks lives at:
+- `docs/site-test-inventory.md`
+
+Playwright specs under `site/tests/` parse this inventory to decide what to smoke-test. **Update it** whenever you add/remove/rename routes under `site/src/pages/**`, add/remove shipped legacy HTML apps under `site/public/apps/**`, or change canonical external app URLs (e.g., Clinisched, Skinoculars).
+
 ### RAMIE/AI Scribe Backend
 ```bash
 # Install Python dependencies

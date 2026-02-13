@@ -87,7 +87,7 @@ export default function SkillsVisualization({ data }) {
         })}
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .skills-section {
           padding: 2rem 1rem;
         }
@@ -217,7 +217,7 @@ export default function SkillsVisualization({ data }) {
             animation: none;
           }
         }
-      `}</style>
+      ` }} />
     </section>
   );
 }

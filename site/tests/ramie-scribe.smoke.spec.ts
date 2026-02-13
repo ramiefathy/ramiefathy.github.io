@@ -21,8 +21,10 @@ async function waitForNotification(page: Page, text: string) {
 async function configureBackendStorage(page: Page) {
   await page.addInitScript(
     ({ wsUrl, token }) => {
-      localStorage.setItem('dermascribe.websocketUrl', wsUrl);
-      localStorage.setItem('dermascribe.sessionToken', token);
+      // Scribe treats tokens as sensitive and only reads them from sessionStorage.
+      // Keep tests aligned with production behavior (no long-lived secrets in localStorage).
+      sessionStorage.setItem('dermascribe.websocketUrl', wsUrl);
+      sessionStorage.setItem('dermascribe.sessionToken', token);
     },
     { wsUrl: WS_URL, token: SESSION_TOKEN }
   );

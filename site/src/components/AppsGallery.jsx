@@ -591,7 +591,7 @@ export default function AppsGallery({ apps, collections }) {
         </div>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .apps-gallery {
           --gallery-accent-1: ${DEFAULT_ACCENT[0]};
           --gallery-accent-2: ${DEFAULT_ACCENT[1]};
@@ -1309,7 +1309,7 @@ export default function AppsGallery({ apps, collections }) {
             transition: none;
           }
         }
-      `}</style>
+      ` }} />
     </section>
   );
 }
