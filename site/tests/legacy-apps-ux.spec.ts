@@ -1,23 +1,7 @@
 import { expect, test } from '@playwright/test'
+import { getLegacyHtmlAppRoutes } from './inventory.js'
 
-const interactivePages = [
-  '/apps/index.html',
-  '/apps/MindMaps/CTCL/CTCLMindMaps.html',
-  '/apps/MindMaps/Psoriasis/PsoriasisMindMaps.html',
-  '/apps/MindMaps/Alopecia/AlopeciaMindMaps.html',
-  '/apps/biologic-monitoring-dashboard/index.html',
-  '/apps/dermatopathology-differentials.html',
-  '/apps/dermatopathology-modern/index.html',
-  '/apps/dermatopathology-modern/index-fixed.html',
-  '/apps/dermatopathology-modern/deduplication-visualization.html',
-  '/apps/dermatopathology-modern/test-fixes.html',
-  '/apps/PDF%20Merger.html',
-  '/apps/PDF%20Splitter.html',
-  '/apps/textExtractor.html',
-  '/apps/dermatology-scribe/index.html',
-  '/apps/dermatology-scribe/test-ui-enhancements.html',
-  '/apps/WoundCareWebpages.html'
-]
+const interactivePages = getLegacyHtmlAppRoutes()
 
 test.describe('legacy app UX modernization baseline', () => {
   for (const path of interactivePages) {

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { getAstroRoutes, getNotFoundRoute } from './inventory.js'
 
 type RuntimeCapture = {
   consoleErrors: string[]
@@ -15,6 +16,18 @@ function isLocalUrl(url: string): boolean {
     url.startsWith('http://localhost') ||
     url.startsWith('http://[::1]')
   )
+}
+
+async function blockExternalRequests(page: Page) {
+  await page.route('**/*', async (route) => {
+    const url = route.request().url()
+    const isBlobOrData = url.startsWith('data:') || url.startsWith('blob:')
+    if (!isLocalUrl(url) && !isBlobOrData && url.startsWith('http')) {
+      await route.abort()
+      return
+    }
+    await route.continue()
+  })
 }
 
 function isIgnorableLocalBadResponse(url: string): boolean {
@@ -63,7 +76,11 @@ function captureRuntimeErrors(page: Page): RuntimeCapture {
   page.on('requestfailed', (request) => {
     const url = request.url()
     if (!isLocalUrl(url)) return
-    capture.requestFailures.push(`${request.method()} ${url} :: ${request.failure()?.errorText || 'unknown'}`)
+    const failureText = request.failure()?.errorText || 'unknown'
+    // Navigations can legitimately cancel/prematurely abort in-flight subresource requests.
+    // Treat these as non-actionable so this suite remains stable while still catching real 404s/500s.
+    if (/ERR_ABORTED|NS_BINDING_ABORTED/i.test(failureText)) return
+    capture.requestFailures.push(`${request.method()} ${url} :: ${failureText}`)
   })
 
   return capture
@@ -108,8 +125,12 @@ async function visitAndAssertClean(page: Page, urlPath: string, allowedStatuses:
 }
 
 test.describe('site runtime smoke (no external deps + no runtime errors)', () => {
+  test.beforeEach(async ({ page }) => {
+    await blockExternalRequests(page)
+  })
+
   test('core routes render without runtime errors', async ({ page }) => {
-    const coreRoutes = ['/', '/about', '/apps', '/research', '/research/dermoscopy-llm-dashboard', '/blog', '/contact', '/legacy']
+    const coreRoutes = getAstroRoutes()
 
     for (const route of coreRoutes) {
       await visitAndAssertClean(page, route)
@@ -129,7 +150,7 @@ test.describe('site runtime smoke (no external deps + no runtime errors)', () =>
   })
 
   test('404 page renders and unknown routes return not-found content', async ({ page }) => {
-    await visitAndAssertClean(page, '/404', [200, 404])
+    await visitAndAssertClean(page, getNotFoundRoute(), [200, 404])
     await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible()
 
     const runtime = captureRuntimeErrors(page)

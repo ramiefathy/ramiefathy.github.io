@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { getLegacyHtmlApps } from './inventory.js'
 
 const waitForStability = 800
 
@@ -8,40 +9,41 @@ type PageCheck = {
   interact?: (page: Page) => Promise<void>
 }
 
+const legacyApps = getLegacyHtmlApps()
+const byLabel = (label: string) => {
+  const match = legacyApps.find((entry) => entry.label === label)
+  if (!match) {
+    throw new Error(`Legacy app inventory missing entry with label "${label}"`)
+  }
+  return match.route
+}
+
+const mindmapInteract = async (page: Page) => {
+  const zoomIn = page.locator('#zoom-in')
+  if (await zoomIn.count()) {
+    await zoomIn.click()
+  }
+}
+
 const checks: PageCheck[] = [
   {
     label: 'CTCL mindmap',
-    path: '/apps/MindMaps/CTCL/CTCLMindMaps.html',
-    interact: async (page) => {
-      const zoomIn = page.locator('#zoom-in')
-      if (await zoomIn.count()) {
-        await zoomIn.click()
-      }
-    }
+    path: byLabel('MindMaps (CTCL)'),
+    interact: mindmapInteract
   },
   {
     label: 'Psoriasis mindmap',
-    path: '/apps/MindMaps/Psoriasis/PsoriasisMindMaps.html',
-    interact: async (page) => {
-      const zoomIn = page.locator('#zoom-in')
-      if (await zoomIn.count()) {
-        await zoomIn.click()
-      }
-    }
+    path: byLabel('MindMaps (Psoriasis)'),
+    interact: mindmapInteract
   },
   {
     label: 'Alopecia mindmap',
-    path: '/apps/MindMaps/Alopecia/AlopeciaMindMaps.html',
-    interact: async (page) => {
-      const zoomIn = page.locator('#zoom-in')
-      if (await zoomIn.count()) {
-        await zoomIn.click()
-      }
-    }
+    path: byLabel('MindMaps (Alopecia)'),
+    interact: mindmapInteract
   },
   {
     label: 'scribe UI enhancements test page',
-    path: '/apps/dermatology-scribe/test-ui-enhancements.html'
+    path: byLabel('Dermatology Scribe (UI enhancements test)')
   }
 ]
 
