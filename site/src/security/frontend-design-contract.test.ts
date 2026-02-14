@@ -41,6 +41,20 @@ function walkFiles(rootDir: string, options: WalkOptions): string[] {
   return results
 }
 
+function getHtmlMetaTags(html: string): string[] {
+  return html.match(/<meta\b[^>]*>/gi) ?? []
+}
+
+function hasMetaDescription(html: string): boolean {
+  for (const tag of getHtmlMetaTags(html)) {
+    if (!/\bname\s*=\s*["']description["']/i.test(tag)) continue
+    if (!/\bcontent\s*=\s*["'][^"']+["']/i.test(tag)) return false
+    return true
+  }
+
+  return false
+}
+
 describe('Frontend Design System Contract (legacy apps)', () => {
   it('legacy shared tokens define required semantic variables', () => {
     const tokensPath = path.join(SHARED_ROOT, 'legacy-tokens.css')
@@ -88,5 +102,18 @@ describe('Frontend Design System Contract (legacy apps)', () => {
 
     expect(violations).toEqual([])
   })
-})
 
+  it('legacy HTML apps include a meta description', () => {
+    const htmlFiles = walkFiles(APPS_ROOT, {
+      excludeDirs: ['vendor'],
+      excludeFilePatterns: [],
+      includeExtensions: new Set(['.html'])
+    })
+
+    const missingMetaDescription = htmlFiles
+      .filter((filePath) => !hasMetaDescription(fs.readFileSync(filePath, 'utf-8')))
+      .map((filePath) => path.relative(APPS_ROOT, filePath))
+
+    expect(missingMetaDescription).toEqual([])
+  })
+})
