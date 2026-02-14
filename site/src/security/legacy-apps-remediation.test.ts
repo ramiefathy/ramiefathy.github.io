@@ -58,6 +58,49 @@ describe('legacy apps remediation backlog', () => {
     }
   })
 
+  it('P1: modernized legacy pages expose parseable in-shell help steps', () => {
+    const pagesWithShell = [
+      'index.html',
+      'MindMaps/CTCL/CTCLMindMaps.html',
+      'MindMaps/Psoriasis/PsoriasisMindMaps.html',
+      'MindMaps/Alopecia/AlopeciaMindMaps.html',
+      'biologic-monitoring-dashboard/index.html',
+      'dermatopathology-differentials.html',
+      'dermatopathology-modern/index.html',
+      'dermatopathology-modern/index-fixed.html',
+      'dermatopathology-modern/deduplication-visualization.html',
+      'dermatopathology-modern/test-fixes.html',
+      'textExtractor.html',
+      'PDF Merger.html',
+      'PDF Splitter.html',
+      'dermatology-scribe/index.html',
+      'dermatology-scribe/test-ui-enhancements.html',
+      'WoundCareWebpages.html'
+    ]
+
+    const problems: string[] = []
+
+    for (const filePath of pagesWithShell) {
+      const html = loadApp(filePath)
+      const match = html.match(/data-help-steps='([^']+)'/)
+      if (!match) {
+        problems.push(`${filePath} :: missing data-help-steps`)
+        continue
+      }
+
+      try {
+        const parsed = JSON.parse(match[1])
+        if (!Array.isArray(parsed) || parsed.length === 0 || parsed.some((step) => typeof step !== 'string' || !step.trim())) {
+          problems.push(`${filePath} :: invalid data-help-steps JSON`)
+        }
+      } catch (error) {
+        problems.push(`${filePath} :: invalid data-help-steps JSON`)
+      }
+    }
+
+    expect(problems).toEqual([])
+  })
+
   it('P1: legacy apps index does not label scribe as deprecated', () => {
     const legacyAppsIndex = loadApp('index.html')
     expect(legacyAppsIndex).not.toContain('Deprecated')
