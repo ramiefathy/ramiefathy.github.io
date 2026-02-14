@@ -21,7 +21,6 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Styles -->
     <link rel="stylesheet" href="style.css">
@@ -60,12 +59,12 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border-primary);
             border-radius: var(--border-radius);
-            transition: all var(--transition-normal);
+            transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background-color var(--transition-normal);
         }
 
         .feature-card:hover {
             box-shadow: var(--shadow-lg);
-            transform: translateY(-2px);
+            border-color: var(--accent-primary);
         }
 
         .feature-card h3 {

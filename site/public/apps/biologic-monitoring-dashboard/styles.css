@@ -1,7 +1,7 @@
 :root {
   color-scheme: light dark;
-  --heading-font: 'Source Serif 4', 'Times New Roman', serif;
-  --body-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --heading-font: var(--font-heading, ui-serif, Georgia, serif);
+  --body-font: var(--font-body, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   --bg: #f6f7fb;
   --fg: #101828;
   --muted: #5f6b7d;
@@ -362,7 +362,7 @@ small {
   background: rgba(255, 255, 255, 0.8);
   font-weight: 600;
   cursor: pointer;
-  transition: all 160ms ease;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 220ms ease;
 }
 
 .category-btn.is-active {
@@ -487,7 +487,7 @@ small {
   justify-content: center;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 140ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 220ms ease;
   color: var(--accent);
 }
 
@@ -537,7 +537,7 @@ small {
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 140ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 220ms ease;
 }
 
 .expand-btn:hover,
@@ -672,7 +672,7 @@ small {
   color: var(--accent);
   cursor: pointer;
   font-weight: 600;
-  transition: all 140ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 220ms ease;
 }
 
 .expand-btn:hover,
@@ -743,7 +743,7 @@ small {
   color: rgba(15, 23, 42, 0.8);
   font-weight: 600;
   cursor: pointer;
-  transition: all 140ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 220ms ease;
 }
 
 .tab-btn.is-active {
@@ -1237,7 +1237,7 @@ small {
   border-radius: 6px;
   padding: 2px 6px;
   font-size: 0.78rem;
-  font-family: 'Inter', sans-serif;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 @media print {

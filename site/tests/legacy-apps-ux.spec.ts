@@ -71,6 +71,6 @@ test.describe('legacy app UX modernization baseline', () => {
   test('scribe default theme uses shared legacy background tokens', async ({ page }) => {
     await page.goto('/apps/dermatology-scribe/index.html', { waitUntil: 'networkidle' })
     const backgroundColor = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
-    expect(backgroundColor).toBe('rgb(245, 247, 251)')
+    expect(backgroundColor).toBe('rgb(240, 253, 250)')
   })
 })

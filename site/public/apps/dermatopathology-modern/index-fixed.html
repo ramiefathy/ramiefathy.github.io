@@ -20,31 +20,22 @@
     <script src="../shared/legacy-shell.js" defer></script>
     <script src="../shared/legacy-guidance.js" defer></script>
 
-    <!-- Modern Font Stack -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Berkeley+Mono&display=swap" rel="stylesheet">
-
     <style>
         /* Custom Tailwind Config */
         :root {
-            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --font-mono: 'Berkeley Mono', 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            --font-sans: var(--font-body, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
 
         /* Glassmorphism Base */
         .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.25);
         }
 
         .glass-dark {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(7, 26, 31, 0.92);
+            border: 1px solid rgba(103, 232, 249, 0.14);
         }
 
         /* Custom Scrollbar */
@@ -111,19 +102,11 @@
 
         /* Card Hover Effects */
         .card-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color 160ms ease, border-color 160ms ease, box-shadow 220ms ease;
         }
 
         .card-hover:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Smooth Transitions */
-        * {
-            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 150ms;
+            box-shadow: 0 18px 46px rgba(2, 6, 23, 0.14);
         }
 
         /* Network Graph Container */
@@ -149,7 +132,7 @@
             height: 8px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.3);
-            transition: all 0.3s;
+            transition: width 300ms ease, background-color 200ms ease, border-radius 300ms ease, opacity 200ms ease;
         }
 
         .swipe-dot.active {
@@ -239,7 +222,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'sans': ['IBM Plex Sans', 'system-ui', '-apple-system', 'sans-serif'],
                         'mono': ['Berkeley Mono', 'SF Mono', 'Monaco', 'monospace'],
                     },
                     animation: {
@@ -362,7 +345,7 @@
 
         // Loading Component
         const LoadingScreen = () => (
-            <div className="fixed inset-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-teal-700 flex items-center justify-center z-50">
                 <div className="relative">
                     <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center">
                         <Icon name="microscope" className="w-10 h-10 text-white" />
@@ -510,7 +493,7 @@
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-2">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-teal-700 flex items-center justify-center">
                                         <Icon name="microscope" className="w-6 h-6 text-white" />
                                     </div>
                                     <div>
@@ -990,7 +973,7 @@
                         {recommendations.map((rec, index) => (
                             <div
                                 key={index}
-                                className="flex items-start space-x-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg fade-enter-active"
+                                className="flex items-start space-x-3 p-3 bg-slate-50 dark:bg-slate-900/20 rounded-lg fade-enter-active"
                             >
                                 <Icon name="lightbulb" className="w-4 h-4 text-blue-500 mt-0.5" />
                                 <p className="text-sm">{rec}</p>
@@ -998,7 +981,7 @@
                         ))}
                     </div>
 
-                    <button className="mt-4 w-full p-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all">
+                    <button className="mt-4 w-full p-3 bg-cyan-700 text-white rounded-lg hover:opacity-90 transition-colors">
                         Generate Study Plan
                     </button>
                 </div>
@@ -1090,9 +1073,9 @@
                                         <button
                                             key={view}
                                             onClick={() => setActiveView(view)}
-                                            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                                                 activeView === view
-                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                                                    ? 'bg-teal-700 text-white'
                                                     : 'glass dark:glass-dark hover:bg-gray-100 dark:hover:bg-gray-800'
                                             }`}
                                         >
@@ -1151,7 +1134,7 @@
                                                     <span className="text-sm text-gray-600 dark:text-gray-400">Study Progress</span>
                                                     <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                                         <div
-                                                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
+                                                            className="bg-teal-700 h-2 rounded-full"
                                                             style={{ width: '65%' }}
                                                         ></div>
                                                     </div>
@@ -1168,7 +1151,7 @@
                     </main>
 
                     {/* Floating Action Button */}
-                    <button className="fab bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                    <button className="fab bg-teal-700 text-white">
                         <Icon name="plus" className="w-6 h-6" />
                     </button>
                 </div>

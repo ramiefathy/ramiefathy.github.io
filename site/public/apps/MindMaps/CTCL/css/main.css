@@ -1,9 +1,9 @@
 /* css/main.css - CTCL Mind Maps */
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #faf5ff; /* Purple-50 background */
-    color: #334155;
+    font-family: var(--font-body, var(--legacy-font-sans, ui-sans-serif));
+    background-color: transparent;
+    color: var(--legacy-text, #0b1f24);
 }
 
 /* --- Tab and Dropdown Styles --- */
@@ -20,19 +20,19 @@ body {
     cursor: pointer;
     padding: 10px 16px;
     border-bottom: 2px solid transparent;
-    transition: all 0.3s ease;
+    transition: background-color var(--legacy-duration-base, 300ms) ease, color var(--legacy-duration-fast, 160ms) ease;
     display: inline-block;
     position: relative;
     border-radius: 6px 6px 0 0;
 }
 
-/* CTCL Theme Colors - Purple/Indigo palette */
+/* CTCL Theme Colors: accent / primary / success */
 .tab-group-blue { color: #2563eb; }
-.tab-group-purple { color: #7c3aed; }
+.tab-group-accent { color: var(--accent, #164e63); }
 .tab-group-green { color: #16a34a; }
 
 .tab-group-blue.active { font-weight: 600; background-color: #dbeafe; border-color: #2563eb; }
-.tab-group-purple.active { font-weight: 600; background-color: #ede9fe; border-color: #7c3aed; }
+.tab-group-accent.active { font-weight: 600; background-color: color-mix(in oklab, var(--accent, #164e63), white 88%); border-color: var(--accent, #164e63); }
 .tab-group-green.active { font-weight: 600; background-color: #dcfce7; border-color: #16a34a; }
 
 .dropdown {
@@ -84,24 +84,24 @@ body {
 }
 .link {
     fill: none;
-    stroke: #c4b5fd; /* Violet-300 */
+    stroke: color-mix(in oklab, var(--primary, #0f766e), white 65%);
     stroke-width: 2px;
     opacity: 0.6;
 }
 .node circle {
-    stroke: #6d28d9; /* Violet-700 */
+    stroke: color-mix(in oklab, var(--accent, #164e63), black 5%);
     stroke-width: 1.5px;
     transition: stroke-width 0.2s ease, stroke 0.2s ease, fill 0.2s ease;
 }
 .node .collapsible {
-    stroke: #4c1d95; /* Violet-900 */
+    stroke: var(--accent, #164e63);
     stroke-width: 3px;
 }
 .node:focus {
     outline: none;
 }
 .node:focus > circle {
-    stroke: #8b5cf6; /* Violet-500 */
+    stroke: var(--accent, #164e63);
     stroke-width: 4px;
 }
 
@@ -112,10 +112,10 @@ body {
     max-width: 450px; visibility: hidden; opacity: 0;
     transition: opacity 0.3s, visibility 0.3s; pointer-events: none; z-index: 20;
 }
-.tooltip-title { font-weight: 700; margin-bottom: 5px; color: #c4b5fd; } /* Violet-300 */
+.tooltip-title { font-weight: 700; margin-bottom: 5px; color: color-mix(in oklab, var(--accent, #164e63), white 35%); }
 .tooltip-content ul { list-style-position: inside; padding-left: 0; margin: 0; }
 .tooltip-content li { margin-bottom: 5px; }
-.tooltip-content strong { color: #a78bfa; } /* Violet-400 */
+.tooltip-content strong { color: color-mix(in oklab, var(--primary, #0f766e), white 15%); }
 
 /* --- Search Highlight & Results Styles --- */
 .search-highlight circle {
@@ -149,10 +149,10 @@ body {
     border-bottom: none;
 }
 .search-result-item:hover {
-    background-color: #faf5ff;
+    background-color: color-mix(in oklab, var(--muted, #e6f4f1), white 60%);
 }
 .search-result-item-active {
-    background-color: #ede9fe;
+    background-color: color-mix(in oklab, var(--accent, #164e63), white 90%);
 }
 .search-result-item .tab-name {
     font-size: 12px;

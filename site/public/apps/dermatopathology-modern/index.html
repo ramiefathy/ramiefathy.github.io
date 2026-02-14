@@ -20,34 +20,25 @@
     <script src="../shared/legacy-shell.js" defer></script>
     <script src="../shared/legacy-guidance.js" defer></script>
 
-    <!-- Modern Font Stack -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Berkeley+Mono&display=swap" rel="stylesheet">
-
     <style>
         /* Custom Tailwind Config */
         :root {
-            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --font-mono: 'Berkeley Mono', 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            --font-sans: var(--font-body, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
 
         /* Glassmorphism Base - Semi-transparent cards over shader background */
         .glass {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            color: white;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            box-shadow: 0 10px 26px rgba(2, 6, 23, 0.12);
+            color: inherit;
         }
 
         .glass-dark {
-            background: rgba(10, 15, 30, 0.88);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            background: rgba(7, 26, 31, 0.92);
+            border: 1px solid rgba(103, 232, 249, 0.14);
+            box-shadow: 0 18px 46px rgba(0, 0, 0, 0.38);
             color: white;
         }
 
@@ -115,19 +106,11 @@
 
         /* Card Hover Effects */
         .card-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color 160ms ease, border-color 160ms ease, box-shadow 220ms ease;
         }
 
         .card-hover:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Smooth Transitions */
-        * {
-            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 150ms;
+            box-shadow: 0 18px 46px rgba(2, 6, 23, 0.14);
         }
 
         /* Network Graph Container */
@@ -153,7 +136,7 @@
             height: 8px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.3);
-            transition: all 0.3s;
+            transition: width 300ms ease, background-color 200ms ease, border-radius 300ms ease, opacity 200ms ease;
         }
 
         .swipe-dot.active {
@@ -286,7 +269,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'sans': ['IBM Plex Sans', 'system-ui', '-apple-system', 'sans-serif'],
                         'mono': ['Berkeley Mono', 'SF Mono', 'Monaco', 'monospace'],
                     },
                     animation: {
@@ -356,23 +339,23 @@
                 colorSets: {
                     // Slow movement - deeper, subtle colors (brightened by 50%)
                     slow: [
-                        [30, 20, 60, 1.0],    // Deep purple
+                        [30, 20, 60, 1.0],    // Deep accent
                         [20, 40, 50, 1.0],    // Dark blue-green
-                        [40, 30, 70, 1.0],    // Muted purple
+                        [40, 30, 70, 1.0],    // Muted accent
                         [25, 45, 40, 1.0]     // Dark forest green
                     ],
                     // Medium movement - balanced colors (brightened by 30%)
                     medium: [
-                        [60, 40, 100, 1.0],   // Medium purple
+                        [60, 40, 100, 1.0],   // Medium accent
                         [40, 75, 60, 1.0],    // Teal-green
-                        [75, 55, 110, 1.0],   // Vibrant purple
+                        [75, 55, 110, 1.0],   // Vibrant accent
                         [45, 85, 50, 1.0]     // Emerald green
                     ],
                     // Fast movement - bright, vibrant colors
                     fast: [
-                        [100, 70, 150, 1.0],  // Bright purple
+                        [100, 70, 150, 1.0],  // Bright accent
                         [60, 130, 80, 1.0],   // Vivid green
-                        [120, 90, 170, 1.0],  // Electric purple
+                        [120, 90, 170, 1.0],  // Electric accent
                         [70, 150, 90, 1.0]    // Bright emerald
                     ]
                 },
@@ -759,7 +742,7 @@
                 config.rippleFrequency = 20;
             }
 
-            // Set clear color to a subtle dark purple
+            // Set clear color to a subtle dark accent
             gl.clearColor(0.05, 0.03, 0.08, 1.0);
 
             console.log('WebGL shader initialized successfully');
@@ -1658,7 +1641,7 @@
                             </span>
                         )}
                     </button>
-                    <div className="absolute right-0 mt-2 w-64 glass dark:glass-dark rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all p-4">
+                    <div className="absolute right-0 mt-2 w-64 glass dark:glass-dark rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-colors p-4">
                         <h4 className="font-bold text-white mb-3">Achievements</h4>
                         <div className="space-y-2">
                             {achievementSystem.getAllAchievements().slice(0, 3).map(achievement => (
@@ -1681,7 +1664,7 @@
 
         // Loading Component
         const LoadingScreen = () => (
-            <div className="fixed inset-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-teal-700 flex items-center justify-center z-50">
                 <div className="relative">
                     <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center">
                         <Icon name="microscope" className="w-10 h-10 text-white" />
@@ -1829,7 +1812,7 @@
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-2">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-teal-700 flex items-center justify-center">
                                         <Icon name="microscope" className="w-6 h-6 text-white" />
                                     </div>
                                     <div>
@@ -1862,7 +1845,7 @@
                                     >
                                         <Icon name="download" className="w-5 h-5" />
                                     </button>
-                                    <div className="absolute right-0 mt-2 w-48 glass dark:glass-dark rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                                    <div className="absolute right-0 mt-2 w-48 glass dark:glass-dark rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-colors">
                                         <button
                                             onClick={() => exportToPDF()}
                                             className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800 rounded-t-lg flex items-center gap-2"
@@ -2356,7 +2339,7 @@
                         {recommendations.map((rec, index) => (
                             <div
                                 key={index}
-                                className="flex items-start space-x-3 p-3 bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg fade-enter-active"
+                                className="flex items-start space-x-3 p-3 bg-slate-900/20 rounded-lg fade-enter-active"
                             >
                                 <Icon name="lightbulb" className="w-4 h-4 text-blue-400 mt-0.5" />
                                 <p className="text-sm text-gray-100 font-medium">{rec}</p>
@@ -2364,7 +2347,7 @@
                         ))}
                     </div>
 
-                    <button className="mt-4 w-full p-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all">
+                    <button className="mt-4 w-full p-3 bg-cyan-700 text-white rounded-lg hover:opacity-90 transition-colors">
                         Generate Study Plan
                     </button>
                 </div>
@@ -2469,7 +2452,7 @@
                             {!showAnswer ? (
                                 <button
                                     onClick={() => setShowAnswer(true)}
-                                    className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all"
+                                    className="w-full py-4 bg-teal-700 text-white rounded-lg font-medium hover:opacity-90 transition-colors"
                                 >
                                     Show Answer
                                 </button>
@@ -2477,25 +2460,25 @@
                                 <div className="grid grid-cols-4 gap-2">
                                     <button
                                         onClick={() => handleResponse(1)}
-                                        className="py-3 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-all"
+                                        className="py-3 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
                                     >
                                         Again
                                     </button>
                                     <button
                                         onClick={() => handleResponse(3)}
-                                        className="py-3 bg-orange-500/20 text-orange-400 rounded-lg hover:bg-orange-500/30 transition-all"
+                                        className="py-3 bg-orange-500/20 text-orange-400 rounded-lg hover:bg-orange-500/30 transition-colors"
                                     >
                                         Hard
                                     </button>
                                     <button
                                         onClick={() => handleResponse(4)}
-                                        className="py-3 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-all"
+                                        className="py-3 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
                                     >
                                         Good
                                     </button>
                                     <button
                                         onClick={() => handleResponse(5)}
-                                        className="py-3 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-all"
+                                        className="py-3 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors"
                                     >
                                         Easy
                                     </button>
@@ -2620,7 +2603,7 @@
                                 </div>
                                 <div className="w-full bg-gray-700 rounded-full h-2">
                                     <div
-                                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                                        className="bg-teal-700 h-2 rounded-full transition-colors duration-500"
                                         style={{ width: `${Math.min((studyStats.cardsStudied / diagnoses.length) * 100, 100)}%` }}
                                     />
                                 </div>
@@ -2712,9 +2695,9 @@
                                         <button
                                             key={finding}
                                             onClick={() => toggleFinding(finding)}
-                                            className={`p-3 rounded-lg transition-all ${
+                                            className={`p-3 rounded-lg transition-colors ${
                                                 selectedFindings.includes(finding)
-                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                                                    ? 'bg-teal-700 text-white'
                                                     : 'glass dark:glass-dark hover:bg-gray-700/50'
                                             }`}
                                         >
@@ -2727,9 +2710,9 @@
                             <button
                                 onClick={() => setShowComparison(true)}
                                 disabled={selectedFindings.length < 2}
-                                className={`w-full py-4 rounded-lg font-medium transition-all ${
+                                className={`w-full py-4 rounded-lg font-medium transition-colors ${
                                     selectedFindings.length >= 2
-                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
+                                        ? 'bg-teal-700 text-white hover:opacity-90'
                                         : 'bg-gray-700 text-gray-400 cursor-not-allowed'
                                 }`}
                             >
@@ -2851,13 +2834,13 @@
                         </p>
                         <div className="w-full max-w-xs mx-auto bg-gray-700 rounded-full h-4 mb-6">
                             <div
-                                className="bg-gradient-to-r from-purple-500 to-pink-500 h-4 rounded-full"
+                                className="bg-teal-700 h-4 rounded-full"
                                 style={{ width: `${(score / questions.length) * 100}%` }}
                             />
                         </div>
                         <button
                             onClick={resetQuiz}
-                            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
+                            className="px-6 py-3 bg-teal-700 text-white rounded-lg hover:opacity-90 transition-colors"
                         >
                             Try Again
                         </button>
@@ -2883,7 +2866,7 @@
                                     key={index}
                                     onClick={() => handleAnswer(answer)}
                                     disabled={showFeedback}
-                                    className={`w-full p-4 text-left rounded-lg transition-all ${
+                                    className={`w-full p-4 text-left rounded-lg transition-colors ${
                                         showFeedback && answer === question.correct
                                             ? 'bg-green-500/20 border-green-500 border'
                                             : showFeedback && answer === selectedAnswer && answer !== question.correct
@@ -2899,7 +2882,7 @@
 
                     <div className="w-full bg-gray-700 rounded-full h-2">
                         <div
-                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                            className="bg-teal-700 h-2 rounded-full transition-colors duration-500"
                             style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
                         />
                     </div>
@@ -3031,7 +3014,7 @@
                                                 dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: e.target.value }});
                                                 setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
                                             }}
-                                            className="w-full px-4 py-3 glass dark:glass-dark rounded-lg text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            className="w-full px-4 py-3 glass dark:glass-dark rounded-lg text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500"
                                             aria-label="Select view mode"
                                         >
                                             <optgroup label="Content Views">
@@ -3077,9 +3060,9 @@
                                                                 dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
                                                                 setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
                                                             }}
-                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
                                                                 activeTab === id
-                                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
+                                                                    ? 'bg-teal-700 text-white shadow-lg shadow-black/10'
                                                                     : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
                                                             }`}
                                                         >
@@ -3108,7 +3091,7 @@
                                                                 dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
                                                                 setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
                                                             }}
-                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
                                                                 activeTab === id
                                                                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
                                                                     : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
@@ -3140,7 +3123,7 @@
                                                                 dispatch({ type: 'UPDATE_STUDY_STATS', payload: { currentView: id }});
                                                                 setTimeout(() => dispatch({ type: 'CHECK_ACHIEVEMENTS' }), 100);
                                                             }}
-                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
                                                                 activeTab === id
                                                                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25'
                                                                     : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
@@ -3226,7 +3209,7 @@
                                                     <span className="text-sm text-gray-300 font-medium">Study Progress</span>
                                                     <div className="w-24 bg-gray-700 rounded-full h-2">
                                                         <div
-                                                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
+                                                            className="bg-teal-700 h-2 rounded-full"
                                                             style={{ width: '65%' }}
                                                         ></div>
                                                     </div>
@@ -3249,7 +3232,7 @@
                     {/* Floating Action Button */}
                     <button
                         onClick={() => dispatch({ type: 'TOGGLE_AI_CHAT' })}
-                        className="fab bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-110 transition-transform"
+                        className="fab bg-teal-700 text-white hover:opacity-90 transition-opacity"
                     >
                         <Icon name="sparkles" className="w-6 h-6" />
                     </button>
@@ -3363,7 +3346,7 @@
                             <div>
                                 <div className="flex justify-between mb-1">
                                     <span className="text-gray-400">Avg Interval (days)</span>
-                                    <span className="text-xl font-bold text-purple-400">{Math.round(stats.averageInterval)}</span>
+                                    <span className="text-xl font-bold text-teal-500">{Math.round(stats.averageInterval)}</span>
                                 </div>
                             </div>
                         </div>
@@ -3381,7 +3364,7 @@
                                     </div>
                                     <div className="w-full bg-gray-700 rounded-full h-2">
                                         <div
-                                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
+                                            className="bg-teal-700 h-2 rounded-full"
                                             style={{ width: `${(count / stats.totalCards) * 100}%` }}
                                         />
                                     </div>
@@ -3444,7 +3427,7 @@
                                                 </div>
                                                 <div className="w-full bg-gray-700 rounded-full h-2">
                                                     <div
-                                                        className={`${colors[quality]} h-2 rounded-full transition-all duration-500`}
+                                                        className={`${colors[quality]} h-2 rounded-full transition-colors duration-500`}
                                                         style={{ width: `${percentage}%` }}
                                                     />
                                                 </div>
@@ -3656,7 +3639,7 @@
                         {/* Header */}
                         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-teal-700 flex items-center justify-center">
                                     <Icon name="sparkles" className="w-6 h-6 text-white" />
                                 </div>
                                 <div>
@@ -3700,7 +3683,7 @@
                                                     onClick={() => setInputValue(question)}
                                                     className="block w-full text-left p-3 glass dark:glass-dark rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-sm"
                                                 >
-                                                    <Icon name="sparkles" className="w-4 h-4 inline-block mr-2 text-purple-500" />
+                                                    <Icon name="sparkles" className="w-4 h-4 inline-block mr-2 text-teal-600" />
                                                     {question}
                                                 </button>
                                             ))}
@@ -3717,13 +3700,13 @@
                                     <div
                                         className={`max-w-[80%] p-3 rounded-lg ${
                                             message.role === 'user'
-                                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                                                ? 'bg-teal-700 text-white'
                                                 : 'glass dark:glass-dark'
                                         }`}
                                     >
                                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                                         <p className={`text-xs mt-1 ${
-                                            message.role === 'user' ? 'text-purple-100' : 'text-gray-500 dark:text-gray-400'
+                                            message.role === 'user' ? 'text-teal-100' : 'text-gray-500 dark:text-gray-400'
                                         }`}>
                                             {new Date(message.timestamp).toLocaleTimeString()}
                                         </p>
@@ -3771,12 +3754,12 @@
                                     onKeyPress={handleKeyPress}
                                     placeholder={geminiApiKey ? "Ask a question..." : "Set API key first..."}
                                     disabled={!geminiApiKey || aiChatLoading}
-                                    className="flex-1 px-4 py-2 glass dark:glass-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+                                    className="flex-1 px-4 py-2 glass dark:glass-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:opacity-50"
                                 />
                                 <button
                                     onClick={handleSendMessage}
                                     disabled={!geminiApiKey || !inputValue.trim() || aiChatLoading}
-                                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                                    className="px-4 py-2 bg-teal-700 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
                                 >
                                     <Icon name="send" className="w-4 h-4" />
                                 </button>
@@ -3831,7 +3814,7 @@
                                         value={apiKeyInput}
                                         onChange={(e) => setApiKeyInput(e.target.value)}
                                         placeholder="Enter your Gemini API key"
-                                        className="w-full px-4 py-2 pr-10 glass dark:glass-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        className="w-full px-4 py-2 pr-10 glass dark:glass-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                                     />
                                     <button
                                         type="button"
@@ -3880,7 +3863,7 @@
                             <button
                                 onClick={handleSave}
                                 disabled={!apiKeyInput.trim()}
-                                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                                className="px-4 py-2 bg-teal-700 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
                             >
                                 Save
                             </button>

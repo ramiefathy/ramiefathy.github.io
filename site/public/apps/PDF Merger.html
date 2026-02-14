@@ -13,10 +13,9 @@
     <style>
         /* General body styling */
         body {
-            font-family: 'Inter', sans-serif; /* Modern sans-serif font */
             margin: 0;
-            padding: 20px;
-            background-color: #f0f2f5; /* Light gray background */
+            padding: var(--legacy-space-6);
+            background-color: var(--legacy-bg);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -26,10 +25,11 @@
 
         /* Main container for the application */
         #app-container {
-            background-color: #ffffff; /* White background for the card */
-            padding: 25px 30px; /* Increased padding */
-            border-radius: 12px; /* More rounded corners */
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            background-color: var(--legacy-surface);
+            padding: calc(var(--legacy-space-6) + var(--legacy-space-1));
+            border-radius: calc(var(--radius) + 8px);
+            box-shadow: var(--legacy-shadow-surface);
+            border: 1px solid var(--legacy-border);
             text-align: center;
             width: 100%;
             max-width: 550px; /* Max width for larger screens */
@@ -38,17 +38,18 @@
 
         /* Heading style */
         h1 {
-            color: #1c1e21; /* Darker heading color */
             margin-bottom: 10px;
-            font-size: 28px; /* Larger font size */
+            font-size: 1.8rem;
+            font-family: var(--font-heading, serif);
+            color: var(--legacy-text);
         }
 
         /* Paragraph/description style */
         p {
-            color: #555e6e; /* Softer text color */
             margin-bottom: 25px; /* Increased margin */
             font-size: 16px;
             line-height: 1.6;
+            color: var(--legacy-text-muted);
         }
 
         /* File input styling */
@@ -58,39 +59,16 @@
             margin-left: auto;
             margin-right: auto;
             padding: 10px;
-            border: 1px solid #ccd0d5; /* Subtle border */
-            border-radius: 8px;
-            background-color: #f5f6f7; /* Light background for input */
+            border: 1px solid var(--legacy-border);
+            border-radius: var(--radius);
+            background-color: var(--legacy-surface-muted);
             cursor: pointer;
             width: calc(100% - 22px); /* Adjust width considering padding */
         }
 
         /* Button styling */
-        button {
-            background-color: #007bff; /* Primary blue */
-            color: white;
-            border: none;
-            padding: 14px 24px; /* Larger padding */
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 17px; /* Slightly larger font */
-            font-weight: 600; /* Bolder font */
-            border-radius: 8px; /* Rounded corners */
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transitions */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for button */
-        }
-
-        button:hover {
-            background-color: #0069d9; /* Darker blue on hover */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
-        }
-
-        button:disabled {
-            background-color: #adb5bd; /* Gray when disabled */
-            cursor: not-allowed;
-            box-shadow: none;
+        #app-container button {
+            transition: background-color var(--legacy-duration-fast) var(--legacy-ease-in-out), border-color var(--legacy-duration-fast) var(--legacy-ease-in-out);
         }
 
         /* Status message styling */
@@ -103,9 +81,9 @@
 
         /* Loader animation */
         .loader {
-            border: 4px solid #e9ecef; /* Lighter border for loader */
+            border: 4px solid color-mix(in oklab, var(--legacy-border), white 40%);
             border-radius: 50%;
-            border-top: 4px solid #007bff; /* Blue for spinning part */
+            border-top: 4px solid var(--legacy-primary);
             width: 24px; /* Larger loader */
             height: 24px;
             -webkit-animation: spin 1.5s linear infinite; /* Safari */
@@ -126,9 +104,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Link for font */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
     </style>
     <script src="./vendor/pdf-lib.min.js"></script>
     <link rel="stylesheet" href="../../style.css" type="text/css" />
@@ -141,7 +116,7 @@
         <input type="file" id="pdfFilesInput" accept=".pdf" multiple>
         <div id="preflight-summary" class="legacy-empty-state">Choose at least two PDF files to generate a preflight summary.</div>
 
-        <button id="mergeButton" onclick="handleMergePdfs()">Merge PDFs</button>
+        <button id="mergeButton" class="legacy-btn legacy-btn--primary legacy-focus-ring" onclick="handleMergePdfs()">Merge PDFs</button>
 
         <div id="status">Select your PDF files to begin.</div>
 

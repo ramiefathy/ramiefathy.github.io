@@ -1329,7 +1329,7 @@ Atopic dermatitis, [mild/moderate/severe]
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 700px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
                     <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 style="margin: 0; color: var(--text-primary);">📋 Note Templates</h2>
+                        <h2 style="margin: 0; color: var(--text-primary);">Note Templates</h2>
 	                        <button class="btn-modern btn-ghost btn-icon" type="button" data-action="close-modal" data-modal-id="templatesModal">
 	                            <span class="material-symbols-outlined">close</span>
 	                        </button>
@@ -1344,7 +1344,7 @@ Atopic dermatitis, [mild/moderate/severe]
                                 border-radius: var(--border-radius);
                                 text-align: left;
                                 cursor: pointer;
-                                transition: all 0.2s;
+                                transition: background-color 160ms ease, border-color 160ms ease;
                             ">
                                 <h4 style="margin: 0 0 0.5rem; color: var(--accent-primary);">${tmpl.name}</h4>
                                 <p class="text-muted" style="font-size: 0.75rem; margin: 0;">Click to insert</p>
@@ -1352,7 +1352,7 @@ Atopic dermatitis, [mild/moderate/severe]
                         `).join('')}
                     </div>
                     <div class="macro-section" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                        <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">⌨️ Quick Macros</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Quick Macros</h3>
                         <p class="text-muted mb-3" style="font-size: 0.875rem;">Type these shortcuts in any text field to expand:</p>
                         <div style="display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); max-height: 200px; overflow-y: auto;">
                             ${Object.entries(QUICK_MACROS).slice(0, 12).map(([key, value]) => `
@@ -2022,7 +2022,7 @@ ${formatInlineMarkdownSafe(content)}
 	            modal.innerHTML = `
 	                <div class="modal-content" style="max-width: 450px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
 	                    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-	                        <h2 style="margin: 0; color: var(--text-primary);">⌨️ Keyboard Shortcuts</h2>
+	                        <h2 style="margin: 0; color: var(--text-primary);">Keyboard Shortcuts</h2>
 	                        <button class="btn-modern btn-ghost btn-icon" type="button" data-action="close-modal" data-modal-id="shortcutsModal">
 	                            <span class="material-symbols-outlined">close</span>
 	                        </button>
@@ -2337,12 +2337,12 @@ ${formatInlineMarkdownSafe(content)}
 	                        padding: 1rem;
 	                        margin-bottom: 0.75rem;
 	                        cursor: pointer;
-	                        transition: all 0.2s;
+	                        transition: background-color 160ms ease, border-color 160ms ease;
 	                    " data-action="load-saved-session" data-session-id="${s.id}">
 	                        <div style="display: flex; justify-content: space-between; align-items: start;">
 	                            <div>
 	                                <h4 style="margin: 0 0 0.5rem; color: var(--text-primary);">
-	                                    ${s.type === 'chat' ? '💬 Chat Session' : '🎙️ Transcription Session'}
+	                                    ${s.type === 'chat' ? 'Chat Session' : 'Transcription Session'}
 	                                </h4>
 	                                <p class="text-muted" style="font-size: 0.75rem; margin: 0;">
 	                                    ${new Date(s.timestamp).toLocaleString()}

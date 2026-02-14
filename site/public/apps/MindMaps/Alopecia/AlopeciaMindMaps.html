@@ -15,8 +15,6 @@
     <link rel="stylesheet" href="../../shared/legacy-primitives.css">
     <link rel="stylesheet" href="../../shared/legacy-shell.css">
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="../../shared/legacy-shell.js" defer></script>
     <script src="../../shared/legacy-status.js" defer></script>
     <script src="../../shared/legacy-guidance.js" defer></script>
@@ -31,7 +29,7 @@
     <div class="w-full max-w-6xl mb-4 relative z-20">
         <div class="flex gap-2 justify-center">
             <input type="text" id="search-input" placeholder="Search conditions, treatments, symptoms..." 
-                   class="w-full max-w-md px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                   class="w-full max-w-md px-4 py-2 border border-slate-300 rounded-lg focus:outline-none legacy-focus-ring">
             <button id="search-prev" class="px-3 py-2 bg-white text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-100 transition legacy-focus-ring" title="Previous search match">
                 Prev
             </button>
@@ -58,10 +56,10 @@
                 <div id="tab-treatment" class="tab tab-group-amber">
                     Treatment by Condition ▾
                     <div class="dropdown">
-                        <a href="#" class="dropdown-item" data-tab="treatment-aga">Androgenetic Alopecia</a>
-                        <a href="#" class="dropdown-item" data-tab="treatment-aa">Alopecia Areata</a>
-                        <a href="#" class="dropdown-item" data-tab="treatment-lpp">Lymphocytic Scarring Alopecia</a>
-                        <a href="#" class="dropdown-item" data-tab="treatment-fd">Neutrophilic Scarring Alopecia</a>
+                        <button type="button" class="dropdown-item" data-tab="treatment-aga">Androgenetic Alopecia</button>
+                        <button type="button" class="dropdown-item" data-tab="treatment-aa">Alopecia Areata</button>
+                        <button type="button" class="dropdown-item" data-tab="treatment-lpp">Lymphocytic Scarring Alopecia</button>
+                        <button type="button" class="dropdown-item" data-tab="treatment-fd">Neutrophilic Scarring Alopecia</button>
                     </div>
                 </div>
 
@@ -75,7 +73,7 @@
         <!-- UI Controls -->
         <div class="absolute top-4 right-4 flex flex-col gap-2 z-10">
             <div class="flex gap-2">
-                <button id="expand-all" class="px-3 py-1 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 transition" title="Expand All Nodes">
+                <button id="expand-all" class="px-3 py-1 bg-teal-700 text-white rounded-lg text-sm hover:bg-teal-800 transition-colors legacy-focus-ring" title="Expand All Nodes">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
                 </button>
                 <button id="collapse-all" class="px-3 py-1 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600 transition" title="Collapse All Nodes">

@@ -15,8 +15,6 @@
     <link rel="stylesheet" href="../../shared/legacy-primitives.css">
     <link rel="stylesheet" href="../../shared/legacy-shell.css">
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="../../shared/legacy-shell.js" defer></script>
     <script src="../../shared/legacy-status.js" defer></script>
     <script src="../../shared/legacy-guidance.js" defer></script>
@@ -54,16 +52,14 @@
                 <div id="tab-subtypes" class="tab tab-group-sky" data-tab="subtypes">Subtypes</div>
                 <div id="tab-comorbid" class="tab tab-group-sky mr-4" data-tab="comorbid">Comorbidities</div>
 
-                <!-- PsA Group (Indigo) -->
-                <div id="tab-psa" class="tab tab-group-indigo mr-4" data-tab="psa">Psoriatic Arthritis</div>
+                <div id="tab-psa" class="tab tab-group-accent mr-4" data-tab="psa">Psoriatic Arthritis</div>
 
-                <!-- Treatment Group (Fuchsia) -->
-                <div id="tab-treatment" class="tab tab-group-fuchsia">
+                <div id="tab-treatment" class="tab tab-group-primary">
                     Treatment ▾
                     <div class="dropdown">
-                        <a href="#" class="dropdown-item" data-tab="treatment-modality">By Modality</a>
-                        <a href="#" class="dropdown-item" data-tab="treatment-skin">Psoriasis (Skin)</a>
-                        <a href="#" class="dropdown-item" data-tab="treatment-psa">Psoriatic Arthritis</a>
+                        <button type="button" class="dropdown-item" data-tab="treatment-modality">By Modality</button>
+                        <button type="button" class="dropdown-item" data-tab="treatment-skin">Psoriasis (Skin)</button>
+                        <button type="button" class="dropdown-item" data-tab="treatment-psa">Psoriatic Arthritis</button>
                     </div>
                 </div>
             </div>

@@ -1,125 +1,412 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Apps Collection</title>
-    <script src="./vendor/tailwindcss.browser.js"></script>
-    <link rel="stylesheet" href="./shared/legacy-tokens.css">
-    <link rel="stylesheet" href="./shared/legacy-primitives.css">
-    <link rel="stylesheet" href="./shared/legacy-shell.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apps (Legacy Tools)</title>
+    <meta
+      name="description"
+      content="Index of interactive tools hosted under /apps — mind maps, PDF utilities, dermatopathology references, and clinical workflows."
+    />
+
+    <link rel="stylesheet" href="./shared/legacy-tokens.css" />
+    <link rel="stylesheet" href="./shared/legacy-primitives.css" />
+    <link rel="stylesheet" href="./shared/legacy-shell.css" />
     <script src="./shared/legacy-shell.js" defer></script>
     <script src="./shared/legacy-guidance.js" defer></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body class="bg-slate-50 min-h-screen legacy-focus-ring" data-legacy-shell="true">
-    <header class="bg-slate-800 text-white p-6 shadow-lg">
-        <div class="container mx-auto">
-            <h1 class="text-3xl font-bold mb-2">AI Apps Collection</h1>
-            <p class="text-slate-300">Explore our collection of AI-powered applications</p>
-        </div>
-    </header>
 
-    <main class="container mx-auto px-6 py-12">
-        <div id="pdf-tools"></div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- AI Dermatology Scribe -->
-            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                <div class="p-6">
-                    <div class="flex items-center mb-4">
-                        <span class="material-symbols-outlined text-blue-600 text-3xl mr-3">medical_services</span>
-                        <h2 class="text-xl font-semibold text-slate-800">AI Dermatology Scribe</h2>
-                    </div>
-                    <p class="text-slate-600 mb-4 leading-relaxed">Advanced AI-powered dermatology documentation tool with real-time transcription and clinical analysis capabilities.</p>
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Medical AI</span>
-                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Transcription</span>
-                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">Healthcare</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-green-600 font-semibold">✓ Active</span>
-                        <a href="./dermatology-scribe/" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                            Launch App
-                            <span class="material-symbols-outlined ml-1 text-sm">arrow_outward</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
+    <style>
+      body[data-legacy-shell='true'] {
+        margin: 0;
+        padding: var(--legacy-space-6);
+      }
 
-            <!-- AI Jeopardy Game Generator -->
-            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                <div class="p-6">
-                    <div class="flex items-center mb-4">
-                        <span class="material-symbols-outlined text-purple-600 text-3xl mr-3">quiz</span>
-                        <h2 class="text-xl font-semibold text-slate-800">AI Jeopardy Game Generator</h2>
-                    </div>
-                    <p class="text-slate-600 mb-4 leading-relaxed">Create custom Jeopardy-style trivia games with AI-generated questions and categories for educational or entertainment purposes.</p>
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">Game Generator</span>
-                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Education</span>
-                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Trivia</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-green-600 font-semibold">✓ Active</span>
-                        <a href="https://ai-jeopardy-game-generator-662496444729.us-west1.run.app/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                            Launch App
-                            <span class="material-symbols-outlined ml-1 text-sm">arrow_outward</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
+      .apps-hero {
+        max-width: 68rem;
+        margin: 0 auto var(--legacy-space-6);
+        padding: var(--legacy-space-6);
+        border: 1px solid var(--legacy-border);
+        border-radius: calc(var(--radius) + 8px);
+        background: var(--legacy-surface);
+        box-shadow: var(--legacy-shadow-surface);
+      }
 
-            <!-- Biologic Monitoring Dashboard -->
-            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                <div class="p-6">
-                    <div class="flex items-center mb-4">
-                        <span class="material-symbols-outlined text-sky-600 text-3xl mr-3">monitoring</span>
-                        <h2 class="text-xl font-semibold text-slate-800">Biologic Monitoring Dashboard</h2>
-                    </div>
-                    <p class="text-slate-600 mb-4 leading-relaxed">Filterable, copy-ready safety checklist covering baseline labs, follow-up cadence, and counseling pearls for dermatology biologics and systemic immunomodulators.</p>
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        <span class="px-3 py-1 bg-sky-100 text-sky-800 rounded-full text-sm font-medium">Clinical Safety</span>
-                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Monitoring</span>
-                        <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">Dermatology</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-green-600 font-semibold">✓ Active</span>
-                        <a href="./biologic-monitoring-dashboard/index.html" class="inline-flex items-center bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700 transition-colors">
-                            Launch App
-                            <span class="material-symbols-outlined ml-1 text-sm">arrow_outward</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+      .apps-kicker {
+        margin: 0 0 var(--legacy-space-2);
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--legacy-text-muted);
+        font-weight: 600;
+      }
 
-        <!-- Add more apps section -->
-        <div class="mt-16 text-center">
-            <div class="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto">
-                <span class="material-symbols-outlined text-slate-400 text-4xl mb-4 block">add_circle</span>
-                <h3 class="text-xl font-semibold text-slate-800 mb-2">More Apps Coming Soon</h3>
-                <p class="text-slate-600">We're constantly developing new AI-powered applications to enhance your productivity and creativity.</p>
-            </div>
-        </div>
+      .apps-hero h1 {
+        margin: 0 0 var(--legacy-space-2);
+        font-family: var(--font-heading, serif);
+        font-size: clamp(1.9rem, 4vw, 2.6rem);
+        letter-spacing: -0.02em;
+        line-height: 1.08;
+        color: var(--legacy-text);
+      }
+
+      .apps-hero p {
+        margin: 0;
+        max-width: 72ch;
+        color: var(--legacy-text-muted);
+        font-size: 1.05rem;
+        line-height: 1.65;
+      }
+
+      .apps-sections {
+        max-width: 68rem;
+        margin: 0 auto;
+        display: grid;
+        gap: var(--legacy-space-6);
+      }
+
+      .apps-section {
+        border: 1px solid var(--legacy-border);
+        border-radius: calc(var(--radius) + 8px);
+        background: var(--legacy-surface);
+        box-shadow: var(--legacy-shadow-surface);
+      }
+
+      .apps-section__header {
+        padding: var(--legacy-space-5) var(--legacy-space-6) var(--legacy-space-3);
+        border-bottom: 1px solid color-mix(in oklab, var(--legacy-border), transparent 35%);
+      }
+
+      .apps-section__header h2 {
+        margin: 0;
+        font-family: var(--font-heading, serif);
+        font-size: 1.35rem;
+        letter-spacing: -0.01em;
+      }
+
+      .apps-section__header p {
+        margin: var(--legacy-space-2) 0 0;
+        color: var(--legacy-text-muted);
+      }
+
+      .apps-list {
+        display: grid;
+      }
+
+      .apps-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--legacy-space-4);
+        padding: var(--legacy-space-5) var(--legacy-space-6);
+        border-top: 1px solid color-mix(in oklab, var(--legacy-border), transparent 35%);
+        align-items: start;
+      }
+
+      .apps-item:first-child {
+        border-top: 0;
+      }
+
+      .apps-item h3 {
+        margin: 0 0 var(--legacy-space-1);
+        font-size: 1.05rem;
+        font-weight: 650;
+        color: var(--legacy-text);
+      }
+
+      .apps-item p {
+        margin: 0 0 var(--legacy-space-3);
+        color: var(--legacy-text-muted);
+        line-height: 1.65;
+      }
+
+      .apps-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+
+      .apps-tags li {
+        font-size: 0.78rem;
+        padding: 0.22rem 0.55rem;
+        border-radius: 999px;
+        border: 1px solid var(--legacy-border);
+        background: var(--legacy-surface-muted);
+        color: var(--legacy-text-muted);
+      }
+
+      .apps-cta {
+        display: flex;
+        flex-direction: column;
+        gap: var(--legacy-space-2);
+        align-items: flex-end;
+        min-width: 12rem;
+      }
+
+      .apps-note {
+        font-size: 0.78rem;
+        color: var(--legacy-text-muted);
+        text-align: right;
+        max-width: 20ch;
+      }
+
+      .apps-footer {
+        max-width: 68rem;
+        margin: var(--legacy-space-6) auto 0;
+        padding: 0 var(--legacy-space-2);
+        color: var(--legacy-text-muted);
+        font-size: 0.85rem;
+      }
+
+      @media (max-width: 760px) {
+        body[data-legacy-shell='true'] {
+          padding: var(--legacy-space-4);
+        }
+
+        .apps-hero {
+          padding: var(--legacy-space-5);
+        }
+
+        .apps-item {
+          grid-template-columns: 1fr;
+        }
+
+        .apps-cta {
+          align-items: flex-start;
+          min-width: unset;
+        }
+
+        .apps-note {
+          text-align: left;
+          max-width: unset;
+        }
+      }
+    </style>
+  </head>
+  <body class="legacy-focus-ring" data-legacy-shell="true">
+    <main>
+      <header class="apps-hero">
+        <p class="apps-kicker">Tools</p>
+        <h1>Apps</h1>
+        <p>
+          These are lightweight, browser-run tools. Most save state in your browser (localStorage/sessionStorage) rather than on a server.
+        </p>
+      </header>
+
+      <div class="apps-sections">
+        <section class="apps-section" aria-label="Clinical tools">
+          <div class="apps-section__header">
+            <h2>Clinical</h2>
+            <p>Documentation, monitoring, and workflow utilities.</p>
+          </div>
+          <div class="apps-list">
+            <article class="apps-item">
+              <div>
+                <h3>Dermatology Scribe</h3>
+                <p>Draft a structured note from a transcript, with autosave + export workflows.</p>
+                <ul class="apps-tags">
+                  <li>Clinical documentation</li>
+                  <li>Autosave</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--primary legacy-focus-ring" href="./dermatology-scribe/">Open scribe</a>
+                <div class="apps-note">Runs locally; optional backend for AI.</div>
+              </div>
+            </article>
+
+            <article class="apps-item">
+              <div>
+                <h3>Biologic Monitoring Dashboard</h3>
+                <p>Filterable baseline screening and follow-up monitoring guidance for systemic dermatology regimens.</p>
+                <ul class="apps-tags">
+                  <li>Reference</li>
+                  <li>Monitoring</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./biologic-monitoring-dashboard/index.html">Open dashboard</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="apps-section" aria-label="Mind maps">
+          <div class="apps-section__header">
+            <h2>Mind maps</h2>
+            <p>Interactive D3 mind maps with search and pinned details.</p>
+          </div>
+          <div class="apps-list">
+            <article class="apps-item">
+              <div>
+                <h3>CTCL Mind Maps</h3>
+                <p>Workup, staging, subtypes, and treatment navigation.</p>
+                <ul class="apps-tags">
+                  <li>D3</li>
+                  <li>Search</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./MindMaps/CTCL/CTCLMindMaps.html">Open CTCL</a>
+              </div>
+            </article>
+
+            <article class="apps-item">
+              <div>
+                <h3>Psoriasis Mind Maps</h3>
+                <p>Pathogenesis, comorbidities, PsA, and treatment pathways.</p>
+                <ul class="apps-tags">
+                  <li>D3</li>
+                  <li>Search</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./MindMaps/Psoriasis/PsoriasisMindMaps.html">Open psoriasis</a>
+              </div>
+            </article>
+
+            <article class="apps-item">
+              <div>
+                <h3>Alopecia Mind Maps</h3>
+                <p>Diagnosis and treatment navigation.</p>
+                <ul class="apps-tags">
+                  <li>D3</li>
+                  <li>Search</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./MindMaps/Alopecia/AlopeciaMindMaps.html">Open alopecia</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="apps-section" aria-label="PDF utilities">
+          <div class="apps-section__header">
+            <h2>PDF utilities</h2>
+            <p>Browser-only PDF workflows with explicit preflight + success/failure summaries.</p>
+          </div>
+          <div class="apps-list">
+            <article class="apps-item">
+              <div>
+                <h3>PDF Merger</h3>
+                <p>Combine multiple PDFs into a single file.</p>
+                <ul class="apps-tags">
+                  <li>Client-side</li>
+                  <li>Downloads</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./PDF%20Merger.html">Open merger</a>
+              </div>
+            </article>
+
+            <article class="apps-item">
+              <div>
+                <h3>PDF Splitter</h3>
+                <p>Split a PDF into named chapters by start page.</p>
+                <ul class="apps-tags">
+                  <li>Client-side</li>
+                  <li>Downloads</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./PDF%20Splitter.html">Open splitter</a>
+              </div>
+            </article>
+
+            <article class="apps-item">
+              <div>
+                <h3>PDF Text Extractor</h3>
+                <p>Extract text and create a simplified text-only PDF output.</p>
+                <ul class="apps-tags">
+                  <li>Client-side</li>
+                  <li>Preflight</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./textExtractor.html">Open extractor</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="apps-section" aria-label="Dermatopathology">
+          <div class="apps-section__header">
+            <h2>Dermatopathology</h2>
+            <p>Reference workflows and exploration tools.</p>
+          </div>
+          <div class="apps-list">
+            <article class="apps-item">
+              <div>
+                <h3>Dermatopathology Differentials</h3>
+                <p>Interactive differential diagnosis exploration and learning utilities.</p>
+                <ul class="apps-tags">
+                  <li>Reference</li>
+                  <li>Filters</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./dermatopathology-differentials.html">Open differentials</a>
+              </div>
+            </article>
+
+            <article class="apps-item">
+              <div>
+                <h3>Dermatopathology Navigator (Modern)</h3>
+                <p>Modern UI prototype (React-in-HTML). Kept here for historical continuity.</p>
+                <ul class="apps-tags">
+                  <li>Prototype</li>
+                  <li>React</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./dermatopathology-modern/index.html">Open navigator</a>
+                <div class="apps-note">Prototype quality; expect changes.</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="apps-section" aria-label="External apps">
+          <div class="apps-section__header">
+            <h2>External</h2>
+            <p>These apps are hosted elsewhere; this site only links out.</p>
+          </div>
+          <div class="apps-list">
+            <article class="apps-item">
+              <div>
+                <h3>Clinisched</h3>
+                <p>Scheduler is hosted externally and is not implemented in this repo.</p>
+                <ul class="apps-tags">
+                  <li>External</li>
+                  <li>clinisched.ramiefathy.com</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="https://clinisched.ramiefathy.com/" target="_blank" rel="noopener noreferrer">Open Clinisched</a>
+              </div>
+            </article>
+
+            <article class="apps-item">
+              <div>
+                <h3>Skinoculars</h3>
+                <p>Standalone app hosted externally.</p>
+                <ul class="apps-tags">
+                  <li>External</li>
+                  <li>skinoculars.ramiefathy.com</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="https://skinoculars.ramiefathy.com/" target="_blank" rel="noopener noreferrer">Open Skinoculars</a>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
     </main>
 
-    <footer class="bg-slate-800 text-white text-center p-6 mt-16">
-        <p class="text-slate-300">© <span id="currentYear"></span> AI Apps Collection. Explore the future of AI-powered applications.</p>
-    </footer>
-
-    <script>
-        if (window.LegacyGuidance?.maybeShow) {
-            window.LegacyGuidance.maybeShow('apps-collection-index', [
-                'Use launch links to open each tool in a dedicated page.',
-                'Use the shell Theme button for contrast preferences and Reset to clear shell guidance state.',
-                'Use browser Back to return to this catalog quickly after evaluating any app.'
-            ]);
-        }
-        // Update current year
-        document.getElementById('currentYear').textContent = new Date().getFullYear();
-    </script>
-</body>
+    <footer class="apps-footer">© 2026 Ramie Fathy.</footer>
+  </body>
 </html>

@@ -11,11 +11,6 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
-    <!-- Inter Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <!-- Styles -->
     <link rel="stylesheet" href="style-modern.css">
     <link rel="stylesheet" href="../shared/legacy-tokens.css">
@@ -382,14 +377,13 @@
             align-items: center;
             justify-content: center;
             z-index: 999;
-            transition: all 0.2s ease;
+            transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 220ms ease;
             box-shadow: var(--shadow-lg);
         }
 
         .theme-toggle:hover {
             background: var(--accent-primary);
             color: var(--text-inverse);
-            transform: scale(1.1);
         }
 
         /* Quick Actions Bar */
@@ -423,7 +417,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: background-color 160ms ease, color 160ms ease;
         }
 
         .qa-btn:hover {
@@ -547,7 +541,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.2s ease;
+            transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
         }
 
         .focus-mode-controls button:hover {
