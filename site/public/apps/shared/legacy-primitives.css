@@ -1,16 +1,5 @@
 body[data-legacy-shell='true'] {
   font-family: var(--legacy-font-sans);
-  color: var(--legacy-text);
-}
-
-.legacy-dark body[data-legacy-shell='true'],
-body[data-legacy-shell='true'].legacy-dark {
-  --legacy-bg: #0f172a;
-  --legacy-surface: #111827;
-  --legacy-surface-muted: #1f2937;
-  --legacy-text: #e5e7eb;
-  --legacy-text-muted: #cbd5e1;
-  --legacy-border: #374151;
   background: var(--legacy-bg);
   color: var(--legacy-text);
 }
@@ -23,17 +12,20 @@ select:focus-visible,
 textarea:focus-visible {
   outline: none;
   box-shadow: var(--legacy-focus-ring);
-  border-radius: var(--legacy-radius-sm);
+  border-radius: var(--radius);
 }
 
 .legacy-btn {
   border: 1px solid var(--legacy-border);
-  border-radius: var(--legacy-radius-sm);
-  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius);
+  padding: 0.55rem 0.9rem;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.2;
-  transition: background var(--legacy-duration-fast), color var(--legacy-duration-fast), border-color var(--legacy-duration-fast);
+  transition:
+    background-color var(--legacy-duration-fast) var(--legacy-ease-in-out),
+    color var(--legacy-duration-fast) var(--legacy-ease-in-out),
+    border-color var(--legacy-duration-fast) var(--legacy-ease-in-out);
   cursor: pointer;
 }
 
@@ -62,7 +54,7 @@ textarea:focus-visible {
   border-radius: 999px;
   padding: 0.25rem 0.6rem;
   border: 1px solid var(--legacy-border);
-  background: var(--legacy-surface-muted);
+  background: color-mix(in oklab, var(--legacy-surface-muted), var(--legacy-surface) 40%);
 }
 
 .legacy-chip[data-state='saved'] {
@@ -83,8 +75,9 @@ textarea:focus-visible {
 .legacy-status-panel {
   margin-top: var(--legacy-space-3);
   border: 1px solid var(--legacy-border);
-  border-radius: var(--legacy-radius-md);
+  border-radius: calc(var(--radius) + 4px);
   background: var(--legacy-surface);
+  box-shadow: var(--legacy-shadow-surface);
   padding: var(--legacy-space-4);
 }
 
@@ -111,7 +104,7 @@ textarea:focus-visible {
 
 .legacy-empty-state {
   border: 1px dashed var(--legacy-border);
-  border-radius: var(--legacy-radius-md);
+  border-radius: calc(var(--radius) + 4px);
   padding: var(--legacy-space-4);
   color: var(--legacy-text-muted);
   font-size: 0.9rem;

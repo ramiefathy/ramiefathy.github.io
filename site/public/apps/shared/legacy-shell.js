@@ -1,6 +1,40 @@
 (function initLegacyShell(global) {
+  const ICONS = {
+    back: `
+      <svg class="legacy-shell__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M10 6 4 12l6 6" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 12h16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `,
+    help: `
+      <svg class="legacy-shell__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M9.25 9.25a3 3 0 1 1 4.5 2.6c-.9.5-1.75 1.25-1.75 2.65v.25" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+      </svg>
+    `,
+    theme: `
+      <svg class="legacy-shell__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M21 12.5A8.5 8.5 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `,
+    reset: `
+      <svg class="legacy-shell__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M21 12a9 9 0 1 1-3-6.7" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M21 3v6h-6" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `
+  }
+
   function formatTime(date = new Date()) {
     return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  }
+
+  function derivePageName() {
+    const title = (document.title || '').trim()
+    if (title && title.length < 80) return title
+    const last = (location.pathname || '').split('/').filter(Boolean).slice(-1)[0] || 'Legacy App'
+    return decodeURIComponent(last).replace(/\.(html|htm)$/i, '')
   }
 
   function initStatus(shell) {
@@ -35,23 +69,36 @@
   function createShell() {
     const wrapper = document.createElement('header')
     wrapper.className = 'legacy-shell'
+    wrapper.setAttribute('role', 'banner')
+    const pageName = derivePageName()
     wrapper.innerHTML = `
-      <div class="legacy-shell__group" role="toolbar" aria-label="Legacy app controls">
-        <span class="legacy-shell__label">Page</span>
-        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="back">Back</button>
-        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="help">Help</button>
-        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="theme">Theme</button>
-        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="reset">Reset</button>
+      <div class="legacy-shell__group" role="toolbar" aria-label="Page tools">
+        <div class="legacy-shell__title" aria-label="Current tool">
+          <span class="legacy-shell__kicker">Legacy</span>
+          <span class="legacy-shell__name">${pageName}</span>
+        </div>
+        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="back" aria-label="Go back">
+          ${ICONS.back}<span>Back</span>
+        </button>
+        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="help" aria-label="Open help">
+          ${ICONS.help}<span>Help</span>
+        </button>
+        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="theme" aria-label="Toggle theme">
+          ${ICONS.theme}<span>Theme</span>
+        </button>
+        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="reset" aria-label="Reset local data for this tool">
+          ${ICONS.reset}<span>Reset</span>
+        </button>
       </div>
       <div class="legacy-shell__status" aria-live="polite">
         <span class="legacy-chip" data-chip="saved" data-state="saved">Saved</span>
         <span class="legacy-chip" data-chip="network" data-state="saved">Online</span>
         <span class="legacy-chip" data-chip="time">Updated ${formatTime()}</span>
       </div>
-      <div class="legacy-shell__help" aria-hidden="true" id="legacy-shell-help">
+      <div class="legacy-shell__help" aria-hidden="true" id="legacy-shell-help" role="dialog" aria-modal="true" aria-label="In-page help">
         <div class="legacy-shell__help-card">
-          <h2>In-Page Help</h2>
-          <p>Use search first, then navigate with keyboard controls. Use Reset to clear local state for this app.</p>
+          <h2>Help</h2>
+          <p>Keyboard: Tab moves between controls, Enter activates. Theme toggles light/dark. Reset clears local browser state for this tool (useful if something looks stuck).</p>
           <div class="legacy-shell__help-actions">
             <button type="button" class="legacy-btn legacy-btn--primary legacy-focus-ring" data-action="close-help">Close</button>
           </div>
@@ -66,12 +113,17 @@
     }
 
     wrapper.querySelector('[data-action="back"]').addEventListener('click', () => history.back())
-    wrapper.querySelector('[data-action="help"]').addEventListener('click', () => {
+    const openHelp = () => {
       helpDialog.setAttribute('aria-hidden', 'false')
-    })
-    wrapper.querySelector('[data-action="close-help"]').addEventListener('click', () => {
+      const closeButton = wrapper.querySelector('[data-action="close-help"]')
+      if (closeButton) closeButton.focus()
+    }
+    const closeHelp = () => {
       helpDialog.setAttribute('aria-hidden', 'true')
-    })
+    }
+
+    wrapper.querySelector('[data-action="help"]').addEventListener('click', openHelp)
+    wrapper.querySelector('[data-action="close-help"]').addEventListener('click', closeHelp)
     wrapper.querySelector('[data-action="theme"]').addEventListener('click', () => {
       document.documentElement.classList.toggle('legacy-dark')
       const isDark = document.documentElement.classList.contains('legacy-dark')
@@ -81,6 +133,15 @@
       const keys = getScopedStorageKeys()
       keys.forEach((key) => localStorage.removeItem(key))
       window.location.reload()
+    })
+
+    wrapper.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && helpDialog.getAttribute('aria-hidden') === 'false') {
+        event.preventDefault()
+        closeHelp()
+        const helpButton = wrapper.querySelector('[data-action="help"]')
+        if (helpButton) helpButton.focus()
+      }
     })
 
     return wrapper
