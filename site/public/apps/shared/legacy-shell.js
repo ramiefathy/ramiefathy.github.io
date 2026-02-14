@@ -37,6 +37,25 @@
     return decodeURIComponent(last).replace(/\.(html|htm)$/i, '')
   }
 
+  function parseHelpSteps(rawValue) {
+    if (!rawValue || typeof rawValue !== 'string') return null
+
+    try {
+      const parsed = JSON.parse(rawValue)
+      if (!Array.isArray(parsed)) return null
+
+      const steps = parsed
+        .filter((step) => typeof step === 'string')
+        .map((step) => step.trim())
+        .filter((step) => step.length > 0)
+        .slice(0, 12)
+
+      return steps.length > 0 ? steps : null
+    } catch (error) {
+      return null
+    }
+  }
+
   function initStatus(shell) {
     const statusRoot = shell.querySelector('.legacy-shell__status')
     const savedChip = statusRoot.querySelector('[data-chip="saved"]')
@@ -107,6 +126,33 @@
     `
 
     const helpDialog = wrapper.querySelector('#legacy-shell-help')
+    const helpCard = wrapper.querySelector('.legacy-shell__help-card')
+    const helpActions = wrapper.querySelector('.legacy-shell__help-actions')
+    const helpSteps = parseHelpSteps(document.body?.getAttribute('data-help-steps'))
+
+    if (helpCard && helpActions && helpSteps && !helpCard.querySelector('.legacy-shell__help-steps')) {
+      const stepsRoot = document.createElement('section')
+      stepsRoot.className = 'legacy-shell__help-steps'
+      stepsRoot.setAttribute('aria-label', 'Quick start steps')
+
+      const stepsTitle = document.createElement('p')
+      stepsTitle.className = 'legacy-shell__help-steps-title'
+      stepsTitle.textContent = 'Quick start'
+
+      const stepsList = document.createElement('ol')
+      stepsList.className = 'legacy-shell__help-steps-list'
+
+      for (const step of helpSteps) {
+        const item = document.createElement('li')
+        item.textContent = step
+        stepsList.appendChild(item)
+      }
+
+      stepsRoot.appendChild(stepsTitle)
+      stepsRoot.appendChild(stepsList)
+      helpCard.insertBefore(stepsRoot, helpActions)
+    }
+
     const getScopedStorageKeys = () => {
       const slug = (location.pathname || 'legacy-app').replace(/[^a-z0-9]+/gi, '.').toLowerCase()
       return Object.keys(localStorage).filter((key) => key.includes(slug) || key.startsWith('legacy-guidance-v1'))

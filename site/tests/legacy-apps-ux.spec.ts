@@ -37,6 +37,14 @@ test.describe('legacy app UX modernization baseline', () => {
     })
   }
 
+  test('legacy shell help dialog renders per-app help steps when provided', async ({ page }) => {
+    await page.goto('/apps/PDF%20Merger.html', { waitUntil: 'networkidle' })
+    await page.click('.legacy-shell__action[data-action="help"]')
+    await expect(page.locator('#legacy-shell-help')).toHaveAttribute('aria-hidden', 'false')
+    await expect(page.locator('.legacy-shell__help-steps')).toBeVisible()
+    await expect(page.locator('.legacy-shell__help-steps')).toContainText('Select 2+ PDF files')
+  })
+
   test('mindmap search supports next/previous result navigation and details panel', async ({ page }) => {
     await page.goto('/apps/MindMaps/CTCL/CTCLMindMaps.html', { waitUntil: 'networkidle' })
     await page.fill('#search-input', 'treatment')
