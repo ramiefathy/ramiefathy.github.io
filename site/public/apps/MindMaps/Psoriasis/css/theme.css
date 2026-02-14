@@ -1,0 +1,20 @@
+/* Psoriasis MindMaps theme colors */
+
+.tab-group-sky { color: #0369a1; }
+.tab-group-accent { color: var(--accent, #164e63); }
+.tab-group-primary { color: var(--primary, #0f766e); }
+
+.tab-group-sky.active { font-weight: 600; background-color: #e0f2fe; border-color: #0369a1; }
+.tab-group-accent.active { font-weight: 600; background-color: color-mix(in oklab, var(--accent, #164e63), white 88%); border-color: var(--accent, #164e63); }
+.tab-group-primary.active { font-weight: 600; background-color: color-mix(in oklab, var(--primary, #0f766e), white 88%); border-color: var(--primary, #0f766e); }
+
+.link { stroke: #7dd3fc; }
+.node circle { stroke: #0369a1; }
+.node .collapsible { stroke: #0c4a6e; }
+.node:focus > circle { stroke: #0ea5e9; }
+
+.tooltip-title { color: #7dd3fc; }
+.tooltip-content strong { color: #38bdf8; }
+
+.search-result-item:hover { background-color: #f0f9ff; }
+.search-result-item-active { background-color: color-mix(in oklab, var(--accent, #164e63), white 90%); }

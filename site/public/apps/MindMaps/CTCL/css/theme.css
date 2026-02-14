@@ -1,0 +1,20 @@
+/* CTCL MindMaps theme colors */
+
+.tab-group-blue { color: #2563eb; }
+.tab-group-accent { color: var(--accent, #164e63); }
+.tab-group-green { color: #16a34a; }
+
+.tab-group-blue.active { font-weight: 600; background-color: #dbeafe; border-color: #2563eb; }
+.tab-group-accent.active { font-weight: 600; background-color: color-mix(in oklab, var(--accent, #164e63), white 88%); border-color: var(--accent, #164e63); }
+.tab-group-green.active { font-weight: 600; background-color: #dcfce7; border-color: #16a34a; }
+
+.link { stroke: color-mix(in oklab, var(--primary, #0f766e), white 65%); }
+.node circle { stroke: color-mix(in oklab, var(--accent, #164e63), black 5%); }
+.node .collapsible { stroke: var(--accent, #164e63); }
+.node:focus > circle { stroke: var(--accent, #164e63); }
+
+.tooltip-title { color: color-mix(in oklab, var(--accent, #164e63), white 35%); }
+.tooltip-content strong { color: color-mix(in oklab, var(--primary, #0f766e), white 15%); }
+
+.search-result-item:hover { background-color: color-mix(in oklab, var(--muted, #e6f4f1), white 60%); }
+.search-result-item-active { background-color: color-mix(in oklab, var(--accent, #164e63), white 90%); }

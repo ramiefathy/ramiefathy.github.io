@@ -1,0 +1,20 @@
+/* Alopecia MindMaps theme colors */
+
+.tab-group-teal { color: #0d9488; }
+.tab-group-amber { color: #d97706; }
+.tab-group-rose { color: #be123c; }
+
+.tab-group-teal.active { font-weight: 600; background-color: #ccfbf1; border-color: #0d9488; }
+.tab-group-amber.active { font-weight: 600; background-color: #fef3c7; border-color: #d97706; }
+.tab-group-rose.active { font-weight: 600; background-color: #ffe4e6; border-color: #be123c; }
+
+.link { stroke: #cbd5e1; }
+.node circle { stroke: color-mix(in oklab, var(--accent, #164e63), black 5%); }
+.node .collapsible { stroke: var(--accent, #164e63); }
+.node:focus > circle { stroke: var(--accent, #164e63); }
+
+.tooltip-title { color: color-mix(in oklab, var(--accent, #164e63), white 35%); }
+.tooltip-content strong { color: #facc15; }
+
+.search-result-item:hover { background-color: #f1f5f9; }
+.search-result-item-active { background-color: color-mix(in oklab, var(--accent, #164e63), white 90%); }
