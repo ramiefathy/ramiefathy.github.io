@@ -34,6 +34,12 @@ The canonical list of user-facing pages/apps that must be covered by automated c
 
 Playwright specs under `site/tests/` parse this inventory to decide what to smoke-test. **Update it** whenever you add/remove/rename routes under `site/src/pages/**`, add/remove shipped legacy HTML apps under `site/public/apps/**`, or change canonical external app URLs (e.g., Clinisched, Skinoculars).
 
+### Frontend Design System Contract (IMPORTANT)
+The repo-wide UI hard constraints live at:
+- `docs/frontend-design-system-contract.md`
+
+Follow this contract for **all** frontend work (Astro pages, React islands, legacy HTML apps). It exists to prevent the “vibecoded” look (purple gradients, default Tailwind grays, generic centered-hero templates, inconsistent radius/shadows). **Update it** whenever design rules or shared legacy tokens change.
+
 ### RAMIE/AI Scribe Backend
 ```bash
 # Install Python dependencies
