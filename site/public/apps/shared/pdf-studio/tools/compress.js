@@ -1,6 +1,6 @@
 import { createPdfDocument } from '../core/pdflib-runtime.js'
 import { parseRangeExpression } from '../core/range-parser.js'
-import { clearElement, createOutputLink, createParagraph, formatBytes, loadPdfFromFile } from './common.js'
+import { clearElement, createEmptyState, createOutputLink, createParagraph, formatBytes, loadPdfFromFile } from './common.js'
 
 export const id = 'compress'
 export const navLabel = 'Reduce Size'
@@ -90,7 +90,8 @@ export async function mount(context) {
   warningText.textContent = 'Raster mode can remove selectable text and accessibility metadata.'
   optionsSection.append(warningText)
 
-  primaryPanel.append(loadSection, optionsSection)
+  const primaryEmpty = createEmptyState('No PDF loaded', 'Choose a PDF file to estimate size and configure compression settings.')
+  primaryPanel.append(loadSection, optionsSection, primaryEmpty)
 
   const preflightSection = createSection('Preflight')
   const preflightText = createParagraph('Load a PDF to compute compression settings.', 'legacy-workflow__status')
@@ -119,7 +120,7 @@ export async function mount(context) {
   actions.append(runButton, cancelButton)
   const outputList = document.createElement('div')
   outputList.className = 'pdf-output-list'
-  outputList.append(createParagraph('No output generated yet.', 'legacy-workflow__status'))
+  outputList.append(createEmptyState('No output yet', 'Load a PDF and run compression to generate output.'))
   outputSection.append(actions, outputList)
 
   secondaryPanel.append(preflightSection, outputSection)
@@ -161,6 +162,9 @@ export async function mount(context) {
     if (!file) return
     loadedDocument = await loadPdfFromFile(file)
     fileStatus.textContent = `${file.name} (${loadedDocument.pageCount} pages)`
+    primaryEmpty.remove()
+    clearElement(outputList)
+    outputList.append(createEmptyState('No output yet', 'Reduce file size to generate a downloadable PDF.'))
     refreshPreflight()
   })
 

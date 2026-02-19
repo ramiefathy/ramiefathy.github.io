@@ -1,6 +1,6 @@
 import { createPdfDocument } from '../core/pdflib-runtime.js'
 import { readJpegExifOrientation } from '../core/exif-jpeg.js'
-import { clearElement, createOutputLink, createParagraph, formatBytes } from './common.js'
+import { clearElement, createEmptyState, createOutputLink, createParagraph, formatBytes } from './common.js'
 
 export const id = 'image'
 export const navLabel = 'Image Packet'
@@ -170,6 +170,7 @@ export async function mount(context) {
   const boardSection = createSection('Image Board')
   const board = document.createElement('div')
   board.className = 'pdf-thumb-board'
+  board.append(createEmptyState('No images loaded', 'Choose one or more images to build a PDF packet.'))
   boardSection.append(board)
 
   primaryPanel.append(uploadSection, settingsSection, boardSection)
@@ -195,7 +196,7 @@ export async function mount(context) {
   buildButton.disabled = true
   const outputList = document.createElement('div')
   outputList.className = 'pdf-output-list'
-  outputList.append(createParagraph('No output generated yet.', 'legacy-workflow__status'))
+  outputList.append(createEmptyState('No output yet', 'Load images and build a packet to generate a downloadable PDF.'))
   outputSection.append(buildButton, outputList)
 
   secondaryPanel.append(previewSection, preflightSection, outputSection)
@@ -211,6 +212,8 @@ export async function mount(context) {
       preflightText.textContent = 'Add images to preview packet summary.'
       clearElement(warningList)
       buildButton.disabled = true
+      clearElement(outputList)
+      outputList.append(createEmptyState('No output yet', 'Load images and build a packet to generate a downloadable PDF.'))
       return
     }
 
@@ -258,6 +261,10 @@ export async function mount(context) {
 
   const renderBoard = () => {
     clearElement(board)
+    if (!items.length) {
+      board.append(createEmptyState('No images loaded', 'Choose one or more images to start building a packet.'))
+      return
+    }
 
     items.forEach((item, index) => {
       const tile = document.createElement('article')
@@ -371,6 +378,8 @@ export async function mount(context) {
     }
 
     fileStatus.textContent = `${items.length} image(s) loaded`
+    clearElement(outputList)
+    outputList.append(createEmptyState('No output yet', 'Build the packet to generate a downloadable PDF.'))
     selectedIndex = items.length ? 0 : -1
     renderBoard()
     refreshPreflight()

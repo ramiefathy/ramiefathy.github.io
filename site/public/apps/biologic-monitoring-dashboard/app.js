@@ -731,7 +731,12 @@ function render() {
 
   if (!filtered.length) {
     dom.resultCount.textContent = `0 regimens shown · Data refreshed ${formatVersionDate(dataVersion)}`;
-    dom.resultsContainer.innerHTML = '<p class="empty-state">No regimens match your filters. Clear filters or adjust search terms.</p>';
+    dom.resultsContainer.innerHTML = `
+      <div class="cl-empty-state">
+        <p class="cl-empty-state__title">No matching medications</p>
+        <p class="cl-empty-state__help">Try adjusting your search or filter criteria.</p>
+      </div>
+    `;
     renderComparison();
     return;
   }

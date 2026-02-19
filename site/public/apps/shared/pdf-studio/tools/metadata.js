@@ -1,4 +1,4 @@
-import { clearElement, createOutputLink, createParagraph, formatBytes } from './common.js'
+import { clearElement, createEmptyState, createOutputLink, createParagraph, formatBytes } from './common.js'
 
 export const id = 'metadata'
 export const navLabel = 'Metadata'
@@ -89,6 +89,7 @@ export async function mount(context) {
 
   const metadataSection = createSection('Metadata Diff')
   const metadataTableHost = document.createElement('div')
+  metadataTableHost.append(createEmptyState('No PDF loaded', 'Choose a PDF file to inspect current metadata and preview scrubbed output.'))
   metadataSection.append(metadataTableHost)
 
   primaryPanel.append(loadSection, scrubSection, metadataSection)
@@ -112,7 +113,7 @@ export async function mount(context) {
   runButton.disabled = true
   const outputList = document.createElement('div')
   outputList.className = 'pdf-output-list'
-  outputList.append(createParagraph('No output generated yet.', 'legacy-workflow__status'))
+  outputList.append(createEmptyState('No output yet', 'Load a PDF and scrub metadata to generate output.'))
   outputSection.append(runButton, outputList)
 
   secondaryPanel.append(notesSection, outputSection)
@@ -152,7 +153,9 @@ export async function mount(context) {
 
   const refreshMetadataDiff = () => {
     if (!currentMetadata) {
-      metadataTableHost.replaceChildren(createParagraph('Load a PDF to inspect metadata.', 'legacy-workflow__status'))
+      metadataTableHost.replaceChildren(
+        createEmptyState('No PDF loaded', 'Choose a PDF file to inspect current metadata and preview scrubbed output.')
+      )
       return
     }
 
@@ -175,6 +178,8 @@ export async function mount(context) {
     fileStatus.textContent = file.name
     runButton.disabled = false
     refreshMetadataDiff()
+    clearElement(outputList)
+    outputList.append(createEmptyState('No output yet', 'Scrub metadata to generate a downloadable PDF.'))
   })
 
   scrubSection.addEventListener('input', refreshMetadataDiff)

@@ -20,6 +20,22 @@ export function createParagraph(text, className = 'legacy-workflow__status') {
   return paragraph
 }
 
+export function createEmptyState(title, help) {
+  const root = document.createElement('div')
+  root.className = 'cl-empty-state'
+
+  const titleEl = document.createElement('p')
+  titleEl.className = 'cl-empty-state__title'
+  titleEl.textContent = title
+
+  const helpEl = document.createElement('p')
+  helpEl.className = 'cl-empty-state__help'
+  helpEl.textContent = help
+
+  root.append(titleEl, helpEl)
+  return root
+}
+
 export function clearElement(target) {
   while (target.firstChild) {
     target.removeChild(target.firstChild)

@@ -1,6 +1,6 @@
 import { createPdfDocument } from '../core/pdflib-runtime.js'
 import { parseRangeExpression } from '../core/range-parser.js'
-import { clearElement, createOutputLink, createParagraph, formatBytes, loadPdfFromFile } from './common.js'
+import { clearElement, createEmptyState, createOutputLink, createParagraph, formatBytes, loadPdfFromFile } from './common.js'
 
 export const id = 'ocr'
 export const navLabel = 'OCR (Beta)'
@@ -41,6 +41,7 @@ export async function mount(context) {
 
   let loadedDocument = null
   let cancelSignal = { cancelled: false }
+  const primaryEmpty = createEmptyState('No PDF loaded', 'Choose a PDF file to configure the OCR queue and preview expected runtime.')
 
   const loadSection = createSection('Load PDF')
   const fileInputWrapper = document.createElement('div')
@@ -85,7 +86,7 @@ export async function mount(context) {
   warningText.textContent = 'OCR can take several minutes. Keep this tab open during processing.'
   optionsSection.append(warningText)
 
-  primaryPanel.append(loadSection, optionsSection)
+  primaryPanel.append(loadSection, optionsSection, primaryEmpty)
 
   const preflightSection = createSection('Preflight')
   const preflightText = createParagraph('Load a PDF to estimate OCR runtime and queue length.', 'legacy-workflow__status')
@@ -94,6 +95,7 @@ export async function mount(context) {
   const queueSection = createSection('Queue Status')
   const queueList = document.createElement('div')
   queueList.className = 'pdf-ocr-queue'
+  queueList.append(createEmptyState('No pages queued', 'Load a PDF and choose a page scope to preview queue status.'))
   queueSection.append(queueList)
 
   const outputSection = createSection('Output')
@@ -112,7 +114,7 @@ export async function mount(context) {
   actionRow.append(runButton, cancelButton)
   const outputList = document.createElement('div')
   outputList.className = 'pdf-output-list'
-  outputList.append(createParagraph('No output generated yet.', 'legacy-workflow__status'))
+  outputList.append(createEmptyState('No output yet', 'Load a PDF and run OCR to generate a searchable PDF and TXT export.'))
   outputSection.append(actionRow, outputList)
 
   secondaryPanel.append(preflightSection, queueSection, outputSection)
@@ -162,6 +164,11 @@ export async function mount(context) {
     if (!file) return
     loadedDocument = await loadPdfFromFile(file)
     fileStatus.textContent = `${file.name} (${loadedDocument.pageCount} pages)`
+    primaryEmpty.remove()
+    clearElement(queueList)
+    queueList.append(createEmptyState('Queue is idle', 'Run OCR to start processing selected pages.'))
+    clearElement(outputList)
+    outputList.append(createEmptyState('No output yet', 'Run OCR to generate a searchable PDF and TXT export.'))
     refreshPreflight()
   })
 

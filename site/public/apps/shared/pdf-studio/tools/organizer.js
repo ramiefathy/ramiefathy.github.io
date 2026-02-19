@@ -2,6 +2,7 @@ import { CommandStack } from '../core/command-stack.js'
 import { createPdfDocument } from '../core/pdflib-runtime.js'
 import {
   clearElement,
+  createEmptyState,
   createOutputLink,
   createParagraph,
   createThumbnailBoard,
@@ -74,6 +75,7 @@ export async function mount(context) {
   const boardSection = createSection('Thumbnail Board')
   const thumbBoard = document.createElement('div')
   thumbBoard.className = 'pdf-thumb-board'
+  thumbBoard.append(createEmptyState('No pages to show', 'Load a PDF to see page thumbnails.'))
   boardSection.append(thumbBoard)
 
   primaryPanel.append(fileSection, toolbarSection, boardSection)
@@ -81,10 +83,12 @@ export async function mount(context) {
   const inspectorSection = createSection('Inspector')
   const previewFrame = document.createElement('div')
   previewFrame.className = 'pdf-preview-frame'
+  const previewEmpty = createEmptyState('No PDF loaded', 'Choose a PDF file to inspect its pages.')
   const previewCanvas = document.createElement('canvas')
   previewCanvas.width = 300
   previewCanvas.height = 420
-  previewFrame.append(previewCanvas)
+  previewCanvas.hidden = true
+  previewFrame.append(previewEmpty, previewCanvas)
   inspectorSection.append(previewFrame)
 
   const preflightSection = createSection('Preflight')
@@ -107,7 +111,7 @@ export async function mount(context) {
   outputActions.append(exportButton, extractSelectionButton)
   const outputResults = document.createElement('div')
   outputResults.className = 'pdf-output-list'
-  outputResults.append(createParagraph('No output generated yet.', 'legacy-workflow__status'))
+  outputResults.append(createEmptyState('No output yet', 'Load a PDF and run the tool to generate output.'))
   outputSection.append(outputActions, outputResults)
 
   secondaryPanel.append(inspectorSection, preflightSection, outputSection)
@@ -253,9 +257,11 @@ export async function mount(context) {
     if (!file) return
 
     fileStatus.textContent = file.name
-    outputResults.replaceChildren(createParagraph('No output generated yet.'))
+    outputResults.replaceChildren(createEmptyState('No output yet', 'Run the tool to generate an updated PDF.'))
 
     loadedDocument = await loadPdfFromFile(file)
+    previewEmpty.remove()
+    previewCanvas.hidden = false
     pageOrder = Array.from({ length: loadedDocument.pageCount }, (_, index) => index + 1)
     selectedPages = new Set()
     deletedPages.clear()

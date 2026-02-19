@@ -2,6 +2,7 @@ import { createPdfDocument } from '../core/pdflib-runtime.js'
 import { parseRangeExpression } from '../core/range-parser.js'
 import {
   clearElement,
+  createEmptyState,
   createOutputLink,
   createParagraph,
   formatBytes,
@@ -119,13 +120,16 @@ export async function mount(context) {
 
   formSection.append(formGrid, placementGrid, pageScope)
 
-  primaryPanel.append(loadSection, formSection)
+  const primaryEmpty = createEmptyState('No PDF loaded', 'Choose a PDF file to configure stamps and preview placement.')
+  primaryPanel.append(loadSection, formSection, primaryEmpty)
 
   const previewSection = createSection('Preview')
   const previewFrame = document.createElement('div')
   previewFrame.className = 'pdf-preview-frame'
+  const previewEmpty = createEmptyState('No PDF loaded', 'Load a PDF to see a representative preview with stamp placement.')
   const previewCanvas = document.createElement('canvas')
-  previewFrame.append(previewCanvas)
+  previewCanvas.hidden = true
+  previewFrame.append(previewEmpty, previewCanvas)
   previewSection.append(previewFrame)
 
   const preflightSection = createSection('Preflight')
@@ -140,7 +144,7 @@ export async function mount(context) {
   runButton.disabled = true
   const outputList = document.createElement('div')
   outputList.className = 'pdf-output-list'
-  outputList.append(createParagraph('No output generated yet.', 'legacy-workflow__status'))
+  outputList.append(createEmptyState('No output yet', 'Load a PDF and apply stamps to download the updated file.'))
   outputSection.append(runButton, outputList)
 
   secondaryPanel.append(previewSection, preflightSection, outputSection)
@@ -237,6 +241,11 @@ export async function mount(context) {
     if (!file) return
     loadedDocument = await loadPdfFromFile(file)
     fileStatus.textContent = `${file.name} (${loadedDocument.pageCount} pages)`
+    primaryEmpty.remove()
+    previewEmpty.remove()
+    previewCanvas.hidden = false
+    clearElement(outputList)
+    outputList.append(createEmptyState('No output yet', 'Apply stamps to generate a downloadable PDF.'))
     refreshPreflight()
     schedulePreviewRefresh()
   })

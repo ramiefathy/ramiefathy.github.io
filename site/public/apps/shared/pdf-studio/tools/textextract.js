@@ -1,5 +1,5 @@
 import { createPdfDocument } from '../core/pdflib-runtime.js'
-import { clearElement, createOutputLink, createParagraph, formatBytes, loadPdfFromFile } from './common.js'
+import { clearElement, createEmptyState, createOutputLink, createParagraph, formatBytes, loadPdfFromFile } from './common.js'
 
 export const id = 'textextract'
 export const navLabel = 'Text Extract'
@@ -48,6 +48,7 @@ export async function mount(context) {
   const { primaryPanel, secondaryPanel, createSection } = context
 
   let loadedDocument = null
+  const primaryEmpty = createEmptyState('No PDF loaded', 'Choose a PDF file to preview extraction expectations and generate output.')
 
   const loadSection = createSection('Load PDF')
   const fileInputWrapper = document.createElement('div')
@@ -70,7 +71,7 @@ export async function mount(context) {
   const infoText = createParagraph('Text extraction uses PDF content streams and paragraph spacing heuristics.', 'legacy-workflow__status')
   optionsSection.append(infoText)
 
-  primaryPanel.append(loadSection, optionsSection)
+  primaryPanel.append(loadSection, optionsSection, primaryEmpty)
 
   const preflightSection = createSection('Preflight')
   const preflightText = createParagraph('Load a PDF to preview extraction expectations.', 'legacy-workflow__status')
@@ -84,7 +85,7 @@ export async function mount(context) {
   runButton.disabled = true
   const outputList = document.createElement('div')
   outputList.className = 'pdf-output-list'
-  outputList.append(createParagraph('No output generated yet.', 'legacy-workflow__status'))
+  outputList.append(createEmptyState('No output yet', 'Load a PDF and run extraction to generate output.'))
   outputSection.append(runButton, outputList)
 
   secondaryPanel.append(preflightSection, outputSection)
@@ -100,6 +101,9 @@ export async function mount(context) {
     fileStatus.textContent = `${file.name} (${loadedDocument.pageCount} pages)`
     preflightText.textContent = `Ready to extract from ${loadedDocument.pageCount} page(s). Output will contain text content only.`
     runButton.disabled = false
+    primaryEmpty.remove()
+    clearElement(outputList)
+    outputList.append(createEmptyState('No output yet', 'Run text extraction to generate a downloadable PDF.'))
   })
 
   runButton.addEventListener('click', async () => {

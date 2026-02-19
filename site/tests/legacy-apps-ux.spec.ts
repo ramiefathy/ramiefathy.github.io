@@ -9,6 +9,7 @@ const pdfWorkflowRoutes = [
   '/apps/pdf-studio.html?tool=extract',
   '/apps/pdf-studio.html?tool=textextract'
 ]
+const pdfStudioToolIds = ['organizer', 'extract', 'image', 'stamp', 'assemble', 'metadata', 'ocr', 'compress', 'textextract']
 const mindmapRoutes = [
   '/apps/MindMaps/CTCL/CTCLMindMaps.html',
   '/apps/MindMaps/Psoriasis/PsoriasisMindMaps.html',
@@ -467,6 +468,41 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
       await expect(page.locator('.cl-file-input__trigger')).toHaveCount(1)
       await expect(page.locator('.cl-file-input__status')).toHaveCount(1)
     }
+  })
+
+  test('PDF Studio tools show shared empty states when no document is loaded', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+
+    for (const toolId of pdfStudioToolIds) {
+      const route = `/apps/pdf-studio.html?tool=${toolId}`
+      await page.goto(route, { waitUntil: 'networkidle' })
+
+      const primaryCount = await page.locator('#pdf-studio-primary .cl-empty-state').count()
+      const secondaryCount = await page.locator('#pdf-studio-secondary .cl-empty-state').count()
+
+      expect(primaryCount, `${route} should render an empty state in the primary workspace when idle`).toBeGreaterThan(0)
+      expect(secondaryCount, `${route} should render an empty state in the inspector/output panel when idle`).toBeGreaterThan(0)
+    }
+  })
+
+  test('differentials empty state uses shared cl-empty-state component', async ({ page }) => {
+    await page.goto('/apps/dermatopathology-differentials.html', { waitUntil: 'networkidle' })
+    await expect(page.locator('#welcome-message.cl-empty-state')).toBeVisible()
+    await expect(page.locator('#welcome-message .cl-empty-state__title')).toHaveText(/No Finding Selected/i)
+    await expect(page.locator('#welcome-message .cl-empty-state__help')).toHaveCount(1)
+  })
+
+  test('biologic dashboard renders shared empty state when filters produce zero results', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/apps/biologic-monitoring-dashboard/index.html', { waitUntil: 'networkidle' })
+
+    const search = page.locator('#search-input')
+    await expect(search).toHaveCount(1)
+    await search.fill('zzzzzz-not-a-real-regimen')
+    await page.waitForTimeout(250)
+
+    await expect(page.locator('#results .cl-empty-state')).toBeVisible()
+    await expect(page.locator('#results .cl-empty-state__title')).toContainText('No matching')
   })
 
   test('differentials defaults to primary tab set and hides zero favorites badge', async ({ page }) => {

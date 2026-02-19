@@ -1,5 +1,5 @@
 import { createPdfDocument } from '../core/pdflib-runtime.js'
-import { clearElement, createOutputLink, createParagraph, formatBytes, loadPdfFromFile } from './common.js'
+import { clearElement, createEmptyState, createOutputLink, createParagraph, formatBytes, loadPdfFromFile } from './common.js'
 
 export const id = 'assemble'
 export const navLabel = 'Packet Assembler'
@@ -49,6 +49,7 @@ export async function mount(context) {
   const listSection = createSection('Assembly List')
   const assemblyList = document.createElement('div')
   assemblyList.className = 'pdf-form-grid'
+  assemblyList.append(createEmptyState('No items in packet', 'Add PDFs or insert separator pages to build the assembly list.'))
   listSection.append(assemblyList)
 
   primaryPanel.append(loadSection, actionRow, listSection)
@@ -67,7 +68,7 @@ export async function mount(context) {
   assembleButton.disabled = true
   const outputList = document.createElement('div')
   outputList.className = 'pdf-output-list'
-  outputList.append(createParagraph('No output generated yet.', 'legacy-workflow__status'))
+  outputList.append(createEmptyState('No output yet', 'Add PDFs and assemble a packet to download output.'))
   outputSection.append(assembleButton, outputList)
 
   secondaryPanel.append(preflightSection, outputSection)
@@ -93,6 +94,11 @@ export async function mount(context) {
 
   const renderBlocks = () => {
     clearElement(assemblyList)
+
+    if (!blocks.length) {
+      assemblyList.append(createEmptyState('No items in packet', 'Add PDFs or insert separator pages to build the assembly list.'))
+      return
+    }
 
     blocks.forEach((block, index) => {
       const card = document.createElement('article')
@@ -165,6 +171,8 @@ export async function mount(context) {
     if (!files.length) return
 
     warnings.length = 0
+    clearElement(outputList)
+    outputList.append(createEmptyState('No output yet', 'Assemble packet to generate a downloadable PDF.'))
     for (const file of files) {
       try {
         const loaded = await loadPdfFromFile(file)

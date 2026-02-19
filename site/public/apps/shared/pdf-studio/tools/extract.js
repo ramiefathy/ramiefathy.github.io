@@ -2,6 +2,7 @@ import { createPdfDocument } from '../core/pdflib-runtime.js'
 import { parseRangeExpression } from '../core/range-parser.js'
 import {
   clearElement,
+  createEmptyState,
   createOutputLink,
   createParagraph,
   createThumbnailBoard,
@@ -70,6 +71,7 @@ export async function mount(context) {
   const boardSection = createSection('Thumbnail Board')
   const board = document.createElement('div')
   board.className = 'pdf-thumb-board'
+  board.append(createEmptyState('No pages to show', 'Load a PDF to see page thumbnails.'))
   boardSection.append(board)
 
   primaryPanel.append(loadSection, rangeSection, boardSection)
@@ -77,8 +79,10 @@ export async function mount(context) {
   const inspectorSection = createSection('Inspector')
   const previewFrame = document.createElement('div')
   previewFrame.className = 'pdf-preview-frame'
+  const previewEmpty = createEmptyState('No PDF loaded', 'Choose a PDF file to preview and verify page selection.')
   const previewCanvas = document.createElement('canvas')
-  previewFrame.append(previewCanvas)
+  previewCanvas.hidden = true
+  previewFrame.append(previewEmpty, previewCanvas)
   inspectorSection.append(previewFrame)
 
   const preflightSection = createSection('Preflight')
@@ -93,7 +97,7 @@ export async function mount(context) {
   runButton.disabled = true
   const outputList = document.createElement('div')
   outputList.className = 'pdf-output-list'
-  outputList.append(createParagraph('No output generated yet.', 'legacy-workflow__status'))
+  outputList.append(createEmptyState('No output yet', 'Load a PDF and generate output to see downloads here.'))
   outputSection.append(runButton, outputList)
 
   secondaryPanel.append(inspectorSection, preflightSection, outputSection)
@@ -129,6 +133,8 @@ export async function mount(context) {
     loadedDocument = await loadPdfFromFile(file)
     fileStatus.textContent = `${file.name} (${loadedDocument.pageCount} pages)`
     selectedPages = new Set()
+    previewEmpty.remove()
+    previewCanvas.hidden = false
 
     boardController?.destroy()
     boardController = createThumbnailBoard({
@@ -147,7 +153,7 @@ export async function mount(context) {
     })
 
     clearElement(outputList)
-    outputList.append(createParagraph('No output generated yet.', 'legacy-workflow__status'))
+    outputList.append(createEmptyState('No output yet', 'Choose pages, then generate output to download results.'))
     refreshPreflight()
   })
 
