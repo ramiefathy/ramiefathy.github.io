@@ -41,8 +41,8 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
   "legacyHtmlApps": [
     {
       "label": "Legacy apps index",
-      "route": "/apps/index.html",
-      "file": "site/public/apps/index.html",
+      "route": "/apps/legacy/index.html",
+      "file": "site/public/apps/legacy/index.html",
       "category": "legacy-index",
       "requiresDownloads": false
     },

@@ -102,7 +102,8 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
   test('scribe default theme uses shared legacy background tokens', async ({ page }) => {
     await page.goto('/apps/dermatology-scribe/index.html', { waitUntil: 'networkidle' })
     const backgroundColor = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
-    expect(backgroundColor).toBe('rgb(240, 253, 250)')
+    // W2 neutralized the suite background wash from teal-50 to slate-50.
+    expect(backgroundColor).toBe('rgb(248, 250, 252)')
   })
 
   test('scribe landing loads without overlapping fixed or absolute overlays', async ({ page }) => {
@@ -432,32 +433,42 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
     expect(hasBannedBadgeColor).toBe(false)
   })
 
-  test('PDF tools expose a consistent 60/40 workflow split on desktop', async ({ page }) => {
+  test('PDF tools expose a consistent panel layout on desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1365, height: 900 })
 
     for (const route of pdfWorkflowRoutes) {
       await page.goto(route, { waitUntil: 'networkidle' })
-      const split = await page.evaluate(() => {
+      const layout = await page.evaluate(() => {
         const workflow = document.querySelector('[data-workflow="pdf"]')
+        const nav = document.querySelector('#pdf-studio-nav')
         const primary = document.querySelector('.legacy-workflow__primary')
         const secondary = document.querySelector('.legacy-workflow__secondary')
-        if (!workflow || !primary || !secondary) {
+        if (!workflow || !nav || !primary || !secondary) {
           return null
         }
+        const navRect = nav.getBoundingClientRect()
         const primaryRect = primary.getBoundingClientRect()
         const secondaryRect = secondary.getBoundingClientRect()
-        const total = primaryRect.width + secondaryRect.width || 1
         return {
-          primaryRatio: primaryRect.width / total,
-          secondaryRatio: secondaryRect.width / total
+          navWidth: navRect.width,
+          primaryWidth: primaryRect.width,
+          secondaryWidth: secondaryRect.width
         }
       })
 
-      expect(split, `${route} missing workflow layout hooks`).not.toBeNull()
-      expect((split as { primaryRatio: number }).primaryRatio).toBeGreaterThanOrEqual(0.54)
-      expect((split as { primaryRatio: number }).primaryRatio).toBeLessThanOrEqual(0.68)
-      expect((split as { secondaryRatio: number }).secondaryRatio).toBeGreaterThanOrEqual(0.32)
-      expect((split as { secondaryRatio: number }).secondaryRatio).toBeLessThanOrEqual(0.46)
+      expect(layout, `${route} missing workflow layout hooks`).not.toBeNull()
+      const typed = layout as { navWidth: number; primaryWidth: number; secondaryWidth: number }
+
+      // PDF Studio uses a stable 3-pane panel layout: tool nav + workspace + inspector.
+      // Validate the invariant proportions without enforcing an older 60/40 split.
+      expect(typed.navWidth).toBeGreaterThanOrEqual(180)
+      expect(typed.navWidth).toBeLessThanOrEqual(280)
+
+      expect(typed.secondaryWidth).toBeGreaterThanOrEqual(240)
+      expect(typed.secondaryWidth).toBeLessThanOrEqual(380)
+
+      expect(typed.primaryWidth).toBeGreaterThanOrEqual(520)
+      expect(typed.primaryWidth / typed.secondaryWidth).toBeGreaterThanOrEqual(1.5)
     }
   })
 
@@ -525,7 +536,7 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
   })
 
   test('legacy apps index footer year is current', async ({ page }) => {
-    await page.goto('/apps/index.html', { waitUntil: 'networkidle' })
+    await page.goto('/apps/legacy/index.html', { waitUntil: 'networkidle' })
     await expect(page.locator('footer')).toContainText('© 2026')
   })
 
@@ -559,12 +570,12 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
 	  test('suite uses neutral page background outside MindMaps and cards have a subtle rest shadow', async ({ page }) => {
 	    await page.setViewportSize({ width: 1280, height: 800 })
 
-    const nonMindmapRoutes = [
-      '/apps/index.html',
-      '/apps/dermatopathology-differentials.html',
-      '/apps/biologic-monitoring-dashboard/index.html',
-      '/apps/pdf-studio.html?tool=organizer',
-      '/apps/dermatopathology-modern/index-fixed.html',
+	    const nonMindmapRoutes = [
+	      '/apps/legacy/index.html',
+	      '/apps/dermatopathology-differentials.html',
+	      '/apps/biologic-monitoring-dashboard/index.html',
+	      '/apps/pdf-studio.html?tool=organizer',
+	      '/apps/dermatopathology-modern/index-fixed.html',
       '/apps/dermatology-scribe/index.html'
     ]
 

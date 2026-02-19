@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const appsRoot = resolve(__dirname, '../../public/apps')
 const appsCatalogPath = resolve(__dirname, '../data/apps.json')
 const pagesWithShell = [
-  'index.html',
+  'legacy/index.html',
   'MindMaps/CTCL/CTCLMindMaps.html',
   'MindMaps/Psoriasis/PsoriasisMindMaps.html',
   'MindMaps/Alopecia/AlopeciaMindMaps.html',
@@ -148,7 +148,7 @@ describe('legacy apps remediation backlog', () => {
   })
 
   it('P1: legacy apps index does not label scribe as deprecated', () => {
-    const legacyAppsIndex = loadApp('index.html')
+    const legacyAppsIndex = loadApp('legacy/index.html')
     expect(legacyAppsIndex).not.toContain('Deprecated')
   })
 
@@ -263,7 +263,7 @@ describe('legacy apps remediation backlog', () => {
       'textExtractor.html',
       'PDF Merger.html',
       'PDF Splitter.html',
-      'index.html',
+      'legacy/index.html',
       'dermatopathology-modern/index.html',
       'dermatopathology-modern/index-fixed.html',
       'dermatopathology-modern/deduplication-visualization.html',
