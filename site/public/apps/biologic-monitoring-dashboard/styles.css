@@ -648,47 +648,30 @@ small {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius, 4px);
+  font: 600 0.75rem/1 var(--body-font);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   border: 1px solid transparent;
 }
 
-.badge-boxed {
-  background: rgba(239, 68, 68, 0.12);
-  color: #b91c1c;
-  border-color: rgba(239, 68, 68, 0.26);
+.cl-badge-danger {
+  background: var(--cl-badge-danger-bg);
+  color: var(--cl-badge-danger-text);
+  border-color: var(--cl-badge-danger-border);
 }
 
-.badge-teratogenic {
-  background: rgba(251, 146, 60, 0.12);
-  color: #c2410c;
-  border-color: rgba(251, 146, 60, 0.26);
+.cl-badge-caution {
+  background: var(--cl-badge-caution-bg);
+  color: var(--cl-badge-caution-text);
+  border-color: var(--cl-badge-caution-border);
 }
 
-.badge-rems {
-  background: color-mix(in oklab, var(--cl-warning), transparent 88%);
-  color: color-mix(in oklab, var(--cl-warning), black 20%);
-  border-color: color-mix(in oklab, var(--cl-warning), transparent 70%);
-}
-
-.badge-age {
-  background: color-mix(in oklab, var(--cl-accent), transparent 90%);
-  color: color-mix(in oklab, var(--cl-accent), black 14%);
-  border-color: color-mix(in oklab, var(--cl-accent), transparent 72%);
-}
-
-.badge-pediatric {
-  background: rgba(16, 185, 129, 0.12);
-  color: #047857;
-  border-color: rgba(16, 185, 129, 0.26);
-}
-
-.badge-infection {
-  background: color-mix(in oklab, var(--cl-danger), transparent 90%);
-  color: color-mix(in oklab, var(--cl-danger), black 18%);
-  border-color: color-mix(in oklab, var(--cl-danger), transparent 72%);
+.cl-badge-info {
+  background: var(--cl-badge-info-bg);
+  color: var(--cl-badge-info-text);
+  border-color: var(--cl-badge-info-border);
 }
 
 .entry-details {

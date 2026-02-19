@@ -16,12 +16,12 @@ const RISK_LEVEL_LABELS = {
 };
 
 const riskBadgeConfig = {
-  'boxed-warning': { icon: 'Alert', className: 'badge-boxed' },
-  teratogenic: { icon: 'Preg', className: 'badge-teratogenic' },
-  rems: { icon: 'REMS', className: 'badge-rems' },
-  'age-65-plus': { icon: '65+', className: 'badge-age' },
-  pediatric: { icon: 'Peds', className: 'badge-pediatric' },
-  infection: { icon: 'Inf', className: 'badge-infection' }
+  'boxed-warning': { icon: 'Alert', className: 'cl-badge-danger' },
+  teratogenic: { icon: 'Preg', className: 'cl-badge-danger' },
+  rems: { icon: 'REMS', className: 'cl-badge-caution' },
+  'age-65-plus': { icon: '65+', className: 'cl-badge-caution' },
+  pediatric: { icon: 'Peds', className: 'cl-badge-caution' },
+  infection: { icon: 'Inf', className: 'cl-badge-danger' }
 };
 
 const riskBadgeDescriptions = {
@@ -324,7 +324,7 @@ function buildRiskIndicators(entry) {
   if (!entry.warningFlags || !entry.warningFlags.length) return '';
   const badges = entry.warningFlags
     .map((flag) => {
-      const config = riskBadgeConfig[flag] || { icon: 'Alert', className: 'badge-generic' };
+      const config = riskBadgeConfig[flag] || { icon: 'Alert', className: 'cl-badge-info' };
       const label = RISK_BADGE_LABELS[flag] || toTitleCase(flag);
       const description = riskBadgeDescriptions[flag] || 'Review prescribing information for additional safety guidance.';
       return `<span class="risk-badge ${config.className}" tabindex="0" data-tooltip="${escapeAttribute(

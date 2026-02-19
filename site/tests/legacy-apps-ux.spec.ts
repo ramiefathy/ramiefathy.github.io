@@ -596,4 +596,71 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
     expect(h3Size, 'expected at least one h3 to validate card heading size').not.toBeNull()
     expect(h3Size as number, 'expected h3 font-size 20px').toBe(20)
   })
+
+  test('biologic dashboard risk badges use severity palette with WCAG AA contrast', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/apps/biologic-monitoring-dashboard/index.html', { waitUntil: 'networkidle' })
+
+    const report = await page.evaluate(() => {
+      function parseRgb(color: string): { r: number; g: number; b: number } | null {
+        const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+        if (!match) return null
+        return { r: Number(match[1]), g: Number(match[2]), b: Number(match[3]) }
+      }
+
+      function srgbToLinear(channel: number): number {
+        const c = channel / 255
+        if (c <= 0.03928) return c / 12.92
+        return Math.pow((c + 0.055) / 1.055, 2.4)
+      }
+
+      function relativeLuminance({ r, g, b }: { r: number; g: number; b: number }): number {
+        const R = srgbToLinear(r)
+        const G = srgbToLinear(g)
+        const B = srgbToLinear(b)
+        return 0.2126 * R + 0.7152 * G + 0.0722 * B
+      }
+
+      function contrastRatio(fg: { r: number; g: number; b: number }, bg: { r: number; g: number; b: number }): number {
+        const L1 = relativeLuminance(fg)
+        const L2 = relativeLuminance(bg)
+        const lighter = Math.max(L1, L2)
+        const darker = Math.min(L1, L2)
+        return (lighter + 0.05) / (darker + 0.05)
+      }
+
+      const badges = Array.from(document.querySelectorAll('.risk-badge')) as HTMLElement[]
+      const results = badges.map((badge) => {
+        const style = getComputedStyle(badge)
+        const fg = parseRgb(style.color)
+        const bg = parseRgb(style.backgroundColor)
+        const ratio = fg && bg ? contrastRatio(fg, bg) : null
+        const text = badge.textContent?.replace(/\\s+/g, ' ').trim() ?? ''
+        const classes = Array.from(badge.classList)
+        return { text, classes, fg: style.color, bg: style.backgroundColor, ratio }
+      })
+
+      return {
+        badgeCount: results.length,
+        results
+      }
+    })
+
+    expect(report.badgeCount, 'Expected biologic dashboard to render at least one .risk-badge').toBeGreaterThan(0)
+
+    for (const badge of report.results) {
+      const hasSeverityClass =
+        badge.classes.includes('cl-badge-danger') ||
+        badge.classes.includes('cl-badge-caution') ||
+        badge.classes.includes('cl-badge-info')
+      expect(hasSeverityClass, `Badge "${badge.text}" missing cl-badge-* class`).toBe(true)
+
+      const forbiddenTeal = new Set(['rgb(15, 118, 110)', 'rgb(13, 148, 136)'])
+      expect(forbiddenTeal.has(badge.fg), `Badge "${badge.text}" unexpectedly uses teal text color ${badge.fg}`).toBe(false)
+      expect(forbiddenTeal.has(badge.bg), `Badge "${badge.text}" unexpectedly uses teal background color ${badge.bg}`).toBe(false)
+
+      expect(badge.ratio, `Badge "${badge.text}" missing parseable foreground/background colors`).not.toBeNull()
+      expect(badge.ratio as number, `Badge "${badge.text}" contrast ratio ${badge.ratio} is below 4.5:1`).toBeGreaterThanOrEqual(4.5)
+    }
+  })
 })
