@@ -84,6 +84,22 @@ function parseInventory(): Inventory {
   return JSON.parse(match[1]) as Inventory
 }
 
+function countTokenUsage(files: string[], token: string): { total: number; perFile: Map<string, number> } {
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const perFile = new Map<string, number>()
+  let total = 0
+
+  for (const filePath of files) {
+    const content = fs.readFileSync(filePath, 'utf-8')
+    const matches = content.match(new RegExp(escaped, 'g')) ?? []
+    if (!matches.length) continue
+    perFile.set(filePath, matches.length)
+    total += matches.length
+  }
+
+  return { total, perFile }
+}
+
 function findBannedHexColors(content: string): string[] {
   const bannedHexes = ['#6366F1', '#4F46E5', '#8B5CF6', '#7C3AED', '#A855F7']
   const matches: string[] = []
@@ -143,6 +159,24 @@ describe('Frontend Design System Contract (legacy apps)', () => {
     }
 
     expect(css).toContain("@import url('./legacy-fonts.css');")
+  })
+
+  it('structural tokens are defined and used across multiple apps', () => {
+    const tokensPath = path.join(SHARED_ROOT, 'legacy-tokens.css')
+    const css = fs.readFileSync(tokensPath, 'utf-8')
+
+    expect(css).toMatch(/--cl-structural\s*:/)
+    expect(css).toMatch(/--cl-structural-light\s*:/)
+
+    const files = walkFiles(APPS_ROOT, {
+      excludeDirs: ['vendor'],
+      excludeFilePatterns: [/\.min\.js$/i, /\.min\.css$/i],
+      includeExtensions: new Set(['.html', '.css', '.js'])
+    }).filter((filePath) => !filePath.endsWith(path.join('shared', 'legacy-tokens.css')))
+
+    const usage = countTokenUsage(files, 'var(--cl-structural')
+    expect(usage.total).toBeGreaterThanOrEqual(5)
+    expect(usage.perFile.size).toBeGreaterThanOrEqual(3)
   })
 
   it('legacy primary hue stays in teal family (160-185)', () => {
