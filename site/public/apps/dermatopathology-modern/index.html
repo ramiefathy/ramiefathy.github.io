@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="../shared/legacy-tokens.css">
     <link rel="stylesheet" href="../shared/legacy-primitives.css">
     <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <link rel="stylesheet" href="./clinical-reference.css">
     <script src="../shared/legacy-shell.js" defer></script>
     <script src="../shared/legacy-guidance.js" defer></script>
 
@@ -74,13 +75,13 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
-        /* Gradient Background */
+        /* Clinical Accent Backgrounds */
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f766e 0%, #0e7490 100%);
         }
 
         .gradient-bg-alt {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
         }
 
         /* Loading Animation */
@@ -164,7 +165,7 @@
 
         /* Category Colors - Bright colors for dark cards */
         .category-inflammatory { border-left: 8px solid #f87171; }
-        .category-neoplastic { border-left: 8px solid #a78bfa; }
+        .category-neoplastic { border-left: 8px solid #0f766e; }
         .category-infectious { border-left: 8px solid #fbbf24; }
         .category-metabolic { border-left: 8px solid #34d399; }
         .category-genetic { border-left: 8px solid #60a5fa; }
@@ -228,6 +229,26 @@
             opacity: 1;
             transform: translateY(0);
             transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .cl-deprecation-banner {
+            position: relative;
+            z-index: 2;
+            margin: 1rem auto 0;
+            width: min(960px, calc(100% - 2rem));
+            padding: 0.875rem 1rem;
+            border: 1px solid var(--cl-warning);
+            border-left-width: 4px;
+            border-radius: var(--radius-card);
+            background: color-mix(in oklab, var(--cl-warning), #fff 92%);
+            color: var(--cl-text);
+            font-size: 0.9375rem;
+        }
+
+        .cl-deprecation-banner a {
+            color: var(--cl-accent);
+            font-weight: 600;
+            text-decoration: underline;
         }
 
         /* Custom animations for AI chat */
@@ -297,7 +318,13 @@
         }
     </script>
 </head>
-<body class="font-sans antialiased legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Use search to find diagnoses or patterns.","Open a result to review key features and references.","Use Reset if the prototype state looks stuck."]'>
+<body class="clinical-reference font-sans antialiased legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Use search to find diagnoses or patterns.","Open a result to review key features and references.","Use Reset if the prototype state looks stuck."]'>
+    <div class="cl-deprecation-banner">
+        This is an older prototype. Use the stabilized view:
+        <a href="index-fixed.html">Dermatopathology Navigator (stabilized)</a>.
+        Append <code>?stay=1</code> to this URL to keep the prototype open.
+    </div>
+
     <!-- Shader Background Canvas -->
     <canvas id="shader-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;"></canvas>
 
@@ -309,8 +336,15 @@
 
     <!-- WebGL Shader Background -->
     <script>
+        const prototypeParams = new URLSearchParams(window.location.search);
+        if (prototypeParams.get('stay') !== '1') {
+            window.setTimeout(() => {
+                window.location.replace('./index-fixed.html');
+            }, 3200);
+        }
+
         // Apply saved theme immediately to prevent flash
-        const savedTheme = localStorage.getItem('theme') || 'dark';
+        const savedTheme = localStorage.getItem('theme') || 'light';
         if (savedTheme === 'dark') {
             document.documentElement.classList.add('dark');
             document.body.classList.add('bg-black', 'text-gray-100');
@@ -1328,7 +1362,7 @@
                         id: 'first_review',
                         name: 'First Steps',
                         description: 'Complete your first review',
-                        icon: '👶',
+                        icon: 'A1',
                         condition: (stats) => stats.totalReviews >= 1,
                         unlocked: false
                     },
@@ -1336,7 +1370,7 @@
                         id: 'streak_7',
                         name: 'Week Warrior',
                         description: 'Maintain a 7-day streak',
-                        icon: '🔥',
+                        icon: 'A2',
                         condition: (stats) => stats.streak >= 7,
                         unlocked: false
                     },
@@ -1344,7 +1378,7 @@
                         id: 'streak_30',
                         name: 'Monthly Master',
                         description: 'Maintain a 30-day streak',
-                        icon: '💎',
+                        icon: 'A3',
                         condition: (stats) => stats.streak >= 30,
                         unlocked: false
                     },
@@ -1352,7 +1386,7 @@
                         id: 'cards_100',
                         name: 'Century Club',
                         description: 'Study 100 cards',
-                        icon: '💯',
+                        icon: 'A4',
                         condition: (stats) => stats.cardsStudied >= 100,
                         unlocked: false
                     },
@@ -1360,7 +1394,7 @@
                         id: 'perfect_quiz',
                         name: 'Perfect Score',
                         description: 'Get 100% on a quiz',
-                        icon: '🎯',
+                        icon: 'A5',
                         condition: (stats) => stats.perfectQuizzes >= 1,
                         unlocked: false
                     },
@@ -1368,7 +1402,7 @@
                         id: 'night_owl',
                         name: 'Night Owl',
                         description: 'Study after midnight',
-                        icon: '🦉',
+                        icon: 'A6',
                         condition: (stats) => stats.nightStudySessions >= 1,
                         unlocked: false
                     },
@@ -1376,7 +1410,7 @@
                         id: 'explorer',
                         name: 'Explorer',
                         description: 'Use all 8 view modes',
-                        icon: '🗺️',
+                        icon: 'A7',
                         condition: (stats) => stats.viewsUsed && stats.viewsUsed.size >= 8,
                         unlocked: false
                     }
@@ -1818,16 +1852,16 @@
                                     </div>
                                     <div>
                                         <h1 className="text-xl font-semibold">Dermatopathology Navigator</h1>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Modern Learning Experience</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Deprecated prototype (redirects to stabilized view)</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex items-center space-x-4">
                                 {studyStats.streak > 0 && (
-                                    <div className="flex items-center space-x-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-                                        <span className="text-2xl fire-animation">🔥</span>
-                                        <span className="text-sm font-medium">{studyStats.streak} day streak!</span>
+                                    <div className="streak-badge flex items-center space-x-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                                        <span className="text-sm font-semibold uppercase tracking-wide">Streak</span>
+                                        <span className="text-sm font-medium">{studyStats.streak} day review streak</span>
                                     </div>
                                 )}
 
@@ -2169,12 +2203,12 @@
 
                 gradient.append("stop")
                     .attr("offset", "0%")
-                    .attr("stop-color", "#8b5cf6")
+                    .attr("stop-color", "#0f766e")
                     .attr("stop-opacity", 0.8);
 
                 gradient.append("stop")
                     .attr("offset", "100%")
-                    .attr("stop-color", "#6366f1")
+                    .attr("stop-color", "#0e7490")
                     .attr("stop-opacity", 0.6);
 
                 // Create nodes
@@ -2201,12 +2235,17 @@
                     .force("center", d3.forceCenter(width / 2, height / 2))
                     .force("collision", d3.forceCollide().radius(d => d.r + 10));
 
+                const rootStyles = getComputedStyle(document.documentElement);
+                const tokenPrimary = rootStyles.getPropertyValue('--cl-primary').trim() || '#0f766e';
+                const tokenAccent = rootStyles.getPropertyValue('--cl-accent').trim() || '#164e63';
+                const tokenBorder = rootStyles.getPropertyValue('--cl-border').trim() || '#e2e8f0';
+
                 // Create links
                 const link = svg.append("g")
                     .selectAll("line")
                     .data(links)
                     .join("line")
-                    .attr("stroke", "#e5e7eb")
+                    .attr("stroke", tokenBorder)
                     .attr("stroke-width", 2)
                     .attr("opacity", 0.6);
 
@@ -2220,8 +2259,8 @@
                 // Add circles
                 node.append("circle")
                     .attr("r", d => d.r)
-                    .attr("fill", d => d.group === 0 ? "url(#node-gradient)" : "#e0e7ff")
-                    .attr("stroke", d => d.group === 0 ? "#7c3aed" : "#6366f1")
+                    .attr("fill", d => d.group === 0 ? "url(#node-gradient)" : "#dcf3ef")
+                    .attr("stroke", d => d.group === 0 ? tokenPrimary : tokenAccent)
                     .attr("stroke-width", 2)
                     .style("cursor", "pointer")
                     .on("click", (event, d) => {
@@ -2330,7 +2369,7 @@
             return (
                 <div className="glass dark:glass-dark rounded-xl p-6">
                     <div className="flex items-center space-x-2 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-teal-700 flex items-center justify-center">
                             <Icon name="sparkles" className="w-4 h-4 text-white" />
                         </div>
                         <h3 className="text-lg font-bold text-white">AI Insights</h3>
@@ -3094,7 +3133,7 @@
                                                             }}
                                                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
                                                                 activeTab === id
-                                                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25'
+                                                                    ? 'bg-teal-700 text-white shadow-md'
                                                                     : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
                                                             }`}
                                                         >
@@ -3126,7 +3165,7 @@
                                                             }}
                                                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
                                                                 activeTab === id
-                                                                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25'
+                                                                    ? 'bg-amber-700 text-white shadow-md'
                                                                     : 'glass dark:glass-dark hover:bg-white/10 text-gray-300'
                                                             }`}
                                                         >
@@ -3444,21 +3483,21 @@
                                     {stats.averageEaseFactor < 2.3 && (
                                         <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                                             <p className="text-sm text-yellow-400">
-                                                💡 Your average ease factor is low. Consider breaking down difficult cards into smaller concepts.
+                                                Study tip: your average ease factor is low. Consider breaking difficult cards into smaller concepts.
                                             </p>
                                         </div>
                                     )}
                                     {stats.cardsReviewed < stats.totalCards * 0.5 && (
                                         <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                                             <p className="text-sm text-blue-400">
-                                                📚 You have many unreviewed cards. Try to review a few new cards each day.
+                                                Study tip: many cards remain unreviewed. Try reviewing a few new cards each day.
                                             </p>
                                         </div>
                                     )}
                                     {stats.averageInterval > 30 && (
                                         <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
                                             <p className="text-sm text-green-400">
-                                                🎉 Great job! Your cards have long intervals, showing good retention.
+                                                Great job. Your cards have long intervals, showing solid retention.
                                             </p>
                                         </div>
                                     )}
@@ -3479,7 +3518,7 @@
             doc.style.fontFamily = 'Arial, sans-serif';
             doc.style.padding = '40px';
             doc.innerHTML = `
-                <h1 style="color: #7c3aed; margin-bottom: 30px;">Dermatopathology Differential Diagnoses</h1>
+                <h1 style="color: #0f766e; margin-bottom: 30px;">Dermatopathology Differential Diagnoses</h1>
                 <p style="color: #666; margin-bottom: 40px;">Generated on ${new Date().toLocaleDateString()}</p>
             `;
 
@@ -3498,7 +3537,7 @@
                     const diagDiv = document.createElement('div');
                     diagDiv.style.marginBottom = '20px';
                     diagDiv.innerHTML = `
-                        <h3 style="color: #7c3aed; margin-bottom: 8px;">${index + 1}. ${dx.name}</h3>
+                        <h3 style="color: #0f766e; margin-bottom: 8px;">${index + 1}. ${dx.name}</h3>
                         <p style="color: #666; line-height: 1.6;">${dx.keyFeatures}</p>
                     `;
                     section.appendChild(diagDiv);

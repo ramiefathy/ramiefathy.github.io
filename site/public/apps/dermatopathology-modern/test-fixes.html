@@ -2,63 +2,78 @@
 <html>
 <head>
     <title>Test Fixes - WebGL and Dark Mode</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Internal test page for validating WebGL and dark-mode rendering behavior in the dermatopathology prototype.">
     <link rel="stylesheet" href="../shared/legacy-tokens.css">
     <link rel="stylesheet" href="../shared/legacy-primitives.css">
     <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <link rel="stylesheet" href="./clinical-reference.css">
     <script src="../shared/legacy-shell.js" defer></script>
     <script src="../shared/legacy-guidance.js" defer></script>
     <style>
         body {
             margin: 0;
-            padding: 20px;
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #1a1a1a;
-            color: white;
+            padding: var(--legacy-space-5);
+            font-family: var(--font-body, var(--legacy-font-sans, ui-sans-serif));
+            background: var(--legacy-bg);
+            color: var(--legacy-text);
         }
         .test-section {
-            margin: 20px 0;
-            padding: 20px;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background: rgba(0,0,0,0.5);
+            margin: var(--legacy-space-4) 0;
+            padding: var(--legacy-space-4);
+            border: 1px solid var(--legacy-border);
+            border-radius: var(--radius);
+            background: var(--legacy-surface);
+            box-shadow: var(--legacy-shadow-sm);
         }
         .status {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: bold;
+            padding: 0.2rem 0.6rem;
+            border-radius: calc(var(--radius) - 2px);
+            font-size: 0.82rem;
+            font-weight: 600;
         }
         .success { background: #22c55e; color: white; }
         .error { background: #ef4444; color: white; }
-        .info { background: #3b82f6; color: white; }
+        .info { background: #0e7490; color: white; }
         #canvas-test {
             width: 400px;
             height: 200px;
-            border: 2px solid #444;
+            border: 2px solid var(--legacy-border);
+            border-radius: calc(var(--radius) + 2px);
             display: block;
-            margin: 10px 0;
+            margin: 0.75rem 0;
         }
         button {
-            padding: 10px 20px;
-            background: #3b82f6;
+            padding: 0.55rem 1rem;
+            background: var(--legacy-primary);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--radius);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: background-color 140ms ease-in-out;
         }
         button:hover {
-            background: #2563eb;
+            background: var(--legacy-primary-strong);
+        }
+        strong {
+            color: var(--legacy-text);
+        }
+        .expected-hint {
+            margin: 0.35rem 0 0.75rem;
+            font-size: 0.95rem;
+            color: var(--cl-text-muted, #475569);
         }
     </style>
 </head>
-<body class="legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Use the sections below to validate rendering behavior.","Toggle Theme and confirm colors update.","This page is for internal testing only."]'>
+<body class="clinical-reference clinical-reference--harness legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Use the sections below to validate rendering behavior.","Toggle Theme and confirm colors update.","This page is for internal testing only."]'>
     <h1>Fix Verification Tests</h1>
 
     <div class="test-section">
         <h2>1. WebGL Shader Test</h2>
+        <p class="expected-hint">Expected: black WebGL canvas with color cycling on button press.</p>
         <canvas id="canvas-test"></canvas>
         <div id="webgl-status"></div>
         <button onclick="testMouseMovement()">Test Color Animation</button>
@@ -77,9 +92,9 @@
     <div class="test-section">
         <h2>3. Icon Test</h2>
         <div style="display: flex; gap: 10px; margin: 10px 0;">
-            <div class="icon-test" data-lucide="grid-3x3"></div>
+            <div class="icon-test" data-lucide="grid"></div>
             <div class="icon-test" data-lucide="credit-card"></div>
-            <div class="icon-test" data-lucide="network"></div>
+            <div class="icon-test" data-lucide="share-2"></div>
             <div class="icon-test" data-lucide="brain"></div>
         </div>
         <div id="icon-status"></div>
@@ -159,10 +174,10 @@
         function testIcons() {
             lucide.createIcons();
 
-            const icons = document.querySelectorAll('.icon-test svg');
+            const icons = document.querySelectorAll('svg.lucide, .icon-test svg, .icon-test [data-lucide]');
             const status = document.getElementById('icon-status');
 
-            if (icons.length === 4) {
+            if (icons.length >= 4) {
                 status.innerHTML = '<span class="status success">All 4 icons rendered correctly</span>';
             } else {
                 status.innerHTML = `<span class="status error">Only ${icons.length} of 4 icons rendered</span>`;

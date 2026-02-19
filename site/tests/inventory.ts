@@ -8,6 +8,7 @@ export type LegacyHtmlAppInventoryEntry = {
   file: string
   category: string
   requiresDownloads: boolean
+  redirectTo?: string
 }
 
 export type ExternalAppInventoryEntry = {
@@ -67,6 +68,9 @@ function assertLegacyApps(value: unknown): asserts value is LegacyHtmlAppInvento
     }
     if (typeof candidate.requiresDownloads !== 'boolean') {
       throw new Error('Inventory legacyHtmlApps entry is missing boolean field "requiresDownloads"')
+    }
+    if (candidate.redirectTo !== undefined && typeof candidate.redirectTo !== 'string') {
+      throw new Error('Inventory legacyHtmlApps entry field "redirectTo" must be a string when present')
     }
   }
 }

@@ -83,15 +83,155 @@ h6 {
 <body class="legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Use the table of contents to jump sections.","Use browser find (Ctrl/⌘+F) for dressing names.","Math rendering is self-contained; no external loads."]'>
 
 <style type="text/css">
+body {
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+  color: var(--cl-text-muted);
+}
+
 .main-container {
-  max-width: 940px;
+  max-width: 800px;
   margin-left: auto;
   margin-right: auto;
 }
+
+.main-container h2,
+.main-container h3 {
+  scroll-margin-top: 96px;
+}
+
+.main-container h2 {
+  margin-top: 2.25rem;
+}
+
+.main-container h3 {
+  margin-top: 1.75rem;
+}
+
+.main-container h2:first-child,
+.main-container h3:first-child {
+  margin-top: 0;
+}
+
+.cl-archive-banner {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--cl-border);
+  border-left: 4px solid var(--cl-primary);
+  border-radius: var(--radius-card);
+  background: var(--cl-surface-alt);
+}
+
+.cl-archive-banner__label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cl-text);
+}
+
+.cl-archive-banner__meta {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--cl-text-muted);
+  font-size: 0.9rem;
+}
+
+.cl-generated-toc {
+  margin: 0 0 1rem;
+  border: 1px solid var(--cl-border);
+  border-radius: var(--radius-card);
+  background: var(--cl-surface);
+  padding: 0.85rem 1rem;
+}
+
+.cl-generated-toc h2 {
+  margin: 0 0 0.45rem;
+  font-size: 1rem;
+  font-family: var(--font-body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cl-generated-toc ul {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.cl-generated-toc a {
+  color: var(--cl-accent);
+  text-decoration: none;
+}
+
+.cl-generated-toc a:hover,
+.cl-generated-toc a:focus-visible {
+  text-decoration: underline;
+}
+
 code {
   color: inherit;
   background-color: rgba(0, 0, 0, 0.04);
 }
+
+pre, code {
+  font-family: var(--font-mono);
+}
+
+pre {
+  font-size: 0.875rem;
+  background: var(--cl-surface-alt) !important;
+  border: 1px solid var(--cl-border);
+  border-radius: var(--radius);
+  padding: var(--space-md);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  border-bottom: 1px solid var(--cl-border);
+  padding: var(--space-sm) var(--space-md);
+}
+
+table thead th {
+  color: var(--cl-text);
+  background: color-mix(in oklab, var(--cl-surface-alt), white 40%);
+}
+
+table tbody tr:nth-child(even) {
+  background: color-mix(in oklab, var(--cl-surface-alt), white 55%);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--cl-border);
+  border-radius: var(--radius-card);
+  background: var(--cl-surface);
+}
+
+.cl-chart-frame {
+  margin-top: 0.75rem;
+  border: 1px solid var(--cl-border);
+  border-radius: var(--radius-card);
+  padding: 0.75rem;
+  background: var(--cl-surface);
+}
+
+.cl-chart-caption {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--cl-text-muted);
+}
+
 img {
   max-width:100%;
   height: auto;
@@ -107,11 +247,54 @@ button.code-folding-btn:focus {
 
 
 <div class="container-fluid main-container">
+<div class="cl-archive-banner" role="note" aria-label="Reference archive notice">
+  <span class="cl-archive-banner__label">Reference Archive</span>
+  <span class="cl-archive-banner__meta">Generated from R Markdown source · Last updated 12/22/2022</span>
+</div>
+<nav id="generated-toc" class="cl-generated-toc" aria-label="Page sections"></nav>
 
 <!-- tabsets -->
 <script>
 $(document).ready(function () {
   window.buildTabsets("TOC");
+
+  const tocHost = document.getElementById('generated-toc');
+  if (tocHost) {
+    const headings = Array.from(document.querySelectorAll('.main-container h2, .main-container h3'));
+    if (headings.length) {
+      const list = document.createElement('ul');
+      headings.forEach((heading, index) => {
+        if (!heading.id) {
+          heading.id = `wc-section-${index + 1}`;
+        }
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = `#${heading.id}`;
+        link.textContent = heading.textContent.trim();
+        item.appendChild(link);
+        list.appendChild(item);
+      });
+
+      const title = document.createElement('h2');
+      title.textContent = 'Contents';
+      tocHost.appendChild(title);
+      tocHost.appendChild(list);
+    } else {
+      tocHost.style.display = 'none';
+    }
+  }
+
+  const firstChart = document.querySelector('img');
+  if (firstChart && !firstChart.closest('.cl-chart-frame')) {
+    const frame = document.createElement('figure');
+    frame.className = 'cl-chart-frame';
+    const caption = document.createElement('figcaption');
+    caption.className = 'cl-chart-caption';
+    caption.textContent = 'Provider type distribution chart (generated output).';
+    firstChart.parentNode.insertBefore(frame, firstChart);
+    frame.appendChild(caption);
+    frame.appendChild(firstChart);
+  }
 });
 </script>
 

@@ -40,10 +40,10 @@ This document provides a comprehensive overview of the Dermatopathology Navigato
 - Created reusable component architecture
 
 ### 2. UI/UX Enhancements ✅
-- **WebGL Shader Background**: Animated paper-like effect with dark purple/blue colors
+- **WebGL Shader Background**: Animated paper-like effect with dark teal/blue colors
   - Current Configuration: Very dark colors `[8, 6, 20]` for better contrast
   - Ripple effects that follow mouse movement
-  - **Needs Update**: Add purple/green color variations based on movement speed
+  - **Needs Update**: Add teal/green color variations based on movement speed
 - **Dark Cards with White Text**: Fixed readability issues
   - Cards: `rgba(15, 23, 42, 0.85)` with white text
   - Glassmorphism effects with backdrop filters
@@ -125,9 +125,9 @@ This document provides a comprehensive overview of the Dermatopathology Navigato
 
 ### 1. WebGL Shader Background ✅
 - **Issue**: Background was too dark, needed more color variety
-- **Resolution**: Added purple and green color sets with speed-based interpolation
+- **Resolution**: Added teal and green color sets with speed-based interpolation
   - Slow movement: Deep, subtle colors
-  - Fast movement: Bright, vibrant purples and greens
+  - Fast movement: Bright, vibrant teals and greens
   - Smooth color transitions based on mouse/touch velocity
 
 ### 2. Data Deduplication ✅
@@ -289,7 +289,7 @@ http://localhost:8000/site/public/apps/dermatopathology-modern/
 - **Original Data Source**: `dermatopathology-differentials-data.js`
 - **Related Apps**: Check `/site/public/apps/` for other medical education tools
 - **Design System**: Glassmorphic UI with dark theme
-- **Color Palette**: Purple (#8b5cf6) to Pink (#ec4899) gradients
+- **Color Palette**: Teal (#0f766e) to Cyan (#0e7490) accents
 
 ## Final Notes
 

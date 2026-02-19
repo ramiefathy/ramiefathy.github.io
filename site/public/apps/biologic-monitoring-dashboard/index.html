@@ -17,18 +17,25 @@
   </head>
   <body class="legacy-focus-ring" data-view="cards" data-legacy-shell="true" data-help-steps='["Start with Quick search, then narrow with filters.","Switch Cards/Table view for comparison.","Use Reset filters to return to the full reference."]'>
     <main class="page">
-      <section class="hero">
+      <section class="hero" id="overview">
         <div class="hero__content">
+          <p class="hero__kicker">Clinical reference</p>
           <h1>Biologic Monitoring Dashboard</h1>
           <p>
             Searchable, filterable monitoring guidance for dermatology biologics and systemic immunomodulators. Built from
             FDA prescribing information and consensus guidelines updated September&nbsp;23,&nbsp;2025. Use it to double-check baseline labs,
             follow-up cadence, and safety counseling before initiating or refilling therapy.
           </p>
+          <nav class="jump-nav" aria-label="Jump to section">
+            <a href="#controls">Filters</a>
+            <a href="#comparison-view">Comparison</a>
+            <a href="#result-count">Results</a>
+            <a href="#results">Entries</a>
+          </nav>
         </div>
       </section>
 
-      <section class="controls" aria-label="Filters">
+      <section id="controls" class="controls" aria-label="Filters">
         <div class="control-card control-card--search">
           <label for="search-input">Quick search</label>
           <div class="search-input">
@@ -99,7 +106,7 @@
 
       <section id="comparison-view" class="comparison-section" aria-label="Side-by-side comparison" aria-live="polite"></section>
 
-      <p id="result-count"></p>
+      <p id="result-count" class="result-count-anchor"></p>
       <section id="results" class="entries" aria-live="polite"></section>
     </main>
 
@@ -112,6 +119,39 @@
           'Use Reset filters to return to the full monitoring reference.'
         ])
       }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const navLinks = Array.from(document.querySelectorAll('.jump-nav a'))
+        const sections = navLinks
+          .map((link) => {
+            const target = document.querySelector(link.getAttribute('href'))
+            return target ? { link, target } : null
+          })
+          .filter(Boolean)
+
+        if (!sections.length) return
+
+        const setActive = (targetId) => {
+          sections.forEach(({ link, target }) => {
+            const isActive = target.id === targetId
+            link.classList.toggle('is-active', isActive)
+          })
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+            if (visible?.target?.id) {
+              setActive(visible.target.id)
+            }
+          },
+          { threshold: [0.25, 0.5, 0.75], rootMargin: '-96px 0px -45% 0px' }
+        )
+
+        sections.forEach(({ target }) => observer.observe(target))
+      })
     </script>
     <script type="module" src="./app.js"></script>
   </body>

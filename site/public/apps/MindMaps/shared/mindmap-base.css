@@ -5,6 +5,14 @@ body {
     font-family: var(--font-body, var(--legacy-font-sans, ui-sans-serif));
     background-color: transparent;
     color: var(--legacy-text, #0b1f24);
+    --mindmap-node-fill-0: color-mix(in oklab, var(--primary, #0f766e), white 78%);
+    --mindmap-node-fill-1: color-mix(in oklab, var(--primary, #0f766e), white 84%);
+    --mindmap-node-fill-2: color-mix(in oklab, var(--accent, #164e63), white 86%);
+    --mindmap-node-fill-3: color-mix(in oklab, var(--accent, #164e63), white 91%);
+    --mindmap-node-fill-4: color-mix(in oklab, var(--primary, #0f766e), white 92%);
+    --mindmap-link: color-mix(in oklab, var(--accent, #164e63), white 72%);
+    --mindmap-node-stroke: color-mix(in oklab, var(--accent, #164e63), black 6%);
+    --mindmap-collapsible-stroke: color-mix(in oklab, var(--primary, #0f766e), black 12%);
 }
 
 /* --- Tab and Dropdown Styles --- */
@@ -23,7 +31,7 @@ body {
     cursor: pointer;
     padding: 10px 16px;
     border-bottom: 2px solid transparent;
-    transition: background-color var(--legacy-duration-base, 300ms) ease, color var(--legacy-duration-fast, 160ms) ease;
+    transition: background-color var(--legacy-duration-base, 300ms) var(--legacy-ease-in-out, ease-in-out), color var(--legacy-duration-fast, 160ms) var(--legacy-ease-out, ease-out);
     display: inline-block;
     position: relative;
     border-radius: 6px 6px 0 0;
@@ -88,6 +96,32 @@ body {
     justify-content: center;
 }
 
+.mindmap-toolbar {
+    height: 40px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--cl-border);
+    border-radius: var(--radius-card);
+    background: var(--cl-surface-alt);
+}
+
+.mindmap-toolbar__group {
+    display: inline-flex;
+    gap: 0.4rem;
+}
+
+.mindmap-toolbar button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    min-height: 30px;
+}
+
 .loading-indicator {
     color: #64748b;
     font-size: 1.25rem;
@@ -99,6 +133,8 @@ body {
 }
 
 .node-text {
+    font-family: var(--font-body, var(--legacy-font-sans, ui-sans-serif));
+    font-size: 14px;
     font-weight: 500;
     pointer-events: none;
     text-anchor: middle;
@@ -111,16 +147,19 @@ body {
 
 .link {
     fill: none;
+    stroke: var(--mindmap-link);
     stroke-width: 2px;
     opacity: 0.6;
 }
 
 .node circle {
+    stroke: var(--mindmap-node-stroke);
     stroke-width: 1.5px;
     transition: stroke-width 0.2s ease, stroke 0.2s ease, fill 0.2s ease;
 }
 
 .node .collapsible {
+    stroke: var(--mindmap-collapsible-stroke);
     stroke-width: 3px;
 }
 
@@ -129,6 +168,7 @@ body {
 }
 
 .node:focus > circle {
+    stroke: var(--mindmap-collapsible-stroke);
     stroke-width: 4px;
 }
 
@@ -152,6 +192,7 @@ body {
 .tooltip-title {
     font-weight: 700;
     margin-bottom: 5px;
+    color: color-mix(in oklab, var(--accent, #164e63), white 30%);
 }
 
 .tooltip-content ul {
@@ -168,7 +209,7 @@ body {
 .search-highlight circle {
     stroke: #f59e0b !important;
     stroke-width: 4px !important;
-    animation: pulse 1.5s ease-in-out infinite;
+    animation: pulse 1.5s ease-in-out 2;
 }
 
 @keyframes pulse {
@@ -208,4 +249,3 @@ body {
 .search-result-item .match-text {
     font-weight: 600;
 }
-

@@ -68,25 +68,35 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "requiresDownloads": false
     },
     {
-      "label": "PDF Merger",
+      "label": "PDF Studio",
+      "route": "/apps/pdf-studio.html",
+      "file": "site/public/apps/pdf-studio.html",
+      "category": "pdf-tools",
+      "requiresDownloads": true
+    },
+    {
+      "label": "PDF Merger (legacy redirect)",
       "route": "/apps/PDF%20Merger.html",
       "file": "site/public/apps/PDF Merger.html",
       "category": "pdf-tools",
-      "requiresDownloads": true
+      "requiresDownloads": true,
+      "redirectTo": "/apps/pdf-studio.html?tool=assemble"
     },
     {
-      "label": "PDF Splitter",
+      "label": "PDF Splitter (legacy redirect)",
       "route": "/apps/PDF%20Splitter.html",
       "file": "site/public/apps/PDF Splitter.html",
       "category": "pdf-tools",
-      "requiresDownloads": true
+      "requiresDownloads": true,
+      "redirectTo": "/apps/pdf-studio.html?tool=extract"
     },
     {
-      "label": "Text Extractor",
+      "label": "Text Extractor (legacy redirect)",
       "route": "/apps/textExtractor.html",
       "file": "site/public/apps/textExtractor.html",
       "category": "pdf-tools",
-      "requiresDownloads": true
+      "requiresDownloads": true,
+      "redirectTo": "/apps/pdf-studio.html?tool=textextract"
     },
     {
       "label": "WoundCare Webpages",
@@ -178,4 +188,3 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
   ]
 }
 ```
-

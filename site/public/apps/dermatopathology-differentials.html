@@ -416,18 +416,18 @@
             <!-- Tab Navigation -->
             <div class="border-b border-gray-200 dark:border-gray-700 no-print">
                 <nav id="tab-nav" class="flex flex-wrap -mb-px px-4" aria-label="Tabs" role="tablist">
-                    <button role="tab" data-tab="list" class="tab-button active text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">List</button>
-                    <button role="tab" data-tab="table" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Table</button>
-                    <button role="tab" data-tab="flashcards" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 flex items-center gap-1">
+                    <button role="tab" data-tab="list" data-tier="primary" class="tab-button active text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">List</button>
+                    <button role="tab" data-tab="table" data-tier="primary" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Table</button>
+                    <button role="tab" data-tab="flashcards" data-tier="primary" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 flex items-center gap-1">
                         Flashcards 
                         <span id="due-cards-badge" class="hidden bg-red-500 text-white text-xs font-medium px-1.5 py-0.5 rounded-full"></span>
                     </button>
-                    <button role="tab" data-tab="network" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Network</button>
-                    <button role="tab" data-tab="favorites" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 flex items-center gap-1">Favorites <span id="favorites-count" class="bg-blue-100 text-blue-800 text-xs font-medium px-1.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">0</span></button>
-                    <button role="tab" data-tab="statistics" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Statistics</button>
-                    <button role="tab" data-tab="compare" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 disabled:opacity-50" disabled>Compare</button>
-                    <button role="tab" data-tab="quiz" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 disabled:opacity-50" disabled>Quiz</button>
-                    <button role="tab" data-tab="analytics" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Analytics</button>
+                    <button role="tab" data-tab="network" data-tier="primary" class="tab-button text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Network</button>
+                    <button id="favorites-tab" role="tab" data-tab="favorites" data-tier="advanced" class="tab-button hidden text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 flex items-center gap-1">Favorites</button>
+                    <button role="tab" data-tab="statistics" data-tier="advanced" class="tab-button hidden text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Statistics</button>
+                    <button role="tab" data-tab="compare" data-tier="advanced" class="tab-button hidden text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 disabled:opacity-50" disabled title="Select a finding to enable comparison">Compare</button>
+                    <button role="tab" data-tab="quiz" data-tier="advanced" class="tab-button hidden text-sm font-medium text-center border-b-2 border-transparent px-3 py-2 disabled:opacity-50" disabled title="Select at least two findings to start quiz mode">Quiz</button>
+                    <button role="tab" data-tab="analytics" data-tier="advanced" class="tab-button hidden text-sm font-medium text-center border-b-2 border-transparent px-3 py-2">Analytics</button>
                 </nav>
             </div>
             
@@ -555,7 +555,7 @@
             actionButtons: document.getElementById('action-buttons'),
             resultsContent: document.getElementById('results-content'),
             tabNav: document.getElementById('tab-nav'),
-            favoritesCount: document.getElementById('favorites-count'),
+            favoritesTab: document.getElementById('favorites-tab'),
             welcomeMessage: document.getElementById('welcome-message'),
             noteModal: {
                 el: document.getElementById('note-modal'),
@@ -790,8 +790,46 @@
             }
         }
 
+        function updateAdvancedTabsVisibility() {
+            const hasSelection = Boolean(state.selectedFinding);
+            const advancedTabs = dom.tabNav.querySelectorAll('button[data-tier="advanced"]');
+            advancedTabs.forEach((tabButton) => {
+                tabButton.classList.toggle('hidden', !hasSelection);
+            });
+
+            if (!hasSelection && ['favorites', 'statistics', 'compare', 'quiz', 'analytics'].includes(state.activeTab)) {
+                state.activeTab = 'list';
+            }
+        }
+
+        function updateFavoritesCountBadge() {
+            if (!dom.favoritesTab) return;
+
+            const count = Object.keys(state.favorites).length;
+            const existingBadge = dom.favoritesTab.querySelector('#favorites-count');
+
+            if (count <= 0) {
+                existingBadge?.remove();
+                return;
+            }
+
+            if (existingBadge) {
+                existingBadge.textContent = String(count);
+                return;
+            }
+
+            const badge = document.createElement('span');
+            badge.id = 'favorites-count';
+            badge.className = 'bg-blue-100 text-blue-800 text-xs font-medium px-1.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300';
+            badge.textContent = String(count);
+            dom.favoritesTab.appendChild(document.createTextNode(' '));
+            dom.favoritesTab.appendChild(badge);
+        }
+
         // --- CORE LOGIC & RENDERING ---
         function render() {
+            updateAdvancedTabsVisibility();
+            updateFavoritesCountBadge();
             updateActiveTab();
             updateDueCardsBadge();
             
@@ -1664,7 +1702,6 @@
                 showToast(`${diagnosisName} added to favorites!`, "success");
                 trackEvent('action', { type: 'favorite_add' });
             }
-            dom.favoritesCount.textContent = Object.keys(state.favorites).length;
             saveStateToLocalStorage();
             render();
         }
@@ -1826,7 +1863,6 @@
                     // Restore start time if it exists, otherwise it gets reset on every load
                     state.analytics.startTime = parsed.analytics.startTime || Date.now();
                 }
-                dom.favoritesCount.textContent = Object.keys(state.favorites).length;
             } catch (e) {
                 console.error("Failed to load state from localStorage", e);
                 state.favorites = {};

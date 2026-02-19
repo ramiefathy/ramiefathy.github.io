@@ -16,12 +16,12 @@ const RISK_LEVEL_LABELS = {
 };
 
 const riskBadgeConfig = {
-  'boxed-warning': { icon: '⚠️', className: 'badge-boxed' },
-  teratogenic: { icon: '🤰', className: 'badge-teratogenic' },
-  rems: { icon: '📋', className: 'badge-rems' },
-  'age-65-plus': { icon: '🧓', className: 'badge-age' },
-  pediatric: { icon: '🧒', className: 'badge-pediatric' },
-  infection: { icon: '🦠', className: 'badge-infection' }
+  'boxed-warning': { icon: 'Alert', className: 'badge-boxed' },
+  teratogenic: { icon: 'Preg', className: 'badge-teratogenic' },
+  rems: { icon: 'REMS', className: 'badge-rems' },
+  'age-65-plus': { icon: '65+', className: 'badge-age' },
+  pediatric: { icon: 'Peds', className: 'badge-pediatric' },
+  infection: { icon: 'Inf', className: 'badge-infection' }
 };
 
 const riskBadgeDescriptions = {
@@ -324,7 +324,7 @@ function buildRiskIndicators(entry) {
   if (!entry.warningFlags || !entry.warningFlags.length) return '';
   const badges = entry.warningFlags
     .map((flag) => {
-      const config = riskBadgeConfig[flag] || { icon: '⚠️', className: 'badge-generic' };
+      const config = riskBadgeConfig[flag] || { icon: 'Alert', className: 'badge-generic' };
       const label = RISK_BADGE_LABELS[flag] || toTitleCase(flag);
       const description = riskBadgeDescriptions[flag] || 'Review prescribing information for additional safety guidance.';
       return `<span class="risk-badge ${config.className}" tabindex="0" data-tooltip="${escapeAttribute(
@@ -532,7 +532,7 @@ function renderEntryCard(entry, query) {
           }</span>
           <div class="meta-actions">
             <button type="button" class="icon-btn favorite-btn ${isFavorite ? 'is-active' : ''}" data-action="toggle-favorite" data-entry-id="${entry.id}" aria-pressed="${isFavorite}">
-              <span aria-hidden="true">${isFavorite ? '★' : '☆'}</span>
+              <span aria-hidden="true">${isFavorite ? 'Saved' : 'Save'}</span>
               <span class="sr-only">${isFavorite ? 'Remove from favorites' : 'Add to favorites'}</span>
             </button>
             <button type="button" class="icon-btn compare-btn ${isCompared ? 'is-active' : ''}" data-action="toggle-compare" data-entry-id="${entry.id}" aria-pressed="${isCompared}">

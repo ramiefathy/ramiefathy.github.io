@@ -105,6 +105,25 @@
         border-top: 0;
       }
 
+      .apps-item--featured {
+        border-left: 4px solid var(--cl-primary);
+      }
+
+      .apps-featured-chip {
+        display: inline-flex;
+        align-items: center;
+        margin: 0 0 var(--legacy-space-2);
+        padding: 0.2rem 0.55rem;
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        border-radius: var(--radius-pill);
+        border: 1px solid color-mix(in oklab, var(--cl-primary), #fff 60%);
+        background: color-mix(in oklab, var(--cl-primary-subtle), #fff 40%);
+        color: var(--cl-primary);
+        font-weight: 600;
+      }
+
       .apps-item h3 {
         margin: 0 0 var(--legacy-space-1);
         font-size: 1.05rem;
@@ -201,10 +220,11 @@
             <p>Documentation, monitoring, and workflow utilities.</p>
           </div>
           <div class="apps-list">
-            <article class="apps-item">
+            <article class="apps-item apps-item--featured">
               <div>
+                <span class="apps-featured-chip">Featured</span>
                 <h3>Dermatology Scribe</h3>
-                <p>Draft a structured note from a transcript, with autosave + export workflows.</p>
+                <p>Draft structured clinic notes from transcripts with local autosave and export.</p>
                 <ul class="apps-tags">
                   <li>Clinical documentation</li>
                   <li>Autosave</li>
@@ -219,7 +239,7 @@
             <article class="apps-item">
               <div>
                 <h3>Biologic Monitoring Dashboard</h3>
-                <p>Filterable baseline screening and follow-up monitoring guidance for systemic dermatology regimens.</p>
+                <p>Reference for baseline screening and follow-up monitoring in systemic dermatology care.</p>
                 <ul class="apps-tags">
                   <li>Reference</li>
                   <li>Monitoring</li>
@@ -285,48 +305,53 @@
         <section class="apps-section" aria-label="PDF utilities">
           <div class="apps-section__header">
             <h2>PDF utilities</h2>
-            <p>Browser-only PDF workflows with explicit preflight + success/failure summaries.</p>
+            <p>Single PDF Studio workspace with organizer, extraction, stamping, metadata, OCR beta, and compression tools.</p>
           </div>
           <div class="apps-list">
             <article class="apps-item">
               <div>
-                <h3>PDF Merger</h3>
-                <p>Combine multiple PDFs into a single file.</p>
+                <h3>PDF Studio</h3>
+                <p>Professional local-first suite for page editing, packet assembly, extraction, image packaging, marking, metadata scrubbing, OCR beta, and compression.</p>
                 <ul class="apps-tags">
                   <li>Client-side</li>
-                  <li>Downloads</li>
-                </ul>
-              </div>
-              <div class="apps-cta">
-                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./PDF%20Merger.html">Open merger</a>
-              </div>
-            </article>
-
-            <article class="apps-item">
-              <div>
-                <h3>PDF Splitter</h3>
-                <p>Split a PDF into named chapters by start page.</p>
-                <ul class="apps-tags">
-                  <li>Client-side</li>
-                  <li>Downloads</li>
-                </ul>
-              </div>
-              <div class="apps-cta">
-                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./PDF%20Splitter.html">Open splitter</a>
-              </div>
-            </article>
-
-            <article class="apps-item">
-              <div>
-                <h3>PDF Text Extractor</h3>
-                <p>Extract text and create a simplified text-only PDF output.</p>
-                <ul class="apps-tags">
-                  <li>Client-side</li>
+                  <li>Workspace</li>
                   <li>Preflight</li>
                 </ul>
               </div>
               <div class="apps-cta">
-                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./textExtractor.html">Open extractor</a>
+                <a class="legacy-btn legacy-btn--primary legacy-focus-ring" href="./pdf-studio.html">Open PDF Studio</a>
+              </div>
+            </article>
+
+            <article class="apps-item">
+              <div>
+                <h3>Pages Studio + Extract</h3>
+                <p>Reorder/rotate/delete pages, then extract by click selection or range expressions.</p>
+                <ul class="apps-tags">
+                  <li>Organizer</li>
+                  <li>Range parser</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./pdf-studio.html?tool=organizer">Open organizer</a>
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./pdf-studio.html?tool=extract">Open extract</a>
+              </div>
+            </article>
+
+            <article class="apps-item">
+              <div>
+                <h3>Stamp · Metadata · OCR · Compress</h3>
+                <p>Apply Bates/page numbers, scrub metadata, run OCR beta, and reduce file size with page-level summaries.</p>
+                <ul class="apps-tags">
+                  <li>Clinical packets</li>
+                  <li>Governance</li>
+                </ul>
+              </div>
+              <div class="apps-cta">
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./pdf-studio.html?tool=stamp">Open stamp</a>
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./pdf-studio.html?tool=metadata">Open metadata</a>
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./pdf-studio.html?tool=ocr">Open OCR beta</a>
+                <a class="legacy-btn legacy-btn--secondary legacy-focus-ring" href="./pdf-studio.html?tool=compress">Open compress</a>
               </div>
             </article>
           </div>

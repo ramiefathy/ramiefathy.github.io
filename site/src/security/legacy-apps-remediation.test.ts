@@ -6,6 +6,39 @@ import { describe, expect, it } from 'vitest'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const appsRoot = resolve(__dirname, '../../public/apps')
 const appsCatalogPath = resolve(__dirname, '../data/apps.json')
+const pagesWithShell = [
+  'index.html',
+  'MindMaps/CTCL/CTCLMindMaps.html',
+  'MindMaps/Psoriasis/PsoriasisMindMaps.html',
+  'MindMaps/Alopecia/AlopeciaMindMaps.html',
+  'pdf-studio.html',
+  'biologic-monitoring-dashboard/index.html',
+  'dermatopathology-differentials.html',
+  'dermatopathology-modern/index.html',
+  'dermatopathology-modern/index-fixed.html',
+  'dermatopathology-modern/deduplication-visualization.html',
+  'dermatopathology-modern/test-fixes.html',
+  'dermatology-scribe/index.html',
+  'dermatology-scribe/test-ui-enhancements.html',
+  'WoundCareWebpages.html'
+]
+const pdfStudioPage = 'pdf-studio.html'
+const legacyPdfRedirects = [
+  { file: 'PDF Merger.html', target: './pdf-studio.html?tool=assemble&legacy=merger' },
+  { file: 'PDF Splitter.html', target: './pdf-studio.html?tool=extract&legacy=splitter' },
+  { file: 'textExtractor.html', target: './pdf-studio.html?tool=textextract&legacy=extractor' }
+]
+const validPdfStudioTools = new Set([
+  'organizer',
+  'extract',
+  'image',
+  'stamp',
+  'assemble',
+  'metadata',
+  'ocr',
+  'compress',
+  'textextract'
+])
 
 const loadApp = (relativePath: string) =>
   readFileSync(resolve(appsRoot, relativePath), 'utf8')
@@ -28,25 +61,6 @@ describe('legacy apps remediation backlog', () => {
   })
 
   it('P1: legacy app shell assets are wired for all modernized legacy pages', () => {
-    const pagesWithShell = [
-      'index.html',
-      'MindMaps/CTCL/CTCLMindMaps.html',
-      'MindMaps/Psoriasis/PsoriasisMindMaps.html',
-      'MindMaps/Alopecia/AlopeciaMindMaps.html',
-      'biologic-monitoring-dashboard/index.html',
-      'dermatopathology-differentials.html',
-      'dermatopathology-modern/index.html',
-      'dermatopathology-modern/index-fixed.html',
-      'dermatopathology-modern/deduplication-visualization.html',
-      'dermatopathology-modern/test-fixes.html',
-      'textExtractor.html',
-      'PDF Merger.html',
-      'PDF Splitter.html',
-      'dermatology-scribe/index.html',
-      'dermatology-scribe/test-ui-enhancements.html',
-      'WoundCareWebpages.html'
-    ]
-
     for (const filePath of pagesWithShell) {
       const html = loadApp(filePath)
       expect(html).toContain('data-legacy-shell="true"')
@@ -59,25 +73,6 @@ describe('legacy apps remediation backlog', () => {
   })
 
   it('P1: modernized legacy pages expose parseable in-shell help steps', () => {
-    const pagesWithShell = [
-      'index.html',
-      'MindMaps/CTCL/CTCLMindMaps.html',
-      'MindMaps/Psoriasis/PsoriasisMindMaps.html',
-      'MindMaps/Alopecia/AlopeciaMindMaps.html',
-      'biologic-monitoring-dashboard/index.html',
-      'dermatopathology-differentials.html',
-      'dermatopathology-modern/index.html',
-      'dermatopathology-modern/index-fixed.html',
-      'dermatopathology-modern/deduplication-visualization.html',
-      'dermatopathology-modern/test-fixes.html',
-      'textExtractor.html',
-      'PDF Merger.html',
-      'PDF Splitter.html',
-      'dermatology-scribe/index.html',
-      'dermatology-scribe/test-ui-enhancements.html',
-      'WoundCareWebpages.html'
-    ]
-
     const problems: string[] = []
 
     for (const filePath of pagesWithShell) {
@@ -99,6 +94,57 @@ describe('legacy apps remediation backlog', () => {
     }
 
     expect(problems).toEqual([])
+  })
+
+  it('P0: shell-enabled pages using body flex must opt into flex-col', () => {
+    const offenders: string[] = []
+
+    for (const filePath of pagesWithShell) {
+      const html = loadApp(filePath)
+      const bodyTag = html.match(/<body[^>]*>/i)?.[0]
+      if (!bodyTag) continue
+      const classValue = bodyTag.match(/\bclass\s*=\s*"([^"]*)"/i)?.[1] ?? ''
+      const classNames = classValue.split(/\s+/).filter(Boolean)
+
+      if (classNames.includes('flex') && !classNames.includes('flex-col')) {
+        offenders.push(`${filePath} :: body has flex without flex-col`)
+      }
+    }
+
+    expect(offenders).toEqual([])
+  })
+
+  it('P1: PDF tools expose standardized workflow hooks', () => {
+    const html = loadApp(pdfStudioPage)
+    expect(html).toContain('data-workflow="pdf"')
+    expect(html).toContain('legacy-workflow__primary')
+    expect(html).toContain('legacy-workflow__secondary')
+  })
+
+  it('P1: legacy PDF routes redirect to canonical studio deep links', () => {
+    for (const redirect of legacyPdfRedirects) {
+      const html = loadApp(redirect.file)
+      expect(html).toContain(redirect.target)
+      expect(html).toContain('window.location.replace')
+      expect(html).toContain('meta http-equiv="refresh"')
+    }
+  })
+
+  it('P1: PDF studio deep links in inventory use valid tool ids', () => {
+    const inventory = JSON.parse(readFileSync(resolve(__dirname, '../../../docs/site-test-inventory.md'), 'utf8').match(/```json\s*([\s\S]*?)\s*```/)?.[1] ?? '{}')
+    const legacyEntries = Array.isArray(inventory.legacyHtmlApps) ? inventory.legacyHtmlApps : []
+
+    const invalidDeepLinks: string[] = []
+    for (const entry of legacyEntries) {
+      if (!entry?.redirectTo || typeof entry.redirectTo !== 'string') continue
+      const url = new URL(`https://example.test${entry.redirectTo}`)
+      const tool = url.searchParams.get('tool')
+      if (!tool || !validPdfStudioTools.has(tool)) {
+        invalidDeepLinks.push(`${entry.route} -> ${entry.redirectTo}`)
+      }
+    }
+
+    expect(invalidDeepLinks).toEqual([])
   })
 
   it('P1: legacy apps index does not label scribe as deprecated', () => {
@@ -178,8 +224,7 @@ describe('legacy apps remediation backlog', () => {
     const modernDermpath = loadApp('dermatopathology-modern/index.html')
     const modernDermpathFixed = loadApp('dermatopathology-modern/index-fixed.html')
     const dedupVisualization = loadApp('dermatopathology-modern/deduplication-visualization.html')
-    const textExtractor = loadApp('textExtractor.html')
-    const pdfSplitter = loadApp('PDF Splitter.html')
+    const pdfStudio = loadApp('pdf-studio.html')
     const woundCare = loadApp('WoundCareWebpages.html')
     const scribeJsPdf = loadApp('dermatology-scribe/vendor/jspdf.umd.min.js')
 
@@ -188,7 +233,7 @@ describe('legacy apps remediation backlog', () => {
     expect(differentialsHtml).toContain("./vendor/jspdf-autotable.esm.js")
     expect(differentialsHtml).toContain("./vendor/xlsx")
 
-    for (const html of [modernDermpath, modernDermpathFixed, dedupVisualization, textExtractor, pdfSplitter]) {
+    for (const html of [modernDermpath, modernDermpathFixed, dedupVisualization, pdfStudio]) {
       expect(html).not.toContain('https://cdn.jsdelivr.net/npm/')
     }
 
@@ -199,8 +244,8 @@ describe('legacy apps remediation backlog', () => {
     expect(modernDermpathFixed).toContain('../vendor/fuse.min.js')
     expect(modernDermpathFixed).toContain('../vendor/d3.min.js')
     expect(dedupVisualization).toContain('../vendor/chart.umd.min.js')
-    expect(textExtractor).toContain('./vendor/pdf-lib.min.js')
-    expect(pdfSplitter).toContain('./vendor/download.min.js')
+    expect(pdfStudio).toContain('./vendor/pdf-lib.min.js')
+    expect(pdfStudio).toContain('./vendor/pdf.min.js')
 
     expect(scribeJsPdf).toContain('Version 2.5.2')
     expect(woundCare).not.toContain('data:application/x-javascript;base64')
@@ -214,6 +259,7 @@ describe('legacy apps remediation backlog', () => {
       'MindMaps/CTCL/CTCLMindMaps.html',
       'MindMaps/Psoriasis/PsoriasisMindMaps.html',
       'MindMaps/Alopecia/AlopeciaMindMaps.html',
+      'pdf-studio.html',
       'textExtractor.html',
       'PDF Merger.html',
       'PDF Splitter.html',
@@ -233,5 +279,30 @@ describe('legacy apps remediation backlog', () => {
 
     const scribeEnhancedStylesheet = loadApp('dermatology-scribe/style-enhanced.css')
     expect(scribeEnhancedStylesheet).toContain("@import './style-modern.css';")
+  })
+
+  it('P0: scribe landing declares ui mode gating', () => {
+    const scribeLanding = loadApp('dermatology-scribe/index.html')
+    expect(scribeLanding).toMatch(/data-ui-mode="landing"/)
+  })
+
+  it('P1: all PDF tools use shared file input primitives', () => {
+    const html = loadApp(pdfStudioPage)
+    expect(html).toContain('id="pdf-studio-primary"')
+    expect(html).toContain('class="legacy-workflow__panel legacy-workflow__primary"')
+    expect(html).toContain('class="legacy-workflow__panel legacy-workflow__secondary"')
+  })
+
+  it('P1: modern dermpath prototype includes deprecation banner and redirect target', () => {
+    const prototypePage = loadApp('dermatopathology-modern/index.html')
+    expect(prototypePage).toContain('cl-deprecation-banner')
+    expect(prototypePage).toContain('index-fixed.html')
+    expect(prototypePage).toContain('URLSearchParams')
+  })
+
+  it('P1: dedup visualization includes readability layout hooks', () => {
+    const dedupPage = loadApp('dermatopathology-modern/deduplication-visualization.html')
+    expect(dedupPage).toContain('cl-stat-bar')
+    expect(dedupPage).toContain('cl-chart-container')
   })
 })

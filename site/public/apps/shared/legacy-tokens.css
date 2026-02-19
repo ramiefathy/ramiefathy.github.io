@@ -1,82 +1,140 @@
 @import url('./legacy-fonts.css');
 
 :root {
-  /* Contract-required semantic tokens (medical/clinical palette; non-vibecoded accent set). */
-  --background: #f0fdfa; /* teal-tinted paper */
-  --foreground: #062a30; /* deep teal-ink */
-  --muted: #e6f4f1;
-  --muted-foreground: #34565d;
-  --primary: #0f766e; /* clinical trust (teal) */
-  --accent: #164e63; /* deep cyan */
+  --cl-primary: #0f766e;
+  --cl-primary-hover: #0d9488;
+  --cl-primary-subtle: #f0fdfa;
+  --cl-accent: #164e63;
+  --cl-surface: #ffffff;
+  --cl-surface-alt: #f8fafc;
+  --cl-border: #e2e8f0;
+  --cl-border-strong: #cbd5e1;
+  --cl-text: #1e293b;
+  --cl-text-muted: #475569;
+  --cl-text-faint: #94a3b8;
+  --cl-danger: #dc2626;
+  --cl-success: #16a34a;
+  --cl-warning: #d97706;
 
-  /* Typography: two families (headings vs body). */
-  --font-heading: "Playfair Display", ui-serif, Georgia, serif;
-  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
-  /* Radius system: choose one base and derive consistently. */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
   --radius: 4px;
+  --radius-card: 8px;
+  --radius-pill: 9999px;
 
-  /* Legacy compatibility mapping (keep existing variable names stable). */
+  --shadow-surface: none;
+  --shadow-raised: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-overlay: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  --duration-fast: 150ms;
+  --duration-layout: 250ms;
+  --ease-out: ease-out;
+  --ease-in: ease-in;
+  --ease-in-out: ease-in-out;
+
+  --background: var(--cl-primary-subtle);
+  --foreground: var(--cl-text);
+  --muted: var(--cl-surface-alt);
+  --muted-foreground: var(--cl-text-muted);
+  --primary: var(--cl-primary);
+  --accent: var(--cl-accent);
+
   --legacy-font-sans: var(--font-body);
-  --legacy-bg: var(--background);
-  --legacy-surface: #ffffff;
-  --legacy-surface-muted: color-mix(in oklab, var(--background), #ffffff 70%);
-  --legacy-text: var(--foreground);
-  --legacy-text-muted: var(--muted-foreground);
-  --legacy-border: color-mix(in oklab, var(--accent), #ffffff 84%);
-  --legacy-primary: var(--primary);
-  --legacy-primary-strong: color-mix(in oklab, var(--primary), #000 14%);
-  --legacy-success: #047857;
-  --legacy-warning: #b45309;
-  --legacy-danger: #b42318;
-
+  --legacy-bg: var(--cl-primary-subtle);
+  --legacy-surface: var(--cl-surface);
+  --legacy-surface-muted: var(--cl-surface-alt);
+  --legacy-text: var(--cl-text);
+  --legacy-text-muted: var(--cl-text-muted);
+  --legacy-border: var(--cl-border);
+  --legacy-primary: var(--cl-primary);
+  --legacy-primary-strong: var(--cl-primary-hover);
+  --legacy-success: var(--cl-success);
+  --legacy-warning: var(--cl-warning);
+  --legacy-danger: var(--cl-danger);
   --legacy-radius-sm: calc(var(--radius) - 2px);
-  --legacy-radius-md: calc(var(--radius) + 4px);
-  --legacy-radius-lg: calc(var(--radius) + 8px);
-
-  /* Semantic elevation (avoid random per-component shadows). */
-  --legacy-shadow-surface: 0 1px 2px rgba(2, 6, 23, 0.08);
-  --legacy-shadow-raised: 0 10px 26px rgba(2, 6, 23, 0.12);
-  --legacy-shadow-overlay: 0 28px 70px rgba(2, 6, 23, 0.22);
-
-  --legacy-shadow: var(--legacy-shadow-overlay);
-  --legacy-focus-ring: 0 0 0 3px color-mix(in oklab, var(--accent), #ffffff 68%);
-  --legacy-space-1: 0.25rem;
-  --legacy-space-2: 0.5rem;
+  --legacy-radius-md: var(--radius-card);
+  --legacy-radius-lg: calc(var(--radius-card) + 4px);
+  --legacy-shadow-surface: var(--shadow-surface);
+  --legacy-shadow-raised: var(--shadow-raised);
+  --legacy-shadow-overlay: var(--shadow-overlay);
+  --legacy-shadow: var(--shadow-overlay);
+  --legacy-focus-ring: 0 0 0 3px color-mix(in oklab, var(--cl-primary), white 70%);
+  --legacy-space-1: var(--space-xs);
+  --legacy-space-2: var(--space-sm);
   --legacy-space-3: 0.75rem;
-  --legacy-space-4: 1rem;
+  --legacy-space-4: var(--space-md);
   --legacy-space-5: 1.25rem;
-  --legacy-space-6: 1.5rem;
-  /* Interaction durations (avoid global catch-all transitions). */
-  --legacy-duration-fast: 160ms; /* hover/focus */
-  --legacy-duration-base: 300ms; /* layout-ish */
+  --legacy-space-6: var(--space-lg);
+  --legacy-duration-fast: var(--duration-fast);
+  --legacy-duration-base: var(--duration-layout);
+  --legacy-ease-in: var(--ease-in);
+  --legacy-ease-out: var(--ease-out);
+  --legacy-ease-in-out: var(--ease-in-out);
+}
 
-  /* Intentional easing. */
-  --legacy-ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --legacy-ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --legacy-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+:root.legacy-dark {
+  --cl-primary: #2dd4bf;
+  --cl-primary-hover: #14b8a6;
+  --cl-primary-subtle: #051f24;
+  --cl-accent: #67e8f9;
+  --cl-surface: #071a1f;
+  --cl-surface-alt: #0b242a;
+  --cl-border: rgba(103, 232, 249, 0.2);
+  --cl-border-strong: rgba(103, 232, 249, 0.35);
+  --cl-text: #e7fbff;
+  --cl-text-muted: rgba(231, 251, 255, 0.78);
+  --cl-text-faint: rgba(231, 251, 255, 0.58);
+  --cl-danger: #f87171;
+  --cl-success: #4ade80;
+  --cl-warning: #fbbf24;
+
+  --background: var(--cl-primary-subtle);
+  --foreground: var(--cl-text);
+  --muted: var(--cl-surface-alt);
+  --muted-foreground: var(--cl-text-muted);
+  --primary: var(--cl-primary);
+  --accent: var(--cl-accent);
+
+  --legacy-bg: var(--cl-primary-subtle);
+  --legacy-surface: var(--cl-surface);
+  --legacy-surface-muted: var(--cl-surface-alt);
+  --legacy-text: var(--cl-text);
+  --legacy-text-muted: var(--cl-text-muted);
+  --legacy-border: var(--cl-border);
+  --legacy-primary: var(--cl-primary);
+  --legacy-primary-strong: var(--cl-primary-hover);
+  --legacy-focus-ring: 0 0 0 3px color-mix(in oklab, var(--cl-primary), black 58%);
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
+    --duration-fast: 1ms;
+    --duration-layout: 1ms;
     --legacy-duration-fast: 1ms;
     --legacy-duration-base: 1ms;
   }
 }
 
-/* Dark theme overrides: apply at the root to keep page CSS simple. */
-:root.legacy-dark {
-  --background: #051d21;
-  --foreground: #e7fbff;
-  --muted: #0b2b31;
-  --muted-foreground: rgba(231, 251, 255, 0.74);
-  --primary: #2dd4bf;
-  --accent: #67e8f9;
+@media (max-width: 768px) {
+  :root {
+    --space-xl: 1.5rem;
+    --space-2xl: 2.25rem;
+  }
+}
 
-  --legacy-surface: #071a1f;
-  --legacy-surface-muted: #0b242a;
-  --legacy-border: rgba(103, 232, 249, 0.14);
-  --legacy-shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.32);
-  --legacy-shadow-raised: 0 12px 30px rgba(0, 0, 0, 0.38);
-  --legacy-shadow-overlay: 0 34px 80px rgba(0, 0, 0, 0.48);
+@media (max-width: 480px) {
+  :root {
+    --space-lg: 1.25rem;
+    --space-xl: 1.5rem;
+  }
 }

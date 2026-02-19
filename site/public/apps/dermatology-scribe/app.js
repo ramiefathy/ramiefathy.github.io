@@ -215,7 +215,7 @@
             const statusBadge = document.getElementById('sessionMode');
             if (statusBadge) {
                 if (!connected) {
-                    statusBadge.textContent = '⚠️ Disconnected';
+                    statusBadge.textContent = 'Disconnected';
                     statusBadge.classList.remove('status-processing', 'status-recording');
                     statusBadge.classList.add('status-idle');
                 }
@@ -524,7 +524,7 @@
 
 	            if (suggestions && suggestions.length > 0) {
 	                const suggestionsHtml = suggestions.map(s =>
-	                    `<p class="note-item"><strong>💡 Suggestion:</strong> ${escapeHtml(s)}</p>`
+	                    `<p class="note-item"><strong>Suggestion:</strong> ${escapeHtml(s)}</p>`
 	                ).join('');
 	                output.innerHTML = suggestionsHtml + output.innerHTML;
 	            }
@@ -1654,7 +1654,7 @@ ${formatInlineMarkdownSafe(content)}
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 400px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
                     <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 style="margin: 0; color: var(--text-primary);">📤 Export Note</h2>
+                        <h2 style="margin: 0; color: var(--text-primary);">Export Note</h2>
 	                        <button class="btn-modern btn-ghost btn-icon" type="button" data-action="close-modal" data-modal-id="exportModal">
 	                            <span class="material-symbols-outlined">close</span>
 	                        </button>
@@ -1727,7 +1727,7 @@ ${formatInlineMarkdownSafe(content)}
 		            modal.innerHTML = `
 		                <div class="modal-content" style="max-width: 900px; max-height: 85vh; overflow-y: auto; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
 		                    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-		                        <h2 style="margin: 0; color: var(--text-primary);">📄 Session Outputs</h2>
+		                        <h2 style="margin: 0; color: var(--text-primary);">Session Outputs</h2>
 		                        <button class="btn-modern btn-ghost btn-icon" type="button" data-action="close-modal" data-modal-id="outputsModal">
 		                            <span class="material-symbols-outlined">close</span>
 		                        </button>
@@ -1791,7 +1791,7 @@ ${formatInlineMarkdownSafe(content)}
 	            modal.innerHTML = `
 	                <div class="modal-content" style="max-width: 400px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
 	                    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-	                        <h2 style="margin: 0; color: var(--text-primary);">📊 Session Analytics</h2>
+	                        <h2 style="margin: 0; color: var(--text-primary);">Session Analytics</h2>
 	                        <button class="btn-modern btn-ghost btn-icon" type="button" data-action="close-modal" data-modal-id="analyticsModal">
 	                            <span class="material-symbols-outlined">close</span>
 	                        </button>
@@ -2361,7 +2361,7 @@ ${formatInlineMarkdownSafe(content)}
 	            modal.innerHTML = `
 	                <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
 	                    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-	                        <h2 style="margin: 0; color: var(--text-primary);">📂 Saved Sessions</h2>
+	                        <h2 style="margin: 0; color: var(--text-primary);">Saved Sessions</h2>
 	                        <button class="btn-modern btn-ghost btn-icon" type="button" data-action="close-modal" data-modal-id="sessionsModal">
 	                            <span class="material-symbols-outlined">close</span>
 	                        </button>
@@ -2526,7 +2526,7 @@ ${formatInlineMarkdownSafe(content)}
 
 	            const removeBtn = document.createElement('button');
 	            removeBtn.type = 'button';
-	            removeBtn.textContent = '✕';
+	            removeBtn.textContent = '×';
 	            removeBtn.style.position = 'absolute';
 	            removeBtn.style.top = '-8px';
 	            removeBtn.style.right = '-8px';
@@ -2599,7 +2599,7 @@ ${formatInlineMarkdownSafe(content)}
 		            modal.innerHTML = `
 		                <div class="modal-content" style="max-width: 650px; background: var(--bg-secondary); border-radius: var(--border-radius); padding: 1.5rem;">
 		                    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-		                        <h2 style="margin: 0; color: var(--text-primary);">🖼️ Image Findings</h2>
+		                        <h2 style="margin: 0; color: var(--text-primary);">Image Findings</h2>
 		                        <button class="btn-modern btn-ghost btn-icon" type="button" data-action="close-modal" data-modal-id="imageIntegrationModal">
 		                            <span class="material-symbols-outlined">close</span>
 		                        </button>

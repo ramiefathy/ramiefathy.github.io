@@ -6,11 +6,9 @@
     <title>Psoriasis & Psoriatic Arthritis Mind Maps</title>
     <meta name="description" content="Interactive psoriasis and psoriatic arthritis mind maps for pathogenesis, subtypes, and treatment with search and pinned node details.">
 
-    <!-- External Libraries -->
     <script src="../../vendor/tailwindcss.browser.js"></script>
     <script src="../../vendor/d3.min.js"></script>
 
-    <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="../../shared/legacy-tokens.css">
     <link rel="stylesheet" href="../../shared/legacy-primitives.css">
@@ -20,17 +18,16 @@
     <script src="../../shared/legacy-status.js" defer></script>
     <script src="../../shared/legacy-guidance.js" defer></script>
 </head>
-<body class="bg-sky-50 flex flex-col items-center justify-center min-h-screen p-4 legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Use Search to find a term (at least 2 characters).","Use Next/Prev to jump between matches.","Click a node to expand/collapse; selected details pin below.","Use Fit/Reset/Zoom controls to re-center the view."]'>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Use Search to find a term (at least 2 characters).","Use Next/Prev to jump between matches.","Click a node to expand/collapse; selected details pin below.","Use Fit/Reset/Zoom controls to re-center the view."]'>
     <div class="w-full max-w-6xl text-center mb-4">
-        <h1 class="text-3xl md:text-4xl font-bold text-slate-800">Psoriasis & Psoriatic Arthritis</h1>
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-800">Psoriasis &amp; Psoriatic Arthritis</h1>
         <p class="text-slate-600 mt-2 text-lg">Interactive mind maps for pathogenesis, subtypes, and treatment.</p>
     </div>
 
-    <!-- Search Section -->
     <div class="w-full max-w-6xl mb-4 relative z-20">
         <div class="flex gap-2 justify-center">
             <input type="text" id="search-input" placeholder="Search pathways, treatments, subtypes..."
-                   class="w-full max-w-md px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
+                   class="w-full max-w-md px-4 py-2 border border-slate-300 rounded-lg focus:outline-none legacy-focus-ring">
             <button id="search-prev" class="px-3 py-2 bg-white text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-100 transition legacy-focus-ring" title="Previous search match">
                 Prev
             </button>
@@ -44,11 +41,9 @@
         <div id="search-results-container" class="absolute top-full left-1/2 -translate-x-1/2 w-full max-w-md mt-1" aria-live="polite"></div>
     </div>
 
-    <!-- Tab Bar -->
     <div class="w-full max-w-6xl">
         <div class="border-b border-slate-200">
             <div id="tab-bar" class="flex justify-center tab-container">
-                <!-- Disease Understanding Group (Sky) -->
                 <div id="tab-patho" class="tab tab-group-sky" data-tab="patho">Pathogenesis</div>
                 <div id="tab-subtypes" class="tab tab-group-sky" data-tab="subtypes">Subtypes</div>
                 <div id="tab-comorbid" class="tab tab-group-sky mr-4" data-tab="comorbid">Comorbidities</div>
@@ -67,37 +62,39 @@
         </div>
     </div>
 
-    <!-- Main Mind Map Container -->
-    <div id="mind-map-container" class="w-full max-w-6xl aspect-[4/3] bg-white rounded-xl shadow-lg border border-slate-200 mt-4 relative overflow-hidden">
-        <!-- UI Controls -->
-        <div class="absolute top-4 right-4 flex flex-col gap-2 z-10">
-            <div class="flex gap-2">
-                <button id="expand-all" class="px-3 py-1 bg-sky-500 text-white rounded-lg text-sm hover:bg-sky-600 transition" title="Expand All Nodes">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                </button>
-                <button id="collapse-all" class="px-3 py-1 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600 transition" title="Collapse All Nodes">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
-                </button>
-            </div>
-            <div class="flex gap-2">
-                <button id="zoom-in" class="px-3 py-1 bg-slate-500 text-white rounded-lg text-sm hover:bg-slate-600 transition" title="Zoom In (+)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path></svg>
-                </button>
-                <button id="zoom-out" class="px-3 py-1 bg-slate-500 text-white rounded-lg text-sm hover:bg-slate-600 transition" title="Zoom Out (-)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path></svg>
-                </button>
-                <button id="zoom-reset" class="px-3 py-1 bg-slate-500 text-white rounded-lg text-sm hover:bg-slate-600 transition" title="Reset Zoom (Ctrl+0)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                </button>
-                <button id="fit-screen" class="px-3 py-1 bg-slate-500 text-white rounded-lg text-sm hover:bg-slate-600 transition" title="Fit to screen">
-                    Fit
-                </button>
-            </div>
-        </div>
+    <div id="mindmap-helper" class="w-full max-w-6xl mt-4 cl-card text-sm">
+        Click a node to explore. Use search above to find specific topics.
+    </div>
 
-        <!-- Mind map views will be dynamically generated here -->
+    <div class="w-full max-w-6xl mindmap-toolbar">
+        <div class="mindmap-toolbar__group">
+            <button id="expand-all" class="legacy-btn legacy-btn--primary legacy-focus-ring" title="Expand All Nodes" type="button">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+            </button>
+            <button id="collapse-all" class="legacy-btn legacy-btn--secondary legacy-focus-ring" title="Collapse All Nodes" type="button">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+            </button>
+        </div>
+        <div class="mindmap-toolbar__group">
+            <button id="zoom-in" class="legacy-btn legacy-btn--secondary legacy-focus-ring" title="Zoom In (+)" type="button">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path></svg>
+            </button>
+            <button id="zoom-out" class="legacy-btn legacy-btn--secondary legacy-focus-ring" title="Zoom Out (-)" type="button">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path></svg>
+            </button>
+            <button id="zoom-reset" class="legacy-btn legacy-btn--secondary legacy-focus-ring" title="Reset Zoom (Ctrl+0)" type="button">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+            <button id="fit-screen" class="legacy-btn legacy-btn--secondary legacy-focus-ring" title="Fit to screen" type="button">
+                Fit
+            </button>
+        </div>
+    </div>
+
+    <div id="mind-map-container" class="w-full max-w-6xl aspect-[4/3] bg-white rounded-xl shadow-lg border border-slate-200 mt-2 relative overflow-hidden">
         <div id="mind-map-view-container" class="w-full h-full"></div>
     </div>
+
     <section id="node-details-panel" class="w-full max-w-6xl mt-4 bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <h2 class="text-lg font-semibold text-slate-800">Selected Node</h2>
         <p id="selected-node-title" class="text-slate-600 mt-2">Select a node to pin details.</p>
@@ -105,10 +102,8 @@
         <div id="selected-node-content" class="text-sm text-slate-700 mt-2"></div>
     </section>
 
-    <!-- Tooltip -->
     <div id="tooltip" class="tooltip"></div>
 
-    <!-- Custom JavaScript files (in dependency order) -->
     <script src="js/data.js"></script>
     <script src="js/d3-renderer.js"></script>
     <script src="js/app.js"></script>

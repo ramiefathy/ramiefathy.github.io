@@ -8,11 +8,8 @@
     <title>RAMIE - AI Dermatology Scribe</title>
     <meta name="description" content="Draft structured dermatology clinic notes from transcripts with local autosave, review, and export tools.">
 
-    <!-- Material Icons -->
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-
     <!-- Styles -->
+    <link rel="stylesheet" href="../shared/material-symbols.css">
     <link rel="stylesheet" href="style-modern.css">
     <link rel="stylesheet" href="../shared/legacy-tokens.css">
     <link rel="stylesheet" href="../shared/legacy-primitives.css">
@@ -22,7 +19,7 @@
     <script src="../shared/legacy-guidance.js" defer></script>
 </head>
 
-<body class="legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Type or paste transcript text.","Autosave runs locally; watch the Saved/Unsaved status in the header.","If a recovery banner appears, review and accept or discard.","Use Export to download the note."]'>
+<body class="legacy-focus-ring" data-legacy-shell="true" data-ui-mode="landing" data-help-steps='["Type or paste transcript text.","Autosave runs locally; watch the Saved/Unsaved status in the header.","If a recovery banner appears, review and accept or discard.","Use Export to download the note."]'>
     <div id="recovery-banner" class="legacy-status-panel hidden" role="status" aria-live="polite"></div>
     <!-- Landing Page (Initial View) -->
     <div id="landingPage" class="landing-container">
@@ -37,38 +34,6 @@
                 Explore advanced AI capabilities for dermatological consultations.
                 Choose an interaction mode below to begin a new session.
             </p>
-
-	            <!-- Backend Connection (WebSocket) -->
-	            <div class="card mb-4">
-	                <div class="card-header">
-	                    <span class="card-title">
-	                        <span class="material-symbols-outlined card-title-icon">link</span>
-	                        Backend Connection
-	                    </span>
-	                </div>
-	                <div class="card-body">
-	                    <p class="text-muted mb-3" style="font-size: 0.875rem;">
-	                        Configure the AI Scribe backend WebSocket endpoint and access token. These values are stored locally in your browser.
-	                    </p>
-	                    <div class="form-group">
-	                        <label class="form-label">WebSocket URL</label>
-	                        <input type="text" class="form-input" id="websocketUrlInput" placeholder="e.g., ws://localhost:8765 or wss://your-host:8765">
-	                    </div>
-	                    <div class="form-group">
-	                        <label class="form-label">Access Token</label>
-	                        <input type="password" class="form-input" id="sessionTokenInput" placeholder="Enter backend token (shared secret or JWT)">
-	                        <div class="flex items-center gap-2 mt-2">
-	                            <input type="checkbox" id="rememberTokenCheckbox">
-	                            <label for="rememberTokenCheckbox" class="text-muted" style="font-size: 0.75rem;">
-	                                Remember token on this device
-	                            </label>
-	                        </div>
-	                    </div>
-	                    <button class="btn-modern btn-primary" style="width: 100%;" id="saveBackendConfigBtn" type="button">
-	                        Save Backend Settings
-	                    </button>
-	                </div>
-	            </div>
 
             <!-- Mode Selection -->
             <div class="mode-grid">
@@ -111,9 +76,41 @@
                 </div>
             </div>
 
+            <!-- Backend Connection (WebSocket) -->
+            <details class="card mb-4" id="connectionSettings">
+                <summary class="card-header" style="cursor: pointer; list-style: none;">
+                    <span class="card-title">
+                        <span class="material-symbols-outlined card-title-icon">link</span>
+                        Connection Settings
+                    </span>
+                </summary>
+                <div class="card-body">
+                    <p class="text-muted mb-3" style="font-size: 0.875rem;">
+                        Configure the AI Scribe backend WebSocket endpoint and access token. These values are stored locally in your browser.
+                    </p>
+                    <div class="form-group">
+                        <label class="form-label">WebSocket URL</label>
+                        <input type="text" class="form-input" id="websocketUrlInput" placeholder="e.g., ws://localhost:8765 or wss://your-host:8765">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Access Token</label>
+                        <input type="password" class="form-input" id="sessionTokenInput" placeholder="Enter backend token (shared secret or JWT)">
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="rememberTokenCheckbox">
+                            <label for="rememberTokenCheckbox" class="text-muted" style="font-size: 0.75rem;">
+                                Remember token on this device
+                            </label>
+                        </div>
+                    </div>
+                    <button class="btn-modern btn-primary" style="width: 100%;" id="saveBackendConfigBtn" type="button">
+                        Save Backend Settings
+                    </button>
+                </div>
+            </details>
+
             <!-- Footer -->
             <p class="text-muted mt-4" style="font-size: 0.75rem;">
-                © 2025 RAMIE Project. For research and demonstration purposes only.<br>
+                © 2026 RAMIE Project. For research and demonstration purposes only.<br>
                 Not for actual medical use. Always consult a qualified healthcare professional.
             </p>
         </div>

@@ -1,0 +1,136 @@
+body.clinical-reference {
+  --clinical-bg: var(--legacy-bg, #f4fbf9);
+  --clinical-surface: var(--legacy-surface, #ffffff);
+  --clinical-surface-muted: color-mix(in oklab, var(--clinical-surface), var(--legacy-border, #d4e3df) 16%);
+  --clinical-border: var(--legacy-border, #d4e3df);
+  --clinical-text: var(--legacy-text, #113238);
+  --clinical-text-muted: var(--legacy-text-muted, #4d6670);
+  --clinical-elev-1: 0 4px 12px rgba(10, 42, 48, 0.06);
+  --clinical-elev-2: 0 10px 24px rgba(10, 42, 48, 0.1);
+  background: var(--clinical-bg);
+  color: var(--clinical-text);
+  font-family: var(--font-body, var(--legacy-font-sans, ui-sans-serif));
+}
+
+body.clinical-reference .glass,
+body.clinical-reference .glass-dark {
+  background: var(--cl-surface);
+  border: 1px solid var(--clinical-border);
+  box-shadow: var(--clinical-elev-1);
+  color: var(--clinical-text);
+}
+
+body.clinical-reference .card-hover {
+  transition: border-color 160ms ease-out, box-shadow 180ms ease-out;
+}
+
+body.clinical-reference .card-hover:hover {
+  box-shadow: var(--clinical-elev-2);
+  border-color: color-mix(in oklab, var(--clinical-border), var(--legacy-primary, #0f766e) 22%);
+}
+
+body.clinical-reference .gradient-bg,
+body.clinical-reference .gradient-bg-alt {
+  background: linear-gradient(135deg, #0f766e 0%, #0e7490 100%);
+}
+
+body.clinical-reference .fab {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius, 10px);
+  box-shadow: var(--clinical-elev-2);
+}
+
+body.clinical-reference .fire-animation,
+body.clinical-reference .pulse-ring,
+body.clinical-reference .swipe-indicator {
+  animation: none !important;
+}
+
+body.clinical-reference .achievement-badge,
+body.clinical-reference .streak-badge {
+  display: none !important;
+}
+
+body.clinical-reference .animate-slide-up,
+body.clinical-reference .animate-fade-in,
+body.clinical-reference .animate-slide-in,
+body.clinical-reference .fade-enter,
+body.clinical-reference .fade-enter-active {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+body.clinical-reference .category-inflammatory { border-left-color: #ef4444; }
+body.clinical-reference .category-neoplastic { border-left-color: #0f766e; }
+body.clinical-reference .category-infectious { border-left-color: #d97706; }
+body.clinical-reference .category-metabolic { border-left-color: #14b8a6; }
+body.clinical-reference .category-genetic { border-left-color: #0e7490; }
+body.clinical-reference .category-other { border-left-color: #64748b; }
+
+body.clinical-reference .text-white {
+  color: var(--clinical-text);
+}
+
+body.clinical-reference .text-gray-400,
+body.clinical-reference .text-gray-500,
+body.clinical-reference .text-gray-600 {
+  color: var(--clinical-text-muted);
+}
+
+body.clinical-reference .bg-gray-900,
+body.clinical-reference .bg-gray-800,
+body.clinical-reference .bg-gray-700 {
+  background: var(--clinical-surface);
+  border-color: var(--clinical-border);
+}
+
+body.clinical-reference .border-gray-700,
+body.clinical-reference .border-gray-600,
+body.clinical-reference .border-gray-500 {
+  border-color: var(--clinical-border);
+}
+
+body.clinical-reference .bg-blue-50,
+body.clinical-reference .bg-teal-50,
+body.clinical-reference .bg-green-50 {
+  background: color-mix(in oklab, var(--clinical-surface), var(--legacy-primary, #0f766e) 7%);
+}
+
+body.clinical-reference .focus\:ring-teal-500:focus {
+  box-shadow: var(--legacy-focus-ring);
+}
+
+body.clinical-reference #shader-canvas {
+  display: none !important;
+}
+
+body.clinical-reference--dedup .text-green-400,
+body.clinical-reference--dedup .text-cyan-300,
+body.clinical-reference--dedup .text-blue-400 {
+  color: #0f766e;
+}
+
+body.clinical-reference--dedup .text-yellow-400 {
+  color: #b45309;
+}
+
+body.clinical-reference--dedup .text-gray-300 {
+  color: var(--clinical-text-muted);
+}
+
+body.clinical-reference--dedup .bg-green-900\/30,
+body.clinical-reference--dedup .bg-blue-900\/30 {
+  background: color-mix(in oklab, var(--clinical-surface), var(--legacy-primary, #0f766e) 8%);
+}
+
+body.clinical-reference--dedup canvas {
+  max-height: 300px;
+}
+
+body.clinical-reference--harness {
+  background: var(--clinical-bg);
+  color: var(--clinical-text);
+}

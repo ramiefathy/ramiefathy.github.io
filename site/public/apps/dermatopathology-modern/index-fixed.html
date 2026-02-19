@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="../shared/legacy-tokens.css">
     <link rel="stylesheet" href="../shared/legacy-primitives.css">
     <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <link rel="stylesheet" href="./clinical-reference.css">
     <script src="../shared/legacy-shell.js" defer></script>
     <script src="../shared/legacy-guidance.js" defer></script>
 
@@ -70,13 +71,13 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
-        /* Gradient Background */
+        /* Clinical Accent Backgrounds */
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f766e 0%, #0e7490 100%);
         }
 
         .gradient-bg-alt {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
         }
 
         /* Loading Animation */
@@ -160,7 +161,7 @@
 
         /* Category Colors */
         .category-inflammatory { border-left: 4px solid #ef4444; }
-        .category-neoplastic { border-left: 4px solid #8b5cf6; }
+        .category-neoplastic { border-left: 4px solid #0f766e; }
         .category-infectious { border-left: 4px solid #f59e0b; }
         .category-metabolic { border-left: 4px solid #10b981; }
         .category-genetic { border-left: 4px solid #3b82f6; }
@@ -250,7 +251,7 @@
         }
     </script>
 </head>
-<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Use search to find diagnoses or patterns.","Open a result to review key features and references.","Use Reset if the prototype state looks stuck."]'>
+<body class="clinical-reference font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Use search to find diagnoses or patterns.","Open a result to review key features and references.","Use Reset if the prototype state looks stuck."]'>
     <!-- React Root -->
     <div id="root"></div>
 
@@ -499,16 +500,16 @@
                                     </div>
                                     <div>
                                         <h1 className="text-xl font-semibold">Dermatopathology Navigator</h1>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Modern Learning Experience</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Clinical Dermatopathology Reference</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex items-center space-x-4">
                                 {studyStats.streak > 0 && (
-                                    <div className="flex items-center space-x-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-                                        <span className="text-2xl fire-animation">🔥</span>
-                                        <span className="text-sm font-medium">{studyStats.streak} day streak!</span>
+                                    <div className="streak-badge flex items-center space-x-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                                        <span className="text-sm font-semibold uppercase tracking-wide">Streak</span>
+                                        <span className="text-sm font-medium">{studyStats.streak} day review streak</span>
                                     </div>
                                 )}
 
@@ -804,12 +805,12 @@
 
                 gradient.append("stop")
                     .attr("offset", "0%")
-                    .attr("stop-color", "#8b5cf6")
+                    .attr("stop-color", "#0f766e")
                     .attr("stop-opacity", 0.8);
 
                 gradient.append("stop")
                     .attr("offset", "100%")
-                    .attr("stop-color", "#6366f1")
+                    .attr("stop-color", "#0e7490")
                     .attr("stop-opacity", 0.6);
 
                 // Create nodes
@@ -836,12 +837,18 @@
                     .force("center", d3.forceCenter(width / 2, height / 2))
                     .force("collision", d3.forceCollide().radius(d => d.r + 10));
 
+                const rootStyles = getComputedStyle(document.documentElement);
+                const tokenPrimary = rootStyles.getPropertyValue('--cl-primary').trim() || '#0f766e';
+                const tokenAccent = rootStyles.getPropertyValue('--cl-accent').trim() || '#164e63';
+                const tokenBorder = rootStyles.getPropertyValue('--cl-border').trim() || '#e2e8f0';
+                const tokenSurfaceAlt = rootStyles.getPropertyValue('--cl-surface-alt').trim() || '#f8fafc';
+
                 // Create links
                 const link = svg.append("g")
                     .selectAll("line")
                     .data(links)
                     .join("line")
-                    .attr("stroke", "#e5e7eb")
+                    .attr("stroke", tokenBorder)
                     .attr("stroke-width", 2)
                     .attr("opacity", 0.6);
 
@@ -855,8 +862,8 @@
                 // Add circles
                 node.append("circle")
                     .attr("r", d => d.r)
-                    .attr("fill", d => d.group === 0 ? "url(#node-gradient)" : "#e0e7ff")
-                    .attr("stroke", d => d.group === 0 ? "#7c3aed" : "#6366f1")
+                    .attr("fill", tokenSurfaceAlt)
+                    .attr("stroke", d => d.group === 0 ? tokenPrimary : tokenAccent)
                     .attr("stroke-width", 2)
                     .style("cursor", "pointer")
                     .on("click", (event, d) => {
@@ -964,10 +971,7 @@
             return (
                 <div className="glass dark:glass-dark rounded-xl p-6">
                     <div className="flex items-center space-x-2 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
-                            <Icon name="sparkles" className="w-4 h-4 text-white" />
-                        </div>
-                        <h3 className="text-lg font-semibold">AI Insights</h3>
+                        <h3 className="text-lg font-semibold">Clinical Correlations</h3>
                     </div>
 
                     <div className="space-y-3">
@@ -976,13 +980,13 @@
                                 key={index}
                                 className="flex items-start space-x-3 p-3 bg-slate-50 dark:bg-slate-900/20 rounded-lg fade-enter-active"
                             >
-                                <Icon name="lightbulb" className="w-4 h-4 text-blue-500 mt-0.5" />
+                                <Icon name="lightbulb" className="w-4 h-4 text-teal-700 mt-0.5" />
                                 <p className="text-sm">{rec}</p>
                             </div>
                         ))}
                     </div>
 
-                    <button className="mt-4 w-full p-3 bg-cyan-700 text-white rounded-lg hover:opacity-90 transition-colors">
+                    <button className="mt-4 w-full p-3 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 rounded-lg hover:border-teal-700 transition-colors">
                         Generate Study Plan
                     </button>
                 </div>
@@ -1046,7 +1050,7 @@
             }
 
             return (
-                <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+                <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
                     <CommandPalette />
                     <Header />
 
