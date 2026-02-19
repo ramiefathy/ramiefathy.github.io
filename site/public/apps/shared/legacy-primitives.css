@@ -91,6 +91,55 @@ summary:focus-visible {
   border-color: var(--cl-border-strong);
 }
 
+.cl-panel-layout {
+  display: grid;
+  gap: var(--space-lg);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+  align-items: start;
+}
+
+.cl-panel-layout--two-pane {
+  grid-template-columns: 320px 1fr;
+}
+
+.cl-panel-layout--three-pane {
+  grid-template-columns: 220px 1fr 280px;
+}
+
+.cl-panel-layout__sidebar {
+  position: sticky;
+  top: var(--space-lg);
+  align-self: start;
+}
+
+.cl-panel-layout__main {
+  min-width: 0;
+}
+
+.cl-panel-layout__inspector {
+  position: sticky;
+  top: var(--space-lg);
+  align-self: start;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (max-width: 768px) {
+  .cl-panel-layout--two-pane,
+  .cl-panel-layout--three-pane {
+    grid-template-columns: 1fr;
+  }
+
+  .cl-panel-layout__sidebar,
+  .cl-panel-layout__inspector {
+    position: static;
+  }
+}
+
 .legacy-btn,
 .cl-btn,
 .cl-btn-primary,

@@ -380,28 +380,30 @@
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto p-4 md:p-6">
-        <!-- Search and Filter Section -->
-        <div class="mb-6 p-4 rounded-lg bg-white dark:bg-gray-800 shadow-md no-print">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Fuzzy Search -->
-                <div class="relative">
-                    <label for="finding-search-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Search Histologic Findings</label>
-                    <input type="text" id="finding-search-input" placeholder="e.g., 'spindle cell', 'acantholysis'..." class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-                    <div id="search-suggestions" class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 rounded-md shadow-lg hidden max-h-60 overflow-y-auto"></div>
-                </div>
-                <!-- Dropdown Selector -->
-                <div>
-                    <label for="finding-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Or Select a Finding</label>
-                    <select id="finding-selector" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-                        <option value="">-- Select a Finding --</option>
-                    </select>
+    <main class="cl-panel-layout cl-panel-layout--two-pane">
+        <aside class="cl-panel-layout__sidebar no-print">
+            <div class="cl-card">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Fuzzy Search -->
+                    <div class="relative">
+                        <label for="finding-search-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Search Histologic Findings</label>
+                        <input type="text" id="finding-search-input" placeholder="e.g., 'spindle cell', 'acantholysis'..." class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                        <div id="search-suggestions" class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 rounded-md shadow-lg hidden max-h-60 overflow-y-auto"></div>
+                    </div>
+                    <!-- Dropdown Selector -->
+                    <div>
+                        <label for="finding-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Or Select a Finding</label>
+                        <select id="finding-selector" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                            <option value="">-- Select a Finding --</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <!-- Main Results Container -->
-        <div id="results-container" class="main-card rounded-lg shadow-lg overflow-hidden">
+        <section class="cl-panel-layout__main">
+            <!-- Main Results Container -->
+            <div id="results-container" class="main-card rounded-lg shadow-lg overflow-hidden">
             <!-- Header -->
             <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-wrap justify-between items-center gap-4">
                 <h2 id="results-title" class="text-xl font-bold text-gray-800 dark:text-white flex-shrink-0">Welcome! Select a finding to begin.</h2>
@@ -443,6 +445,7 @@
                 </div>
             </div>
         </div>
+        </section>
     </main>
 
     <!-- Modals -->

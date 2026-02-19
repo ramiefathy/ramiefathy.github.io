@@ -1,7 +1,6 @@
 body[data-legacy-shell='true'].pdf-studio-page {
   margin: 0;
   min-height: 100vh;
-  padding: var(--space-lg);
   display: flex;
   flex-direction: column;
   background: var(--cl-primary-subtle);
@@ -9,12 +8,7 @@ body[data-legacy-shell='true'].pdf-studio-page {
 }
 
 .pdf-studio {
-  width: min(1300px, 100%);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: var(--space-lg);
-  align-items: start;
+  width: 100%;
 }
 
 .pdf-studio__toolnav {
@@ -24,8 +18,6 @@ body[data-legacy-shell='true'].pdf-studio-page {
   padding: var(--space-md);
   display: grid;
   gap: var(--space-md);
-  position: sticky;
-  top: var(--space-md);
 }
 
 .pdf-studio__toolnav h2 {
@@ -71,10 +63,9 @@ body[data-legacy-shell='true'].pdf-studio-page {
 
 .pdf-studio__workspace {
   min-width: 0;
-}
-
-.pdf-studio__workflow {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }
 
 .pdf-tool-toolbar {
@@ -250,14 +241,6 @@ body[data-legacy-shell='true'].pdf-studio-page {
 }
 
 @media (max-width: 1080px) {
-  .pdf-studio {
-    grid-template-columns: 1fr;
-  }
-
-  .pdf-studio__toolnav {
-    position: static;
-  }
-
   .pdf-studio__tool-list {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }

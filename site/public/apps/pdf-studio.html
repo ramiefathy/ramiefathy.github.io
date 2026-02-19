@@ -17,19 +17,19 @@
   <script src="./vendor/pdf.min.js" defer></script>
 </head>
 <body class="legacy-focus-ring pdf-studio-page" data-legacy-shell="true" data-help-steps='["Pick a tool in the left panel.","Load your files and review preflight checks.","Run generation and use the single output panel to download results."]'>
-  <main class="pdf-studio" data-workflow="pdf-studio">
-    <aside class="pdf-studio__toolnav" id="pdf-studio-nav"></aside>
+  <main class="pdf-studio cl-panel-layout cl-panel-layout--three-pane" data-workflow="pdf-studio">
+    <aside class="pdf-studio__toolnav cl-panel-layout__sidebar" id="pdf-studio-nav"></aside>
 
-    <section class="pdf-studio__workspace">
+    <section class="pdf-studio__workspace cl-panel-layout__main">
       <section class="legacy-workflow__panel" aria-live="polite">
         <h1 id="pdf-studio-title">PDF Studio</h1>
         <p class="cl-page-subtitle" id="pdf-studio-subtitle">Local-first professional PDF workflows with shared preflight and output summaries.</p>
       </section>
-      <section class="legacy-workflow pdf-studio__workflow" data-workflow="pdf">
-        <section class="legacy-workflow__panel legacy-workflow__primary" id="pdf-studio-primary"></section>
-        <aside class="legacy-workflow__panel legacy-workflow__secondary" id="pdf-studio-secondary"></aside>
-      </section>
+
+      <section class="legacy-workflow__panel legacy-workflow__primary" id="pdf-studio-primary"></section>
     </section>
+
+    <aside class="legacy-workflow__panel legacy-workflow__secondary cl-panel-layout__inspector" id="pdf-studio-secondary"></aside>
   </main>
 
   <script type="module" src="./shared/pdf-studio/main.js"></script>

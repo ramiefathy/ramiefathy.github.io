@@ -663,4 +663,30 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
       expect(badge.ratio as number, `Badge "${badge.text}" contrast ratio ${badge.ratio} is below 4.5:1`).toBeGreaterThanOrEqual(4.5)
     }
   })
+
+  test('multi-panel pages use shared cl-panel-layout with sticky side panels', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+
+    const pages = [
+      { route: '/apps/pdf-studio.html?tool=organizer', variant: 'cl-panel-layout--three-pane' },
+      { route: '/apps/dermatopathology-differentials.html', variant: 'cl-panel-layout--two-pane' },
+      { route: '/apps/dermatopathology-modern/index-fixed.html', variant: 'cl-panel-layout--three-pane' }
+    ]
+
+    for (const { route, variant } of pages) {
+      await page.goto(route, { waitUntil: 'networkidle' })
+      await expect(page.locator(`.${variant}`), `${route} missing ${variant}`).toHaveCount(1)
+
+      const sidebarPos = await page.locator('.cl-panel-layout__sidebar').first().evaluate((el) => getComputedStyle(el).position)
+      expect(sidebarPos, `${route} sidebar should be sticky on desktop`).toBe('sticky')
+    }
+
+    await page.setViewportSize({ width: 760, height: 900 })
+    await page.goto('/apps/dermatopathology-differentials.html', { waitUntil: 'networkidle' })
+    const mobileSidebarPos = await page
+      .locator('.cl-panel-layout__sidebar')
+      .first()
+      .evaluate((el) => getComputedStyle(el).position)
+    expect(mobileSidebarPos, 'sidebar should stack (position: static) below 768px').toBe('static')
+  })
 })

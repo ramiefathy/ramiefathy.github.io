@@ -1054,106 +1054,108 @@
                     <CommandPalette />
                     <Header />
 
-                    <main className="container mx-auto px-4 py-8">
-                        {/* Finding Selector */}
-                        <div className="mb-8">
-                            <label className="block text-sm font-medium mb-2">Current Finding</label>
-                            <select
-                                value={selectedFinding || ''}
-                                onChange={(e) => dispatch({ type: 'SET_SELECTED_FINDING', payload: e.target.value })}
-                                className="w-full max-w-md px-4 py-3 glass dark:glass-dark rounded-lg border border-gray-200 dark:border-gray-700"
-                            >
-                                <option value="">Select a finding...</option>
-                                {findings.map(finding => (
-                                    <option key={finding} value={finding}>{finding}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {selectedFinding && diagnoses.length > 0 && (
-                            <>
-                                {/* View Selector */}
-                                <div className="flex space-x-2 mb-6">
-                                    {['grid', 'flashcards', 'network'].map(view => (
-                                        <button
-                                            key={view}
-                                            onClick={() => setActiveView(view)}
-                                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                                                activeView === view
-                                                    ? 'bg-teal-700 text-white'
-                                                    : 'glass dark:glass-dark hover:bg-gray-100 dark:hover:bg-gray-800'
-                                            }`}
-                                        >
-                                            <Icon
-                                                name={view === 'grid' ? 'grid' : view === 'flashcards' ? 'layers' : 'share-2'}
-                                                className="w-4 h-4 inline mr-2"
-                                            />
-                                            {view.charAt(0).toUpperCase() + view.slice(1)}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* Main Content Area */}
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                    <div className="lg:col-span-2">
-                                        {activeView === 'grid' && (
-                                            <div className="grid gap-4">
-                                                {diagnoses.map((diagnosis, index) => (
-                                                    <DiagnosisCard
-                                                        key={diagnosis.name}
-                                                        diagnosis={diagnosis}
-                                                        category={index % 6 === 0 ? 'inflammatory' :
-                                                                 index % 6 === 1 ? 'neoplastic' :
-                                                                 index % 6 === 2 ? 'infectious' :
-                                                                 index % 6 === 3 ? 'metabolic' :
-                                                                 index % 6 === 4 ? 'genetic' : 'other'}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {activeView === 'flashcards' && (
-                                            <FlashcardDeck diagnoses={diagnoses} />
-                                        )}
-
-                                        {activeView === 'network' && (
-                                            <NetworkGraph finding={selectedFinding} diagnoses={diagnoses} />
-                                        )}
-                                    </div>
-
-                                    {/* Sidebar */}
-                                    <div className="space-y-6">
-                                        {/* Stats Card */}
-                                        <div className="glass dark:glass-dark rounded-xl p-6">
-                                            <h3 className="text-lg font-semibold mb-4">Progress Overview</h3>
-                                            <div className="space-y-3">
-                                                <div className="flex justify-between">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Total Diagnoses</span>
-                                                    <span className="font-medium">{diagnoses.length}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Favorites</span>
-                                                    <span className="font-medium">{favorites.size}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Study Progress</span>
-                                                    <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                        <div
-                                                            className="bg-teal-700 h-2 rounded-full"
-                                                            style={{ width: '65%' }}
-                                                        ></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* AI Recommendations */}
-                                        <AIRecommendations currentFinding={selectedFinding} diagnoses={diagnoses} />
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </main>
+	                    <main className="cl-panel-layout cl-panel-layout--three-pane">
+	                        <div className="cl-panel-layout__sidebar">
+	                            <div className="cl-card">
+	                                <div className="legacy-workflow__field">
+	                                    <label className="block text-sm font-medium">Current Finding</label>
+	                                    <select
+	                                        value={selectedFinding || ''}
+	                                        onChange={(e) => dispatch({ type: 'SET_SELECTED_FINDING', payload: e.target.value })}
+	                                        className="w-full px-4 py-3 glass dark:glass-dark rounded-lg border border-gray-200 dark:border-gray-700"
+	                                    >
+	                                        <option value="">Select a finding...</option>
+	                                        {findings.map(finding => (
+	                                            <option key={finding} value={finding}>{finding}</option>
+	                                        ))}
+	                                    </select>
+	                                </div>
+	
+	                                {selectedFinding && diagnoses.length > 0 && (
+	                                    <div className="legacy-workflow__actions" style={{ marginTop: '1rem' }}>
+	                                        {['grid', 'flashcards', 'network'].map(view => (
+	                                            <button
+	                                                key={view}
+	                                                onClick={() => setActiveView(view)}
+	                                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+	                                                    activeView === view
+	                                                        ? 'bg-teal-700 text-white'
+	                                                        : 'glass dark:glass-dark hover:bg-gray-100 dark:hover:bg-gray-800'
+	                                                }`}
+	                                            >
+	                                                <Icon
+	                                                    name={view === 'grid' ? 'grid' : view === 'flashcards' ? 'layers' : 'share-2'}
+	                                                    className="w-4 h-4 inline mr-2"
+	                                                />
+	                                                {view.charAt(0).toUpperCase() + view.slice(1)}
+	                                            </button>
+	                                        ))}
+	                                    </div>
+	                                )}
+	                            </div>
+	                        </div>
+	
+	                        <section className="cl-panel-layout__main">
+	                            {selectedFinding && diagnoses.length > 0 && (
+	                                <>
+	                                    {activeView === 'grid' && (
+	                                        <div className="grid gap-4">
+	                                            {diagnoses.map((diagnosis, index) => (
+	                                                <DiagnosisCard
+	                                                    key={diagnosis.name}
+	                                                    diagnosis={diagnosis}
+	                                                    category={index % 6 === 0 ? 'inflammatory' :
+	                                                             index % 6 === 1 ? 'neoplastic' :
+	                                                             index % 6 === 2 ? 'infectious' :
+	                                                             index % 6 === 3 ? 'metabolic' :
+	                                                             index % 6 === 4 ? 'genetic' : 'other'}
+	                                                />
+	                                            ))}
+	                                        </div>
+	                                    )}
+	
+	                                    {activeView === 'flashcards' && (
+	                                        <FlashcardDeck diagnoses={diagnoses} />
+	                                    )}
+	
+	                                    {activeView === 'network' && (
+	                                        <NetworkGraph finding={selectedFinding} diagnoses={diagnoses} />
+	                                    )}
+	                                </>
+	                            )}
+	                        </section>
+	
+	                        <aside className="cl-panel-layout__inspector">
+	                            {selectedFinding && diagnoses.length > 0 && (
+	                                <>
+	                                    <div className="glass dark:glass-dark rounded-xl p-6">
+	                                        <h3 className="text-lg font-semibold mb-4">Progress Overview</h3>
+	                                        <div className="space-y-3">
+	                                            <div className="flex justify-between">
+	                                                <span className="text-sm text-gray-600 dark:text-gray-400">Total Diagnoses</span>
+	                                                <span className="font-medium">{diagnoses.length}</span>
+	                                            </div>
+	                                            <div className="flex justify-between">
+	                                                <span className="text-sm text-gray-600 dark:text-gray-400">Favorites</span>
+	                                                <span className="font-medium">{favorites.size}</span>
+	                                            </div>
+	                                            <div className="flex justify-between">
+	                                                <span className="text-sm text-gray-600 dark:text-gray-400">Study Progress</span>
+	                                                <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+	                                                    <div
+	                                                        className="bg-teal-700 h-2 rounded-full"
+	                                                        style={{ width: '65%' }}
+	                                                    ></div>
+	                                                </div>
+	                                            </div>
+	                                        </div>
+	                                    </div>
+	
+	                                    <AIRecommendations currentFinding={selectedFinding} diagnoses={diagnoses} />
+	                                </>
+	                            )}
+	                        </aside>
+	                    </main>
 
                     {/* Floating Action Button */}
                     <button className="fab bg-teal-700 text-white">
