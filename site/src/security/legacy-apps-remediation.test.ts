@@ -289,8 +289,12 @@ describe('legacy apps remediation backlog', () => {
   it('P1: all PDF tools use shared file input primitives', () => {
     const html = loadApp(pdfStudioPage)
     expect(html).toContain('id="pdf-studio-primary"')
-    expect(html).toContain('class="legacy-workflow__panel legacy-workflow__primary"')
-    expect(html).toContain('class="legacy-workflow__panel legacy-workflow__secondary"')
+    expect(html).toMatch(
+      /<section[^>]*(?=[^>]*id="pdf-studio-primary")(?=[^>]*class="[^"]*\blegacy-workflow__panel\b[^"]*\blegacy-workflow__primary\b)[^>]*>/
+    )
+    expect(html).toMatch(
+      /<aside[^>]*(?=[^>]*id="pdf-studio-secondary")(?=[^>]*class="[^"]*\blegacy-workflow__panel\b[^"]*\blegacy-workflow__secondary\b)[^>]*>/
+    )
   })
 
   it('P1: modern dermpath prototype includes deprecation banner and redirect target', () => {
