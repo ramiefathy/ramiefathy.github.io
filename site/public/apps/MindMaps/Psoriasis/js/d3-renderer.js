@@ -40,10 +40,159 @@ function MindMapRenderer(container, data, options = {}) {
     
     container.append(svg.node());
 
+    const NODE_TEXT = {
+        fontPx: 14,
+        lineHeightEm: 1.15,
+        hPadPx: 24,
+        vPadPx: 16,
+        minRxPx: 50,
+        minRyPx: 40
+    };
+
+    const measureTextElement = svg.append('text')
+        .attr('class', 'mindmap-measure-text')
+        .attr('x', 0)
+        .attr('y', 0)
+        .style('visibility', 'hidden')
+        .style('font-family', 'var(--font-body, var(--legacy-font-sans, ui-sans-serif))')
+        .style('font-weight', '500')
+        .attr('text-anchor', 'start')
+        .attr('dominant-baseline', 'alphabetic');
+
     const g = svg.append("g");
     const linksGroup = g.append("g").attr("class", "links-group");
     const nodesGroup = g.append("g").attr("class", "nodes-group");
-    let currentRadii = [];
+    let currentNodeDimensionsById = new Map();
+
+    const getNodeSizeCeilings = () => {
+        const maxR = Math.min(width, height) * 0.12;
+        return {
+            maxRy: maxR,
+            maxRx: maxR * 1.3
+        };
+    };
+
+    const measureTextWidthPx = (text, fontPx) => {
+        const safeFontPx = Number.isFinite(fontPx) ? fontPx : NODE_TEXT.fontPx;
+        measureTextElement.attr('font-size', `${safeFontPx}px`).text(text);
+        const node = measureTextElement.node();
+        if (!node) return 0;
+        const measured = node.getComputedTextLength();
+        return Number.isFinite(measured) ? measured : 0;
+    };
+
+    const tokenizeLabelForWrap = (label) => {
+        const trimmed = ((label || '') + '').trim();
+        if (!trimmed) return [];
+
+        const words = trimmed.split(/\s+/).filter(Boolean);
+        const tokens = [];
+
+        words.forEach((word, wordIndex) => {
+            const wordJoiner = wordIndex === 0 ? '' : ' ';
+            if (!word.includes('-')) {
+                tokens.push({ text: word, joinerBefore: wordJoiner });
+                return;
+            }
+
+            const segments = word.split('-');
+            segments.forEach((segment, segmentIndex) => {
+                if (!segment) return;
+                const joinerBefore = segmentIndex === 0 ? wordJoiner : '';
+                const text = segmentIndex < segments.length - 1 ? `${segment}-` : segment;
+                tokens.push({ text, joinerBefore });
+            });
+        });
+
+        return tokens;
+    };
+
+    const wrapTokensToLines = (tokens, { maxWidthPx, fontPx, maxLines }) => {
+        const safeMaxWidth = Math.max(24, Number.isFinite(maxWidthPx) ? maxWidthPx : 0);
+        const safeMaxLines = Math.max(1, Math.floor(Number.isFinite(maxLines) ? maxLines : 1));
+        const safeFontPx = Number.isFinite(fontPx) ? fontPx : NODE_TEXT.fontPx;
+
+        if (!tokens.length) return [''];
+
+        const lines = [];
+        let current = '';
+
+        for (const token of tokens) {
+            const joiner = current ? (token.joinerBefore || '') : '';
+            const candidate = `${current}${joiner}${token.text}`;
+            const candidateWidth = measureTextWidthPx(candidate, safeFontPx);
+
+            if (current && candidateWidth > safeMaxWidth) {
+                lines.push(current.trim());
+                current = token.text;
+            } else {
+                current = candidate;
+            }
+        }
+
+        if (current.trim()) lines.push(current.trim());
+
+        if (lines.length <= safeMaxLines) return lines;
+
+        const head = lines.slice(0, safeMaxLines - 1);
+        const tail = lines.slice(safeMaxLines - 1).join(' ');
+        return [...head, tail.trim()].filter(Boolean);
+    };
+
+    const getNodeMaxLines = (depth) => (depth <= 1 ? 3 : 2);
+
+    const computeNodeDimensions = (label, depth) => {
+        const fontPx = NODE_TEXT.fontPx;
+        const maxLines = getNodeMaxLines(depth);
+        const { maxRx, maxRy } = getNodeSizeCeilings();
+
+        const maxLineWidthPx = Math.max(40, (maxRx - NODE_TEXT.hPadPx) * 2);
+        const tokens = tokenizeLabelForWrap(label);
+        const lines = wrapTokensToLines(tokens, {
+            maxWidthPx: maxLineWidthPx,
+            fontPx,
+            maxLines
+        });
+
+        const lineWidths = lines.map((line) => measureTextWidthPx(line, fontPx));
+        const widestLine = Math.max(0, ...lineWidths);
+        const rx = Math.min(maxRx, Math.max(NODE_TEXT.minRxPx, widestLine / 2 + NODE_TEXT.hPadPx));
+
+        const lineHeightPx = fontPx * NODE_TEXT.lineHeightEm;
+        const totalTextHeightPx = Math.max(1, lines.length) * lineHeightPx;
+        const ry = Math.min(maxRy, Math.max(NODE_TEXT.minRyPx, totalTextHeightPx / 2 + NODE_TEXT.vPadPx));
+
+        return {
+            rx,
+            ry,
+            fontPx,
+            lines
+        };
+    };
+
+    const renderWrappedText = (element, { lines, fontPx }) => {
+        const textElement = d3.select(element);
+        const safeFontPx = Number.isFinite(fontPx) ? fontPx : NODE_TEXT.fontPx;
+        const safeLines = Array.isArray(lines) && lines.length ? lines : [''];
+
+        textElement
+            .text(null)
+            .attr('font-size', `${safeFontPx}px`)
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'central')
+            .style('font-family', 'var(--font-body, var(--legacy-font-sans, ui-sans-serif))')
+            .style('font-weight', '500');
+
+        const startDy = -((safeLines.length - 1) * NODE_TEXT.lineHeightEm) / 2;
+        safeLines.forEach((lineText, index) => {
+            textElement
+                .append('tspan')
+                .attr('x', 0)
+                .attr('dy', `${index === 0 ? startDy : NODE_TEXT.lineHeightEm}em`)
+                .text(lineText);
+        });
+    };
+
 
     // --- Setup Zoom Behavior ---
     const zoom = d3.zoom()
@@ -204,8 +353,11 @@ function MindMapRenderer(container, data, options = {}) {
         const nodes = treeData.descendants().reverse();
         const links = treeData.links();
 
-        const { radii } = calculateSizing(nodes);
-        currentRadii = radii;
+        currentNodeDimensionsById = new Map();
+        nodes.forEach((node) => {
+            const depth = Number.isFinite(node.depth) ? node.depth : 0;
+            currentNodeDimensionsById.set(node.id, computeNodeDimensions(node.data?.name || '', depth));
+        });
 
         // --- Links ---
         linksGroup.selectAll(".link").data(links, d => d.target.id)
@@ -235,8 +387,9 @@ function MindMapRenderer(container, data, options = {}) {
                         .attr("transform", () => nodeTranslate(source))
                         .on("click", clickHandler);
 
-                    nodeEnter.append("circle")
-                        .attr("r", 1e-6)
+                    nodeEnter.append("ellipse")
+                        .attr("rx", 1e-6)
+                        .attr("ry", 1e-6)
                         .style("fill", d => getNodeFillCss(d.depth));
                     nodeEnter.append("text").attr("class", "node-text");
                     
@@ -245,12 +398,12 @@ function MindMapRenderer(container, data, options = {}) {
                 update => update,
                 exit => exit.transition().duration(duration)
                     .attr("transform", () => nodeTranslate(source)).remove()
-                    .select("circle").attr("r", 1e-6)
+                    .select("ellipse").attr("rx", 1e-6).attr("ry", 1e-6)
             )
             .attr("tabindex", -1) // For focus
             .on('mousemove', tooltipMoveHandler)
             .on('mouseleave', tooltipLeaveHandler)
-            .select("circle")
+            .select("ellipse")
             .style("fill", d => getNodeFillCss(d.depth))
             .attr("class", d => d._children ? "collapsible" : "");
         
@@ -259,35 +412,16 @@ function MindMapRenderer(container, data, options = {}) {
             .attr("transform", d => nodeTranslate(d, source));
 
         nodesGroup.selectAll(".node").data(nodes, d => d.id)
-            .select("circle")
+            .select("ellipse")
             .transition().duration(duration)
-            .attr("r", d => radii[d.depth] || radii[radii.length-1]);
+            .attr("rx", d => currentNodeDimensionsById.get(d.id)?.rx || 50)
+            .attr("ry", d => currentNodeDimensionsById.get(d.id)?.ry || 40);
 
-        const radiusCeiling = Math.round(Math.min(width, height) * 0.12);
-        const requestedRadiiByDepth = new Map();
         const nodeTexts = nodesGroup.selectAll(".node text.node-text");
-
         nodeTexts.each(function(d) {
-            const requested = wrapText(this, d, radii, { render: false, radiusCeiling });
-            if (typeof requested !== 'number' || !Number.isFinite(requested)) return;
-            const depth = Number.isFinite(d.depth) ? d.depth : 0;
-            if (depth > 1) return;
-            requestedRadiiByDepth.set(depth, Math.max(requestedRadiiByDepth.get(depth) || 0, requested));
-        });
-
-        if (requestedRadiiByDepth.size) {
-            requestedRadiiByDepth.forEach((requested, depth) => {
-                if (requested > (radii[depth] || 0)) {
-                    radii[depth] = requested;
-                }
-            });
-            nodesGroup.selectAll(".node circle")
-                .interrupt()
-                .attr("r", d => radii[d.depth] || radii[radii.length - 1]);
-        }
-
-        nodeTexts.each(function(d) {
-            wrapText(this, d, radii, { render: true, radiusCeiling });
+            const dims = currentNodeDimensionsById.get(d.id);
+            if (!dims) return;
+            renderWrappedText(this, dims);
         });
 
         nodes.forEach(d => {
@@ -585,11 +719,13 @@ function MindMapRenderer(container, data, options = {}) {
         nodes.forEach((node) => {
             const point = safeNodePoint(node);
             const [x, y] = radialPoint(point.x, point.y);
-            const radius = currentRadii[node.depth] || currentRadii[currentRadii.length - 1] || 24;
-            minX = Math.min(minX, x - radius);
-            maxX = Math.max(maxX, x + radius);
-            minY = Math.min(minY, y - radius);
-            maxY = Math.max(maxY, y + radius);
+            const dims = currentNodeDimensionsById.get(node.id) || computeNodeDimensions(node.data?.name || '', node.depth || 0);
+            const rx = Number.isFinite(dims?.rx) ? dims.rx : 50;
+            const ry = Number.isFinite(dims?.ry) ? dims.ry : 40;
+            minX = Math.min(minX, x - rx);
+            maxX = Math.max(maxX, x + rx);
+            minY = Math.min(minY, y - ry);
+            maxY = Math.max(maxY, y + ry);
         });
 
         if (![minX, minY, maxX, maxY].every(Number.isFinite)) return null;

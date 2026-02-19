@@ -193,9 +193,16 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
       await page.waitForTimeout(300)
 
       const data = await page.evaluate((banned) => {
-        const circles = Array.from(document.querySelectorAll('.nodes-group circle'))
-        const fills = circles
-          .map((circle) => getComputedStyle(circle as SVGCircleElement).fill.trim().toLowerCase())
+        const nodes = Array.from(document.querySelectorAll('.nodes-group .node')) as SVGElement[]
+        const ellipses = nodes
+          .map((node) => node.querySelector('ellipse') as SVGEllipseElement | null)
+          .filter((ellipse): ellipse is SVGEllipseElement => Boolean(ellipse))
+        const legacyCircles = nodes
+          .map((node) => node.querySelector('circle') as SVGCircleElement | null)
+          .filter((circle): circle is SVGCircleElement => Boolean(circle))
+
+        const fills = ellipses
+          .map((ellipse) => getComputedStyle(ellipse).fill.trim().toLowerCase())
           .filter(Boolean)
         const hasBannedFill = fills.some((fill) => banned.includes(fill))
         const hasBlackFill = fills.some((fill) => fill === 'rgb(0, 0, 0)' || fill === 'rgba(0, 0, 0, 0)')
@@ -204,6 +211,8 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
         const nodeGroup = document.querySelector('.nodes-group') as SVGGElement | null
         if (!svg || !nodeGroup) {
           return {
+            hasEllipses: ellipses.length > 0,
+            hasLegacyCircles: legacyCircles.length > 0,
             hasBannedFill,
             hasBlackFill,
             widthCoverage: 0,
@@ -217,6 +226,8 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
         const bbox = nodeGroup.getBBox()
 
         return {
+          hasEllipses: ellipses.length > 0,
+          hasLegacyCircles: legacyCircles.length > 0,
           hasBannedFill,
           hasBlackFill,
           widthCoverage: bbox.width / mapWidth,
@@ -224,6 +235,8 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
         }
       }, bannedMindmapColors)
 
+      expect(data.hasEllipses, `${route} should render node shapes as <ellipse> for content-aware sizing`).toBe(true)
+      expect(data.hasLegacyCircles, `${route} should not render node shapes as <circle>`).toBe(false)
       expect(data.hasBannedFill, `${route} still uses banned purple fills`).toBe(false)
       expect(data.hasBlackFill, `${route} has invalid black/transparent node fills (likely CSS var resolution failure)`).toBe(false)
       expect(data.widthCoverage, `${route} initial map footprint is too small (width)`).toBeGreaterThan(0.16)
@@ -231,7 +244,7 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
     }
   })
 
-  test('mindmaps initial node circles are fully visible and toolbar does not overlap graph nodes', async ({ page }) => {
+  test('mindmaps initial node shapes are fully visible and toolbar does not overlap graph nodes', async ({ page }) => {
     await page.setViewportSize({ width: 1365, height: 900 })
 
     for (const route of mindmapRoutes) {
@@ -243,9 +256,9 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
         if (!svg) return { clippedNodes: 1, overlapCount: 1, labelOverflowCount: 1 }
 
         const svgRect = svg.getBoundingClientRect()
-        const circles = Array.from(document.querySelectorAll('.nodes-group circle')) as SVGCircleElement[]
-        const clippedNodes = circles.filter((circle) => {
-          const rect = circle.getBoundingClientRect()
+        const ellipses = Array.from(document.querySelectorAll('.nodes-group .node ellipse')) as SVGEllipseElement[]
+        const clippedNodes = ellipses.filter((ellipse) => {
+          const rect = ellipse.getBoundingClientRect()
           return (
             rect.left < svgRect.left ||
             rect.top < svgRect.top ||
@@ -258,8 +271,8 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
         let overlapCount = 0
         if (toolbar) {
           const toolbarRect = toolbar.getBoundingClientRect()
-          overlapCount = circles.filter((circle) => {
-            const rect = circle.getBoundingClientRect()
+          overlapCount = ellipses.filter((ellipse) => {
+            const rect = ellipse.getBoundingClientRect()
             return !(
               rect.right <= toolbarRect.left ||
               rect.left >= toolbarRect.right ||
@@ -271,11 +284,12 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
 
         const nodes = Array.from(document.querySelectorAll('.nodes-group .node')) as SVGElement[]
         const labelOverflowCount = nodes.filter((node) => {
-          const circle = node.querySelector('circle') as SVGCircleElement | null
+          const ellipse = node.querySelector('ellipse') as SVGEllipseElement | null
           const text = node.querySelector('text') as SVGTextElement | null
-          if (!circle || !text) return false
-          const radius = Number.parseFloat(circle.getAttribute('r') || '0')
-          if (!Number.isFinite(radius) || radius <= 0) return false
+          if (!ellipse || !text) return false
+          const rx = Number.parseFloat(ellipse.getAttribute('rx') || '0')
+          const ry = Number.parseFloat(ellipse.getAttribute('ry') || '0')
+          if (![rx, ry].every(Number.isFinite) || rx <= 0 || ry <= 0) return false
 
           const textBox = text.getBBox()
           if (textBox.width <= 0 || textBox.height <= 0) return false
@@ -287,20 +301,22 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
             { x: textBox.x + textBox.width, y: textBox.y + textBox.height }
           ]
 
-          const padding = 0.5
-          return corners.some((corner) => Math.hypot(corner.x, corner.y) > radius - padding)
+          const padding = 1
+          const safeRx = Math.max(1, rx - padding)
+          const safeRy = Math.max(1, ry - padding)
+          return corners.some((corner) => (corner.x / safeRx) ** 2 + (corner.y / safeRy) ** 2 > 1)
         }).length
 
         return { clippedNodes, overlapCount, labelOverflowCount }
       })
 
-      expect(analysis.clippedNodes, `${route} has clipped node circles`).toBe(0)
-      expect(analysis.overlapCount, `${route} toolbar overlaps node circles`).toBe(0)
+      expect(analysis.clippedNodes, `${route} has clipped node shapes`).toBe(0)
+      expect(analysis.overlapCount, `${route} toolbar overlaps node shapes`).toBe(0)
       expect(analysis.labelOverflowCount, `${route} has labels overflowing node bounds`).toBe(0)
     }
   })
 
-  test('mindmaps node labels stay readable without shard-line truncation', async ({ page }) => {
+  test('mindmaps node labels stay readable without truncation or shard-lines', async ({ page }) => {
     await page.setViewportSize({ width: 1365, height: 900 })
 
     for (const route of mindmapRoutes) {
@@ -313,6 +329,7 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
         let fontSizeViolations = 0
 
         const isMicroLine = (line: string): boolean => /^[A-Za-z]{1,2}(?:…)?$/.test(line)
+        const hasEllipsis = (line: string): boolean => line.includes('…') || line.includes('...')
 
         nodes.forEach((node) => {
           const text = node.querySelector('text') as SVGTextElement | null
@@ -331,18 +348,9 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
 
           if (!lines.length) return
 
-          const ellipsisCount = lines.filter((line) => line.endsWith('…')).length
-          if (ellipsisCount > 1) {
-            offenders.push({ label, lines, reason: 'multiple-ellipsis-lines', fontSize })
-            return
-          }
-
           lines.forEach((line, idx) => {
             const isLast = idx === lines.length - 1
-            if (!isLast && line.endsWith('…')) {
-              offenders.push({ label, lines, reason: 'ellipsis-on-nonfinal-line', fontSize })
-              return
-            }
+            if (hasEllipsis(line)) offenders.push({ label, lines, reason: isLast ? 'ellipsis-final-line' : 'ellipsis-nonfinal-line', fontSize })
 
             if (lines.length > 1 && isMicroLine(line)) {
               offenders.push({ label, lines, reason: isLast ? 'micro-final-line' : 'micro-line', fontSize })
@@ -379,10 +387,10 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
       if (!bottomNodeLabel) return true
 
       const node = bottomNodeLabel.closest('.node') as SVGElement | null
-      const circle = node?.querySelector('circle') as SVGCircleElement | null
-      if (!circle) return true
+      const ellipse = node?.querySelector('ellipse') as SVGEllipseElement | null
+      if (!ellipse) return true
 
-      const rect = circle.getBoundingClientRect()
+      const rect = ellipse.getBoundingClientRect()
       return (
         rect.left < svgRect.left ||
         rect.top < svgRect.top ||

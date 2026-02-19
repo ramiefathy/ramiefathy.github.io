@@ -157,7 +157,7 @@ body {
     opacity: 0.6;
 }
 
-.node circle {
+.node ellipse {
     stroke: var(--mindmap-node-stroke);
     stroke-width: 1.5px;
     transition: stroke-width 0.2s ease, stroke 0.2s ease, fill 0.2s ease;
@@ -172,7 +172,7 @@ body {
     outline: none;
 }
 
-.node:focus > circle {
+.node:focus > ellipse {
     stroke: var(--mindmap-collapsible-stroke);
     stroke-width: 4px;
 }
@@ -211,7 +211,7 @@ body {
 }
 
 /* --- Search Highlight & Results Styles --- */
-.search-highlight circle {
+.search-highlight ellipse {
     stroke: #f59e0b !important;
     stroke-width: 4px !important;
     animation: pulse 1.5s ease-in-out 2;
