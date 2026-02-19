@@ -553,4 +553,47 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
     expect(canvasBg, 'MindMaps CTCL missing #mind-map-container').not.toBeNull()
     expect(canvasBg as string, 'MindMaps canvas background should remain teal-tinted').toBe('rgb(240, 253, 250)')
   })
+
+  test('typography hierarchy is widened and subtitles are consistently styled', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+
+    const subtitleRoutes = [
+      '/apps/MindMaps/CTCL/CTCLMindMaps.html',
+      '/apps/MindMaps/Psoriasis/PsoriasisMindMaps.html',
+      '/apps/MindMaps/Alopecia/AlopeciaMindMaps.html',
+      '/apps/biologic-monitoring-dashboard/index.html',
+      '/apps/dermatopathology-differentials.html',
+      '/apps/dermatopathology-modern/index-fixed.html',
+      '/apps/dermatopathology-modern/deduplication-visualization.html',
+      '/apps/pdf-studio.html?tool=organizer',
+      '/apps/dermatology-scribe/index.html'
+    ]
+
+    for (const route of subtitleRoutes) {
+      await page.goto(route, { waitUntil: 'networkidle' })
+
+      const h1Size = await page.evaluate(() => {
+        const h1 = document.querySelector('h1') as HTMLElement | null
+        if (!h1) return null
+        return Number.parseFloat(getComputedStyle(h1).fontSize)
+      })
+      expect(h1Size, `${route} missing h1`).not.toBeNull()
+      expect(h1Size as number, `${route} expected h1 font-size 36px`).toBe(36)
+
+      const subtitle = page.locator('.cl-page-subtitle')
+      await expect(subtitle, `${route} missing .cl-page-subtitle`).toHaveCount(1)
+
+      const subtitleWidth = await subtitle.evaluate((el) => el.getBoundingClientRect().width)
+      expect(subtitleWidth, `${route} subtitle should not exceed 680px`).toBeLessThanOrEqual(680)
+    }
+
+    await page.goto('/apps/dermatopathology-modern/index-fixed.html', { waitUntil: 'networkidle' })
+    const h3Size = await page.evaluate(() => {
+      const h3 = document.querySelector('h3') as HTMLElement | null
+      if (!h3) return null
+      return Number.parseFloat(getComputedStyle(h3).fontSize)
+    })
+    expect(h3Size, 'expected at least one h3 to validate card heading size').not.toBeNull()
+    expect(h3Size as number, 'expected h3 font-size 20px').toBe(20)
+  })
 })
