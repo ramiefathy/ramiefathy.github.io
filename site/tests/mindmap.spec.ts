@@ -3,18 +3,9 @@ import { expect, test } from '@playwright/test';
 test.describe('Mind map experiences', () => {
   test('Alopecia mind map search and accessibility flows', async ({ page }) => {
     test.slow();
-    await page.route('**/*', async (route) => {
-      const url = route.request().url();
-      const isLocal =
-        url.startsWith('http://127.0.0.1') ||
-        url.startsWith('http://localhost') ||
-        url.startsWith('http://[::1]');
-      const isBlobOrData = url.startsWith('data:') || url.startsWith('blob:');
-      if (!isLocal && !isBlobOrData && url.startsWith('http')) {
-        await route.abort();
-        return;
-      }
-      await route.continue();
+    // Abort external network calls without intercepting local dev-server traffic.
+    await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost|\[::1\])/i, async (route) => {
+      await route.abort();
     });
     await page.goto('/apps/mindmaps/alopecia', { waitUntil: 'domcontentloaded' });
 

@@ -28,9 +28,14 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 4321',
+    // Use a built preview server for deterministic E2E runs.
+    //
+    // The Astro dev server can hit Vite module-runner timeouts under parallel Playwright workers
+    // (e.g., `transport invoke timed out after 60000ms`), which leaves islands unhydrated and makes
+    // unrelated tests fail/flap. Preview runs the built output and avoids on-demand module fetches.
+    command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4321',
     cwd: __dirname,
     port: 4321,
-    reuseExistingServer: !process.env.CI
+    reuseExistingServer: false
   }
 });

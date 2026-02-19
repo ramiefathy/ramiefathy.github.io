@@ -149,8 +149,12 @@ test.describe('PDF Studio professional suite', () => {
     await expect(page.locator('.pdf-output-list')).toContainText('_organized.pdf')
 
     await tiles.first().click()
+    const expectedNextPage = await tiles.nth(1).getAttribute('data-page')
+    expect(expectedNextPage).toBeTruthy()
     await page.keyboard.press('ArrowRight')
-    await expect(page.locator('.pdf-thumb-tile.is-selected')).toHaveAttribute('data-page', '2')
+    const selectedAfterArrow = page.locator('.pdf-thumb-tile.is-selected')
+    await expect(selectedAfterArrow).toHaveCount(1)
+    expect(await selectedAfterArrow.getAttribute('data-page')).toBe(expectedNextPage)
     await page.keyboard.press('r')
     await expect(page.locator('.pdf-thumb-tile.is-selected .pdf-thumb-chip[data-tone="info"]')).toContainText('Rotated')
     await page.keyboard.press('Escape')
