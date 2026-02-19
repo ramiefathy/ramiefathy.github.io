@@ -179,6 +179,34 @@ describe('Frontend Design System Contract (legacy apps)', () => {
     expect(usage.perFile.size).toBeGreaterThanOrEqual(3)
   })
 
+  it('neutralizes the suite background wash outside of MindMaps', () => {
+    const tokensPath = path.join(SHARED_ROOT, 'legacy-tokens.css')
+    const css = fs.readFileSync(tokensPath, 'utf-8')
+
+    // Workstream 2 contract: page backgrounds use a neutral slate-50 instead of teal-50.
+    expect(css).toMatch(/--cl-primary-subtle:\s*#f8fafc\b/i)
+    // Subtle depth cue at rest.
+    expect(css).toMatch(/--shadow-surface:\s*0\s+1px\s+2px\s+rgba\(0,\s*0,\s*0,\s*0\.05\)\s*;/i)
+
+    const files = walkFiles(APPS_ROOT, {
+      excludeDirs: ['vendor'],
+      excludeFilePatterns: [/\.min\.js$/i, /\.min\.css$/i],
+      includeExtensions: new Set(['.html', '.css', '.js'])
+    })
+
+    const offenders: string[] = []
+    for (const filePath of files) {
+      const rel = path.relative(APPS_ROOT, filePath)
+      const content = fs.readFileSync(filePath, 'utf-8')
+      const hasOldTeal50 = /#f0fdfa\b/i.test(content)
+      if (!hasOldTeal50) continue
+      if (rel.includes(`MindMaps${path.sep}`) || rel.toLowerCase().includes('mindmap')) continue
+      offenders.push(rel)
+    }
+
+    expect(offenders).toEqual([])
+  })
+
   it('legacy primary hue stays in teal family (160-185)', () => {
     const tokensPath = path.join(SHARED_ROOT, 'legacy-tokens.css')
     const css = fs.readFileSync(tokensPath, 'utf-8')

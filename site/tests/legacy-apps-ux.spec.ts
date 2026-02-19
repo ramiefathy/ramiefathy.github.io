@@ -511,4 +511,46 @@ const bannedMindmapColors = ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5f
       expect(fontSize, `${route} body font size is below 14px`).toBeGreaterThanOrEqual(14)
     }
   })
+
+	  test('suite uses neutral page background outside MindMaps and cards have a subtle rest shadow', async ({ page }) => {
+	    await page.setViewportSize({ width: 1280, height: 800 })
+
+    const nonMindmapRoutes = [
+      '/apps/index.html',
+      '/apps/dermatopathology-differentials.html',
+      '/apps/biologic-monitoring-dashboard/index.html',
+      '/apps/pdf-studio.html?tool=organizer',
+      '/apps/dermatopathology-modern/index-fixed.html',
+      '/apps/dermatology-scribe/index.html'
+    ]
+
+	    for (const route of nonMindmapRoutes) {
+	      await page.goto(route, { waitUntil: 'networkidle' })
+	      const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+	      expect(bodyBg, `${route} body background should be neutral slate-50`).toBe('rgb(248, 250, 252)')
+	    }
+
+	    await page.goto('/apps/PDF%20Merger.html', { waitUntil: 'networkidle' })
+	    const panelShadow = await page.evaluate(() => {
+	      const panel = document.querySelector('.legacy-workflow__panel') as HTMLElement | null
+	      if (!panel) return null
+	      return getComputedStyle(panel).boxShadow
+	    })
+	    expect(panelShadow, 'Expected at least one .legacy-workflow__panel to exist for rest-shadow check').not.toBeNull()
+	    expect(panelShadow as string, 'Expected panels to have a non-none rest shadow').not.toBe('none')
+	  })
+
+  test('MindMaps preserve teal canvas boundary color on the map container', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/apps/MindMaps/CTCL/CTCLMindMaps.html', { waitUntil: 'networkidle' })
+    await page.waitForTimeout(200)
+
+    const canvasBg = await page.evaluate(() => {
+      const container = document.querySelector('#mind-map-container') as HTMLElement | null
+      if (!container) return null
+      return getComputedStyle(container).backgroundColor
+    })
+    expect(canvasBg, 'MindMaps CTCL missing #mind-map-container').not.toBeNull()
+    expect(canvasBg as string, 'MindMaps canvas background should remain teal-tinted').toBe('rgb(240, 253, 250)')
+  })
 })
