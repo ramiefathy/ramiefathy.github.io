@@ -879,6 +879,7 @@ function initializeUIEnhancements() {
   window.accessibilityManager = new AccessibilityManager();
   window.layoutManager = new LayoutManager();
   window.focusMode = new FocusMode();
+  window.commandPalette = new CommandPalette();
 
   // Mark as initialized
   window.uiEnhancementsInitialized = true;

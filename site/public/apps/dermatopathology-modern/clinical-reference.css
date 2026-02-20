@@ -80,6 +80,34 @@ body.clinical-reference .text-gray-600 {
   color: var(--clinical-text-muted);
 }
 
+/* The prototype HTML uses "dark UI" utility classes even when rendered in the clinical-reference light theme.
+   Remap light-gray text utilities to readable clinical tones. */
+body.clinical-reference .text-gray-100 {
+  color: var(--clinical-text);
+}
+
+body.clinical-reference .text-gray-200,
+body.clinical-reference .text-gray-300 {
+  color: var(--clinical-text-muted);
+}
+
+/* Remove dark overlay panels that make light text illegible on the clinical surface. */
+body.clinical-reference .bg-slate-900\/20,
+body.clinical-reference .bg-blue-900\/30 {
+  background: var(--clinical-surface-muted);
+}
+
+body.clinical-reference .border-blue-600\/50 {
+  border-color: var(--clinical-border);
+}
+
+body.clinical-reference .text-blue-100,
+body.clinical-reference .text-blue-200,
+body.clinical-reference .text-blue-400,
+body.clinical-reference .text-blue-500 {
+  color: var(--clinical-text-muted);
+}
+
 body.clinical-reference .bg-gray-900,
 body.clinical-reference .bg-gray-800,
 body.clinical-reference .bg-gray-700 {

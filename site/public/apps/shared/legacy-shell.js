@@ -94,7 +94,7 @@
       <div class="legacy-shell__group" role="toolbar" aria-label="Page tools">
         <div class="legacy-shell__title" aria-label="Current tool">
           <span class="legacy-shell__kicker">Legacy</span>
-          <span class="legacy-shell__name">${pageName}</span>
+          <span class="legacy-shell__name"></span>
         </div>
         <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="back" aria-label="Go back">
           ${ICONS.back}<span>Back</span>
@@ -124,6 +124,11 @@
         </div>
       </div>
     `
+
+    const nameNode = wrapper.querySelector('.legacy-shell__name')
+    if (nameNode) {
+      nameNode.textContent = pageName
+    }
 
     const helpDialog = wrapper.querySelector('#legacy-shell-help')
     const helpCard = wrapper.querySelector('.legacy-shell__help-card')

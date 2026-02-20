@@ -202,7 +202,7 @@ Screenshots are written locally under `site/test-results/visual-audit/<runId>/` 
 
 ### Page-by-page notes (top issues)
 
-#### 01 — Legacy apps index (`site/public/apps/index.html`)
+#### 01 — Legacy apps index (`site/public/apps/legacy/index.html`)
 - Problems: monotone hierarchy (all sections/cards same “weight”), buttons and right-aligned notes feel disconnected, tags are noisy and low-contrast.
 - High ROI: vary section weight (featured Clinical), remove the “hero-in-a-box” pattern, consolidate repeated tags at section level, tighten CTA column.
 
@@ -260,4 +260,3 @@ Screenshots are written locally under `site/test-results/visual-audit/<runId>/` 
    - left: inputs; right: preflight, progress, download outputs
 4) Replace raw markdown artifacts and native inputs with token-backed primitives.
 5) Reduce chrome and dashboard noise in dermpath modern pages (subtractive redesign).
-

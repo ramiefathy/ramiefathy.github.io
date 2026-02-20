@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0f1419">
-    <title>RAMIE - AI Dermatology Scribe</title>
+    <meta name="theme-color" content="#F8FAFB">
+    <title>RAMIE — AI Dermatology Scribe</title>
     <meta name="description" content="Draft structured dermatology clinic notes from transcripts with local autosave, review, and export tools.">
 
     <!-- Styles -->
@@ -23,96 +23,119 @@
     <div id="recovery-banner" class="legacy-status-panel hidden" role="status" aria-live="polite"></div>
     <!-- Landing Page (Initial View) -->
     <div id="landingPage" class="landing-container">
-        <div class="landing-card">
-            <div class="landing-logo">
-                <span class="material-symbols-outlined" style="font-size: 48px; color: #0f1419;">medical_services</span>
-            </div>
-
-            <h1 class="landing-title">RAMIE</h1>
-            <p class="cl-page-subtitle">Realtime Articulate Medical Intelligence Explorer</p>
-            <p class="landing-description">
-                Explore advanced AI capabilities for dermatological consultations.
-                Choose an interaction mode below to begin a new session.
-            </p>
-
-            <!-- Mode Selection -->
-            <div class="mode-grid">
-                <div class="mode-card" id="startChatModeCard" role="button" tabindex="0">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined mode-icon">chat</span>
-                        <div>
-                            <h3 class="mode-title">Chat with RAMIE</h3>
-                            <p class="mode-description">
-                                Engage in a multimodal diagnostic conversation.
-                                Upload images and documents to enhance the interaction.
-                            </p>
-                        </div>
+        <div class="ramie-landing">
+            <main class="ramie-landing__main" aria-label="RAMIE launcher">
+                <div class="ramie-brand">
+                    <div class="ramie-brand__icon" aria-hidden="true">
+                        <span class="material-symbols-outlined">medical_services</span>
+                    </div>
+                    <div class="ramie-brand__text">
+                        <h1 class="ramie-brand__title">RAMIE</h1>
+                        <p class="ramie-brand__tagline">Realtime Articulate Medical Intelligence Explorer</p>
                     </div>
                 </div>
 
-                <div class="mode-card" id="startTranscriptionModeCard" role="button" tabindex="0">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined mode-icon">mic</span>
-                        <div>
-                            <h3 class="mode-title">Live Transcription & DDx</h3>
-                            <p class="mode-description">
-                                Transcribe patient audio in real-time and receive
-                                AI-generated differential diagnosis suggestions and clinical guidance.
-                            </p>
+                <p class="cl-page-subtitle ramie-subtitle">
+                    AI-assisted dermatological consultations with multimodal diagnostic support, real-time transcription, and differential diagnosis.
+                </p>
+
+                <section class="ramie-command" aria-label="Command input">
+                    <div class="ramie-command__input">
+                        <span class="material-symbols-outlined ramie-command__icon" aria-hidden="true">terminal</span>
+                        <input id="ramieCommandInput" class="ramie-command__field" type="text"
+                            placeholder="Describe the consult or type a command…" autocomplete="off">
+                    </div>
+                    <div class="ramie-command__hint" aria-hidden="true">
+                        <span><kbd>/</kbd> Commands</span>
+                        <span><kbd>↑</kbd> Recent</span>
+                        <span><kbd>⌘K</kbd> Quick search</span>
+                    </div>
+                </section>
+
+                <section class="ramie-actions" aria-label="Quick actions">
+                    <p class="caption ramie-section-label">Quick actions</p>
+                    <div class="ramie-quick-actions">
+                        <div class="cl-card ramie-action" id="startChatModeCard" role="button" tabindex="0" data-interactive="true">
+                            <div class="ramie-action__icon" aria-hidden="true">
+                                <span class="material-symbols-outlined">chat</span>
+                            </div>
+                            <div class="ramie-action__text">
+                                <h3 class="ramie-action__title">Start new conversation</h3>
+                                <p class="ramie-action__desc">Chat with image and document upload.</p>
+                            </div>
                         </div>
+
+                        <div class="cl-card ramie-action" id="startTranscriptionModeCard" role="button" tabindex="0" data-interactive="true">
+                            <div class="ramie-action__icon ramie-action__icon--accent" aria-hidden="true">
+                                <span class="material-symbols-outlined">mic</span>
+                            </div>
+                            <div class="ramie-action__text">
+                                <h3 class="ramie-action__title">Begin transcription</h3>
+                                <p class="ramie-action__desc">Live audio with real-time DDx guidance.</p>
+                            </div>
+                        </div>
+
+                        <div class="cl-card ramie-action" id="viewSavedSessionsCard" role="button" tabindex="0" data-interactive="true">
+                            <div class="ramie-action__icon ramie-action__icon--muted" aria-hidden="true">
+                                <span class="material-symbols-outlined">history</span>
+                            </div>
+                            <div class="ramie-action__text">
+                                <h3 class="ramie-action__title">Resume session</h3>
+                                <p class="ramie-action__desc">Browse and reopen saved consultations.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="ramie-bottom-bar" aria-label="Footer links">
+                    <div class="ramie-bottom-bar__status">
+                        <span class="ramie-status-dot" aria-hidden="true"></span>
+                        UI ready · offline-safe
+                    </div>
+                    <div class="ramie-bottom-bar__links">
+                        <button class="ramie-bottom-bar__link" type="button" data-action="open-settings-link">Settings</button>
+                        <button class="ramie-bottom-bar__link" type="button" data-action="open-help-link">Help</button>
                     </div>
                 </div>
 
-                <div class="mode-card" id="viewSavedSessionsCard" role="button" tabindex="0">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined mode-icon">folder_open</span>
-                        <div>
-                            <h3 class="mode-title">View Saved Sessions</h3>
-                            <p class="mode-description">
-                                Load or manage previously saved consultation sessions.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <p class="ramie-legal">
+                    © 2026 RAMIE Project. For research and demonstration purposes only. Not for actual medical use. Always consult a qualified healthcare professional.
+                </p>
+            </main>
 
-            <!-- Backend Connection (WebSocket) -->
-            <details class="card mb-4" id="connectionSettings">
-                <summary class="card-header" style="cursor: pointer; list-style: none;">
-                    <span class="card-title">
-                        <span class="material-symbols-outlined card-title-icon">link</span>
-                        Connection Settings
-                    </span>
-                </summary>
-                <div class="card-body">
-                    <p class="text-muted mb-3" style="font-size: 0.875rem;">
-                        Configure the AI Scribe backend WebSocket endpoint and access token. These values are stored locally in your browser.
-                    </p>
-                    <div class="form-group">
-                        <label class="form-label">WebSocket URL</label>
-                        <input type="text" class="form-input" id="websocketUrlInput" placeholder="e.g., ws://localhost:8765 or wss://your-host:8765">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Access Token</label>
-                        <input type="password" class="form-input" id="sessionTokenInput" placeholder="Enter backend token (shared secret or JWT)">
-                        <div class="flex items-center gap-2 mt-2">
-                            <input type="checkbox" id="rememberTokenCheckbox">
-                            <label for="rememberTokenCheckbox" class="text-muted" style="font-size: 0.75rem;">
-                                Remember token on this device
-                            </label>
+            <aside class="ramie-landing__aside" aria-label="Connection settings">
+                <!-- Backend Connection (WebSocket) -->
+                <details class="cl-card ramie-connection" id="connectionSettings">
+                    <summary class="ramie-connection__summary">
+                        <span class="ramie-connection__title">
+                            <span class="material-symbols-outlined ramie-connection__title-icon" aria-hidden="true">link</span>
+                            Connection settings
+                        </span>
+                    </summary>
+                    <div class="ramie-connection__body">
+                        <p class="ramie-connection__help">
+                            Configure the AI Scribe backend WebSocket endpoint and access token. These values are stored locally in your browser.
+                        </p>
+                        <div class="form-group">
+                            <label class="form-label">WebSocket URL</label>
+                            <input type="text" class="form-input" id="websocketUrlInput" placeholder="e.g., ws://localhost:8765 or wss://your-host:8765">
                         </div>
+                        <div class="form-group">
+                            <label class="form-label">Access Token</label>
+                            <input type="password" class="form-input" id="sessionTokenInput" placeholder="Enter backend token (shared secret or JWT)">
+                            <div class="flex items-center gap-2 mt-2">
+                                <input type="checkbox" id="rememberTokenCheckbox">
+                                <label for="rememberTokenCheckbox" class="text-muted" style="font-size: 0.75rem;">
+                                    Remember token on this device
+                                </label>
+                            </div>
+                        </div>
+                        <button class="btn-modern btn-primary ramie-connection__save" id="saveBackendConfigBtn" type="button">
+                            Save backend settings
+                        </button>
                     </div>
-                    <button class="btn-modern btn-primary" style="width: 100%;" id="saveBackendConfigBtn" type="button">
-                        Save Backend Settings
-                    </button>
-                </div>
-            </details>
-
-            <!-- Footer -->
-            <p class="text-muted mt-4" style="font-size: 0.75rem;">
-                © 2026 RAMIE Project. For research and demonstration purposes only.<br>
-                Not for actual medical use. Always consult a qualified healthcare professional.
-            </p>
+                </details>
+            </aside>
         </div>
     </div>
 
