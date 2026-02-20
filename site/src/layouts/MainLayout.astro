@@ -37,9 +37,7 @@ const footerLinks = [
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/apps/shared/legacy-fonts.css" />
     <link rel="stylesheet" href="/style.css" />
     <script is:inline>
       (function () {
@@ -55,7 +53,6 @@ const footerLinks = [
     </script>
     <title>{title}</title>
     <link rel="canonical" href={canonicalUrl} />
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2958059905874922" crossorigin="anonymous"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -93,15 +90,6 @@ const footerLinks = [
         </div>
       </div>
     </footer>
-    <script>
-      const adSlots = document.querySelectorAll('.adsbygoogle');
-      adSlots.forEach((slot) => {
-        if (!slot.dataset.slotInitialized && slot.dataset.adSlot) {
-          slot.dataset.slotInitialized = 'true';
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-        }
-      });
-    </script>
     <script>
       (function(){
         const elements = new Set(Array.from(document.querySelectorAll('[data-scroll-fade]')));

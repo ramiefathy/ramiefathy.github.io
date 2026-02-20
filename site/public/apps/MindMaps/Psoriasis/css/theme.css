@@ -1,0 +1,30 @@
+/* Psoriasis MindMaps theme colors */
+
+body {
+    --mindmap-node-fill-0: color-mix(in oklab, #0e7490, white 78%);
+    --mindmap-node-fill-1: color-mix(in oklab, #0891b2, white 84%);
+    --mindmap-node-fill-2: color-mix(in oklab, #0f766e, white 86%);
+    --mindmap-node-fill-3: color-mix(in oklab, #164e63, white 90%);
+    --mindmap-node-fill-4: color-mix(in oklab, #0f766e, white 93%);
+    --mindmap-link: color-mix(in oklab, #0e7490, white 70%);
+    --mindmap-node-stroke: #155e75;
+    --mindmap-collapsible-stroke: #155e75;
+}
+
+.tab-group-sky,
+.tab-group-accent,
+.tab-group-primary { color: var(--cl-accent, #164e63); }
+
+.tab-group-sky.active,
+.tab-group-accent.active,
+.tab-group-primary.active {
+    font-weight: 600;
+    background-color: color-mix(in oklab, var(--cl-primary-subtle, #f0fdfa), white 42%);
+    border-color: var(--cl-primary, #0f766e);
+}
+
+.tooltip-title { color: color-mix(in oklab, #0891b2, white 34%); }
+.tooltip-content strong { color: color-mix(in oklab, #0e7490, white 20%); }
+
+.search-result-item:hover { background-color: color-mix(in oklab, var(--cl-primary-subtle, #f0fdfa), white 40%); }
+.search-result-item-active { background-color: color-mix(in oklab, var(--cl-primary, #0f766e), white 88%); }

@@ -19,14 +19,9 @@ function isLocalUrl(url: string): boolean {
 }
 
 async function blockExternalRequests(page: Page) {
-  await page.route('**/*', async (route) => {
-    const url = route.request().url()
-    const isBlobOrData = url.startsWith('data:') || url.startsWith('blob:')
-    if (!isLocalUrl(url) && !isBlobOrData && url.startsWith('http')) {
-      await route.abort()
-      return
-    }
-    await route.continue()
+  // Abort external network calls without intercepting local dev-server traffic.
+  await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost|\[::1\])/i, async (route) => {
+    await route.abort()
   })
 }
 

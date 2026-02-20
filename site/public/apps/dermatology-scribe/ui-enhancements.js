@@ -10,6 +10,8 @@ const safeParseJson = (rawValue, fallbackValue) => {
   }
 }
 
+const getUiMode = () => document.body?.dataset?.uiMode || 'active'
+
 // ========== Theme Manager ==========
 class ThemeManager {
   constructor() {
@@ -399,16 +401,16 @@ class QuickActionsBar {
 class CommandPalette {
   constructor() {
     this.commands = [
-      { text: 'Start Recording', action: 'startRecording', icon: '🎙️', shortcut: 'Alt+R' },
-      { text: 'Stop Recording', action: 'stopRecording', icon: '⏹️', shortcut: 'Alt+S' },
-      { text: 'View Notes', action: 'viewNotes', icon: '📝', shortcut: 'Alt+N' },
-      { text: 'View Transcription', action: 'viewTranscription', icon: '📋', shortcut: 'Alt+T' },
-      { text: 'Patient History', action: 'patientHistory', icon: '📚' },
-      { text: 'Add Diagnosis', action: 'addDiagnosis', icon: '🔍' },
-      { text: 'Order Labs', action: 'orderLabs', icon: '🧪' },
-      { text: 'Toggle Theme', action: 'toggleTheme', icon: '🎨' },
-      { text: 'Focus Mode', action: 'focusMode', icon: '🎯' },
-      { text: 'Help', action: 'showHelp', icon: '❓' }
+      { text: 'Start Recording', action: 'startRecording', icon: 'mic', shortcut: 'Alt+R' },
+      { text: 'Stop Recording', action: 'stopRecording', icon: 'stop', shortcut: 'Alt+S' },
+      { text: 'View Notes', action: 'viewNotes', icon: 'description', shortcut: 'Alt+N' },
+      { text: 'View Transcription', action: 'viewTranscription', icon: 'notes', shortcut: 'Alt+T' },
+      { text: 'Patient History', action: 'patientHistory', icon: 'history' },
+      { text: 'Add Diagnosis', action: 'addDiagnosis', icon: 'playlist_add' },
+      { text: 'Order Labs', action: 'orderLabs', icon: 'science' },
+      { text: 'Toggle Theme', action: 'toggleTheme', icon: 'dark_mode' },
+      { text: 'Focus Mode', action: 'focusMode', icon: 'center_focus_strong' },
+      { text: 'Help', action: 'showHelp', icon: 'help' }
     ];
 
     this.setupKeyboardShortcut();
@@ -492,7 +494,7 @@ class CommandPalette {
       <div class="command-suggestion ${index === 0 ? 'selected' : ''}"
            data-action="${cmd.action}"
            data-index="${index}">
-        <span class="icon">${cmd.icon}</span>
+        <span class="material-symbols-outlined icon">${cmd.icon}</span>
         <span class="text">${cmd.text}</span>
         ${cmd.shortcut ? `<span class="shortcut">${cmd.shortcut}</span>` : ''}
       </div>
@@ -793,7 +795,7 @@ class LayoutManager {
 
   setupLayoutSwitcher() {
     // Add layout switcher to header
-    const header = document.querySelector('header .container');
+    const header = document.querySelector('.modern-header .header-content') || document.querySelector('header .container');
     if (header) {
       const switcher = document.createElement('select');
       switcher.className = 'layout-switcher';
@@ -864,12 +866,20 @@ function initializeUIEnhancements() {
 
   console.log('Initializing UI Enhancements...');
 
+  const uiMode = getUiMode()
+  if (uiMode === 'landing') {
+    window.uiEnhancementsInitialized = true
+    console.log('UI Enhancements skipped for landing mode')
+    return
+  }
+
   // Initialize managers
   window.themeManager = new ThemeManager();
   window.quickActionsBar = new QuickActionsBar();
   window.accessibilityManager = new AccessibilityManager();
   window.layoutManager = new LayoutManager();
   window.focusMode = new FocusMode();
+  window.commandPalette = new CommandPalette();
 
   // Mark as initialized
   window.uiEnhancementsInitialized = true;

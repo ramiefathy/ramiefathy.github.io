@@ -9,6 +9,18 @@ import {
 
 const COPY_BUTTON_LABEL = 'Copy monitoring checklist for clinical note';
 
+const FAVORITE_ICON_OUTLINE = `
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
+  </svg>
+`.trim();
+
+const FAVORITE_ICON_FILLED = `
+  <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
+  </svg>
+`.trim();
+
 const RISK_LEVEL_LABELS = {
   high: 'High risk',
   moderate: 'Moderate risk',
@@ -16,12 +28,12 @@ const RISK_LEVEL_LABELS = {
 };
 
 const riskBadgeConfig = {
-  'boxed-warning': { icon: '⚠️', className: 'badge-boxed' },
-  teratogenic: { icon: '🤰', className: 'badge-teratogenic' },
-  rems: { icon: '📋', className: 'badge-rems' },
-  'age-65-plus': { icon: '🧓', className: 'badge-age' },
-  pediatric: { icon: '🧒', className: 'badge-pediatric' },
-  infection: { icon: '🦠', className: 'badge-infection' }
+  'boxed-warning': { icon: 'Alert', className: 'cl-badge-danger' },
+  teratogenic: { icon: 'Preg', className: 'cl-badge-danger' },
+  rems: { icon: 'REMS', className: 'cl-badge-caution' },
+  'age-65-plus': { icon: '65+', className: 'cl-badge-caution' },
+  pediatric: { icon: 'Peds', className: 'cl-badge-caution' },
+  infection: { icon: 'Inf', className: 'cl-badge-danger' }
 };
 
 const riskBadgeDescriptions = {
@@ -324,7 +336,7 @@ function buildRiskIndicators(entry) {
   if (!entry.warningFlags || !entry.warningFlags.length) return '';
   const badges = entry.warningFlags
     .map((flag) => {
-      const config = riskBadgeConfig[flag] || { icon: '⚠️', className: 'badge-generic' };
+      const config = riskBadgeConfig[flag] || { icon: 'Alert', className: 'cl-badge-info' };
       const label = RISK_BADGE_LABELS[flag] || toTitleCase(flag);
       const description = riskBadgeDescriptions[flag] || 'Review prescribing information for additional safety guidance.';
       return `<span class="risk-badge ${config.className}" tabindex="0" data-tooltip="${escapeAttribute(
@@ -471,6 +483,8 @@ function renderEntryCard(entry, query) {
   const activeTab = state.activeTabs.get(entry.id) || 'monitoring';
   const isFavorite = userPreferences.favorites.has(entry.id);
   const isCompared = state.comparison.has(entry.id);
+  const favoriteLabel = isFavorite ? 'Remove from favorites' : 'Add to favorites';
+  const favoriteIcon = isFavorite ? FAVORITE_ICON_FILLED : FAVORITE_ICON_OUTLINE;
 
   const summary = highlightText(entry.summary || '', query);
   const baselineOverview = highlightText(entry.baseline || '', query);
@@ -531,8 +545,8 @@ function renderEntryCard(entry, query) {
             MONITORING_FREQUENCY_LABELS[entry.monitoringFrequency] || 'Monitoring'
           }</span>
           <div class="meta-actions">
-            <button type="button" class="icon-btn favorite-btn ${isFavorite ? 'is-active' : ''}" data-action="toggle-favorite" data-entry-id="${entry.id}" aria-pressed="${isFavorite}">
-              <span aria-hidden="true">${isFavorite ? '★' : '☆'}</span>
+            <button type="button" class="icon-btn favorite-btn ${isFavorite ? 'is-active' : ''}" data-action="toggle-favorite" data-entry-id="${entry.id}" aria-pressed="${isFavorite}" aria-label="${favoriteLabel}" title="${favoriteLabel}">
+              <span class="icon-btn__icon" aria-hidden="true">${favoriteIcon}</span>
               <span class="sr-only">${isFavorite ? 'Remove from favorites' : 'Add to favorites'}</span>
             </button>
             <button type="button" class="icon-btn compare-btn ${isCompared ? 'is-active' : ''}" data-action="toggle-compare" data-entry-id="${entry.id}" aria-pressed="${isCompared}">
@@ -731,7 +745,12 @@ function render() {
 
   if (!filtered.length) {
     dom.resultCount.textContent = `0 regimens shown · Data refreshed ${formatVersionDate(dataVersion)}`;
-    dom.resultsContainer.innerHTML = '<p class="empty-state">No regimens match your filters. Clear filters or adjust search terms.</p>';
+    dom.resultsContainer.innerHTML = `
+      <div class="cl-empty-state">
+        <p class="cl-empty-state__title">No matching medications</p>
+        <p class="cl-empty-state__help">Try adjusting your search or filter criteria.</p>
+      </div>
+    `;
     renderComparison();
     return;
   }

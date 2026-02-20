@@ -38,20 +38,11 @@ function parseMailto(url: string) {
 
 test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
   test.beforeEach(async ({ page }) => {
-    await page.route('**/*', async (route) => {
-      const url = route.request().url();
-      const isLocal =
-        url.startsWith('http://127.0.0.1') ||
-        url.startsWith('http://localhost') ||
-        url.startsWith('http://[::1]');
-      const isBlobOrData = url.startsWith('data:') || url.startsWith('blob:');
-
-      if (!isLocal && !isBlobOrData && url.startsWith('http')) {
-        await route.abort();
-        return;
-      }
-
-      await route.continue();
+    // Abort external network calls without intercepting local dev-server traffic.
+    // Intercepting '**/*' adds significant overhead (and can cause hydration/navigations to time out
+    // under parallel Playwright workers).
+    await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost|\[::1\])/i, async (route) => {
+      await route.abort();
     });
   });
 
@@ -162,7 +153,14 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
     }
 
     await expect(cards.first()).toHaveClass(/is-visible/);
-    const secondDelay = await cards.nth(1).evaluate((node) => node.style.getPropertyValue('--enter-delay'));
+    // Verify the stagger token is wired without relying on `locator.evaluate`, which can be flaky
+    // under parallel workers (element stability / detachment during scroll observers).
+    const secondDelay = await page.evaluate(() => {
+      const cards = document.querySelectorAll('#publications article.pub-card');
+      const second = cards[1];
+      if (!second) return null;
+      return (second as HTMLElement).style.getPropertyValue('--enter-delay') || null;
+    });
     expect(secondDelay).toBe('90ms');
 
     const timelineNodes = section.locator('.pub-timeline__node');

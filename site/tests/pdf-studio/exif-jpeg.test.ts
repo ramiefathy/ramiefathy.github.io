@@ -1,0 +1,31 @@
+import { describe, expect, it } from 'vitest'
+
+import { readJpegExifOrientation } from '../../public/apps/shared/pdf-studio/core/exif-jpeg.js'
+
+describe('readJpegExifOrientation', () => {
+  it('returns null for non-jpeg bytes', () => {
+    expect(readJpegExifOrientation(new Uint8Array([0x00, 0x01, 0x02]))).toBeNull()
+  })
+
+  it('parses orientation from APP1 EXIF segment', () => {
+    const bytes = new Uint8Array([
+      0xff, 0xd8,
+      0xff, 0xe1,
+      0x00, 0x20,
+      0x45, 0x78, 0x69, 0x66,
+      0x00, 0x00,
+      0x49, 0x49,
+      0x2a, 0x00,
+      0x08, 0x00, 0x00, 0x00,
+      0x01, 0x00,
+      0x12, 0x01,
+      0x03, 0x00,
+      0x01, 0x00, 0x00, 0x00,
+      0x06, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+      0xff, 0xd9
+    ])
+
+    expect(readJpegExifOrientation(bytes)).toBe(6)
+  })
+})

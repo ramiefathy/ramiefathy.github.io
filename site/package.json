@@ -10,6 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:visual-audit": "node ./scripts/run-visual-audit.js",
+    "test:e2e:smoke": "playwright test -c playwright.smoke.config.ts",
     "test:e2e:update": "playwright test --update-snapshots=all"
   },
   "dependencies": {

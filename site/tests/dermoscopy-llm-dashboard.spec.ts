@@ -1,25 +1,17 @@
 import { expect, test, type Page } from '@playwright/test';
 
 async function blockExternalRequests(page: Page) {
-  await page.route('**/*', async (route) => {
-    const url = route.request().url();
-    const isLocal =
-      url.startsWith('http://127.0.0.1') ||
-      url.startsWith('http://localhost') ||
-      url.startsWith('http://[::1]');
-    const isBlobOrData = url.startsWith('data:') || url.startsWith('blob:');
-
-    if (!isLocal && !isBlobOrData && url.startsWith('http')) {
-      await route.abort();
-      return;
-    }
-
-    await route.continue();
+  // Abort external network calls without intercepting local dev-server traffic.
+  await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost|\[::1\])/i, async (route) => {
+    await route.abort();
   });
 }
 
 async function waitForDashboardData(page: Page) {
   await expect(page.locator('.llm-dashboard')).toBeVisible();
+  // The dashboard loads a local JSON dataset (~300KB) and renders a derived stats grid.
+  // Wait for the derived UI rather than relying on a short loading-spinner timeout.
+  await expect(page.locator('.llm-dashboard__stats-grid .llm-dashboard__stat')).toHaveCount(8, { timeout: 45_000 });
   await expect(page.locator('.llm-dashboard__loading', { hasText: 'Loading dashboard' })).toHaveCount(0);
 }
 

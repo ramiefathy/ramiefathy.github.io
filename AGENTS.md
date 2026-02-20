@@ -34,6 +34,7 @@
 - Execute `python -m compileall services/ai-scribe` to mirror the CI lint job.
 - Smoke test interactive tools in `site/public/apps`, verifying `localStorage.dermascribe.sessionToken` flows where applicable.
 - Canonical test surface inventory: `docs/site-test-inventory.md` (tests parse this file). **Update it** whenever you add/remove/rename Astro routes, shipped legacy HTML apps, or change canonical external-app URLs.
+- Frontend UI hard constraints: `docs/frontend-design-system-contract.md`. **Follow it** for any UI work (Astro/React/legacy HTML) and **update it** when design rules or shared tokens change.
 
 ## Commit & Pull Request Guidelines
 - Follow Conventional Commits (`feat:`, `chore:`, `style:`). Reference issues when applicable.

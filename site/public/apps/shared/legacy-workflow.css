@@ -1,0 +1,94 @@
+.legacy-workflow[data-workflow='pdf'] {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-lg);
+  align-items: start;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+}
+
+.legacy-workflow__panel {
+  background: var(--cl-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-surface);
+  padding: var(--space-lg);
+}
+
+.legacy-workflow__primary,
+.legacy-workflow__secondary {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.legacy-workflow__section {
+  border: 1px solid var(--cl-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-md);
+  background: var(--cl-surface);
+}
+
+.legacy-workflow__section h2,
+.legacy-workflow__section h3 {
+  margin: 0 0 var(--space-sm);
+  color: var(--cl-text);
+}
+
+.legacy-workflow__section p,
+.legacy-workflow__section li {
+  margin: 0;
+  color: var(--cl-text-muted);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.legacy-workflow__title {
+  margin: 0;
+  color: var(--cl-text);
+}
+
+.legacy-workflow__description {
+  margin: 0;
+  color: var(--cl-text-muted);
+  font-size: 1rem;
+}
+
+.legacy-workflow__field {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.legacy-workflow__field label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--cl-text);
+}
+
+.legacy-workflow__actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.legacy-workflow__status {
+  min-height: 1.2rem;
+  color: var(--cl-text-muted);
+  font-size: 0.9375rem;
+}
+
+.legacy-workflow__results {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.legacy-workflow__results .placeholder {
+  margin: 0;
+  color: var(--cl-text-muted);
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 768px) {
+  .legacy-workflow[data-workflow='pdf'] {
+    grid-template-columns: 1fr;
+  }
+}

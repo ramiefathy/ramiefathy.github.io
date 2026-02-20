@@ -1,34 +1,169 @@
+@import url('./legacy-fonts.css');
+
 :root {
-  --legacy-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --legacy-bg: #f5f7fb;
-  --legacy-surface: #ffffff;
-  --legacy-surface-muted: #f1f5f9;
-  --legacy-text: #0f172a;
-  --legacy-text-muted: #475569;
-  --legacy-border: #cbd5e1;
-  --legacy-primary: #2563eb;
-  --legacy-primary-strong: #1d4ed8;
-  --legacy-success: #15803d;
-  --legacy-warning: #b45309;
-  --legacy-danger: #b91c1c;
-  --legacy-radius-sm: 8px;
-  --legacy-radius-md: 12px;
-  --legacy-radius-lg: 18px;
-  --legacy-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
-  --legacy-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.35);
-  --legacy-space-1: 0.25rem;
-  --legacy-space-2: 0.5rem;
+  --cl-primary: #0f766e;
+  --cl-primary-hover: #0d9488;
+  --cl-primary-subtle: #f8fafc;
+  --cl-accent: #164e63;
+  --cl-surface: #ffffff;
+  --cl-surface-alt: #f8fafc;
+  --cl-border: #e2e8f0;
+  --cl-border-strong: #cbd5e1;
+  --cl-text: #1e293b;
+  --cl-text-muted: #475569;
+  --cl-text-faint: #94a3b8;
+  --cl-danger: #dc2626;
+  --cl-success: #16a34a;
+  --cl-warning: #d97706;
+  /* Clinical severity badges (Biologic dashboard) */
+  --cl-badge-danger-bg: #fef2f2;
+  --cl-badge-danger-text: #991b1b;
+  --cl-badge-danger-border: #fecaca;
+
+  --cl-badge-caution-bg: #fffbeb;
+  --cl-badge-caution-text: #92400e;
+  --cl-badge-caution-border: #fde68a;
+
+  --cl-badge-info-bg: #f8fafc;
+  --cl-badge-info-text: #334155;
+  --cl-badge-info-border: #e2e8f0;
+  /* NEW — structural/informational color (non-interactive only) */
+  --cl-structural: #334155; /* slate-700 */
+  --cl-structural-light: #94a3b8; /* slate-400 */
+
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  --radius: 4px;
+  --radius-card: 8px;
+  --radius-pill: 9999px;
+
+  --shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-raised: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-overlay: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  --duration-fast: 150ms;
+  --duration-layout: 250ms;
+  --ease-out: ease-out;
+  --ease-in: ease-in;
+  --ease-in-out: ease-in-out;
+
+  --background: var(--cl-primary-subtle);
+  --foreground: var(--cl-text);
+  --muted: var(--cl-surface-alt);
+  --muted-foreground: var(--cl-text-muted);
+  --primary: var(--cl-primary);
+  --accent: var(--cl-accent);
+
+  --legacy-font-sans: var(--font-body);
+  --legacy-bg: var(--cl-primary-subtle);
+  --legacy-surface: var(--cl-surface);
+  --legacy-surface-muted: var(--cl-surface-alt);
+  --legacy-text: var(--cl-text);
+  --legacy-text-muted: var(--cl-text-muted);
+  --legacy-border: var(--cl-border);
+  --legacy-primary: var(--cl-primary);
+  --legacy-primary-strong: var(--cl-primary-hover);
+  --legacy-success: var(--cl-success);
+  --legacy-warning: var(--cl-warning);
+  --legacy-danger: var(--cl-danger);
+  --legacy-radius-sm: calc(var(--radius) - 2px);
+  --legacy-radius-md: var(--radius-card);
+  --legacy-radius-lg: calc(var(--radius-card) + 4px);
+  --legacy-shadow-surface: var(--shadow-surface);
+  --legacy-shadow-raised: var(--shadow-raised);
+  --legacy-shadow-overlay: var(--shadow-overlay);
+  --legacy-shadow: var(--shadow-overlay);
+  --legacy-focus-ring: 0 0 0 3px color-mix(in oklab, var(--cl-primary), white 70%);
+  --legacy-space-1: var(--space-xs);
+  --legacy-space-2: var(--space-sm);
   --legacy-space-3: 0.75rem;
-  --legacy-space-4: 1rem;
+  --legacy-space-4: var(--space-md);
   --legacy-space-5: 1.25rem;
-  --legacy-space-6: 1.5rem;
-  --legacy-duration-fast: 140ms;
-  --legacy-duration-base: 220ms;
+  --legacy-space-6: var(--space-lg);
+  --legacy-duration-fast: var(--duration-fast);
+  --legacy-duration-base: var(--duration-layout);
+  --legacy-ease-in: var(--ease-in);
+  --legacy-ease-out: var(--ease-out);
+  --legacy-ease-in-out: var(--ease-in-out);
+}
+
+:root.legacy-dark {
+  --cl-primary: #2dd4bf;
+  --cl-primary-hover: #14b8a6;
+  --cl-primary-subtle: #051f24;
+  --cl-accent: #67e8f9;
+  --cl-surface: #071a1f;
+  --cl-surface-alt: #0b242a;
+  --cl-border: rgba(103, 232, 249, 0.2);
+  --cl-border-strong: rgba(103, 232, 249, 0.35);
+  --cl-text: #e7fbff;
+  --cl-text-muted: rgba(231, 251, 255, 0.78);
+  --cl-text-faint: rgba(231, 251, 255, 0.58);
+  --cl-danger: #f87171;
+  --cl-success: #4ade80;
+  --cl-warning: #fbbf24;
+  --cl-badge-danger-bg: rgba(248, 113, 113, 0.12);
+  --cl-badge-danger-text: #fecaca;
+  --cl-badge-danger-border: rgba(248, 113, 113, 0.35);
+
+  --cl-badge-caution-bg: rgba(251, 191, 36, 0.12);
+  --cl-badge-caution-text: #fde68a;
+  --cl-badge-caution-border: rgba(251, 191, 36, 0.35);
+
+  --cl-badge-info-bg: rgba(231, 251, 255, 0.06);
+  --cl-badge-info-text: rgba(231, 251, 255, 0.78);
+  --cl-badge-info-border: rgba(231, 251, 255, 0.16);
+  --cl-structural: rgba(231, 251, 255, 0.78);
+  --cl-structural-light: rgba(231, 251, 255, 0.58);
+  --shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.22);
+
+  --background: var(--cl-primary-subtle);
+  --foreground: var(--cl-text);
+  --muted: var(--cl-surface-alt);
+  --muted-foreground: var(--cl-text-muted);
+  --primary: var(--cl-primary);
+  --accent: var(--cl-accent);
+
+  --legacy-bg: var(--cl-primary-subtle);
+  --legacy-surface: var(--cl-surface);
+  --legacy-surface-muted: var(--cl-surface-alt);
+  --legacy-text: var(--cl-text);
+  --legacy-text-muted: var(--cl-text-muted);
+  --legacy-border: var(--cl-border);
+  --legacy-primary: var(--cl-primary);
+  --legacy-primary-strong: var(--cl-primary-hover);
+  --legacy-focus-ring: 0 0 0 3px color-mix(in oklab, var(--cl-primary), black 58%);
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
+    --duration-fast: 1ms;
+    --duration-layout: 1ms;
     --legacy-duration-fast: 1ms;
     --legacy-duration-base: 1ms;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --space-xl: 1.5rem;
+    --space-2xl: 2.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --space-lg: 1.25rem;
+    --space-xl: 1.5rem;
   }
 }
