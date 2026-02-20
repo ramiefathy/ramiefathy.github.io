@@ -58,7 +58,7 @@ test.describe('RAMIE AI Scribe smoke', () => {
     await waitForNotification(page, 'Connected to AI server');
 
     // Enter transcription mode.
-    await page.getByText('Live Transcription & DDx').click();
+    await page.locator('#startTranscriptionModeCard').click();
     await expect(page.locator('#transcriptionView')).toBeVisible();
 
     // Paste transcript + diagnoses.
@@ -82,7 +82,7 @@ test.describe('RAMIE AI Scribe smoke', () => {
 
     // Go to saved sessions and load it.
     await page.getByTitle('Back to Home').click();
-    await page.getByText('View Saved Sessions').click();
+    await page.locator('#viewSavedSessionsCard').click();
     await expect(page.locator('#sessionsModal')).toBeVisible();
 
     await page.getByText('Transcription Session').first().click();
@@ -114,7 +114,7 @@ test.describe('RAMIE AI Scribe smoke', () => {
     await waitForNotification(page, 'Connected to AI server');
 
     // Enter chat mode.
-    await page.getByText('Chat with RAMIE').click();
+    await page.locator('#startChatModeCard').click();
     await expect(page.locator('#chatView')).toBeVisible();
 
     const chatMessage = 'Patient has an itchy rash; can you suggest questions to ask?';
@@ -135,7 +135,7 @@ test.describe('RAMIE AI Scribe smoke', () => {
 
     // Load from saved sessions.
     await page.getByTitle('Back to Home').click();
-    await page.getByText('View Saved Sessions').click();
+    await page.locator('#viewSavedSessionsCard').click();
     await expect(page.locator('#sessionsModal')).toBeVisible();
 
     await page.getByText('Chat Session').first().click();
@@ -168,7 +168,7 @@ test.describe('RAMIE AI Scribe smoke', () => {
     await page.goto(APP_PATH, { waitUntil: 'domcontentloaded' });
     await waitForNotification(page, 'Connected to AI server');
 
-    await page.getByText('Live Transcription & DDx').click();
+    await page.locator('#startTranscriptionModeCard').click();
     await expect(page.locator('#transcriptionView')).toBeVisible();
 
     await page.locator('#transcriptSummary').fill(SAMPLE_TRANSCRIPT);
@@ -185,7 +185,7 @@ test.describe('RAMIE AI Scribe smoke', () => {
     await waitForNotification(page, 'Session saved successfully');
 
     await page.getByTitle('Back to Home').click();
-    await page.getByText('View Saved Sessions').click();
+    await page.locator('#viewSavedSessionsCard').click();
     await expect(page.locator('#sessionsModal')).toBeVisible();
 
     await page.getByText('Transcription Session').first().click();

@@ -120,11 +120,12 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "requiresDownloads": true
     },
     {
-      "label": "Dermatopathology Navigator (modern legacy HTML)",
+      "label": "Dermatopathology Navigator (archived prototype redirect)",
       "route": "/apps/dermatopathology-modern/index.html",
       "file": "site/public/apps/dermatopathology-modern/index.html",
       "category": "dermpath-modern",
-      "requiresDownloads": false
+      "requiresDownloads": false,
+      "redirectTo": "/apps/dermatopathology-modern/index-fixed.html"
     },
     {
       "label": "Dermatopathology Navigator (index-fixed)",

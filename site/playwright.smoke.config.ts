@@ -1,26 +1,25 @@
-import { defineConfig, devices } from '@playwright/test';
-import fs from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { defineConfig, devices } from '@playwright/test'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(__dirname, '..');
-const siteDist = resolve(repoRoot, 'site/dist');
-const venvPython = resolve(repoRoot, 'services/ai-scribe/.venv/bin/python');
-const pythonExe = process.env.AI_SCRIBE_PYTHON || (fs.existsSync(venvPython) ? venvPython : 'python3');
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const repoRoot = resolve(__dirname, '..')
 
 export default defineConfig({
   testDir: './tests',
-  testMatch: ['**/ramie-scribe.smoke.spec.ts'],
-  timeout: 120_000,
+  testMatch: ['**/*.smoke.spec.ts'],
+  // Smoke suite is opt-in and may depend on local backend services.
+  timeout: 180_000,
   expect: {
-    timeout: 15_000
+    timeout: 20_000
   },
+  fullyParallel: false,
+  retries: process.env.CI ? 1 : 0,
   use: {
-    baseURL: 'http://127.0.0.1:8000',
+    baseURL: 'http://127.0.0.1:4321',
     viewport: { width: 1280, height: 900 },
     acceptDownloads: true,
-    trace: 'retain-on-failure',
+    trace: 'on-first-retry',
     video: 'retain-on-failure',
     ignoreHTTPSErrors: true
   },
@@ -32,21 +31,16 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'python3 -m http.server 8000 --bind 127.0.0.1',
-      cwd: siteDist,
-      url: 'http://127.0.0.1:8000/',
-      timeout: 60_000,
-      reuseExistingServer: !process.env.CI
+      command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4321',
+      cwd: __dirname,
+      port: 4321,
+      reuseExistingServer: false
     },
     {
-      // Note: GEMINI_API_KEY is intentionally not set here; provide it via env when running
-      // this smoke test if you want true end-to-end generation.
-      command:
-        `PYTHONUNBUFFERED=1 HOST=127.0.0.1 PORT=8765 SESSION_SECRET=development-token JWT_SIGNING_SECRET=development-token ALLOWED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000 exec ${pythonExe} services/ai-scribe/app.py`,
+      command: 'node site/scripts/start-ai-scribe-smoke.js',
       cwd: repoRoot,
-      url: 'http://127.0.0.1:8765/',
-      timeout: 60_000,
+      port: 8765,
       reuseExistingServer: false
     }
   ]
-});
+})

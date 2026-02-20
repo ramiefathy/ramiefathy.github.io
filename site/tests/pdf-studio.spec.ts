@@ -1,8 +1,9 @@
 import { expect, test, type Page } from '@playwright/test'
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import { captureDownload } from './helpers/downloads.js'
 
 const DESKTOP_VIEWPORT = { width: 1280, height: 900 }
 
@@ -147,6 +148,16 @@ test.describe('PDF Studio professional suite', () => {
 
     await page.click('button:has-text("Save Updated PDF")')
     await expect(page.locator('.pdf-output-list')).toContainText('_organized.pdf')
+
+    const download = await captureDownload(
+      page,
+      async () => {
+        await page.click('.pdf-output-list a:has-text("Download")')
+      },
+      { expectedFilename: /_organized\.pdf$/i, minBytes: 1024 }
+    )
+    const bytes = await readFile(download.path)
+    expect(bytes.subarray(0, 4).toString('utf8')).toBe('%PDF')
 
     await tiles.first().click()
     const expectedNextPage = await tiles.nth(1).getAttribute('data-page')

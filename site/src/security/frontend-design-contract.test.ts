@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const APPS_ROOT = path.resolve(process.cwd(), 'public', 'apps')
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const SITE_ROOT = path.resolve(__dirname, '../..')
+const REPO_ROOT = path.resolve(SITE_ROOT, '..')
+
+const APPS_ROOT = path.resolve(SITE_ROOT, 'public', 'apps')
 const SHARED_ROOT = path.join(APPS_ROOT, 'shared')
-const INVENTORY_PATH = path.resolve(process.cwd(), '../docs/site-test-inventory.md')
-const REPO_ROOT = path.resolve(process.cwd(), '..')
+const INVENTORY_PATH = path.resolve(REPO_ROOT, 'docs/site-test-inventory.md')
 
 type WalkOptions = {
   excludeDirs: string[]
@@ -28,7 +33,7 @@ function resolveRepoPath(inventoryPath: string): string {
   if (inventoryPath.startsWith('site/')) {
     return path.resolve(REPO_ROOT, inventoryPath)
   }
-  return path.resolve(process.cwd(), inventoryPath)
+  return path.resolve(REPO_ROOT, inventoryPath)
 }
 
 function walkFiles(rootDir: string, options: WalkOptions): string[] {
@@ -226,7 +231,14 @@ describe('Frontend Design System Contract (legacy apps)', () => {
     })
 
     const bannedRegexes: Array<{ label: string; re: RegExp }> = [
+      // Font bans: these tend to re-introduce a "default AI" aesthetic and/or
+      // pull in remote Google Fonts. Keep the list explicit and easy to audit.
       { label: 'Inter font', re: /\bInter\b/ },
+      { label: 'Poppins font', re: /\bPoppins\b/ },
+      { label: 'Roboto font', re: /\bRoboto\b/ },
+      { label: 'Montserrat font', re: /\bMontserrat\b/ },
+      { label: 'DM Sans font', re: /\bDM Sans\b/ },
+      { label: 'Geist Sans font', re: /\bGeist Sans\b/ },
       { label: 'Tailwind transition-all', re: /\btransition-all\b/ },
       { label: 'Tailwind hover scale', re: /\bhover:scale-/ },
       { label: 'Dead hash links', re: /href="#"/ },

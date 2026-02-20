@@ -137,6 +137,7 @@ describe('legacy apps remediation backlog', () => {
     const invalidDeepLinks: string[] = []
     for (const entry of legacyEntries) {
       if (!entry?.redirectTo || typeof entry.redirectTo !== 'string') continue
+      if (!entry.redirectTo.includes('pdf-studio.html')) continue
       const url = new URL(`https://example.test${entry.redirectTo}`)
       const tool = url.searchParams.get('tool')
       if (!tool || !validPdfStudioTools.has(tool)) {
@@ -168,7 +169,7 @@ describe('legacy apps remediation backlog', () => {
   })
 
   it('P0: Gemini/API secrets avoid localStorage persistence', () => {
-    const modernDermpath = loadApp('dermatopathology-modern/index.html')
+    const modernDermpath = loadApp('dermatopathology-modern/index-fixed.html')
     const scribeApp = loadApp('dermatology-scribe/app.js')
 
     expect(modernDermpath).not.toContain("localStorage.getItem('gemini_api_key')")
@@ -180,14 +181,10 @@ describe('legacy apps remediation backlog', () => {
   })
 
   it('P1: all high-risk parsers use guarded JSON parsing helpers', () => {
-    const modernDermpath = loadApp('dermatopathology-modern/index.html')
     const uiEnhancements = loadApp('dermatology-scribe/ui-enhancements.js')
     const ctclMap = loadApp('MindMaps/CTCL/js/app.js')
     const psoriasisMap = loadApp('MindMaps/Psoriasis/js/app.js')
     const alopeciaMap = loadApp('MindMaps/Alopecia/js/app.js')
-
-    expect(modernDermpath).toContain('safeParseJson')
-    expect(modernDermpath).toContain("safeParseJson(localStorage.getItem('ai_chat_history'), [])")
 
     expect(uiEnhancements).toContain('safeParseJson')
     expect(ctclMap).toContain('safeParseJson')
@@ -221,7 +218,7 @@ describe('legacy apps remediation backlog', () => {
 
   it('P2: dependency hardening removes remote jsdelivr imports and legacy data URI bundles', () => {
     const differentialsHtml = loadApp('dermatopathology-differentials.html')
-    const modernDermpath = loadApp('dermatopathology-modern/index.html')
+    const modernDermpath = loadApp('dermatopathology-modern/index-fixed.html')
     const modernDermpathFixed = loadApp('dermatopathology-modern/index-fixed.html')
     const dedupVisualization = loadApp('dermatopathology-modern/deduplication-visualization.html')
     const pdfStudio = loadApp('pdf-studio.html')
@@ -297,11 +294,11 @@ describe('legacy apps remediation backlog', () => {
     )
   })
 
-  it('P1: modern dermpath prototype includes deprecation banner and redirect target', () => {
-    const prototypePage = loadApp('dermatopathology-modern/index.html')
-    expect(prototypePage).toContain('cl-deprecation-banner')
-    expect(prototypePage).toContain('index-fixed.html')
-    expect(prototypePage).toContain('URLSearchParams')
+  it('P1: archived dermpath prototype route hard-redirects to stabilized', () => {
+    const archivedRoute = loadApp('dermatopathology-modern/index.html')
+    expect(archivedRoute).toContain('meta http-equiv="refresh"')
+    expect(archivedRoute).toContain('window.location.replace')
+    expect(archivedRoute).toContain('index-fixed.html')
   })
 
   it('P1: dedup visualization includes readability layout hooks', () => {

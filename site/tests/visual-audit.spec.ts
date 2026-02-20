@@ -108,7 +108,7 @@ test.describe('visual audit (opt-in)', () => {
     for (const [index, app] of dedupedRoutes.entries()) {
       const baseName = `${String(index + 1).padStart(2, '0')}-${slugify(app.label)}-${slugify(app.route)}`
 
-      await page.goto(app.route, { waitUntil: 'networkidle' })
+      await page.goto(app.route, { waitUntil: 'domcontentloaded' })
       await page.waitForTimeout(750)
 
       if (LONG_PAGE_SEGMENT_ROUTES.has(app.route)) {
