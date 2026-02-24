@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -46,8 +47,8 @@ function walkFiles(rootDir: string, options: WalkOptions): string[] {
     if (!currentDir) continue
 
     const rel = path.relative(rootDir, currentDir)
-    const firstSegment = rel.split(path.sep)[0]
-    if (firstSegment && options.excludeDirs.includes(firstSegment)) continue
+    const segments = rel.split(path.sep).filter(Boolean)
+    if (segments.some((segment) => options.excludeDirs.includes(segment))) continue
 
     const entries = fs.readdirSync(currentDir, { withFileTypes: true })
     for (const entry of entries) {
@@ -148,6 +149,29 @@ function hexToHue(hex: string): number {
 }
 
 describe('Frontend Design System Contract (legacy apps)', () => {
+  it('walkFiles excludes vendor directories recursively', () => {
+    const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'frontend-contract-walk-'))
+    try {
+      const nestedVendorDir = path.join(rootDir, 'app-one', 'vendor', 'nested')
+      fs.mkdirSync(nestedVendorDir, { recursive: true })
+      fs.writeFileSync(path.join(nestedVendorDir, 'bundle.js'), 'Inter', 'utf-8')
+
+      const okDir = path.join(rootDir, 'app-one', 'src')
+      fs.mkdirSync(okDir, { recursive: true })
+      fs.writeFileSync(path.join(okDir, 'main.js'), 'console.log("ok")', 'utf-8')
+
+      const files = walkFiles(rootDir, {
+        excludeDirs: ['vendor'],
+        excludeFilePatterns: [],
+        includeExtensions: new Set(['.js'])
+      }).map((filePath) => path.relative(rootDir, filePath)).sort()
+
+      expect(files).toEqual(['app-one/src/main.js'])
+    } finally {
+      fs.rmSync(rootDir, { recursive: true, force: true })
+    }
+  })
+
   it('legacy shared tokens define required semantic variables', () => {
     const tokensPath = path.join(SHARED_ROOT, 'legacy-tokens.css')
     const css = fs.readFileSync(tokensPath, 'utf-8')
