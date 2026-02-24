@@ -26,6 +26,7 @@ type InventoryApp = {
 
 type Inventory = {
   legacyHtmlApps: InventoryApp[]
+  unlistedStaticPages?: InventoryApp[]
 }
 
 function resolveRepoPath(inventoryPath: string): string {
@@ -294,7 +295,7 @@ describe('Frontend Design System Contract (legacy apps)', () => {
     expect(missingMetaDescription).toEqual([])
   })
 
-  it('all apps HTML remove remote Google Fonts endpoints', () => {
+  it('apps HTML remove remote Google Fonts endpoints', () => {
     const htmlFiles = walkFiles(APPS_ROOT, {
       excludeDirs: ['vendor'],
       excludeFilePatterns: [],
@@ -311,11 +312,35 @@ describe('Frontend Design System Contract (legacy apps)', () => {
     expect(offenders).toEqual([])
   })
 
+  it('inventory user-facing pages remove remote Google Fonts endpoints', () => {
+    const inventory = parseInventory()
+    const offenders: string[] = []
+
+    const pages: InventoryApp[] = [
+      ...inventory.legacyHtmlApps,
+      ...(inventory.unlistedStaticPages ?? [])
+    ]
+
+    for (const app of pages) {
+      const html = fs.readFileSync(resolveRepoPath(app.file), 'utf-8')
+      if (/fonts\.googleapis\.com|fonts\.gstatic\.com/i.test(html)) {
+        offenders.push(`${app.file} (${app.route})`)
+      }
+    }
+
+    expect(offenders).toEqual([])
+  })
+
   it('inventory user-facing pages do not load remote runtime scripts', () => {
     const inventory = parseInventory()
     const offenders: string[] = []
 
-    for (const app of inventory.legacyHtmlApps) {
+    const pages: InventoryApp[] = [
+      ...inventory.legacyHtmlApps,
+      ...(inventory.unlistedStaticPages ?? [])
+    ]
+
+    for (const app of pages) {
       const html = fs.readFileSync(resolveRepoPath(app.file), 'utf-8')
       if (/<script[^>]+src=["']https?:\/\//i.test(html)) {
         offenders.push(`${app.file} (${app.route})`)

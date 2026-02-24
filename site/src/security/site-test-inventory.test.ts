@@ -13,6 +13,17 @@ type Inventory = {
     category: string
     requiresDownloads: boolean
   }>
+  /**
+   * User-facing pages intentionally not linked anywhere on the public site,
+   * but still part of the deployed surface and therefore subject to policy checks.
+   */
+  unlistedStaticPages?: Array<{
+    label: string
+    route: string
+    file: string
+    category: string
+    requiresDownloads: boolean
+  }>
   externalApps?: Array<{
     slug: string
     canonicalUrl: string
@@ -61,6 +72,21 @@ describe('Site/app canonical inventory (docs/site-test-inventory.md)', () => {
 
       const abs = path.resolve(repoRoot, entry.file)
       expect(fs.existsSync(abs), `Missing legacyHtmlApps file on disk: ${entry.file}`).toBe(true)
+    }
+  })
+
+  it('lists only shipped unlisted user-facing pages under site/public/', () => {
+    const repoRoot = path.resolve(process.cwd(), '..')
+    const inventory = loadInventoryFromDocs(repoRoot)
+
+    const pages = inventory.unlistedStaticPages ?? []
+    for (const entry of pages) {
+      expect(entry.label.trim().length, 'unlistedStaticPages entries must have a label').toBeGreaterThan(0)
+      expect(entry.route.startsWith('/'), `unlistedStaticPages route must start with /: ${entry.route}`).toBe(true)
+      expect(entry.file.startsWith('site/public/'), `unlistedStaticPages file must be under site/public/: ${entry.file}`).toBe(true)
+
+      const abs = path.resolve(repoRoot, entry.file)
+      expect(fs.existsSync(abs), `Missing unlistedStaticPages file on disk: ${entry.file}`).toBe(true)
     }
   })
 })

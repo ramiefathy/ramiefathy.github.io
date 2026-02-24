@@ -186,6 +186,15 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
   "excludedOnPurpose": [
     "site/public/apps/vendor/** (vendored libraries + upstream test/demo pages, not part of our product surface)",
     "root-level ./apps/** duplicates that are not shipped by Astro (non-canonical; keep for historical archive only)"
+  ],
+  "unlistedStaticPages": [
+    {
+      "label": "Taskboard (unlisted)",
+      "route": "/tasks",
+      "file": "site/public/tasks/index.html",
+      "category": "internal-unlisted",
+      "requiresDownloads": false
+    }
   ]
 }
 ```
