@@ -444,6 +444,8 @@ const LOGIN_BUTTON_DEFAULT_HTML = (() => {
   return btn ? btn.innerHTML : 'Sign in with Google'
 })()
 
+let preserveLoginErrorOnce = false;
+
 // ===== FIREBASE SYNC + AUTH =====
 const FB_CONFIG = {
   apiKey: "AIzaSyC1KojeBcYQSurott2XHDWpYjwIpgrtqY0",
@@ -512,7 +514,14 @@ function showLogin() {
   const btn = document.getElementById('login-btn');
   btn.disabled = false;
   btn.innerHTML = LOGIN_BUTTON_DEFAULT_HTML;
-  document.getElementById('login-err').style.display = 'none';
+
+  const err = document.getElementById('login-err');
+  if (preserveLoginErrorOnce) {
+    preserveLoginErrorOnce = false;
+  } else {
+    err.style.display = 'none';
+    err.textContent = '';
+  }
 }
 
 function showApp(user) {
@@ -566,6 +575,7 @@ function showApp(user) {
 
 function showLoginError(msg) {
   const el = document.getElementById('login-err');
+  preserveLoginErrorOnce = true;
   el.textContent = msg;
   el.style.display = 'block';
 }

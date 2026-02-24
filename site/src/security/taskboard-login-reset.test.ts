@@ -33,4 +33,21 @@ describe('Taskboard login flow contract', () => {
     expect(signInBlock).toBeDefined()
     expect(signInBlock).toMatch(/btn\.innerHTML\s*=\s*LOGIN_BUTTON_DEFAULT_HTML/)
   })
+
+  it('preserves access-denied login error through auth sign-out callback', () => {
+    const html = fs.readFileSync(TASKBOARD_PATH, 'utf-8')
+    const script = getInlineScript(html)
+
+    const showLoginBlock = script.match(/function\s+showLogin\(\)\s*\{[\s\S]*?\n\}/)?.[0]
+    expect(showLoginBlock).toBeDefined()
+
+    const showLoginErrorBlock = script.match(/function\s+showLoginError\([^)]*\)\s*\{[\s\S]*?\n\}/)?.[0]
+    expect(showLoginErrorBlock).toBeDefined()
+
+    expect(script).toContain('preserveLoginErrorOnce')
+    expect(showLoginErrorBlock).toMatch(/preserveLoginErrorOnce\s*=\s*true/)
+    expect(showLoginBlock).toMatch(/if\s*\(\s*preserveLoginErrorOnce\s*\)/)
+    expect(showLoginBlock).toMatch(/else[\s\S]*err\.style\.display\s*=\s*['"]none['"]/i)
+    expect(showLoginBlock).toMatch(/else[\s\S]*err\.textContent\s*=\s*['"]{0,1}['"]{0,1}\s*;/i)
+  })
 })
