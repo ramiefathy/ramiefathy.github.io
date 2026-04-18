@@ -194,6 +194,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "file": "site/public/tasks/index.html",
       "category": "internal-unlisted",
       "requiresDownloads": false
+    },
+    {
+      "label": "MCQ benchmark dashboard (unlisted)",
+      "route": "/study/mcq-benchmark-dashboard/",
+      "file": "site/public/study/mcq-benchmark-dashboard/index.html",
+      "category": "research-unlisted",
+      "requiresDownloads": false
     }
   ]
 }
