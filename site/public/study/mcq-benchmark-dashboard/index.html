@@ -3,109 +3,140 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Local MCQ Study Dashboard</title>
+  <title>MCQ Benchmark Study Dashboard</title>
+  <meta name="description" content="Unlisted benchmark dashboard summarizing MCQ study model performance, adjudication flags, and item-level judging detail.">
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0b1020;
-      --panel: #121933;
-      --panel-2: #182244;
-      --border: #2a376d;
-      --text: #edf2ff;
-      --muted: #9fb0de;
-      --accent: #5eead4;
-      --accent-2: #7aa2ff;
-      --good: #34d399;
-      --warn: #fbbf24;
-      --bad: #f87171;
-      --shadow: 0 20px 45px rgba(0, 0, 0, 0.28);
-      --radius: 18px;
+      --background: #081319;
+      --foreground: #edf3f4;
+      --primary: #0f766e;
+      --accent: #164e63;
+      --muted: #9bb0b5;
+      --surface: #0f1d24;
+      --surface-raised: #14262e;
+      --surface-overlay: #19323b;
+      --border: #27424b;
+      --good: #52b788;
+      --warn: #d6a13d;
+      --bad: #d9736a;
+      --radius: 12px;
+      --radius-sm: 10px;
+      --radius-lg: 16px;
+      --shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.24);
+      --shadow-raised: 0 18px 36px rgba(0, 0, 0, 0.22);
+      --shadow-overlay: 0 24px 52px rgba(0, 0, 0, 0.3);
+      --font-heading: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      --font-body: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     }
     * { box-sizing: border-box; }
+    html { background: var(--background); }
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(180deg, #0a1020 0%, #0d1430 100%);
-      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      background: var(--background);
+      color: var(--foreground);
     }
     .page {
-      max-width: 1600px;
+      max-width: 1560px;
       margin: 0 auto;
       padding: 24px;
     }
     .hero {
-      background: linear-gradient(135deg, rgba(94,234,212,0.15), rgba(122,162,255,0.18));
-      border: 1px solid rgba(122,162,255,0.25);
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(220px, 0.7fr);
+      gap: 18px;
+      align-items: end;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-surface);
       margin-bottom: 20px;
     }
-    .hero h1 { margin: 0 0 8px; font-size: 32px; }
-    .hero p { margin: 6px 0; color: var(--muted); }
+    .hero h1,
+    .card h2,
+    .card h3,
+    .card h4,
+    .section-title {
+      font-family: var(--font-heading);
+      color: var(--foreground);
+      letter-spacing: -0.02em;
+    }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(2rem, 3.8vw, 3.1rem); font-weight: 600; line-height: 1.05; }
+    .hero p { margin: 6px 0; color: var(--muted); max-width: 68ch; }
     .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 22px; }
     .tab {
       border: 1px solid var(--border);
-      background: rgba(18,25,51,0.75);
-      color: var(--text);
-      border-radius: 999px;
+      background: var(--surface-raised);
+      color: var(--foreground);
+      border-radius: var(--radius);
       padding: 10px 16px;
       cursor: pointer;
-      transition: 0.18s ease;
+      transition: background-color 140ms ease-out, border-color 140ms ease-out, color 140ms ease-out;
     }
-    .tab.active { background: rgba(94,234,212,0.16); border-color: var(--accent); color: #d9fffb; }
+    .tab:hover, .tab:focus-visible { border-color: var(--primary); outline: none; }
+    .tab.active { background: rgba(15, 118, 110, 0.16); border-color: var(--primary); color: var(--foreground); }
     .grid { display: grid; gap: 16px; }
     .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
     .card {
-      background: rgba(18,25,51,0.88);
-      border: 1px solid rgba(122,162,255,0.18);
-      border-radius: var(--radius);
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
       padding: 18px;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-raised);
     }
     .card h2, .card h3, .card h4 { margin-top: 0; }
-    .kpi .label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
-    .kpi .value { font-size: 30px; font-weight: 700; margin-top: 6px; }
+    .kpi .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+    .kpi .value { font-size: 2rem; font-weight: 600; margin-top: 6px; }
     .kpi .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
     .two-col { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 16px; align-items: start; }
     .list-panel { position: sticky; top: 20px; }
     .controls { display: grid; gap: 10px; margin-bottom: 12px; }
     input, select {
       width: 100%;
-      background: #0d1530;
-      color: var(--text);
+      background: var(--surface-overlay);
+      color: var(--foreground);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--radius);
       padding: 10px 12px;
+      font: inherit;
+    }
+    input:focus-visible, select:focus-visible, .item-button:focus-visible, .nav-row button:focus-visible {
+      outline: 2px solid rgba(15, 118, 110, 0.55);
+      outline-offset: 2px;
     }
     .item-list { display: grid; gap: 10px; max-height: 72vh; overflow: auto; }
     .item-button {
       text-align: left;
       width: 100%;
-      border: 1px solid rgba(122,162,255,0.18);
-      background: rgba(24,34,68,0.75);
-      color: var(--text);
-      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface-overlay);
+      color: var(--foreground);
+      border-radius: var(--radius);
       padding: 12px;
       cursor: pointer;
+      transition: border-color 140ms ease-out, background-color 140ms ease-out;
     }
-    .item-button.active { border-color: var(--accent); background: rgba(94,234,212,0.14); }
+    .item-button:hover { border-color: var(--primary); }
+    .item-button.active { border-color: var(--primary); background: rgba(15, 118, 110, 0.14); }
     .item-meta { color: var(--muted); font-size: 12px; margin-top: 5px; }
     .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 4px; }
     .badge {
       display: inline-flex;
       align-items: center;
-      border-radius: 999px;
+      border-radius: var(--radius-sm);
       padding: 5px 10px;
       font-size: 12px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--foreground);
     }
-    .badge.good { background: rgba(52,211,153,0.14); color: #d3fff0; border-color: rgba(52,211,153,0.4); }
-    .badge.warn { background: rgba(251,191,36,0.14); color: #fff3ce; border-color: rgba(251,191,36,0.4); }
-    .badge.bad { background: rgba(248,113,113,0.14); color: #ffd8d8; border-color: rgba(248,113,113,0.4); }
-    .section-title { margin-bottom: 10px; font-size: 18px; }
+    .badge.good { background: rgba(82, 183, 136, 0.14); color: #d7f4e7; border-color: rgba(82, 183, 136, 0.35); }
+    .badge.warn { background: rgba(214, 161, 61, 0.14); color: #f8ebc8; border-color: rgba(214, 161, 61, 0.35); }
+    .badge.bad { background: rgba(217, 115, 106, 0.14); color: #f9d8d5; border-color: rgba(217, 115, 106, 0.35); }
+    .section-title { margin-bottom: 10px; font-size: 1.3rem; font-weight: 600; }
     .detail-grid { display: grid; gap: 16px; }
     .metric-table, .score-table {
       width: 100%;
@@ -120,33 +151,35 @@
     }
     .metric-table th, .score-table th { color: var(--muted); font-weight: 600; }
     .option, .explanation, .judge-card {
-      background: rgba(24,34,68,0.72);
-      border: 1px solid rgba(122,162,255,0.14);
-      border-radius: 14px;
+      background: var(--surface-overlay);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       padding: 14px;
       margin-bottom: 10px;
     }
-    .option.correct { border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.09); }
+    .option.correct { border-color: rgba(82, 183, 136, 0.35); background: rgba(82, 183, 136, 0.09); }
     .distribution { display: grid; gap: 10px; }
     .bar-row { display: grid; grid-template-columns: 70px 1fr 48px; align-items: center; gap: 10px; }
-    .bar-track { height: 12px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
-    .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 999px; }
+    .bar-track { height: 12px; background: rgba(255,255,255,0.08); border-radius: var(--radius-sm); overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--primary); border-radius: var(--radius-sm); }
     .muted { color: var(--muted); }
     .hidden { display: none !important; }
     .panel-title { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
     .nav-row { display: flex; gap: 10px; margin-bottom: 12px; }
     .nav-row button {
       border: 1px solid var(--border);
-      background: rgba(24,34,68,0.75);
-      color: var(--text);
-      border-radius: 12px;
+      background: var(--surface-overlay);
+      color: var(--foreground);
+      border-radius: var(--radius);
       padding: 10px 12px;
       cursor: pointer;
+      transition: background-color 140ms ease-out, border-color 140ms ease-out;
     }
+    .nav-row button:hover { border-color: var(--primary); }
     .small { font-size: 12px; }
     .footer { color: var(--muted); margin-top: 18px; font-size: 13px; }
     @media (max-width: 1080px) {
-      .two-col { grid-template-columns: 1fr; }
+      .two-col, .hero { grid-template-columns: 1fr; }
       .list-panel { position: static; }
       .item-list { max-height: none; }
     }
