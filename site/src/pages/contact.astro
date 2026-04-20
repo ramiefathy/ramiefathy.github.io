@@ -8,192 +8,88 @@ const emailAddress = profile.contact.email.replace(/^mailto:/, '');
 <MainLayout title="Contact – Ramie Fathy, MD" description="Contact Dr. Ramie Fathy for collaborations, speaking invitations, and dermatology AI projects.">
   <Header client:load />
   <main id="main-content">
-    <section class="section contact-hero">
-      <div class="section__inner">
-        <div class="contact-hero__grid">
-          <div class="contact-hero__copy scroll-fade" data-scroll-fade>
-            <p class="section__kicker">Contact</p>
-            <h1 class="contact-hero__title">Let’s build clinician-grade tools.</h1>
-            <p class="contact-hero__subtitle">
-              For collaborations, speaking invitations, and research projects at the intersection of dermatology and human-centered AI.
-            </p>
-            <div class="contact-hero__chips" aria-label="Common inquiry types">
-              <span class="contact-chip">Clinical AI</span>
-              <span class="contact-chip">Dermatology Education</span>
-              <span class="contact-chip">Research</span>
-              <span class="contact-chip">Speaking</span>
-            </div>
-          </div>
+    <section class="section">
+      <div class="plate-stamp"><b>Contact</b><span class="barcode"></span><span>Direct & form</span></div>
 
-          <aside class="contact-card scroll-fade" data-scroll-fade data-enter-delay="140ms" aria-label="Direct contact links">
-            <h2 class="contact-card__title">Direct</h2>
-            <div class="contact-card__links">
-              <a class="contact-link" href={profile.contact.email} data-copy-email title="Click to copy email address">
-                <span class="contact-link__icon" aria-hidden="true">✉︎</span>
-                <span class="contact-link__label">Email</span>
-                <span class="contact-link__value">{emailAddress}</span>
-              </a>
-              <a class="contact-link" href={profile.contact.linkedin} target="_blank" rel="noreferrer">
-                <span class="contact-link__icon" aria-hidden="true">in</span>
-                <span class="contact-link__label">LinkedIn</span>
-                <span class="contact-link__value">Connect</span>
-              </a>
-              <a class="contact-link" href={profile.contact.scholar} target="_blank" rel="noreferrer">
-                <span class="contact-link__icon" aria-hidden="true">G</span>
-                <span class="contact-link__label">Google Scholar</span>
-                <span class="contact-link__value">Publications</span>
-              </a>
-            </div>
-            <p class="contact-card__note">
-              This site is not for medical advice. For patient questions, please contact your clinician or local emergency services.
-            </p>
-            <p id="contact-status" class="sr-only" role="status" aria-live="polite"></p>
-          </aside>
+      <div class="plate-head">
+        <div>
+          <span class="kicker">Contact</span>
+          <h1 class="display1" style="margin-top:14px">Let's build<br><em>clinician-grade</em> tools.</h1>
+        </div>
+        <div class="right">
+          For collaborations,<br>
+          speaking invitations,<br>
+          and research projects.<br>
+          <span style="color:var(--terracotta)">Reply within ~1 week</span>
         </div>
       </div>
-    </section>
 
-    <section class="section" style="padding-top:0">
-      <div class="section__inner" style="max-width:920px">
-        <div class="section__intro section__intro--split scroll-fade" data-scroll-fade>
+      <div style="display:grid;grid-template-columns:1.05fr 0.95fr;gap:48px;align-items:start;margin-top:32px" class="contact-grid">
+        <div>
+          <p class="lede">For collaborations, speaking invitations, and research projects at the intersection of dermatology and human-centered AI.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:24px">
+            <span class="tag">Clinical AI</span>
+            <span class="tag">Dermatology Education</span>
+            <span class="tag">Research</span>
+            <span class="tag">Speaking</span>
+          </div>
+        </div>
+
+        <aside class="contact-card__links" aria-label="Direct contact links">
+          <a class="contact-link" href={profile.contact.email} data-copy-email title="Click to copy email address">
+            <span class="contact-link__icon">Email</span>
+            <span class="contact-link__label">Direct mail</span>
+            <span class="contact-link__value">{emailAddress}</span>
+          </a>
+          <a class="contact-link" href={profile.contact.linkedin} target="_blank" rel="noreferrer">
+            <span class="contact-link__icon">LinkedIn</span>
+            <span class="contact-link__label">Connect</span>
+            <span class="contact-link__value">/ramie-fathy</span>
+          </a>
+          <a class="contact-link" href={profile.contact.scholar} target="_blank" rel="noreferrer">
+            <span class="contact-link__icon">Scholar</span>
+            <span class="contact-link__label">Publications</span>
+            <span class="contact-link__value">Google Scholar</span>
+          </a>
+          <a class="contact-link" href={profile.contact.researchgate} target="_blank" rel="noreferrer">
+            <span class="contact-link__icon">RG</span>
+            <span class="contact-link__label">Profile</span>
+            <span class="contact-link__value">ResearchGate</span>
+          </a>
+          <p id="contact-status" class="sr-only" role="status" aria-live="polite"></p>
+        </aside>
+      </div>
+
+      <div style="margin-top:64px;border-top:2px solid var(--ink);padding-top:32px">
+        <div style="display:flex;justify-content:space-between;align-items:end;gap:32px;border-bottom:1px solid var(--rule);padding-bottom:14px">
           <div>
-            <p class="section__kicker">Message</p>
-            <h2 class="section__title">Send a note</h2>
-            <p class="section__subtitle">
-              This form composes an email in your default mail client (no third-party form provider).
-            </p>
+            <span class="kicker">Send a note</span>
+            <h2 class="display2" style="margin-top:6px">Compose a <em>message</em>.</h2>
           </div>
+          <p style="font-family:var(--font-mono);font-size:11px;color:var(--slate);letter-spacing:0.06em;text-align:right">This form composes an email in your default mail client.<br>No third-party form provider.</p>
         </div>
 
-        <div class="card scroll-fade" data-scroll-fade data-enter-delay="140ms">
-          <form class="contact-form" data-mailto-form>
-            <div class="form-row">
-              <label>
-                Name
-                <input type="text" name="name" autocomplete="name" />
-              </label>
-              <label>
-                Email
-                <input type="email" name="email" autocomplete="email" />
-              </label>
-            </div>
-            <label>
-              Subject
-              <input type="text" name="subject" autocomplete="off" />
-            </label>
-            <label>
-              Message
-              <textarea name="message" rows="6" required></textarea>
-            </label>
-            <button class="button button--primary" type="submit">Compose Email</button>
-            <p class="muted-callout" style="margin:0">
-              If the button doesn’t open your email client, you can email directly: <a href={profile.contact.email}>{emailAddress}</a>.
-            </p>
-          </form>
-        </div>
+        <form class="contact-form" data-mailto-form style="margin-top:24px">
+          <div class="form-row">
+            <label>Name<input type="text" name="name" autocomplete="name" /></label>
+            <label>Email<input type="email" name="email" autocomplete="email" /></label>
+          </div>
+          <label>Subject<input type="text" name="subject" autocomplete="off" /></label>
+          <label>Message<textarea name="message" rows="6" required></textarea></label>
+          <button class="button button--primary" type="submit" style="align-self:flex-start">Compose Email →</button>
+          <p class="muted-callout" style="margin:0">If the button doesn't open your email client, you can email directly: <a href={profile.contact.email}>{emailAddress}</a>.</p>
+        </form>
       </div>
+
+      <p class="muted-callout" style="margin-top:48px">This site is not for medical advice. For patient questions, please contact your clinician or local emergency services.</p>
     </section>
   </main>
 
-  <style is:global>
-    .contact-hero {
-      padding-top: 5rem;
-      padding-bottom: 3.5rem;
-      background:
-        radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.24), transparent 55%),
-        radial-gradient(circle at 80% 0%, rgba(34, 211, 238, 0.16), transparent 50%),
-        linear-gradient(180deg, rgba(239, 246, 255, 0.55), rgba(255, 255, 255, 0.96));
-    }
-
-    .contact-hero__grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-      gap: 2.5rem;
-      align-items: start;
-    }
-
-    .contact-hero__title {
-      font-size: clamp(2.4rem, 4.8vw, 3.6rem);
-      line-height: 1.05;
-      margin: 0 0 1rem;
-      letter-spacing: -0.02em;
-    }
-
-    .contact-hero__subtitle {
-      margin: 0;
-      font-size: 1.1rem;
-      color: var(--muted-text);
-      max-width: 42rem;
-    }
-
-    .contact-hero__chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      margin-top: 1.6rem;
-    }
-
-    .contact-chip {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.35rem 0.75rem;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      background: rgba(255, 255, 255, 0.6);
-      color: rgba(15, 60, 82, 0.78);
-      font-weight: 700;
-      font-size: 0.78rem;
-      letter-spacing: 0.04em;
-    }
-
-    .contact-card {
-      border-radius: var(--radius-xl);
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      background: rgba(255, 255, 255, 0.82);
-      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.12);
-      padding: 1.75rem;
-    }
-
-    .contact-card__title {
-      margin: 0 0 1.25rem;
-      font-size: 1.15rem;
-      letter-spacing: -0.01em;
-    }
-
-    .contact-card__note {
-      margin: 1.25rem 0 0;
-      color: rgba(71, 85, 105, 0.78);
-      font-size: 0.92rem;
-      line-height: 1.55;
-    }
-
+  <style>
     @media (max-width: 900px) {
-      .contact-hero__grid {
-        grid-template-columns: 1fr;
+      .contact-grid {
+        grid-template-columns: 1fr !important;
       }
-    }
-
-    html[data-theme='dark'] .contact-hero {
-      background:
-        radial-gradient(circle at 12% 14%, rgba(56, 189, 248, 0.18), transparent 60%),
-        radial-gradient(circle at 80% 0%, rgba(34, 211, 238, 0.18), transparent 55%),
-        linear-gradient(180deg, rgba(2, 6, 23, 0.55), rgba(2, 6, 23, 0.95));
-    }
-
-    html[data-theme='dark'] .contact-chip {
-      background: rgba(9, 23, 35, 0.7);
-      border-color: rgba(59, 130, 246, 0.18);
-      color: rgba(226, 242, 254, 0.82);
-    }
-
-    html[data-theme='dark'] .contact-card {
-      background: rgba(9, 23, 35, 0.82);
-      border-color: rgba(59, 130, 246, 0.18);
-      box-shadow: 0 30px 60px rgba(2, 6, 23, 0.55);
-    }
-
-    html[data-theme='dark'] .contact-card__note {
-      color: rgba(148, 163, 184, 0.78);
     }
   </style>
 
@@ -204,46 +100,16 @@ const emailAddress = profile.contact.email.replace(/^mailto:/, '');
       const mailtoForm = document.querySelector('[data-mailto-form]');
       const email = emailAddress;
 
-      const announce = (message) => {
-        if (status) status.textContent = message;
-      };
+      const announce = (message) => { if (status) status.textContent = message; };
 
       if (copyButton) {
         copyButton.addEventListener('click', async (event) => {
-          // Copy-to-clipboard should not trigger mailto navigation. Allow power-users to open
-          // the mail client with modifier-click (cmd/ctrl/etc).
-          if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button === 1)) {
-            return;
-          }
-          if (event) {
-            event.preventDefault();
-          }
+          if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button === 1)) return;
+          if (event) event.preventDefault();
           try {
             await navigator.clipboard.writeText(email);
             announce('Email copied to clipboard.');
           } catch (err) {
-            try {
-              const field = document.createElement('textarea');
-              field.value = email;
-              field.setAttribute('readonly', '');
-              field.style.position = 'fixed';
-              field.style.opacity = '0';
-              field.style.pointerEvents = 'none';
-              field.style.left = '-9999px';
-              field.style.top = '0';
-              document.body.appendChild(field);
-              field.focus();
-              field.select();
-              field.setSelectionRange(0, field.value.length);
-              const ok = document.execCommand('copy');
-              field.remove();
-              if (ok) {
-                announce('Email copied to clipboard.');
-                return;
-              }
-            } catch (_) {
-              // Ignore and fall through to the status message below.
-            }
             announce('Copy failed. Please copy the email address manually.');
           }
         });
@@ -257,21 +123,13 @@ const emailAddress = profile.contact.email.replace(/^mailto:/, '');
           const fromEmail = String(data.get('email') || '').trim();
           const subject = String(data.get('subject') || '').trim() || 'Website inquiry';
           const message = String(data.get('message') || '').trim();
-
           const body = [
             name ? `Name: ${name}` : null,
             fromEmail ? `Email: ${fromEmail}` : null,
             '',
             message ? message : '(No message provided)'
           ].filter(Boolean).join('\n');
-
           const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          if (mailtoForm.hasAttribute('data-mailto-preview')) {
-            mailtoForm.setAttribute('data-mailto-url', mailtoUrl);
-            announce('Email draft is ready.');
-            return;
-          }
-
           window.location.assign(mailtoUrl);
           announce('Opening your email client.');
         });

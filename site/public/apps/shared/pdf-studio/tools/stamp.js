@@ -198,7 +198,7 @@ export async function mount(context) {
     if (!lines.length) return
 
     canvasContext.font = '16px "IBM Plex Sans", sans-serif'
-    canvasContext.fillStyle = '#0f766e'
+    canvasContext.fillStyle = '#c2674a'
     const text = lines.join(' • ')
     const textWidth = canvasContext.measureText(text).width
     const position = resolvePosition(

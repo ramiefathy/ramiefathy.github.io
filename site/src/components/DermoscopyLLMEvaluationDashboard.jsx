@@ -302,7 +302,7 @@ function ScatterPlot({
           </linearGradient>
         </defs>
 
-        <rect x="0" y="0" width={dims.width} height={dims.height} rx="18" fill="rgba(255,255,255,0.55)" />
+        <rect x="0" y="0" width={dims.width} height={dims.height} rx="18" fill="var(--plate-bg)" />
 
         <g stroke="rgba(148,163,184,0.22)" strokeWidth="1">
           {ticks.xs.map((tick) => {
@@ -359,7 +359,7 @@ function ScatterPlot({
                 r={radius}
                 fill={point.color}
                 fillOpacity={0.95}
-                stroke="rgba(255,255,255,0.9)"
+                stroke="var(--plate-bg)"
                 strokeWidth="2"
                 onPointerEnter={() => setActivePoint(point)}
                 style={{ transition: prefersReducedMotion ? 'none' : 'r 240ms var(--ease-spring)' }}
@@ -2208,7 +2208,7 @@ function ModelSelector({ data, selectedModels, setSelectedModels }) {
               className={`llm-dashboard__checkbox ${checked ? 'is-checked' : ''}`}
               style={{
                 borderColor: checked ? palette.border : 'rgba(148,163,184,0.25)',
-                background: checked ? palette.surface : 'rgba(255,255,255,0.35)'
+                background: checked ? palette.surface : 'var(--plate-bg)'
               }}
             >
               <input type="checkbox" checked={checked} onChange={() => toggleModel(entry.model)} />
@@ -2455,7 +2455,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
           display: flex;
           flex-direction: column;
           gap: 1.25rem;
-          border-radius: var(--radius-xl);
+          border-radius: 0;
           border: 1px solid var(--surface-border);
           background: var(--surface-bg);
           padding: 1.5rem 1.35rem;
@@ -2495,7 +2495,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
           align-items: center;
           gap: 0.45rem;
           padding: 0.35rem 0.8rem;
-          border-radius: 999px;
+          border-radius: 0;
           border: 1px solid rgba(148, 163, 184, 0.24);
           font-size: 0.8rem;
           font-weight: 650;
@@ -2506,7 +2506,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
           gap: 0.25rem;
           padding: 0.3rem;
           background: rgba(148, 163, 184, 0.18);
-          border-radius: 999px;
+          border-radius: 0;
           flex-wrap: wrap;
         }
 
@@ -2516,7 +2516,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
           border: 0;
           background: transparent;
           padding: 0.7rem 0.9rem;
-          border-radius: 999px;
+          border-radius: 0;
           cursor: pointer;
           font-weight: 650;
           color: var(--muted-text);
@@ -2529,27 +2529,17 @@ export default function DermoscopyLLMEvaluationDashboard() {
         }
 
         .llm-dashboard__tab-btn.is-active {
-          background: rgba(255, 255, 255, 0.9);
+          background: var(--plate-bg);
           color: rgba(15, 23, 42, 0.9);
           box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
         }
 
-        html[data-theme='dark'] .llm-dashboard__tab-btn.is-active {
-          background: rgba(15, 23, 42, 0.65);
-          color: rgba(226, 242, 254, 0.92);
-        }
-
 	        .llm-dashboard__selector {
-	          border-radius: var(--radius-lg);
+	          border-radius: 0;
 	          border: 1px solid rgba(148, 163, 184, 0.2);
-	          background: rgba(255, 255, 255, 0.55);
+	          background: var(--plate-bg);
 	          padding: 1rem;
 	        }
-
-        html[data-theme='dark'] .llm-dashboard__selector {
-          background: rgba(12, 26, 41, 0.6);
-          border-color: rgba(148, 163, 184, 0.16);
-        }
 
         .llm-dashboard__selector-head {
           display: flex;
@@ -2584,31 +2574,19 @@ export default function DermoscopyLLMEvaluationDashboard() {
           padding: 0.55rem 0.75rem;
           border-radius: 0.85rem;
           border: 1px solid rgba(148, 163, 184, 0.35);
-          background: rgba(255, 255, 255, 0.9);
+          background: var(--plate-bg);
           color: var(--text-color);
           font-weight: 600;
         }
 
-        html[data-theme='dark'] .llm-dashboard__select {
-          background: rgba(15, 23, 42, 0.55);
-          border-color: rgba(148, 163, 184, 0.2);
-          color: rgba(226, 242, 254, 0.92);
-        }
-
         .llm-dashboard__ghost {
           border: 1px solid rgba(148, 163, 184, 0.3);
-          background: rgba(255, 255, 255, 0.75);
+          background: var(--plate-bg);
           padding: 0.5rem 0.75rem;
-          border-radius: 999px;
+          border-radius: 0;
           font-weight: 650;
           cursor: pointer;
           transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__ghost {
-          background: rgba(15, 23, 42, 0.45);
-          border-color: rgba(148, 163, 184, 0.18);
-          color: rgba(226, 242, 254, 0.92);
         }
 
         .llm-dashboard__ghost:hover {
@@ -2623,15 +2601,10 @@ export default function DermoscopyLLMEvaluationDashboard() {
 	        }
 
 	        .llm-dashboard__model-picker {
-	          border-radius: var(--radius-lg);
+	          border-radius: 0;
 	          border: 1px solid rgba(148, 163, 184, 0.2);
-	          background: rgba(255, 255, 255, 0.55);
+	          background: var(--plate-bg);
 	          padding: 0.75rem 0.9rem;
-	        }
-
-	        html[data-theme='dark'] .llm-dashboard__model-picker {
-	          background: rgba(12, 26, 41, 0.6);
-	          border-color: rgba(148, 163, 184, 0.16);
 	        }
 
 	        .llm-dashboard__model-picker-bar {
@@ -2698,14 +2671,9 @@ export default function DermoscopyLLMEvaluationDashboard() {
 		          font-weight: 650;
 		          color: var(--muted-text);
 		          padding: 0.25rem 0.6rem;
-		          border-radius: 999px;
+		          border-radius: 0;
 		          border: 1px solid rgba(148, 163, 184, 0.22);
-		          background: rgba(255, 255, 255, 0.55);
-		        }
-
-		        html[data-theme='dark'] .llm-dashboard__carousel-count {
-		          background: rgba(15, 23, 42, 0.45);
-		          border-color: rgba(148, 163, 184, 0.16);
+		          background: var(--plate-bg);
 		        }
 
 		        .llm-dashboard__carousel-body {
@@ -2728,9 +2696,9 @@ export default function DermoscopyLLMEvaluationDashboard() {
 		          transform: translateY(-50%);
 		          width: 44px;
 		          height: 44px;
-		          border-radius: 999px;
+		          border-radius: 0;
 		          border: 1px solid rgba(148, 163, 184, 0.22);
-		          background: rgba(255, 255, 255, 0.85);
+		          background: var(--plate-bg);
 		          box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
 		          cursor: pointer;
 		          font-size: 1.8rem;
@@ -2746,13 +2714,6 @@ export default function DermoscopyLLMEvaluationDashboard() {
 		        .llm-dashboard__carousel-arrow:hover {
 		          transform: translateY(-50%) scale(1.03);
 		          box-shadow: 0 26px 60px rgba(15, 23, 42, 0.16);
-		        }
-
-		        html[data-theme='dark'] .llm-dashboard__carousel-arrow {
-		          background: rgba(15, 23, 42, 0.65);
-		          border-color: rgba(148, 163, 184, 0.16);
-		          color: rgba(226, 242, 254, 0.92);
-		          box-shadow: 0 26px 60px rgba(0, 0, 0, 0.35);
 		        }
 
 		        .llm-dashboard__carousel-arrow--left {
@@ -2780,7 +2741,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
 		        .llm-dashboard__carousel-dot {
 		          width: 10px;
 		          height: 10px;
-		          border-radius: 999px;
+		          border-radius: 0;
 		          border: 1px solid rgba(148, 163, 184, 0.35);
 		          background: rgba(148, 163, 184, 0.22);
 		          cursor: pointer;
@@ -2837,15 +2798,10 @@ export default function DermoscopyLLMEvaluationDashboard() {
         }
 
         .llm-dashboard__stat {
-          border-radius: var(--radius-lg);
+          border-radius: 0;
           border: 1px solid rgba(148, 163, 184, 0.18);
           padding: 0.9rem 1rem;
-          background: rgba(255, 255, 255, 0.6);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__stat {
-          background: rgba(15, 23, 42, 0.55);
-          border-color: rgba(148, 163, 184, 0.14);
+          background: var(--plate-bg);
         }
 
         .llm-dashboard__stat-value {
@@ -2853,10 +2809,6 @@ export default function DermoscopyLLMEvaluationDashboard() {
           font-weight: 780;
           letter-spacing: -0.02em;
           color: rgba(15, 23, 42, 0.88);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__stat-value {
-          color: rgba(226, 242, 254, 0.92);
         }
 
         .llm-dashboard__stat-label {
@@ -2883,17 +2835,11 @@ export default function DermoscopyLLMEvaluationDashboard() {
         }
 
         .llm-dashboard__card {
-          border-radius: var(--radius-xl);
+          border-radius: 0;
           border: 1px solid rgba(148, 163, 184, 0.18);
           padding: 1.2rem;
-          background: rgba(255, 255, 255, 0.6);
+          background: var(--plate-bg);
           box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__card {
-          background: rgba(12, 26, 41, 0.62);
-          border-color: rgba(148, 163, 184, 0.14);
-          box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
         }
 
         .llm-dashboard__card--tight {
@@ -2905,20 +2851,11 @@ export default function DermoscopyLLMEvaluationDashboard() {
           border-color: rgba(220, 38, 38, 0.18);
         }
 
-        html[data-theme='dark'] .llm-dashboard__card--alert {
-          background: rgba(76, 5, 25, 0.4);
-          border-color: rgba(248, 113, 113, 0.22);
-        }
-
         .llm-dashboard__card-title {
           margin: 0;
           font-size: 1.05rem;
           font-weight: 750;
           color: rgba(15, 23, 42, 0.9);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__card-title {
-          color: rgba(226, 242, 254, 0.92);
         }
 
         .llm-dashboard__card-subtitle {
@@ -2948,10 +2885,6 @@ export default function DermoscopyLLMEvaluationDashboard() {
           color: rgba(15, 23, 42, 0.84);
         }
 
-        html[data-theme='dark'] .llm-dashboard__bar-meta {
-          color: rgba(226, 242, 254, 0.92);
-        }
-
         .llm-dashboard__bar-label {
           color: inherit;
         }
@@ -2961,20 +2894,16 @@ export default function DermoscopyLLMEvaluationDashboard() {
           font-weight: 750;
         }
 
-        html[data-theme='dark'] .llm-dashboard__bar-value {
-          color: rgba(148, 185, 209, 0.78);
-        }
-
         .llm-dashboard__bar-track {
           height: 12px;
-          border-radius: 999px;
+          border-radius: 0;
           background: rgba(148, 163, 184, 0.18);
           overflow: hidden;
         }
 
         .llm-dashboard__bar-fill {
           height: 100%;
-          border-radius: 999px;
+          border-radius: 0;
           width: 0;
           transition: width 520ms var(--ease-spring);
         }
@@ -3027,29 +2956,18 @@ export default function DermoscopyLLMEvaluationDashboard() {
 
         .llm-dashboard__notice {
           padding: 0.8rem 1rem;
-          border-radius: var(--radius-lg);
+          border-radius: 0;
           background: rgba(254, 243, 199, 0.65);
           border: 1px solid rgba(245, 158, 11, 0.18);
           color: rgba(146, 64, 14, 0.92);
           font-weight: 600;
         }
 
-        html[data-theme='dark'] .llm-dashboard__notice {
-          background: rgba(92, 45, 10, 0.55);
-          border-color: rgba(251, 191, 36, 0.2);
-          color: rgba(253, 230, 138, 0.92);
-        }
-
         .llm-dashboard__table-shell {
           overflow: hidden;
-          border-radius: var(--radius-xl);
+          border-radius: 0;
           border: 1px solid rgba(148, 163, 184, 0.18);
-          background: rgba(255, 255, 255, 0.55);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__table-shell {
-          background: rgba(12, 26, 41, 0.62);
-          border-color: rgba(148, 163, 184, 0.14);
+          background: var(--plate-bg);
         }
 
         .llm-dashboard__table-shell--scroll {
@@ -3079,11 +2997,6 @@ export default function DermoscopyLLMEvaluationDashboard() {
           padding: 0.85rem 0.9rem;
           border-bottom: 1px solid rgba(148, 163, 184, 0.14);
           color: rgba(15, 23, 42, 0.85);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__table td {
-          color: rgba(226, 242, 254, 0.9);
-          border-bottom-color: rgba(148, 163, 184, 0.12);
         }
 
         .llm-dashboard__table--compact th,
@@ -3134,10 +3047,6 @@ export default function DermoscopyLLMEvaluationDashboard() {
 	          color: rgba(15, 23, 42, 0.9);
 	        }
 
-        html[data-theme='dark'] .llm-dashboard__ci-label-main {
-          color: rgba(226, 242, 254, 0.92);
-        }
-
 	        .llm-dashboard__ci-label-sub {
 	          display: block;
 	          margin-top: 0.2rem;
@@ -3150,7 +3059,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
 	          grid-area: track;
 	          position: relative;
 	          height: 14px;
-	          border-radius: 999px;
+	          border-radius: 0;
 	          background: rgba(148, 163, 184, 0.18);
 	          overflow: hidden;
 	        }
@@ -3166,15 +3075,11 @@ export default function DermoscopyLLMEvaluationDashboard() {
 	          }
 	        }
 
-        html[data-theme='dark'] .llm-dashboard__ci-track {
-          background: rgba(148, 163, 184, 0.12);
-        }
-
         .llm-dashboard__ci-fill {
           position: absolute;
           inset: 0 auto 0 0;
           height: 100%;
-          border-radius: 999px;
+          border-radius: 0;
           width: 0;
           transition: width 520ms var(--ease-spring);
         }
@@ -3187,20 +3092,12 @@ export default function DermoscopyLLMEvaluationDashboard() {
           transform: translateY(-50%);
         }
 
-        html[data-theme='dark'] .llm-dashboard__ci-error {
-          border-top-color: rgba(226, 242, 254, 0.72);
-        }
-
         .llm-dashboard__ci-cap {
           position: absolute;
           top: -6px;
           width: 2px;
           height: 12px;
           background: rgba(15, 23, 42, 0.68);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__ci-cap {
-          background: rgba(226, 242, 254, 0.72);
         }
 
         .llm-dashboard__ci-cap--left {
@@ -3218,10 +3115,6 @@ export default function DermoscopyLLMEvaluationDashboard() {
           gap: 0.15rem;
           font-weight: 850;
           color: rgba(15, 23, 42, 0.9);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__ci-value {
-          color: rgba(226, 242, 254, 0.92);
         }
 
         .llm-dashboard__ci-value-sub {
@@ -3269,13 +3162,9 @@ export default function DermoscopyLLMEvaluationDashboard() {
         .llm-dashboard__paired-track {
           position: relative;
           height: 10px;
-          border-radius: 999px;
+          border-radius: 0;
           background: rgba(148, 163, 184, 0.18);
           overflow: hidden;
-        }
-
-        html[data-theme='dark'] .llm-dashboard__paired-track {
-          background: rgba(148, 163, 184, 0.12);
         }
 
         .llm-dashboard__paired-marker {
@@ -3286,13 +3175,9 @@ export default function DermoscopyLLMEvaluationDashboard() {
           background: rgba(15, 23, 42, 0.22);
         }
 
-        html[data-theme='dark'] .llm-dashboard__paired-marker {
-          background: rgba(226, 242, 254, 0.22);
-        }
-
         .llm-dashboard__paired-fill {
           height: 100%;
-          border-radius: 999px;
+          border-radius: 0;
         }
 
         .llm-dashboard__paired-values {
@@ -3312,10 +3197,6 @@ export default function DermoscopyLLMEvaluationDashboard() {
         .llm-dashboard__stacked-row {
           padding-bottom: 0.25rem;
           border-bottom: 1px solid rgba(148, 163, 184, 0.14);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__stacked-row {
-          border-bottom-color: rgba(148, 163, 184, 0.12);
         }
 
         .llm-dashboard__stacked-head {
@@ -3339,14 +3220,10 @@ export default function DermoscopyLLMEvaluationDashboard() {
 
         .llm-dashboard__stacked-track {
           height: 14px;
-          border-radius: 999px;
+          border-radius: 0;
           overflow: hidden;
           background: rgba(148, 163, 184, 0.14);
           display: flex;
-        }
-
-        html[data-theme='dark'] .llm-dashboard__stacked-track {
-          background: rgba(148, 163, 184, 0.1);
         }
 
         .llm-dashboard__stacked-segment {
@@ -3393,18 +3270,13 @@ export default function DermoscopyLLMEvaluationDashboard() {
           text-align: center;
           font-weight: 850;
           color: rgba(15, 23, 42, 0.92);
-          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+          box-shadow: inset 0 0 0 1px var(--plate-bg);
           min-height: 3.1rem;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: 0.18rem;
-        }
-
-        html[data-theme='dark'] .llm-dashboard__h2h-cell {
-          color: rgba(226, 242, 254, 0.92);
-          box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.35);
         }
 
         .llm-dashboard__h2h-cell:hover {
@@ -3426,15 +3298,11 @@ export default function DermoscopyLLMEvaluationDashboard() {
           background: rgba(226, 232, 240, 0.22);
         }
 
-        html[data-theme='dark'] .llm-dashboard__row-top td {
-          background: rgba(15, 23, 42, 0.35);
-        }
-
         .llm-dashboard__rank {
           display: inline-flex;
           width: 2rem;
           height: 2rem;
-          border-radius: 999px;
+          border-radius: 0;
           align-items: center;
           justify-content: center;
           background: rgba(148, 163, 184, 0.18);
@@ -3473,17 +3341,12 @@ export default function DermoscopyLLMEvaluationDashboard() {
 
         .llm-dashboard__pill {
           border: 1px solid rgba(148, 163, 184, 0.22);
-          background: rgba(255, 255, 255, 0.65);
+          background: var(--plate-bg);
           padding: 0.55rem 0.9rem;
-          border-radius: 999px;
+          border-radius: 0;
           font-weight: 750;
           cursor: pointer;
           transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__pill {
-          background: rgba(15, 23, 42, 0.55);
-          color: rgba(226, 242, 254, 0.92);
         }
 
         .llm-dashboard__pill.is-active {
@@ -3502,11 +3365,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
           text-align: center;
           font-weight: 800;
           color: rgba(15, 23, 42, 0.9);
-          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__heat-cell {
-          color: rgba(226, 242, 254, 0.92);
+          box-shadow: inset 0 0 0 1px var(--plate-bg);
         }
 
         .llm-dashboard__matrix-cell {
@@ -3515,18 +3374,13 @@ export default function DermoscopyLLMEvaluationDashboard() {
           text-align: center;
           font-weight: 850;
           color: rgba(15, 23, 42, 0.92);
-          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+          box-shadow: inset 0 0 0 1px var(--plate-bg);
           min-height: 3.1rem;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: 0.18rem;
-        }
-
-        html[data-theme='dark'] .llm-dashboard__matrix-cell {
-          color: rgba(226, 242, 254, 0.92);
-          box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.35);
         }
 
         .llm-dashboard__matrix-secondary {
@@ -3539,7 +3393,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
 	          position: relative;
 	          width: 100%;
 	          overflow: visible;
-	          border-radius: var(--radius-xl);
+	          border-radius: 0;
 	          margin-top: 1rem;
 	        }
 
@@ -3556,7 +3410,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
           z-index: 5;
           padding: 0.75rem 0.85rem;
           border-radius: 1rem;
-          background: rgba(255, 255, 255, 0.92);
+          background: var(--plate-bg);
           border: 1px solid rgba(148, 163, 184, 0.28);
           box-shadow: 0 22px 38px rgba(15, 23, 42, 0.18);
           pointer-events: none;
@@ -3576,12 +3430,6 @@ export default function DermoscopyLLMEvaluationDashboard() {
           transform: translate(calc(-100% - 12px), 12px);
         }
 
-        html[data-theme='dark'] .llm-dashboard__tooltip {
-          background: rgba(15, 23, 42, 0.92);
-          border-color: rgba(148, 163, 184, 0.22);
-          color: rgba(226, 242, 254, 0.92);
-        }
-
         .llm-dashboard__tooltip-title {
           font-weight: 850;
           margin-bottom: 0.55rem;
@@ -3596,7 +3444,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
 
         .llm-dashboard__loading {
           padding: 1rem 1.1rem;
-          border-radius: var(--radius-lg);
+          border-radius: 0;
           background: rgba(148, 163, 184, 0.14);
           color: var(--muted-text);
           font-weight: 650;
@@ -3633,7 +3481,7 @@ export default function DermoscopyLLMEvaluationDashboard() {
 
         .llm-dashboard__empty {
           padding: 1.1rem;
-          border-radius: var(--radius-lg);
+          border-radius: 0;
           border: 1px dashed rgba(148, 163, 184, 0.35);
           color: var(--muted-text);
         }
@@ -3644,19 +3492,11 @@ export default function DermoscopyLLMEvaluationDashboard() {
           color: rgba(15, 23, 42, 0.88);
         }
 
-        html[data-theme='dark'] .llm-dashboard__empty h2 {
-          color: rgba(226, 242, 254, 0.92);
-        }
-
         .llm-dashboard__impact {
           margin: 0.65rem 0 0;
           font-size: 1.05rem;
           color: rgba(127, 29, 29, 0.9);
           font-weight: 650;
-        }
-
-        html[data-theme='dark'] .llm-dashboard__impact {
-          color: rgba(254, 202, 202, 0.92);
         }
 
         .llm-dashboard__impact strong {
@@ -3669,10 +3509,6 @@ export default function DermoscopyLLMEvaluationDashboard() {
         .llm-dashboard__impact-note {
           margin: 1rem 0 0;
           color: rgba(127, 29, 29, 0.8);
-        }
-
-        html[data-theme='dark'] .llm-dashboard__impact-note {
-          color: rgba(254, 202, 202, 0.78);
         }
 
         .llm-dashboard__footer {

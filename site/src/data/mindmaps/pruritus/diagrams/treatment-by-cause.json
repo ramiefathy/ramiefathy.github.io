@@ -1,0 +1,119 @@
+{
+  "id": "pruritus-tx-swimlane",
+  "topic": "pruritus",
+  "title": "Chronic Pruritus — Treatment by Cause",
+  "subtitle": "By etiology (rows) and treatment modality (columns)",
+  "type": "swimlane",
+  "data": {
+    "lanes": [
+      { "id": "topical", "name": "Topical / Barrier" },
+      { "id": "systemic-nonimmune", "name": "Systemic non-immunologic" },
+      { "id": "systemic-targeted", "name": "Systemic immunologic / Targeted biologic" }
+    ],
+    "rows": [
+      {
+        "id": "eczema",
+        "name": "Eczema-driven (Atopic Dermatitis)",
+        "cells": {
+          "topical": {
+            "text": "Ceramide-rich emollients BID · Topical steroid (potency matched to site) · Topical calcineurin inhibitors (tacrolimus 0.1%, pimecrolimus 1%) · Crisaborole (PDE4 inhibitor) · Ruxolitinib cream 1.5% (JAK1/2, age ≥12)",
+            "emphasis": "primary",
+            "detail": "<p><strong>Emollients:</strong> Foundation of all AD therapy; apply within 3 minutes of bathing (soak-and-smear). <strong>Topical steroids:</strong> match potency to body site — avoid high-potency on face, axillae, groin. <strong>TCIs (tacrolimus/pimecrolimus):</strong> steroid-sparing for sensitive areas; FDA black-box (rare lymphoma risk historically debated). <strong>Crisaborole 2%:</strong> non-steroidal PDE4 inhibitor; effective for mild-moderate AD (age ≥2). <strong>Ruxolitinib cream:</strong> rapid itch relief (within 36h in trials); approved for mild-moderate AD age ≥12. PMID 29385376.</p>"
+          },
+          "systemic-nonimmune": {
+            "text": "Sedating H1 antihistamines at bedtime (hydroxyzine, diphenhydramine) for sleep disruption · Non-sedating H1 (fexofenadine, cetirizine) — limited efficacy in AD",
+            "detail": "<p>Antihistamines have limited direct anti-pruritic efficacy in AD (itch is not primarily histamine-mediated in AD). Sedating antihistamines (hydroxyzine 25-50mg QHS) are used for sleep disruption only. Caution in elderly (anticholinergic effects, fall risk).</p>"
+          },
+          "systemic-targeted": {
+            "text": "Dupilumab (IL-4Rα mAb) — primary biologic · Tralokinumab (IL-13 mAb) · Lebrikizumab (IL-13 mAb) · JAK inhibitors: upadacitinib (JAK1) or abrocitinib (JAK1) for moderate-severe",
+            "emphasis": "primary",
+            "detail": "<p><strong>Dupilumab:</strong> IL-4/IL-13 dual blockade; fastest onset for pruritus among AD biologics; SQ Q2W; approved age ≥6 months for moderate-severe AD. <strong>Tralokinumab:</strong> IL-13 selective; SQ Q2W (QW induction); approved adults. <strong>JAK1 inhibitors:</strong> Upadacitinib 15/30mg QD; abrocitinib 100/200mg QD; oral; superior itch reduction in head-to-head trials vs dupilumab. Screen for VTE risk, TB, viral hepatitis before JAK inhibitors. PMID 29385376.</p>"
+          }
+        }
+      },
+      {
+        "id": "cholestatic",
+        "name": "Cholestatic Pruritus (PBC / drug / ICP)",
+        "cells": {
+          "topical": {
+            "text": "Cooling moisturizer / menthol-containing lotion (1% menthol in aqueous cream) · Lukewarm showers (avoid hot water) · Physical cooling vest for severe intractable itch",
+            "detail": "<p>Cooling stimulates cold-sensitive TRPM8 receptors, inhibiting itch sensation at the peripheral level. Menthol 1% in emollient provides temporary relief of cholestatic itch and is well-tolerated. Avoid hot water — heat exacerbates bile acid-mediated itch. Physical cooling devices (ice packs, cooling vests) can dramatically reduce itch intensity in severe cholestatic pruritus.</p>"
+          },
+          "systemic-nonimmune": {
+            "text": "Cholestyramine 4g QID (bile acid sequestrant, first-line) · Rifampin 150-300mg BID (PXR-mediated bile acid clearance) · Naltrexone 50mg QD (opioid antagonist) · Sertraline 75-100mg QD · Obeticholic acid + bezafibrate (add-on in PBC)",
+            "emphasis": "primary",
+            "detail": "<p><strong>Cholestyramine:</strong> Binds bile acids in the gut; take 1 hour before/4 hours after other medications (binds drugs). GI side effects common. <strong>Rifampin:</strong> PXR nuclear receptor agonist; enhances bile acid hydroxylation and excretion; monitor LFTs (hepatotoxicity in 2-13%). <strong>Naltrexone:</strong> μ-opioid receptor antagonist; endogenous opioid tone is elevated in cholestasis; start 12.5mg and titrate to avoid opioid withdrawal-like reaction. <strong>Sertraline:</strong> second-line; mechanism unclear; GI side effects limit use. PMID 29385376.</p>"
+          },
+          "systemic-targeted": {
+            "text": "Linerixibat (IBAT inhibitor — Phase 3 for PBC-related itch) · Maralixibat (pediatric PFIC) · Liver transplant for intractable pruritus in liver failure (definitive)",
+            "emphasis": "caution",
+            "detail": "<p><strong>IBAT inhibitors (ileal bile acid transporter inhibitors):</strong> Block intestinal bile acid reabsorption; linerixibat in Phase 3 trials for PBC-associated pruritus. Emerging but not yet standard. <strong>Liver transplant:</strong> Definitive treatment for otherwise intractable cholestatic pruritus due to end-stage liver disease. Pruritus alone is not a listing criterion, but refractory pruritus reduces quality of life and may influence listing discussions.</p>"
+          }
+        }
+      },
+      {
+        "id": "uremic",
+        "name": "Uremic / CKD-Associated Pruritus",
+        "cells": {
+          "topical": {
+            "text": "Ceramide-containing emollients BID (reduce TEWL) · Capsaicin 0.025-0.075% cream (TRPV1 desensitization) · Pramoxine 1% lotion (topical anesthetic) · Tacrolimus 0.1% ointment (localized areas)",
+            "detail": "<p><strong>Emollients:</strong> Uremic patients have impaired barrier function + xerosis; ceramide-rich formulas preferred. <strong>Capsaicin:</strong> Depletes substance P from cutaneous nerve endings; initial burning sensation limits tolerability. Begin with 0.025% and titrate. High-concentration capsaicin 8% patch (Qutenza) may be useful under specialist supervision. <strong>Pramoxine:</strong> Available in specialized CKD pruritus formulations; well-tolerated.</p>"
+          },
+          "systemic-nonimmune": {
+            "text": "Gabapentin 100-300mg post-dialysis (renally dose-adjusted) · Pregabalin 25-75mg QD-BID (renally adjusted) · Optimize dialysis adequacy (Kt/V target ≥1.2) · Thalidomide 100mg QHS (third-line, refractory) · Nalfurafine (κ-opioid agonist, available Japan/Korea)",
+            "detail": "<p><strong>Gabapentinoids:</strong> Reduce itch intensity and improve sleep; most evidence for gabapentin in hemodialysis. Dose after each dialysis session and reduce based on residual renal function. Monitor for dizziness, somnolence (accumulation risk in CKD). <strong>Dialysis adequacy:</strong> Increasing dialysis dose (Kt/V) or switch to high-flux membranes reduces but rarely eliminates pruritus. <strong>Thalidomide:</strong> Anti-inflammatory + immunomodulatory; significant teratogenicity risk — strict REMS program required. PMID 29385376.</p>"
+          },
+          "systemic-targeted": {
+            "text": "Difelikefalin 0.5 mcg/kg IV post-dialysis (κ-opioid receptor agonist) — FDA-approved 2021 · Nemolizumab (IL-31Rα) — investigational for CKD pruritus",
+            "emphasis": "primary",
+            "detail": "<p><strong>Difelikefalin (Korsuva):</strong> First FDA-approved therapy specifically for CKD-associated pruritus in hemodialysis adults. Peripherally restricted κ-opioid receptor agonist (does not cross BBB); administered IV 3×/week after dialysis. Significantly reduces Worst Itching Intensity NRS vs placebo in KALM-1 and KALM-2 trials. Does not require renal dose adjustment. Main side effects: dizziness, nausea, somnolence. PMID 29385376.</p>"
+          }
+        }
+      },
+      {
+        "id": "neuropathic",
+        "name": "Neuropathic Pruritus (brachioradial / notalgia / PHI / SFN)",
+        "cells": {
+          "topical": {
+            "text": "Capsaicin 0.075% cream TID-QID (desensitize TRPV1) · High-concentration capsaicin 8% patch (Qutenza, specialist application) · Lidocaine 4% solution or 5% patch · Menthol 1-3% cream (cooling analgesia) · Ice pack test and therapeutic cooling",
+            "emphasis": "primary",
+            "detail": "<p><strong>Capsaicin:</strong> Most studied topical for neuropathic itch; initial burning (minutes) followed by TRPV1 desensitization and reduced itch. Must be applied consistently for 4-6 weeks for benefit. High-concentration 8% patch (Qutenza): single 60-minute application by clinician; lasts 3 months. FDA-approved for neuropathic pain; used off-label for neuropathic itch. <strong>Lidocaine patches:</strong> Applied 12h on/12h off to symptomatic dermatomal area; especially useful for postherpetic itch. PMID 29385376.</p>"
+          },
+          "systemic-nonimmune": {
+            "text": "Gabapentin 300-3600mg/day (titrate) · Pregabalin 75-300mg/day · Tricyclic antidepressants: amitriptyline 10-75mg QHS or nortriptyline · Duloxetine (SNRI) 60mg QD for SFN · Physical therapy / paraspinal muscle release (notalgia) · Cervical traction / surgery (brachioradial, structural cause)",
+            "emphasis": "primary",
+            "detail": "<p><strong>Gabapentinoids:</strong> First-line systemic for neuropathic itch; alpha-2-delta calcium channel subunit blockade reduces ectopic nerve firing. Titrate slowly; common side effects: dizziness, somnolence, weight gain. <strong>TCAs:</strong> Amitriptyline for sleep disruption + analgesic effect; nortriptyline better tolerated in elderly (less anticholinergic). Start 10mg QHS, titrate to 50-75mg. <strong>Duloxetine:</strong> SNRI with evidence in diabetic SFN. PMID 29385376.</p>"
+          },
+          "systemic-targeted": {
+            "text": "Botulinum toxin A (intradermal injections) for notalgia paresthetica and brachioradial pruritus · NMDA antagonists (memantine) for central sensitization · Nerve block / cervical epidural for structural radiculopathy",
+            "detail": "<p><strong>Botulinum toxin A:</strong> Intradermal injections of 50-100 units across affected dermatome; reduces itch for 3-6 months; requires repeat treatment. Evidence from small RCTs and case series in notalgia paresthetica. <strong>Nerve blocks:</strong> Targeted paravertebral or cervical epidural blocks for confirmed radiculopathy. Interventional pain specialist referral for refractory cases. <strong>Surgical decompression:</strong> Reserved for confirmed structural cervical stenosis in brachioradial pruritus after failed conservative therapy.</p>"
+          }
+        }
+      },
+      {
+        "id": "idiopathic",
+        "name": "Idiopathic Chronic Pruritus",
+        "cells": {
+          "topical": {
+            "text": "Ceramide-rich emollients QD-BID (barrier restoration) · Menthol 1-2% (symptomatic cooling) · Topical calcineurin inhibitors off-label",
+            "detail": "<p>In idiopathic chronic pruritus (diagnosis of exclusion), barrier restoration with emollients is the foundation. Menthol provides temporary relief. Topical steroids are generally not indicated in the absence of primary skin inflammation.</p>"
+          },
+          "systemic-nonimmune": {
+            "text": "Gabapentin 300-1800mg/day · Pregabalin 75-150mg/day · Mirtazapine 15-30mg QHS (NK1 + H1 + NaSSA) · Doxepin 10-25mg QHS (potent H1/H2 antihistamine) · Aprepitant 80mg QD (NK1 receptor antagonist) · Low-dose naltrexone 1.5-4.5mg QHS",
+            "emphasis": "primary",
+            "detail": "<p><strong>Mirtazapine:</strong> NaSSA antidepressant; potent H1 and NK1 receptor antagonism; excellent for nocturnal pruritus; start 15mg QHS (weight gain, sedation are common side effects). <strong>Doxepin:</strong> Potent H1 + H2 + muscarinic antagonist at low doses; 10-25mg QHS; avoid in elderly (anticholinergic burden). <strong>Aprepitant:</strong> NK1 receptor antagonist (antiemetic drug); off-label; evidence in cancer-related, chronic renal, and idiopathic pruritus. <strong>Low-dose naltrexone:</strong> Emerging evidence in pruritus; immunomodulatory at 1.5-4.5mg (different mechanism from standard 50mg dose). PMID 29385376.</p>"
+          },
+          "systemic-targeted": {
+            "text": "Nemolizumab (IL-31Rα mAb) — approved for prurigo nodularis (2023); emerging evidence in chronic pruritus · Dupilumab off-label if atopic background suspected · Aprepitant (NK1R) — used in cancer-related and chronic pruritus",
+            "emphasis": "caution",
+            "detail": "<p><strong>Nemolizumab:</strong> IL-31 receptor α-chain blocking antibody; IL-31 is a key pruritogen driving itch and prurigo nodularis. FDA-approved for prurigo nodularis (age ≥12) in 2023; off-label for idiopathic chronic itch. SQ Q4W. <strong>Dupilumab:</strong> Off-label for chronic pruritus without AD; may be effective when atopic background or type 2 inflammation suspected but not formally diagnosed. Caution: use evidence-based indications; document atopic features before prescribing. PMID 29385376.</p>"
+          }
+        }
+      }
+    ]
+  },
+  "citations": [
+    { "pmid": "29385376", "quote": "Yosipovitch G, Bernhard JD. Chronic pruritus. N Engl J Med. 2013;368(17):1625-1634. Updated 2018." },
+    { "pmid": "17489818", "quote": "Ständer S et al. Clinical classification of itch: a position paper of the International Forum for the Study of Itch. Acta Derm Venereol. 2007;87(4):291-294." }
+  ]
+}

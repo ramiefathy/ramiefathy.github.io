@@ -1,0 +1,289 @@
+{
+  "id": "pruritus-cause-dt",
+  "topic": "pruritus",
+  "title": "Chronic Pruritus — Cause Decision Tree",
+  "subtitle": "Itch lasting >6 weeks: dermatologic vs systemic vs neuropathic",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      {
+        "id": "start",
+        "type": "decision",
+        "prompt": "Chronic pruritus (>6 weeks). Primary skin lesions visible on exam?",
+        "detail": "<p>Primary lesions include papules, vesicles, wheals, plaques arising <em>de novo</em>. Secondary lesions only (excoriations, prurigo nodules, lichen simplex chronicus) do <strong>not</strong> count as primary. Distinguishing primary vs secondary lesions is the pivotal first step (Yosipovitch 2018, PMID 29385376).</p>",
+        "branches": [
+          { "label": "Yes — primary lesions present", "nextStepId": "derm-present" },
+          { "label": "No — skin normal or only secondary lesions", "nextStepId": "systemic-workup" }
+        ]
+      },
+      {
+        "id": "derm-present",
+        "type": "decision",
+        "prompt": "Characterize the primary lesion pattern",
+        "branches": [
+          { "label": "Erythematous patches/plaques with scale (chronic relapsing)", "nextStepId": "eczema-psoriasis" },
+          { "label": "Transient wheals/angioedema (<24h each)", "nextStepId": "urticaria" },
+          { "label": "Linear burrows + interdigital involvement", "nextStepId": "scabies" },
+          { "label": "Violaceous polygonal papules + Wickham striae", "nextStepId": "lichen-planus" },
+          { "label": "Urticarial plaques/vesicles + tense bullae in older adult", "nextStepId": "bp-mycosis" },
+          { "label": "Tan macules/papules flushing with stroking", "nextStepId": "mastocytosis" }
+        ]
+      },
+      {
+        "id": "eczema-psoriasis",
+        "type": "decision",
+        "prompt": "Atopic history vs well-demarcated silvery plaques on extensor surfaces?",
+        "branches": [
+          { "label": "Atopic history, flexural, relapsing — Atopic Dermatitis", "nextStepId": "ad-terminal" },
+          { "label": "Well-demarcated silvery plaques — Psoriasis", "nextStepId": "psoriasis-terminal" },
+          { "label": "Contact pattern or occupational exposure", "nextStepId": "contact-terminal" }
+        ]
+      },
+      {
+        "id": "ad-terminal",
+        "type": "terminal",
+        "prompt": "Atopic Dermatitis",
+        "detail": "<p>Manage per severity: topical steroids + emollients for mild-moderate; dupilumab (IL-4Rα biologic) or JAK inhibitors (upadacitinib, abrocitinib) for moderate-severe. Address itch directly with topical calcineurin inhibitors, crisaborole, or systemic therapies.</p>"
+      },
+      {
+        "id": "psoriasis-terminal",
+        "type": "terminal",
+        "prompt": "Psoriasis",
+        "detail": "<p>Itch is prominent in 60-90% of psoriasis patients. PASI assessment guides therapy. Biologics (IL-17A, IL-23, TNF inhibitors) address both inflammation and pruritus. Screen for psoriatic arthritis.</p>"
+      },
+      {
+        "id": "contact-terminal",
+        "type": "terminal",
+        "prompt": "Contact Dermatitis (allergic or irritant)",
+        "detail": "<p>Patch testing for allergic contact; identify and eliminate offending allergen or irritant. Topical steroids for acute flares. Occupational dermatitis requires workplace modification.</p>"
+      },
+      {
+        "id": "urticaria",
+        "type": "terminal",
+        "prompt": "Urticaria (chronic spontaneous or inducible)",
+        "detail": "<p>Chronic urticaria (>6 weeks): 85% idiopathic/autoimmune. Tier 1: non-sedating H1 antihistamine (up to 4× standard dose). Tier 2: omalizumab (anti-IgE). Tier 3: cyclosporine. Screen for thyroid peroxidase antibody, CBC, CRP.</p>"
+      },
+      {
+        "id": "scabies",
+        "type": "terminal",
+        "prompt": "Scabies",
+        "detail": "<p>Sarcoptes scabiei var hominis. Treat entire household simultaneously. Permethrin 5% cream (preferred) or oral ivermectin 200 mcg/kg × 2 doses (1 week apart). Wash bedding/clothing. Post-scabetic itch may persist 2-4 weeks after cure — treat symptomatically; do not re-treat without evidence of re-infection.</p>"
+      },
+      {
+        "id": "lichen-planus",
+        "type": "terminal",
+        "prompt": "Lichen Planus",
+        "detail": "<p>6Ps: Pruritic, Purple, Polygonal, Planar, Papules, Plaques. Mucous membrane involvement in 50%. Topical class I steroid or tacrolimus first-line. Systemic options: acitretin, hydroxychloroquine, cyclosporine for severe disease. Oral lichen planus — monitor for malignant transformation.</p>"
+      },
+      {
+        "id": "bp-mycosis",
+        "type": "decision",
+        "prompt": "Age >60 with urticarial lesions/tense bullae vs relapsing patches with blood smear abnormality?",
+        "branches": [
+          { "label": "Tense bullae + eosinophilia in older adult — Bullous Pemphigoid", "nextStepId": "bp-terminal" },
+          { "label": "Persistent patches → plaques → tumors in older adult — Mycosis Fungoides", "nextStepId": "mf-terminal" }
+        ]
+      },
+      {
+        "id": "bp-terminal",
+        "type": "terminal",
+        "prompt": "Bullous Pemphigoid (early or urticarial phase)",
+        "detail": "<p>Pre-bullous BP may present with intense pruritus and urticarial plaques only. DIF: linear IgG + C3 at BMZ. BP180/BP230 ELISA. First-line: superpotent topical steroid (Class I) + doxycycline (anti-inflammatory). Severe: systemic prednisone ± rituximab or omalizumab.</p>"
+      },
+      {
+        "id": "mf-terminal",
+        "type": "terminal",
+        "prompt": "Mycosis Fungoides (CTCL)",
+        "detail": "<p>Most common cutaneous T-cell lymphoma. May itch intensely for years before diagnosis. Patch → plaque → tumor stage. Skin-directed therapy for early disease (NB-UVB, PUVA, topical mechlorethamine). Pruritus management: antihistamines, mirtazapine, gabapentin, aprepitant (NK1 antagonist).</p>"
+      },
+      {
+        "id": "mastocytosis",
+        "type": "terminal",
+        "prompt": "Mastocytosis (Urticaria Pigmentosa / Cutaneous)",
+        "detail": "<p>Darier sign (urtication with stroking). Serum tryptase; bone marrow biopsy if systemic mastocytosis suspected. First-line: H1 + H2 antihistamines; cromolyn sodium; avoid triggers (NSAIDs, alcohol, heat, friction). KIT D816V mutation in systemic disease — midostaurin for advanced forms.</p>"
+      },
+      {
+        "id": "systemic-workup",
+        "type": "decision",
+        "prompt": "Pruritus on normal/near-normal skin. Distribution and clinical clues?",
+        "detail": "<p>When primary skin lesions are absent, a systematic approach by distribution and associated symptoms guides the diagnosis. Order tier-1 labs before subspecializing.</p>",
+        "branches": [
+          { "label": "Palms/soles, worse at night — cholestasis pattern", "nextStepId": "cholestatic" },
+          { "label": "Generalized, patient on dialysis or with known CKD", "nextStepId": "uremic" },
+          { "label": "Generalized + lymphadenopathy/B symptoms (fever, night sweats, weight loss)", "nextStepId": "lymphoma" },
+          { "label": "Generalized, worse after warm shower (aquagenic pruritus)", "nextStepId": "mpn" },
+          { "label": "Localized: scalp only", "nextStepId": "scalp-local" },
+          { "label": "Localized: anogenital", "nextStepId": "anogenital" },
+          { "label": "Localized: forearm/dorsal arm (brachioradial) or interscapular (notalgia)", "nextStepId": "neuropathic" },
+          { "label": "Generalized in older adult, no findings, no systemic clues", "nextStepId": "senile-drug" }
+        ]
+      },
+      {
+        "id": "cholestatic",
+        "type": "action",
+        "prompt": "Cholestatic liver workup",
+        "detail": "<p>Order: total bilirubin, direct bilirubin, ALP, GGT, AST/ALT, antimitochondrial antibody (AMA), abdominal ultrasound. Review all medications started within 4-12 weeks (drug-induced cholestasis). AMA+ → PBC. Alkaline cholestasis pattern without AMA → primary sclerosing cholangitis, intrahepatic cholestasis of pregnancy (if applicable), or drug-induced.</p>",
+        "branches": [
+          { "label": "AMA+, elevated ALP — PBC", "nextStepId": "pbc-terminal" },
+          { "label": "Drug culprit identified (anabolic steroids, OCPs, antibiotics)", "nextStepId": "drug-cholestasis-terminal" }
+        ]
+      },
+      {
+        "id": "pbc-terminal",
+        "type": "terminal",
+        "prompt": "Primary Biliary Cholangitis (PBC)",
+        "detail": "<p>Palmar/plantar pruritus, worst at night. Ursodeoxycholic acid (UDCA) slows disease but may not relieve pruritus. Pruritus-specific: cholestyramine (first-line), rifampin, naltrexone, sertraline. Obeticholic acid + bezafibrate as second-line options. PMID 29385376.</p>"
+      },
+      {
+        "id": "drug-cholestasis-terminal",
+        "type": "terminal",
+        "prompt": "Drug-Induced Cholestatic Pruritus",
+        "detail": "<p>Offending drug withdrawal is curative. Common culprits: anabolic steroids, oral contraceptives, chlorpromazine, amoxicillin-clavulanate, trimethoprim-sulfamethoxazole. While awaiting resolution: cholestyramine, rifampin, or naltrexone for symptomatic relief.</p>"
+      },
+      {
+        "id": "uremic",
+        "type": "terminal",
+        "prompt": "Uremic / CKD-Associated Pruritus",
+        "detail": "<p>Affects 40-70% of hemodialysis patients. Pathophysiology: uremic toxins, κ-opioid receptor dysregulation, small-fiber neuropathy. First-line: optimize dialysis adequacy + emollients + gabapentin/pregabalin (renally adjusted). Difelikefalin (κ-opioid agonist, IV post-dialysis) is FDA-approved for CKD-associated pruritus. Nalfurafine available in Japan/Korea. Capsaicin cream for localized areas. PMID 29385376.</p>"
+      },
+      {
+        "id": "lymphoma",
+        "type": "action",
+        "prompt": "Hodgkin/NHL workup",
+        "detail": "<p>Pruritus may precede Hodgkin lymphoma diagnosis by months to years. Order: CBC with differential (look for eosinophilia, Reed-Sternberg cells), LDH, ESR, CRP, uric acid. CT chest/abdomen/pelvis or PET-CT. Biopsy enlarged lymph node. Pruritus in Hodgkin is cytokine-mediated (IL-31, IL-6, thymus and activation-regulated chemokine [TARC]).</p>",
+        "branches": [
+          { "label": "Hodgkin confirmed", "nextStepId": "hodgkin-terminal" },
+          { "label": "NHL or other hematologic malignancy", "nextStepId": "nhl-terminal" }
+        ]
+      },
+      {
+        "id": "hodgkin-terminal",
+        "type": "terminal",
+        "prompt": "Hodgkin Lymphoma",
+        "detail": "<p>Pruritus resolves with effective chemotherapy (ABVD or BV-AVD regimen). While awaiting treatment: antihistamines, mirtazapine, gabapentin, aprepitant (NK1R antagonist). Pruritus is a systemic B symptom and a red flag that should not be attributed to skin disease alone. PMID 29385376.</p>"
+      },
+      {
+        "id": "nhl-terminal",
+        "type": "terminal",
+        "prompt": "Non-Hodgkin Lymphoma / Other Hematologic Cause",
+        "detail": "<p>Pruritus occurs in NHL, polycythemia vera, iron-deficiency anemia, and other hematologic conditions. Treat underlying disease. Symptomatic pruritus management: antihistamines, gabapentinoids, mirtazapine.</p>"
+      },
+      {
+        "id": "mpn",
+        "type": "terminal",
+        "prompt": "Polycythemia Vera / Myeloproliferative Neoplasm (Aquagenic Pruritus)",
+        "detail": "<p>Aquagenic pruritus (intense burning/stinging/itching triggered within minutes of water contact at any temperature) is a hallmark of polycythemia vera (PV), occurring in 40-70% of patients. Check CBC: elevated hemoglobin/hematocrit + elevated RBC mass. JAK2 V617F mutation in 95% of PV. Management: phlebotomy + hydroxyurea + aspirin; interferon-α; ruxolitinib (JAK1/2 inhibitor) for refractory pruritus. PMID 29385376.</p>"
+      },
+      {
+        "id": "scalp-local",
+        "type": "decision",
+        "prompt": "Scalp pruritus — specific pattern?",
+        "branches": [
+          { "label": "Flaking + seborrheic distribution (scalp, face, chest)", "nextStepId": "seb-derm-terminal" },
+          { "label": "Well-demarcated plaques on scalp", "nextStepId": "scalp-psoriasis-terminal" },
+          { "label": "Associated scalp hair loss", "nextStepId": "scalp-alopecia-terminal" }
+        ]
+      },
+      {
+        "id": "seb-derm-terminal",
+        "type": "terminal",
+        "prompt": "Seborrheic Dermatitis",
+        "detail": "<p>Malassezia-driven inflammatory condition. Ketoconazole 2% shampoo or ciclopirox shampoo + zinc pyrithione shampoo. For refractory scalp: low-potency topical steroid solution. Facial SD: ketoconazole cream or low-potency topical calcineurin inhibitor.</p>"
+      },
+      {
+        "id": "scalp-psoriasis-terminal",
+        "type": "terminal",
+        "prompt": "Scalp Psoriasis",
+        "detail": "<p>Treat with clobetasol shampoo or solution, tar shampoo, or calcipotriol/betamethasone foam. Biologic therapy if extensive or associated with plaque psoriasis.</p>"
+      },
+      {
+        "id": "scalp-alopecia-terminal",
+        "type": "terminal",
+        "prompt": "Scalp Itch with Hair Loss",
+        "detail": "<p>Consider alopecia areata (itch in active disease), lichen planopilaris (burning itch + frontal fibrosing alopecia), seborrheic dermatitis-associated TE. Refer to dermatology for trichoscopy and possible scalp biopsy.</p>"
+      },
+      {
+        "id": "anogenital",
+        "type": "decision",
+        "prompt": "Anogenital pruritus — specific cause?",
+        "branches": [
+          { "label": "Postmenopausal F or older M — lichen sclerosus pattern", "nextStepId": "lichen-sclerosus-terminal" },
+          { "label": "Discharge + erythema — candidiasis or bacterial", "nextStepId": "anogenital-infection-terminal" },
+          { "label": "Perianal only — consider pinworm (pediatric/adult), hemorrhoids, contact", "nextStepId": "perianal-terminal" }
+        ]
+      },
+      {
+        "id": "lichen-sclerosus-terminal",
+        "type": "terminal",
+        "prompt": "Lichen Sclerosus",
+        "detail": "<p>Figure-of-eight distribution around vulva and perianal region in women; glans penis (BXO) in uncircumcised men. First-line: ultrapotent topical steroid (clobetasol propionate 0.05%) tapering over 3 months. Long-term maintenance. Biopsy to exclude dysplasia. 4-5% risk of squamous cell carcinoma — long-term follow-up mandatory.</p>"
+      },
+      {
+        "id": "anogenital-infection-terminal",
+        "type": "terminal",
+        "prompt": "Anogenital Infection (Candidiasis / BV / STI)",
+        "detail": "<p>Vulvovaginal candidiasis: fluconazole 150mg oral × 1 or topical azole. Bacterial vaginosis: metronidazole. Contact dermatitis: identify irritant/allergen. Patch testing if recurrent. Consider STI screening (trichomoniasis, herpes, syphilis) in sexually active patients.</p>"
+      },
+      {
+        "id": "perianal-terminal",
+        "type": "terminal",
+        "prompt": "Perianal Pruritus",
+        "detail": "<p>Common causes: pinworm (Enterobius vermicularis — collect adhesive tape test at night), hemorrhoids, contact dermatitis (moist wipes, topical anesthetics), dietary irritants (coffee, spices). Treat underlying cause. Scotch tape test or stool O&P for pinworm; mebendazole 100mg × 1 if confirmed.</p>"
+      },
+      {
+        "id": "neuropathic",
+        "type": "decision",
+        "prompt": "Location of neuropathic itch?",
+        "branches": [
+          { "label": "Lateral forearm/dorsal arm (worse in summer, no rash)", "nextStepId": "brachioradial-terminal" },
+          { "label": "Mid-back interscapular (T2-T6 dermatome)", "nextStepId": "notalgia-terminal" },
+          { "label": "Post-zoster scar/dermatome", "nextStepId": "postherpetic-terminal" }
+        ]
+      },
+      {
+        "id": "brachioradial-terminal",
+        "type": "terminal",
+        "prompt": "Brachioradial Pruritus",
+        "detail": "<p>Cervical radiculopathy (C5-C8) most common etiology; worsened by UV exposure. Ice pack test: relief with ice pack confirms neuropathic origin. MRI cervical spine. First-line: gabapentin/pregabalin, topical capsaicin 0.075%, sunscreen. Cervical traction or surgery if structural cause confirmed. PMID 29385376.</p>"
+      },
+      {
+        "id": "notalgia-terminal",
+        "type": "terminal",
+        "prompt": "Notalgia Paresthetica",
+        "detail": "<p>T2-T6 dorsal nerve entrapment. Hyperpigmented patch at medial scapular border is classic secondary change. First-line: topical capsaicin 0.025-0.075%, gabapentin/pregabalin, topical anesthetics. Physical therapy for paraspinal muscle release. Botulinum toxin injections in refractory cases. PMID 29385376.</p>"
+      },
+      {
+        "id": "postherpetic-terminal",
+        "type": "terminal",
+        "prompt": "Post-Herpetic Itch (Neuropathic)",
+        "detail": "<p>Chronic itch in the site of prior herpes zoster, distinct from postherpetic neuralgia. Treat with topical capsaicin (including high-concentration 8% patch), lidocaine patches, gabapentinoids, or TCAs (amitriptyline). NMDA receptor antagonists (memantine) in refractory cases.</p>"
+      },
+      {
+        "id": "senile-drug",
+        "type": "decision",
+        "prompt": "Older adult with generalized itch + no systemic findings. Medications reviewed?",
+        "branches": [
+          { "label": "Drug culprit identified (opioids, ACEi, statins, chemo)", "nextStepId": "drug-pruritus-terminal" },
+          { "label": "No drug cause — dry skin in elderly", "nextStepId": "xerosis-terminal" }
+        ]
+      },
+      {
+        "id": "drug-pruritus-terminal",
+        "type": "terminal",
+        "prompt": "Drug-Induced Pruritus",
+        "detail": "<p>Common culprits: opioids (mu-receptor mediated; treat with nalbuphine or butorphanol), ACE inhibitors, statins, chloroquine, hydroxyurea, checkpoint inhibitors (pembrolizumab/nivolumab — often presents as maculopapular rash), targeted therapies (BRAF/MEK inhibitors). Discontinue if feasible; substitute alternative. PMID 29385376.</p>"
+      },
+      {
+        "id": "xerosis-terminal",
+        "type": "terminal",
+        "prompt": "Senile/Xerotic Pruritus (Pruritus of the Elderly)",
+        "detail": "<p>Most common cause of generalized pruritus in patients >65. Reduced epidermal lipids, impaired barrier function. Management: thick emollients BID (ceramide-containing preferred), short warm showers, humidifier. Symptomatic: low-dose naltrexone, gabapentin, or mirtazapine if emollients insufficient. Ensure TSH, CBC, CMP, ferritin normal to exclude systemic cause. PMID 29385376.</p>"
+      }
+    ]
+  },
+  "citations": [
+    { "pmid": "29385376", "quote": "Yosipovitch G, Bernhard JD. Chronic pruritus. N Engl J Med. 2013;368(17):1625-1634. Updated review 2018." },
+    { "pmid": "17489818", "quote": "Ständer S et al. Clinical classification of itch: a position paper of the International Forum for the Study of Itch. Acta Derm Venereol. 2007;87(4):291-294." }
+  ]
+}

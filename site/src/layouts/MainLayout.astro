@@ -25,8 +25,7 @@ const footerLinks = [
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#041020" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#f4fbff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#f4f0e8" />
     <meta property="og:site_name" content="Ramie Fathy, MD" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -37,20 +36,11 @@ const footerLinks = [
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
+    <link rel="preload" href="/apps/shared/fonts/BricolageGrotesque-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/apps/shared/fonts/Newsreader-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/apps/shared/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/apps/shared/legacy-fonts.css" />
     <link rel="stylesheet" href="/style.css" />
-    <script is:inline>
-      (function () {
-        try {
-          const stored = window.localStorage.getItem('theme');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const theme = stored || (prefersDark ? 'dark' : 'light');
-          document.documentElement.dataset.theme = theme;
-        } catch (err) {
-          document.documentElement.dataset.theme = 'light';
-        }
-      })();
-    </script>
     <title>{title}</title>
     <link rel="canonical" href={canonicalUrl} />
   </head>
@@ -61,32 +51,33 @@ const footerLinks = [
     <footer class="layout-footer">
       <div class="layout-footer__inner">
         <div class="layout-footer__brand">
-          <p class="layout-footer__name">{profile.name}</p>
-          <p class="layout-footer__tagline">{profile.title}</p>
+          <p class="layout-footer__name">Ramie <em>Fathy</em>, MD</p>
+          <p class="layout-footer__tagline">Dermatology · AI · Equity · Baltimore.</p>
           <p class="layout-footer__meta">
-            © {new Date().getFullYear()} {profile.name}. Built with Astro.
+            © {new Date().getFullYear()} {profile.name} · Atlas Vol. IV · Built with Astro.
           </p>
         </div>
-        <div class="layout-footer__nav" aria-label="Footer navigation">
-          <div class="layout-footer__group">
-            <p class="layout-footer__group-title">Explore</p>
-            {footerLinks.slice(0, 4).map((link) => (
-              <a href={link.href} class="layout-footer__link">{link.label}</a>
-            ))}
-          </div>
-          <div class="layout-footer__group">
-            <p class="layout-footer__group-title">More</p>
-            {footerLinks.slice(4).map((link) => (
-              <a href={link.href} class="layout-footer__link">{link.label}</a>
-            ))}
-          </div>
-          <div class="layout-footer__group">
-            <p class="layout-footer__group-title">Connect</p>
-            <a class="layout-footer__link" href={profile.contact.email}>Email</a>
-            <a class="layout-footer__link" href={profile.contact.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
-            <a class="layout-footer__link" href={profile.contact.scholar} target="_blank" rel="noreferrer">Google Scholar</a>
-            <a class="layout-footer__link" href={profile.contact.researchgate} target="_blank" rel="noreferrer">ResearchGate</a>
-          </div>
+        <div class="layout-footer__group">
+          <p class="layout-footer__group-title">Pages</p>
+          <a class="layout-footer__link" href="/">Home</a>
+          <a class="layout-footer__link" href="/about">About</a>
+          <a class="layout-footer__link" href="/apps">Apps</a>
+          <a class="layout-footer__link" href="/research">Research</a>
+          <a class="layout-footer__link" href="/blog">Blog</a>
+          <a class="layout-footer__link" href="/contact">Contact</a>
+        </div>
+        <div class="layout-footer__group">
+          <p class="layout-footer__group-title">Connect</p>
+          <a class="layout-footer__link" href={profile.contact.email}>Email</a>
+          <a class="layout-footer__link" href={profile.contact.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+          <a class="layout-footer__link" href={profile.contact.scholar} target="_blank" rel="noreferrer">Google Scholar</a>
+          <a class="layout-footer__link" href={profile.contact.researchgate} target="_blank" rel="noreferrer">ResearchGate</a>
+        </div>
+        <div class="layout-footer__group">
+          <p class="layout-footer__group-title">Colophon</p>
+          <a class="layout-footer__link" href="https://github.com/ramiefathy/ramiefathy.github.io" target="_blank" rel="noreferrer">Source on GitHub</a>
+          <a class="layout-footer__link" href="/legacy">Legacy archive</a>
+          <span class="layout-footer__link" style="cursor:default">Bricolage · Newsreader · Space Mono</span>
         </div>
       </div>
     </footer>

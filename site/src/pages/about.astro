@@ -1,133 +1,122 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import Header from '../components/Header.jsx';
-import Timeline from '../components/Timeline.jsx';
-import SkillsVisualization from '../components/SkillsVisualization.jsx';
 import profile from '../data/profile.json';
-import timeline from '../data/timeline.json';
 import skills from '../data/skills.json';
+
+const clinicalTraining = [
+  { y: '2026—', what: 'Mass General Brigham', role: 'Incoming Rheumatology-Dermatology Fellow', tag: 'Incoming' },
+  { y: '2022—2026', what: 'Johns Hopkins University', role: 'PGY-4 Dermatology Resident Physician', tag: 'Active' },
+  { y: '2017—2021', what: 'Perelman School of Medicine', role: 'MD, Alpha Omega Alpha', tag: 'Conferred' },
+  { y: '2013—2017', what: 'Princeton University', role: 'AB Molecular Biology · Summa Cum Laude · Phi Beta Kappa', tag: 'Conferred' }
+];
+
+const leadership = [
+  { y: '2025—2027', what: 'AAD Council on Science & Research', role: 'Elected member', tag: 'Elected' },
+  { y: '2024—2026', what: 'Johns Hopkins House Staff Council', role: 'Vice President, Resident Affairs', tag: 'Active' },
+  { y: '2020—2021', what: 'POHPS · Penn Medicine', role: 'Founder & Director · COVID-19 response', tag: 'Founder' },
+  { y: '2017', what: 'Penn Medicine, Class of 2017', role: 'Curriculum Representative', tag: 'Service' }
+];
+
+const domains = [
+  { key: 'clinical', label: 'Clinical', cls: 'clinical', items: skills.clinical?.skills ?? [] },
+  { key: 'technical', label: 'Technical', cls: 'technical', items: skills.technical?.skills ?? [] },
+  { key: 'scholarly', label: 'Scholarly', cls: 'scholarly', items: skills.research?.skills ?? [] }
+];
 ---
 <MainLayout title="About – Ramie Fathy, MD" description="Biography, training, leadership, and interests for Dr. Ramie Fathy.">
   <Header client:load />
   <main id="main-content">
-    <section class="section" style="padding-top:4.5rem">
-      <div class="section__inner" style="max-width:880px">
-        <div class="section__intro" style="margin-bottom:2.5rem">
-          <h1 class="section__title">{profile.name}</h1>
-          <p class="section__subtitle">{profile.summary}</p>
-        </div>
-        <article class="about-card">
-          <h2>Clinical Training</h2>
-          <ul>
-            <li>PGY-4 Dermatology Resident Physician, Johns Hopkins University School of Medicine.</li>
-            <li>Incoming Rheumatology-Dermatology Fellow, Mass General Brigham.</li>
-            <li>MD, Perelman School of Medicine at the University of Pennsylvania (Alpha Omega Alpha).</li>
-            <li>AB in Molecular Biology, Princeton University (Summa Cum Laude, Phi Beta Kappa).</li>
-          </ul>
-
-          <h2>Leadership & Service</h2>
-          <ul>
-            <li>Vice President of Resident Affairs, Johns Hopkins House Staff Council.</li>
-            <li>Member, American Academy of Dermatology Council on Science and Research (2025–2027).</li>
-            <li>Founder & Director, Philadelphia Organization of Health Professions Students (COVID-19 response).</li>
-            <li>Curriculum Representative, Penn Medicine Class of 2017.</li>
-          </ul>
-
-          <h2>Research & Interests</h2>
-          <p>
-            My work spans inflammatory dermatoses, cutaneous oncology, patient-centered teledermatology, and responsible AI. I build clinical decision tools, study the equity implications of new technologies, and enjoy translating complex science into empathetic narratives for trainees, clinicians, and patients.
-          </p>
-
-          <h2>Outside the Clinic</h2>
-          <p>
-            I love mentoring future physician-innovators, producing radio and podcast stories, and exploring Baltimore's culinary community. When traveling, you'll find me sketching architectural textures and searching for the best espresso shot in town.
-          </p>
-        </article>
-      </div>
-    </section>
-
-    <!-- Career Timeline Section -->
-    <section class="section" style="background:linear-gradient(180deg, rgba(239,246,255,0.6), rgba(255,255,255,0.95))">
-      <div class="section__inner" style="max-width:900px">
-        <div class="section__intro scroll-fade" data-scroll-fade>
-          <h2 class="section__title">Career Timeline</h2>
-          <p class="section__subtitle">From Princeton to Johns Hopkins to Mass General Brigham—milestones in education, training, and leadership.</p>
-        </div>
-        <Timeline client:visible data={timeline} />
-      </div>
-    </section>
-
-    <!-- Skills & Expertise Section -->
     <section class="section">
-      <div class="section__inner" style="max-width:1000px">
-        <div class="section__intro scroll-fade" data-scroll-fade>
-          <h2 class="section__title">Skills & Expertise</h2>
-          <p class="section__subtitle">Clinical, technical, and research competencies developed over a decade of training and practice.</p>
-        </div>
-        <SkillsVisualization client:visible data={skills} />
-      </div>
-    </section>
+      <div class="plate-stamp"><b>About</b><span class="barcode"></span><span>CV · Trajectory · Domains</span></div>
 
-    <!-- Personal Philosophy (Hidden for now) -->
-    <section class="section is-hidden" aria-hidden="true">
-      <div class="section__inner" style="max-width:760px">
-        <div class="section__intro">
-          <h2 class="section__title">Personal Philosophy</h2>
-          <p class="section__subtitle">A forthcoming essay reflecting on empathy-driven dermatology, equitable AI design, and mentored translational science.</p>
+      <div class="plate-head">
+        <div>
+          <span class="kicker">Curriculum Vitae · v.4 · 2026</span>
+          <h1 class="display1" style="margin-top:14px">A clinician,<br>a builder, <em>a writer.</em></h1>
         </div>
+        <div class="right">
+          Last revised<br>
+          2026 · 04 · 18<br>
+          2 pages · 142 KB
+        </div>
+      </div>
+
+      <div class="about-cover" style="margin-top:32px">
+        <div class="portrait" aria-hidden="true"></div>
+        <div class="text">
+          <p class="lede" style="font-size:22px">{profile.about.intro}</p>
+          <p class="body-copy">My work spans inflammatory dermatoses, cutaneous oncology, patient-centered teledermatology, and responsible AI. I build clinical decision tools, study the equity implications of new technologies, and translate complex science into <em style="font-style:italic;color:var(--terracotta)">empathetic narratives</em> for trainees, clinicians, and patients.</p>
+          <p class="body-copy">Outside the clinic I love mentoring future physician-innovators, producing radio and podcast stories, and exploring Baltimore's culinary community. When traveling, you'll find me sketching architectural textures and searching for the best espresso shot in town.</p>
+          <div style="display:flex;gap:24px;align-items:center;margin-top:auto">
+            <a class="button button--primary" href="/contact">Get in touch →</a>
+            <a class="button button--secondary" href="/apps">Browse the catalog →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- CV register -->
+      <div class="cv-table">
+        <div class="cv-section">
+          <div class="cv-section-label">
+            <span class="kicker">Section A</span>
+            <h4>Clinical <em>Training</em></h4>
+            <p>Active and incoming positions, in reverse chronological.</p>
+          </div>
+          <div class="cv-rows">
+            {clinicalTraining.map((row) => (
+              <div class="r">
+                <span class="y">{row.y}</span>
+                <span><b>{row.what}</b><span class="role">{row.role}</span></span>
+                <span class="tag">{row.tag}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div class="cv-section">
+          <div class="cv-section-label">
+            <span class="kicker">Section B</span>
+            <h4>Leadership <em>& Service</em></h4>
+            <p>Elected and appointed roles spanning institutional and national bodies.</p>
+          </div>
+          <div class="cv-rows">
+            {leadership.map((row) => (
+              <div class="r">
+                <span class="y">{row.y}</span>
+                <span><b>{row.what}</b><span class="role">{row.role}</span></span>
+                <span class="tag">{row.tag}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Domain plates (replaces fake skill-bar percentages) -->
+      <div class="plate-head" style="margin-top:64px">
+        <div>
+          <span class="kicker">Domain Map · Three overlapping regna</span>
+          <h2 class="display2" style="margin-top:8px">Three <em>overlapping</em> domains.</h2>
+        </div>
+      </div>
+      <p class="lede">Replaces the older bar-chart of skill percentages. The interesting projects sit in the intersections — RAMIE in clinical × technical, the JAAD '22 essay in scholarly × clinical, the dermoscopy dashboard in technical × scholarly.</p>
+
+      <div class="domains-plates" style="margin-top:32px">
+        {domains.map((domain, idx) => (
+          <div class={`domain-plate ${domain.cls}`}>
+            <div class="head">
+              <h4>{domain.label}</h4>
+              <span class="ct">{['A', 'B', 'C'][idx]} · 0{domain.items.length}</span>
+            </div>
+            <ul>
+              {domain.items.map((skill) => (
+                <li>
+                  <span>{skill.name}<small style="display:block;color:var(--slate);font-family:var(--font-mono);font-size:11px;margin-top:1px;letter-spacing:0.04em">{skill.description}</small></span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </section>
   </main>
-
-  <style>
-    .about-card {
-      background: white;
-      border-radius: var(--radius-xl);
-      padding: 2.5rem;
-      box-shadow: var(--shadow-md);
-      border: 1px solid rgba(148, 163, 184, 0.18);
-    }
-
-    [data-theme='dark'] .about-card {
-      background: var(--secondary-800);
-      border-color: rgba(148, 163, 184, 0.25);
-    }
-
-    .about-card h2 {
-      color: var(--secondary-900);
-      margin-top: 0;
-    }
-
-    .about-card h2:not(:first-child) {
-      margin-top: 2rem;
-    }
-
-    [data-theme='dark'] .about-card h2 {
-      color: var(--secondary-100);
-    }
-
-    .about-card ul {
-      padding-left: 1.2rem;
-      color: var(--secondary-600);
-      font-size: 1rem;
-    }
-
-    [data-theme='dark'] .about-card ul {
-      color: var(--secondary-400);
-    }
-
-    .about-card li {
-      margin-bottom: 0.5rem;
-    }
-
-    .about-card p {
-      color: var(--secondary-600);
-      font-size: 1rem;
-      line-height: 1.7;
-    }
-
-    [data-theme='dark'] .about-card p {
-      color: var(--secondary-400);
-    }
-  </style>
 </MainLayout>

@@ -8,76 +8,45 @@
   palette when the shell toggles `.legacy-dark` on <html>.
 */
 :root {
-  /* Light defaults: match shared legacy app tokens */
-  --bg-primary: var(--legacy-bg, #f5f7fb);
-  --bg-secondary: var(--legacy-surface, #ffffff);
-  --bg-tertiary: var(--legacy-surface, #ffffff);
-  --bg-hover: var(--legacy-surface-muted, #f1f5f9);
-  --bg-input: var(--legacy-surface, #ffffff);
+  /* Atlas defaults: match shared legacy app tokens (bone/ink/terracotta). */
+  --bg-primary: var(--legacy-bg, #f4f0e8);
+  --bg-secondary: var(--legacy-surface, #fbf8f1);
+  --bg-tertiary: var(--legacy-surface, #fbf8f1);
+  --bg-hover: var(--legacy-surface-muted, #e8e2d4);
+  --bg-input: var(--legacy-surface, #fbf8f1);
 
-  --text-primary: var(--legacy-text, #0f172a);
-  --text-secondary: var(--legacy-text-muted, #475569);
+  --text-primary: var(--legacy-text, #0a0a0a);
+  --text-secondary: var(--legacy-text-muted, #1f1f1f);
   --text-tertiary: color-mix(in oklab, var(--legacy-text-muted, #475569), transparent 35%);
-  --text-inverse: #ffffff;
+  --text-inverse: #f4f0e8;
 
-  /* Accent colors: align to site primary */
-  --accent-primary: var(--legacy-primary, #2563eb);
-  --accent-secondary: var(--legacy-primary-strong, #1d4ed8);
-  --accent-hover: color-mix(in oklab, var(--legacy-primary, #2563eb), white 12%);
-  --accent-muted: color-mix(in oklab, var(--legacy-primary, #2563eb), transparent 88%);
+  /* Accent: terracotta */
+  --accent-primary: var(--legacy-primary, #c2674a);
+  --accent-secondary: var(--legacy-primary-strong, #9f4d36);
+  --accent-hover: color-mix(in oklab, var(--legacy-primary, #c2674a), white 12%);
+  --accent-muted: color-mix(in oklab, var(--legacy-primary, #c2674a), transparent 88%);
 
-  --success: var(--legacy-success, #15803d);
-  --warning: var(--legacy-warning, #b45309);
-  --error: var(--legacy-danger, #b91c1c);
-  --info: color-mix(in oklab, var(--legacy-primary, #2563eb), white 28%);
+  --success: var(--legacy-success, #5b7058);
+  --warning: var(--legacy-warning, #a37b2a);
+  --error: var(--legacy-danger, #6b1f1f);
+  --info: color-mix(in oklab, var(--legacy-primary, #c2674a), white 28%);
 
-  --border-primary: color-mix(in oklab, var(--legacy-border, #cbd5e1), transparent 45%);
-  --border-secondary: var(--legacy-border, #cbd5e1);
-  --border-focus: var(--legacy-primary, #2563eb);
+  --border-primary: color-mix(in oklab, var(--legacy-border, #0a0a0a), transparent 80%);
+  --border-secondary: var(--legacy-border, #0a0a0a);
+  --border-focus: var(--legacy-primary, #c2674a);
 
-  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 10px 22px rgba(15, 23, 42, 0.12);
-  --shadow-lg: var(--legacy-shadow, 0 12px 30px rgba(15, 23, 42, 0.14));
-  --shadow-xl: 0 24px 60px rgba(15, 23, 42, 0.18);
+  --shadow-sm: 0 1px 0 rgba(10, 10, 10, 0.06);
+  --shadow-md: 0 1px 2px rgba(10, 10, 10, 0.08);
+  --shadow-lg: var(--legacy-shadow, 0 6px 18px rgba(10, 10, 10, 0.16));
+  --shadow-xl: 0 24px 60px rgba(10, 10, 10, 0.18);
 
-  --border-radius: 12px;
-  --border-radius-sm: 10px;
-  --border-radius-lg: 18px;
+  --border-radius: 0;
+  --border-radius-sm: 0;
+  --border-radius-lg: 0;
   --header-height: 64px;
 }
 
-.legacy-dark {
-  /* Dark palette: original RAMIE look */
-  --bg-primary: #0f1419;
-  --bg-secondary: #1a1f29;
-  --bg-tertiary: #242a38;
-  --bg-hover: #2d3548;
-  --bg-input: #1e2430;
-
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-tertiary: #64748b;
-  --text-inverse: #0f1419;
-
-  --accent-primary: #4dd0e1;
-  --accent-secondary: #26c6da;
-  --accent-hover: #67e8f9;
-  --accent-muted: rgba(77, 208, 225, 0.1);
-
-  --success: #4dd0e1;
-  --warning: #fbbf24;
-  --error: #ef4444;
-  --info: #60a5fa;
-
-  --border-primary: rgba(148, 163, 184, 0.1);
-  --border-secondary: rgba(148, 163, 184, 0.2);
-  --border-focus: var(--accent-primary);
-
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.6);
-}
+/* Atlas is light-only — `.legacy-dark` overrides removed. */
 
 /* ========== Global Styles ========== */
 * {

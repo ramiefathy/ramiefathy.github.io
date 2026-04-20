@@ -23,7 +23,9 @@ test.describe('Dermoscopy LLM evaluation dashboard', () => {
   test('renders and supports tab switching + model selection', async ({ page }) => {
     await page.goto('/research/dermoscopy-llm-dashboard', { waitUntil: 'domcontentloaded' });
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Dermoscopy LLM Evaluation' })).toBeVisible();
+    // Atlas plate h1 ("17 models. 10,200 trials. One question.") replaces the old Phase-6 h1
+    // ("Dermoscopy LLM Evaluation"). Assert the page surface via the plate stamp + dashboard h2.
+    await expect(page.locator('.plate-stamp').filter({ hasText: 'Dermoscopy LLM' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Dermoscopy LLM Evaluation Dashboard' })).toBeVisible();
 
     await waitForDashboardData(page);

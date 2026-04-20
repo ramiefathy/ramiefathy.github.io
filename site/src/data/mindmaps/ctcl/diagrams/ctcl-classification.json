@@ -1,0 +1,133 @@
+{
+  "id": "ctcl-classification",
+  "topic": "ctcl",
+  "title": "Cutaneous Lymphoma Classification (WHO-EORTC 2018)",
+  "subtitle": "Cutaneous T-cell and NK-cell lymphomas — with B-cell overview",
+  "type": "classification",
+  "data": {
+    "root": {
+      "id": "cutaneous-lymphomas",
+      "name": "Cutaneous Lymphomas (WHO-EORTC 2018)",
+      "children": [
+        {
+          "id": "ctcl",
+          "name": "Cutaneous T-Cell and NK-Cell Lymphomas (CTCL)",
+          "category": "Major Group",
+          "children": [
+            {
+              "id": "mf-group",
+              "name": "Mycosis Fungoides (MF) and Variants",
+              "category": "Most Common CTCL (~50%)",
+              "detail": "Classic MF: patch, plaque, tumor progression. CD3+, CD4+, CD7 loss common. Indolent clinical course in early stages.",
+              "children": [
+                {
+                  "id": "mf-classic",
+                  "name": "Classic Mycosis Fungoides",
+                  "detail": "Patch-plaque-tumor progression with epidermotropism and Pautrier microabscesses. Indolent; most patients remain in early stage."
+                },
+                {
+                  "id": "mf-folliculotropic",
+                  "name": "Folliculotropic MF",
+                  "detail": "Follicular tropism with papules, cysts, comedones; preferential head/neck involvement; often worse prognosis than classic MF due to reduced skin-directed therapy penetration."
+                },
+                {
+                  "id": "mf-pagetoid",
+                  "name": "Pagetoid Reticulosis (Woringer-Kolopp)",
+                  "detail": "Solitary or localized psoriasiform plaque with marked intraepidermal proliferation of neoplastic T-cells. Excellent prognosis; localized radiation is curative."
+                },
+                {
+                  "id": "mf-granulomatous",
+                  "name": "Granulomatous Slack Skin",
+                  "detail": "Rare variant: granulomatous destruction of elastic fibers causing pendulous skin in flexural areas. Slow progression; associated with Hodgkin lymphoma in ~30%."
+                }
+              ]
+            },
+            {
+              "id": "ss",
+              "name": "Sézary Syndrome (SS)",
+              "category": "Erythrodermic CTCL with Blood Involvement",
+              "detail": "Triad: erythroderma, lymphadenopathy, and Sézary cells in blood (&gt;1000/mcL or B2 criteria). CD4+, CD7-, CD26- phenotype. Prognosis poor with median OS 2-5 years. ECP is cornerstone of treatment."
+            },
+            {
+              "id": "cd30-lpd",
+              "name": "Primary Cutaneous CD30+ Lymphoproliferative Disorders",
+              "category": "Second Most Common CTCL (~25%)",
+              "children": [
+                {
+                  "id": "lyp",
+                  "name": "Lymphomatoid Papulosis (LyP)",
+                  "detail": "Recurrent, self-healing papulonodular eruption with histologic features of malignancy. Five subtypes (A-F). CD30+ in most subtypes. Benign clinical behavior despite alarming histology; watch-and-wait for mild disease. Associated with risk of secondary lymphoma (~15%)."
+                },
+                {
+                  "id": "pcalcl",
+                  "name": "Primary Cutaneous Anaplastic Large Cell Lymphoma (pcALCL)",
+                  "detail": "Solitary or grouped tumors/nodules; CD30+ (&gt;75% of cells). ALK-negative (distinguishes from systemic ALCL). Excellent prognosis with 5-year OS &gt;85%. Excision or local radiation for solitary lesions; brentuximab vedotin or methotrexate for multifocal disease."
+                }
+              ]
+            },
+            {
+              "id": "sptcl",
+              "name": "Subcutaneous Panniculitis-like T-Cell Lymphoma (SPTCL)",
+              "category": "Rare CTCL",
+              "detail": "Alpha-beta T-cell phenotype (CD3+, CD8+, CD4-, CD56-); subcutaneous fat involvement mimicking panniculitis. Indolent course unless hemophagocytic syndrome develops. Cyclosporine or bexarotene; CHOP for aggressive disease."
+            },
+            {
+              "id": "enktl",
+              "name": "Extranodal NK/T-Cell Lymphoma, Nasal Type",
+              "category": "Rare, Aggressive",
+              "detail": "EBV-positive; CD56+, cytotoxic markers (TIA-1, granzyme B); angiocentric invasion with necrosis. Nasal and upper aerodigestive tract involvement common. Highly aggressive; L-asparaginase-based regimens (SMILE, AspaMetDex) are first-line."
+            },
+            {
+              "id": "rare-ctcl",
+              "name": "Primary Cutaneous Peripheral T-Cell Lymphomas (Rare Subtypes)",
+              "category": "Rare, Often Aggressive",
+              "children": [
+                {
+                  "id": "pcdlbcl-lt",
+                  "name": "Primary Cutaneous Gamma-Delta T-Cell Lymphoma",
+                  "detail": "Gamma-delta TCR phenotype; CD3+, CD4-, CD8- (double-negative). Aggressive; involves dermis and subcutis. Poor prognosis; allogeneic SCT considered."
+                },
+                {
+                  "id": "pcsmtcl",
+                  "name": "Primary Cutaneous CD8+ Aggressive Epidermotropic Cytotoxic T-Cell Lymphoma",
+                  "detail": "Rapidly progressive papulonodules with ulceration and necrosis. CD3+, CD8+, TIA-1+. Very poor prognosis; median OS &lt;2 years."
+                },
+                {
+                  "id": "pctcl-nos",
+                  "name": "Primary Cutaneous Peripheral T-Cell Lymphoma, NOS",
+                  "detail": "Diagnosis of exclusion after ruling out other defined entities. Heterogeneous; generally poor prognosis."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cbcl",
+          "name": "Cutaneous B-Cell Lymphomas (CBCL)",
+          "category": "Major Group",
+          "children": [
+            {
+              "id": "pcfcl",
+              "name": "Primary Cutaneous Follicle Center Lymphoma (PCFCL)",
+              "detail": "Most common CBCL. CD20+, BCL-6+, BCL-2 typically negative (unlike nodal FCL). Head, neck, trunk. Excellent prognosis; local radiation curative in most cases."
+            },
+            {
+              "id": "pcmzl",
+              "name": "Primary Cutaneous Marginal Zone Lymphoma (PCMZL)",
+              "detail": "CD20+, CD79a+, BCL-2+; indolent. Arms, trunk. Association with Borrelia burgdorferi in Europe. Excellent prognosis; localized treatment sufficient."
+            },
+            {
+              "id": "pcdlbcl-leg",
+              "name": "Primary Cutaneous Diffuse Large B-Cell Lymphoma, Leg Type",
+              "detail": "CD20+, BCL-2+, MYC+; aggressive. Predominantly on lower legs of elderly women. Poor prognosis; R-CHOP is standard treatment."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "citations": [
+    { "pmid": "31092390", "quote": "Willemze R et al. The 2018 update of the WHO-EORTC classification for primary cutaneous lymphomas. Blood. 2019;133(16):1703-1714." },
+    { "pmid": "17312045", "quote": "Olsen EA et al. Revisions to the staging and classification of mycosis fungoides and Sezary syndrome. Blood. 2007;110(6):1713-1722." }
+  ]
+}

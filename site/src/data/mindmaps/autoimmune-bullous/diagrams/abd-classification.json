@@ -1,0 +1,121 @@
+{
+  "id": "abd-classification",
+  "topic": "autoimmune-bullous",
+  "title": "Autoimmune Bullous Disease Classification",
+  "subtitle": "By anatomic level of split and autoantibody target",
+  "type": "classification",
+  "data": {
+    "root": {
+      "id": "abd",
+      "name": "Autoimmune Bullous Diseases",
+      "children": [
+        {
+          "id": "intraepidermal",
+          "name": "Intraepidermal (Acantholytic) — Pemphigus Group",
+          "category": "Intraepidermal split",
+          "detail": "Loss of keratinocyte cell–cell adhesion (acantholysis) due to autoantibodies targeting desmosomal cadherins or structural proteins. Flaccid blisters, Nikolsky positive.",
+          "children": [
+            {
+              "id": "pv",
+              "name": "Pemphigus Vulgaris",
+              "detail": "Suprabasilar split. Anti-Dsg3 (mucosal-dominant) ± anti-Dsg1 (mucocutaneous). Most common pemphigus variant. Fatal pre-steroid era. First-line: rituximab (PMID 28342530).",
+              "children": [
+                { "id": "pv-md", "name": "Mucosal-dominant variant", "detail": "Anti-Dsg3 alone. Oral erosions dominant; minimal skin blisters. Common in Ashkenazi Jewish and Mediterranean populations." },
+                { "id": "pv-mc", "name": "Mucocutaneous variant", "detail": "Anti-Dsg3 + anti-Dsg1. Both mucosa and widespread skin blisters. Higher autoantibody titers." }
+              ]
+            },
+            {
+              "id": "pf",
+              "name": "Pemphigus Foliaceus",
+              "detail": "Subcorneal split at granular layer. Anti-Dsg1 IgG only; no Dsg3 antibody. NO mucosal involvement. Seborrheic distribution (scalp, face, chest, back). Endemic form: fogo selvagem (Brazil). Treatment: topical/systemic steroids; rituximab/MMF for refractory."
+            },
+            {
+              "id": "iga-pemphigus",
+              "name": "IgA Pemphigus",
+              "detail": "Subcorneal pustular dermatosis (SPD) type: anti-desmocollin 1 IgA. Intraepidermal neutrophilic (IEN) type: anti-Dsg1 or Dsg3 IgA. DIF: intercellular IgA. Treatment: dapsone as first-line."
+            },
+            {
+              "id": "drug-pemphigus",
+              "name": "Drug-Induced Pemphigus",
+              "detail": "Triggering drugs: penicillamine (most common), captopril and ACE inhibitors, thiol-containing drugs (pyritinol, bucillamine), gold salts. Usually anti-Dsg1 (foliaceus-like) or anti-Dsg3 (vulgaris-like). May resolve on drug discontinuation."
+            },
+            {
+              "id": "pnp",
+              "name": "Paraneoplastic Pemphigus (PNP)",
+              "detail": "Polymorphous lesions: bullous, lichenoid, erythema-multiforme-like. Severe, refractory mucosal erosions. Anti-plakins: periplakin + envoplakin (most sensitive), BPAG1/2, anti-Dsg3, anti-BP180. Associated malignancies: NHL, CLL, Castleman, thymoma. Complication: bronchiolitis obliterans (fatal). Histology: suprabasilar acantholysis + lichenoid infiltrate. PMID: 31448731."
+            }
+          ]
+        },
+        {
+          "id": "subepidermal-lamina-lucida",
+          "name": "Subepidermal — Lamina Lucida / Hemidesmosomal",
+          "category": "Subepidermal split (lamina lucida)",
+          "detail": "Autoantibodies target hemidesmosomal proteins in or near the lamina lucida. Tense blisters, Nikolsky negative. Salt-split skin: epidermal (roof) pattern.",
+          "children": [
+            {
+              "id": "bp",
+              "name": "Bullous Pemphigoid",
+              "detail": "Most common ABD worldwide. Anti-BP180 (NC16A domain) + anti-BP230 IgG. Tense blisters on urticarial/eczematous base; lower trunk and flexures. Rare mucosal involvement. DIF: linear IgG + C3 at BMZ. Drug triggers: DPP-4 inhibitors, checkpoint inhibitors. First-line: superpotent topical clobetasol BID (PMID 11898951). ELISA: BP180 titer correlates with BPDAI. PMID: 35538739."
+            },
+            {
+              "id": "pg",
+              "name": "Pemphigoid Gestationis",
+              "detail": "Pregnancy-associated. Anti-BP180 IgG1. Periumbilical urticarial plaques progressing to tense blisters in 2nd–3rd trimester or postpartum. Neonatal disease possible (transplacental IgG). DIF: linear C3 ± IgG at BMZ. Salt-split: epidermal (roof) pattern. Spontaneous remission postpartum; recurs with subsequent pregnancies."
+            },
+            {
+              "id": "labd",
+              "name": "Linear IgA Bullous Dermatosis (LABD)",
+              "detail": "Anti-LAD-1 (97 kDa fragment of BP180 ectodomain) IgA. DIF: linear IgA at BMZ. Adults: drug-induced (vancomycin most common; others: amoxicillin, captopril, NSAIDs) or idiopathic. Children: chronic bullous disease of childhood with 'string-of-pearls' blisters. Treatment: dapsone; sulfapyridine if dapsone intolerant."
+            },
+            {
+              "id": "lp-pemphigoides",
+              "name": "Lichen Planus Pemphigoides",
+              "detail": "Anti-BP180 (NC16A) IgG in setting of lichen planus. Subepidermal blisters arising within LP lesions or on normal skin. DIF: linear IgG/C3 at BMZ. Treat as BP + LP; hydroxychloroquine may address lichenoid component."
+            }
+          ]
+        },
+        {
+          "id": "subepidermal-lamina-densa",
+          "name": "Subepidermal — Lamina Densa / Anchoring Fibril Zone",
+          "category": "Subepidermal split (lamina densa + deeper)",
+          "detail": "Autoantibodies target structural proteins at or below the lamina densa. Salt-split skin: dermal (floor) pattern. Associated with mucosal scarring.",
+          "children": [
+            {
+              "id": "mmp",
+              "name": "Mucous Membrane Pemphigoid (Cicatricial Pemphigoid)",
+              "detail": "Heterogeneous group targeting lamina densa antigens. Anti-laminin 332 (epiligrin; ~25% malignancy risk), anti-BP180, anti-BP230, anti-integrin α6β4. Primarily mucosal: oral, ocular (scarring → blindness), nasal, esophageal, laryngeal, anogenital. Minimal skin involvement. Scarring hallmark. Salt-split: floor pattern (laminin 332). Treatment varies by severity: dapsone (mild oral) → prednisone + cyclophosphamide or rituximab (ocular/severe). PMID: 35538739.",
+              "children": [
+                { "id": "mmp-anti-lam332", "name": "Anti-laminin 332 MMP", "detail": "~25–30% associated with solid tumors (colorectal, cervical). Malignancy screen mandatory." },
+                { "id": "mmp-anti-bp180", "name": "Anti-BP180 MMP", "detail": "Most common MMP subtype. Salt-split may show mixed roof/floor. More likely oral than ocular." }
+              ]
+            },
+            {
+              "id": "eba",
+              "name": "Epidermolysis Bullosa Acquisita (EBA)",
+              "detail": "Anti-Type VII collagen IgG (anchoring fibrils; sub-lamina densa zone). Two variants: (1) Mechanobullous — trauma-induced blisters on extensor/acral sites, scarring, milia; (2) Inflammatory — mimics BP or MMP. DIF: linear IgG at BMZ; salt-split: dermal (floor) pattern distinguishes from BP. IIF on Type VII collagen-deficient skin. Resistant to standard steroids; colchicine, dapsone, cyclosporine, rituximab, IVIG. PMID: 35538739."
+            }
+          ]
+        },
+        {
+          "id": "granular-iga",
+          "name": "Granular IgA at Dermal Papillae",
+          "category": "Unique DIF pattern",
+          "detail": "Pathognomonic DIF finding: granular IgA deposits at the tips of dermal papillae. Distinct from all other ABDs.",
+          "children": [
+            {
+              "id": "dh",
+              "name": "Dermatitis Herpetiformis",
+              "detail": "Anti-epidermal transglutaminase (eTG) IgA + anti-tissue transglutaminase (tTG) IgA. Intensely pruritic grouped vesicles on elbows, knees, scalp, buttocks — Duhring's disease. Subepidermal split with neutrophil microabscesses at papillary tips. HLA-DQ2/DQ8. 100% celiac enteropathy (though often subclinical). Treatment: dapsone 50–200 mg (rapid 72 h response) + gluten-free diet. GFD alone may control disease long-term, allowing dapsone dose reduction. PMID: 35538739."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "citations": [
+    { "pmid": "35538739", "quote": "Hofmann SC et al. Autoimmune bullous diseases. Nat Rev Dis Primers. 2022." },
+    { "pmid": "31448731", "quote": "Schmidt E et al. Pemphigus. Nat Rev Dis Primers. 2019." },
+    { "pmid": "28342530", "quote": "Joly P et al. First-line rituximab combined with short-term prednisone versus prednisone alone for the treatment of pemphigus (Ritux 3). Lancet. 2017." },
+    { "pmid": "11898951", "quote": "Joly P et al. A comparison of oral and topical corticosteroids in patients with bullous pemphigoid. N Engl J Med. 2002." }
+  ]
+}

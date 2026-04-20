@@ -166,7 +166,7 @@ describe('Frontend Design System Contract (legacy apps)', () => {
         includeExtensions: new Set(['.js'])
       }).map((filePath) => path.relative(rootDir, filePath)).sort()
 
-      expect(files).toEqual(['app-one/src/main.js'])
+      expect(files).toEqual([path.join('app-one', 'src', 'main.js')])
     } finally {
       fs.rmSync(rootDir, { recursive: true, force: true })
     }
@@ -209,14 +209,24 @@ describe('Frontend Design System Contract (legacy apps)', () => {
     expect(usage.perFile.size).toBeGreaterThanOrEqual(3)
   })
 
-  it('neutralizes the suite background wash outside of MindMaps', () => {
+  it('atlas page background uses bone, not the old teal/cyan wash', () => {
     const tokensPath = path.join(SHARED_ROOT, 'legacy-tokens.css')
     const css = fs.readFileSync(tokensPath, 'utf-8')
 
-    // Workstream 2 contract: page backgrounds use a neutral slate-50 instead of teal-50.
-    expect(css).toMatch(/--cl-primary-subtle:\s*#f8fafc\b/i)
-    // Subtle depth cue at rest.
-    expect(css).toMatch(/--shadow-surface:\s*0\s+1px\s+2px\s+rgba\(0,\s*0,\s*0,\s*0\.05\)\s*;/i)
+    // Atlas contract: page backgrounds resolve to bone (#f4f0e8) via --cl-primary-subtle.
+    expect(css).toMatch(/--cl-bone:\s*#f4f0e8\b/i)
+    expect(css).toMatch(/--cl-primary-subtle:\s*var\(--cl-bone\)/i)
+
+    // Sweep the apps for stale navy/cyan/teal/old-bg hexes that pre-date Atlas.
+    const staleHexes = [
+      /#0f766e\b/i, // old teal primary
+      /#0ea5e9\b/i, // old cyan accent-start
+      /#06b6d4\b/i, // old cyan accent
+      /#f4fbff\b/i, // old astro body bg
+      /#041020\b/i, // old dark navy
+      /#0b2750\b/i, // old navy
+      /#f0fdfa\b/i, // old teal-50 wash
+    ]
 
     const files = walkFiles(APPS_ROOT, {
       excludeDirs: ['vendor'],
@@ -224,28 +234,37 @@ describe('Frontend Design System Contract (legacy apps)', () => {
       includeExtensions: new Set(['.html', '.css', '.js'])
     })
 
-    const offenders: string[] = []
+    // Phase 5 swept the previously-pending bespoke-CSS apps. The allowlist is
+    // empty now; mind maps are also Atlas-clean. Re-add entries only as a
+    // last-resort regression catch — never grow it without a follow-up issue.
+    const phase5Pending = new Set<string>()
+
+    const offenders: Array<{ file: string; hex: string }> = []
     for (const filePath of files) {
       const rel = path.relative(APPS_ROOT, filePath)
+      if (phase5Pending.has(rel)) continue
       const content = fs.readFileSync(filePath, 'utf-8')
-      const hasOldTeal50 = /#f0fdfa\b/i.test(content)
-      if (!hasOldTeal50) continue
-      if (rel.includes(`MindMaps${path.sep}`) || rel.toLowerCase().includes('mindmap')) continue
-      offenders.push(rel)
+      for (const re of staleHexes) {
+        const m = content.match(re)
+        if (m) offenders.push({ file: rel, hex: m[0] })
+      }
     }
 
     expect(offenders).toEqual([])
   })
 
-  it('legacy primary hue stays in teal family (160-185)', () => {
+  it('legacy primary hue belongs to the atlas terracotta family', () => {
     const tokensPath = path.join(SHARED_ROOT, 'legacy-tokens.css')
     const css = fs.readFileSync(tokensPath, 'utf-8')
-    const match = css.match(/--cl-primary:\s*(#[0-9a-fA-F]{6})/)?.[1]
 
-    expect(match).toBeDefined()
-    const hue = hexToHue(match as string)
-    expect(hue).toBeGreaterThanOrEqual(160)
-    expect(hue).toBeLessThanOrEqual(185)
+    // Atlas: --cl-primary is aliased to --cl-terracotta which is #c2674a.
+    expect(css).toMatch(/--cl-terracotta:\s*#c2674a\b/i)
+    expect(css).toMatch(/--cl-primary:\s*var\(--cl-terracotta\)/i)
+
+    // Compute hue of the resolved primary (terracotta #c2674a → ~15°).
+    const hue = hexToHue('#c2674a')
+    expect(hue).toBeGreaterThanOrEqual(0)
+    expect(hue).toBeLessThanOrEqual(30)
   })
 
   it('legacy apps avoid banned vibecoded tokens and patterns', () => {

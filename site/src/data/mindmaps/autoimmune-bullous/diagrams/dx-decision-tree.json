@@ -1,0 +1,164 @@
+{
+  "id": "abd-dx-dt",
+  "topic": "autoimmune-bullous",
+  "title": "Autoimmune Bullous Disease — Diagnosis",
+  "subtitle": "Decision tree: blister/erosion presentation → specific ABD",
+  "type": "decision-tree",
+  "data": {
+    "start": "presentation",
+    "steps": [
+      {
+        "id": "presentation",
+        "type": "decision",
+        "prompt": "Patient presents with blistering or erosive skin disorder. Are blisters/erosions present?",
+        "branches": [
+          { "label": "Yes — blisters or erosions", "nextStepId": "age-site" },
+          { "label": "No blisters — re-evaluate diagnosis", "nextStepId": "non-bullous" }
+        ]
+      },
+      {
+        "id": "non-bullous",
+        "type": "terminal",
+        "prompt": "Consider non-bullous diagnosis",
+        "detail": "Re-evaluate for eczema, psoriasis, contact dermatitis, or other non-blistering condition. This pathway covers immunobullous disorders."
+      },
+      {
+        "id": "age-site",
+        "type": "decision",
+        "prompt": "What is the patient's age and clinical context?",
+        "branches": [
+          { "label": "Adult — assess blister character and sites", "nextStepId": "blister-character" },
+          { "label": "Child — grouped vesicles, annular string-of-pearls pattern", "nextStepId": "labd-child" },
+          { "label": "Pregnant — periumbilical urticarial plaques + blisters", "nextStepId": "pg" }
+        ]
+      },
+      {
+        "id": "pg",
+        "type": "terminal",
+        "prompt": "Pemphigoid Gestationis",
+        "detail": "<p>Anti-BP180 IgG; occurs 2nd–3rd trimester or postpartum. Subepidermal blister on periumbilical urticarial plaques. DIF: linear C3 ± IgG at BMZ. Risk of neonatal blistering. Treat with superpotent topical steroids; systemic steroids if severe. Resolves postpartum but may recur with future pregnancies. PMID: 35538739.</p>"
+      },
+      {
+        "id": "labd-child",
+        "type": "terminal",
+        "prompt": "Linear IgA Bullous Dermatosis (childhood variant)",
+        "detail": "<p>Chronic bullous disease of childhood. IgA anti-LAD-1 (BP180 fragment). Characteristic annular 'string-of-pearls' blistering on lower trunk, perineum, face. DIF: linear IgA at BMZ. Drug trigger in adults (vancomycin is classic). First-line: dapsone; sulfapyridine if dapsone intolerant. PMID: 35538739.</p>"
+      },
+      {
+        "id": "blister-character",
+        "type": "decision",
+        "prompt": "Blister character and Nikolsky sign?",
+        "branches": [
+          { "label": "Flaccid, easily ruptured, Nikolsky positive (lateral pressure causes extension)", "nextStepId": "pemphigus-group" },
+          { "label": "Tense, intact on urticarial/erythematous base, Nikolsky negative", "nextStepId": "tense-group" },
+          { "label": "Trauma-induced on extensor surfaces, healing with scarring + milia", "nextStepId": "eba" }
+        ]
+      },
+      {
+        "id": "pemphigus-group",
+        "type": "decision",
+        "prompt": "Mucosal involvement? Any paraneoplastic features?",
+        "branches": [
+          { "label": "Mucosal-dominant (oral/genital) ± skin blisters", "nextStepId": "pv-mucosal" },
+          { "label": "Skin only — seborrheic areas (scalp, face, chest, back), scaling/crusting", "nextStepId": "pf" },
+          { "label": "Severe polymorphous mucosal lesions + known/suspected malignancy", "nextStepId": "pnp" }
+        ]
+      },
+      {
+        "id": "pv-mucosal",
+        "type": "decision",
+        "prompt": "Is skin involvement present in addition to mucosa?",
+        "branches": [
+          { "label": "Mucosal only or mucosal-dominant — minimal/no skin blisters", "nextStepId": "pv-mucosal-dominant" },
+          { "label": "Both mucosa and skin extensively involved", "nextStepId": "pv-mucocutaneous" }
+        ]
+      },
+      {
+        "id": "pv-mucosal-dominant",
+        "type": "terminal",
+        "prompt": "Pemphigus Vulgaris — Mucosal-dominant variant",
+        "detail": "<p>Anti-Dsg3 IgG (without Dsg1). Oral mucosa often first and most severely affected. Flaccid erosions may appear before skin involvement. Intraepidermal suprabasilar split on histology. DIF: intercellular IgG + C3 in epidermis ('fishnet'). First-line: rituximab 1g ×2 (D0+D14) per PEMPHIX trial (PMID 28342530). PMID: 31448731.</p>"
+      },
+      {
+        "id": "pv-mucocutaneous",
+        "type": "terminal",
+        "prompt": "Pemphigus Vulgaris — Mucocutaneous variant",
+        "detail": "<p>Anti-Dsg3 + anti-Dsg1 IgG. Widespread flaccid blisters on skin and mucosa (oral, nasal, pharyngeal, genital, conjunctival). Suprabasilar acantholysis. DIF: intercellular IgG/C3 'fishnet'. ELISA: Dsg3 and Dsg1 positive. First-line: rituximab (PMID 28342530) ± prednisone 1–1.5 mg/kg. Steroid-sparing: azathioprine, MMF. PMID: 31448731.</p>"
+      },
+      {
+        "id": "pf",
+        "type": "terminal",
+        "prompt": "Pemphigus Foliaceus",
+        "detail": "<p>Anti-Dsg1 IgG. Superficial flaccid blisters in seborrheic distribution (scalp, face, chest, back); blisters rupture rapidly leaving crusted erosions. NO mucosal involvement (Dsg3 not targeted). Subcorneal acantholysis at granular layer. DIF: intercellular IgG/C3. ELISA: Dsg1 positive, Dsg3 negative. Endemic variant: fogo selvagem (Brazil). Treatment: systemic steroids, dapsone for limited disease, rituximab/MMF for refractory. PMID: 31448731.</p>"
+      },
+      {
+        "id": "pnp",
+        "type": "terminal",
+        "prompt": "Paraneoplastic Pemphigus (PNP)",
+        "detail": "<p>Severe, polymorphous mucosal erosions (often refractory) + variable skin findings (lichenoid, bullous, erythema-multiforme-like). Associated with NHL, CLL, Castleman disease, thymoma. Anti-plakins (periplakin, envoplakin), anti-Dsg3, anti-BP180. Bronchiolitis obliterans is a life-threatening complication. Action: urgent CT chest/abdomen/pelvis for malignancy. Treatment of underlying neoplasm essential; systemic steroids, rituximab. High mortality. PMID: 31448731.</p>"
+      },
+      {
+        "id": "tense-group",
+        "type": "decision",
+        "prompt": "Older adult (>70 y)? Distribution and mucosal involvement?",
+        "branches": [
+          { "label": "Older adult, lower trunk + flexures, no/rare mucosal involvement", "nextStepId": "bp" },
+          { "label": "Mucosal-only (oral, ocular, nasal, anogenital) with scarring tendency", "nextStepId": "mmp" }
+        ]
+      },
+      {
+        "id": "bp",
+        "type": "terminal",
+        "prompt": "Bullous Pemphigoid",
+        "detail": "<p>Most common ABD. Anti-BP180 (NC16A domain) and anti-BP230 IgG; hemidesmosomal antigens. Tense blisters on urticarial, erythematous, or eczematous base. Lower trunk, inner thighs, flexures. Mucosal involvement rare. Subepidermal split. DIF: linear IgG + C3 at BMZ. Salt-split skin: epidermal (roof) pattern. ELISA: BP180 + BP230. Disease activity: BPDAI score. Drug triggers: DPP-4 inhibitors (gliptins), checkpoint inhibitors, furosemide. First-line: superpotent topical clobetasol BID (PMID 11898951 — non-inferior to oral prednisone with lower mortality). PMID: 35538739.</p>"
+      },
+      {
+        "id": "mmp",
+        "type": "decision",
+        "prompt": "Ocular involvement (conjunctival scarring/symblepharon)?",
+        "branches": [
+          { "label": "Yes — ocular scarring/symblepharon present or progressing", "nextStepId": "mmp-ocular" },
+          { "label": "No — oral/nasal/anogenital mucosal scarring only", "nextStepId": "mmp-limited" }
+        ]
+      },
+      {
+        "id": "mmp-ocular",
+        "type": "terminal",
+        "prompt": "Mucous Membrane Pemphigoid — Ocular involvement (HIGH RISK)",
+        "detail": "<p>Cicatricial pemphigoid with ocular involvement. Risk of corneal scarring and blindness. URGENT ophthalmology referral. Anti-laminin 332 (epiligrin) associated with increased malignancy risk — screen for cancer. Anti-BP180 also common. Requires aggressive systemic immunosuppression: cyclophosphamide + prednisone for severe ocular/laryngeal disease; rituximab for refractory. Monitor with regular ophthalmology. PMID: 35538739.</p>"
+      },
+      {
+        "id": "mmp-limited",
+        "type": "terminal",
+        "prompt": "Mucous Membrane Pemphigoid — Limited (oral/anogenital)",
+        "detail": "<p>Oral mucosa (most common), nasopharynx, esophagus, anogenital. Scarring and synechiae are hallmarks distinguishing from PV. DIF: linear IgG ± IgA ± C3 at BMZ. Treatment: dapsone for mild oral; prednisone + dapsone for moderate; prednisone + cyclophosphamide or rituximab for severe. ENT and dental involvement requires co-management. PMID: 35538739.</p>"
+      },
+      {
+        "id": "eba",
+        "type": "decision",
+        "prompt": "Is presentation consistent with dermatitis herpetiformis? (Pruritic grouped vesicles on extensors)",
+        "branches": [
+          { "label": "Trauma-induced, extensor surface mechanobullous with scarring/milia", "nextStepId": "eba-classic" },
+          { "label": "Pruritic grouped vesicles on extensors, scalp, buttocks — GI symptoms", "nextStepId": "dh" }
+        ]
+      },
+      {
+        "id": "eba-classic",
+        "type": "terminal",
+        "prompt": "Epidermolysis Bullosa Acquisita (EBA)",
+        "detail": "<p>Anti-Type VII collagen (sub-lamina densa anchoring fibrils). Mechanobullous (non-inflammatory) variant: trauma-induced blisters on extensor/acral sites, heals with scarring and milia. Inflammatory variant mimics BP or MMP. DIF: linear IgG at BMZ. CRITICAL: salt-split skin — dermal (floor) pattern distinguishes EBA from BP (epidermal/roof). IIF on collagen VII-deficient skin if available. Treatment: colchicine, dapsone for mild; cyclosporine, rituximab, IVIG for refractory. PMID: 35538739.</p>"
+      },
+      {
+        "id": "dh",
+        "type": "terminal",
+        "prompt": "Dermatitis Herpetiformis",
+        "detail": "<p>Anti-tissue transglutaminase (tTG) IgA + anti-epidermal transglutaminase (eTG) IgA. Pathognomonic: granular IgA deposits at dermal papillae tips on DIF. Associated with celiac disease (HLA-DQ2/DQ8). Intensely pruritic grouped vesicles on elbows, knees, scalp, buttocks — often so pruritic blisters are excoriated before exam. Celiac workup: anti-tTG IgA, anti-endomysial IgA, small bowel biopsy. Treatment: dapsone 50–200 mg (rapid response within 72h) + strict gluten-free diet (GFD). PMID: 35538739.</p>"
+      }
+    ]
+  },
+  "citations": [
+    { "pmid": "35538739", "quote": "Hofmann SC et al. Autoimmune bullous diseases. Nat Rev Dis Primers. 2022." },
+    { "pmid": "31448731", "quote": "Schmidt E et al. Pemphigus. Nat Rev Dis Primers. 2019." },
+    { "pmid": "28342530", "quote": "Joly P et al. First-line rituximab combined with short-term prednisone versus prednisone alone for the treatment of pemphigus (Ritux 3). Lancet. 2017." }
+  ]
+}

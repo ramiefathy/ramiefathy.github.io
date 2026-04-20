@@ -5,14 +5,14 @@ body {
     font-family: var(--font-body, var(--legacy-font-sans, ui-sans-serif));
     background-color: transparent;
     color: var(--legacy-text, #0b1f24);
-    --mindmap-node-fill-0: color-mix(in oklab, var(--primary, #0f766e), white 78%);
-    --mindmap-node-fill-1: color-mix(in oklab, var(--primary, #0f766e), white 84%);
+    --mindmap-node-fill-0: color-mix(in oklab, var(--primary, #9f4d36), white 78%);
+    --mindmap-node-fill-1: color-mix(in oklab, var(--primary, #9f4d36), white 84%);
     --mindmap-node-fill-2: color-mix(in oklab, var(--accent, #164e63), white 86%);
     --mindmap-node-fill-3: color-mix(in oklab, var(--accent, #164e63), white 91%);
-    --mindmap-node-fill-4: color-mix(in oklab, var(--primary, #0f766e), white 92%);
+    --mindmap-node-fill-4: color-mix(in oklab, var(--primary, #9f4d36), white 92%);
     --mindmap-link: color-mix(in oklab, var(--accent, #164e63), white 72%);
     --mindmap-node-stroke: color-mix(in oklab, var(--accent, #164e63), black 6%);
-    --mindmap-collapsible-stroke: color-mix(in oklab, var(--primary, #0f766e), black 12%);
+    --mindmap-collapsible-stroke: color-mix(in oklab, var(--primary, #9f4d36), black 12%);
 }
 
 /* --- Tab and Dropdown Styles --- */
@@ -98,7 +98,7 @@ body {
 
 /* Preserve teal tint for the interactive map canvas area even after suite background is neutralized. */
 #mind-map-container {
-    background: #f0fdfa;
+    background: #f4f0e8;
 }
 
 .mindmap-toolbar {
@@ -249,6 +249,69 @@ body {
     font-size: 12px;
     color: #64748b;
     margin-left: 8px;
+}
+
+/* --- Mobile breakpoints (Phase 7B Atlas hardening) --- */
+@media (max-width: 768px) {
+    /* Tabs: horizontal scroll instead of multi-row wrap.
+       #tab-bar is itself the flex track AND the scroll container in this DOM,
+       so we let flex children push beyond max-width and let the parent clip. */
+    .tab-container,
+    #tab-bar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        max-width: 100%;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    .tab {
+        scroll-snap-align: start;
+        padding: 8px 12px;
+        font-size: 14px;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        white-space: nowrap;
+    }
+    /* Toolbar: wrap to 2 rows, smaller controls */
+    .mindmap-toolbar {
+        flex-wrap: wrap;
+        height: auto;
+        justify-content: center;
+        padding: 0.4rem;
+        gap: 0.35rem;
+    }
+    .mindmap-toolbar button {
+        min-width: 28px;
+        min-height: 28px;
+        padding: 0.3rem 0.6rem;
+        font-size: 12px;
+    }
+    /* Search controls row (Tailwind flex parent) */
+    body[data-legacy-shell='true'] .flex.gap-2.justify-center {
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
+    }
+    body[data-legacy-shell='true'] input[type='text'].max-w-md,
+    body[data-legacy-shell='true'] input[type='search'].max-w-md {
+        max-width: 100%;
+        width: 100%;
+        flex: 1 1 100%;
+    }
+    /* Map canvas: guarantee a usable minimum height */
+    #mind-map-container,
+    .mind-map-view {
+        min-height: 60vh;
+    }
+    /* Tighten dropdowns so they don't overflow viewport */
+    .dropdown {
+        max-width: 90vw;
+    }
+    .dropdown-item {
+        max-width: 88vw;
+    }
 }
 
 .search-result-item .match-text {

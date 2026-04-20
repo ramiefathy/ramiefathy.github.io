@@ -146,13 +146,14 @@ test.describe('site runtime smoke (no external deps + no runtime errors)', () =>
 
   test('404 page renders and unknown routes return not-found content', async ({ page }) => {
     await visitAndAssertClean(page, getNotFoundRoute(), [200, 404])
-    await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible()
+    // Phase 7 Atlas redesign: the 404 h1 is "Off the atlas." (display1 with <em>atlas</em>).
+    await expect(page.getByRole('heading', { level: 1, name: /Off the\s+atlas\./i })).toBeVisible()
 
     const runtime = captureRuntimeErrors(page)
     const response = await page.goto('/this-route-should-not-exist', { waitUntil: 'domcontentloaded' })
     // Production hosting can vary (redirect to /404 vs true 404). The content assertion keeps this test meaningful.
     expect([200, 404]).toContain(response?.status() || 0)
-    await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Off the\s+atlas\./i })).toBeVisible()
     expect(runtime.pageErrors, 'Page errors on not-found route').toEqual([])
     expect(filterActionableConsoleErrors(runtime.consoleErrors), 'Console errors on not-found route').toEqual([])
   })
