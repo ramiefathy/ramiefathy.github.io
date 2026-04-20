@@ -5,6 +5,7 @@ import Hero from '../components/Hero.jsx';
 import profile from '../data/profile.json';
 import apps from '../data/apps.json';
 import { publications } from '../data/publications.js';
+
 const featuredApps = apps
   .filter((app) => app.status === 'active' && app.slug !== 'dermatology-scribe')
   .slice(0, 3);
@@ -12,166 +13,104 @@ const featuredApps = apps
 const featuredPublications = [...publications]
   .filter((entry) => entry.featured)
   .sort((a, b) => b.year - a.year)
-  .slice(0, 4);
+  .slice(0, 5);
 
-const years = [...new Set(publications.map((entry) => entry.year))].filter(Boolean).sort((a, b) => a - b);
-const startYear = years[0] ?? new Date().getFullYear();
-const endYear = years[years.length - 1] ?? startYear;
-const publicationYears = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
-const featuredYears = new Set(featuredPublications.map((entry) => entry.year));
+const highlights = profile.about.highlights.slice(0, 4);
+const highlightLabels = ['Active', 'Incoming', 'Council', 'Education'];
 ---
 <MainLayout title="Ramie Fathy, MD – Dermatology & AI" description={profile.summary}>
   <Header client:load />
 
   <main id="main-content">
-  <Hero client:load profile={profile} />
+    <Hero client:load profile={profile} />
 
-  <div class="ad-slot" aria-label="Sponsored banner">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2958059905874922" data-ad-slot="1498241199" data-ad-format="auto" data-full-width-responsive="true"></ins>
-  </div>
-
-  <section id="about" class="section">
-    <div class="section__inner scroll-fade" data-scroll-fade>
-      <div class="section__intro">
-        <h2 class="section__title">About</h2>
-        <p class="section__subtitle">{profile.about.intro}</p>
-      </div>
-      <div class="card-grid">
-        {profile.about.highlights.map((item) => (
-          <div class="card" style="min-height:180px">
-            <p style="margin:0">{item}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section id="apps" class="section" style="background:linear-gradient(180deg, rgba(239,246,255,0.8), rgba(255,255,255,0.92))">
-    <div class="section__inner scroll-fade" data-scroll-fade>
-      <div class="section__intro">
-        <h2 class="section__title">Featured Applications</h2>
-        <p class="section__subtitle">A sampling of browser-based tools currently supporting dermatology trainees and clinical workflows. Explore the full catalog for interactive demos and documentation.</p>
-      </div>
-      <div class="app-showcase">
-        {featuredApps.map((app, index) => (
-          <div class={`app-showcase-row scroll-fade ${index % 2 === 1 ? 'app-showcase-row--reverse' : ''}`} data-scroll-fade>
-            <div class="app-showcase-media">
-              <div class="app-showcase-frame">
-                <iframe src={app.preview ?? app.href} title={`${app.name} preview`} loading="lazy" sandbox="allow-same-origin allow-scripts"></iframe>
-              </div>
-            </div>
-            <div class="app-showcase-body">
-              <h3 class="app-showcase-title">{app.name}</h3>
-              <p class="app-showcase-description">{app.description}</p>
-              <div class="app-showcase-tags">
-                {app.stack.map((tag) => (
-                  <span class="tag">{tag}</span>
-                ))}
-              </div>
-              <a class="button button--primary" href={app.href} target={app.href.startsWith('http') ? '_blank' : undefined} rel={app.href.startsWith('http') ? 'noreferrer' : undefined}>
-                Visit the App
-              </a>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div style="margin-top:2.5rem;text-align:center">
-        <a class="button button--secondary" href="/apps">View Full Applications Directory</a>
-      </div>
-    </div>
-  </section>
-
-  <div class="ad-slot" aria-label="Sponsored content">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2958059905874922" data-ad-slot="1442400877" data-ad-format="rectangle" data-full-width-responsive="true"></ins>
-  </div>
-
-  <section class="section is-hidden">
-    <div class="section__inner">
-      <div class="section__intro">
-        <h2 class="section__title">Trusted Collaborators</h2>
-        <p class="section__subtitle">Logos, testimonials, and media kit forthcoming.</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="publications" class="section" style="background:linear-gradient(180deg, rgba(239,246,255,0.55), rgba(255,255,255,0.96))">
-    <div class="section__inner scroll-fade" data-scroll-fade>
-      <div class="section__intro section__intro--split">
+    <!-- =================== Home: featured apps =================== -->
+    <section id="apps" class="section">
+      <div class="plate-stamp"><b>Home</b><span class="barcode"></span><span>Featured Catalog</span></div>
+      <div class="plate-head">
         <div>
-          <p class="section__kicker">Scholarship</p>
-          <h2 class="section__title">Selected Publications</h2>
-          <p class="section__subtitle">
-            A curated set of work spanning clinical dermatology, medical education, equity, and the responsible application of AI.
-          </p>
+          <span class="kicker">Featured · 03 of 12</span>
+          <h2 class="display2" style="margin-top:8px">A working <em>laboratory</em>.</h2>
         </div>
-        <div class="section__actions">
-          <a class="button button--secondary" href="/research">Explore All Research</a>
-        </div>
+        <a class="button button--primary" href="/apps">Open the catalog →</a>
       </div>
+      <p class="lede" style="margin-bottom:32px">Browser-based instruments — privacy-preserving, no account required, built around real clinic and resident-education workflows.</p>
 
-      <div class="pub-grid">
-        {featuredPublications.map((entry, index) => (
-          <article class="pub-card scroll-fade" data-scroll-fade data-enter-delay={`${index * 90}ms`}>
-            <div class="pub-card__meta">
-              <span class="pub-card__year">{entry.year}</span>
-              {entry.tags?.slice(0, 2).map((tag) => (
-                <span class="tag tag--muted">{tag}</span>
-              ))}
+      <div class="featured-grid">
+        {featuredApps.map((app, idx) => (
+          <a class={`feature-card ${idx === 0 ? 'large' : ''}`} href={app.href} target={app.href.startsWith('http') ? '_blank' : undefined} rel={app.href.startsWith('http') ? 'noreferrer' : undefined}>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="lab">{idx === 0 ? `App № 0${idx + 1} · Featured` : `App № 0${idx + 1}`}</span>
+              <span class="lab" style={idx === 0 ? 'color:rgba(244,240,232,0.5)' : 'color:var(--slate)'}>{(app.stack || [])[0] || ''}</span>
             </div>
-            <h3 class="pub-card__title">{entry.title}</h3>
-            <p class="pub-card__venue">{entry.venue}</p>
-            <p class="pub-card__authors">{entry.authors}</p>
-            <a class="pub-card__cta" href={entry.url} target="_blank" rel="noreferrer">
-              Read paper <span aria-hidden="true">→</span>
-            </a>
-          </article>
+            <h4>{app.name}</h4>
+            {idx === 0 ? <div class="image">[ {app.name} preview ]</div> : null}
+            <p>{app.description}</p>
+            <div class="footer">
+              <span>{(app.stack || []).slice(0, 3).join(' · ')}</span>
+              <span>Visit →</span>
+            </div>
+          </a>
         ))}
       </div>
+    </section>
 
-      <div class="pub-timeline scroll-fade" data-scroll-fade data-enter-delay="160ms" aria-hidden="true">
-        <div class="pub-timeline__track" style={`--timeline-count:${publicationYears.length}`}>
-          {publicationYears.map((year) => (
-            <div class={`pub-timeline__node ${featuredYears.has(year) ? 'pub-timeline__node--featured' : ''}`}>
-              <span class="pub-timeline__dot"></span>
-              <span class="pub-timeline__year">{year}</span>
-            </div>
+    <!-- =================== Home: about =================== -->
+    <section id="about" class="section">
+      <div class="plate-stamp"><b>Home</b><span class="barcode"></span><span>About</span></div>
+      <div class="plate-head">
+        <div>
+          <h2 class="display2">A working <em>atlas</em>.</h2>
+        </div>
+        <a class="button button--secondary" href="/about">Read the bio →</a>
+      </div>
+      <p class="lede" style="margin-bottom:0">{profile.about.intro}</p>
+
+      <div class="plates-row" style="margin-top:32px">
+        {highlights.map((item, idx) => (
+          <div>
+            <span class="plate-num">A.0{idx + 1}</span>
+            <p style="font-size:14px;line-height:1.5;color:var(--ink-soft)">{item}</p>
+            <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--slate);margin-top:auto">{highlightLabels[idx]}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- =================== Home: publications register =================== -->
+    <section id="publications" class="section">
+      <div class="plate-stamp"><b>Home</b><span class="barcode"></span><span>Index of Selected Scholarship</span></div>
+      <div class="pub-register">
+        <div class="ph">
+          <div>
+            <span class="kicker">Selected Scholarship · Index</span>
+            <h2 class="display2" style="margin-top:8px">{publications.length} <em>papers</em>, eight years.</h2>
+          </div>
+          <a class="button button--primary" href="/research">Full register →</a>
+        </div>
+
+        <div class="pub-table" style="margin-top:32px">
+          <div class="row head">
+            <div class="cell">№</div>
+            <div class="cell">Year</div>
+            <div class="cell">Title</div>
+            <div class="cell">Venue</div>
+            <div class="cell"></div>
+          </div>
+          {featuredPublications.map((entry, idx) => (
+            <a class={`row ${idx === 0 ? 'featured' : ''}`} href={entry.url} target="_blank" rel="noreferrer" style="text-decoration:none;color:inherit">
+              <div class="cell num">P.0{idx + 1}</div>
+              <div class="cell yr" style="color:var(--terracotta-2)">{entry.year}</div>
+              <div class="cell title">
+                {entry.title}
+                <small>{entry.authors}</small>
+              </div>
+              <div class="cell venue">{entry.venue}</div>
+              <div class="cell arrow">→</div>
+            </a>
           ))}
         </div>
       </div>
-    </div>
-  </section>
-
-  <section id="contact" class="section" style="background:linear-gradient(180deg, rgba(248,250,252,0.95), rgba(255,255,255,1))">
-    <div class="section__inner scroll-fade" data-scroll-fade style="max-width:780px">
-      <div class="section__intro">
-        <h2 class="section__title">Get in Touch</h2>
-        <p class="section__subtitle">Collaborations, speaking invitations, and media inquiries are welcome. For the fastest response, email directly or use the dedicated contact page.</p>
-      </div>
-      <div class="card">
-        <div class="contact-card__links" aria-label="Contact options">
-          <a class="contact-link" href={profile.contact.email}>
-            <span class="contact-link__icon" aria-hidden="true">✉︎</span>
-            <span class="contact-link__label">Email</span>
-            <span class="contact-link__value">{profile.contact.email.replace(/^mailto:/, '')}</span>
-          </a>
-          <a class="contact-link" href="/contact">
-            <span class="contact-link__icon" aria-hidden="true">↗</span>
-            <span class="contact-link__label">Contact page</span>
-            <span class="contact-link__value">Compose a message</span>
-          </a>
-          <a class="contact-link" href={profile.contact.linkedin} target="_blank" rel="noreferrer">
-            <span class="contact-link__icon" aria-hidden="true">in</span>
-            <span class="contact-link__label">LinkedIn</span>
-            <span class="contact-link__value">Connect</span>
-          </a>
-          <a class="contact-link" href={profile.contact.scholar} target="_blank" rel="noreferrer">
-            <span class="contact-link__icon" aria-hidden="true">G</span>
-            <span class="contact-link__label">Google Scholar</span>
-            <span class="contact-link__value">Publications</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
+    </section>
   </main>
 </MainLayout>

@@ -1,53 +1,149 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import Header from '../../components/Header.jsx';
-import AppsGallery from '../../components/AppsGallery.jsx';
 import apps from '../../data/apps.json';
-import collections from '../../data/collections.json';
+
+// Map slugs to Atlas categories (clinical / learning / reference / productivity / external).
+const CATEGORY_BY_SLUG: Record<string, 'clinical' | 'learning' | 'reference' | 'productivity' | 'external'> = {
+  'dermatology-scribe': 'clinical',
+  'skinoculars': 'clinical',
+  'dermatopathology-navigator': 'learning',
+  'mindmaps': 'learning',
+  'dermoscopy-llm-dashboard': 'reference',
+  'biologic-monitoring': 'reference',
+  'skinscores': 'reference',
+  'pdf-tools': 'productivity',
+  'scheduler-pro': 'clinical',
+  'dermai-reference': 'productivity',
+  'dermascribe-legacy': 'clinical'
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  all: 'All',
+  clinical: 'Clinical',
+  learning: 'Learning',
+  reference: 'Reference',
+  productivity: 'Productivity'
+};
 
 const active = apps.filter((app) => app.status === 'active');
-const beta = apps.filter((app) => app.status === 'beta');
-const archived = apps.filter((app) => app.status === 'legacy');
+const enriched = active.map((app, idx) => ({
+  ...app,
+  plateNumber: `III.${String(idx + 1).padStart(2, '0')}`,
+  category: CATEGORY_BY_SLUG[app.slug] ?? 'clinical',
+  isExternal: typeof app.href === 'string' && app.href.startsWith('http')
+}));
+
+const totalCount = enriched.length;
+const counts: Record<string, number> = {
+  all: totalCount,
+  featured: enriched.filter((app) => app.featured).length,
+  clinical: enriched.filter((app) => app.category === 'clinical').length,
+  learning: enriched.filter((app) => app.category === 'learning').length,
+  reference: enriched.filter((app) => app.category === 'reference').length,
+  productivity: enriched.filter((app) => app.category === 'productivity').length
+};
 ---
 <MainLayout title="Applications – Ramie Fathy, MD" description="Interactive dermatology tools and prototypes developed by Dr. Ramie Fathy.">
   <Header client:load />
   <main id="main-content">
-    <section class="section" style="padding-top:4rem">
-      <div class="section__inner">
-        <div class="section__intro" style="margin-bottom:2.5rem">
-          <h1 class="section__title">Modern Dermatology Workflows</h1>
-          <p class="section__subtitle">Each application below is built for resident clinics, dermatology education, or translational research—and runs directly in the browser with no account required.</p>
-        </div>
+    <section class="section">
+      <div class="plate-stamp"><b>Apps</b><span class="barcode"></span><span>Catalog · {totalCount} Instruments</span></div>
 
-        <AppsGallery
-          apps={apps}
-          collections={collections}
-          client:load
-        />
+      <div class="plate-head">
+        <div>
+          <span class="kicker">Catalog of working instruments</span>
+          <h1 class="display1" style="margin-top:14px">{totalCount} <em>browser-first</em><br>tools, indexed.</h1>
+        </div>
+        <div class="right">
+          Apps & projects · 2026.<br>
+          Local-first by default.<br>
+          <span style="color:var(--terracotta)">— sorted by ID —</span>
+        </div>
+      </div>
+
+      <p class="lede">Each application below is built for resident clinics, dermatology education, or translational research — and runs directly in the browser with no account required.</p>
+
+      <div class="apps-toolbar" style="margin-top:48px">
+        <div class="left" id="apps-filters">
+          <button class="active" data-filter="all">All <span class="c">{counts.all}</span></button>
+          <button data-filter="featured">Featured <span class="c">{counts.featured}</span></button>
+          <button data-filter="clinical">Clinical <span class="c">{counts.clinical}</span></button>
+          <button data-filter="learning">Learning <span class="c">{counts.learning}</span></button>
+          <button data-filter="reference">Reference <span class="c">{counts.reference}</span></button>
+          <button data-filter="productivity">Productivity <span class="c">{counts.productivity}</span></button>
+        </div>
+        <div class="right" style="display:flex;align-items:center;gap:10px">
+          <span>›</span>
+          <input id="apps-search" type="search" placeholder="filter by name, stack, or tag…" />
+        </div>
+      </div>
+
+      <div class="apps-plates" id="apps-grid">
+        {enriched.map((app) => (
+          <a
+            class={`app-plate cat-${app.category}`}
+            href={app.href}
+            target={app.isExternal ? '_blank' : undefined}
+            rel={app.isExternal ? 'noreferrer' : undefined}
+            data-name={app.name.toLowerCase()}
+            data-stack={(app.stack || []).join(' ').toLowerCase()}
+            data-category={app.category}
+            data-featured={app.featured ? 'true' : 'false'}
+          >
+            <span class="swatch"></span>
+            <div class="stamp">
+              <span class="pn">{app.plateNumber}</span>
+              <span class={`st ${app.featured ? 'featured' : ''}`}>{app.featured ? 'Featured' : (app.isExternal ? 'External' : 'Active')}</span>
+            </div>
+            <h4>{app.name.replace(/^RAMIE - /, 'RAMIE — ')}</h4>
+            <p>{app.description}</p>
+            <div class="stack">
+              {(app.stack || []).slice(0, 3).map((tag) => <span>{tag}</span>)}
+            </div>
+          </a>
+        ))}
       </div>
     </section>
-
-    {false && archived.length ? (
-      <section class="section" style="background:linear-gradient(180deg, rgba(236,253,245,0.6), rgba(255,255,255,0.94))">
-        <div class="section__inner">
-          <div class="section__intro">
-            <h2 class="section__title">Archived Experiments</h2>
-            <p class="section__subtitle">Legacy prototypes and documentation retained for historical context and reproducibility.</p>
-          </div>
-          <div class="card-grid">
-            {archived.map((app) => (
-              <a class="card" href={app.href}>
-                <h3 class="card__title">{app.name}</h3>
-                <p>{app.description || 'Experimental project archived for reference.'}</p>
-                <div class="card__meta">
-                  <span class="tag">Legacy</span>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-    ) : null}
   </main>
 
+  <script>
+    (function () {
+      const filterButtons = document.querySelectorAll('#apps-filters button');
+      const searchInput = document.getElementById('apps-search') as HTMLInputElement | null;
+      const grid = document.getElementById('apps-grid');
+      if (!grid) return;
+      const cards = Array.from(grid.querySelectorAll<HTMLElement>('.app-plate'));
+
+      let activeFilter = 'all';
+      let activeSearch = '';
+
+      const applyFilters = () => {
+        for (const card of cards) {
+          const matchesFilter =
+            activeFilter === 'all' ||
+            (activeFilter === 'featured' ? card.dataset.featured === 'true' : card.dataset.category === activeFilter);
+          const haystack = `${card.dataset.name || ''} ${card.dataset.stack || ''}`;
+          const matchesSearch = !activeSearch || haystack.includes(activeSearch);
+          card.style.display = matchesFilter && matchesSearch ? '' : 'none';
+        }
+      };
+
+      filterButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          filterButtons.forEach((other) => other.classList.remove('active'));
+          button.classList.add('active');
+          activeFilter = (button as HTMLButtonElement).dataset.filter || 'all';
+          applyFilters();
+        });
+      });
+
+      if (searchInput) {
+        searchInput.addEventListener('input', () => {
+          activeSearch = searchInput.value.trim().toLowerCase();
+          applyFilters();
+        });
+      }
+    })();
+  </script>
 </MainLayout>

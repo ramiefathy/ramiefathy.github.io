@@ -7,19 +7,16 @@ test.describe('Mind map experiences', () => {
     await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost|\[::1\])/i, async (route) => {
       await route.abort();
     });
-    await page.goto('/apps/mindmaps/alopecia', { waitUntil: 'domcontentloaded' });
+    await page.goto('/apps/mindmaps/alopecia', { waitUntil: 'networkidle' });
 
-    // Wait for the route shell first, then for the interactive app controls to appear.
-    await expect(page.locator('#mindmap-runtime')).toBeVisible({ timeout: 45_000 });
+    // Wait for the view-switcher to appear (signals React hydration is complete).
+    await page.locator('.view-switcher').waitFor({ state: 'visible' });
 
-    // Ensure the Astro island is hydrated; SSR markup exists before hydration but is not interactive.
-    await page.waitForFunction(
-      () => {
-        const island = document.querySelector('astro-island[component-url*="MindMapApp"]');
-        return island && !island.hasAttribute('ssr');
-      },
-      { timeout: 90_000 }
-    );
+    // Phase 8 made Diagrams the default view; click Atlas tab to access Atlas-only controls.
+    const atlasTab = page.getByRole('tab', { name: /Atlas/ });
+    await atlasTab.click();
+    // Confirm React handled the click via aria-selected.
+    await expect(atlasTab).toHaveAttribute('aria-selected', 'true');
 
     const search = page.getByLabel('Search nodes');
     await expect(search).toBeVisible({ timeout: 90_000 });

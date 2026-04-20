@@ -1,19 +1,12 @@
 import { MeshGradient, ShaderMount } from '@paper-design/shaders-react';
 import { defaultObjectSizing, ShaderFitOptions, getShaderColorFromString, meshGradientMeta } from '@paper-design/shaders';
-import { motion, AnimatePresence } from 'framer-motion';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 
-const heroColors = ['#041020', '#0b2750', '#123d78', '#1c5aa2'];
+// Atlas-tuned warm palette: bone + terracotta + gold + moss + ink-soft.
+// The shader becomes a slow, low-contrast pigment swirl that sits under a bone overlay
+// plate without competing with it.
+const heroColors = ['#f4f0e8', '#e8d5c4', '#c2674a', '#a37b2a', '#5b7058'];
 
-// Subtitles for typing animation
-const TYPING_SUBTITLES = [
-  'PGY-4 Dermatology Resident',
-  'AI & Medicine Researcher',
-  'Clinical Tool Developer',
-  'Incoming Rheum-Derm Fellow'
-];
-
-// Check for WebGL support
 const hasWebGLSupport = () => {
   if (typeof window === 'undefined') return true;
   try {
@@ -24,13 +17,11 @@ const hasWebGLSupport = () => {
   }
 };
 
-// Check if mobile device
 const isMobileDevice = () => {
   if (typeof window === 'undefined') return false;
   return window.innerWidth < 768;
 };
 
-// CSS-only animated gradient fallback (also used as SSR/background base layer to prevent abrupt "pop-in")
 const GradientFallback = memo(({ style }) => (
   <div className="hero-gradient-fallback" aria-hidden="true" style={style}>
     <style dangerouslySetInnerHTML={{ __html: `
@@ -39,17 +30,17 @@ const GradientFallback = memo(({ style }) => (
         inset: 0;
         background: linear-gradient(
           135deg,
-          #041020 0%,
-          #0b2750 25%,
-          #123d78 50%,
-          #1c5aa2 75%,
-          #0b2750 100%
+          #f4f0e8 0%,
+          #e8d5c4 30%,
+          #c2674a 60%,
+          #a37b2a 80%,
+          #5b7058 100%
         );
-        background-size: 400% 400%;
-        animation: gradientShift 22s ease infinite;
+        background-size: 320% 320%;
+        animation: heroGradientShift 28s ease infinite;
       }
 
-      @keyframes gradientShift {
+      @keyframes heroGradientShift {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
@@ -95,8 +86,6 @@ in vec2 v_objectUV;
 
 out vec4 fragColor;
 
-const float PI = 3.14159265358979323846;
-
 mat2 rotate(float a) {
   float s = sin(a);
   float c = cos(a);
@@ -107,10 +96,8 @@ vec2 getPosition(int i, float t) {
   float a = float(i) * .37;
   float b = .6 + mod(float(i), 3.) * .3;
   float c = .8 + mod(float(i + 1), 4.) * 0.25;
-
   float x = sin(t * b + a);
   float y = cos(t * c + a * 1.5);
-
   return .5 + .5 * vec2(x, y);
 }
 
@@ -126,7 +113,6 @@ void main() {
   shape_uv += rippleDirection * rippleWave;
 
   float t = .5 * u_time;
-
   float radius = smoothstep(0., 1., length(shape_uv - .5));
   float center = 1. - radius;
   for (float i = 1.; i <= 2.; i++) {
@@ -146,13 +132,10 @@ void main() {
 
   for (int i = 0; i < ${MAX_COLORS}; i++) {
     if (i >= int(u_colorsCount)) break;
-
     vec2 pos = getPosition(i, t);
     vec3 colorFraction = u_colors[i].rgb * u_colors[i].a;
     float opacityFraction = u_colors[i].a;
-
     float dist = length(uvRotated - pos);
-
     dist = pow(dist, 3.5);
     float weight = 1. / (dist + 1e-3);
     color += colorFraction * weight;
@@ -162,7 +145,6 @@ void main() {
 
   color /= totalWeight;
   opacity /= totalWeight;
-
   fragColor = vec4(color, opacity);
 }
 `;
@@ -219,9 +201,8 @@ const RippleMeshGradient = memo(
   }
 );
 
-const Hero = ({ profile, enableTypingAnimation = true }) => {
-  // Parallax + ripple state (token is used to re-trigger the CSS ripple animation without remounting every frame).
-  const [ripple, setRipple] = useState({ x: 0.5, y: 0.5, strength: 0.12, token: 0 });
+const Hero = ({ profile }) => {
+  const [ripple, setRipple] = useState({ x: 0.5, y: 0.5, strength: 0.12 });
   const [hasWebGL, setHasWebGL] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -230,16 +211,9 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
   const stageRef = useRef(null);
   const frameRef = useRef(0);
   const lastPointer = useRef({ x: 0.5, y: 0.5, time: typeof performance !== 'undefined' ? performance.now() : 0 });
-  const rippleTokenRef = useRef(0);
-  const lastPulseRef = useRef({ time: typeof performance !== 'undefined' ? performance.now() : 0 });
-
-  const [roleIndex, setRoleIndex] = useState(0);
 
   const [primaryCta, secondaryCta] = profile.callToActions.slice(0, 2);
-  const headline = `${profile.name}`;
-  const emphasisWrapped = `<span class="hero-emphasis">${headline}</span>`;
 
-  // Check WebGL and mobile on mount
   useEffect(() => {
     setHasWebGL(hasWebGLSupport());
     setIsMobile(isMobileDevice());
@@ -249,10 +223,7 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
     setPrefersReducedMotion(motionMedia.matches);
     motionMedia.addEventListener('change', handleMotionChange);
 
-    const handleResize = () => {
-      setIsMobile(isMobileDevice());
-    };
-
+    const handleResize = () => setIsMobile(isMobileDevice());
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -260,7 +231,6 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
     };
   }, []);
 
-  // Fade in WebGL layers after hydration so the background doesn't "snap" in abruptly.
   useEffect(() => {
     if (isServer) return undefined;
     if (!hasWebGL || isMobile || prefersReducedMotion) {
@@ -274,22 +244,6 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
     return () => cancelAnimationFrame(raf);
   }, [hasWebGL, isMobile, prefersReducedMotion, isServer]);
 
-  useEffect(() => {
-    if (!enableTypingAnimation) return undefined;
-    if (prefersReducedMotion) {
-      setRoleIndex(0);
-      return undefined;
-    }
-    if (isServer) return undefined;
-
-    const interval = window.setInterval(() => {
-      setRoleIndex((current) => (current + 1) % TYPING_SUBTITLES.length);
-    }, 2600);
-
-    return () => window.clearInterval(interval);
-  }, [enableTypingAnimation, isServer, prefersReducedMotion]);
-
-  // Premium mouse interaction (desktop): subtle parallax + slightly stronger ripple feedback.
   const handleMouseMove = useCallback((event) => {
     if (frameRef.current || isMobile || prefersReducedMotion) return;
 
@@ -297,7 +251,6 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
       frameRef.current = 0;
       const { clientX, clientY, currentTarget } = event;
       const rect = currentTarget.getBoundingClientRect();
-
       const x = (clientX - rect.left) / rect.width;
       const y = (clientY - rect.top) / rect.height;
       const now = performance.now();
@@ -306,31 +259,9 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
       const dx = x - px;
       const dy = y - py;
       const velocity = Math.sqrt(dx * dx + dy * dy) / (dt / 16.0);
-
-      // Continuous parallax (small, tasteful).
-      const parallaxX = (x - 0.5) * 18;
-      const parallaxY = (y - 0.5) * 14;
-      if (stageRef.current) {
-        stageRef.current.style.setProperty('--hero-parallax-x', `${parallaxX.toFixed(2)}px`);
-        stageRef.current.style.setProperty('--hero-parallax-y', `${parallaxY.toFixed(2)}px`);
-      }
-
-      // Ripple strength scales with movement speed (desktop only).
-      const maxStrength = 0.72;
-      const strength = Math.min(maxStrength, Math.max(0.14, velocity * 0.78));
-
-      // Re-trigger the CSS ripple pulse only for meaningful movement bursts (debounced).
-      const pulseThreshold = 0.75;
-      const pulseDebounceMs = 160;
-      const timeSincePulse = now - lastPulseRef.current.time;
-      const shouldPulse = velocity > pulseThreshold && timeSincePulse > pulseDebounceMs;
-      if (shouldPulse) {
-        rippleTokenRef.current += 1;
-        lastPulseRef.current.time = now;
-      }
-
+      const strength = Math.min(0.5, Math.max(0.10, velocity * 0.55));
       lastPointer.current = { x, y, time: now };
-      setRipple({ x, y, strength, token: rippleTokenRef.current });
+      setRipple({ x, y, strength });
     });
   }, [isMobile, prefersReducedMotion]);
 
@@ -339,42 +270,34 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
       cancelAnimationFrame(frameRef.current);
       frameRef.current = 0;
     }
-
-    if (stageRef.current) {
-      stageRef.current.style.setProperty('--hero-parallax-x', '0px');
-      stageRef.current.style.setProperty('--hero-parallax-y', '0px');
-    }
-
     lastPointer.current = { x: 0.5, y: 0.5, time: performance.now() };
     setRipple((prev) => ({ ...prev, x: 0.5, y: 0.5, strength: 0.12 }));
   }, []);
 
   useEffect(() => () => {
-    if (frameRef.current) {
-      cancelAnimationFrame(frameRef.current);
-    }
+    if (frameRef.current) cancelAnimationFrame(frameRef.current);
   }, []);
 
-  // Mobile-optimized shader settings
-  const mobileDistortion = isMobile ? 0.8 : 1.15;
-  const mobileSwirl = isMobile ? 0.15 : 0.24;
-  const mobileSpeed = isMobile ? 0.4 : 0.6;
-  const rippleDistortion = isMobile ? 1.0 : 1.35;
-  const rippleSwirl = isMobile ? 0.35 : 0.55;
-  const rippleFrequency = isMobile ? 20 : 32;
+  // Shader settings tuned for slow, soft pigment swirl behind the overlay plate.
+  const distortion = isMobile ? 0.6 : 0.85;
+  const swirl = isMobile ? 0.12 : 0.18;
+  const speed = isMobile ? 0.3 : 0.45;
+  const rippleDistortion = isMobile ? 0.8 : 1.05;
+  const rippleSwirl = isMobile ? 0.25 : 0.40;
+  const rippleFrequency = isMobile ? 18 : 28;
 
   return (
     <section
-      className="hero-stage"
+      className="atlas-hero-stage"
       aria-labelledby="hero-title"
       ref={stageRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="hero-background">
+      <div className="atlas-hero-canvas">
         <GradientFallback
           style={{
-            opacity: hasWebGL ? (webglVisible ? 0.35 : 1) : 1,
+            opacity: hasWebGL ? (webglVisible ? 0.4 : 1) : 1,
             transition: 'opacity 900ms ease'
           }}
         />
@@ -383,97 +306,192 @@ const Hero = ({ profile, enableTypingAnimation = true }) => {
           <>
             <MeshGradient
               colors={heroColors}
-              speed={mobileSpeed}
-              distortion={mobileDistortion}
-              swirl={mobileSwirl}
-              style={{ position: 'absolute', inset: 0, opacity: webglVisible ? 0.65 : 0, transition: 'opacity 700ms ease' }}
+              speed={speed}
+              distortion={distortion}
+              swirl={swirl}
+              style={{ position: 'absolute', inset: 0, opacity: webglVisible ? 0.7 : 0, transition: 'opacity 700ms ease' }}
             />
-
-            {/* Only render ripple layer on non-mobile or if explicitly enabled */}
             {!isMobile && (
               <RippleMeshGradient
                 colors={heroColors}
-                speed={1.55}
+                speed={1.05}
                 distortion={rippleDistortion}
                 swirl={rippleSwirl}
                 rippleCenter={[ripple.x, ripple.y]}
                 rippleStrength={ripple.strength}
                 rippleFrequency={rippleFrequency}
-                style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen', opacity: webglVisible ? 0.6 : 0, transition: 'opacity 700ms ease' }}
+                style={{ position: 'absolute', inset: 0, mixBlendMode: 'multiply', opacity: webglVisible ? 0.45 : 0, transition: 'opacity 700ms ease' }}
               />
             )}
           </>
         ) : null}
 
-        <span
-          key={ripple.token}
-          className="hero-ripple"
-          style={{ '--ripple-x': `${(ripple.x * 100).toFixed(2)}%`, '--ripple-y': `${(ripple.y * 100).toFixed(2)}%` }}
-        />
-        <div className="hero-gradient-overlay" />
+        {/* Soft scrim so display type stays legible regardless of pigment drift */}
+        <div className="atlas-hero-scrim" />
       </div>
-      <div className="hero-content">
-        <motion.div
-          className="hero-copy"
-          initial={{ opacity: 1, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: 'easeOut' }}
-        >
-          <h1
-            id="hero-title"
-            className="hero-title"
-            dangerouslySetInnerHTML={{ __html: emphasisWrapped }}
-          />
 
-          {/* Typing animation subtitle */}
-          {enableTypingAnimation ? (
-            <p className="hero-role" aria-live="polite">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={prefersReducedMotion || isServer ? 'static' : roleIndex}
-                  className="hero-role-text"
-                  initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                  transition={{ duration: 0.38, ease: 'easeOut' }}
-                >
-                  {prefersReducedMotion || isServer ? TYPING_SUBTITLES[0] : TYPING_SUBTITLES[roleIndex]}
-                </motion.span>
-              </AnimatePresence>
-            </p>
-          ) : null}
+      <div className="atlas-hero-content">
+        <div className="plate-stamp" style={{ position: 'static', left: 'auto', top: 'auto', marginBottom: '24px' }}>
+          <b>Frontispiece</b>
+          <span className="barcode" />
+          <span>Vol. IV · 2026</span>
+        </div>
 
-          <p className="hero-subtitle">{profile.summary}</p>
-          <div className="hero-cta">
-            <a className="button button--primary" href={primaryCta?.href ?? '/apps'} target={primaryCta?.external ? '_blank' : undefined} rel={primaryCta?.external ? 'noreferrer' : undefined}>
-              {primaryCta?.label ?? 'View Applications'}
-            </a>
-            <a className="button button--secondary" href={secondaryCta?.href ?? '/legacy'} target={secondaryCta?.external ? '_blank' : undefined} rel={secondaryCta?.external ? 'noreferrer' : undefined}>
-              {secondaryCta?.label ?? 'Download CV'}
-            </a>
+        <div className="atlas-hero-plate">
+          <div className="atlas-hero-plate-text">
+            <span className="kicker">{profile.title}</span>
+            <h1 id="hero-title" className="display1" style={{ marginTop: '14px' }}>
+              {profile.name}<br />
+              <em>— a working atlas.</em>
+            </h1>
+            <p className="lede" style={{ marginTop: '24px' }}>{profile.summary}</p>
+            <div style={{ display: 'flex', gap: '32px', marginTop: '32px', flexWrap: 'wrap' }}>
+              <a className="button button--primary" href={primaryCta?.href ?? '/apps'} target={primaryCta?.external ? '_blank' : undefined} rel={primaryCta?.external ? 'noreferrer' : undefined}>
+                {primaryCta?.label ?? 'Open the catalog'} →
+              </a>
+              <a className="button button--secondary" href={secondaryCta?.href ?? '/about'} target={secondaryCta?.external ? '_blank' : undefined} rel={secondaryCta?.external ? 'noreferrer' : undefined}>
+                {secondaryCta?.label ?? 'Read the bio'} →
+              </a>
+            </div>
           </div>
-        </motion.div>
+          <aside className="atlas-hero-plate-side">
+            <span className="kicker" style={{ display: 'block', marginBottom: '10px' }}>In this volume</span>
+            <a href="/apps" className="atlas-hero-side-row">
+              <span className="l">Apps catalog · 9 instruments</span>
+            </a>
+            <a href="/research" className="atlas-hero-side-row">
+              <span className="l">Research · 12 papers</span>
+            </a>
+            <a href="/blog" className="atlas-hero-side-row">
+              <span className="l">Field notes & dispatches</span>
+            </a>
+          </aside>
+        </div>
       </div>
 
-      {/* Additional styles for typing animation */}
       <style dangerouslySetInnerHTML={{ __html: `
-        .hero-role {
-          font-size: clamp(1rem, 2.5vw, 1.25rem);
-          color: rgba(255, 255, 255, 0.85);
-          margin-bottom: 1rem;
-          min-height: 1.5em;
-          font-weight: 500;
+        .atlas-hero-stage {
+          position: relative;
+          width: 100%;
+          min-height: 86vh;
+          padding: 88px 48px 64px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--bone);
+          overflow: hidden;
+          border-bottom: 1px solid var(--rule);
         }
 
-        .hero-role-text {
-          display: inline-flex;
-          align-items: baseline;
-          gap: 0.45rem;
-          padding: 0.18rem 0.65rem;
-          border-radius: 999px;
-          border: 1px solid rgba(148, 163, 184, 0.18);
-          background: rgba(2, 6, 23, 0.25);
-          box-shadow: 0 18px 40px rgba(2, 6, 23, 0.35);
+        .atlas-hero-canvas {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .atlas-hero-scrim {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse at 50% 100%, rgba(244, 240, 232, 0.55), transparent 60%),
+            linear-gradient(180deg, rgba(244, 240, 232, 0.0) 30%, rgba(244, 240, 232, 0.45) 100%);
+          pointer-events: none;
+        }
+
+        .atlas-hero-content {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          max-width: 1320px;
+        }
+
+        .atlas-hero-plate {
+          background: var(--plate-bg);
+          border: 2px solid var(--ink);
+          display: grid;
+          grid-template-columns: 1.4fr 1fr;
+          gap: 0;
+          align-items: stretch;
+          min-height: 56vh;
+          box-shadow: 0 24px 60px rgba(10, 10, 10, 0.18);
+        }
+
+        .atlas-hero-plate-text {
+          padding: 56px 48px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 16px;
+          border-right: 2px solid var(--ink);
+        }
+
+        .atlas-hero-plate-side {
+          padding: 40px 32px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          background: var(--bone-2);
+        }
+
+        .atlas-hero-side-row {
+          display: grid;
+          grid-template-columns: 80px 1fr;
+          gap: 14px;
+          padding: 14px 0;
+          border-bottom: 1px solid var(--rule-soft);
+          color: inherit;
+          text-decoration: none;
+          transition: padding-left 180ms ease, background 180ms ease;
+        }
+
+        .atlas-hero-side-row:last-child {
+          border-bottom: 0;
+        }
+
+        .atlas-hero-side-row:hover {
+          padding-left: 6px;
+        }
+
+        .atlas-hero-side-row:hover .l {
+          color: var(--terracotta);
+        }
+
+        .atlas-hero-side-row .t {
+          font-family: var(--font-mono);
+          font-size: 10px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--terracotta);
+          font-weight: 700;
+        }
+
+        .atlas-hero-side-row .l {
+          font-family: var(--font-display);
+          font-weight: 500;
+          font-size: 16px;
+          letter-spacing: -0.005em;
+          line-height: 1.2;
+          color: var(--ink);
+          transition: color 180ms ease;
+        }
+
+        @media (max-width: 900px) {
+          .atlas-hero-stage {
+            padding: 64px 24px 48px;
+            min-height: auto;
+          }
+          .atlas-hero-plate {
+            grid-template-columns: 1fr;
+          }
+          .atlas-hero-plate-text {
+            padding: 36px 28px;
+            border-right: 0;
+            border-bottom: 2px solid var(--ink);
+          }
+          .atlas-hero-plate-side {
+            padding: 28px;
+          }
         }
       ` }} />
     </section>

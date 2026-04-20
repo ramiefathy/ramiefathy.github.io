@@ -1,0 +1,116 @@
+{
+  "id": "ctcl-treatment-swimlane",
+  "topic": "ctcl",
+  "title": "CTCL Treatment by Stage",
+  "subtitle": "Skin-directed, systemic, and chemotherapy options organized by TNMB stage",
+  "type": "swimlane",
+  "data": {
+    "lanes": [
+      { "id": "skin-directed", "name": "Skin-Directed (First-Line)" },
+      { "id": "systemic-nochemo", "name": "Systemic Non-Chemotherapy" },
+      { "id": "chemo-sct", "name": "Chemotherapy / SCT" }
+    ],
+    "rows": [
+      {
+        "id": "stage-ia-ib",
+        "name": "Stage IA-IB (T1-T2 N0 M0 B0-B1)",
+        "cells": {
+          "skin-directed": {
+            "text": "Superpotent topical corticosteroid · NB-UVB · PUVA · Topical mechlorethamine (gel or ointment) · Topical carmustine · Local radiation (4-6 Gy for symptomatic lesions)",
+            "emphasis": "primary",
+            "detail": "<p><strong>First-line standard:</strong> Skin-directed therapy is the mainstay for early-stage disease. Superpotent (class I) topical steroid for limited lesions. NB-UVB preferred for patch-stage; PUVA for thicker plaques or folliculotropic variant. Topical mechlorethamine (Valchlor gel) is FDA-approved. Local RT for isolated symptomatic lesions.</p>"
+          },
+          "systemic-nochemo": {
+            "text": "Usually NOT indicated for Stage IA. For Stage IB with extensive disease or rapid progression: bexarotene oral or topical · Low-dose methotrexate · IFN-alpha",
+            "detail": "<p>Systemic therapies reserved for skin-directed therapy failures in Stage IB. Bexarotene (rexinoid) 300 mg/m2/day; monitor triglycerides and thyroid. IFN-alpha 3 MU TIW subcutaneous. Low-dose methotrexate 5-25 mg weekly for refractory disease.</p>"
+          },
+          "chemo-sct": {
+            "text": "Not indicated for Stage IA-IB",
+            "emphasis": "muted"
+          }
+        }
+      },
+      {
+        "id": "stage-iia-iib",
+        "name": "Stage IIA-IIB (N+ nodes or T3 tumors)",
+        "cells": {
+          "skin-directed": {
+            "text": "Continue skin-directed therapy · Targeted radiation to tumors (8-36 Gy) · Total Skin Electron Beam Therapy (TSEBT) 12-36 Gy (low-dose 12 Gy preferred to reduce toxicity)",
+            "emphasis": "primary",
+            "detail": "<p>Skin-directed therapy remains important even as systemic agents are added. TSEBT is effective for extensive plaque/tumor-stage disease; low-dose (12 Gy in 8 fractions) has comparable efficacy with less toxicity. Targeted RT (palliative) at 4-8 Gy for individual painful or ulcerated tumors.</p>"
+          },
+          "systemic-nochemo": {
+            "text": "Bexarotene · IFN-alpha · Low-dose methotrexate · Mogamulizumab (CCR4 inhibitor) · Brentuximab vedotin if CD30 expression ≥10% · Romidepsin or vorinostat (HDAC inhibitors)",
+            "detail": "<p><strong>Stage IIB key additions:</strong> Mogamulizumab (anti-CCR4 mAb) showed superior PFS vs vorinostat in Phase III. Brentuximab vedotin (anti-CD30 antibody-drug conjugate) FDA-approved for CD30+ CTCL ≥10%; ORR ~50-60% in tumor-stage MF. Histone deacetylase inhibitors (romidepsin, vorinostat) are options for refractory disease.</p>"
+          },
+          "chemo-sct": {
+            "text": "Reserved for refractory Stage IIB: gemcitabine (single-agent) · Liposomal doxorubicin · Clinical trial preferred",
+            "emphasis": "caution",
+            "detail": "<p>Single-agent chemotherapy for Stage IIB refractory to multiple systemic agents. Gemcitabine (1000 mg/m2 on days 1, 8, 15 of 28-day cycle) has ORR ~50-60% but responses are not durable. Clinical trial enrollment strongly encouraged.</p>"
+          }
+        }
+      },
+      {
+        "id": "stage-iii-ss",
+        "name": "Stage III / Erythrodermic MF / Sézary Syndrome",
+        "cells": {
+          "skin-directed": {
+            "text": "Low-potency topical steroids for symptom control · NB-UVB (if tolerated) · Avoid aggressive TSEBT unless isolated nodal disease",
+            "detail": "<p>Erythrodermic patients have compromised skin barrier; aggressive skin-directed therapy may worsen condition. Gentle emollient regimens, low-potency topical steroids, and NB-UVB for palliation. TSEBT occasionally used for symptom control.</p>"
+          },
+          "systemic-nochemo": {
+            "text": "Extracorporeal Photopheresis (ECP) — first-line for erythrodermic/Sézary · Mogamulizumab · IFN-alpha · Bexarotene · Low-dose alemtuzumab (off-label) · Combination ECP + IFN or ECP + bexarotene",
+            "emphasis": "primary",
+            "detail": "<p><strong>ECP cornerstone:</strong> Leukapheresis-based immunomodulatory therapy; ORR 30-80% for erythrodermic CTCL/SS. Combine with IFN-alpha or bexarotene for enhanced response. Mogamulizumab superior to vorinostat in randomized trial (MAVORIC) with ORR 28% vs 5% in SS. Alemtuzumab (anti-CD52) effective but immunosuppressive; monitor for CMV reactivation.</p>"
+          },
+          "chemo-sct": {
+            "text": "Refractory Stage III/SS: gemcitabine · Liposomal doxorubicin · Pralatrexate · Consider allogeneic HSCT for younger fit patients with IVA2",
+            "emphasis": "caution",
+            "detail": "<p>Allogeneic HSCT offers potential long-term remission in Sézary syndrome refractory to multiple agents. Reduced-intensity conditioning preferred given older age at presentation. Graft-versus-lymphoma effect documented. Refer to transplant center early in refractory cases.</p>"
+          }
+        }
+      },
+      {
+        "id": "stage-iv",
+        "name": "Stage IV / Visceral or N3 Disease (IVA1, IVA2, IVB)",
+        "cells": {
+          "skin-directed": {
+            "text": "Palliative local radiation for symptomatic lesions · Gentle topical therapy for symptom control",
+            "emphasis": "muted"
+          },
+          "systemic-nochemo": {
+            "text": "Mogamulizumab · Brentuximab vedotin (CD30+) · Romidepsin · Pralatrexate · Bexarotene + ECP (IVA2/SS) · Clinical trial strongly preferred",
+            "detail": "<p>Systemic options palliative at Stage IV; durable remissions are rare without SCT. Mogamulizumab ORR ~28-37%. Pralatrexate (antifolate) ORR ~35%. Coordinate with multidisciplinary lymphoma team. Enroll in clinical trial whenever possible.</p>"
+          },
+          "chemo-sct": {
+            "text": "Allogeneic HSCT (curative intent) · Gemcitabine-based regimens · CHOP or CHOP-like chemotherapy for rapidly progressive IVB · Liposomal doxorubicin",
+            "emphasis": "primary",
+            "detail": "<p><strong>Allogeneic HSCT:</strong> Only potentially curative option for advanced CTCL. Best outcomes in patients achieving at least partial remission before transplant. Non-relapse mortality 15-30%; graft-versus-lymphoma effect documented. IVB with visceral disease: systemic chemotherapy (gemcitabine, liposomal doxorubicin) + radiation for bulky disease + referral for allogeneic HSCT if fit and chemosensitive.</p>"
+          }
+        }
+      },
+      {
+        "id": "monitoring",
+        "name": "Monitoring Across All Stages",
+        "cells": {
+          "skin-directed": {
+            "text": "Photo-document BSA at every visit · Repeat biopsy if transformation suspected"
+          },
+          "systemic-nochemo": {
+            "text": "CBC + Sézary count every 3-6 months · LDH · CT/PET if stage IIA or higher",
+            "emphasis": "caution",
+            "detail": "<p>Large-cell transformation (LCT) — emergence of &gt;25% large cells (CD30+) — is a poor prognostic sign requiring repeat biopsy. LCT prognosis is poor with median OS &lt;2 years; brentuximab vedotin is preferred systemic option for CD30+ LCT.</p>"
+          },
+          "chemo-sct": {
+            "text": "Post-SCT: chimerism monitoring + GVHD surveillance every 3 months",
+            "emphasis": "muted"
+          }
+        }
+      }
+    ]
+  },
+  "citations": [
+    { "pmid": "28215817", "quote": "Trautinger F et al. EORTC consensus recommendations for the treatment of mycosis fungoides/Sezary syndrome. Eur J Cancer. 2017;77:57-74." },
+    { "pmid": "17312045", "quote": "Olsen EA et al. Revisions to the staging and classification of MF and SS. Blood. 2007;110(6):1713-1722." }
+  ]
+}

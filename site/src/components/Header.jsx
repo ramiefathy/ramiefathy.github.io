@@ -16,16 +16,9 @@ function isActiveLink(pathname, href) {
 }
 
 const Header = () => {
-  const [theme, setTheme] = useState('light');
   const [menuOpen, setMenuOpen] = useState(false);
   const [activePath, setActivePath] = useState('');
   const previousOverflow = useRef('');
-
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const current = document.documentElement.dataset.theme || 'light';
-    setTheme(current);
-  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -56,18 +49,6 @@ const Header = () => {
     };
   }, [menuOpen]);
 
-  const toggleTheme = () => {
-    if (typeof document === 'undefined') return;
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    document.documentElement.dataset.theme = next;
-    try {
-      window.localStorage.setItem('theme', next);
-    } catch (err) {
-      console.warn('Unable to persist theme preference', err);
-    }
-  };
-
   const toggleMenu = () => setMenuOpen((value) => !value);
   const closeMenu = () => setMenuOpen(false);
 
@@ -92,15 +73,6 @@ const Header = () => {
           ))}
         </nav>
         <div className="header-actions">
-          <button
-            type="button"
-            className="theme-toggle"
-            onClick={toggleTheme}
-            aria-label="Toggle dark mode"
-            aria-pressed={theme === 'dark'}
-          >
-            <span aria-hidden="true">{theme === 'dark' ? '☾' : '☀︎'}</span>
-          </button>
           <button
             type="button"
             className="header-menu"

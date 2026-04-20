@@ -73,11 +73,11 @@
 
         /* Clinical Accent Backgrounds */
         .gradient-bg {
-            background: linear-gradient(135deg, #0f766e 0%, #0e7490 100%);
+            background: linear-gradient(135deg, #c2674a 0%, #0e7490 100%);
         }
 
         .gradient-bg-alt {
-            background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
+            background: linear-gradient(135deg, #14b8a6 0%, #c2674a 100%);
         }
 
         /* Loading Animation */
@@ -161,10 +161,10 @@
 
         /* Category Colors */
         .category-inflammatory { border-left: 4px solid #ef4444; }
-        .category-neoplastic { border-left: 4px solid #0f766e; }
+        .category-neoplastic { border-left: 4px solid #c2674a; }
         .category-infectious { border-left: 4px solid #f59e0b; }
         .category-metabolic { border-left: 4px solid #10b981; }
-        .category-genetic { border-left: 4px solid #3b82f6; }
+        .category-genetic { border-left: 4px solid #475569; }
         .category-other { border-left: 4px solid #6b7280; }
 
         /* Achievement Badge */
@@ -805,7 +805,7 @@
 
                 gradient.append("stop")
                     .attr("offset", "0%")
-                    .attr("stop-color", "#0f766e")
+                    .attr("stop-color", "#c2674a")
                     .attr("stop-opacity", 0.8);
 
                 gradient.append("stop")
@@ -838,7 +838,7 @@
                     .force("collision", d3.forceCollide().radius(d => d.r + 10));
 
                 const rootStyles = getComputedStyle(document.documentElement);
-                const tokenPrimary = rootStyles.getPropertyValue('--cl-primary').trim() || '#0f766e';
+                const tokenPrimary = rootStyles.getPropertyValue('--cl-primary').trim() || '#c2674a';
                 const tokenAccent = rootStyles.getPropertyValue('--cl-accent').trim() || '#164e63';
                 const tokenBorder = rootStyles.getPropertyValue('--cl-border').trim() || '#e2e8f0';
                 const tokenSurfaceAlt = rootStyles.getPropertyValue('--cl-surface-alt').trim() || '#f8fafc';

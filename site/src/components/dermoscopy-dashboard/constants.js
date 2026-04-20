@@ -1,17 +1,18 @@
 export const DATA_URL = '/data/dermoscopy-llm-eval.json';
 
+// Atlas-tuned brand colors for chart series. Slate for OpenAI, moss for Gemini.
 export const PROVIDER_COLORS = {
   openai: {
     name: 'OpenAI',
-    primary: '#2563eb',
-    surface: 'rgba(37, 99, 235, 0.12)',
-    border: 'rgba(37, 99, 235, 0.25)'
+    primary: '#475569',
+    surface: 'rgba(71, 85, 105, 0.12)',
+    border: 'rgba(71, 85, 105, 0.25)'
   },
   gemini: {
     name: 'Gemini',
-    primary: '#16a34a',
-    surface: 'rgba(22, 163, 74, 0.12)',
-    border: 'rgba(22, 163, 74, 0.25)'
+    primary: '#5b7058',
+    surface: 'rgba(91, 112, 88, 0.12)',
+    border: 'rgba(91, 112, 88, 0.25)'
   }
 };
 

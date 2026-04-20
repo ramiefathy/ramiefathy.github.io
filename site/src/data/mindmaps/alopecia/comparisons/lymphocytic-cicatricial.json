@@ -1,0 +1,56 @@
+{
+  "id": "lymph-cicatricial-cmp",
+  "topic": "alopecia",
+  "title": "Lymphocytic Cicatricial Alopecias",
+  "subtitle": "LPP vs FFA vs CCCA — distinguishing features",
+  "entities": [
+    { "id": "lpp",  "name": "Lichen Planopilaris", "shortName": "LPP" },
+    { "id": "ffa",  "name": "Frontal Fibrosing Alopecia", "shortName": "FFA" },
+    { "id": "ccca", "name": "Central Centrifugal Cicatricial Alopecia", "shortName": "CCCA" }
+  ],
+  "features": [
+    { "id": "demo", "name": "Typical demographic", "values": {
+      "lpp":  "M+F, 40-60",
+      "ffa":  "Postmenopausal F (~95%)",
+      "ccca": "F of African descent, 30-50"
+    }},
+    { "id": "pattern", "name": "Pattern of involvement", "isDistinguisher": true, "values": {
+      "lpp":  "Vertex / multifocal",
+      "ffa":  "Frontotemporal hairline + brows",
+      "ccca": "Crown / vertex centrifugal"
+    }},
+    { "id": "symptoms", "name": "Symptoms", "values": {
+      "lpp":  "Itch, burning",
+      "ffa":  "Itch (often subtle)",
+      "ccca": "Itch, tenderness, tingling"
+    }},
+    { "id": "trichoscopy", "name": "Trichoscopy", "isDistinguisher": true, "values": {
+      "lpp":  "Perifollicular erythema, peripilar casts, Wickham striae",
+      "ffa":  "White dots, pinpoint white dots, lonely-hair sign, eyebrow loss",
+      "ccca": "Hair tufting (2-3), peripilar grey/white halos, single hairs from ostia"
+    }},
+    { "id": "histology", "name": "Histology", "values": {
+      "lpp":  "Lichenoid lymphocytic infiltrate at infundibulum/isthmus",
+      "ffa":  "Same as LPP + eyebrow follicle involvement",
+      "ccca": "Premature desquamation of inner root sheath ★, perifollicular lamellar fibrosis"
+    }},
+    { "id": "tx-first", "name": "First-line treatment", "values": {
+      "lpp":  "Class I topical + intralesional steroid",
+      "ffa":  "Topical/intralesional steroid + 5α-reductase inhibitor",
+      "ccca": "Moderate-strength topical steroid + minoxidil + counsel on traction/heat"
+    }},
+    { "id": "tx-second", "name": "Second-line", "values": {
+      "lpp":  "Hydroxychloroquine, doxycycline, MMF",
+      "ffa":  "Add finasteride/dutasteride; oral isotretinoin in refractory",
+      "ccca": "Hydroxychloroquine, MMF; consider biopsy for atypical features"
+    }},
+    { "id": "key-distinguisher", "name": "Key distinguisher ★", "isDistinguisher": true, "values": {
+      "lpp":  "Wickham striae + multifocal vertex pattern",
+      "ffa":  "Hairline recession + eyebrow loss",
+      "ccca": "Centrifugal crown loss in F of African descent"
+    }}
+  ],
+  "citations": [
+    { "pmid": "32623068", "quote": "Filbrandt R et al. Primary cicatricial alopecias. Dermatol Clin 2021." }
+  ]
+}

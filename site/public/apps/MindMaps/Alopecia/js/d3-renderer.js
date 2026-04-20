@@ -3,7 +3,7 @@
 function MindMapRenderer(container, data, options = {}) {
     const { onNodeClick, onNodeSelect } = options;
     const tooltip = d3.select('#tooltip');
-    const fallbackNodePalette = ['#a7f3d0', '#99f6e4', '#a5f3fc', '#67e8f9', '#cffafe'];
+    const fallbackNodePalette = ['#dccdb1', '#c98562', '#dcd2bd', '#5b7058', '#e8e2d4'];
     const getNodeFillCss = (depth) => {
         const clampedDepth = Math.max(0, Math.min(fallbackNodePalette.length - 1, Number.isFinite(depth) ? depth : 0));
         const fallbackColor = fallbackNodePalette[clampedDepth] || fallbackNodePalette[fallbackNodePalette.length - 1];

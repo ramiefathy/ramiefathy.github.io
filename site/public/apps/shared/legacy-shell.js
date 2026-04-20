@@ -13,11 +13,6 @@
         <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
       </svg>
     `,
-    theme: `
-      <svg class="legacy-shell__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M21 12.5A8.5 8.5 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `,
     reset: `
       <svg class="legacy-shell__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M21 12a9 9 0 1 1-3-6.7" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
@@ -102,9 +97,6 @@
         <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="help" aria-label="Open help">
           ${ICONS.help}<span>Help</span>
         </button>
-        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="theme" aria-label="Toggle theme">
-          ${ICONS.theme}<span>Theme</span>
-        </button>
         <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="reset" aria-label="Reset local data for this tool">
           ${ICONS.reset}<span>Reset</span>
         </button>
@@ -117,7 +109,7 @@
       <div class="legacy-shell__help" aria-hidden="true" id="legacy-shell-help" role="dialog" aria-modal="true" aria-label="In-page help">
         <div class="legacy-shell__help-card">
           <h2>Help</h2>
-          <p>Keyboard: Tab moves between controls, Enter activates. Theme toggles light/dark. Reset clears local browser state for this tool (useful if something looks stuck).</p>
+          <p>Keyboard: Tab moves between controls, Enter activates. Reset clears local browser state for this tool (useful if something looks stuck).</p>
           <div class="legacy-shell__help-actions">
             <button type="button" class="legacy-btn legacy-btn--primary legacy-focus-ring" data-action="close-help">Close</button>
           </div>
@@ -175,11 +167,6 @@
 
     wrapper.querySelector('[data-action="help"]').addEventListener('click', openHelp)
     wrapper.querySelector('[data-action="close-help"]').addEventListener('click', closeHelp)
-    wrapper.querySelector('[data-action="theme"]').addEventListener('click', () => {
-      document.documentElement.classList.toggle('legacy-dark')
-      const isDark = document.documentElement.classList.contains('legacy-dark')
-      document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
-    })
     wrapper.querySelector('[data-action="reset"]').addEventListener('click', () => {
       const keys = getScopedStorageKeys()
       keys.forEach((key) => localStorage.removeItem(key))

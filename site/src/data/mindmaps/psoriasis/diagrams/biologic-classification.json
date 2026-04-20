@@ -1,0 +1,128 @@
+{
+  "id": "psoriasis-drug-class",
+  "topic": "psoriasis",
+  "title": "Psoriasis Treatment Classification",
+  "subtitle": "By mechanism of action — topicals, phototherapy, systemic, and targeted agents",
+  "type": "classification",
+  "data": {
+    "root": {
+      "id": "pso-tx",
+      "name": "Psoriasis Treatments",
+      "children": [
+        {
+          "id": "topicals",
+          "name": "Topical Agents",
+          "category": "First-line (mild disease)",
+          "children": [
+            { "id": "cs", "name": "Corticosteroids", "detail": "Class I–II (clobetasol, betamethasone dipropionate) for body; mid-potency (triamcinolone) for trunk/extremities; low-potency (hydrocortisone) for face/intertriginous. Tachyphylaxis limits long-term use." },
+            { "id": "vit-d", "name": "Vitamin D Analogs", "detail": "Calcipotriene (calcipotriol) and calcitriol: inhibit keratinocyte proliferation. Safer for long-term maintenance; often combined with betamethasone (Taclonex/Dovobet). Avoid on face/intertriginous (irritation)." },
+            { "id": "cni", "name": "Calcineurin Inhibitors", "detail": "Tacrolimus 0.1% and pimecrolimus 1%: off-label for inverse psoriasis, facial/genital sites. Inhibit T-cell activation without skin atrophy — ideal for sensitive areas. Avoid in infected or inflamed skin." },
+            { "id": "tar", "name": "Coal Tar", "detail": "Antiproliferative; OTC and prescription formulations. Used for scalp disease (shampoos) and as adjunct. Less cosmetically acceptable." },
+            { "id": "taz", "name": "Tazarotene (Retinoid)", "detail": "Topical retinoid: normalizes keratinocyte differentiation. Often combined with steroid to reduce irritation. Contraindicated in pregnancy." },
+            { "id": "rox", "name": "Roflumilast cream 0.3% (PDE4 inhibitor)", "detail": "Topical PDE4 inhibitor approved 2022 (Zoryve): non-steroidal, suitable for intertriginous sites and long-term use. Minimal systemic absorption." }
+          ]
+        },
+        {
+          "id": "phototherapy",
+          "name": "Phototherapy",
+          "category": "Moderate disease or topical-refractory",
+          "children": [
+            { "id": "nbuvb", "name": "Narrowband UVB (NB-UVB)", "detail": "311–313 nm; preferred phototherapy for plaque psoriasis. 3× weekly; response at 20–30 sessions. Safe in pregnancy. Mechanism: T-cell apoptosis, vitamin D synthesis." },
+            { "id": "puva", "name": "PUVA (Psoralen + UVA)", "detail": "Oral methoxsalen + UVA light. Highly effective for palmoplantar and erythrodermic psoriasis; long-term risk of cutaneous SCC and melanoma. Less used now due to NB-UVB availability." },
+            { "id": "excimer", "name": "308 nm Excimer Laser", "detail": "Targeted phototherapy for localized resistant plaques (elbows, knees, scalp). Delivers high-dose UVB directly to plaque. Fewer sessions needed than conventional NB-UVB." }
+          ]
+        },
+        {
+          "id": "conv-orals",
+          "name": "Conventional Oral Systemics",
+          "category": "Moderate-severe disease",
+          "children": [
+            { "id": "mtx", "name": "Methotrexate", "detail": "10–25 mg/week (PO or SC). First-choice traditional systemic; also treats PsA. Hepatotoxic (monitor LFTs; consider fibroscan); folate supplementation mandatory. Absolute CI: pregnancy, significant hepatic/renal disease." },
+            { "id": "csa", "name": "Cyclosporine", "detail": "2.5–5 mg/kg/day: rapid onset (2–4 weeks); used as bridge or for acute flares. Max 1–2 years due to nephrotoxicity, hypertension, malignancy risk. Monitor BP and creatinine." },
+            { "id": "acit", "name": "Acitretin (Retinoid)", "detail": "0.5–1 mg/kg/day: preferred for erythrodermic and pustular psoriasis (GPP). Teratogenic — contraception required for 3 years after stopping. Hepatotoxic; monitor LFTs and lipids." },
+            { "id": "apr", "name": "Apremilast (PDE4 Inhibitor)", "detail": "30 mg BID (titrated up): oral targeted small molecule. No lab monitoring required. Useful in special sites (scalp, nails, genitalia), PsA, and oral psoriasis. GI side effects; weight loss common. Not as potent as biologics." }
+          ]
+        },
+        {
+          "id": "biologics",
+          "name": "Biologics",
+          "category": "Moderate-severe or inadequate response to conventional",
+          "children": [
+            {
+              "id": "tnf",
+              "name": "TNF-α Inhibitors",
+              "detail": "Block tumor necrosis factor-alpha. Oldest biologic class for psoriasis. Also treat PsA, IBD (adalimumab, infliximab, certolizumab), ankylosing spondylitis. Black box: serious infections, malignancy (lymphoma), HBV reactivation. Screen for latent TB before use.",
+              "children": [
+                { "id": "ada", "name": "Adalimumab (Humira)", "detail": "Fully human IgG1 mAb; SC every 2 weeks. FDA-approved plaque psoriasis + PsA. PASI 75 ~60–70% at 16 wk. Reference biologic; many biosimilars available." },
+                { "id": "eta", "name": "Etanercept (Enbrel)", "detail": "TNF receptor fusion protein; SC twice weekly or once weekly. Lower immunogenicity, milder adverse-event profile. PASI 75 ~50% at 12 wk; less potent than mAbs. Longest safety track record." },
+                { "id": "inf", "name": "Infliximab (Remicade)", "detail": "Chimeric IgG1 mAb; IV infusion (0, 2, 6 weeks then q8w). Fastest onset. Also approved for Crohn's, UC, PsA. Highest rate of antidrug antibody formation." },
+                { "id": "ctz", "name": "Certolizumab Pegol (Cimzia)", "detail": "PEGylated Fab fragment; no Fc region → minimal placental transfer. PREFERRED biologic in pregnancy and breastfeeding. SC every 2 weeks. PsA indication also." },
+                { "id": "gol", "name": "Golimumab (Simponi)", "detail": "Fully human IgG1 mAb; SC monthly or IV (Simponi Aria). Primarily used for PsA, AS, RA. Limited plaque psoriasis data; not FDA-approved for plaque psoriasis alone." }
+              ]
+            },
+            {
+              "id": "il12-23",
+              "name": "IL-12/23 p40 Inhibitor",
+              "children": [
+                { "id": "uste", "name": "Ustekinumab (Stelara)", "detail": "Targets IL-12 and IL-23 shared p40 subunit. SC at 0, 4 wk then q12w (plaque) or q8w (PsA). PASI 75 ~65–70% at 12 wk. Also approved for Crohn's, UC. Favorable safety; no routine lab monitoring." }
+              ]
+            },
+            {
+              "id": "il17",
+              "name": "IL-17 Inhibitors",
+              "detail": "Target the IL-17 axis (key in neutrophilic inflammation at skin). Fast onset; high PASI 90 rates. Class effect: increased mucocutaneous candidiasis; AVOID in IBD (exacerbates bowel disease).",
+              "children": [
+                {
+                  "id": "il17a",
+                  "name": "IL-17A Inhibitors",
+                  "children": [
+                    { "id": "sec", "name": "Secukinumab (Cosentyx)", "detail": "Fully human anti-IL-17A IgG1 mAb; SC monthly (loading q2w × 4). PASI 75 ~82% at 12 wk, PASI 90 ~57%. First IL-17 inhibitor approved; also PsA, AS, nr-axSpA." },
+                    { "id": "ixe", "name": "Ixekizumab (Taltz)", "detail": "Humanized anti-IL-17A IgG4 mAb; SC q2w × 12 wk then monthly. PASI 90 ~65% at 12 wk. Faster onset than secukinumab. Also PsA, AS." }
+                  ]
+                },
+                {
+                  "id": "il17af",
+                  "name": "IL-17A/F Inhibitor",
+                  "children": [
+                    { "id": "bimek", "name": "Bimekizumab (Bimzelx)", "detail": "Humanized anti-IL-17A and IL-17F IgG1 mAb. SC q4w × 16 wk then q8w. PASI 90 ~85% at 16 wk — among highest clearance rates; also approved for PsA, AS. Higher candidiasis rate vs IL-17A-only." }
+                  ]
+                },
+                {
+                  "id": "il17r",
+                  "name": "IL-17 Receptor Inhibitor",
+                  "children": [
+                    { "id": "brod", "name": "Brodalumab (Siliq)", "detail": "Human anti-IL-17RA mAb; blocks all IL-17 isoforms (A, F, E, C). SC q2w after loading. PASI 100 rates among highest. BLACK BOX WARNING: suicidal ideation/behavior — REMS required, avoid in active suicidal ideation. Also for PsA." }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "il23p19",
+              "name": "IL-23 p19 Inhibitors",
+              "detail": "Selectively block IL-23 p19 subunit → no IL-12 suppression. Q8–12 week dosing after induction; excellent long-term PASI 90/100 durability. Cleanest safety profile of any biologic class — no REMS, no BB warnings.",
+              "children": [
+                { "id": "gus", "name": "Guselkumab (Tremfya)", "detail": "Human anti-IL-23 p19 IgG1 mAb; SC at 0, 4 wk then q8w. PASI 90 ~73% at 16 wk; durable at 1–2 years. Also approved for PsA." },
+                { "id": "ris", "name": "Risankizumab (Skyrizi)", "detail": "Humanized anti-IL-23 p19 IgG1 mAb; SC at 0, 4 wk then q12w. Among highest PASI 90/100 at 1 year (PASI 90 ~82–88%). Also approved for Crohn's, UC, PsA." },
+                { "id": "tild", "name": "Tildrakizumab (Ilumya)", "detail": "Humanized anti-IL-23 p19 IgG1 mAb; SC at 0, 4 wk then q12w. PASI 75 ~64–66% at 12 wk. Smaller SC volume, well tolerated. Plaque psoriasis only." },
+                { "id": "miri", "name": "Mirikizumab (Omvoh)", "detail": "Humanized anti-IL-23 p19 IgG4 mAb; SC q4w (induction) then q8w. Primarily approved for UC; plaque psoriasis approval pending in some regions. Strong data for IBD comorbidity." }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "oral-targeted",
+          "name": "Oral Targeted Therapies",
+          "category": "Alternative to biologic or for mild-moderate disease",
+          "children": [
+            { "id": "deucra", "name": "Deucravacitinib (Sotyktu) — TYK2 inhibitor", "detail": "6 mg PO daily; selective TYK2 (tyrosine kinase 2) inhibitor; allosteric binding to regulatory domain → IL-12, IL-23, type I IFN pathway blockade. PASI 75 ~53–58% at 16 wk (superior to apremilast). No immunogenicity, no lab monitoring requirement. Not a JAK inhibitor — no black box warning. FDA approved 2022." },
+            { "id": "apre2", "name": "Apremilast (Otezla) — PDE4 inhibitor", "detail": "30 mg BID after 5-day titration; inhibits phosphodiesterase 4 → ↑cAMP → anti-inflammatory. PASI 75 ~28–33% at 16 wk; less potent than biologics. Oral convenience; no monitoring labs. Also for PsA, oral psoriasis, Behçet's. GI side effects (N/D); weight loss; psychiatric warning (monitor mood)." }
+          ]
+        }
+      ]
+    }
+  },
+  "citations": [
+    { "pmid": "32229279", "quote": "Menter A et al. Joint AAD-NPF guidelines of care for management of psoriasis with biologics. J Am Acad Dermatol. 2020." },
+    { "pmid": "32629974", "quote": "Strober B et al. Psoriasis comorbidities and implications for therapy. NEJM. 2020." }
+  ]
+}

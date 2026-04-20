@@ -1,0 +1,55 @@
+{
+  "id": "psoriasis-tx-swimlane",
+  "topic": "psoriasis",
+  "title": "Psoriasis Treatment by Severity",
+  "subtitle": "Severity-keyed swimlane — Topical · Phototherapy/Orals · Biologics",
+  "type": "swimlane",
+  "data": {
+    "lanes": [
+      { "id": "topical",  "name": "Topical + Adjunct" },
+      { "id": "photo-oral", "name": "Phototherapy + Oral Systemics" },
+      { "id": "biologic", "name": "Biologics" }
+    ],
+    "rows": [
+      {
+        "id": "mild",
+        "name": "Mild (BSA <3% / PASI <3 / DLQI <5)",
+        "cells": {
+          "topical":    { "text": "Class I–II corticosteroid ± vitamin D analog (calcipotriene/calcitriol). Calcineurin inhibitor (tacrolimus, pimecrolimus) for face/intertriginous. Roflumilast 0.3% cream for sensitive sites.", "emphasis": "primary", "detail": "<p>Primary therapy for mild disease. Combination corticosteroid + vitamin D (Taclonex/Dovobet) improves efficacy over monotherapy. Reassess at 4–8 weeks. Taper steroid frequency to avoid atrophy.</p>" },
+          "photo-oral": { "text": "Not typically indicated for mild disease.", "emphasis": "muted" },
+          "biologic":   { "text": "Not indicated unless special site with significant DLQI impact.", "emphasis": "muted" }
+        }
+      },
+      {
+        "id": "moderate",
+        "name": "Moderate (BSA 3–10% / PASI 3–10 / DLQI 5–10)",
+        "cells": {
+          "topical":    { "text": "Class I steroid combo ± calcipotriene. Scalp: steroid solution/foam + clobetasol shampoo. Coal tar adjunct. Topicals continue as adjunct during systemic therapy.", "detail": "<p>Topicals bridge to systemic therapy and treat residual localized plaques. Maximize topical regimen 4–8 weeks before escalating.</p>" },
+          "photo-oral": { "text": "NB-UVB (narrowband UVB) preferred — 3× weekly, 20–30 sessions. Methotrexate 10–25 mg/week (PO or SC). Apremilast 30 mg BID. Cyclosporine 2.5–5 mg/kg/day (short-term bridge ≤1 year).", "emphasis": "primary", "detail": "<p>NB-UVB is first-choice phototherapy — safe in pregnancy, no systemic exposure. Methotrexate preferred systemic for concurrent PsA. Apremilast offers a favorable safety profile with no lab monitoring. Cyclosporine for rapid clearance needed.</p>" },
+          "biologic":   { "text": "Consider only if: special site (nail/genital/face/scalp) with DLQI >10, or refractory to ≥2 conventional therapies.", "emphasis": "caution", "detail": "<p>Most payers require trial of ≥1 conventional systemic before approving a biologic for moderate disease. Special site involvement with significant QoL impact can justify early biologic use.</p>" }
+        }
+      },
+      {
+        "id": "severe",
+        "name": "Severe (BSA >10% / PASI >10 / DLQI >10)",
+        "cells": {
+          "topical":    { "text": "Adjunctive only — continue as maintenance on treated areas and for scalp/nail involvement.", "emphasis": "muted" },
+          "photo-oral": { "text": "Consider as bridge if biologic access delayed. Methotrexate or cyclosporine short-term. NB-UVB less practical for very widespread disease.", "emphasis": "caution", "detail": "<p>Conventional systemics may be used as a bridge while awaiting biologic authorization. Cyclosporine provides rapid clearance for severe flares. Biologics are strongly preferred for sustained remission in severe disease.</p>" },
+          "biologic":   { "text": "IL-23 p19 inhibitors preferred for plaque psoriasis (guselkumab, risankizumab, tildrakizumab) — highest PASI 90/100 durability. IL-17 inhibitors (secukinumab, ixekizumab, bimekizumab) if concurrent PsA or rapid clearance needed. TNF-α inhibitors if comorbid IBD (adalimumab, infliximab, certolizumab).", "emphasis": "primary", "detail": "<p>Target PASI 90 or DLQI 0–1 as treatment goals. IL-23 inhibitors offer once-quarterly dosing after induction and superior long-term clearance. Bimekizumab (IL-17A/F) has highest published PASI 90 rates at 16 weeks. Reassess response at 12–16 weeks; switch within or across class if inadequate response (PASI &lt;50 at 16 weeks).</p>" }
+        }
+      },
+      {
+        "id": "pregnancy",
+        "name": "Pregnancy / Planning Pregnancy",
+        "cells": {
+          "topical":    { "text": "Low-potency corticosteroids (hydrocortisone, desonide) in limited amounts. Emollients liberally. Avoid class I steroids over large BSA. Avoid tazarotene (teratogenic). Calcipotriene — limited data; use cautiously.", "emphasis": "primary", "detail": "<p>Topicals are preferred throughout pregnancy. Some psoriasis improves during pregnancy (immune shift). Minimize systemic absorption by using topicals sparingly and avoiding occlusion over large areas.</p>" },
+          "photo-oral": { "text": "NB-UVB is SAFE in pregnancy — preferred systemic-equivalent option. Avoid PUVA (psoralen teratogenic). AVOID methotrexate (category X — teratogenic, abortifacient). AVOID acitretin (category X — teratogenic, long washout). Cyclosporine — use only if essential (limited safety data).", "emphasis": "caution", "detail": "<p>NB-UVB is the safest second-line option in pregnancy. All other conventional systemics are either contraindicated or have insufficient safety data. Apremilast has limited pregnancy data — avoid.</p>" },
+          "biologic":   { "text": "Certolizumab pegol (Cimzia) PREFERRED — PEGylated, Fc-free design minimizes placental transfer; classified low risk in pregnancy and breastfeeding. TNF inhibitors generally: low placental transfer in 1st and 2nd trimester; consider stopping adalimumab/etanercept in 3rd trimester to avoid neonatal immunosuppression. AVOID IL-17 and IL-23 inhibitors (insufficient pregnancy safety data).", "emphasis": "primary", "detail": "<p>Certolizumab: <1% placental transfer vs ~75% for IgG-Fc-intact biologics. No documented teratogenicity. Can continue through delivery. Safe during breastfeeding. Neonates exposed to full-IgG TNF inhibitors in 3rd trimester should not receive live vaccines for 6 months.</p>" }
+        }
+      }
+    ]
+  },
+  "citations": [
+    { "pmid": "32229279", "quote": "Menter A et al. Joint AAD-NPF guidelines of care for management of psoriasis with biologics. J Am Acad Dermatol. 2020." }
+  ]
+}

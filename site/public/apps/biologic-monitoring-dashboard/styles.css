@@ -2,44 +2,17 @@
   color-scheme: light dark;
   --heading-font: var(--font-heading, ui-serif, Georgia, serif);
   --body-font: var(--font-body, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
-  --bg: var(--cl-primary-subtle, #f8fafc);
-  --fg: var(--cl-text, #1e293b);
-  --muted: var(--cl-text-muted, #475569);
-  --accent: var(--cl-primary, #0f766e);
-  --accent-soft: color-mix(in oklab, var(--cl-primary, #0f766e), white 82%);
-  --border: var(--cl-border, #e2e8f0);
-  --card-bg: var(--cl-surface, #ffffff);
+  --bg: var(--cl-primary-subtle, #f4f0e8);
+  --fg: var(--cl-text, #0a0a0a);
+  --muted: var(--cl-text-muted, #1f1f1f);
+  --accent: var(--cl-primary, #c2674a);
+  --accent-soft: color-mix(in oklab, var(--cl-primary, #c2674a), white 82%);
+  --border: var(--cl-border, #0a0a0a);
+  --card-bg: var(--cl-surface, #fbf8f1);
   --shadow: var(--shadow-surface, none);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: var(--cl-primary-subtle, #051f24);
-    --fg: var(--cl-text, #e7fbff);
-    --muted: var(--cl-text-muted, rgba(231, 251, 255, 0.78));
-    --accent: var(--cl-primary, #2dd4bf);
-    --accent-soft: color-mix(in oklab, var(--cl-primary, #2dd4bf), black 75%);
-    --border: var(--cl-border, rgba(103, 232, 249, 0.2));
-    --card-bg: var(--cl-surface, #071a1f);
-    --shadow: var(--shadow-surface, none);
-  }
-  body {
-    background: var(--bg);
-    color: var(--fg);
-  }
-  .panel,
-  .card,
-  .hero,
-  .tab-panel,
-  .chart-card {
-    background: var(--card-bg);
-    border-color: var(--border);
-    box-shadow: var(--shadow);
-  }
-  a {
-    color: var(--accent);
-  }
-}
+/* Atlas is light-only — prefers-color-scheme dark variant dropped. */
 
 body {
   margin: 0;

@@ -1,0 +1,79 @@
+{
+  "id": "psoriasis-workup",
+  "topic": "psoriasis",
+  "title": "Psoriasis Comorbidity Screening & Baseline Workup",
+  "subtitle": "History → Exam → Comorbidity screen → Labs → Vaccinations before systemic therapy",
+  "type": "workup-pathway",
+  "data": {
+    "stages": [
+      {
+        "id": "history",
+        "name": "History",
+        "items": [
+          { "id": "h1", "label": "Duration and distribution of skin disease", "detail": "<p>Onset age, body surface area trend, prior flares and triggers (stress, infection, medications, alcohol, smoking).</p>" },
+          { "id": "h2", "label": "Joint symptoms: pain, stiffness, swelling", "detail": "<p>Morning stiffness >30 min, DIP involvement, sausage digits (dactylitis), heel pain (enthesitis) — screen for PsA. Up to 30% of plaque psoriasis patients develop PsA.</p>" },
+          { "id": "h3", "label": "GI symptoms: diarrhea, bloody stool, abdominal pain", "detail": "<p>Screen for inflammatory bowel disease (Crohn's, UC) — shared IL-17/IL-23 axis. Relevant to biologic selection (avoid IL-17 inhibitors in IBD).</p>" },
+          { "id": "h4", "label": "Neurological history: numbness, weakness, visual changes", "detail": "<p>Screen for demyelinating disease / MS. TNF-α inhibitors are contraindicated in demyelinating conditions.</p>" },
+          { "id": "h5", "label": "Depression and anxiety screen (PHQ-9)", "detail": "<p>Psoriasis patients have 2× higher prevalence of depression. PHQ-9 score ≥10 warrants referral. Treatment of psoriasis often improves mood.</p>" },
+          { "id": "h6", "label": "Cardiovascular risk factors: smoking, hypertension, DM, obesity", "detail": "<p>Psoriasis is an independent CV risk factor. Document BMI, smoking pack-years, HTN, DM, hyperlipidemia.</p>" },
+          { "id": "h7", "label": "Alcohol use and quantity", "detail": "<p>Heavy alcohol worsens psoriasis and is a relative contraindication to methotrexate. Use AUDIT-C screening tool.</p>" },
+          { "id": "h8", "label": "Family history of psoriasis and PsA" },
+          { "id": "h9", "label": "Prior treatments: topicals, phototherapy, systemics, biologics", "detail": "<p>Document reason for discontinuation (failure, intolerance, adverse event). Critical for therapy selection and payer requirements.</p>" },
+          { "id": "h10", "label": "Medications: beta-blockers, lithium, NSAIDs, antimalarials", "detail": "<p>These can trigger or worsen psoriasis flares.</p>" }
+        ]
+      },
+      {
+        "id": "exam",
+        "name": "Physical Examination",
+        "items": [
+          { "id": "e1", "label": "BSA estimation (rule of nines or palm method)", "detail": "<p>Patient palm = ~1% BSA. Assess all body regions systematically. Document percentage for PASI/severity classification.</p>" },
+          { "id": "e2", "label": "PASI calculation (0–72 scale)", "detail": "<p>Psoriasis Area and Severity Index: erythema + induration + scaling × area score for 4 regions. PASI >10 = moderate-severe; PASI 90 = treatment response target.</p>" },
+          { "id": "e3", "label": "Nail exam: pitting, onycholysis, oil drop sign, subungual hyperkeratosis", "detail": "<p>Nail psoriasis is associated with concurrent PsA. Nail pitting (>20 pits) and onycholysis are most specific. Document nail NAPSI score if severe.</p>" },
+          { "id": "e4", "label": "Joint exam: DIP joints, dactylitis, enthesis (Achilles, plantar fascia, patella)", "detail": "<p>Check for sausage digits (dactylitis), tender entheses, and DIP predominance. Order X-rays if PsA suspected (pencil-in-cup deformity).</p>" },
+          { "id": "e5", "label": "Special site assessment: scalp, face, intertriginous, genitalia", "detail": "<p>Scalp: assess with dermatoscope for adherent scale. Intertriginous: inverse psoriasis lacks scale. Genital psoriasis: highly impactful on QoL.</p>" },
+          { "id": "e6", "label": "Metabolic syndrome screen: waist circumference, BP, BMI", "detail": "<p>Psoriasis strongly associated with metabolic syndrome. Waist >102 cm (M) or >88 cm (F) + BP ≥130/85 + BMI ≥30 kg/m².</p>" }
+        ]
+      },
+      {
+        "id": "comorbidity",
+        "name": "Comorbidity Screening Tools",
+        "items": [
+          { "id": "c1", "label": "PsA screen: PEST questionnaire or PsAID-12", "detail": "<p>Psoriasis Epidemiology Screening Tool (PEST): ≥3 points warrants rheumatology referral. Simple 5-question self-report. PsAID-12 for disease impact in known PsA.</p>" },
+          { "id": "c2", "label": "DLQI (Dermatology Life Quality Index)", "detail": "<p>10-item validated QoL measure. DLQI 0-1 = no effect; DLQI >10 = very large effect on life. Used to classify severity and justify systemic therapy (NICE threshold: DLQI >10).</p>" },
+          { "id": "c3", "label": "Metabolic syndrome and NAFLD screen", "detail": "<p>Fasting glucose, lipid panel, LFTs, waist circumference. Fatty liver disease screen with LFTs before methotrexate; consider fibroscan if elevated.</p>" },
+          { "id": "c4", "label": "PHQ-9 for depression", "detail": "<p>Score ≥10 = moderate depression; ≥15 = moderately severe. Refer to mental health if positive. Biologic treatment can improve mood outcomes.</p>" }
+        ]
+      },
+      {
+        "id": "baseline-labs",
+        "name": "Baseline Labs Before Biologic / Systemic Therapy",
+        "items": [
+          { "id": "l1", "label": "CBC with differential", "detail": "<p>Rule out hematologic abnormalities. Monitor on methotrexate (cytopenia). Baseline for biologics.</p>" },
+          { "id": "l2", "label": "CMP (comprehensive metabolic panel)", "detail": "<p>Renal function (BUN/Cr) — essential before cyclosporine. Electrolytes. Glucose for metabolic syndrome.</p>" },
+          { "id": "l3", "label": "LFTs (AST, ALT, alkaline phosphatase, albumin)", "detail": "<p>Baseline hepatic function before methotrexate (hepatotoxic). Screen for NAFLD. Required for biologics.</p>" },
+          { "id": "l4", "label": "Fasting lipid panel", "detail": "<p>Assess cardiovascular risk. Cyclosporine can worsen dyslipidemia. Document baseline before biologic.</p>" },
+          { "id": "l5", "label": "HBV serology (HBsAg, HBsAb, HBcAb)", "detail": "<p>TNF-α inhibitors and IL-17/IL-23 inhibitors can reactivate HBV. If HBsAg+: consult hepatology; prophylactic antiviral therapy required. If HBcAb+ only: monitor LFTs closely.</p>" },
+          { "id": "l6", "label": "HCV antibody", "detail": "<p>If positive: confirm active infection with HCV RNA. Treat HCV before or in parallel with systemic psoriasis therapy.</p>" },
+          { "id": "l7", "label": "HIV screen", "detail": "<p>HIV can trigger or worsen psoriasis. Antiretroviral therapy may improve psoriasis. Required baseline before biologics.</p>" },
+          { "id": "l8", "label": "Latent TB: QuantiFERON-TB Gold (preferred) or TST/PPD", "detail": "<p>Mandatory before any biologic. If LTBI positive: complete 9 months INH prophylaxis (or 4 months rifampin) before starting TNF-α inhibitor; IL-17/IL-23 inhibitors may start earlier per guidelines. Chest X-ray if positive.</p>" },
+          { "id": "l9", "label": "Pregnancy test if applicable", "detail": "<p>Essential before methotrexate and acitretin (both teratogenic). Methotrexate requires contraception during and 3 months after use. Acitretin requires contraception for 3 years after.</p>" },
+          { "id": "l10", "label": "ANA if systemic lupus/connective tissue disease suspected" }
+        ]
+      },
+      {
+        "id": "vaccinations",
+        "name": "Vaccinations Before Biologic",
+        "items": [
+          { "id": "v1", "label": "LIVE vaccines must be given BEFORE biologic initiation", "detail": "<p>Live attenuated vaccines (varicella/zoster, MMR, yellow fever, live flu nasal spray) are CONTRAINDICATED while on biologics or immunosuppressants. Administer ≥4 weeks before starting biologic.</p>" },
+          { "id": "v2", "label": "Zoster vaccine (Shingrix — recombinant, non-live)", "detail": "<p>Recombinant zoster vaccine (RZV/Shingrix) is preferred over live Zostavax. Can be given before OR after biologic initiation. Recommended for patients ≥50 years or immunosuppressed.</p>" },
+          { "id": "v3", "label": "Influenza vaccine (annual, inactivated)", "detail": "<p>Annual inactivated flu vaccine recommended. Live-attenuated nasal spray is contraindicated on biologics.</p>" },
+          { "id": "v4", "label": "Pneumococcal vaccines (PCV20 or PCV15 + PPSV23)", "detail": "<p>PCV20 alone or PCV15 followed by PPSV23 ≥1 year later. Important for all patients on systemic immunosuppression.</p>" },
+          { "id": "v5", "label": "COVID-19 and other routine vaccinations", "detail": "<p>COVID-19 mRNA vaccines are safe and effective during biologic therapy. Update Tdap, hepatitis A/B if not immune.</p>" }
+        ]
+      }
+    ]
+  },
+  "citations": [
+    { "pmid": "32229279", "quote": "Menter A et al. Joint AAD-NPF guidelines of care for management of psoriasis with biologics. J Am Acad Dermatol. 2020." }
+  ]
+}

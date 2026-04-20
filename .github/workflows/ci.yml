@@ -33,6 +33,24 @@ jobs:
           echo "✅ No simulation markers found"
       # Removed Playwright console regression checks; they are run locally as needed
 
+  e2e-playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install site dependencies
+        run: npm --prefix site install
+      - name: Install Playwright (Chromium)
+        working-directory: site
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright e2e
+        working-directory: site
+        run: npx playwright test --reporter=line
+
   ai-scribe-lint:
     runs-on: ubuntu-latest
     steps:

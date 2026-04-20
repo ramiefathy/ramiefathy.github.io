@@ -1,0 +1,137 @@
+# Devlog — ramiefathy.github.io
+
+## [2026-04-19] Phase 8 — Mindmap diagrams redesign
+
+**What changed.** Replaced the single radial-only mindmap view at `/apps/mindmaps/<topic>` with a three-mode view system (**Diagrams · Compare · Atlas**), backed by six typed diagram renderers and a feature-matrix Comparison view. Authored 22 diagrams + 5 comparisons across all five topics (alopecia, CTCL, psoriasis, pruritus, autoimmune bullous). Dropped notes/SRS/presentation/minimap/layout-toggle as side effect of the AtlasView slim-down.
+
+**Why.** The pre-Phase-8 mindmap was a category-tree explorer when residents needed reasoning instruments — diagnostic algorithms, workup pathways, treatment ladders, taxonomies, lifecycles, mechanism graphs, and side-by-side differential comparisons. Atlas chrome (annotations, presentation mode, minimap, layout toggle) added state machines that didn't serve the new purpose.
+
+**Key decisions.**
+- **Three top-level views** (`Diagrams` default-when-authored else `Atlas` fallback, plus `Compare`). Atlas demoted to fallback orientation tool.
+- **Six diagram types via discriminated union** in TypeScript: `decision-tree | workup-pathway | classification | swimlane | lifecycle | concept-map`. One JSON per diagram, globbed by Vite at build time. No CMS.
+- **Comparison view as feature matrix** — rows = features, columns = entities, ★-flagged distinguishers tinted terracotta.
+- **Shared SideDrawer** across all three views — click any element → drawer with title + sanitized markdown body + PMID/DOI citation links.
+- **Hand-rolled validators** in `schema.ts` (alongside existing Zod) — duplicate-id detection, missing-ref detection per type, null guards.
+- **AtlasView extracted as a verbatim copy of the previous MindMapApp body in Task 6, then trimmed in Task 14** — keeps refactor and feature-removal as separate moves so each can roll back independently. MindMapApp shell shrinks from 1542 lines to 38.
+- **Tasks 6 + 14 collectively pruned ~143 lines of dead chrome** from AtlasView (annotations textarea + summary, presentation mode className/buttons, layout toggle state/callback/button, minimap state/ref/render/buttons) and the corresponding CSS rules.
+- **Site-design contract scan extended to `src/apps/`** (Task 15) — caught and fixed inline glyphs (`✕`, `📋`, `☰`, literal `★` in code comment).
+- **Hydration race fix in Playwright** (Task 14 fixup) — wait for `networkidle` + `view-switcher` visibility + `aria-selected` flip before asserting downstream elements; otherwise tab clicks land on un-hydrated SSR HTML.
+
+**Files touched (primary).**
+- `site/src/apps/mindmaps/types.ts` — Diagram + Comparison discriminated unions, MindMapManifest gains optional `diagrams[]` + `comparisons[]`
+- `site/src/apps/mindmaps/schema.ts` — `validateDiagram` + `validateComparison` with duplicate-id + missing-ref + null-guard checks
+- `site/src/apps/mindmaps/dataLoader.ts` — Vite-glob loaders, post-Zod merge so unknown keys aren't stripped
+- `site/src/apps/mindmaps/MindMapApp.tsx` (1542 → 38 lines) — thin shell hosting `<ViewSwitcher>` + 3 conditional views
+- `site/src/apps/mindmaps/views/{ViewSwitcher,SideDrawer,DiagramsView,CompareView,AtlasView}.tsx` — 4 new + 1 (AtlasView) extracted
+- `site/src/apps/mindmaps/diagrams/{DiagramSwitch,DecisionTreeDiagram,WorkupPathwayDiagram,ClassificationDiagram,SwimlaneDiagram,LifecycleDiagram,ConceptMapDiagram}.tsx`
+- `site/src/apps/mindmaps/comparisons/ComparisonTable.tsx`
+- `site/src/data/mindmaps/{alopecia,ctcl,psoriasis,pruritus,autoimmune-bullous}/diagrams/*.json` (22 files, 4–6 per topic)
+- `site/src/data/mindmaps/<topic>/comparisons/*.json` (5 files, 1 per topic)
+- `site/src/styles/mindmap.css` — view-switcher, side-drawer, diagrams-view, compare-view, diagram-canvas + per-renderer style blocks; deleted unused presentation-mode/minimap/textarea rules
+- `site/src/security/site-design-contract.test.ts` — APPS_ROOT added to SITE_FILES walk
+- `site/tests/mindmap-diagrams.spec.ts` — 7 Playwright integration tests (default Diagrams active, library count, decision-tree render, SideDrawer-on-click, Compare matrix, Atlas radial, library navigation)
+- `site/tests/atlas-plates.spec.ts` — extended with view-switcher visibility test, hydration-race-resistant mobile-aware test
+- 18 vitest test files (1 schema + 1 ViewSwitcher + 1 SideDrawer + 6 diagram renderers + 1 ComparisonTable, plus extension to existing site-design contract)
+
+**Performance / outcome.**
+- **Vitest:** 73 (Phase 7 baseline) → 103 passing (+30 new across 26 files).
+- **Playwright (Phase 8 verification surface):** 18 (atlas-plates + hydration-clean baseline) → 26 passing (+8: view-switcher visibility test + 7-test mindmap-diagrams spec).
+- **Astro production build:** clean, 14 pages.
+- **TypeScript:** 0 non-vendor errors.
+- **MindMapApp.tsx surface:** 1542 lines → 38-line shell + 1399-line AtlasView.tsx (no net code growth in mindmap subsystem; behavior change is the new diagram + compare libraries).
+- **Content authored:** 22 diagrams + 5 comparisons; every authored diagram cites at least one PMID (most cite 2). All 5 topics now default to Diagrams view at first load.
+
+**Open items / Phase 9 candidates.**
+- **AtlasView further demotion or deletion** if usage analytics show <5% engagement on the Atlas tab.
+- **Cross-app deep links** from concept-map nodes to PASI / SCORTEN / ABCDE calculators (Skinscores integration).
+- **Per-node SM-2 spaced-repetition** revisited as a separate `/apps/dermflash` app (deliberately decoupled from the reasoning-instrument mindmap).
+- **AI "ask the map"** — natural-language query returning a ranked subgraph (Section C from the original ideation report).
+- **ARCHITECTURE.md** does not yet exist for this repo; consider creating one to capture the new `site/src/apps/mindmaps/{views,diagrams,comparisons}/` directory structure and the discriminated-union content model.
+- **Codex's `scale²` auto-fit bug** in MindMapApp (now AtlasView line ~1032) is preserved as carry-over from Phase 7; obviated for the Diagrams view (which doesn't share that auto-fit code path) but still affects the Atlas tab.
+
+---
+
+## [2026-04-19] Phase 7 — Atlas hardening + review fixes
+
+**What changed.** Five-part follow-up sweep over the Atlas migration (Phases 0–6 shipped earlier) addressing the punch list from three independent post-ship reviews (Codex adversarial, screenshot re-audit team, mind-map ideation team). Phase 7A hygiene quick wins; 7B legacy-mindmap mobile breakpoint; 7C React hydration root-cause investigation; 7D mind-map Section A — all 8 incremental D3 renderer fixes; 7E final verification + screenshot pass.
+
+**Why.** Three reviews surfaced overlapping issues:
+
+1. **Codex** flagged a stale root `index.html` deployment artifact, an About-page CV CTA that pointed to a non-PDF file, and the legacy CTCL mindmap overflowing on mobile.
+2. **Screenshot re-audit team** flagged React hydration warnings on every `client:load` island, a 🌞 / 🌜 emoji contract violation in `MindMapApp.tsx`, and a dashboard SSR/client color mismatch.
+3. **Mind-map ideation team** recommended sunsetting the Astro/React `MindMapApp.tsx` and porting the legacy D3 renderer in. Pending that bigger rebuild, they identified 8 incremental Section A fixes that would address "tiny scale + overlapping labels + sparse layout" in the existing renderer.
+
+**Key decisions.**
+- **Removed the broken Download CV CTA** (option to relabel was rejected; option to generate a placeholder PDF was deferred).
+- **Shipped all 8 Section A mindmap fixes** (vs. just the highest-leverage subset).
+- **Investigated React hydration in scope** — found no duplicate React install. The "Invalid hook call" warnings were dev-server HMR transients with stale Vite optimized-deps; production build hydrates clean (4/4 hydration tests pass).
+- **Kept** the `framer` and `shaders` rollup `manualChunks` after grep showed they're still actively imported (Hero, Dashboard, ScholarFeedEnhanced).
+
+**Files touched (primary):**
+- `index.html` (deleted — stale deploy artifact)
+- `site/src/data/profile.json` — removed Download CV from `callToActions`
+- `site/src/pages/about.astro` — removed Download CV button; added `aria-hidden` to portrait
+- `site/src/apps/mindmaps/MindMapApp.tsx` — A1 fit-to-viewport + A2 ellipse + wrapped labels + A3 Atlas colors + A4 toolbar grouping (View/Export popovers) + A5 default Details intro + A6 mobile linear `<details>` outline + A7 search aria-live + A7 capped pulse animation + emoji removal everywhere (🌞🌜📽️📁📂🗺️🖼️📄💾📥❓🔗✓✕)
+- `site/src/styles/mindmap.css` — `--mm-*` Atlas tokens, `.actions-popover` styling, `.details-intro` styling, `.mindmap-outline*` styling, `.mindmap-canvas` skeleton, dark-mode token overrides
+- `site/public/apps/MindMaps/shared/mindmap-base.css` — mobile media query: tabs scroll horizontally instead of clipping, toolbar wraps to 2 rows, search row stacks, map ≥ 60vh
+- `site/tests/atlas-plates.spec.ts` — 4 new mobile-viewport tests covering legacy CTCL/Alopecia + Astro mindmap
+- `site/tests/hydration-clean.spec.ts` — new file, 4 tests asserting zero React hydration warnings on representative pages
+- `site/tests/phase7-screenshots.spec.ts` — new file, opt-in screenshot pass via `PHASE7_SCREENSHOTS=1`
+
+**Performance / outcome.**
+- Vitest contract suite: 51/51 passing (was 51/51 entering Phase 7, no regressions).
+- Playwright atlas-plates suite: 18/18 passing (was 14/14, +4 new mobile tests).
+- Playwright hydration-clean suite: 4/4 passing (new this phase).
+- Playwright phase7-screenshots: 20/20 captured at desktop 1440×900 + mobile 375×812 across 10 routes; outputs at `site/test-results/phase7/2026-04-19T08-17-56/`.
+- `npm run build` clean — 14 pages built in ~9.4s.
+- Mind-map UX transformation visually confirmed: nodes now render as wrapped-text ellipses sized to their labels, fitted into the viewport with breathing room, with terracotta highlight on the active node, in Atlas warm palette throughout. Toolbar collapsed from 10 buttons to 4 visible + 2 popovers. Default Details pane shows a topic intro instead of "Select a node…". Mobile gets a native nested `<details>` outline view below the canvas.
+
+**Open items / Phase 8 candidates.**
+- Sunset the Astro/React `MindMapApp.tsx` (Section B from the ideation report). The current 1,315-line component still has known regressions vs. the legacy D3 renderer that no amount of incremental polish will fix; the right path is to port the legacy renderer's core into a typed Astro shell.
+- Mind-map Section C ambitions (AI "ask the map", per-node SM-2 spaced repetition, cross-app deep links, ACGME milestone view, publication-grade poster export, multi-modal photo→node).
+- Generate a real Atlas-styled CV PDF (currently the CTA is removed; restoring it requires a real artifact).
+- Lighthouse / performance budgets pass.
+- Investigate the WoundCare RMarkdown raw-output rendering (Phase 5 sweep restyled tokens but did not restructure content).
+- Surface the screenshot re-audit team's LOW findings (blog secondary text contrast — already verified Atlas-correct, but worth a formal a11y sweep including non-color WCAG criteria).
+
+---
+
+## [2026-04-19] Phase 8 fleet-review remediation (R1–R7)
+
+**What changed.** Addressed all 33 HIGH-confidence findings and 2 MEDIUM from the Phase 8 fleet review (5 angles × 2 models + cross-model verification). Skipped 3 REFUTED findings. TDD-first across all tasks. Vitest grew 112 → 187 (+75 tests), Playwright gained F27/F28 coverage, CI now gates PRs on Playwright.
+
+**Why.** Phase 8 shipped with type-system theatre in the schema validators (F1/F4/F5/F30 — validators declared input as already-validated `Diagram`/`Comparison`, and `requireArray` returned `[]` for missing required arrays, so JSON with missing `lanes`/`stages`/`items` validated as OK then crashed renderers at runtime). Additional clusters: stale persisted state (F2), timer leaks (F18/F19), `navigator.clipboard` unguarded (F23), HTML interpolation bypass (F16), missing exhaustiveness checks (F12), and thin test surface for dataLoader / DiagramSwitch / DiagramsView / CompareView / MindMapApp.
+
+**Key decisions.**
+- **R1 — Narrowed `Result<T>` at the trust boundary.** Validators now take `input: unknown` and return `{ ok: true; value: T } | { ok: false; errors: string[] }`. `requireArray` extracted to module scope and distinguishes "missing required" (error) from "optional absent" (empty). Applied to `validateDiagram`, `validateComparison`, and the three legacy validators (`validateMindMapManifest`, `validateMindMapDataset`, `validateMindMapNode`). Non-throwing contract; callers throw at the call site when they need fast-fail on build.
+- **R2 — `manifestSchema` now declares `diagrams`/`comparisons`.** Zod was silently stripping them in strip mode; added `z.array(z.unknown()).optional()` so they survive the parse.
+- **R3 — dataLoader hardened + covered.** Dropped `import.meta.glob<{default: Diagram}>` generics in favor of `<{default: unknown}>` (verified by validators). Removed redundant `as` casts. Exported `extractTopicFromPath`. Added 8 tests covering per-topic diagram/comparison counts, cache hits, and path-extraction errors.
+- **R4 — AtlasView state + lifecycle cluster (6 findings).** Stale persisted/hash `activeTab` now guarded at 4 entry points with fallback to `defaultTab`. `importState` wrapped in try/catch with sanitized `alert`. Inner gesture-hint + zoom-hide + auto-fit timers migrated from `window.__zoomHideTimer`/inline to `useRef`, cleared on unmount. `navigator.clipboard` existence + `writeText` typeof guards before use. `applySearch('')` guarded by `didMountSearchRef` so hash-nav highlights survive initial mount.
+- **R5 — Renderer fixes (8 findings).** Exhaustiveness `never` check in DiagramSwitch default arm. Typed ConceptMap `SimulationLinkDatum`. `escapeHtml` helper for DiagramSwitch swimlane text fallback. Empty-state divs in SwimlaneDiagram + DecisionTreeDiagram. Word-wrap init fix (no blank first tspan). Schema reachability check (orphan steps error). `MAX_DEPTH = 10` for Classification + WorkupPathway recursive render.
+- **R6 — Coverage gaps (8 findings).** New tests: DiagramSwitch (12 tests including F6 routing, F16 escape, F12 default, F24 payload), DiagramsView (5 tests with F37 reset), CompareView (7 tests with F37), MindMapApp (4 tests for default-view logic). All 6 renderer tests gained `onSelect` payload assertions. ComparisonTable gained missing-entity em-dash test. Playwright gained F27 Atlas sanity + F28 per-renderer mobile overflow.
+- **R7 — CI + stale spec.** `mindmap.spec.ts` updated with hydration-wait + Atlas-tab click. `.github/workflows/ci.yml` gained parallel `e2e-playwright` job (chromium-only, `reuseExistingServer: false`) so Playwright gates PRs.
+- **R6-followup — view-switcher mobile overflow.** F28 tests surfaced a pre-existing Phase 8 CSS bug — `.view-switcher` tabs extended to 413px at 375px viewport. Added `@media (max-width: 420px)` rules tightening tab padding (`14px 24px` → `12px 8px`), gap (`12px` → `6px`), and letter-spacing (`0.16em` → `0.08em`). Overflow now ~240px at 375.
+- **Skipped (REFUTED by Codex verifier) — F20 D3 zoom listener accumulation (`.zoom` namespace reuses handlers), F32 auto-fit `tx`/`ty` math (algebraically equivalent), F35 ConceptMap `<defs>` accumulation (`innerHTML = ''` clears children).**
+
+**Files touched (primary).**
+- `site/src/apps/mindmaps/schema.ts` — `Result<T>` narrowing; module-level `requireArray`; non-empty `lanes` rule; BFS orphan reachability check
+- `site/src/apps/mindmaps/dataLoader.ts` — `{default: unknown}` globs; `as` casts removed; `extractTopicFromPath` exported
+- `site/src/apps/mindmaps/views/AtlasView.tsx` — 6 state/lifecycle fixes + new refs
+- `site/src/apps/mindmaps/views/{DiagramsView,CompareView}.tsx` — F37 reset effect
+- `site/src/apps/mindmaps/diagrams/{DiagramSwitch,DecisionTreeDiagram,SwimlaneDiagram,ConceptMapDiagram,ClassificationDiagram,WorkupPathwayDiagram}.tsx` — 8 renderer fixes
+- `site/src/styles/mindmap.css` — view-switcher mobile media query
+- `site/tests/{mindmap,mindmap-diagrams}.spec.ts` — hydration-wait; F27/F28 additions
+- `.github/workflows/ci.yml` — parallel Playwright job
+- `site/src/apps/mindmaps/__tests__/` + `views/__tests__/` + `diagrams/__tests__/` + `comparisons/__tests__/` — 75 new unit tests
+
+**Performance/outcome.**
+- Vitest: 112 → 187 passing (0 failures, 32 test files)
+- tsc non-vendor errors: 0 (unchanged)
+- Astro build: 14 pages, clean (~10 s)
+- Playwright: `mindmap-diagrams.spec.ts` + `atlas-plates.spec.ts` + `hydration-clean.spec.ts` + `mindmap.spec.ts` all green; 107 total pass in the full suite. (13 pre-existing failures in `site-redesign.spec.ts` / `site-runtime.spec.ts` / `skinoculars.spec.ts` / `dermoscopy-llm-dashboard.spec.ts` / `pdf-studio.spec.ts` reference Phase 7-deleted components — out of R1–R7 scope, to triage before commit.)
+
+**Open items.**
+- 13 pre-existing Phase 7 Playwright failures for deleted components (AppsGallery, Timeline, StatsCounter, PublicationMetrics, ActivityFeed) need triage before the bundled commit.
+- Final Codex adversarial review pending.
+
+---
