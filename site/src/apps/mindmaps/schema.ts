@@ -232,7 +232,9 @@ export function validateDiagram(input: unknown): Result<Diagram> {
     if (lanes !== null && rows !== null) {
       if (!lanes.length) errors.push('swimlane: at least one lane required');
       const laneObjs = lanes.filter((l): l is { id: string } => typeof l === 'object' && l !== null);
+      if (laneObjs.length !== lanes.length) errors.push('swimlane: every lane must be an object');
       const rowObjs = rows.filter((r): r is { id: string; cells?: unknown } => typeof r === 'object' && r !== null);
+      if (rowObjs.length !== rows.length) errors.push('swimlane: every row must be an object');
       const laneIdList = laneObjs.map((l) => l.id);
       if (laneIdList.length !== new Set(laneIdList).size) errors.push('swimlane: duplicate lane ids');
       const laneIds = new Set(laneIdList);
@@ -327,7 +329,9 @@ export function validateComparison(input: unknown): Result<Comparison> {
   if (entities === null || features === null) return { ok: false, errors };
 
   const entityObjs = entities.filter((e): e is { id: string } => typeof e === 'object' && e !== null);
+  if (entityObjs.length !== entities.length) errors.push('comparison: every entity must be an object');
   const featureObjs = features.filter((f): f is { id: string; values?: unknown } => typeof f === 'object' && f !== null);
+  if (featureObjs.length !== features.length) errors.push('comparison: every feature must be an object');
   const entityIdList = entityObjs.map((e) => e.id);
   if (entityIdList.length !== new Set(entityIdList).size) errors.push('comparison: duplicate entity ids');
   const entityIds = new Set(entityIdList);

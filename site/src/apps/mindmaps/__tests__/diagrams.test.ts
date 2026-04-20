@@ -454,3 +454,61 @@ describe('N1: null entries in nested arrays must not throw', () => {
     expect(result.ok).toBe(false);
   });
 });
+
+describe('R-follow-up: swimlane + comparison reject non-object array members', () => {
+  it('swimlane with a primitive lane fails "every lane must be an object"', () => {
+    const bad: unknown = {
+      id: 'd', topic: 't', title: 'T', type: 'swimlane',
+      data: {
+        lanes: ['oops', { id: 'a', name: 'A' }],
+        rows: [{ id: 'r1', name: 'R1', cells: {} }]
+      }
+    };
+    const result = validateDiagram(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.some((e) => /every lane must be an object/i.test(e))).toBe(true);
+    }
+  });
+
+  it('swimlane with a primitive row fails "every row must be an object"', () => {
+    const bad: unknown = {
+      id: 'd', topic: 't', title: 'T', type: 'swimlane',
+      data: {
+        lanes: [{ id: 'a', name: 'A' }],
+        rows: ['bad-row', { id: 'r', name: 'R', cells: {} }]
+      }
+    };
+    const result = validateDiagram(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.some((e) => /every row must be an object/i.test(e))).toBe(true);
+    }
+  });
+
+  it('comparison with a primitive entity fails "every entity must be an object"', () => {
+    const bad: unknown = {
+      id: 'c', topic: 't', title: 'T',
+      entities: ['oops', { id: 'a', name: 'A' }],
+      features: [{ id: 'f', name: 'F', values: { a: '1' } }]
+    };
+    const result = validateComparison(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.some((e) => /every entity must be an object/i.test(e))).toBe(true);
+    }
+  });
+
+  it('comparison with a primitive feature fails "every feature must be an object"', () => {
+    const bad: unknown = {
+      id: 'c', topic: 't', title: 'T',
+      entities: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }],
+      features: ['oops', { id: 'f', name: 'F', values: { a: '1', b: '2' } }]
+    };
+    const result = validateComparison(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.some((e) => /every feature must be an object/i.test(e))).toBe(true);
+    }
+  });
+});
