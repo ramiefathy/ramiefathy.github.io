@@ -201,6 +201,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "file": "site/public/study/mcq-benchmark-dashboard/index.html",
       "category": "research-unlisted",
       "requiresDownloads": false
+    },
+    {
+      "label": "MCQ evaluation dashboard (unlisted)",
+      "route": "/mcq-eval/",
+      "file": "site/public/mcq-eval/index.html",
+      "category": "research-unlisted",
+      "requiresDownloads": false
     }
   ]
 }
