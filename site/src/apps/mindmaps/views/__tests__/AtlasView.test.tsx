@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import type { MindMapDataset } from '../../types';
 
@@ -158,7 +158,7 @@ describe('AtlasView — F17: importState JSON.parse resilience', () => {
       await Promise.resolve();
     });
 
-    expect(alertSpy).toHaveBeenCalled();
+    await waitFor(() => expect(alertSpy).toHaveBeenCalled());
     // Message must be sanitized — no raw parser leakage.
     const message = String(alertSpy.mock.calls[0][0] ?? '');
     expect(message.toLowerCase()).toContain('not valid json');

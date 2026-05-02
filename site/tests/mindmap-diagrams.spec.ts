@@ -1,6 +1,24 @@
 import { expect, test } from '@playwright/test';
 
 const TOPIC = '/apps/mindmaps/alopecia';
+const ALL_TOPICS = [
+  'acne',
+  'alopecia',
+  'allergic-contact-dermatitis',
+  'atopic-dermatitis',
+  'autoimmune-bullous',
+  'ctcl',
+  'drug-eruptions',
+  'hidradenitis-suppurativa',
+  'nail-disease',
+  'oral-ulcers',
+  'pigmented-lesions',
+  'pruritus',
+  'psoriasis',
+  'rosacea',
+  'urticaria-angioedema',
+  'vasculitis-purpura',
+];
 
 // Block external network calls (AdSense, fonts, etc.) to avoid flake.
 async function blockExternal(page: import('@playwright/test').Page) {
@@ -10,9 +28,114 @@ async function blockExternal(page: import('@playwright/test').Page) {
 }
 
 // After navigating, wait for hydration: networkidle + view-switcher visible.
-async function waitForHydration(page: import('@playwright/test').Page) {
-  await page.goto(TOPIC, { waitUntil: 'networkidle' });
+async function waitForHydration(page: import('@playwright/test').Page, path = TOPIC) {
+  await page.goto(path, { waitUntil: 'networkidle' });
   await page.locator('.view-switcher').waitFor({ state: 'visible' });
+}
+
+async function assertCurrentDiagramGeometry(page: import('@playwright/test').Page, label: string) {
+  const result = await page.evaluate(() => {
+    const overflow = {
+      doc: document.documentElement.scrollWidth,
+      vp: window.innerWidth,
+    };
+    const invalidPaths = Array.from(document.querySelectorAll('.diagram-canvas svg path'))
+      .map((path) => path.getAttribute('d') ?? '')
+      .filter((d) => /NaN|Infinity|-Infinity/.test(d));
+    const lifecycleCanvas = document.querySelector('.diagram-canvas--lifecycle svg');
+    const lifecycleArrowGlyph = lifecycleCanvas?.textContent?.includes('\u2192') ?? false;
+    const lifecycleEdges = lifecycleCanvas ? lifecycleCanvas.querySelectorAll('[data-lifecycle-edge]').length : null;
+    const nodeElements = Array.from(document.querySelectorAll<SVGGElement>('[data-diagram-node]'));
+    const nodeBoxes = nodeElements.map((node) => {
+      const shape = node.querySelector<SVGGraphicsElement>('rect, polygon');
+      const text = node.querySelector<SVGGraphicsElement>('text');
+      const isDiamond = shape?.tagName.toLowerCase() === 'polygon';
+      const shapeRect = shape?.getBoundingClientRect();
+      const textRect = text?.getBoundingClientRect();
+      const textStyle = text ? window.getComputedStyle(text) : null;
+      const ctm = text?.getScreenCTM();
+      const scale = ctm ? Math.hypot(ctm.a, ctm.b) : 1;
+      const fontSize = textStyle ? Number.parseFloat(textStyle.fontSize) : null;
+      const width = Number.parseFloat(node.getAttribute('data-node-width') ?? '0');
+      const height = Number.parseFloat(node.getAttribute('data-node-height') ?? '0');
+      const diamondTextInside = !isDiamond || !text || !width || !height || Array.from(text.querySelectorAll<SVGTSpanElement>('tspan')).every((line) => {
+        const textWidth = line.getComputedTextLength();
+        const lineY = Number.parseFloat(line.getAttribute('y') ?? String(height / 2));
+        const lineHeight = (fontSize ?? 13) * 1.22;
+        const availableAt = (y: number) => {
+          const verticalDistanceFromCenter = Math.abs(y - height / 2);
+          const halfWidthAtY = (width / 2) * (1 - (verticalDistanceFromCenter / (height / 2)));
+          return Math.max(0, halfWidthAtY * 2);
+        };
+        const availableWidth = Math.min(
+          availableAt(lineY - lineHeight / 2),
+          availableAt(lineY + lineHeight / 2),
+        );
+        return textWidth <= availableWidth - 36;
+      });
+      return {
+        id: node.getAttribute('data-diagram-node') ?? '',
+        left: shapeRect?.left ?? 0,
+        right: shapeRect?.right ?? 0,
+        top: shapeRect?.top ?? 0,
+        bottom: shapeRect?.bottom ?? 0,
+        fontSize,
+        renderedFontSize: fontSize === null ? null : fontSize * scale,
+        textInside:
+          !shapeRect || !textRect ||
+          (
+            textRect.left >= shapeRect.left - 2 &&
+            textRect.right <= shapeRect.right + 2 &&
+            textRect.top >= shapeRect.top - 2 &&
+            textRect.bottom <= shapeRect.bottom + 2
+          ),
+        diamondTextInside,
+      };
+    });
+    const overlaps: string[] = [];
+    for (let i = 0; i < nodeBoxes.length; i++) {
+      for (let j = i + 1; j < nodeBoxes.length; j++) {
+        const a = nodeBoxes[i];
+        const b = nodeBoxes[j];
+        const intersects = !(
+          a.right + 6 <= b.left ||
+          b.right + 6 <= a.left ||
+          a.bottom + 6 <= b.top ||
+          b.bottom + 6 <= a.top
+        );
+        if (intersects) overlaps.push(`${a.id}/${b.id}`);
+      }
+    }
+    const branchLabelFonts = Array.from(document.querySelectorAll<SVGTextElement>('[data-diagram-label]'))
+      .map((labelNode) => Number.parseFloat(window.getComputedStyle(labelNode).fontSize));
+
+    return {
+      overflow,
+      invalidPaths,
+      lifecycleArrowGlyph,
+      lifecycleEdges,
+      nodeBoxes,
+      overlaps,
+      branchLabelFonts,
+    };
+  });
+
+  expect(result.overflow.doc, `${label}: document scrollWidth must not exceed viewport`).toBeLessThanOrEqual(result.overflow.vp + 1);
+  expect(result.invalidPaths, `${label}: SVG paths must be finite`).toEqual([]);
+  expect(result.lifecycleArrowGlyph, `${label}: lifecycle must not use arrow glyphs`).toBe(false);
+  if (result.lifecycleEdges !== null) {
+    expect(result.lifecycleEdges, `${label}: lifecycle should render directional arc paths`).toBeGreaterThan(0);
+  }
+  expect(result.overlaps, `${label}: diagram nodes must not overlap`).toEqual([]);
+  for (const node of result.nodeBoxes) {
+    expect(node.textInside, `${label}: ${node.id} label must fit inside node shape`).toBe(true);
+    expect(node.diamondTextInside, `${label}: ${node.id} decision label must fit inside diamond sidewalls`).toBe(true);
+    expect(node.fontSize, `${label}: ${node.id} node font must be readable`).toBeGreaterThanOrEqual(12);
+    expect(node.renderedFontSize, `${label}: ${node.id} rendered node font must be readable`).toBeGreaterThanOrEqual(10);
+  }
+  for (const fontSize of result.branchLabelFonts) {
+    expect(fontSize, `${label}: branch label font must be readable`).toBeGreaterThanOrEqual(11);
+  }
 }
 
 test.describe('Mindmap Diagrams view', () => {
@@ -31,6 +154,30 @@ test.describe('Mindmap Diagrams view', () => {
     await expect(items.first()).toBeVisible();
     const count = await items.count();
     expect(count).toBeGreaterThanOrEqual(6);
+  });
+
+  test('places the diagram library above the canvas instead of in a left sidebar', async ({ page }) => {
+    await blockExternal(page);
+    await waitForHydration(page);
+
+    const boxes = await page.evaluate(() => {
+      const index = document.querySelector('.diagrams-view__index')?.getBoundingClientRect();
+      const main = document.querySelector('.diagrams-view__main')?.getBoundingClientRect();
+      if (!index || !main) return null;
+      return {
+        indexBottom: index.bottom,
+        indexLeft: index.left,
+        indexRight: index.right,
+        mainTop: main.top,
+        mainLeft: main.left,
+        mainRight: main.right,
+      };
+    });
+
+    expect(boxes).not.toBeNull();
+    expect(boxes!.indexBottom, 'diagram library should sit above the canvas').toBeLessThanOrEqual(boxes!.mainTop + 1);
+    expect(Math.abs(boxes!.indexLeft - boxes!.mainLeft), 'diagram library should align with canvas left edge').toBeLessThanOrEqual(1);
+    expect(Math.abs(boxes!.indexRight - boxes!.mainRight), 'diagram library should align with canvas right edge').toBeLessThanOrEqual(1);
   });
 
   test('renders the cicatricial decision tree when selected from library', async ({ page }) => {
@@ -118,6 +265,19 @@ test.describe('Mindmap Diagrams view (mobile 375x812)', () => {
     await expect(page.locator('.diagrams-view__main').first()).toBeVisible();
   });
 
+  test('mobile first viewport reaches the mindmap controls', async ({ page }) => {
+    await blockExternal(page);
+    await waitForHydration(page);
+
+    const rect = await page.locator('.view-switcher').evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom, viewportHeight: window.innerHeight };
+    });
+
+    expect(rect.top, 'view switcher should start within the initial mobile viewport').toBeLessThan(rect.viewportHeight);
+    expect(rect.bottom, 'at least part of the view switcher should be usable without initial scrolling').toBeGreaterThan(0);
+  });
+
   test('Compare view does not horizontally overflow at 375px', async ({ page }) => {
     await blockExternal(page);
     await waitForHydration(page);
@@ -154,6 +314,31 @@ test.describe('Mindmap Diagrams view (mobile 375x812)', () => {
       ).toBeLessThanOrEqual(overflow.vp + 1);
     }
   });
+});
+
+test.describe('Mindmap diagram geometry QA', () => {
+  for (const viewport of [
+    { name: 'desktop', width: 1440, height: 900 },
+    { name: 'mobile', width: 390, height: 844 },
+  ]) {
+    test(`${viewport.name}: every topic diagram satisfies geometry contracts`, async ({ page }) => {
+      test.setTimeout(120_000);
+      await blockExternal(page);
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+
+      for (const topic of ALL_TOPICS) {
+        await waitForHydration(page, `/apps/mindmaps/${topic}`);
+        const libraryButtons = page.locator('.diagrams-view__index li button');
+        const count = await libraryButtons.count();
+        expect(count, `${topic}: expected diagrams`).toBeGreaterThan(0);
+        for (let i = 0; i < count; i++) {
+          await libraryButtons.nth(i).click();
+          await expect(page.locator('.diagram-canvas').first()).toBeVisible();
+          await assertCurrentDiagramGeometry(page, `${viewport.name}/${topic}/diagram-${i + 1}`);
+        }
+      }
+    });
+  }
 });
 
 // F27: Atlas view sanity — verify features removed in Task 14 (minimap, presentation

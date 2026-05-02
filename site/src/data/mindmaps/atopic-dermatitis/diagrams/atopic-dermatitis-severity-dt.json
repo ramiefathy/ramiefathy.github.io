@@ -1,0 +1,34 @@
+{
+  "id": "atopic-dermatitis-severity-dt",
+  "topic": "atopic-dermatitis",
+  "title": "Atopic Dermatitis Severity Algorithm",
+  "subtitle": "Severity, infection, and treatment escalation",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Does morphology and chronic/relapsing itch fit atopic dermatitis?", "branches": [
+        { "label": "Yes", "nextStepId": "infection" },
+        { "label": "No", "nextStepId": "mimicker" }
+      ] },
+      { "id": "mimicker", "type": "terminal", "prompt": "Evaluate mimickers: scabies, contact dermatitis, CTCL, psoriasis, immunodeficiency" },
+      { "id": "infection", "type": "decision", "prompt": "Honey crusting, pustules, pain, eczema herpeticum concern, or fever?", "branches": [
+        { "label": "Yes", "nextStepId": "infection-end" },
+        { "label": "No", "nextStepId": "severity" }
+      ] },
+      { "id": "infection-end", "type": "terminal", "prompt": "Treat infection/urgent eczema herpeticum pathway first" },
+      { "id": "severity", "type": "decision", "prompt": "BSA, sleep loss, itch, lichenification, and QoL impairment?", "branches": [
+        { "label": "Mild/localized", "nextStepId": "mild" },
+        { "label": "Moderate", "nextStepId": "moderate" },
+        { "label": "Severe/refractory", "nextStepId": "severe" }
+      ] },
+      { "id": "mild", "type": "terminal", "prompt": "Basic care + topical anti-inflammatory plan" },
+      { "id": "moderate", "type": "terminal", "prompt": "Proactive topical therapy, trigger/contact review, phototherapy/systemic discussion if persistent" },
+      { "id": "severe", "type": "terminal", "prompt": "Systemic/biologic/JAK pathway with safety screening" }
+    ]
+  },
+  "citations": [
+    { "pmid": "36641009", "quote": "AAD topical AD guideline: strong recommendations for moisturizers, topical corticosteroids, topical calcineurin inhibitors, and topical PDE-4/JAK inhibitors." },
+    { "pmid": "37943240", "quote": "AAD phototherapy/systemic AD guideline addresses AD refractory to topical therapies and recommends systemic/biologic/JAK options." }
+  ]
+}

@@ -38,6 +38,7 @@ export function SideDrawer({ content, onClose }: SideDrawerProps) {
                 {c.quote && <span>{c.quote}</span>}
                 {c.pmid && <a href={`https://pubmed.ncbi.nlm.nih.gov/${c.pmid}/`} target="_blank" rel="noreferrer">PMID {c.pmid}</a>}
                 {c.doi && <a href={`https://doi.org/${c.doi}`} target="_blank" rel="noreferrer">DOI {c.doi}</a>}
+                {c.url && <a href={c.url} target="_blank" rel="noreferrer">Source</a>}
               </li>
             ))}
           </ul>

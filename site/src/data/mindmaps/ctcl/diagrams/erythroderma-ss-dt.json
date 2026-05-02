@@ -1,0 +1,32 @@
+{
+  "id": "erythroderma-ss-dt",
+  "topic": "ctcl",
+  "title": "Erythroderma / Sezary Syndrome Workup",
+  "subtitle": "Distinguish inflammatory erythroderma from leukemic CTCL",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Erythroderma with pruritus, lymphadenopathy, palmoplantar keratoderma, or alopecia?", "branches": [
+        { "label": "Yes", "nextStepId": "blood" },
+        { "label": "No", "nextStepId": "inflammatory" }
+      ] },
+      { "id": "inflammatory", "type": "terminal", "prompt": "Inflammatory/drug/psoriasis/eczema erythroderma pathway" },
+      { "id": "blood", "type": "action", "prompt": "Obtain CBC differential, flow cytometry, TCR studies, LDH, skin biopsies, and node assessment", "branches": [
+        { "label": "Clonal/blood burden", "nextStepId": "ss" },
+        { "label": "No blood burden", "nextStepId": "mf-erythro" }
+      ] },
+      { "id": "ss", "type": "terminal", "prompt": "Sezary syndrome staging pathway" },
+      { "id": "mf-erythro", "type": "decision", "prompt": "Known MF with erythroderma or skin-limited clonal disease?", "branches": [
+        { "label": "Known MF", "nextStepId": "ery-mf" },
+        { "label": "Unclear", "nextStepId": "repeat" }
+      ] },
+      { "id": "ery-mf", "type": "terminal", "prompt": "Erythrodermic MF pathway" },
+      { "id": "repeat", "type": "terminal", "prompt": "Repeat clinicopathologic correlation and monitor blood" }
+    ]
+  },
+  "citations": [
+    { "pmid": "17540844", "quote": "Olsen EA et al. ISCL/EORTC staging and classification proposal for MF/SS. Blood. 2007." },
+    { "pmid": "37890355", "quote": "EORTC 2023 consensus update provides current treatment standards for mycosis fungoides and Sezary syndrome." }
+  ]
+}

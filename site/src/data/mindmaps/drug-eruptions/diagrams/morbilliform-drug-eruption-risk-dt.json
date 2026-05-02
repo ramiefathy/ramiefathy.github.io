@@ -1,0 +1,32 @@
+{
+  "id": "morbilliform-drug-eruption-risk-dt",
+  "topic": "drug-eruptions",
+  "title": "Morbilliform Drug Eruption Risk Algorithm",
+  "subtitle": "Benign exanthem vs DRESS, SJS/TEN, AGEP, or vasculitis",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Morbilliform eruption after a plausible new medication exposure?", "branches": [
+        { "label": "Yes", "nextStepId": "redflags" },
+        { "label": "No", "nextStepId": "viral" }
+      ] },
+      { "id": "viral", "type": "terminal", "prompt": "Consider viral exanthem, connective tissue disease, pityriasis rosea, secondary syphilis" },
+      { "id": "redflags", "type": "decision", "prompt": "Fever, facial edema, lymphadenopathy, mucosal erosions, skin pain, dusky targets, pustules, purpura?", "branches": [
+        { "label": "Yes", "nextStepId": "scar" },
+        { "label": "No", "nextStepId": "timing" }
+      ] },
+      { "id": "scar", "type": "terminal", "prompt": "SCAR evaluation: DRESS/SJS-TEN/AGEP/vasculitis labs, biopsy, urgent escalation" },
+      { "id": "timing", "type": "decision", "prompt": "Timing 1-3 weeks after medication start and patient clinically well?", "branches": [
+        { "label": "Typical", "nextStepId": "benign" },
+        { "label": "Atypical", "nextStepId": "labs" }
+      ] },
+      { "id": "benign", "type": "terminal", "prompt": "Likely uncomplicated morbilliform drug eruption" },
+      { "id": "labs", "type": "terminal", "prompt": "CBC with differential, CMP, urinalysis, biopsy if persistent or atypical" }
+    ]
+  },
+  "citations": [
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK533000/", "quote": "StatPearls Cutaneous Adverse Drug Reaction review summarizes exanthematous eruptions and severe reaction warning signs." },
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK459323/", "quote": "StatPearls Stevens-Johnson Syndrome review describes mucosal involvement, skin pain, and systemic red flags." }
+  ]
+}

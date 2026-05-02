@@ -1,5 +1,63 @@
 # Devlog — ramiefathy.github.io
 
+## [2026-05-02] Commit readiness pass — CI-green verification and final push prep
+
+**What changed.** Re-ran the release gates for the staged MindMaps diagram expansion before commit/push. The only new code change in this pass removes remote Google Fonts from `site/public/mcq-eval/index.html` and switches that unlisted dashboard to local/system font stacks, because the full site test suite caught it as a frontend design-contract violation.
+
+**Why.** The targeted MindMaps checks were green, but CI runs the full site Vitest suite, full Playwright suite, Astro build, and AI scribe backend checks. The full suite must be green before pushing to `master`.
+
+**Verification.**
+- `git fetch origin` — passed; local `HEAD` and `origin/master` both resolved to `e219fe3b87a656424c608d6538b97d9b4334180f`, so there were no upstream changes to merge.
+- `git diff --check && git diff --cached --check` — passed.
+- Manual Chromium inspection via Playwright against `npm run site:dev` — checked all 16 mindmap topic routes at desktop `1440x900` and mobile `390x844`; original failure cases `aga-causes-concept-map`, `hair-follicle-lifecycle`, and `cicatricial-decision-tree` were captured under ignored `test-results/manual-browser-inspection/`.
+- Citation audit script over the 25 new diagram files — passed: 25 files, 0 shape failures, 25 unique PMIDs resolved through NCBI ESummary, 5 unique DOIs, 19 unique URLs.
+- `npm --prefix site run test -- src/apps/mindmaps` — passed: 19 files, 143 tests.
+- `npm --prefix site run test:e2e -- mindmap-diagrams.spec.ts` — passed: 16 Chromium tests.
+- `npm run site:test` — failed first because `site/public/mcq-eval/index.html` loaded Google Fonts, then passed after the local-font fix: 33 files, 211 tests.
+- `npm run site:test:e2e` — passed: 123 tests, 21 skipped.
+- `npm run site:build` — passed; Vite still warns that lazy `layoutEngine.BUP3xv9U.js` is about 1.45 MB raw / 440 kB gzip.
+- `python3 -m compileall services/ai-scribe` — passed locally. The shell has no `python` alias, so CI's exact command could not be run verbatim locally.
+- Temporary venv backend check: `/tmp/ramiefathy-ai-scribe-ci/bin/python -m compileall services/ai-scribe && /tmp/ramiefathy-ai-scribe-ci/bin/python -m pytest services/ai-scribe/tests -q` — passed: 5 tests, 11 warnings.
+
+**Residual risk.** Local backend verification used Python 3.14 in a temporary venv while CI uses Python 3.11, but the backend compile/test suite passed and no backend files changed. The full frontend CI surface passed locally after the MCQ font fix.
+
+---
+
+## [2026-04-30] Mindmap diagram QA completion — ELK layout, expanded diagrams, citation audit
+
+**What changed.** Completed the handoff finalization pass for the MindMaps diagram expansion. The app now exposes 47 diagrams across 16 topics, with ELK-backed async layout for decision trees and concept maps, lifecycle arc arrows, strict diagram-level citation validation, URL citation rendering, expanded desktop/mobile route geometry checks, and corrected clinical citation metadata for the newly added diagnostic algorithms and several existing diagram/comparison sources.
+
+**Why.** The prior implementation had already done the large TDD-first buildout, but the handoff still left release blockers: direct browser inspection, a final review gate, clinical evidence review, devlog closure, and a decision on the ignored `site/package-lock.json`. Direct inspection found real rendering issues that tests did not initially catch: the diagram view reserved empty drawer space, wide ELK SVGs were being scaled down to unreadable text, and decision-tree branch labels could stack on shared edge paths. Those were fixed with an optional drawer grid column, natural-width horizontal scrolling for ELK diagrams, wrapped target-anchored branch labels, and a Playwright rendered-font-size assertion.
+
+**Major files touched.** The finalization pass primarily touched `site/src/apps/mindmaps/diagrams/layoutEngine.ts`, `DecisionTreeDiagram.tsx`, `ConceptMapDiagram.tsx`, `LifecycleDiagram.tsx`, `site/src/apps/mindmaps/schema.ts`, `SideDrawer.tsx`, `CompareView.tsx`, `DiagramsView.tsx`, `site/src/styles/mindmap.css`, `site/tests/mindmap-diagrams.spec.ts`, `site/src/apps/mindmaps/__tests__/dataLoader.test.ts`, and the mindmap JSON data under `site/src/data/mindmaps/**`.
+
+**Clinical evidence audit outcome.** Reviewed the 25 new diagnostic/decision-tree diagram JSON files named in the handoff. Local citation-shape checks found zero missing diagram citations, quotes, or locators. NCBI ESummary resolved all 25 unique PMIDs used by those new diagrams; the titles matched the expected guideline, consensus, review, or classification sources, including current AAD acne and atopic dermatitis guidelines, ROSCO rosacea consensus, North American hidradenitis suppurativa guidelines, EAACI/GA²LEN/EuroGuiDerm/APAAACI urticaria guideline, ACDS 2020 core allergen series, CTCL staging/classification/treatment consensus sources, and BAD alopecia areata guidance. URL-like locator checks covered 49 PubMed/DOI/source URLs; `https://doi.org/10.1111/all.15090` returned a bot-facing 403 during `fetch`, but the PMID/DOI metadata resolved through NCBI and the locator was retained.
+
+**Browser inspection.** Ran `npm run site:dev` and inspected the live mindmap app in Chromium at desktop `1440x900` and mobile `390x844`. The sweep covered all 16 topic routes: acne, alopecia, allergic-contact-dermatitis, atopic-dermatitis, autoimmune-bullous, ctcl, drug-eruptions, hidradenitis-suppurativa, nail-disease, oral-ulcers, pigmented-lesions, pruritus, psoriasis, rosacea, urticaria-angioedema, and vasculitis-purpura. I checked the original failure cases directly: `alopecia` / `aga-causes-concept-map`, `hair-follicle-lifecycle`, and `cicatricial-decision-tree`. After the fixes, the browser sweep found no document-level horizontal overflow, blank diagrams, node overlaps, visibly broken edge paths, unreadably scaled node text, or missing citation drawers; Compare and Atlas views also remained usable where present.
+
+**Additional visual review.** Generated desktop and mobile contact-sheet screenshots for all 16 mindmap routes and inspected the rendered panels. The remaining issue was mobile page chrome: the intro section could use the global 1440px plate width as a flex-item minimum, which clipped intro text and pushed the mindmap controls below the first viewport. Added a mobile first-viewport Playwright regression, constrained the mindmap intro to the viewport (`width: 100%; min-width: 0`), made the mobile header single-column, and converted the "Other mind maps" list into a horizontal scroller so the app controls and diagram selector are visible immediately.
+
+**Review gate.** A fresh reviewer subagent was attempted, but the subagent stream disconnected before returning findings. I completed a manual diff review instead. That review found and fixed an unimported `DecisionTreeStep` type in `layoutEngine.ts`, non-finite ELK coordinate fallbacks that only handled `null`/`undefined` but not `NaN`/`Infinity`, and an outdated CSS comment about the diagram grid. A focused regression test now covers non-finite ELK point sanitization.
+
+**Lockfile decision.** At the start of this session, `git ls-files site/package-lock.json` returned no tracked file and `git check-ignore -v site/package-lock.json` showed `.gitignore:115:package-lock.json`, so the handoff's lockfile decision was still unresolved. Later in the session the worktree changed to include a staged `.gitignore` exception (`!site/package-lock.json`) and a staged `site/package-lock.json`; after this drift was reported, the user instructed the session to continue. I preserved that current state rather than silently reverting it. The lockfile contains `elkjs`, and `git check-ignore -v site/package-lock.json` now returns no ignore rule because the exception makes the nested lockfile addable/tracked.
+
+**Verification.**
+- `npm --prefix site run test -- src/apps/mindmaps/diagrams/__tests__/layoutEngine.test.ts` — passed: 1 file, 4 tests.
+- Citation audit script over the 25 new diagram files — local shape failures: 0; unique PMIDs: 25; unique DOIs: 5; unique source URLs: 19.
+- NCBI ESummary check for those 25 PMIDs — passed: 25 checked, 0 missing PubMed records.
+- URL-like locator fetch check for PubMed/DOI/source links from those 25 diagrams — 49 checked; 1 `doi.org` 403 noted above.
+- Visual contact-sheet review script — captured `.diagrams-view` panels for all 16 routes at desktop `1440x900` and mobile `390x844`; artifacts stayed under ignored `test-results/visual-review/`.
+- `npm --prefix site run test:e2e -- mindmap-diagrams.spec.ts --grep "mobile first viewport"` — failed first with `.view-switcher` top at `866.75px` on a `812px` viewport, then passed after compacting/constraining the mindmap intro.
+- `npm --prefix site run test -- src/apps/mindmaps` — passed: 19 files, 143 tests. The only stderr was the intentional invalid-JSON Atlas import test logging its sanitized parse failure.
+- `npm --prefix site run test:e2e -- mindmap-diagrams.spec.ts` — passed: 16 Chromium tests, including desktop and mobile geometry checks across every topic diagram. The run emitted repeated `NO_COLOR` / `FORCE_COLOR` warnings from the Playwright web server.
+- `npm run site:build` — passed and generated all 16 mindmap topic routes. Vite still warns that lazy `layoutEngine.BUP3xv9U.js` is about 1.45 MB raw / 440 kB gzip.
+- Concurrent `npm run site:build` plus Playwright web-server startup reproduced the known `site/dist` race, so final build and e2e verification were rerun separately.
+- `git diff --check` — passed after this devlog update.
+
+**Residual risk.** ELK remains a large dependency, but it is isolated behind dynamic imports in `DecisionTreeDiagram.tsx` and `ConceptMapDiagram.tsx`, so the initial `MindMapApp` client chunk stays separate. The citation audit verified locator existence and corrected obvious mismatches, but it was not a formal systematic review of every clinical branch. These diagrams should remain educational references rather than patient-specific medical advice.
+
+---
+
 ## [2026-04-19] Phase 8 — Mindmap diagrams redesign
 
 **What changed.** Replaced the single radial-only mindmap view at `/apps/mindmaps/<topic>` with a three-mode view system (**Diagrams · Compare · Atlas**), backed by six typed diagram renderers and a feature-matrix Comparison view. Authored 22 diagrams + 5 comparisons across all five topics (alopecia, CTCL, psoriasis, pruritus, autoimmune bullous). Dropped notes/SRS/presentation/minimap/layout-toggle as side effect of the AtlasView slim-down.

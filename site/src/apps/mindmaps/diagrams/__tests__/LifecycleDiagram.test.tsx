@@ -42,4 +42,12 @@ describe('LifecycleDiagram', () => {
     expect(screen.getByText('1y')).toBeInTheDocument();
     expect(screen.getByText('2w')).toBeInTheDocument();
   });
+
+  it('uses path-based oriented arrows instead of horizontal arrow glyphs', () => {
+    const { container } = render(<LifecycleDiagram diagram={fixture} onSelect={() => {}} />);
+    const svg = container.querySelector('svg')!;
+    expect(svg.querySelector('marker#lifecycle-arrow[orient="auto"]')).toBeTruthy();
+    expect(svg.querySelectorAll('[data-lifecycle-edge]').length).toBe(2);
+    expect(svg.textContent).not.toContain('\u2192');
+  });
 });

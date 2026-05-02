@@ -1,0 +1,37 @@
+{
+  "id": "pediatric-alopecia-dt",
+  "topic": "alopecia",
+  "title": "Pediatric Alopecia Triage",
+  "subtitle": "Common pediatric branches: tinea, AA, traction, trichotillomania, congenital",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Is there scale, inflammation, lymphadenopathy, or broken hairs?", "branches": [
+        { "label": "Yes", "nextStepId": "tinea" },
+        { "label": "No", "nextStepId": "patch" }
+      ] },
+      { "id": "tinea", "type": "terminal", "prompt": "Tinea capitis: KOH/culture and systemic antifungal pathway" },
+      { "id": "patch", "type": "decision", "prompt": "Are patches smooth and round with exclamation hairs or nail pitting?", "branches": [
+        { "label": "Yes", "nextStepId": "aa" },
+        { "label": "No", "nextStepId": "behavior" }
+      ] },
+      { "id": "aa", "type": "terminal", "prompt": "Alopecia areata" },
+      { "id": "behavior", "type": "decision", "prompt": "Are hairs broken at variable lengths or in reachable/geometric areas?", "branches": [
+        { "label": "Yes", "nextStepId": "trich" },
+        { "label": "No", "nextStepId": "traction" }
+      ] },
+      { "id": "trich", "type": "terminal", "prompt": "Trichotillomania / traumatic alopecia" },
+      { "id": "traction", "type": "decision", "prompt": "Is loss marginal or related to tight hairstyles?", "branches": [
+        { "label": "Yes", "nextStepId": "traction-end" },
+        { "label": "No", "nextStepId": "congenital" }
+      ] },
+      { "id": "traction-end", "type": "terminal", "prompt": "Traction alopecia" },
+      { "id": "congenital", "type": "terminal", "prompt": "Consider congenital, nutritional, endocrine, or biopsy pathway" }
+    ]
+  },
+  "citations": [
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK538178/", "quote": "StatPearls Alopecia review summarizes pediatric alopecia mimickers including tinea capitis, alopecia areata, traction, and traumatic hair loss." },
+    { "pmid": "39432739", "quote": "British Association of Dermatologists living guideline includes pediatric and severity-based AA management considerations." }
+  ]
+}

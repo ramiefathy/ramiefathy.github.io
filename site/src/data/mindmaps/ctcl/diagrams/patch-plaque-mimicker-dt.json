@@ -1,0 +1,32 @@
+{
+  "id": "patch-plaque-mimicker-dt",
+  "topic": "ctcl",
+  "title": "MF Patch/Plaque Mimicker Workup",
+  "subtitle": "When eczema, psoriasis, or drug eruption does not behave",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Persistent patch/plaque dermatitis in protected sites or bathing-trunk distribution?", "branches": [
+        { "label": "Yes", "nextStepId": "ctcl-clues" },
+        { "label": "No", "nextStepId": "common" }
+      ] },
+      { "id": "common", "type": "terminal", "prompt": "Treat common inflammatory dermatoses and reassess" },
+      { "id": "ctcl-clues", "type": "decision", "prompt": "Atrophy, poikiloderma, folliculotropism, variable morphology, or poor topical response?", "branches": [
+        { "label": "Yes", "nextStepId": "biopsy" },
+        { "label": "No", "nextStepId": "trial" }
+      ] },
+      { "id": "trial", "type": "terminal", "prompt": "Short therapeutic trial with strict follow-up" },
+      { "id": "biopsy", "type": "action", "prompt": "Biopsy multiple representative lesions; avoid recently steroid-treated sites when feasible", "branches": [
+        { "label": "Suggestive", "nextStepId": "staging" },
+        { "label": "Nondiagnostic", "nextStepId": "repeat" }
+      ] },
+      { "id": "staging", "type": "terminal", "prompt": "MF staging and clinicopathologic correlation" },
+      { "id": "repeat", "type": "terminal", "prompt": "Repeat biopsies / TCR studies if suspicion persists" }
+    ]
+  },
+  "citations": [
+    { "pmid": "30635287", "quote": "Willemze R et al. The 2018 update of the WHO-EORTC classification for primary cutaneous lymphomas. Blood. 2019;133(16):1703-1714." },
+    { "pmid": "17540844", "quote": "Olsen EA et al. ISCL/EORTC revisions to staging and classification of MF/SS. Blood. 2007." }
+  ]
+}

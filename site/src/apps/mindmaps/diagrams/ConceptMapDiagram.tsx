@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import * as d3 from 'd3';
-import type { Diagram, ConceptNode, ConceptEdgeKind } from '../types';
+import React, { useEffect, useState } from 'react';
+import type { ConceptEdgeKind, ConceptNode, Diagram } from '../types';
+import type { ConceptMapLayoutNode, DiagramLayout } from './layoutEngine';
 
 export interface ConceptMapDiagramProps {
   diagram: Extract<Diagram, { type: 'concept-map' }>;
@@ -8,90 +8,124 @@ export interface ConceptMapDiagramProps {
 }
 
 const EDGE_COLOR: Record<ConceptEdgeKind, string> = {
-  'causes':           'var(--terracotta, #c2674a)',
-  'treats':           'var(--moss, #5b7058)',
-  'exacerbates':      'var(--gold, #a37b2a)',
-  'prevents':         'var(--slate, #475569)',
-  'associated-with':  'var(--rule-soft, rgba(10,10,10,0.22))',
+  causes: 'var(--terracotta, #c2674a)',
+  treats: 'var(--moss, #5b7058)',
+  exacerbates: 'var(--gold, #a37b2a)',
+  prevents: 'var(--slate, #475569)',
+  'associated-with': 'var(--rule-soft, rgba(10,10,10,0.32))',
 };
 
+const EDGE_KINDS: ConceptEdgeKind[] = ['causes', 'treats', 'exacerbates', 'prevents', 'associated-with'];
+
+function MultilineText({ node }: { node: ConceptMapLayoutNode }) {
+  const lineHeight = node.label.fontSize * 1.22;
+  const firstY = node.height / 2 - ((node.label.lines.length - 1) * lineHeight) / 2;
+  return (
+    <text
+      textAnchor="middle"
+      fontFamily="var(--font-display, sans-serif)"
+      fontWeight={500}
+      fontSize={node.label.fontSize}
+      fill="var(--mm-text, var(--ink, #0a0a0a))"
+    >
+      {node.label.lines.map((line, index) => (
+        <tspan key={`${line}-${index}`} x={node.width / 2} y={firstY + index * lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
 export function ConceptMapDiagram({ diagram, onSelect }: ConceptMapDiagramProps) {
-  const svgRef = useRef<SVGSVGElement>(null);
+  const [layout, setLayout] = useState<DiagramLayout<ConceptMapLayoutNode> | null>(null);
+  const sourceNodeById = new Map(diagram.data.nodes.map((node) => [node.id, node]));
 
   useEffect(() => {
-    const svg = svgRef.current;
-    if (!svg) return;
-    svg.innerHTML = '';
-
-    const W = 720;
-    const H = 480;
-    d3.select(svg).attr('viewBox', `0 0 ${W} ${H}`);
-
-    type Sim = d3.SimulationNodeDatum & { id: string; name: string; kind?: string };
-    // F13: `d3.SimulationLinkDatum<Sim>` has a generic `string | Sim` source/target,
-    // so the prior `as never` cast was a band-aid for the extra `kind` field.
-    // Use a local intersection type so the shape is properly typed.
-    type ConceptLink = d3.SimulationLinkDatum<Sim> & { kind: ConceptEdgeKind };
-    const nodes: Sim[] = diagram.data.nodes.map((n) => ({ ...n }));
-    const links: ConceptLink[] = diagram.data.edges.map((e) => ({ source: e.from, target: e.to, kind: e.kind }));
-
-    const sim = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id((d: Sim) => d.id).distance(120).strength(0.6))
-      .force('charge', d3.forceManyBody().strength(-280))
-      .force('center', d3.forceCenter(W / 2, H / 2))
-      .stop();
-
-    for (let i = 0; i < 240; i++) sim.tick();
-
-    const root = d3.select(svg).append('g');
-
-    // Edges
-    root.append('g').selectAll('path').data(diagram.data.edges).join('path')
-      .attr('data-cm-edge', (d) => `${d.from}-${d.to}`)
-      .attr('fill', 'none')
-      .attr('stroke', (d) => EDGE_COLOR[d.kind])
-      .attr('stroke-width', 1.5)
-      .attr('marker-end', 'url(#arrow)')
-      .attr('d', (d) => {
-        const s = nodes.find((n) => n.id === d.from)!;
-        const t = nodes.find((n) => n.id === d.to)!;
-        return `M${s.x},${s.y} L${t.x},${t.y}`;
+    let cancelled = false;
+    setLayout(null);
+    import('./layoutEngine')
+      .then(({ layoutConceptMapDiagram }) => layoutConceptMapDiagram(diagram))
+      .then((nextLayout) => {
+        if (!cancelled) setLayout(nextLayout);
       });
-
-    // Arrow marker
-    d3.select(svg).append('defs').append('marker')
-      .attr('id', 'arrow').attr('viewBox', '0 -5 10 10').attr('refX', 30).attr('refY', 0)
-      .attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto')
-      .append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', 'var(--mm-text, #0a0a0a)');
-
-    // Nodes
-    const nodeG = root.append('g').selectAll('g').data(nodes).join('g')
-      .attr('data-cm-node', (d) => d.id)
-      .attr('transform', (d) => `translate(${d.x ?? 0}, ${d.y ?? 0})`)
-      .attr('cursor', 'pointer')
-      .on('click', (_, d) => {
-        const original = diagram.data.nodes.find((n) => n.id === d.id);
-        if (original) onSelect(original);
-      });
-
-    nodeG.append('rect')
-      .attr('x', -56).attr('y', -18).attr('width', 112).attr('height', 36)
-      .attr('rx', 4)
-      .attr('fill', 'var(--mm-node-fill, var(--plate-bg, #fbf8f1))')
-      .attr('stroke', 'var(--mm-node-stroke, var(--ink, #0a0a0a))')
-      .attr('stroke-width', 1.25);
-
-    nodeG.append('text')
-      .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
-      .attr('font-family', 'var(--font-display, sans-serif)').attr('font-weight', 500).attr('font-size', 12)
-      .attr('fill', 'var(--mm-text, var(--ink, #0a0a0a))')
-      .text((d) => d.name);
-
-  }, [diagram, onSelect]);
+    return () => {
+      cancelled = true;
+    };
+  }, [diagram]);
 
   return (
     <div className="diagram-canvas diagram-canvas--concept-map">
-      <svg ref={svgRef} role="img" aria-label={diagram.title} />
+      <svg
+        viewBox={`0 0 ${layout?.viewBox.width ?? 1} ${layout?.viewBox.height ?? 1}`}
+        width={layout?.viewBox.width ?? 1}
+        height={layout?.viewBox.height ?? 1}
+        role="img"
+        aria-label={diagram.title}
+      >
+        <defs>
+          {EDGE_KINDS.map((kind) => (
+            <marker
+              key={kind}
+              id={`concept-arrow-${kind}`}
+              viewBox="0 -5 10 10"
+              refX={9}
+              refY={0}
+              markerWidth={6}
+              markerHeight={6}
+              orient="auto"
+            >
+              <path d="M0,-5L10,0L0,5" fill={EDGE_COLOR[kind]} />
+            </marker>
+          ))}
+        </defs>
+        {layout && (
+          <>
+            <g className="cm-edges">
+              {layout.edges.map((edge) => (
+                <path
+                  key={edge.id}
+                  data-cm-edge={edge.id}
+                  data-diagram-edge={edge.id}
+                  d={edge.path}
+                  fill="none"
+                  stroke={EDGE_COLOR[edge.kind ?? 'associated-with']}
+                  strokeWidth={1.5}
+                  markerEnd={`url(#${edge.markerId})`}
+                />
+              ))}
+            </g>
+            <g className="cm-nodes">
+              {layout.nodes.map((node) => {
+                const sourceNode = sourceNodeById.get(node.id);
+                if (!sourceNode) return null;
+                return (
+                  <g
+                    key={node.id}
+                    data-cm-node={node.id}
+                    data-diagram-node={node.id}
+                    data-node-width={node.width}
+                    data-node-height={node.height}
+                    transform={`translate(${node.x}, ${node.y})`}
+                    cursor="pointer"
+                    onClick={() => onSelect(sourceNode)}
+                  >
+                    <rect
+                      width={node.width}
+                      height={node.height}
+                      rx={4}
+                      fill="var(--mm-node-fill, var(--plate-bg, #fbf8f1))"
+                      stroke="var(--mm-node-stroke, var(--ink, #0a0a0a))"
+                      strokeWidth={1.25}
+                    />
+                    <MultilineText node={node} />
+                  </g>
+                );
+              })}
+            </g>
+          </>
+        )}
+      </svg>
       <div className="concept-map__legend">
         <span><i style={{ background: 'var(--terracotta)' }} />causes</span>
         <span><i style={{ background: 'var(--moss)' }} />treats</span>

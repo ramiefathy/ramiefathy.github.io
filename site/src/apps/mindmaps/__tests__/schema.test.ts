@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getMindMapDataset, listAvailableMindMaps } from '../../mindmaps/dataLoader';
-import { validateMindMapManifest, validateMindMapDataset } from '../../mindmaps/schema';
+import { validateDiagram, validateMindMapManifest, validateMindMapDataset } from '../../mindmaps/schema';
 import type { MindMapDataset } from '../../mindmaps/types';
 
 describe('manifestSchema includes diagrams and comparisons (R2)', () => {
@@ -87,5 +87,68 @@ describe('mind map dataset validation', () => {
     const result = validateMindMapDataset(broken);
     expect(result.ok).toBe(false);
     expect(result.ok ? '' : result.errors.join('\n')).toMatch(/undeclared tabs/);
+  });
+});
+
+describe('diagram evidence validation', () => {
+  it('rejects diagrams without citations', () => {
+    const result = validateDiagram({
+      id: 'uncited',
+      topic: 'test',
+      title: 'Uncited clinical algorithm',
+      type: 'decision-tree',
+      data: {
+        start: 'a',
+        steps: [{ id: 'a', type: 'terminal', prompt: 'Diagnosis' }]
+      }
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok ? '' : result.errors.join('\n')).toMatch(/citation/i);
+  });
+
+  it('rejects citations without PMID, DOI, or URL evidence locator', () => {
+    const result = validateDiagram({
+      id: 'bad-citation',
+      topic: 'test',
+      title: 'Bad citation',
+      type: 'lifecycle',
+      citations: [{ quote: 'Reference without a locator.' }],
+      data: {
+        phases: [{ id: 'a', name: 'A' }]
+      }
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok ? '' : result.errors.join('\n')).toMatch(/pmid|doi|url/i);
+  });
+
+  it('accepts URL-only guideline citations', () => {
+    const result = validateDiagram({
+      id: 'url-citation',
+      topic: 'test',
+      title: 'URL citation',
+      type: 'lifecycle',
+      citations: [{ quote: 'Guideline page.', url: 'https://www.aad.org/member/clinical-quality/guidelines/acne' }],
+      data: {
+        phases: [{ id: 'a', name: 'A' }]
+      }
+    });
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('requires every shipped diagram to carry citation evidence', () => {
+    const failures: string[] = [];
+    listAvailableMindMaps().forEach((manifest) => {
+      const dataset = getMindMapDataset(manifest.id);
+      expect(dataset, `dataset missing for ${manifest.id}`).toBeDefined();
+      for (const diagram of dataset!.manifest.diagrams ?? []) {
+        const result = validateDiagram(diagram);
+        if (!result.ok) failures.push(`${diagram.id}: ${result.errors.join('; ')}`);
+      }
+    });
+
+    expect(failures).toEqual([]);
   });
 });

@@ -1,0 +1,37 @@
+{
+  "id": "mucosal-blistering-dt",
+  "topic": "autoimmune-bullous",
+  "title": "Mucosal Blistering Differential",
+  "subtitle": "Pemphigus, pemphigoid, erosive LP, EM/SJS, infection",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Are oral/ocular/genital erosions persistent or recurrent?", "branches": [
+        { "label": "Yes", "nextStepId": "skin" },
+        { "label": "No", "nextStepId": "aphthous" }
+      ] },
+      { "id": "aphthous", "type": "terminal", "prompt": "Aphthous/infectious/traumatic ulcer pathway" },
+      { "id": "skin", "type": "decision", "prompt": "Flaccid blisters/erosions with positive Nikolsky or suprabasilar pattern?", "branches": [
+        { "label": "Yes", "nextStepId": "pv" },
+        { "label": "No", "nextStepId": "scarring" }
+      ] },
+      { "id": "pv", "type": "terminal", "prompt": "Pemphigus vulgaris workup: H&E, DIF, desmoglein serology" },
+      { "id": "scarring", "type": "decision", "prompt": "Ocular scarring, desquamative gingivitis, or tense bullae?", "branches": [
+        { "label": "Yes", "nextStepId": "mmp" },
+        { "label": "No", "nextStepId": "lichenoid" }
+      ] },
+      { "id": "mmp", "type": "terminal", "prompt": "Mucous membrane pemphigoid / pemphigoid spectrum" },
+      { "id": "lichenoid", "type": "decision", "prompt": "Reticular white striae or lichenoid plaques?", "branches": [
+        { "label": "Yes", "nextStepId": "lp" },
+        { "label": "No", "nextStepId": "drug" }
+      ] },
+      { "id": "lp", "type": "terminal", "prompt": "Erosive lichen planus pathway" },
+      { "id": "drug", "type": "terminal", "prompt": "EM/SJS-TEN, fixed drug eruption, infection, Behcet pathway" }
+    ]
+  },
+  "citations": [
+    { "pmid": "31498102", "quote": "Schmidt E et al. Pemphigus. Lancet. 2019;394(10201):882-894." },
+    { "pmid": "35646449", "quote": "Heckler I et al. Serological biomarkers and their detection in autoimmune bullous skin diseases. Dermatol Pract Concept. 2022." }
+  ]
+}

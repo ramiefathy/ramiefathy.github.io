@@ -1,0 +1,33 @@
+{
+  "id": "erythroderma-vs-pustular-psoriasis-dt",
+  "topic": "psoriasis",
+  "title": "Erythrodermic vs Pustular Psoriasis",
+  "subtitle": "Unstable psoriasis presentations requiring escalation",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Is erythema widespread (>80-90% BSA) or are there diffuse sterile pustules?", "branches": [
+        { "label": "Erythroderma", "nextStepId": "erythro" },
+        { "label": "Pustules", "nextStepId": "pustular" },
+        { "label": "Neither", "nextStepId": "stable" }
+      ] },
+      { "id": "stable", "type": "terminal", "prompt": "Use standard plaque psoriasis severity pathway" },
+      { "id": "erythro", "type": "action", "prompt": "Assess temperature, fluid status, infection, drug trigger, and systemic symptoms", "branches": [
+        { "label": "Unstable", "nextStepId": "admit" },
+        { "label": "Stable", "nextStepId": "urgent" }
+      ] },
+      { "id": "pustular", "type": "action", "prompt": "Assess fever, neutrophilia, pregnancy, hypocalcemia, infection, drug withdrawal", "branches": [
+        { "label": "Systemic illness", "nextStepId": "admit" },
+        { "label": "Localized palms/soles", "nextStepId": "localized" }
+      ] },
+      { "id": "admit", "type": "terminal", "prompt": "Urgent inpatient/systemic management" },
+      { "id": "urgent", "type": "terminal", "prompt": "Urgent dermatology systemic therapy pathway" },
+      { "id": "localized", "type": "terminal", "prompt": "Palmoplantar pustulosis / localized pustular psoriasis pathway" }
+    ]
+  },
+  "citations": [
+    { "pmid": "32119894", "quote": "Menter A et al. Joint AAD-NPF guidelines of care for the management of psoriasis with systemic nonbiologic therapies. J Am Acad Dermatol. 2020." },
+    { "url": "https://www.aad.org/member/clinical-quality/guidelines/psoriasis", "quote": "AAD-NPF psoriasis guideline hub covers psoriasis treatment, comorbidities, and systemic-therapy decision points." }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "alopecia-initial-loss-pattern-dt",
+  "topic": "alopecia",
+  "title": "Hair Loss Pattern Triage",
+  "subtitle": "First diagnostic branch: focal, patterned, diffuse, or scarring",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Is follicular ostia loss, scale, pustules, pain, or scarring present?", "branches": [
+        { "label": "Yes", "nextStepId": "scarring" },
+        { "label": "No / unclear", "nextStepId": "pattern" }
+      ] },
+      { "id": "scarring", "type": "action", "prompt": "Treat as possible cicatricial alopecia", "detail": "<p>Biopsy the active edge rather than a fully scarred center; consider vertical and horizontal sections and DIF when lupus or immunobullous disease is possible.</p>", "branches": [
+        { "label": "Proceed", "nextStepId": "biopsy" }
+      ] },
+      { "id": "biopsy", "type": "terminal", "prompt": "Scarring alopecia pathway" },
+      { "id": "pattern", "type": "decision", "prompt": "Is the loss round/patchy and sharply demarcated?", "branches": [
+        { "label": "Patchy", "nextStepId": "patchy" },
+        { "label": "Not patchy", "nextStepId": "distribution" }
+      ] },
+      { "id": "patchy", "type": "decision", "prompt": "Is there scale, lymphadenopathy, black dots, or pediatric exposure risk?", "branches": [
+        { "label": "Scale/risk", "nextStepId": "tinea" },
+        { "label": "Smooth patch", "nextStepId": "aa" }
+      ] },
+      { "id": "tinea", "type": "terminal", "prompt": "Rule out tinea capitis" },
+      { "id": "aa", "type": "terminal", "prompt": "Alopecia areata likely" },
+      { "id": "distribution", "type": "decision", "prompt": "Is thinning patterned at vertex, bitemporal scalp, or central part?", "branches": [
+        { "label": "Patterned", "nextStepId": "aga" },
+        { "label": "Diffuse shed", "nextStepId": "te" }
+      ] },
+      { "id": "aga", "type": "terminal", "prompt": "Androgenetic / female-pattern loss" },
+      { "id": "te", "type": "terminal", "prompt": "Telogen effluvium or diffuse AA" }
+    ]
+  },
+  "citations": [
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK538178/", "quote": "StatPearls Alopecia review summarizes pattern-based clinical assessment and biopsy considerations." },
+    { "pmid": "36769541", "quote": "Goren A et al. Integrative and mechanistic approach to the hair growth cycle and hair loss. J Clin Med. 2023." }
+  ]
+}

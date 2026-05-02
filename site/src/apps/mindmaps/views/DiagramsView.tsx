@@ -31,7 +31,7 @@ export function DiagramsView({ dataset }: { dataset: MindMapDataset }) {
   }
 
   return (
-    <div className="diagrams-view">
+    <div className={`diagrams-view${drawer ? ' diagrams-view--with-drawer' : ''}`}>
       <nav className="diagrams-view__index" aria-label="Diagram library">
         <h3>Diagrams</h3>
         <ul>

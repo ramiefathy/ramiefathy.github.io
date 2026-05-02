@@ -163,6 +163,28 @@ export function validateDiagram(input: unknown): Result<Diagram> {
     return { ok: false, errors };
   }
 
+  const citations = requireArray(obj.citations, 'diagram citations', errors, true);
+  if (citations !== null) {
+    if (!citations.length) errors.push('diagram must include at least one citation');
+    citations.forEach((citation, index) => {
+      if (!citation || typeof citation !== 'object' || Array.isArray(citation)) {
+        errors.push(`diagram citation ${index + 1}: must be an object`);
+        return;
+      }
+      const citationObj = citation as Record<string, unknown>;
+      if (typeof citationObj.quote !== 'string' || citationObj.quote.trim().length === 0) {
+        errors.push(`diagram citation ${index + 1}: quote is required`);
+      }
+      const hasLocator =
+        typeof citationObj.pmid === 'string' && citationObj.pmid.trim().length > 0 ||
+        typeof citationObj.doi === 'string' && citationObj.doi.trim().length > 0 ||
+        typeof citationObj.url === 'string' && citationObj.url.trim().length > 0;
+      if (!hasLocator) {
+        errors.push(`diagram citation ${index + 1}: PMID, DOI, or URL is required`);
+      }
+    });
+  }
+
   if (obj.type === 'decision-tree') {
     const data = obj.data as { steps?: unknown; start?: unknown };
     const steps = requireArray(data.steps, 'decision-tree: steps', errors, true);

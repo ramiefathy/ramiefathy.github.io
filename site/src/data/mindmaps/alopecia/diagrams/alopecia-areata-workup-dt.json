@@ -1,0 +1,39 @@
+{
+  "id": "alopecia-areata-workup-dt",
+  "topic": "alopecia",
+  "title": "Alopecia Areata Workup",
+  "subtitle": "Extent, mimickers, and escalation triggers",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Does exam show smooth patchy nonscarring alopecia with AA trichoscopy clues?", "branches": [
+        { "label": "Yes", "nextStepId": "extent" },
+        { "label": "No", "nextStepId": "mimicker" }
+      ] },
+      { "id": "mimicker", "type": "action", "prompt": "Evaluate for tinea, trichotillomania, traction, syphilis, or scarring alopecia", "branches": [
+        { "label": "Mimicker found", "nextStepId": "alternate" },
+        { "label": "Uncertain", "nextStepId": "biopsy" }
+      ] },
+      { "id": "alternate", "type": "terminal", "prompt": "Treat alternate diagnosis" },
+      { "id": "biopsy", "type": "terminal", "prompt": "Biopsy if diagnosis remains uncertain" },
+      { "id": "extent", "type": "decision", "prompt": "How much scalp hair loss is present?", "branches": [
+        { "label": "1-20%", "nextStepId": "limited" },
+        { "label": "21-49%", "nextStepId": "moderate" },
+        { "label": "50-100%", "nextStepId": "severe" }
+      ] },
+      { "id": "limited", "type": "terminal", "prompt": "Limited AA: local therapy discussion" },
+      { "id": "moderate", "type": "action", "prompt": "Assess impact, rapidity, brows/lashes, nails, and shared treatment goals", "branches": [
+        { "label": "High impact", "nextStepId": "specialist" },
+        { "label": "Stable", "nextStepId": "local" }
+      ] },
+      { "id": "local", "type": "terminal", "prompt": "Local therapy + monitoring" },
+      { "id": "severe", "type": "terminal", "prompt": "Severe AA: systemic-therapy discussion/referral" },
+      { "id": "specialist", "type": "terminal", "prompt": "Specialist/shared decision pathway" }
+    ]
+  },
+  "citations": [
+    { "pmid": "39432739", "quote": "British Association of Dermatologists living guideline for managing people with alopecia areata 2024 defines severity by scalp involvement and gives management recommendations." },
+    { "pmid": "37357664", "quote": "Trichoscopy pattern in alopecia areata: systematic review and meta-analysis. Skin Res Technol. 2023." }
+  ]
+}

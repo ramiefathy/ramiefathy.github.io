@@ -58,6 +58,7 @@ export type DiagramType =
 export interface DiagramCitation {
   pmid?: string;
   doi?: string;
+  url?: string;
   quote: string;
 }
 

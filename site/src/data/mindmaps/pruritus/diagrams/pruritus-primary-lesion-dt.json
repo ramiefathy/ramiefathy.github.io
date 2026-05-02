@@ -1,0 +1,37 @@
+{
+  "id": "pruritus-primary-lesion-dt",
+  "topic": "pruritus",
+  "title": "Pruritus With Primary Lesions",
+  "subtitle": "Start with morphology before systemic itch workup",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Are primary skin lesions present before scratching?", "branches": [
+        { "label": "Yes", "nextStepId": "morphology" },
+        { "label": "No", "nextStepId": "no-primary" }
+      ] },
+      { "id": "no-primary", "type": "terminal", "prompt": "Use systemic/neuropathic/psychogenic pruritus pathway" },
+      { "id": "morphology", "type": "decision", "prompt": "Are lesions eczematous plaques or dermatitis pattern?", "branches": [
+        { "label": "Eczematous", "nextStepId": "eczema" },
+        { "label": "Not eczema", "nextStepId": "wheals" }
+      ] },
+      { "id": "eczema", "type": "terminal", "prompt": "Atopic/contact/nummular dermatitis pathway" },
+      { "id": "wheals", "type": "decision", "prompt": "Are transient wheals or angioedema present?", "branches": [
+        { "label": "Yes", "nextStepId": "urticaria" },
+        { "label": "No", "nextStepId": "burrows" }
+      ] },
+      { "id": "urticaria", "type": "terminal", "prompt": "Urticaria/angioedema pathway" },
+      { "id": "burrows", "type": "decision", "prompt": "Burrows, web spaces, genital papules, or household itch?", "branches": [
+        { "label": "Yes", "nextStepId": "scabies" },
+        { "label": "No", "nextStepId": "papulosquamous" }
+      ] },
+      { "id": "scabies", "type": "terminal", "prompt": "Scabies evaluation/treatment" },
+      { "id": "papulosquamous", "type": "terminal", "prompt": "Papulosquamous, bullous, drug, or biopsy pathway" }
+    ]
+  },
+  "citations": [
+    { "pmid": "23614588", "quote": "Yosipovitch G, Bernhard JD. Clinical practice. Chronic pruritus. N Engl J Med. 2013;368(17):1625-1634." },
+    { "pmid": "30931482", "quote": "European S2k Guideline on Chronic Pruritus. Acta Derm Venereol. 2019." }
+  ]
+}

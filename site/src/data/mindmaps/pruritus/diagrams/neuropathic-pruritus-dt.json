@@ -1,0 +1,37 @@
+{
+  "id": "neuropathic-pruritus-dt",
+  "topic": "pruritus",
+  "title": "Neuropathic Pruritus Algorithm",
+  "subtitle": "Localized dysesthesia, dermatomes, and neurologic clues",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Is itch localized with burning, tingling, pain, numbness, or alloknesis?", "branches": [
+        { "label": "Yes", "nextStepId": "site" },
+        { "label": "No", "nextStepId": "other" }
+      ] },
+      { "id": "other", "type": "terminal", "prompt": "Inflammatory/systemic pruritus pathway" },
+      { "id": "site", "type": "decision", "prompt": "Upper back/medial scapula with secondary hyperpigmentation?", "branches": [
+        { "label": "Yes", "nextStepId": "notalgia" },
+        { "label": "No", "nextStepId": "forearms" }
+      ] },
+      { "id": "notalgia", "type": "terminal", "prompt": "Notalgia paresthetica pattern" },
+      { "id": "forearms", "type": "decision", "prompt": "Dorsolateral forearms worsened by sun or cervical disease?", "branches": [
+        { "label": "Yes", "nextStepId": "brp" },
+        { "label": "No", "nextStepId": "neurologic" }
+      ] },
+      { "id": "brp", "type": "terminal", "prompt": "Brachioradial pruritus pattern" },
+      { "id": "neurologic", "type": "action", "prompt": "Screen for zoster, small-fiber neuropathy, radiculopathy, CNS lesion, or medication neuropathy", "branches": [
+        { "label": "Neurologic signs", "nextStepId": "referral" },
+        { "label": "No signs", "nextStepId": "trial" }
+      ] },
+      { "id": "referral", "type": "terminal", "prompt": "Neurology/imaging pathway" },
+      { "id": "trial", "type": "terminal", "prompt": "Neuropathic itch treatment trial + reassessment" }
+    ]
+  },
+  "citations": [
+    { "pmid": "40397314", "quote": "Robinson C et al. Notalgia paresthetica: an updated review of pathophysiology, diagnosis, and treatment approaches. Curr Pain Headache Rep. 2025." },
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK459321/", "quote": "StatPearls Brachioradial Pruritus review describes localized neuropathic dysesthesia and diagnostic considerations." }
+  ]
+}

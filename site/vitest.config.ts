@@ -9,7 +9,7 @@ export default defineConfig({
       'tests/pdf-studio/**/*.spec.{js,ts,jsx,tsx}'
     ],
     environment: 'node',
-    setupFiles: [],
+    setupFiles: ['./vitest.setup.ts'],
     exclude: ['playwright-report/**', 'test-results/**'],
     coverage: {
       reporter: ['text', 'html'],

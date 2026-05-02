@@ -1,0 +1,32 @@
+{
+  "id": "urticaria-angioedema-workup-dt",
+  "topic": "urticaria-angioedema",
+  "title": "Urticaria / Angioedema Workup",
+  "subtitle": "Anaphylaxis, acute urticaria, chronic urticaria, and bradykinin angioedema",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Airway compromise, hypotension, wheeze, GI symptoms, or anaphylaxis concern?", "branches": [
+        { "label": "Yes", "nextStepId": "emergency" },
+        { "label": "No", "nextStepId": "wheals" }
+      ] },
+      { "id": "emergency", "type": "terminal", "prompt": "Emergency anaphylaxis/airway pathway" },
+      { "id": "wheals", "type": "decision", "prompt": "Are wheals present with or without angioedema?", "branches": [
+        { "label": "Yes", "nextStepId": "duration" },
+        { "label": "No angioedema only", "nextStepId": "bradykinin" }
+      ] },
+      { "id": "duration", "type": "decision", "prompt": "Duration less than 6 weeks or recurrent beyond 6 weeks?", "branches": [
+        { "label": "Acute", "nextStepId": "acute" },
+        { "label": "Chronic", "nextStepId": "chronic" }
+      ] },
+      { "id": "acute", "type": "terminal", "prompt": "Acute urticaria: trigger review and antihistamine pathway" },
+      { "id": "chronic", "type": "terminal", "prompt": "Chronic spontaneous/inducible urticaria pathway with limited labs" },
+      { "id": "bradykinin", "type": "terminal", "prompt": "Angioedema without wheals: ACE inhibitor, hereditary/acquired C1-INH pathway" }
+    ]
+  },
+  "citations": [
+    { "pmid": "34536239", "doi": "10.1111/all.15090", "quote": "International urticaria guideline covers definition, classification, diagnosis, and management of urticaria with wheals, angioedema, or both." },
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK538489/", "quote": "StatPearls Angioedema review summarizes histaminergic and bradykinin-mediated angioedema evaluation." }
+  ]
+}

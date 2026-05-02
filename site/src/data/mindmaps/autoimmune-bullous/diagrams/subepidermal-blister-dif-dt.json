@@ -1,0 +1,36 @@
+{
+  "id": "subepidermal-blister-dif-dt",
+  "topic": "autoimmune-bullous",
+  "title": "Subepidermal Blister DIF Algorithm",
+  "subtitle": "Linear IgG/C3, granular IgA, salt-split clues",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Biopsy shows subepidermal blister or tense bullae clinically?", "branches": [
+        { "label": "Yes", "nextStepId": "dif" },
+        { "label": "No", "nextStepId": "other" }
+      ] },
+      { "id": "other", "type": "terminal", "prompt": "Use intraepidermal/nonbullous pathway" },
+      { "id": "dif", "type": "decision", "prompt": "DIF pattern at basement membrane zone?", "branches": [
+        { "label": "Linear IgG/C3", "nextStepId": "linear" },
+        { "label": "Granular IgA", "nextStepId": "dh" },
+        { "label": "Negative", "nextStepId": "repeat" }
+      ] },
+      { "id": "linear", "type": "decision", "prompt": "Salt-split skin binding location?", "branches": [
+        { "label": "Roof", "nextStepId": "bp" },
+        { "label": "Floor", "nextStepId": "eba" },
+        { "label": "Both/unclear", "nextStepId": "serology" }
+      ] },
+      { "id": "bp", "type": "terminal", "prompt": "Bullous pemphigoid / mucous membrane pemphigoid spectrum" },
+      { "id": "eba", "type": "terminal", "prompt": "EBA / anti-laminin 332 / anti-p200 spectrum" },
+      { "id": "serology", "type": "terminal", "prompt": "ELISA/immunoblot and clinicopathologic correlation" },
+      { "id": "dh", "type": "terminal", "prompt": "Dermatitis herpetiformis pathway" },
+      { "id": "repeat", "type": "terminal", "prompt": "Repeat perilesional DIF if suspicion remains" }
+    ]
+  },
+  "citations": [
+    { "pmid": "35646449", "quote": "Heckler I et al. Serological biomarkers and their detection in autoimmune bullous skin diseases. Dermatol Pract Concept. 2022." },
+    { "pmid": "38390848", "doi": "10.3390/dermatopathology11010006", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10885087/", "quote": "DIF biopsy-site review gives practical site-selection guidance for vesiculobullous disorders." }
+  ]
+}

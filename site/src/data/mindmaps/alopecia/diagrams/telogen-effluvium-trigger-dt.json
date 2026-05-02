@@ -1,0 +1,37 @@
+{
+  "id": "telogen-effluvium-trigger-dt",
+  "topic": "alopecia",
+  "title": "Telogen Effluvium Trigger Finder",
+  "subtitle": "Timing-based workup for diffuse shedding",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Is shedding diffuse with positive pull test and no scarring?", "branches": [
+        { "label": "Yes", "nextStepId": "timeline" },
+        { "label": "No", "nextStepId": "not-te" }
+      ] },
+      { "id": "not-te", "type": "terminal", "prompt": "Use pattern-based alopecia pathway" },
+      { "id": "timeline", "type": "decision", "prompt": "Was there a trigger 2-4 months before onset?", "branches": [
+        { "label": "Clear trigger", "nextStepId": "trigger" },
+        { "label": "No trigger", "nextStepId": "chronic" }
+      ] },
+      { "id": "trigger", "type": "terminal", "prompt": "Acute telogen effluvium likely" },
+      { "id": "chronic", "type": "decision", "prompt": "Has shedding persisted longer than 6 months?", "branches": [
+        { "label": "Yes", "nextStepId": "labs" },
+        { "label": "No", "nextStepId": "observe" }
+      ] },
+      { "id": "observe", "type": "terminal", "prompt": "Monitor with photos and pull test" },
+      { "id": "labs", "type": "action", "prompt": "Check CBC, ferritin/iron status, TSH, vitamin D, nutrition, medication timeline", "branches": [
+        { "label": "Abnormal", "nextStepId": "correct" },
+        { "label": "Normal", "nextStepId": "diffuse-aa-aga" }
+      ] },
+      { "id": "correct", "type": "terminal", "prompt": "Correct trigger and reassess" },
+      { "id": "diffuse-aa-aga", "type": "terminal", "prompt": "Consider chronic TE, diffuse AA, or early AGA" }
+    ]
+  },
+  "citations": [
+    { "pmid": "36769541", "quote": "Goren A et al. Hair cycle review describes telogen shift triggers including inflammation, hormones, stress, nutritional deficiency, and medications." },
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK538178/", "quote": "StatPearls Alopecia review lists systemic, endocrine, medication, and nutritional causes of diffuse shedding." }
+  ]
+}

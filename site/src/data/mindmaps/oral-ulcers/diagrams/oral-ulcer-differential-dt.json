@@ -1,0 +1,37 @@
+{
+  "id": "oral-ulcer-differential-dt",
+  "topic": "oral-ulcers",
+  "title": "Oral Ulcer Differential Algorithm",
+  "subtitle": "Trauma, aphthae, HSV, Behcet, bullous disease, LP, and malignancy",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Solitary persistent ulcer >2-3 weeks, indurated border, tobacco risk, or unexplained bleeding?", "branches": [
+        { "label": "Yes", "nextStepId": "biopsy" },
+        { "label": "No", "nextStepId": "recurrent" }
+      ] },
+      { "id": "biopsy", "type": "terminal", "prompt": "Biopsy / oral medicine or ENT pathway" },
+      { "id": "recurrent", "type": "decision", "prompt": "Recurrent round shallow ulcers on nonkeratinized mucosa without systemic signs?", "branches": [
+        { "label": "Yes", "nextStepId": "aphthous" },
+        { "label": "No", "nextStepId": "vesicles" }
+      ] },
+      { "id": "aphthous", "type": "terminal", "prompt": "Recurrent aphthous stomatitis pathway" },
+      { "id": "vesicles", "type": "decision", "prompt": "Grouped vesicles/erosions, keratinized mucosa, fever, or recurrence at same site?", "branches": [
+        { "label": "HSV pattern", "nextStepId": "hsv" },
+        { "label": "No", "nextStepId": "systemic" }
+      ] },
+      { "id": "hsv", "type": "terminal", "prompt": "HSV testing/treatment pathway" },
+      { "id": "systemic", "type": "decision", "prompt": "Genital ulcers, eye disease, GI symptoms, target lesions, skin blisters, or reticular white striae?", "branches": [
+        { "label": "Yes", "nextStepId": "complex" },
+        { "label": "No", "nextStepId": "trauma" }
+      ] },
+      { "id": "complex", "type": "terminal", "prompt": "Behcet, IBD, EM/SJS, pemphigus/pemphigoid, or erosive LP pathway" },
+      { "id": "trauma", "type": "terminal", "prompt": "Trauma, medication, nutritional deficiency, xerostomia, or culture/biopsy if persistent" }
+    ]
+  },
+  "citations": [
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK431059/", "quote": "StatPearls Recurrent Aphthous Stomatitis review summarizes morphology, recurrence, and systemic associations." },
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK532966/", "quote": "StatPearls Oral Mucosal Lesions review discusses infectious, inflammatory, autoimmune, traumatic, and neoplastic causes." }
+  ]
+}

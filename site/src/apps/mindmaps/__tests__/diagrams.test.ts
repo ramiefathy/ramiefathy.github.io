@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { validateDiagram, validateComparison } from '../schema';
 import type { Diagram, Comparison } from '../types';
 
+const TEST_CITATIONS = [{ url: 'https://example.test/reference', quote: 'Test evidence locator.' }];
+
 describe('validateDiagram', () => {
   it('accepts a minimal decision-tree diagram', () => {
     const diagram: Diagram = {
       id: 'd1', topic: 'alopecia', title: 'Test', type: 'decision-tree',
+      citations: TEST_CITATIONS,
       data: {
         start: 's1',
         steps: [{ id: 's1', type: 'terminal', prompt: 'Done' }]
@@ -26,6 +29,7 @@ describe('validateDiagram', () => {
   it('rejects a decision-tree where start does not match any step id', () => {
     const bad: Diagram = {
       id: 'd1', topic: 'alopecia', title: 'X', type: 'decision-tree',
+      citations: TEST_CITATIONS,
       data: { start: 'missing', steps: [{ id: 's1', type: 'terminal' }] }
     };
     const result = validateDiagram(bad);
@@ -36,6 +40,7 @@ describe('validateDiagram', () => {
   it('rejects a swimlane row that references a missing lane id', () => {
     const bad: Diagram = {
       id: 'd1', topic: 'alopecia', title: 'X', type: 'swimlane',
+      citations: TEST_CITATIONS,
       data: {
         lanes: [{ id: 'first', name: 'First-line' }],
         rows: [{ id: 'aga', name: 'AGA', cells: { unknown: { text: '...' } } }]
@@ -161,6 +166,7 @@ describe('R1: validateDiagram narrowed Result and unknown-input behaviour', () =
       topic: 'alopecia',
       title: 'Test',
       type: 'decision-tree',
+      citations: TEST_CITATIONS,
       data: { start: 's1', steps: [{ id: 's1', type: 'terminal', prompt: 'Done' }] }
     };
     const result = validateDiagram(input);
@@ -289,6 +295,7 @@ describe('R1: validateDiagram narrowed Result and unknown-input behaviour', () =
   it('workup-pathway stage with items as array succeeds', () => {
     const good: unknown = {
       id: 'd', topic: 't', title: 'T', type: 'workup-pathway',
+      citations: TEST_CITATIONS,
       data: { stages: [{ id: 'x', name: 'X', items: [{ id: 'i', label: 'L' }] }] }
     };
     const result = validateDiagram(good);
@@ -367,6 +374,7 @@ describe('R5: schema extensions for swimlane non-empty lanes and decision-tree r
   it('F34: decision-tree with all steps reachable from start passes', () => {
     const good: unknown = {
       id: 'd', topic: 't', title: 'T', type: 'decision-tree',
+      citations: TEST_CITATIONS,
       data: {
         start: 's1',
         steps: [
