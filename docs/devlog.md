@@ -1,5 +1,33 @@
 # Devlog — ramiefathy.github.io
 
+## [2026-05-04] Dependabot remediation: Astro 6, Node 22, and npm lockfile cleanup
+
+**What changed.** Addressed the Dependabot wave created after `site/package-lock.json` became tracked. Merged or applied the safe dependency updates for `protobufjs`, `basic-ftp`, `postcss`, Vite/Vitest, DOMPurify/jsPDF, Astro 6, `defu`, `h3`, `picomatch`, and Rollup. Removed unused `firebase-tools` from `site` after an audit showed no active script, workflow, or app-code usage; this eliminated the large Firebase CLI transitive tree that was responsible for `uuid`, `lodash`, `tar`, `minimatch`, and other tooling advisories.
+
+**Why.** Dependabot was correctly reporting the full installed dependency graph once the lockfile was tracked. Most alerts were ordinary lockfile remediations, but two required explicit decisions. Astro 6 could not be accepted as a Dependabot-only PR because it requires Node `>=22.12.0` and the original PR failed CI under Node 20. `xlsx@0.18.5` has no patched npm release, so it cannot be safely "fixed" by `npm audit fix`; it is tracked separately in GitHub issue #119 with options to remove XLSX export, replace the library, or document a time-boxed residual risk.
+
+**Key decisions.**
+- **Kept `site/package-lock.json` tracked.** This is necessary for reproducible CI installs and for Dependabot to inspect the actual transitive graph.
+- **Migrated site CI and deploy builds to Node 22.12.0.** Added/updated root `.nvmrc`, pointed GitHub Actions at `node-version-file: '.nvmrc'`, and declared `site/package.json` engines as `>=22.12.0`.
+- **Regenerated Astro 6 from current `master` rather than merging the stale Dependabot lockfile.** This avoided lockfile conflicts after the earlier dependency PRs landed.
+- **Changed Vite manual chunks from object form to function form.** Astro 6 server-entry builds externalize React, and Rollup rejects object-form manual chunks that name external modules. Function-form chunking only assigns modules actually present in the browser bundle graph.
+- **Removed unused `firebase-tools` rather than overriding its transitive dependencies.** The CLI was not referenced by active scripts or workflows; removing it was lower risk than forcing major transitive versions.
+- **Left `xlsx` unremediated in code for now.** The dermatopathology differentials Excel export still uses a vendored SheetJS bundle; issue #119 records the remediation decision point.
+
+**Verification.**
+- Low-risk dependency batch: `npm run site:test` and `npm run site:build` passed before pushing.
+- DOMPurify/jsPDF batch: browser smoke passed for PDF Studio metadata scrub/download, MindMaps Atlas PDF export, and DOMPurify-rendered drawer/details surfaces; `npm run site:test` and `npm run site:build` passed.
+- Astro 6 branch: under Node 22.12.0, `npm --prefix site run test`, `npm run site:build`, and full Playwright e2e passed (`123 passed`, `21 skipped` opt-in screenshot tests). Direct browser route inspection passed for `/`, `/apps/`, `/apps/mindmaps/alopecia/`, `/apps/pdf-studio.html`, `/apps/dermatopathology-differentials.html`, `/research/dermoscopy-llm-dashboard/`, `/legacy/`, and `/contact/`.
+- Firebase removal branch: `npm run site:test`, `npm run site:build`, and CI/e2e passed before merge.
+- Final audit after lockfile refresh reports only `xlsx` advisories (`npm --prefix site audit --omit=optional` exits non-zero solely for `xlsx`).
+
+**Open items.**
+- Resolve issue #119: remove/replace/document the unpatched `xlsx` export path.
+- Decide whether the dermatopathology differentials app should retain workbook export or downgrade to CSV.
+- The `punycode` deprecation warning still appears under Node 22 during tests/build; it is a warning from transitive tooling, not a failing gate.
+
+---
+
 ## [2026-05-02] Commit readiness pass — CI-green verification and final push prep
 
 **What changed.** Re-ran the release gates for the staged MindMaps diagram expansion before commit/push. The only new code change in this pass removes remote Google Fonts from `site/public/mcq-eval/index.html` and switches that unlisted dashboard to local/system font stacks, because the full site test suite caught it as a frontend design-contract violation.
