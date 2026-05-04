@@ -76,4 +76,26 @@ test.describe('Dermatopathology Differentials (functional)', () => {
 
     runtime.assertClean()
   })
+
+  test('exports selected finding to PDF without bare module import failures', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.goto('/apps/dermatopathology-differentials.html', { waitUntil: 'networkidle' })
+    await expect(page.locator('.legacy-shell')).toBeVisible()
+
+    await waitForSelectOptions('#finding-selector', page)
+    const select = page.locator('#finding-selector')
+    const firstFinding = await select.locator('option').evaluateAll((options) =>
+      options.map((opt) => (opt as HTMLOptionElement).value).filter(Boolean)[0]
+    )
+    expect(firstFinding).toBeTruthy()
+    await select.selectOption(firstFinding)
+    await expect(page.locator('.diagnosis-card').first()).toBeVisible()
+
+    const downloadPromise = page.waitForEvent('download')
+    await page.locator('#export-pdf-btn').click()
+    const download = await downloadPromise
+
+    expect(download.suggestedFilename()).toMatch(/_DDx\.pdf$/)
+    runtime.assertClean()
+  })
 })

@@ -226,8 +226,8 @@ describe('legacy apps remediation backlog', () => {
     const scribeJsPdf = loadApp('dermatology-scribe/vendor/jspdf.umd.min.js')
 
     expect(differentialsHtml).not.toContain('https://cdn.jsdelivr.net/npm/')
-    expect(differentialsHtml).toContain("./vendor/jspdf.es.min.js")
-    expect(differentialsHtml).toContain("./vendor/jspdf-autotable.esm.js")
+    expect(differentialsHtml).toContain("./vendor/jspdf.umd.min.js")
+    expect(differentialsHtml).toContain("./vendor/jspdf.plugin.autotable.min.js")
     expect(differentialsHtml).toContain("./vendor/xlsx")
 
     for (const html of [modernDermpath, modernDermpathFixed, dedupVisualization, pdfStudio]) {

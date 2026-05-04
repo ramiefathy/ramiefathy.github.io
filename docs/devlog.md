@@ -1,5 +1,15 @@
 # Devlog — ramiefathy.github.io
 
+## [2026-05-04] Production browser smoke: dermatopathology PDF export fix
+
+**What changed.** Direct production browser testing found that Dermatopathology Differentials could select findings and export XLSX files, but PDF export failed at runtime because the static app loaded vendored ESM builds with bare package specifiers. Switched the PDF export path to browser-safe UMD assets for jsPDF and jsPDF-AutoTable, loaded through a small script loader, and added a Playwright regression that selects a finding and asserts a PDF download.
+
+**Why.** Static files under `site/public/apps` are served directly in production; the browser cannot resolve package specifiers such as `@babel/runtime/helpers/typeof` from those files. The prior Vitest assertion only checked that PDF libraries were local, not that the selected builds were browser-resolvable or that export actually worked.
+
+**Verification.** The new e2e regression failed before the fix with a timeout waiting for the PDF download, matching the production failure. After the fix, `npm --prefix site run test:e2e -- dermpath-differentials.functional.spec.ts`, `npm run site:test`, and `npm run site:build` passed locally.
+
+---
+
 ## [2026-05-04] Dependabot remediation: Astro 6, Node 22, and npm lockfile cleanup
 
 **What changed.** Addressed the Dependabot wave created after `site/package-lock.json` became tracked. Merged or applied the safe dependency updates for `protobufjs`, `basic-ftp`, `postcss`, Vite/Vitest, DOMPurify/jsPDF, Astro 6, `defu`, `h3`, `picomatch`, and Rollup. Removed unused `firebase-tools` from `site` after an audit showed no active script, workflow, or app-code usage; this eliminated the large Firebase CLI transitive tree that was responsible for `uuid`, `lodash`, `tar`, `minimatch`, and other tooling advisories.
