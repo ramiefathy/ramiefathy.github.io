@@ -17,12 +17,13 @@ export default defineConfig({
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            react: ['react', 'react-dom'],
-            d3: ['d3'],
-            shaders: ['@paper-design/shaders', '@paper-design/shaders-react'],
-            framer: ['framer-motion'],
-            mindmap: ['html-to-image', 'jspdf']
+          manualChunks(id) {
+            if (!id.includes('/node_modules/')) return;
+            if (id.includes('/react/') || id.includes('/react-dom/')) return 'react';
+            if (id.includes('/d3')) return 'd3';
+            if (id.includes('/@paper-design/shaders')) return 'shaders';
+            if (id.includes('/framer-motion/')) return 'framer';
+            if (id.includes('/html-to-image/') || id.includes('/jspdf/')) return 'mindmap';
           }
         }
       },

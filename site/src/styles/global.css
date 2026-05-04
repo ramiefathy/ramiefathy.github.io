@@ -127,7 +127,8 @@ h1, h2, h3, h4, h5, h6 {
 .skip-link {
   position: absolute;
   top: 0.5rem;
-  left: -9999px;
+  left: 1rem;
+  transform: translateY(-150%);
   z-index: 100;
   padding: 0.65rem 1rem;
   background: var(--ink);
@@ -139,7 +140,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .skip-link:focus-visible {
-  left: 1rem;
+  transform: translateY(0);
   outline: 2px solid var(--terracotta);
 }
 
@@ -597,7 +598,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .contact-link {
   display: grid;
-  grid-template-columns: 80px 1fr 60px;
+  grid-template-columns: 80px minmax(0, 1fr) minmax(120px, max-content);
   align-items: center;
   gap: 16px;
   padding: 16px 20px;
@@ -642,6 +643,8 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.06em;
   color: var(--slate);
   text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* =============================================================================
