@@ -67,6 +67,17 @@ test('Apps catalog filter buttons work on /apps', async ({ page }) => {
   await expect(page.locator('.app-plate.cat-learning').first()).toBeVisible()
 })
 
+test('Apps catalog does not create mobile horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/apps')
+
+  const dimensions = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+  }))
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1)
+})
+
 /**
  * Mobile mindmap usability (Phase 7B Atlas hardening).
  *

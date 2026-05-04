@@ -2,11 +2,11 @@
 
 ## [2026-05-04] Production browser smoke: dermatopathology PDF export fix
 
-**What changed.** Direct production browser testing found that Dermatopathology Differentials could select findings and export XLSX files, but PDF export failed at runtime because the static app loaded vendored ESM builds with bare package specifiers. Switched the PDF export path to browser-safe UMD assets for jsPDF and jsPDF-AutoTable, loaded through a small script loader, and added a Playwright regression that selects a finding and asserts a PDF download.
+**What changed.** Direct production browser testing found that Dermatopathology Differentials could select findings and export XLSX files, but PDF export failed at runtime because the static app loaded vendored ESM builds with bare package specifiers. Switched the PDF export path to browser-safe UMD assets for jsPDF and jsPDF-AutoTable, loaded through a small script loader, and added a Playwright regression that selects a finding and asserts a PDF download. The same production sweep also found `/apps/` mobile horizontal overflow from the closed off-canvas navigation drawer and apps toolbar search row; the drawer is now removed from layout until open, and the apps toolbar/search row has mobile width constraints.
 
 **Why.** Static files under `site/public/apps` are served directly in production; the browser cannot resolve package specifiers such as `@babel/runtime/helpers/typeof` from those files. The prior Vitest assertion only checked that PDF libraries were local, not that the selected builds were browser-resolvable or that export actually worked.
 
-**Verification.** The new e2e regression failed before the fix with a timeout waiting for the PDF download, matching the production failure. After the fix, `npm --prefix site run test:e2e -- dermpath-differentials.functional.spec.ts`, `npm run site:test`, and `npm run site:build` passed locally.
+**Verification.** The new e2e regression failed before the fix with a timeout waiting for the PDF download, matching the production failure. After the fix, `npm --prefix site run test:e2e -- dermpath-differentials.functional.spec.ts`, `npm --prefix site run test:e2e -- atlas-plates.spec.ts dermpath-differentials.functional.spec.ts`, `npm run site:test`, and `npm run site:build` passed locally.
 
 ---
 

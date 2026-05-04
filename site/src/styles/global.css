@@ -2313,11 +2313,12 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateX(100%);
     transition: transform 200ms ease;
     z-index: 60;
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 1.5rem;
   }
   .header-drawer.is-open {
+    display: flex;
     transform: translateX(0);
   }
   .header-drawer__backdrop {
@@ -2338,6 +2339,30 @@ h1, h2, h3, h4, h5, h6 {
   }
   .plate-stamp {
     left: 24px;
+  }
+  .plate-head {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .plate-head .right {
+    justify-self: start;
+    max-width: 100%;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  .apps-toolbar {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+  .apps-toolbar .left,
+  .apps-toolbar .right {
+    width: 100%;
+    min-width: 0;
+  }
+  .apps-toolbar .right input {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
   }
   .home-cover-text,
   .about-cover .text,
