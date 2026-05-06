@@ -101,7 +101,7 @@ export default function EgyptPortfolioDashboard() {
           ))}
         </nav>
         <button className={`cohort-toggle ${firstCohortOnly ? 'is-on' : ''}`} type="button" onClick={() => setFirstCohortOnly((value) => !value)}>
-          <span>★ First-cohort highlight</span>
+          <span>First-cohort highlight</span>
           <small>{firstCohortOnly ? 'Showing launch wave only' : 'Show launch wave only'}</small>
         </button>
       </aside>
