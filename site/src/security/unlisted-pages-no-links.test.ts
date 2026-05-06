@@ -8,6 +8,12 @@ type UnlistedStaticPage = {
   file: string
 }
 
+type UnlistedAstroRoute = {
+  label: string
+  route: string
+  file: string
+}
+
 function walkFiles(rootDir: string): string[] {
   const results: string[] = []
   const stack: string[] = [rootDir]
@@ -30,7 +36,10 @@ function walkFiles(rootDir: string): string[] {
   return results
 }
 
-function loadUnlistedStaticPages(repoRoot: string): UnlistedStaticPage[] {
+function loadUnlistedSurfaces(repoRoot: string): {
+  unlistedStaticPages: UnlistedStaticPage[]
+  unlistedAstroRoutes: UnlistedAstroRoute[]
+} {
   const inventoryPath = path.resolve(repoRoot, 'docs/site-test-inventory.md')
   const markdown = fs.readFileSync(inventoryPath, 'utf-8')
   const match = markdown.match(/```json\s*([\s\S]*?)\s*```/m)
@@ -38,8 +47,14 @@ function loadUnlistedStaticPages(repoRoot: string): UnlistedStaticPage[] {
     throw new Error(`No inventory JSON block found in ${inventoryPath}`)
   }
 
-  const inventory = JSON.parse(match[1]) as { unlistedStaticPages?: UnlistedStaticPage[] }
-  return inventory.unlistedStaticPages ?? []
+  const inventory = JSON.parse(match[1]) as {
+    unlistedStaticPages?: UnlistedStaticPage[]
+    unlistedAstroRoutes?: UnlistedAstroRoute[]
+  }
+  return {
+    unlistedStaticPages: inventory.unlistedStaticPages ?? [],
+    unlistedAstroRoutes: inventory.unlistedAstroRoutes ?? []
+  }
 }
 
 function escapeRegExp(value: string): string {
@@ -51,10 +66,11 @@ function normalizeRoute(route: string): string {
 }
 
 describe('Unlisted surfaces remain unlinked', () => {
-  it('does not link to unlisted static pages anywhere in shipped site content', () => {
+  it('does not link to unlisted pages anywhere in shipped site content', () => {
     const SITE_ROOT = path.resolve(process.cwd()) // .../repo/site
     const REPO_ROOT = path.resolve(SITE_ROOT, '..')
-    const unlistedPages = loadUnlistedStaticPages(REPO_ROOT)
+    const { unlistedStaticPages, unlistedAstroRoutes } = loadUnlistedSurfaces(REPO_ROOT)
+    const unlistedPages = [...unlistedStaticPages, ...unlistedAstroRoutes]
 
     // Scan both authored content and public assets.
     const scanRoots = [
@@ -98,7 +114,38 @@ describe('Unlisted surfaces remain unlinked', () => {
 
     expect(
       offenders,
-      `Found links to unlisted static pages (must be unlinked):\n${offenders.join('\n')}`
+      `Found links to unlisted pages (must be unlinked):\n${offenders.join('\n')}`
     ).toEqual([])
+  })
+
+  it('requires unlisted Astro routes to opt out of indexing and canonical URLs', () => {
+    const SITE_ROOT = path.resolve(process.cwd()) // .../repo/site
+    const REPO_ROOT = path.resolve(SITE_ROOT, '..')
+    const { unlistedAstroRoutes } = loadUnlistedSurfaces(REPO_ROOT)
+
+    const offenders = unlistedAstroRoutes.flatMap((entry) => {
+      const filePath = path.resolve(REPO_ROOT, entry.file)
+      const content = fs.readFileSync(filePath, 'utf-8')
+      const failures: string[] = []
+
+      if (!/noindex\s*=\s*{true}/.test(content)) {
+        failures.push(`${entry.file}: missing noindex={true}`)
+      }
+
+      if (!/canonical\s*=\s*{null}/.test(content)) {
+        failures.push(`${entry.file}: missing canonical={null}`)
+      }
+
+      const headersPath = path.resolve(SITE_ROOT, 'public/_headers')
+      const headers = fs.readFileSync(headersPath, 'utf-8')
+      const headerPattern = new RegExp(`${escapeRegExp(normalizeRoute(entry.route))}/\\*\\s+X-Robots-Tag:\\s*noindex,\\s*nofollow`, 'm')
+      if (!headerPattern.test(headers)) {
+        failures.push(`${entry.file}: missing X-Robots-Tag noindex/nofollow header for ${entry.route}/*`)
+      }
+
+      return failures
+    })
+
+    expect(offenders, `Unlisted Astro route policy failures:\n${offenders.join('\n')}`).toEqual([])
   })
 })

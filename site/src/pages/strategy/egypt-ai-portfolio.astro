@@ -1,0 +1,15 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Header from '../../components/Header.jsx';
+import EgyptPortfolioDashboard from '../../components/EgyptPortfolioDashboard.jsx';
+
+const title = 'Egypt AI & Technology Opportunity Portfolio – Ramie Fathy, MD';
+const description = 'Unlisted unified strategy dashboard, source deck, and evidence model for an Egypt AI and technology opportunity portfolio.';
+---
+
+<MainLayout title={title} description={description} noindex={true} canonical={null}>
+  <Header client:load />
+  <main id="main-content">
+    <EgyptPortfolioDashboard client:load />
+  </main>
+</MainLayout>

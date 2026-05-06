@@ -4,11 +4,13 @@ import profile from '../data/profile.json';
 const {
   title = 'Ramie Fathy, MD',
   description = 'Dermatology resident physician, researcher, and writer with a focus on human-centered AI and complex medical dermatology.',
-  canonical
+  canonical,
+  noindex = false
 } = Astro.props;
 
 const siteUrl = (Astro.site instanceof URL ? Astro.site.toString() : Astro.site) || 'https://ramiefathy.com';
-const canonicalUrl = canonical || new URL(Astro.url.pathname, siteUrl).toString();
+const canonicalUrl = canonical === null ? new URL(Astro.url.pathname, siteUrl).toString() : canonical || new URL(Astro.url.pathname, siteUrl).toString();
+const shouldRenderCanonical = canonical !== null;
 const ogImageUrl = new URL('/og.svg', siteUrl).toString();
 
 const footerLinks = [
@@ -25,6 +27,7 @@ const footerLinks = [
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <meta name="theme-color" content="#f4f0e8" />
     <meta property="og:site_name" content="Ramie Fathy, MD" />
     <meta property="og:title" content={title} />
@@ -42,7 +45,7 @@ const footerLinks = [
     <link rel="stylesheet" href="/apps/shared/legacy-fonts.css" />
     <link rel="stylesheet" href="/style.css" />
     <title>{title}</title>
-    <link rel="canonical" href={canonicalUrl} />
+    {shouldRenderCanonical && <link rel="canonical" href={canonicalUrl} />}
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>

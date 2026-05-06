@@ -209,6 +209,15 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "category": "research-unlisted",
       "requiresDownloads": false
     }
+  ],
+  "unlistedAstroRoutes": [
+    {
+      "label": "Egypt AI opportunity portfolio (unlisted)",
+      "route": "/strategy/egypt-ai-portfolio",
+      "file": "site/src/pages/strategy/egypt-ai-portfolio.astro",
+      "category": "strategy-unlisted",
+      "requiresDownloads": true
+    }
   ]
 }
 ```
