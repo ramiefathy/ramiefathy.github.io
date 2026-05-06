@@ -12,6 +12,7 @@ type UnlistedAstroRoute = {
   label: string
   route: string
   file: string
+  allowedLinkFiles?: string[]
 }
 
 function walkFiles(rootDir: string): string[] {
@@ -83,7 +84,10 @@ describe('Unlisted surfaces remain unlinked', () => {
     // Anything that contains an actual link/navigation surface to an unlisted route should fail.
     // We intentionally allow each unlisted page itself to mention its own route.
     const allowedFiles = new Set<string>(
-      unlistedPages.map((entry) => path.resolve(REPO_ROOT, entry.file))
+      unlistedPages.flatMap((entry) => [
+        path.resolve(REPO_ROOT, entry.file),
+        ...('allowedLinkFiles' in entry ? (entry.allowedLinkFiles ?? []).map((file) => path.resolve(REPO_ROOT, file)) : [])
+      ])
     )
 
     // We treat "unlinked" as: no navigational anchors/buttons/forms pointing to unlisted routes.

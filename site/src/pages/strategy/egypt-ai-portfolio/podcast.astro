@@ -1,0 +1,206 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import Header from '../../../components/Header.jsx';
+import { PODCAST_EPISODES, PODCAST_TTS_CONFIG } from '../../../data/strategy/egypt-podcast.js';
+
+const title = 'Egypt AI Portfolio Podcast Series – Ramie Fathy, MD';
+const description = 'Unlisted single-speaker strategic briefing podcast series for the Egypt AI and technology opportunity portfolio.';
+const totalSeconds = PODCAST_EPISODES.reduce((sum, episode) => sum + episode.durationSeconds, 0);
+const totalMinutes = Math.round(totalSeconds / 60);
+---
+
+<MainLayout title={title} description={description} noindex={true} canonical={null}>
+  <Header client:load />
+  <main id="main-content" class="podcast-page">
+    <section class="podcast-hero">
+      <div class="eyebrow">Unlisted audio briefing · May 2026</div>
+      <h1>Egypt AI Portfolio Podcast Series</h1>
+      <p>
+        Seven short, single-speaker strategic briefings designed for people who may lead, fund, advise, or operationalize the Egypt AI and technology opportunity portfolio.
+      </p>
+      <div class="hero-meta" aria-label="Podcast production details">
+        <span>{PODCAST_EPISODES.length} episodes</span>
+        <span>{totalMinutes} minutes total</span>
+        <span>{PODCAST_TTS_CONFIG.primaryModel}</span>
+        <span>Voice: {PODCAST_TTS_CONFIG.voiceName}</span>
+      </div>
+      <div class="hero-actions">
+        <a href="/strategy/egypt-ai-portfolio/">Back to dashboard</a>
+        <a class="secondary" href="#episodes">Listen now</a>
+      </div>
+    </section>
+
+    <section class="production-note" aria-labelledby="production-heading">
+      <div>
+        <span class="eyebrow">Narration design</span>
+        <h2 id="production-heading">Configured as a private strategy briefing, not a hype reel.</h2>
+      </div>
+      <p>
+        Gemini TTS was directed for a warm, knowledgeable, single-speaker delivery with moderate podcast pacing, clear articulation of acronyms and numbers, natural pauses after strategic pivots, and a calm sense of urgency around the time-limited opportunity.
+      </p>
+    </section>
+
+    <section id="episodes" class="episode-grid" aria-label="Podcast episodes">
+      {PODCAST_EPISODES.map((episode) => (
+        <article class="episode-card" id={episode.slug}>
+          <div class="episode-kicker">Episode {episode.number.toString().padStart(2, '0')} · {episode.durationLabel}</div>
+          <h2>{episode.title}</h2>
+          <audio controls preload="metadata" src={episode.audioSrc}>
+            <a href={episode.audioSrc}>Download episode {episode.number}</a>
+          </audio>
+          <div class="episode-actions">
+            <a href={episode.audioSrc} download>Download MP3</a>
+            <a href={episode.transcriptSrc}>Transcript</a>
+          </div>
+        </article>
+      ))}
+    </section>
+  </main>
+</MainLayout>
+
+<style>
+  .podcast-page {
+    --bg: #f4f0e8;
+    --paper: #fffaf0;
+    --ink: #0f1b2d;
+    --muted: #5f665f;
+    --teal: #1f6f7a;
+    --gold: #a88652;
+    --line: rgba(15, 27, 45, 0.16);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  .podcast-hero,
+  .production-note,
+  .episode-grid {
+    width: min(1120px, calc(100% - 32px));
+    margin: 0 auto;
+  }
+
+  .podcast-hero {
+    padding: 64px 0 34px;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .eyebrow,
+  .episode-kicker {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 11px;
+    color: var(--teal);
+    font-weight: 700;
+  }
+
+  .podcast-hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(44px, 7vw, 84px);
+    line-height: 0.9;
+    letter-spacing: -0.06em;
+    max-width: 940px;
+    margin: 18px 0;
+  }
+
+  .podcast-hero p,
+  .production-note p {
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 820px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+  }
+
+  .hero-meta span {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 8px 10px;
+    font: 700 11px var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .hero-actions,
+  .episode-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+  }
+
+  .hero-actions a,
+  .episode-actions a {
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 12px 15px;
+    font: 700 11px var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .hero-actions a.secondary,
+  .episode-actions a + a {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .production-note {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+    gap: 28px;
+    padding: 32px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .production-note h2,
+  .episode-card h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.04em;
+    line-height: 0.98;
+    margin: 8px 0 0;
+  }
+
+  .production-note h2 {
+    font-size: clamp(30px, 4vw, 48px);
+  }
+
+  .episode-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding-top: 34px;
+  }
+
+  .episode-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 22px;
+  }
+
+  .episode-card h2 {
+    font-size: clamp(26px, 3vw, 38px);
+  }
+
+  .episode-card audio {
+    width: 100%;
+    margin-top: 18px;
+    accent-color: var(--teal);
+  }
+
+  @media (max-width: 820px) {
+    .production-note,
+    .episode-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
