@@ -208,6 +208,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "file": "site/public/mcq-eval/index.html",
       "category": "research-unlisted",
       "requiresDownloads": false
+    },
+    {
+      "label": "Neutrophilic dermatoses lecture video (unlisted)",
+      "route": "/lectures/neutrophilic-dermatoses-2026-05-07/",
+      "file": "site/public/lectures/neutrophilic-dermatoses-2026-05-07/index.html",
+      "category": "lecture-unlisted",
+      "requiresDownloads": true
     }
   ],
   "unlistedAstroRoutes": [
