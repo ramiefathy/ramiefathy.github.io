@@ -56,6 +56,11 @@ Documentation living with applications:
 - Source/deploy repo: `ramiefathy/clinisched`
 - Integration + redirect details: [Clinisched Subdomain Hosting](clinisched-subdomain.md)
 
+### KSA Sovereign Credit Analytics
+- Canonical URL: `https://ksa-credit.ramiefathy.com/`
+- Source/deploy directory: `/Users/ramiefathy/Downloads/ksa-sovereign-credit-analytics-completed`
+- Private Cloudflare Access integration details: [KSA Sovereign Credit Analytics Subdomain Hosting](ksa-credit-subdomain.md)
+
 ### Dermatopathology Navigator
 - [Project Handoff](../site/public/apps/dermatopathology-modern/PROJECT-HANDOFF-DOCUMENT.md)
 - [Project Status](../site/public/apps/dermatopathology-modern/PROJECT-STATUS.md)

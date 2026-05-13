@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">KSA Sovereign Credit Analytics preview</title>
+  <desc id="desc">A compact dashboard preview with sovereign spread, bond, CDS, and benchmark panels.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="0.48" stop-color="#ecfeff"/>
+      <stop offset="1" stop-color="#eff6ff"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="760" rx="34" fill="url(#bg)"/>
+  <rect x="54" y="48" width="1092" height="664" rx="26" fill="#ffffff" filter="url(#shadow)"/>
+  <rect x="54" y="48" width="1092" height="78" rx="26" fill="#0f172a"/>
+  <circle cx="91" cy="87" r="9" fill="#ef4444"/>
+  <circle cx="121" cy="87" r="9" fill="#f59e0b"/>
+  <circle cx="151" cy="87" r="9" fill="#22c55e"/>
+  <text x="190" y="94" fill="#e2e8f0" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="700">KSA Sovereign Credit Analytics</text>
+  <text x="818" y="92" fill="#93c5fd" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Access protected</text>
+
+  <g transform="translate(86 154)">
+    <rect width="238" height="118" rx="16" fill="#f8fafc" stroke="#dbeafe"/>
+    <text x="22" y="34" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Sovereign spread</text>
+    <text x="22" y="82" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="800">114 bp</text>
+    <path d="M166 84 l18 -20 l20 13 l18 -31" fill="none" stroke="#0f766e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(350 154)">
+    <rect width="238" height="118" rx="16" fill="#f8fafc" stroke="#dbeafe"/>
+    <text x="22" y="34" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">CDS 5Y</text>
+    <text x="22" y="82" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="800">63 bp</text>
+    <rect x="160" y="62" width="48" height="10" rx="5" fill="#bfdbfe"/>
+    <rect x="160" y="82" width="64" height="10" rx="5" fill="#93c5fd"/>
+  </g>
+  <g transform="translate(614 154)">
+    <rect width="238" height="118" rx="16" fill="#f8fafc" stroke="#dbeafe"/>
+    <text x="22" y="34" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Coverage</text>
+    <text x="22" y="82" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="800">Private</text>
+    <circle cx="196" cy="72" r="20" fill="#ccfbf1"/>
+    <path d="M187 72 l7 8 l16 -20" fill="none" stroke="#0f766e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(878 154)">
+    <rect width="238" height="118" rx="16" fill="#f8fafc" stroke="#dbeafe"/>
+    <text x="22" y="34" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Snapshot age</text>
+    <text x="22" y="82" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="800">EOD</text>
+    <rect x="156" y="58" width="54" height="42" rx="8" fill="#dbeafe"/>
+  </g>
+
+  <g transform="translate(86 304)">
+    <rect width="656" height="338" rx="20" fill="#f8fafc" stroke="#e2e8f0"/>
+    <text x="24" y="42" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="800">Curve and spread monitor</text>
+    <line x1="54" y1="280" x2="604" y2="280" stroke="#cbd5e1" stroke-width="2"/>
+    <line x1="54" y1="78" x2="54" y2="280" stroke="#cbd5e1" stroke-width="2"/>
+    <path d="M54 247 C132 222 164 191 235 198 C303 205 334 146 402 152 C480 158 520 105 604 86" fill="none" stroke="url(#line)" stroke-width="7" stroke-linecap="round"/>
+    <path d="M54 258 C136 238 180 224 250 229 C330 235 382 198 448 204 C510 209 552 183 604 174" fill="none" stroke="#94a3b8" stroke-width="5" stroke-linecap="round" stroke-dasharray="12 14"/>
+    <g fill="#ffffff" stroke="#0f766e" stroke-width="5">
+      <circle cx="54" cy="247" r="8"/>
+      <circle cx="235" cy="198" r="8"/>
+      <circle cx="402" cy="152" r="8"/>
+      <circle cx="604" cy="86" r="8"/>
+    </g>
+    <text x="52" y="313" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14">2Y</text>
+    <text x="226" y="313" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14">10Y</text>
+    <text x="392" y="313" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14">20Y</text>
+    <text x="588" y="313" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14">40Y</text>
+  </g>
+
+  <g transform="translate(770 304)">
+    <rect width="346" height="338" rx="20" fill="#f8fafc" stroke="#e2e8f0"/>
+    <text x="24" y="42" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="800">Audit status</text>
+    <g font-family="Inter, Arial, sans-serif" font-size="16">
+      <rect x="24" y="74" width="298" height="48" rx="12" fill="#ecfeff"/>
+      <text x="42" y="104" fill="#0f766e" font-weight="800">Bond quotes</text>
+      <text x="236" y="104" fill="#0f766e" font-weight="800">live</text>
+      <rect x="24" y="138" width="298" height="48" rx="12" fill="#eff6ff"/>
+      <text x="42" y="168" fill="#1d4ed8" font-weight="800">CDS points</text>
+      <text x="218" y="168" fill="#1d4ed8" font-weight="800">partial</text>
+      <rect x="24" y="202" width="298" height="48" rx="12" fill="#f1f5f9"/>
+      <text x="42" y="232" fill="#475569" font-weight="800">Benchmarks</text>
+      <text x="208" y="232" fill="#475569" font-weight="800">cached</text>
+      <rect x="24" y="266" width="298" height="48" rx="12" fill="#fff7ed"/>
+      <text x="42" y="296" fill="#9a3412" font-weight="800">Warnings</text>
+      <text x="232" y="296" fill="#9a3412" font-weight="800">shown</text>
+    </g>
+  </g>
+</svg>
