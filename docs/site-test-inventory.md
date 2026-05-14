@@ -224,6 +224,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "file": "site/public/lectures/neutrophilic-dermatoses-2026-05-07/index.html",
       "category": "lecture-unlisted",
       "requiresDownloads": true
+    },
+    {
+      "label": "dermie VC prep (unlisted)",
+      "route": "/apps/dermie-vc-prep-rf-20260514-x7q9m2/",
+      "file": "site/public/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html",
+      "category": "internal-unlisted",
+      "requiresDownloads": false
     }
   ],
   "unlistedAstroRoutes": [
