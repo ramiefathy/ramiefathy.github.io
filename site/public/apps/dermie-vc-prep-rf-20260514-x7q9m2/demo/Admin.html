@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Admin (utilitarian)</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+/* admin tokens — denser, no flourishes */
+.ad-frame{background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.ad-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 22px;background:var(--paper-w2);border-bottom:1px solid var(--line);}
+.ad-topbar .wm{font:600 13px var(--font-mono);letter-spacing:.06em;color:var(--ink-w);display:flex;align-items:center;gap:8px;text-transform:uppercase;}
+.ad-topbar .wm::before{content:"";width:10px;height:10px;background:var(--ox);border-radius:2px;transform:rotate(45deg);}
+.ad-topbar .right{display:flex;align-items:center;gap:8px;font:400 12px var(--font-body);color:var(--ink-meta);}
+.ad-topbar .right .env{font:500 10px var(--font-mono);padding:2px 7px;background:var(--ox);color:var(--card);border-radius:3px;letter-spacing:.04em;}
+.ad-topbar .right .env.staging{background:var(--gold);color:#3a2c08;}
+
+.ad-shell{display:grid;grid-template-columns:200px minmax(0,1fr);min-height:600px;}
+.ad-sidebar{background:var(--paper-w2);border-right:1px solid var(--line);padding:14px 8px;display:flex;flex-direction:column;gap:4px;font:400 13px var(--font-body);}
+.ad-sidebar .grp{font:600 10px var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-meta);padding:8px 10px 4px;}
+.ad-sidebar .item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:5px;color:var(--ink-w2);background:transparent;border:0;font-family:inherit;text-align:left;cursor:pointer;font-size:13px;}
+.ad-sidebar .item:hover{background:rgba(0,0,0,.04);}
+.ad-sidebar .item.on{background:var(--card);color:var(--ink-w);font-weight:500;box-shadow:inset 2px 0 0 var(--ox);}
+.ad-sidebar .item .ic{width:14px;height:14px;color:currentColor;flex-shrink:0;}
+.ad-sidebar .item .badge{margin-left:auto;font:500 10px var(--font-mono);background:var(--ox-soft);color:var(--ox-deep);padding:1px 5px;border-radius:2px;}
+.ad-sidebar .foot{margin-top:auto;display:flex;flex-direction:column;gap:4px;padding-top:10px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-meta);}
+.ad-sidebar .foot .item{font-size:11.5px;}
+.ad-sidebar .role{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--card);border:1px solid var(--line);border-radius:6px;margin-bottom:4px;}
+.ad-sidebar .role .av{width:24px;height:24px;background:var(--ink-w);color:var(--card);border-radius:4px;display:grid;place-items:center;font:600 10px var(--font-mono);}
+.ad-sidebar .role .meta{font-size:12px;}
+.ad-sidebar .role .meta .nm{font-weight:500;color:var(--ink-w);}
+.ad-sidebar .role .meta .sub{color:var(--ink-meta);font-size:10.5px;}
+
+.ad-main{padding:20px 24px;display:flex;flex-direction:column;gap:14px;min-width:0;}
+.ad-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--line);}
+.ad-head h2{font:500 17px var(--font-body);color:var(--ink-w);margin:0;}
+.ad-head .crumb{font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;}
+.ad-head .actions{display:flex;gap:6px;}
+
+.ad-subnav{display:flex;gap:0;padding:0;border-bottom:1px solid var(--line);background:transparent;}
+.ad-subnav .t{padding:9px 14px;font:500 12px var(--font-body);color:var(--ink-w2);background:transparent;border:0;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;}
+.ad-subnav .t.on{color:var(--ink-w);border-bottom-color:var(--ox);font-weight:500;}
+.ad-subnav .t .ct{font:500 10px var(--font-mono);background:var(--card-2);color:var(--ink-meta);padding:1px 5px;border-radius:3px;}
+.ad-subnav .t.on .ct{background:var(--ox);color:var(--card);}
+
+.ad-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.ad-kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;}
+.ad-kpi .l{font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-meta);}
+.ad-kpi .n{font:500 24px var(--font-mono);color:var(--ink-w);font-feature-settings:"tnum";line-height:1.2;}
+.ad-kpi .n.ok{color:var(--moss);}
+.ad-kpi .n.warn{color:var(--gold);}
+.ad-kpi .n.bad{color:var(--ox);}
+.ad-kpi .b{font:400 11px var(--font-body);color:var(--ink-meta);}
+
+.ad-card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+.ad-card .h{font:500 13px var(--font-body);color:var(--ink-w);}
+.ad-card .h .meta{font:500 11px var(--font-mono);color:var(--ink-meta);margin-left:auto;}
+
+/* status pip */
+.pip{display:inline-flex;align-items:center;gap:6px;font:500 11px var(--font-mono);letter-spacing:.04em;}
+.pip::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--moss);}
+.pip.warn::before{background:var(--gold);}
+.pip.bad::before{background:var(--ox);}
+.pip.off::before{background:var(--ink-w4);}
+
+/* tables */
+.ad-table{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.ad-thead{display:grid;padding:9px 16px;background:var(--paper-w2);border-bottom:1px solid var(--line);font:600 10px var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-meta);}
+.ad-trow{display:grid;padding:11px 16px;border-bottom:1px solid var(--line);font:400 12.5px var(--font-body);color:var(--ink-w);align-items:center;gap:14px;}
+.ad-trow:hover{background:var(--card-2);}
+.ad-trow:last-child{border:0;}
+.ad-trow .mono{font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;}
+.ad-trow .stem{font:400 12.5px var(--font-body);color:var(--ink-w);}
+.ad-trow .tags{display:flex;gap:4px;flex-wrap:wrap;}
+.ad-tag{font:500 10px var(--font-mono);background:var(--card-2);color:var(--ink-meta);padding:1px 6px;border-radius:3px;letter-spacing:.04em;border:1px solid var(--line);}
+.ad-tag.easy{background:#F4F6EE;color:var(--moss);border-color:var(--moss-soft);}
+.ad-tag.med{background:var(--gold-soft);color:#5C420A;border-color:rgba(182,138,44,.4);}
+.ad-tag.hard{background:var(--ox-soft);color:var(--ox-deep);border-color:rgba(168,35,30,.4);}
+
+.ad-row-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end;}
+.ad-row-actions a{font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em;}
+
+.ad-callout{padding:11px 14px;border-radius:6px;font:400 12.5px/1.5 var(--font-body);display:flex;gap:10px;align-items:flex-start;}
+.ad-callout.warn{background:#FBEEEA;border:1px solid rgba(168,35,30,.3);color:var(--ox-deep);}
+.ad-callout.info{background:#E8EDF4;border:1px solid rgba(62,86,112,.3);color:#243B58;}
+.ad-callout.tip{background:var(--gold-soft);border:1px solid rgba(182,138,44,.3);color:#5C420A;}
+.ad-callout .lab{font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;min-width:60px;}
+
+.ad-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font:500 12px var(--font-body);background:var(--card);border:1px solid var(--line);color:var(--ink-w);border-radius:6px;cursor:pointer;font-family:inherit;text-decoration:none;}
+.ad-btn:hover{border-color:var(--ink-w3);}
+.ad-btn.primary{background:var(--ox);color:var(--card);border-color:var(--ox);}
+.ad-btn.primary:hover{background:var(--ox-deep);}
+.ad-btn.danger{background:var(--ox-soft);color:var(--ox);border-color:rgba(168,35,30,.4);}
+.ad-btn.sm{padding:4px 9px;font-size:11px;}
+
+/* modal */
+.ad-overlay{position:absolute;inset:0;background:rgba(20,16,8,.45);display:flex;align-items:center;justify-content:center;padding:24px;}
+.ad-modal{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px;max-width:520px;width:100%;display:flex;flex-direction:column;gap:12px;}
+.ad-modal h3{font:500 16px var(--font-body);color:var(--ink-w);margin:0;}
+
+/* form fields */
+.ad-fields{display:flex;flex-direction:column;gap:10px;}
+.ad-field{display:flex;flex-direction:column;gap:4px;}
+.ad-field label{font:500 11px var(--font-body);color:var(--ink-w2);letter-spacing:.02em;}
+.ad-field input,.ad-field select,.ad-field textarea{padding:8px 11px;border-radius:5px;border:1px solid var(--line);background:var(--card-2);font:400 12.5px var(--font-body);color:var(--ink-w);font-family:inherit;}
+.ad-field .mono{font-family:var(--font-mono);font-size:12px;}
+.ad-field .hint{font:400 11px var(--font-body);color:var(--ink-meta);}
+
+/* code panel */
+.ad-code{background:#1A1308;color:#D9CFB8;padding:14px 16px;border-radius:6px;font:400 11.5px/1.6 var(--font-mono);overflow-x:auto;}
+.ad-code .k{color:#B68A2C;}
+.ad-code .s{color:#7AB8AE;}
+.ad-code .n{color:#E4B67C;}
+
+/* logs */
+.log-line{display:grid;grid-template-columns:60px 70px 80px 1fr;gap:10px;padding:5px 0;font:400 11.5px var(--font-mono);color:var(--ink-w2);border-bottom:1px dashed var(--line);}
+.log-line:last-child{border:0;}
+.log-line .ts{color:var(--ink-meta);}
+.log-line .lvl{font-weight:500;}
+.log-line .lvl.error{color:var(--ox);}
+.log-line .lvl.warn{color:#5C420A;}
+.log-line .lvl.info{color:#243B58;}
+.log-line .src{color:var(--ink-meta);}
+.log-line .msg{color:var(--ink-w);}
+
+/* chart bar */
+.minbar{height:30px;display:flex;align-items:flex-end;gap:2px;}
+.minbar > div{flex:1;background:var(--ox);border-radius:1px 1px 0 0;min-height:2px;}
+
+.section-anchor{padding:14px 24px;background:var(--paper);margin-top:28px;display:flex;align-items:baseline;justify-content:space-between;}
+.section-anchor h2{font:500 14px var(--font-mono);letter-spacing:.06em;color:var(--ink-w);margin:0;text-transform:uppercase;}
+.section-anchor .ab-meta{font:400 12px var(--font-body);color:var(--ink-meta);}
+
+/* navigation toc */
+.admin-toc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:24px;background:var(--card);border:1px solid var(--line);border-radius:10px;max-width:1480px;margin:0 auto 40px;}
+.admin-toc a{padding:9px 12px;border:1px solid var(--line);border-radius:5px;background:var(--card-2);text-decoration:none;color:var(--ink-w2);font:400 12px var(--font-body);display:flex;justify-content:space-between;align-items:center;}
+.admin-toc a:hover{border-color:var(--ox);color:var(--ink-w);}
+.admin-toc a .num{font:500 10px var(--font-mono);color:var(--ink-meta);}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Admin mockups">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2l8 4v6c0 5-3 9-8 10-5-1-8-5-8-10V6z"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M21 8L12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-forge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 12l5 5 13-13M5 17l-2 4 4-2"/></symbol>
+  <symbol id="i-cases" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 10h16M9 4v16"/></symbol>
+  <symbol id="i-tel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol>
+  <symbol id="i-sys" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 11-14 0 7 7 0 0114 0zM12 5V2M12 22v-3M5 12H2M22 12h-3"/></symbol>
+  <symbol id="i-img" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+</defs></svg>
+
+<header class="cat-head">
+  <div>
+    <h1>The <em>admin</em>.</h1>
+    <p>Utilitarian, dense, no decoration. Same dermie palette but with monospace KPIs, hairline tables and a workmanlike sidebar. One screen per surface — no decorative variations.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/admin/*</span><span>·</span><span>22 surfaces · 1 variant each</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<nav class="admin-toc">
+  <a href="#ad-dash"><span>Admin dashboard</span><span class="num">11·01</span></a>
+  <a href="#ad-content-items"><span>Content Hub · Items</span><span class="num">11·02a</span></a>
+  <a href="#ad-content-drafts"><span>Content Hub · Drafts</span><span class="num">11·02b</span></a>
+  <a href="#ad-content-browser"><span>Content Hub · Browser</span><span class="num">11·02c</span></a>
+  <a href="#ad-content-tax"><span>Content Hub · Taxonomy</span><span class="num">11·02d</span></a>
+  <a href="#ad-content-import"><span>Content Hub · Import</span><span class="num">11·02e</span></a>
+  <a href="#ad-cases"><span>Cases · with Sim modal</span><span class="num">11·03</span></a>
+  <a href="#ad-img"><span>Image annotations</span><span class="num">11·04</span></a>
+  <a href="#ad-forge-gen"><span>AI Forge · Generate</span><span class="num">11·05a</span></a>
+  <a href="#ad-forge-review"><span>AI Forge · Review</span><span class="num">11·05b</span></a>
+  <a href="#ad-forge-bypass"><span>AI Forge · Bypass</span><span class="num">11·05c</span></a>
+  <a href="#ad-forge-pipe"><span>AI Forge · Evaluation</span><span class="num">11·05d</span></a>
+  <a href="#ad-forge-tel"><span>AI Forge · Telemetry</span><span class="num">11·05e</span></a>
+  <a href="#ad-sys-health"><span>System · Health</span><span class="num">11·06a</span></a>
+  <a href="#ad-sys-flags"><span>System · Flags</span><span class="num">11·06b</span></a>
+  <a href="#ad-sys-schema"><span>System · Schema</span><span class="num">11·06c</span></a>
+  <a href="#ad-sys-kb"><span>System · KB</span><span class="num">11·06d</span></a>
+  <a href="#ad-sys-logs"><span>System · Logs</span><span class="num">11·06e</span></a>
+  <a href="#ad-tel-health"><span>Telemetry · System Health</span><span class="num">11·07a</span></a>
+  <a href="#ad-tel-conf"><span>Telemetry · Confusions</span><span class="num">11·07b</span></a>
+</nav>
+
+<template id="t-ad-sidebar">
+  <aside class="ad-sidebar">
+    <div class="role"><div class="av">DR</div><div class="meta"><div class="nm">dermie-admin</div><div class="sub">Owner · 3 sessions</div></div></div>
+    <button class="item __dash"><svg class="ic"><use href="#i-dash"/></svg>Dashboard</button>
+    <div class="grp">Content</div>
+    <button class="item __content"><svg class="ic"><use href="#i-box"/></svg>Content hub<span class="badge">1.4k</span></button>
+    <button class="item __cases"><svg class="ic"><use href="#i-cases"/></svg>Cases<span class="badge">142</span></button>
+    <button class="item __img"><svg class="ic"><use href="#i-img"/></svg>Image annotations</button>
+    <div class="grp">Generation</div>
+    <button class="item __forge"><svg class="ic"><use href="#i-forge"/></svg>AI Forge<span class="badge">1,321</span></button>
+    <div class="grp">Operations</div>
+    <button class="item __sys"><svg class="ic"><use href="#i-sys"/></svg>System</button>
+    <button class="item __tel"><svg class="ic"><use href="#i-tel"/></svg>Telemetry</button>
+    <div class="foot">
+      <button class="item"><svg class="ic"><use href="#i-home"/></svg>Back to app</button>
+      <button class="item" style="color:var(--ox)"><svg class="ic"><use href="#i-x"/></svg>Sign out</button>
+    </div>
+  </aside>
+</template>
+<script>function adSidebar(active){const t=document.getElementById('t-ad-sidebar').content.cloneNode(true);const el=t.querySelector(`.__${active}`);if(el){el.classList.add('on');el.classList.remove(`__${active}`);}return t;}</script>
+
+<!-- ═══════════════════════════════════════════ 11·01 · Admin Dashboard ═══════════════════════════════════════════ -->
+<section class="section-anchor" id="ad-dash"><h2>11·01 · Admin Dashboard</h2><span class="ab-meta">/admin/dashboard</span></section>
+<div class="ab">
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span><span>13 May 16:48 UTC</span></div></header>
+    <div class="ad-shell" id="ad-dash-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-dash-shell').appendChild(adSidebar('dash'));
+document.getElementById('ad-dash-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › dashboard</div><h2>System overview</h2></div><div class="actions"><button class="ad-btn">Refresh</button><button class="ad-btn">Snapshot →</button></div></div>
+
+    <div class="ad-kpi-row">
+      <div class="ad-kpi"><span class="l">Database</span><span class="n ok">healthy</span><span class="b">Firestore · last checked 16:48 UTC · p99 32ms</span></div>
+      <div class="ad-kpi"><span class="l">AI Functions</span><span class="n ok">healthy</span><span class="b">Gemini · 14 / 1000 q/min · 100% success</span></div>
+      <div class="ad-kpi"><span class="l">Last checked</span><span class="n">16:48:27</span><span class="b">auto every 30s</span></div>
+      <div class="ad-kpi"><span class="l">Active users · 5m</span><span class="n">12</span><span class="b">+3 vs 5m ago</span></div>
+    </div>
+
+    <div class="ad-kpi-row">
+      <div class="ad-kpi"><span class="l">Total questions</span><span class="n">1,420</span><span class="b">+18 today</span></div>
+      <div class="ad-kpi"><span class="l">Pending reviews</span><span class="n warn">100</span><span class="b">in AI Forge · Review</span></div>
+      <div class="ad-kpi"><span class="l">Avg quality</span><span class="n">8.7 / 10</span><span class="b">last 7d generated</span></div>
+      <div class="ad-kpi"><span class="l">Bypass requests</span><span class="n">0</span><span class="b">no pending dual-admin</span></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div class="ad-card"><div class="h">Quick actions</div>
+        <a class="ad-btn" href="#ad-content-items">Content hub <svg width="11" height="11"><use href="#i-arrow"/></svg></a>
+        <a class="ad-btn" href="#ad-forge-gen">AI Forge <svg width="11" height="11"><use href="#i-arrow"/></svg></a>
+        <a class="ad-btn" href="#ad-cases">Cases <svg width="11" height="11"><use href="#i-arrow"/></svg></a>
+        <a class="ad-btn" href="#ad-tel-health">Telemetry <svg width="11" height="11"><use href="#i-arrow"/></svg></a>
+        <a class="ad-btn" href="#ad-sys-flags">System · flags <svg width="11" height="11"><use href="#i-arrow"/></svg></a>
+      </div>
+      <div class="ad-card" style="grid-column:span 2">
+        <div class="h">Recent activity <span class="meta">last 24h</span></div>
+        <div class="log-line"><span class="ts">16:32</span><span class="lvl info">info</span><span class="src">forge</span><span class="msg">Generated 14 questions for "psoriasis · plaque" topic</span></div>
+        <div class="log-line"><span class="ts">15:48</span><span class="lvl info">info</span><span class="src">content</span><span class="msg">12 questions approved, promoted to live · by admin@dermie</span></div>
+        <div class="log-line"><span class="ts">15:22</span><span class="lvl warn">warn</span><span class="src">tax</span><span class="msg">3 items missing subcategory tag · queued for taxonomy mapping</span></div>
+        <div class="log-line"><span class="ts">13:05</span><span class="lvl info">info</span><span class="src">cases</span><span class="msg">Patient sim "Sunburn that bites back" generated, queued for review</span></div>
+        <div class="log-line"><span class="ts">11:12</span><span class="lvl error">error</span><span class="src">import</span><span class="msg">Legacy bank import failed · schema mismatch on row 240</span></div>
+      </div>
+    </div>
+
+    <div class="ad-card">
+      <div class="h">Admin user management</div>
+      <div class="ad-callout warn"><span class="lab">Grant access</span><span>Grant admin privileges to a registered user. Requires the setup key for security.</span></div>
+      <div class="ad-fields" style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:flex-end">
+        <div class="ad-field"><label>Email address</label><input type="email" placeholder="user@example.com"/></div>
+        <div class="ad-field"><label>Setup key</label><input type="password" placeholder="Enter setup key"/></div>
+        <button class="ad-btn primary">Grant admin role</button>
+      </div>
+      <div class="ad-table" style="margin-top:8px">
+        <div class="ad-thead" style="grid-template-columns:1fr 100px 130px 90px">
+          <span>Admin user</span><span>Role</span><span>Last sign-in</span><span></span>
+        </div>
+        <div class="ad-trow" style="grid-template-columns:1fr 100px 130px 90px">
+          <div><div style="font:500 13px var(--font-body)">admin@dermie.io</div><div class="mono">created 02 Jan 2026</div></div>
+          <span class="ad-tag" style="background:var(--ox-soft);color:var(--ox-deep)">Owner</span>
+          <span class="mono">13 May 14:08 UTC</span>
+          <div class="ad-row-actions"><a>Edit →</a></div>
+        </div>
+        <div class="ad-trow" style="grid-template-columns:1fr 100px 130px 90px">
+          <div><div style="font:500 13px var(--font-body)">content@dermie.io</div><div class="mono">added 18 Mar 2026</div></div>
+          <span class="ad-tag">Editor</span>
+          <span class="mono">12 May 22:10 UTC</span>
+          <div class="ad-row-actions"><a>Edit →</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ad-card">
+      <div class="h">Database initialisation</div>
+      <p class="muted small" style="margin:0">Seed the database with a baseline question bank for QA. Idempotent — re-running won't duplicate items.</p>
+      <ul style="font:400 12.5px var(--font-body);color:var(--ink-w2);margin:0;padding-left:18px"><li>5 sample dermatology questions across Psoriasis, Acne, Tinea, Atopic Dermatitis, Melanoma</li><li>Proper item structure with explanations and citations</li><li>Realistic telemetry data for testing personalisation</li><li>Test admin user account</li></ul>
+      <button class="ad-btn primary" style="align-self:flex-start">⌖ Seed database with sample questions</button>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ 11·02 · Content Hub ═══════════════════════════════════════════ -->
+<section class="section-anchor" id="ad-content-items"><h2>11·02 · Content Hub</h2><span class="ab-meta">/admin/content?tab=*</span></section>
+
+<!-- 11·02a items -->
+<div class="ab">
+  <div class="ab-head"><h3>11·02a · Content Hub · Items</h3><span class="ab-tag v1">items list</span><span class="ab-meta">?tab=items</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-content-i-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-content-i-shell').appendChild(adSidebar('content'));
+document.getElementById('ad-content-i-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › content hub</div><h2>Content hub</h2></div><div class="actions"><button class="ad-btn">Export →</button><button class="ad-btn primary">Propose topics</button></div></div>
+    <nav class="ad-subnav">
+      <button class="t on">Items <span class="ct">1,420</span></button>
+      <button class="t">Drafts <span class="ct">0</span></button>
+      <button class="t">Browser</button>
+      <button class="t">Taxonomy <span class="ct">3</span></button>
+      <button class="t">Import</button>
+      <button class="t">Feedback</button>
+    </nav>
+
+    <div class="ad-card">
+      <div class="h">Propose topics <span class="meta">queue topics for question generation</span></div>
+      <div class="ad-fields" style="display:grid;grid-template-columns:1fr 200px 120px auto;gap:8px">
+        <div class="ad-field"><label>Topic id or stem</label><input type="text" placeholder="psoriasis.plaque, melanoma.staging…"/></div>
+        <div class="ad-field"><label>Count</label><input type="number" value="10"/></div>
+        <div class="ad-field"><label>Difficulty</label><select><option>Mixed</option><option>Easy</option><option>Medium</option><option>Hard</option></select></div>
+        <button class="ad-btn primary" style="align-self:flex-end">+ Add to queue</button>
+      </div>
+    </div>
+
+    <div class="ad-card">
+      <div class="h" style="display:flex;justify-content:space-between;align-items:center"><span>Items · 20 of 1,420</span>
+        <div style="display:flex;gap:6px;align-items:center"><div class="search-bar" style="padding:6px 10px;min-width:240px"><svg width="13" height="13"><use href="#i-search"/></svg><span class="mono small muted">Search by id, stem, or topic…</span></div>
+        <select style="padding:6px 10px;border:1px solid var(--line);border-radius:5px;background:var(--card);font:400 12px var(--font-body);font-family:inherit"><option>Sort · Date Created</option><option>Sort · Quality</option><option>Sort · Attempts</option></select><select style="padding:6px 10px;border:1px solid var(--line);border-radius:5px;background:var(--card);font:400 12px var(--font-body);font-family:inherit"><option>Descending</option><option>Ascending</option></select></div>
+      </div>
+    </div>
+
+    <div class="ad-table">
+      <div class="ad-thead" style="grid-template-columns:120px 80px 1fr 100px 80px 90px">
+        <span>ID</span><span>Difficulty</span><span>Stem</span><span>Tags</span><span class="mono" style="text-align:right">Attempts</span><span class="mono" style="text-align:right">Correct</span>
+      </div>
+      ${[
+        {id:'r1cbo8p…',d:'med',stem:'Question stem not available',tags:['—'],a:0,c:0,dc:'easy'},
+        {id:'2wzj0n06…',d:'med',stem:'A 62-year-old woman with a pigmented lesion on her back, husband noticed change over past 3 months. Asymmetric, irregular borders, 8 mm…',tags:['neoplastic.melanoma','melanoma','+2'],a:5,c:60,dc:'med'},
+        {id:'0yqi7n8z…',d:'med',stem:'A 4-month-old infant with erythematous, scaly patches on both cheeks for 2 weeks. Family history of asthma. Most appropriate initial management?',tags:['inflammatory.eczema','management','+2'],a:13,c:85,dc:'med'},
+        {id:'1ne7z0x1…',d:'med',stem:'You need to perform a biopsy on a 12mm pigmented lesion suspicious for melanoma. Best technique?',tags:['procedures.biopsy','technique','+1'],a:9,c:55,dc:'med'},
+        {id:'uk8k5cv6…',d:'med',stem:'A 7-year-old boy presents with honey-crusted lesions around his mouth and nose that started 3 days ago. The lesions began as small vesicles…',tags:['infectious.bacterial','treatment','+1'],a:18,c:70,dc:'med'},
+        {id:'x9ul4d0n…',d:'easy',stem:'A 35-year-old man presents with well-demarcated, erythematous plaques with silvery scales on his elbows and knees. Lesions present for several months…',tags:['inflammatory.psoriasis','diagnosis','psoriasis'],a:34,c:75,dc:'easy'},
+        {id:'87iryku4…',d:'easy',stem:'A 35-year-old male presents with a several-month history of itchy, scaly patches on his elbows and knees. He denies joint pain or swelling.',tags:['psoriasis','medical-dermatology','+'],a:0,c:0,dc:'easy'},
+        {id:'e4ng8ix6…',d:'easy',stem:'A 35-year-old male with a 6-month history of itchy, well-demarcated, erythematous plaques with overlying silvery scale on his bilateral elbows…',tags:['psoriasis','medical-dermatology','+'],a:0,c:0,dc:'easy'},
+        {id:'pt3rtaqz…',d:'hard',stem:'A 52-year-old woman with a 15-year history of severe plaque psoriasis, well-controlled for the past 3 years on secukinumab, presents to the ED…',tags:['psoriasis','dermatopathology','+'],a:0,c:0,dc:'hard'},
+        {id:'tva2rf0v…',d:'easy',stem:'A 58-year-old male with a history of a 3.5 mm thick melanoma excised from his back three years ago now presents with a persistent cough…',tags:['melanoma','dermatopathology','+'],a:0,c:0,dc:'easy'},
+      ].map(it=>`
+        <div class="ad-trow" style="grid-template-columns:120px 80px 1fr 100px 80px 90px">
+          <span class="mono">${it.id}</span>
+          <span class="ad-tag ${it.dc}">${it.d}</span>
+          <div class="stem">${it.stem}</div>
+          <div class="tags">${it.tags.map(t=>`<span class="ad-tag">${t}</span>`).join('')}</div>
+          <span class="mono" style="text-align:right">${it.a}</span>
+          <span class="mono ${it.c>=70?'':it.c>=40?'':'muted'}" style="text-align:right;color:${it.c>=70?'var(--moss)':it.c>=40?'var(--gold)':'var(--ink-meta)'}">${it.c}%</span>
+        </div>
+      `).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;font:400 12px var(--font-body);color:var(--ink-meta);padding:8px 0">
+      <span>Showing 10 of 1,420</span>
+      <div style="display:flex;gap:6px"><button class="ad-btn sm">‹ Prev</button><span class="mono small" style="padding:4px 8px">1 / 142</span><button class="ad-btn sm">Next ›</button></div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·02b drafts -->
+<div class="ab" id="ad-content-drafts">
+  <div class="ab-head"><h3>11·02b · Content Hub · Drafts</h3><span class="ab-tag v1">empty state</span><span class="ab-meta">?tab=drafts</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-drafts-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-drafts-shell').appendChild(adSidebar('content'));
+document.getElementById('ad-drafts-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › content hub › drafts</div><h2>Drafts</h2></div><div class="actions"><button class="ad-btn">Refresh</button></div></div>
+    <nav class="ad-subnav"><button class="t">Items <span class="ct">1,420</span></button><button class="t on">Drafts <span class="ct">0</span></button><button class="t">Browser</button><button class="t">Taxonomy <span class="ct">3</span></button><button class="t">Import</button><button class="t">Feedback</button></nav>
+    <div class="ad-card" style="text-align:center;padding:80px 24px;gap:8px;align-items:center">
+      <div style="width:56px;height:56px;border-radius:14px;background:var(--card-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-w3);font:300 30px var(--font-display)"></div>
+      <h3 style="font:400 22px var(--font-display);color:var(--ink-w);margin:8px 0 4px">No drafts</h3>
+      <p class="muted small" style="margin:0;max-width:42ch">All drafts have been reviewed. New drafts will appear here automatically when AI Forge runs.</p>
+      <button class="ad-btn primary" style="margin-top:14px">Go to AI Forge →</button>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·02c browser -->
+<div class="ab" id="ad-content-browser">
+  <div class="ab-head"><h3>11·02c · Content Hub · Browser</h3><span class="ab-tag v1">kpi tiles + filter</span><span class="ab-meta">?tab=browser</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-browser-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-browser-shell').appendChild(adSidebar('content'));
+document.getElementById('ad-browser-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › content hub › browser</div><h2>Browser</h2></div></div>
+    <nav class="ad-subnav"><button class="t">Items</button><button class="t">Drafts</button><button class="t on">Browser</button><button class="t">Taxonomy</button><button class="t">Import</button><button class="t">Feedback</button></nav>
+    <div class="ad-kpi-row">
+      <div class="ad-kpi"><span class="l">Total questions</span><span class="n">1,420</span><span class="b">items in library</span></div>
+      <div class="ad-kpi"><span class="l">AI generated</span><span class="n">925</span><span class="b">via AI Forge</span></div>
+      <div class="ad-kpi"><span class="l">Legacy imported</span><span class="n">495</span><span class="b">last import 11 Apr</span></div>
+      <div class="ad-kpi"><span class="l">Avg quality</span><span class="n ok">8.7 / 10</span><span class="b">on-platform rating</span></div>
+    </div>
+    <div class="ad-card">
+      <div class="h">Filter by taxonomy</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr) auto;gap:8px;align-items:flex-end">
+        <div class="ad-field"><label>Category</label><select><option>All categories</option><option>Inflammatory</option><option>Neoplastic</option><option>Infectious</option></select></div>
+        <div class="ad-field"><label>Subcategory</label><select><option>All subcategories</option></select></div>
+        <div class="ad-field"><label>Sub-subcategory</label><select><option>All sub-subcategories</option></select></div>
+        <button class="ad-btn primary"><svg width="11" height="11"><use href="#i-search"/></svg> Search questions</button>
+      </div>
+    </div>
+    <div class="ad-card">
+      <div class="h">Results · 20 of 1,420</div>
+      ${[
+        {id:'r1cbo8p',stem:'A 42-year-old man presents for evaluation of a new 7-mm pink, dome-shaped papule on his left arm that has grown over the past 6 months. Personal history significant for enucleation of his right eye at age 35 for a uveal melanoma. His family…',tags:['Dermatopathology','Melanoma']},
+        {id:'sxd1bw3',stem:'A 62-year-old woman with a history of well-controlled rheumatoid arthritis on stable methotrexate presents with new-onset shortness of breath. Three years prior, she had a 1.8 mm Breslow depth, non-ulcerated melanoma excised from her arm with…',tags:['Dermatopathology','Melanoma']},
+        {id:'1jmxa19',stem:'A 6-year-old girl is brought to the emergency department with a 2-day history of high fever (39.5°C), malaise, and a widespread eruption. On examination, she has diffuse, tender erythema studded with numerous non-follicular, pinhead-sized sterile pustul…',tags:['Medical Dermatology','Psoriasis']},
+        {id:'qznyk7r',stem:'A 19-year-old male presents with a 5-year history of severe, disfiguring nodulocystic acne on his face, chest, and back. His condition has been refractory to multiple courses of oral antibiotics and two separate 6-month courses of high-dose isotretinoin…',tags:['Medical Dermatology','Acne']},
+      ].map(it=>`
+        <div style="padding:12px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px">
+          <div class="stem" style="font:400 13px/1.55 var(--font-body)">${it.stem}</div>
+          <div class="tags" style="display:flex;gap:5px">${it.tags.map(t=>`<span class="ad-tag">${t}</span>`).join('')}</div>
+        </div>
+      `).join('')}
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·02d taxonomy -->
+<div class="ab" id="ad-content-tax">
+  <div class="ab-head"><h3>11·02d · Content Hub · Taxonomy</h3><span class="ab-tag v1">empty + mapping</span><span class="ab-meta">?tab=taxonomy</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-tax-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-tax-shell').appendChild(adSidebar('content'));
+document.getElementById('ad-tax-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › content hub › taxonomy</div><h2>Taxonomy mapping</h2></div></div>
+    <nav class="ad-subnav"><button class="t">Items</button><button class="t">Drafts</button><button class="t">Browser</button><button class="t on">Taxonomy <span class="ct">3</span></button><button class="t">Import</button><button class="t">Feedback</button></nav>
+    <p class="muted small" style="margin:0">3 uncategorised items need a category, topic, or subtopic.</p>
+    <div class="ad-table">
+      <div class="ad-thead" style="grid-template-columns:120px 1fr 180px 120px 90px"><span>ID</span><span>Stem</span><span>Suggested</span><span>Status</span><span></span></div>
+      <div class="ad-trow" style="grid-template-columns:120px 1fr 180px 120px 90px">
+        <span class="mono">qb1xn29h…</span>
+        <div class="stem">A 28-year-old female with worsening malar erythema after sun exposure, joint pain, and 3-month fatigue.</div>
+        <div><span class="ad-tag">Autoimmune</span> · <span class="ad-tag">Lupus</span></div>
+        <span class="pip warn">awaiting</span>
+        <div class="ad-row-actions"><a>Accept →</a></div>
+      </div>
+      <div class="ad-trow" style="grid-template-columns:120px 1fr 180px 120px 90px">
+        <span class="mono">k3vmt71x…</span>
+        <div class="stem">Question stem not available · seeded test item</div>
+        <div class="muted small">— no suggestion</div>
+        <span class="pip bad">manual</span>
+        <div class="ad-row-actions"><a>Tag →</a></div>
+      </div>
+      <div class="ad-trow" style="grid-template-columns:120px 1fr 180px 120px 90px">
+        <span class="mono">p9zal2nv…</span>
+        <div class="stem">A 9-year-old with periorbital "stuck-on" pearly papules; siblings have similar lesions.</div>
+        <div><span class="ad-tag">Pediatric</span> · <span class="ad-tag">Molluscum</span></div>
+        <span class="pip warn">awaiting</span>
+        <div class="ad-row-actions"><a>Accept →</a></div>
+      </div>
+    </div>
+    <button class="ad-btn primary" style="align-self:flex-start">Accept all suggestions →</button>
+  </main>
+`);
+</script>
+
+<!-- 11·02e import -->
+<div class="ab" id="ad-content-import">
+  <div class="ab-head"><h3>11·02e · Content Hub · Import</h3><span class="ab-tag v1">legacy import</span><span class="ab-meta">?tab=import</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-import-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-import-shell').appendChild(adSidebar('content'));
+document.getElementById('ad-import-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › content hub › import</div><h2>Legacy import</h2></div></div>
+    <nav class="ad-subnav"><button class="t">Items</button><button class="t">Drafts</button><button class="t">Browser</button><button class="t">Taxonomy</button><button class="t on">Import</button><button class="t">Feedback</button></nav>
+    <div class="ad-card">
+      <p style="font:400 13px var(--font-body);margin:0">Import questions from legacy question banks. The process parses and normalises existing items to match the current schema.</p>
+      <div class="ad-callout tip"><span class="lab">Heads up</span><span><ul style="margin:0;padding-left:18px"><li>This operation may take several minutes for large banks.</li><li>Duplicate questions are skipped automatically.</li><li>Quality metrics are calculated for imported items.</li></ul></span></div>
+      <div class="ad-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="ad-field"><label>Source bank</label><select><option>UpToDate · 2024 export</option><option>USMLE Step 2 derm subset</option><option>Custom JSON</option></select></div>
+        <div class="ad-field"><label>Default difficulty if unknown</label><select><option>Medium</option><option>Easy</option><option>Hard</option></select></div>
+      </div>
+      <div style="display:flex;gap:8px"><button class="ad-btn primary">Start import</button><button class="ad-btn">Validate only</button></div>
+    </div>
+    <div class="ad-callout warn"><span class="lab">Last attempt</span><span><strong>Import failed · 11 May 11:12 UTC.</strong> Internal error — schema mismatch on row 240 (option count = 6, expected 4 or 5). Stack trace available in System · Logs.</span></div>
+  </main>
+`);
+</script>
+
+<!-- 11·03 cases -->
+<section class="section-anchor" id="ad-cases"><h2>11·03 · Cases</h2><span class="ab-meta">/admin/cases (with Sim modal)</span></section>
+<div class="ab">
+  <div class="ab-frame ad-frame" style="position:relative;min-height:640px">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-cases-shell"></div>
+    <div class="ad-overlay">
+      <div class="ad-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center"><h3>Generate patient simulation case</h3><button class="ad-btn sm" style="border:0;background:transparent"><svg width="14" height="14"><use href="#i-x"/></svg></button></div>
+        <div class="ad-fields">
+          <div class="ad-field"><label>Condition label · required</label><input type="text" placeholder="e.g. plaque psoriasis · mild"/></div>
+          <div class="ad-field"><label>Condition code · optional</label><input type="text" placeholder="auto-generated from label if not provided" class="mono"/></div>
+          <div class="ad-field"><label>Category</label><select><option>Inflammatory</option><option>Infectious</option><option>Neoplastic</option><option>Autoimmune</option><option>Pediatric</option></select></div>
+          <div class="ad-field"><label>Difficulty</label><select><option>Intermediate</option><option>Easy</option><option>Hard</option></select></div>
+          <div class="ad-field"><label>Body site · optional</label><input type="text" placeholder="e.g. extensor surfaces"/></div>
+          <div class="ad-field"><label>Notes for generation · optional</label><textarea rows="3" placeholder="Specify any constraints — patient age, comorbidities, particular twist…"></textarea></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:8px;border-top:1px solid var(--line)"><button class="ad-btn">Cancel</button><button class="ad-btn primary">Generate sim case</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-cases-shell').appendChild(adSidebar('cases'));
+document.getElementById('ad-cases-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › cases</div><h2>Case management</h2></div><div class="actions"><button class="ad-btn">Refresh</button><button class="ad-btn">Seed library</button><button class="ad-btn primary">Generate case</button></div></div>
+    <div class="ad-callout warn"><span class="lab">Failed</span><span>Last generation attempt failed · check System · Logs for details.</span></div>
+    <div class="ad-card">
+      <div class="h">Interactive cases · 142</div>
+      <div style="display:flex;gap:8px;align-items:center"><span class="muted small">Status</span><select style="padding:6px 10px;border:1px solid var(--line);border-radius:5px;background:var(--card-2);font:400 12px var(--font-body);font-family:inherit"><option>All</option><option>Live</option><option>Draft</option><option>Archived</option></select></div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·04 image annotations -->
+<section class="section-anchor" id="ad-img"><h2>11·04 · Image annotations</h2><span class="ab-meta">/admin/image-annotations</span></section>
+<div class="ab">
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-img-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-img-shell').appendChild(adSidebar('img'));
+document.getElementById('ad-img-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › image annotations</div><h2>Image annotations</h2></div><div class="actions"><button class="ad-btn">Refresh</button><button class="ad-btn primary">+ Add plate</button></div></div>
+    <p class="muted small" style="margin:0">Manage SpotDx image-question assignments, review images, and edit morphology rubrics.</p>
+    <nav class="ad-subnav"><button class="t on">Queue <span class="ct">62</span></button><button class="t">Library <span class="ct">412</span></button><button class="t">Review <span class="ct">8</span></button><button class="t">Assignments <span class="ct">142</span></button></nav>
+    <div class="ad-card">
+      <div class="h">SpotDx question queue · 62 items · 62 approved</div>
+      <div class="ad-table">
+        <div class="ad-thead" style="grid-template-columns:90px 200px 60px 100px 90px"><span>Question ID</span><span>Diagnosis</span><span>Thumb</span><span>Status</span><span></span></div>
+        ${['Psoriasis','Atopic dermatitis','Tinea corporis','Herpes zoster','Seborrheic keratosis','Bullous pemphigoid','Dysplastic nevus','Granuloma annulare','Erythema nodosum','Lichen planus','Amelanotic melanoma','Dermatomyositis','Secondary syphilis','Mycosis fungoides','Lentigo maligna'].map((d,i)=>`
+          <div class="ad-trow" style="grid-template-columns:90px 200px 60px 100px 90px">
+            <span class="mono">sdx-${String(i+1).padStart(3,'0')}</span>
+            <div class="stem">${d}</div>
+            <div style="width:40px;height:40px;border-radius:4px;background:radial-gradient(ellipse 60% 50% at 39% 42%,rgba(212,158,94,.95) 0%,rgba(118,70,37,.94) 42%,rgba(45,30,20,.98) 76%,rgba(15,10,7,1) 100%)"></div>
+            <span class="pip">Approved</span>
+            <div class="ad-row-actions"><a>View →</a></div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;font:400 12px var(--font-body);color:var(--ink-meta);padding:8px 0"><span>Showing 15 of 62</span><div style="display:flex;gap:6px"><button class="ad-btn sm">‹</button><button class="ad-btn sm">›</button></div></div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·05 AI Forge — 5 tabs -->
+<section class="section-anchor" id="ad-forge-gen"><h2>11·05 · AI Forge</h2><span class="ab-meta">/admin/generation?tab=*</span></section>
+
+<!-- 11·05a Generate -->
+<div class="ab">
+  <div class="ab-head"><h3>11·05a · AI Forge · Generate</h3><span class="ab-tag v1">question parameters</span><span class="ab-meta">?tab=generate</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-forge-gen-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-forge-gen-shell').appendChild(adSidebar('forge'));
+document.getElementById('ad-forge-gen-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › ai forge</div><h2>AI Forge</h2></div><div class="actions"><button class="ad-btn">Refresh</button></div></div>
+    <p class="muted small" style="margin:0">Question generation, review, evaluation, dual-admin bypass, pipeline orchestration.</p>
+    <nav class="ad-subnav"><button class="t on">Generate</button><button class="t">Review <span class="ct">1,321</span></button><button class="t">Bypass</button><button class="t">Evaluation</button><button class="t">Telemetry</button></nav>
+
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:14px">
+      <div class="ad-card">
+        <div class="h">Question parameters</div>
+        <div class="ad-fields">
+          <div class="ad-field">
+            <label>Topic selection</label>
+            <div style="display:flex;gap:4px;align-items:center;padding:3px;background:var(--card-2);border:1px solid var(--line);border-radius:6px;align-self:flex-start"><button class="ad-btn sm" style="background:var(--card);border-color:var(--line)">Knowledge base</button><button class="ad-btn sm" style="background:transparent;border-color:transparent">Custom topic</button></div>
+          </div>
+          <div class="ad-field"><label>Topic · required</label>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+              <select><option>Category · All</option><option>Inflammatory</option><option>Neoplastic</option></select>
+              <select><option>Subcategory · All</option></select>
+              <select><option>Sub-subcategory · All</option></select>
+            </div>
+          </div>
+          <div class="ad-field"><label>Specific entity</label><select><option>Select entity</option><option>Plaque psoriasis</option><option>Atopic dermatitis</option></select></div>
+          <div class="ad-field"><label>Number of questions</label><input type="number" value="5"/></div>
+          <div class="ad-field">
+            <label>Difficulty levels</label>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label style="display:inline-flex;align-items:center;gap:8px;font:400 12.5px var(--font-body)"><input type="checkbox" checked/><div><div style="font-weight:500">Basic</div><div class="muted small" style="font-size:11px">Foundational, high-yield concepts</div></div></label>
+              <label style="display:inline-flex;align-items:center;gap:8px;font:400 12.5px var(--font-body)"><input type="checkbox" checked/><div><div style="font-weight:500">Advanced</div><div class="muted small" style="font-size:11px">Advanced clinical management</div></div></label>
+              <label style="display:inline-flex;align-items:center;gap:8px;font:400 12.5px var(--font-body)"><input type="checkbox" checked/><div><div style="font-weight:500">Very difficult</div><div class="muted small" style="font-size:11px">Esoteric knowledge and rare conditions</div></div></label>
+            </div>
+          </div>
+          <div class="ad-field">
+            <label>Generation mode</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="padding:12px;border:1px solid var(--ox);background:var(--ox-soft);border-radius:6px;cursor:pointer"><div style="font:500 13px var(--font-body)">Orchestrated</div><div class="muted small" style="font-size:11.5px;margin-top:2px">Research-backed with review agents · slower</div></div>
+              <div style="padding:12px;border:1px solid var(--line);background:var(--card);border-radius:6px;cursor:pointer"><div style="font:500 13px var(--font-body)">Simplified</div><div class="muted small" style="font-size:11.5px;margin-top:2px">Direct generation · faster, single-pass</div></div>
+            </div>
+          </div>
+          <button class="ad-btn primary" style="align-self:flex-start">Generate questions</button>
+        </div>
+      </div>
+      <div class="ad-card">
+        <div class="h">Generation results</div>
+        <div class="ad-callout info" style="flex:1;display:grid;place-items:center;text-align:center;flex-direction:column">
+          <span class="lab" style="margin:0">⌛</span>
+          <div><strong>Ready to generate.</strong></div>
+          <p class="muted small" style="margin:6px 0 0">Configure parameters and click "Generate". Each run produces N items and queues them in Review.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·05b Review -->
+<div class="ab" id="ad-forge-review">
+  <div class="ab-head"><h3>11·05b · AI Forge · Review</h3><span class="ab-tag v1">pending queue + detail</span><span class="ab-meta">?tab=review</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-forge-rev-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-forge-rev-shell').appendChild(adSidebar('forge'));
+document.getElementById('ad-forge-rev-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › ai forge › review</div><h2>AI Forge</h2></div><div class="actions"><button class="ad-btn primary">Generate more</button></div></div>
+    <nav class="ad-subnav"><button class="t">Generate</button><button class="t on">Review <span class="ct">1,321</span></button><button class="t">Bypass</button><button class="t">Evaluation</button><button class="t">Telemetry</button></nav>
+    <div style="display:flex;gap:6px"><span class="ad-tag" style="background:var(--card);color:var(--ink-w);border-color:var(--ink-w)">1,321 Pending</span><span class="ad-tag easy">6 Approved</span><span class="ad-tag hard">0 Rejected</span></div>
+    <div style="display:grid;grid-template-columns:340px 1fr;gap:12px;align-items:flex-start">
+      <aside class="ad-card" style="padding:0;max-height:560px;overflow-y:auto">
+        <div style="padding:11px 14px;border-bottom:1px solid var(--line);background:var(--paper-w2);font:500 11px var(--font-mono);letter-spacing:.06em;display:flex;justify-content:space-between"><span>QUEUE · 1,321</span><span class="muted">↓ oldest first</span></div>
+        ${Array.from({length:8},(_,i)=>`
+          <div style="padding:11px 14px;border-bottom:1px solid var(--line);${i===2?'background:var(--card-2);box-shadow:inset 3px 0 0 var(--ox);':''}cursor:pointer">
+            <div style="display:flex;justify-content:space-between;font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em"><span>Q: 80</span><span>#${i+1}</span></div>
+            <div style="font:500 11.5px var(--font-mono);color:var(--ox);letter-spacing:.04em;margin-top:2px">procedural-dermatology</div>
+            <div style="font:400 12.5px/1.5 var(--font-body);color:var(--ink-w);margin-top:4px">${['A 55-year-old man is undergoing an extensive excisional procedure on the…','A 78-year-old male is evaluated for a non-healing sacral wound present for 4…','A 55-year-old man presents for extensive fractionated CO2 laser resurfacing of th…','A 41-year-old woman with widespread vitiligo presents for evaluation of new…','A 67-year-old farmer presents with a 4-month history of a slowly enlarging…','A 32-year-old male presents with a 4-day history of widespread morbilliform er…','A 9-year-old girl is brought to the emergency department with high fever, mal…','A 28-year-old female with worsening malar erythema after sun exposure…'][i]}</div>
+          </div>
+        `).join('')}
+      </aside>
+      <div class="ad-card">
+        <div class="h">Item · Q: 80 #3 · procedural-dermatology <span class="meta">draft · generated 13 May 14:32</span></div>
+        <div class="ad-callout info"><span class="lab">Stem</span><span>A 55-year-old man presents for extensive fractionated CO2 laser resurfacing of the entire face for severe photodamage and rhytides. He has a history of well-controlled type 2 diabetes mellitus on metformin. Which of the following is the most appropriate <strong>pre-operative consideration</strong>?</span></div>
+        <div class="ad-fields">
+          <div class="ad-field"><label>Options</label>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="padding:8px 12px;background:var(--card-2);border-radius:5px;font:400 12.5px var(--font-body);display:flex;gap:10px;align-items:center"><span class="mono small muted">A</span><span style="flex:1">Discontinue metformin 48 hours pre-op to avoid lactic acidosis.</span></div>
+              <div style="padding:8px 12px;background:#F4F6EE;border:1px solid var(--moss);border-radius:5px;font:400 12.5px var(--font-body);display:flex;gap:10px;align-items:center"><span class="mono small" style="color:var(--moss)">B</span><span style="flex:1">Prescribe HSV antiviral prophylaxis 1 day pre-op through post-op day 7.</span><span class="ad-tag easy" style="margin-left:auto">correct</span></div>
+              <div style="padding:8px 12px;background:var(--card-2);border-radius:5px;font:400 12.5px var(--font-body);display:flex;gap:10px;align-items:center"><span class="mono small muted">C</span><span style="flex:1">Initiate topical 5% hydroquinone for 4 weeks pre-procedure.</span></div>
+              <div style="padding:8px 12px;background:var(--card-2);border-radius:5px;font:400 12.5px var(--font-body);display:flex;gap:10px;align-items:center"><span class="mono small muted">D</span><span style="flex:1">Withhold ACE inhibitors for 7 days pre-op.</span></div>
+            </div>
+          </div>
+          <div class="ad-field"><label>Explanation</label><textarea rows="3">Full-face ablative laser resurfacing reactivates latent HSV in a high proportion of patients. Antiviral prophylaxis (valaciclovir 500 mg BID) is standard from 1 day before through 7–10 days post-procedure…</textarea></div>
+          <div class="ad-field"><label>Tags · taxonomy</label><div class="tags" style="display:flex;gap:5px;flex-wrap:wrap"><span class="ad-tag">procedures.laser</span><span class="ad-tag">pre-op</span><span class="ad-tag med">medium</span></div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--line)">
+          <button class="ad-btn danger">Reject</button>
+          <div style="display:flex;gap:6px"><button class="ad-btn">Edit</button><button class="ad-btn">Defer</button><button class="ad-btn primary">Approve &amp; promote</button></div>
+        </div>
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·05c Bypass -->
+<div class="ab" id="ad-forge-bypass">
+  <div class="ab-head"><h3>11·05c · AI Forge · Bypass</h3><span class="ab-tag v1">dual-admin approval</span><span class="ab-meta">?tab=bypass</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-forge-byp-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-forge-byp-shell').appendChild(adSidebar('forge'));
+document.getElementById('ad-forge-byp-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › ai forge › bypass</div><h2>AI Forge</h2></div></div>
+    <nav class="ad-subnav"><button class="t">Generate</button><button class="t">Review</button><button class="t on">Bypass</button><button class="t">Evaluation</button><button class="t">Telemetry</button></nav>
+    <div class="ad-callout warn"><span class="lab">Dual-admin</span><span><strong>Critical safety bypasses require approval from a different admin.</strong> Bypass tokens expire 24 hours after issue. Logged immutably in the audit trail.</span></div>
+    <div style="display:flex;gap:6px;align-items:center"><div style="display:flex;gap:4px"><button class="ad-btn sm" style="background:var(--ox-soft);color:var(--ox-deep);border-color:var(--ox)">Pending · 1</button><button class="ad-btn sm">Approved · 4</button><button class="ad-btn sm">Denied · 0</button><button class="ad-btn sm">Expired · 2</button><button class="ad-btn sm">All</button></div><button class="ad-btn sm" style="margin-left:auto">Refresh</button></div>
+    <div class="ad-card">
+      <div class="h">Request #BP-014 · 13 May 14:32 UTC <span class="meta">expires in 23h 14m</span></div>
+      <div class="ad-fields">
+        <div class="ad-field"><label>Requested by</label><div style="font:500 12.5px var(--font-body)">content@dermie.io · Editor</div></div>
+        <div class="ad-field"><label>Reason</label><div style="font:400 12.5px/1.5 var(--font-body)">Approve a question generated using "Simplified" mode without orchestrator review. Used for a rapid-turnaround topic ("erythema migrans · early detection") needed for tomorrow's daily challenge.</div></div>
+        <div class="ad-field"><label>Affects</label><span class="ad-tag">Q: 80 #3 · procedural-dermatology</span></div>
+        <div class="ad-field"><label>Risk</label><span class="pip warn">Medium · single-pass generation, no agent review</span></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:6px;padding-top:8px;border-top:1px solid var(--line)"><button class="ad-btn danger">Deny</button><button class="ad-btn">Discuss</button><button class="ad-btn primary">Approve bypass</button></div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·05d Evaluation -->
+<div class="ab" id="ad-forge-pipe">
+  <div class="ab-head"><h3>11·05d · AI Forge · Evaluation</h3><span class="ab-tag v1">orchestration gateway</span><span class="ab-meta">?tab=evaluation</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-forge-pipe-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-forge-pipe-shell').appendChild(adSidebar('forge'));
+document.getElementById('ad-forge-pipe-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › ai forge › evaluation</div><h2>AI Forge</h2></div></div>
+    <nav class="ad-subnav"><button class="t">Generate</button><button class="t">Review</button><button class="t">Bypass</button><button class="t on">Evaluation</button><button class="t">Telemetry</button></nav>
+    <div class="ad-card" style="text-align:center;padding:64px 24px;gap:14px;align-items:center">
+      <div style="width:56px;height:56px;border-radius:14px;background:var(--card-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-w3);font:300 26px var(--font-display)">§</div>
+      <h3 style="font:400 22px var(--font-display);color:var(--ink-w);margin:0">Evaluation</h3>
+      <p class="muted small" style="margin:0;max-width:46ch">Run batch evaluation jobs against the question generation pipeline. The full evaluation dashboard provides real-time monitoring, job history and detailed analytics.</p>
+      <button class="ad-btn primary">Open full evaluation dashboard →</button>
+      <div class="muted small" style="font:400 11.5px var(--font-body);max-width:46ch;margin-top:6px">Last batch · 11 May · ran 200 items · 187 passed all gates · 13 flagged for human review</div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·05e Telemetry (forge) -->
+<div class="ab" id="ad-forge-tel">
+  <div class="ab-head"><h3>11·05e · AI Forge · Telemetry</h3><span class="ab-tag v1">function-level KPIs</span><span class="ab-meta">?tab=telemetry</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-forge-tel-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-forge-tel-shell').appendChild(adSidebar('forge'));
+document.getElementById('ad-forge-tel-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › ai forge › telemetry</div><h2>Generation &amp; review telemetry</h2></div><div class="actions"><button class="ad-btn">Refresh</button></div></div>
+    <nav class="ad-subnav"><button class="t">Generate</button><button class="t">Review</button><button class="t">Bypass</button><button class="t">Evaluation</button><button class="t on">Telemetry</button></nav>
+    <div class="ad-kpi-row">
+      <div class="ad-kpi"><span class="l">pe-get-personal-questions</span><span class="n">59</span><span class="b">success 59 · 100% · avg 104ms</span></div>
+      <div class="ad-kpi"><span class="l">pe-trigger-adaptive-generation</span><span class="n">14</span><span class="b">success 14 · 100% · avg 321ms</span></div>
+      <div class="ad-kpi"><span class="l">pe-orchestrated-review</span><span class="n">42</span><span class="b">success 42 · 100% · avg 4.2s</span></div>
+      <div class="ad-kpi"><span class="l">pe-simplified-generate</span><span class="n">18</span><span class="b">success 18 · 100% · avg 1.8s</span></div>
+    </div>
+    <div class="ad-callout info"><span class="lab">Deep dive</span><span>For comprehensive telemetry dashboards, visit the dedicated <a href="#ad-tel-health" style="color:var(--ox);text-decoration:underline">Telemetry page</a>.</span></div>
+  </main>
+`);
+</script>
+
+<!-- 11·06 SYSTEM — 5 tabs -->
+<section class="section-anchor" id="ad-sys-health"><h2>11·06 · System</h2><span class="ab-meta">/admin/system?tab=*</span></section>
+
+<!-- 11·06a Health -->
+<div class="ab">
+  <div class="ab-head"><h3>11·06a · System · Health</h3><span class="ab-tag v1">services + 24h metrics</span><span class="ab-meta">?tab=health</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-sys-h-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-sys-h-shell').appendChild(adSidebar('sys'));
+document.getElementById('ad-sys-h-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › system</div><h2>System</h2></div><div class="actions"><button class="ad-btn">Refresh</button></div></div>
+    <p class="muted small" style="margin:0">System health, feature flags, schema management, knowledge-base and diagnostics.</p>
+    <nav class="ad-subnav"><button class="t on">Health</button><button class="t">Flags</button><button class="t">Schema</button><button class="t">KB</button><button class="t">Logs</button></nav>
+    <div class="ad-card" style="background:#F4F6EE;border-color:var(--moss-soft);flex-direction:row;align-items:center;gap:14px"><div style="width:32px;height:32px;border-radius:6px;background:var(--moss);color:var(--card);display:grid;place-items:center;font:600 14px var(--font-body)"></div><div><div style="font:500 14px var(--font-body)">System healthy</div><div class="muted small">All services operational · last checked 16:48:27 UTC</div></div><span class="ad-tag easy" style="margin-left:auto">HEALTHY</span></div>
+    <div class="ad-kpi-row" style="grid-template-columns:repeat(3,1fr)">
+      <div class="ad-kpi"><span class="l">Firestore</span><span class="n ok">ok</span><span class="b">p50 8ms · p99 32ms · 0% errors</span></div>
+      <div class="ad-kpi"><span class="l">Gemini API</span><span class="n ok">ok</span><span class="b">14/min · 100% success · 1.4s avg</span></div>
+      <div class="ad-kpi"><span class="l">Authentication</span><span class="n ok">ok</span><span class="b">Firebase Auth · 0 failures in last hour</span></div>
+    </div>
+    <div class="ad-card">
+      <div class="h">Metrics · last 24h</div>
+      <div class="ad-kpi-row">
+        <div class="ad-kpi"><span class="l">Total requests</span><span class="n">2</span><span class="b">last 24 hours</span></div>
+        <div class="ad-kpi"><span class="l">Success rate</span><span class="n ok">100.0%</span><span class="b">request success rate</span></div>
+        <div class="ad-kpi"><span class="l">Avg latency</span><span class="n">490ms</span><span class="b">all functions</span></div>
+        <div class="ad-kpi"><span class="l">Active users</span><span class="n">1</span><span class="b">last 5 minutes</span></div>
+      </div>
+      <div class="minbar">${Array.from({length:24},()=>`<div style="height:${20+Math.random()*70}%"></div>`).join('')}</div>
+      <div style="display:flex;justify-content:space-between;font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em"><span>−24h</span><span>−12h</span><span>now</span></div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·06b Flags -->
+<div class="ab" id="ad-sys-flags">
+  <div class="ab-head"><h3>11·06b · System · Flags</h3><span class="ab-tag v1">env-driven feature flags</span><span class="ab-meta">?tab=flags</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-sys-f-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-sys-f-shell').appendChild(adSidebar('sys'));
+document.getElementById('ad-sys-f-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › system › flags</div><h2>Feature flags</h2></div></div>
+    <nav class="ad-subnav"><button class="t">Health</button><button class="t on">Flags</button><button class="t">Schema</button><button class="t">KB</button><button class="t">Logs</button></nav>
+    <p class="muted small" style="margin:0">Controlled via environment variables. Changes require redeployment.</p>
+    ${[
+      {nm:'KB_CACHE_INVALIDATION',d:'Enable knowledge base cache invalidation.',state:'on',env:'KB_CACHE_INVALIDATION'},
+      {nm:'ADMIN_QUEUE_AUTO_REFILL',d:'Auto-refill admin question queue when empty.',state:'off',env:'ADMIN_QUEUE_AUTO_REFILL'},
+      {nm:'DUAL_ADMIN_APPROVAL_REQUIRED',d:'Require dual-admin approval for safety bypasses.',state:'on',env:'DUAL_ADMIN_APPROVAL_REQUIRED'},
+      {nm:'PE_ORCHESTRATED_GENERATION',d:'Use multi-agent orchestrated generation as default.',state:'on',env:'PE_ORCHESTRATED_GENERATION'},
+      {nm:'TUTOR_VOICE_ENABLED',d:'Expose voice mode in Live Tutor.',state:'on',env:'TUTOR_VOICE_ENABLED'},
+      {nm:'PUBLIC_REGISTRATION_OPEN',d:'Allow self-service account creation.',state:'off',env:'PUBLIC_REGISTRATION_OPEN'},
+    ].map(f=>`
+      <div class="ad-card" style="flex-direction:row;align-items:center;gap:14px;padding:14px 18px">
+        <span class="pip ${f.state==='on'?'':'off'}"></span>
+        <div style="flex:1">
+          <div style="font:500 13.5px var(--font-mono);letter-spacing:.04em">${f.nm}</div>
+          <div class="muted small">${f.d}</div>
+          <div class="mono small" style="color:var(--ink-meta);font-size:11px;margin-top:4px">Env <code>${f.env}</code> · No evaluations in last 24h</div>
+        </div>
+        <span class="ad-tag ${f.state==='on'?'easy':''}">${f.state==='on'?'Enabled':'Disabled'}</span>
+      </div>
+    `).join('')}
+    <div class="ad-callout tip"><span class="lab">Note</span><span>To modify feature flags, update environment variables in Firebase Functions configuration and redeploy. Use <code>firebase functions:config:set</code> for runtime configuration.</span></div>
+  </main>
+`);
+</script>
+
+<!-- 11·06c Schema -->
+<div class="ab" id="ad-sys-schema">
+  <div class="ab-head"><h3>11·06c · System · Schema</h3><span class="ab-tag v1">collections + error</span><span class="ab-meta">?tab=schema</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-sys-s-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-sys-s-shell').appendChild(adSidebar('sys'));
+document.getElementById('ad-sys-s-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › system › schema</div><h2>Schema management</h2></div></div>
+    <nav class="ad-subnav"><button class="t">Health</button><button class="t">Flags</button><button class="t on">Schema</button><button class="t">KB</button><button class="t">Logs</button></nav>
+    <div class="ad-callout warn"><span class="lab">Error</span><span><strong>Failed to load schema status.</strong> The backend returned an internal error. Try refreshing or check Cloud Functions logs. <a href="#ad-sys-logs" style="color:var(--ox);border-bottom:1px solid var(--ox-soft);text-decoration:none">Open Logs →</a> · <a href="#demo-top" style="color:var(--ox);border-bottom:1px solid var(--ox-soft);text-decoration:none">Retry</a></span></div>
+    <div class="ad-card">
+      <div class="h">Collections · last cached</div>
+      <div class="ad-table">
+        <div class="ad-thead" style="grid-template-columns:1fr 100px 100px 100px"><span>Collection</span><span class="mono">Schema rev</span><span class="mono">Items</span><span class="mono">Last write</span></div>
+        ${[
+          {nm:'items',rev:'v3.2',n:'1,420','w':'13 May 16:32'},
+          {nm:'cases',rev:'v2.1',n:'142','w':'13 May 13:05'},
+          {nm:'sessions',rev:'v1.8',n:'58,210','w':'13 May 16:48'},
+          {nm:'flashcards',rev:'v2.0',n:'12,840','w':'13 May 15:22'},
+          {nm:'users',rev:'v1.4',n:'412','w':'13 May 16:30'},
+          {nm:'audit-log',rev:'v1.0',n:'12,920','w':'13 May 16:48'},
+        ].map(c=>`<div class="ad-trow" style="grid-template-columns:1fr 100px 100px 100px"><span style="font:500 13px var(--font-mono)">${c.nm}</span><span class="mono">${c.rev}</span><span class="mono">${c.n}</span><span class="mono">${c.w}</span></div>`).join('')}
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·06d KB -->
+<div class="ab" id="ad-sys-kb">
+  <div class="ab-head"><h3>11·06d · System · KB</h3><span class="ab-tag v1">knowledge base index</span><span class="ab-meta">?tab=kb</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-sys-k-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-sys-k-shell').appendChild(adSidebar('sys'));
+document.getElementById('ad-sys-k-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › system › kb</div><h2>Knowledge base</h2></div><div class="actions"><button class="ad-btn">Reindex</button><button class="ad-btn">+ Source</button></div></div>
+    <nav class="ad-subnav"><button class="t">Health</button><button class="t">Flags</button><button class="t">Schema</button><button class="t on">KB</button><button class="t">Logs</button></nav>
+    <div class="ad-kpi-row" style="grid-template-columns:repeat(4,1fr)">
+      <div class="ad-kpi"><span class="l">Sources</span><span class="n">14</span><span class="b">guidelines, atlases, journals</span></div>
+      <div class="ad-kpi"><span class="l">Indexed entries</span><span class="n">28,420</span><span class="b">vectors stored</span></div>
+      <div class="ad-kpi"><span class="l">Cache hit · 24h</span><span class="n ok">87%</span><span class="b">over 410 queries</span></div>
+      <div class="ad-kpi"><span class="l">Last reindex</span><span class="n">5d ago</span><span class="b">incremental, 142 new entries</span></div>
+    </div>
+    <div class="ad-table">
+      <div class="ad-thead" style="grid-template-columns:60px 1fr 110px 100px 100px 80px"><span>#</span><span>Source</span><span>Type</span><span>Entries</span><span>Last sync</span><span>Status</span></div>
+      ${[
+        {n:'BAD morphology atlas 2023',t:'Atlas',e:412,s:'08 May',st:'on'},
+        {n:'AAD ABCDE guidance 2024',t:'Guideline',e:142,s:'10 May',st:'on'},
+        {n:'NEJM dermatology 2020–25',t:'Journal',e:8420,s:'12 May',st:'on'},
+        {n:'JAAD ranges 2015–25',t:'Journal',e:14210,s:'12 May',st:'on'},
+        {n:'Sasseville · annular skin',t:'Reference',e:84,s:'05 May',st:'on'},
+        {n:'WHO molluscum factsheet',t:'Reference',e:14,s:'01 May',st:'off'},
+      ].map((s,i)=>`<div class="ad-trow" style="grid-template-columns:60px 1fr 110px 100px 100px 80px"><span class="mono">${String(i+1).padStart(2,'0')}</span><span style="font:500 13px var(--font-body)">${s.n}</span><span class="ad-tag">${s.t}</span><span class="mono">${s.e.toLocaleString()}</span><span class="mono">${s.s}</span><span class="pip ${s.st==='on'?'':'off'}"></span></div>`).join('')}
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·06e Logs -->
+<div class="ab" id="ad-sys-logs">
+  <div class="ab-head"><h3>11·06e · System · Logs</h3><span class="ab-tag v1">log stream</span><span class="ab-meta">?tab=logs</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-sys-l-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-sys-l-shell').appendChild(adSidebar('sys'));
+document.getElementById('ad-sys-l-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › system › logs</div><h2>Logs</h2></div><div class="actions"><button class="ad-btn">Pause stream</button><button class="ad-btn">↓ Export</button></div></div>
+    <nav class="ad-subnav"><button class="t">Health</button><button class="t">Flags</button><button class="t">Schema</button><button class="t">KB</button><button class="t on">Logs</button></nav>
+    <div style="display:flex;gap:6px;align-items:center"><select style="padding:6px 10px;border:1px solid var(--line);border-radius:5px;background:var(--card);font:400 12px var(--font-body);font-family:inherit"><option>All sources</option><option>forge</option><option>content</option><option>auth</option></select><select style="padding:6px 10px;border:1px solid var(--line);border-radius:5px;background:var(--card);font:400 12px var(--font-body);font-family:inherit"><option>All levels</option><option>error</option><option>warn</option><option>info</option></select><div class="search-bar" style="padding:6px 10px;margin-left:auto;min-width:240px"><svg width="13" height="13"><use href="#i-search"/></svg><span class="mono small muted">Filter logs…</span></div></div>
+    <div class="ad-card" style="padding:14px 18px">
+      ${[
+        {t:'16:48:27',l:'info',s:'health',m:'Health check · all services ok · p99 32ms'},
+        {t:'16:32:14',l:'info',s:'forge',m:'Generated 14 questions for topic "psoriasis · plaque"'},
+        {t:'15:48:02',l:'info',s:'content',m:'12 questions approved by admin@dermie · promoted to live'},
+        {t:'15:22:51',l:'warn',s:'tax',m:'3 items missing subcategory tag · queued for taxonomy mapping'},
+        {t:'14:32:08',l:'info',s:'bypass',m:'Bypass request BP-014 created by content@dermie'},
+        {t:'13:05:33',l:'info',s:'cases',m:'Patient sim "Sunburn that bites back" generated · queued for review'},
+        {t:'11:12:00',l:'error',s:'import',m:'Legacy bank import failed · schema mismatch on row 240'},
+        {t:'11:11:55',l:'info',s:'import',m:'Legacy bank import started · file UpToDate-2024-export.json (12,420 rows)'},
+        {t:'09:48:14',l:'info',s:'auth',m:'admin@dermie signed in · 198.51.100.32'},
+        {t:'09:14:02',l:'warn',s:'rate',m:'Gemini API rate limit at 80% · 8 of 10 q/min consumed'},
+      ].map(l=>`<div class="log-line"><span class="ts">${l.t}</span><span class="lvl ${l.l}">${l.l}</span><span class="src">${l.s}</span><span class="msg">${l.m}</span></div>`).join('')}
+    </div>
+  </main>
+`);
+</script>
+
+<!-- 11·07 TELEMETRY -->
+<section class="section-anchor" id="ad-tel-health"><h2>11·07 · Telemetry</h2><span class="ab-meta">/admin/telemetry?tab=*</span></section>
+
+<!-- 11·07a System health -->
+<div class="ab">
+  <div class="ab-head"><h3>11·07a · Telemetry · System Health</h3><span class="ab-tag v1">overview</span><span class="ab-meta">?tab=system-health</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-tel-h-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-tel-h-shell').appendChild(adSidebar('tel'));
+document.getElementById('ad-tel-h-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › telemetry</div><h2>Telemetry dashboard</h2></div><div class="actions"><button class="ad-btn">Refresh</button></div></div>
+    <p class="muted small" style="margin:0">Metrics, analytics and system monitoring.</p>
+    <nav class="ad-subnav"><button class="t on">System health</button><button class="t">Generation</button><button class="t">Review</button><button class="t">Queue</button><button class="t">Patient sim</button><button class="t">Feature flags</button><button class="t">Confusions</button></nav>
+    <div class="ad-card" style="background:#F4F6EE;border-color:var(--moss-soft);flex-direction:row;align-items:center;gap:14px"><div style="width:32px;height:32px;border-radius:6px;background:var(--moss);color:var(--card);display:grid;place-items:center;font:600 14px var(--font-body)"></div><div><div style="font:500 14px var(--font-body)">System healthy</div><div class="muted small">All services operational</div></div></div>
+    <div class="ad-kpi-row">
+      <div class="ad-kpi" style="background:linear-gradient(135deg,var(--card),#E8EDF4)"><span class="l">Total requests</span><span class="n">0</span><span class="b">Last 24h</span></div>
+      <div class="ad-kpi" style="background:linear-gradient(135deg,var(--card),#F4F6EE)"><span class="l">Success rate</span><span class="n ok">100%</span><span class="b">Request success</span></div>
+      <div class="ad-kpi" style="background:linear-gradient(135deg,var(--card),var(--gold-soft))"><span class="l">Throughput</span><span class="n">0</span><span class="b">Req / second</span></div>
+      <div class="ad-kpi" style="background:linear-gradient(135deg,var(--card),var(--ox-soft))"><span class="l">Avg response</span><span class="n">0ms</span><span class="b">Avg latency</span></div>
+    </div>
+    <div class="ad-card"><div class="h">Service status</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"><div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#F4F6EE;border:1px solid var(--moss-soft);border-radius:6px"><span class="pip"></span><span style="font:500 13px var(--font-body)">Firestore</span></div><div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#F4F6EE;border:1px solid var(--moss-soft);border-radius:6px"><span class="pip"></span><span style="font:500 13px var(--font-body)">Gemini API</span></div><div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#F4F6EE;border:1px solid var(--moss-soft);border-radius:6px"><span class="pip"></span><span style="font:500 13px var(--font-body)">Authentication</span></div></div></div>
+  </main>
+`);
+</script>
+
+<!-- 11·07b confusions -->
+<div class="ab" id="ad-tel-conf">
+  <div class="ab-head"><h3>11·07b · Telemetry · Confusions</h3><span class="ab-tag v1">confusion pair analytics</span><span class="ab-meta">?tab=confusions</span></div>
+  <div class="ab-frame ad-frame">
+    <header class="ad-topbar"><div class="wm">dermie · admin</div><div class="right"><span class="env">prod</span></div></header>
+    <div class="ad-shell" id="ad-tel-c-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('ad-tel-c-shell').appendChild(adSidebar('tel'));
+document.getElementById('ad-tel-c-shell').insertAdjacentHTML('beforeend', `
+  <main class="ad-main">
+    <div class="ad-head"><div><div class="crumb">admin › telemetry › confusions</div><h2>Confusion pair analytics</h2></div><div class="actions"><button class="ad-btn">Export CSV</button><button class="ad-btn">Refresh</button></div></div>
+    <nav class="ad-subnav"><button class="t">System Health</button><button class="t">Generation</button><button class="t">Review</button><button class="t">Queue</button><button class="t">Patient Sim</button><button class="t">Feature Flags</button><button class="t on">Confusions <span class="ct">320</span></button></nav>
+    <p class="muted small" style="margin:0">Pairs where users frequently confuse one answer (A) with another (B). Sorted by frequency. Click any row to see all impacted items.</p>
+    <div class="ad-table">
+      <div class="ad-thead" style="grid-template-columns:1fr 1fr 110px 90px 70px"><span>Picked (A)</span><span>Correct (B)</span><span>Topic</span><span class="mono" style="text-align:right">Avg confidence</span><span class="mono" style="text-align:right">Count</span></div>
+      ${[
+        {a:'Oral cephalexin',b:'Topical mupirocin',topic:'infectious.bacterial',conf:67,t:'1s',ct:176},
+        {a:'Asymmetry of the lesion',b:'Evolution (change over time)',topic:'neoplastic.melanoma',conf:67,t:'5s',ct:56},
+        {a:'Continue nivolumab + corticosteroids',b:'Hold nivolumab + systemic corticosteroids',topic:'melanoma',conf:67,t:'9s',ct:25},
+        {a:'Topical imiquimod cream',b:'Wide local excision + sentinel node',topic:'melanoma',conf:67,t:'7s',ct:20},
+        {a:'Dacarbazine',b:'Pembrolizumab',topic:'melanoma',conf:67,t:'13s',ct:11},
+        {a:'Shave biopsy',b:'Excisional biopsy with 1–2 mm margins',topic:'procedures.biopsy',conf:67,t:'11s',ct:10},
+        {a:'Wide local excision alone',b:'Full-thickness excision of biopsy site',topic:'melanoma',conf:67,t:'2s',ct:10},
+        {a:'Oral isotretinoin',b:'Topical tretinoin',topic:'acne',conf:73,t:'4s',ct:4},
+        {a:'Atopic dermatitis',b:'Psoriasis vulgaris',topic:'inflammatory.psoriasis',conf:67,t:'1s',ct:2},
+        {a:'Psoriasis',b:'Psoriasis',topic:'psoriasis.plaque',conf:67,t:'6s',ct:1},
+        {a:'Impetigo',b:'Impetigo',topic:'impetigo',conf:67,t:'33s',ct:1},
+        {a:'Nivolumab + ipilimumab',b:'Dabrafenib + trametinib',topic:'melanoma',conf:67,t:'32s',ct:1},
+      ].map(c=>`<div class="ad-trow" style="grid-template-columns:1fr 1fr 110px 90px 70px"><span style="color:var(--ox)">${c.a}</span><span style="color:var(--moss)">${c.b}</span><span class="mono small muted">${c.topic}</span><span class="mono" style="text-align:right">${c.conf}% · ${c.t}</span><span class="mono" style="text-align:right;color:var(--ox);font-weight:500">${c.ct}×</span></div>`).join('')}
+    </div>
+    <div class="ad-callout info"><span class="lab">Read</span><span><strong>Total confusions logged · 320.</strong> These pairs drive the Confusion Insights panel on every learner's Performance page and feed the calibration drill recommendations.</span></div>
+  </main>
+`);
+</script>
+
+</body>
+</html>

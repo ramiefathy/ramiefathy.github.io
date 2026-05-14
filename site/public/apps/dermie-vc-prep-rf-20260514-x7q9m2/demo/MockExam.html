@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Mock exam (setup + in-progress)</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+/* setup */
+.me-grid{display:grid;grid-template-columns:minmax(0,1.5fr) 320px;gap:24px;}
+.me-block{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;}
+.me-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.me-preset{padding:14px;background:var(--card-2);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;gap:4px;cursor:pointer;text-align:left;}
+.me-preset.on{border-color:var(--ox);background:var(--card);box-shadow:inset 0 0 0 1px var(--ox);}
+.me-preset .nm{font:500 13.5px var(--font-body);color:var(--ink-w);}
+.me-preset .d{font:400 11.5px var(--font-body);color:var(--ink-meta);}
+.me-preset .mt{font:500 10px var(--font-mono);color:var(--ox);letter-spacing:.04em;margin-top:auto;}
+.me-blueprint{display:flex;flex-direction:column;gap:10px;}
+.me-blueprint .row{display:grid;grid-template-columns:140px minmax(0,1fr) 52px;gap:16px;align-items:center;font:400 13px var(--font-body);padding:8px 0;border-bottom:1px dashed var(--line);}
+.me-blueprint .row:last-child{border:0;}
+.me-blueprint .row .nm{color:var(--ink-w);}
+.me-blueprint .row input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:22px;display:block;}
+.me-blueprint .row input[type=range]::-webkit-slider-runnable-track{height:7px;background:var(--paper-w3);border-radius:4px;}
+.me-blueprint .row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:var(--ox);border-radius:50%;margin-top:-8px;border:2px solid var(--card);box-shadow:0 0 0 1px var(--ox);}
+.me-blueprint .row input[type=range]::-moz-range-track{height:7px;background:var(--paper-w3);border-radius:4px;}
+.me-blueprint .row input[type=range]::-moz-range-thumb{width:22px;height:22px;background:var(--ox);border-radius:50%;border:2px solid var(--card);box-shadow:0 0 0 1px var(--ox);}
+.me-blueprint .row .val{font:500 12px var(--font-mono);color:var(--ink-w);text-align:right;font-feature-settings:"tnum";}
+@media (max-width:880px){.me-blueprint .row{grid-template-columns:1fr 52px;grid-template-rows:auto auto;column-gap:12px;row-gap:6px;}.me-blueprint .row .nm{grid-column:1 / 2;grid-row:1;}.me-blueprint .row .val{grid-column:2 / 3;grid-row:1;}.me-blueprint .row input[type=range]{grid-column:1 / 3;grid-row:2;}}
+.me-diff{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.me-diff .pct-card{padding:14px;background:var(--card-2);border:1px solid var(--line);border-radius:10px;text-align:center;}
+.me-diff .pct-card .l{font:500 11px var(--font-body);color:var(--ink-meta);letter-spacing:.04em;}
+.me-diff .pct-card .n{font:300 28px var(--font-display);color:var(--ink-w);font-feature-settings:"tnum";line-height:1;margin-top:4px;}
+.me-diff .pct-card.easy .n{color:var(--moss);}
+.me-diff .pct-card.med .n{color:var(--gold);}
+.me-diff .pct-card.hard .n{color:var(--ox);}
+
+.me-summary{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:0;position:sticky;top:24px;min-height:520px;}
+.me-summary .ms-head{display:flex;flex-direction:column;gap:14px;}
+.me-summary .ms-body{display:flex;flex-direction:column;gap:14px;margin-top:24px;}
+.me-summary .ms-foot{margin-top:auto;padding-top:18px;}
+.me-summary .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font:400 13px var(--font-body);}
+.me-summary .row:last-child{border:0;}
+.me-summary .row .k{color:var(--ink-meta);}
+.me-summary .row .v{color:var(--ink-w);font-weight:500;}
+.me-summary .timer-prev{padding:16px;background:var(--ox);color:var(--card);border-radius:10px;text-align:center;}
+.me-summary .timer-prev .n{font:300 56px var(--font-display);color:var(--card);font-feature-settings:"tnum";line-height:1;letter-spacing:-.02em;}
+.me-summary .timer-prev .l{font:500 11px var(--font-mono);color:rgba(251,246,232,.7);letter-spacing:.06em;text-transform:uppercase;margin-top:4px;}
+
+/* in-progress */
+.exam-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--paper-w2);border-bottom:1px solid var(--line);}
+.exam-bar .clock{font:500 20px var(--font-mono);color:var(--ink-w);letter-spacing:.04em;font-feature-settings:"tnum";display:flex;align-items:center;gap:10px;}
+.exam-bar .clock::before{content:"";width:8px;height:8px;border-radius:9999px;background:var(--ox);}
+.exam-bar .clock.warn{color:var(--ox);}
+.exam-progress{display:flex;align-items:center;gap:10px;font:400 12px var(--font-mono);color:var(--ink-meta);}
+
+.qmap{display:flex;gap:2px;flex-wrap:wrap;max-width:660px;}
+.qm{width:16px;height:18px;border:1px solid var(--line-2);border-radius:2px;font:500 9px var(--font-mono);display:grid;place-items:center;color:var(--ink-meta);background:transparent;font-feature-settings:"tnum";cursor:pointer;}
+.qm.cur{background:var(--ox);color:var(--card);border-color:var(--ox);}
+.qm.ans{background:var(--ink-w2);color:var(--card);border-color:var(--ink-w2);}
+.qm.flag{background:var(--gold-soft);border-color:var(--gold);color:#5C420A;}
+
+.exam-stage{padding:30px 32px;display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:32px;}
+/* 06d restructure: timer sidebar + bottom action bar + bottom map strip */
+.er1-grid{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:32px;padding:30px 32px 0;}
+.er1-timer{background:var(--ox);color:var(--card);border-radius:12px;padding:18px 16px;text-align:center;}
+.er1-timer .n{font:300 56px var(--font-display);color:var(--card);font-feature-settings:"tnum";line-height:1;letter-spacing:-.02em;}
+.er1-timer .l{font:500 11px var(--font-mono);color:rgba(251,246,232,.7);letter-spacing:.06em;text-transform:uppercase;margin-top:6px;}
+.er1-side{display:flex;flex-direction:column;gap:14px;position:sticky;top:24px;align-self:start;}
+.er1-actions{display:flex;justify-content:space-between;align-items:center;padding:16px 32px;border-top:1px solid var(--line);background:var(--paper-warm);gap:18px;flex-wrap:wrap;}
+.er1-actions .conf{display:inline-flex;align-items:center;gap:8px;}
+.er1-actions .conf .lab{font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;margin-right:4px;}
+.er1-actions .acts{display:inline-flex;align-items:center;gap:8px;}
+.er1-map-strip{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:24px;align-items:center;padding:16px 32px 24px;border-top:1px solid var(--line);background:var(--paper-w2);}
+.er1-map-strip .exam-progress{justify-content:flex-end;font:400 12px var(--font-mono);color:var(--ink-meta);display:flex;gap:8px;flex-wrap:wrap;}
+.er1-map-strip .qmap{max-width:none;}
+@media (max-width:980px){.er1-grid{grid-template-columns:1fr;}.er1-side{position:static;flex-direction:row;gap:12px;}.er1-side > *{flex:1;}.er1-map-strip{grid-template-columns:1fr;}.er1-map-strip .exam-progress{justify-content:flex-start;}}
+.qstem{font:400 21px/1.55 var(--font-display);letter-spacing:-.005em;color:var(--ink-w);margin:14px 0 22px;max-width:62ch;}
+.opt{display:flex;align-items:flex-start;gap:14px;padding:13px 16px;border-radius:11px;background:var(--card);border:1px solid var(--line);cursor:pointer;text-align:left;font:400 14px/1.5 var(--font-body);width:100%;font-family:inherit;color:var(--ink-w);}
+.opt .k{width:24px;height:24px;border-radius:9999px;background:var(--card-2);color:var(--ink-w3);display:grid;place-items:center;font:600 11px var(--font-body);flex-shrink:0;margin-top:1px;}
+.opt.sel{border-color:var(--ink-w);background:var(--card-2);}
+.opt.sel .k{background:var(--ink-w);color:var(--card);}
+.opt-list{display:flex;flex-direction:column;gap:8px;}
+.exam-side{display:flex;flex-direction:column;gap:14px;}
+.conf-row{display:flex;gap:6px;}
+.conf-row .pt{flex:1;text-align:center;padding:8px 0;}
+.pt{padding:6px 12px;border-radius:8px;background:transparent;border:1px solid var(--line-2);color:var(--ink-w2);font:400 12px var(--font-body);cursor:pointer;}
+.pt.on{background:var(--ink-w);color:var(--card);border-color:var(--ink-w);}
+
+/* v2 — section breakdown */
+.me-section{display:grid;grid-template-columns:140px 1fr 60px;gap:14px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);}
+.me-section:last-child{border:0;}
+.me-section .nm{font:400 13px var(--font-body);color:var(--ink-w);}
+.me-section .vis{display:flex;gap:2px;height:8px;align-items:stretch;}
+.me-section .vis div{background:var(--ox);border-radius:2px;}
+.me-section .ct{font:500 12px var(--font-mono);color:var(--ink-w);text-align:right;font-feature-settings:"tnum";}
+
+/* v3 — assistant */
+.assist{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;}
+.chat-msg{display:flex;gap:12px;margin:14px 0;}
+.chat-msg .av{width:32px;height:32px;border-radius:50%;flex-shrink:0;background:var(--ox);color:var(--card);display:grid;place-items:center;font:500 12px var(--font-display);}
+.chat-msg.you .av{background:var(--ink-w);}
+.chat-msg .b{flex:1;background:var(--card-2);padding:12px 14px;border-radius:10px;font:400 13.5px/1.55 var(--font-body);color:var(--ink-w);}
+.chat-msg.you .b{background:transparent;color:var(--ink-w);}
+.chat-msg .b strong{color:var(--ox);}
+.assist-input{display:flex;gap:8px;align-items:center;padding-top:14px;border-top:1px solid var(--line);margin-top:14px;}
+.assist-input input{flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--paper-warm);font:400 13px var(--font-body);font-family:inherit;}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Mock exam mockups">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 22V4M5 4l13 5-13 4"/></symbol>
+  <symbol id="i-ham" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 4h11v13H9z"/><path d="M5 8v12h12"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></symbol>
+  <symbol id="i-fc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+  <symbol id="i-exam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+  <symbol id="i-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 9h4M8 7v4M15 10h.01M17 13h.01M12 17l-6 3a3 3 0 01-3-4l1-4a4 4 0 014-3h12a4 4 0 014 3l1 4a3 3 0 01-3 4l-6-3"/></symbol>
+  <symbol id="i-tutor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></symbol>
+  <symbol id="i-pod" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 18v-7a9 9 0 0118 0v7"/><path d="M21 19a2 2 0 01-2 2h-1v-6h3zM3 19a2 2 0 002 2h1v-6H3z"/></symbol>
+  <symbol id="i-perf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol>
+  <symbol id="i-prof" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></symbol>
+</defs></svg>
+
+<header class="cat-head">
+  <div>
+    <h1>The <em>mock exam</em>.</h1>
+    <p>Board-style, timed, with the same calibration report a real attempt would produce. The setup is the most flexible form in the product — a blueprint, difficulty weights, and a clock.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/mock-exam</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<template id="t-sidebar">
+  <aside class="sidebar">
+    <div class="usercard"><div class="av">RA</div><div class="meta"><div class="nm">Ramie F.</div><div class="sub">Lv. 7 · 2,835 XP</div><div class="lvbar"><span style="width:35%"></span></div></div></div>
+    <nav class="nav-group"><div class="nav-label">Study</div>
+      <button class="nav-item __a-dash"><span class="nav-ic"><svg><use href="#i-dash"/></svg></span><span>Dashboard</span></button>
+      <button class="nav-item __a-quiz"><span class="nav-ic"><svg><use href="#i-quiz"/></svg></span><span>Quiz</span></button>
+      <button class="nav-item __a-cases"><span class="nav-ic"><svg><use href="#i-cat"/></svg></span><span>Cases</span></button>
+      <button class="nav-item __a-fc"><span class="nav-ic"><svg><use href="#i-fc"/></svg></span><span>Flashcards</span></button>
+      <button class="nav-item __a-exam"><span class="nav-ic"><svg><use href="#i-exam"/></svg></span><span>Mock exam</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Play</div><button class="nav-item __a-mini"><span class="nav-ic"><svg><use href="#i-mini"/></svg></span><span>Minigames</span></button></nav>
+    <nav class="nav-group"><div class="nav-label">Coach</div><button class="nav-item __a-tutor"><span class="nav-ic"><svg><use href="#i-tutor"/></svg></span><span>Live tutor</span></button><button class="nav-item __a-pod"><span class="nav-ic"><svg><use href="#i-pod"/></svg></span><span>Podcasts</span></button><button class="nav-item __a-perf"><span class="nav-ic"><svg><use href="#i-perf"/></svg></span><span>Performance</span></button></nav>
+    <div class="sidebar-foot"><button class="nav-item __a-prof"><span class="nav-ic"><svg><use href="#i-prof"/></svg></span><span>Profile</span></button><button class="tog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="opacity:.6;vertical-align:-2px"><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg> Dark</button><button class="signout">Sign out</button></div>
+  </aside>
+</template>
+<script>function sidebar(active){const t=document.getElementById('t-sidebar').content.cloneNode(true);const el=t.querySelector(`.__a-${active}`);if(el){el.classList.add('active');el.classList.remove(`__a-${active}`);}return t;}</script>
+
+<!-- ═══════════════════════════════════════════ SETUP ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">06·A</div><h2>Mock exam · setup</h2><p class="desc">Three configurations of the same form. v1 — assisted, dial-driven (preset + blueprint sliders). v2 — power-user (raw blueprint string and weights string, matches production). v3 — preset gallery with one-tap defaults.</p></section>
+
+<!-- ─── v1 — assisted dials -->
+<div class="ab" id="me-v1">
+  <div class="ab-head"><h3>06a · Setup · assisted</h3><span class="ab-tag v1">v1 · sliders + presets</span><span class="ab-meta">/mock-exam</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="avatar-btn" aria-label="Profile" title="Profile">RA</button><button class="pill">Exit</button></div></header>
+    <div class="shell" id="me-v1-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('me-v1-shell').appendChild(sidebar('exam'));
+document.getElementById('me-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Study</a><span class="sep">/</span>Mock exam<span class="right">Board-style · timed</span></div>
+    <div class="page-h">
+      <div>
+        <div class="eyebrow">— Configure mock exam</div>
+        <h1>Build your <em>blueprint</em>.</h1>
+        <p class="sub">Pick a preset or dial the topic weights yourself. The timer matches the real exam at one minute per question.</p>
+      </div>
+    </div>
+    <div class="me-grid">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <section class="me-block">
+          <div class="eyebrow">— i · preset</div>
+          <div class="me-presets">
+            <button class="me-preset on">
+              <div class="nm">Board · Standard</div>
+              <div class="d">75 questions · 75 minutes · evenly weighted across topics, balanced difficulty.</div>
+              <div class="mt">→ default</div>
+            </button>
+            <button class="me-preset">
+              <div class="nm">Board · Hard</div>
+              <div class="d">75 questions · 75 minutes · 60% hard items · for late-stage prep.</div>
+              <div class="mt">→ challenge</div>
+            </button>
+            <button class="me-preset">
+              <div class="nm">Custom</div>
+              <div class="d">Set every parameter yourself. Save as a personal preset for later attempts.</div>
+              <div class="mt">→ advanced</div>
+            </button>
+          </div>
+        </section>
+
+        <section class="me-block">
+          <div class="between"><div class="eyebrow">— ii · topic blueprint</div><span class="muted small">drag handles to re-weight · total auto-balances to 100%</span></div>
+          <div class="me-blueprint">
+            <div class="row"><span class="nm">Psoriasis</span><input type="range" min="0" max="20" value="14"/><span class="val">14%</span></div>
+            <div class="row"><span class="nm">Eczema / atopic dermatitis</span><input type="range" min="0" max="20" value="12"/><span class="val">12%</span></div>
+            <div class="row"><span class="nm">Lupus &amp; connective tissue</span><input type="range" min="0" max="20" value="10"/><span class="val">10%</span></div>
+            <div class="row"><span class="nm">Bacterial infections</span><input type="range" min="0" max="20" value="9"/><span class="val">9%</span></div>
+            <div class="row"><span class="nm">Melanoma &amp; precursors</span><input type="range" min="0" max="20" value="12"/><span class="val">12%</span></div>
+            <div class="row"><span class="nm">Non-melanoma skin cancer</span><input type="range" min="0" max="20" value="10"/><span class="val">10%</span></div>
+            <div class="row"><span class="nm">Pigment disorders</span><input type="range" min="0" max="20" value="6"/><span class="val">6%</span></div>
+            <div class="row"><span class="nm">Hair · nails · glands</span><input type="range" min="0" max="20" value="8"/><span class="val">8%</span></div>
+            <div class="row"><span class="nm">Drug reactions</span><input type="range" min="0" max="20" value="7"/><span class="val">7%</span></div>
+            <div class="row"><span class="nm">Pediatric dermatology</span><input type="range" min="0" max="20" value="6"/><span class="val">6%</span></div>
+            <div class="row"><span class="nm">Procedures / pathology</span><input type="range" min="0" max="20" value="6"/><span class="val">6%</span></div>
+          </div>
+        </section>
+
+        <section class="me-block">
+          <div class="between"><div class="eyebrow">— iii · difficulty mix</div><span class="muted small">summed to 100%</span></div>
+          <div class="me-diff">
+            <div class="pct-card easy"><div class="l">Easy</div><div class="n">30%</div></div>
+            <div class="pct-card med"><div class="l">Medium</div><div class="n">40%</div></div>
+            <div class="pct-card hard"><div class="l">Hard</div><div class="n">30%</div></div>
+          </div>
+        </section>
+
+        <section class="me-block">
+          <div class="between"><div class="eyebrow">— iv · length &amp; timer</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field"><label>Number of questions</label><input type="number" value="75"/></div>
+            <div class="field"><label>Timer · minutes</label><input type="number" value="75"/></div>
+          </div>
+          <div class="row" style="margin-top:4px">
+            <label class="cfg-toggle on" style="display:inline-flex;align-items:center;gap:8px;font:400 13px var(--font-body);color:var(--ink-w2)"><span style="width:30px;height:18px;background:var(--ox);border-radius:9999px;position:relative;display:inline-block"><span style="position:absolute;left:14px;top:2px;width:14px;height:14px;background:var(--card);border-radius:50%"></span></span> Capture confidence each Q (calibration report)</label>
+          </div>
+        </section>
+      </div>
+
+      <aside class="me-summary">
+        <div class="ms-head">
+          <div class="eyebrow">— Ready to start</div>
+          <div class="timer-prev">
+            <div class="n">75:00</div>
+            <div class="l">total time · 1 min / question</div>
+          </div>
+        </div>
+        <div class="ms-body">
+          <div>
+            <div class="row"><span class="k">Preset</span><span class="v">Board · Standard</span></div>
+            <div class="row"><span class="k">Questions</span><span class="v">75</span></div>
+            <div class="row"><span class="k">Difficulty</span><span class="v">30 / 40 / 30</span></div>
+            <div class="row"><span class="k">Topics</span><span class="v">11 weighted</span></div>
+            <div class="row"><span class="k">Confidence</span><span class="v">On</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn primary">Start mock exam →</button>
+            <button class="btn ghost">Save as preset</button>
+          </div>
+        </div>
+        <div class="ms-foot">
+          <div class="insight warn"><span class="lab">Heads up</span><span>Pausing is allowed twice. Sixty seconds each.</span></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── v2 — power-user form (production parity) -->
+<div class="ab" id="me-v2">
+  <div class="ab-head"><h3>06b · Setup · power-user form</h3><span class="ab-tag v2">v2 · production parity</span><span class="ab-meta">/mock-exam</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Cancel</button></div></header>
+    <div class="shell" id="me-v2-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('me-v2-shell').appendChild(sidebar('exam'));
+document.getElementById('me-v2-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h">
+      <div>
+        <div class="eyebrow">— Power-user</div>
+        <h1 style="font-size:36px">Configure exam</h1>
+        <p class="sub">For users who already know what they want. Type the blueprint and weights directly. The assisted form is one click away.</p>
+      </div>
+      <div class="actions"><button class="btn ghost sm">Switch to assisted →</button></div>
+    </div>
+    <section class="card" style="max-width:780px;display:flex;flex-direction:column;gap:18px">
+      <div class="field">
+        <label>Preset</label>
+        <select style="padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card-2);font:400 13px var(--font-body);font-family:inherit">
+          <option>Custom (default)</option><option>Board · Standard</option><option>Board · Hard</option><option>Calibration drill · 50Q</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Blueprint <span class="muted small mono">(topicId:weight, comma-separated)</span></label>
+        <input type="text" value="psoriasis:1,eczema-dermatitis:1,lupus-connective-tissue:1,bacterial-infections:1,melanoma-precursors:1,non-melanoma-skin-cancer:1,pigment:1,hair-nails:1,drug-reactions:1,pediatric:1,procedures-pathology:1"/>
+        <span class="hint">All weights default to 1 = even. Increase any topic above 1 to over-weight it.</span>
+      </div>
+      <div class="field">
+        <label>Difficulty weights <span class="muted small mono">(easy:n, medium:n, hard:n — sum to 1.0)</span></label>
+        <input type="text" value="easy:0.3,medium:0.4,hard:0.3"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="field"><label>Number of questions</label><input type="number" value="75"/></div>
+        <div class="field"><label>Timer duration (minutes)</label><input type="number" value="150"/></div>
+      </div>
+      <div class="field">
+        <label>Options</label>
+        <div style="display:flex;flex-direction:column;gap:8px;font:400 13px var(--font-body)">
+          <label style="display:inline-flex;align-items:center;gap:8px"><input type="checkbox" checked/>Capture confidence at each question</label>
+          <label style="display:inline-flex;align-items:center;gap:8px"><input type="checkbox"/>Lock answer once submitted (exam-strict)</label>
+          <label style="display:inline-flex;align-items:center;gap:8px"><input type="checkbox" checked/>Allow flag for later review</label>
+          <label style="display:inline-flex;align-items:center;gap:8px"><input type="checkbox"/>Show clock as countdown (vs. elapsed)</label>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;padding-top:10px;border-top:1px solid var(--line)">
+        <button class="btn primary">Start</button>
+        <button class="btn ghost">Save preset</button>
+        <button class="btn ghost">Validate blueprint</button>
+      </div>
+    </section>
+  </main>
+`);
+</script>
+
+<!-- ─── v3 — preset gallery / quick start -->
+<div class="ab" id="me-v3">
+  <div class="ab-head"><h3>06c · Setup · preset gallery</h3><span class="ab-tag v3">v3 · curated runs</span><span class="ab-meta">/mock-exam</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Custom blueprint →</button></div></header>
+    <div class="shell" id="me-v3-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('me-v3-shell').appendChild(sidebar('exam'));
+document.getElementById('me-v3-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h"><div><div class="eyebrow">— Mock exam · quick start</div><h1>Pick a <em>run</em>.</h1><p class="sub">Six full mock exams, each modelled on a real board distribution. Start one cold, or fork it to tweak the blueprint.</p></div></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+      ${[
+        {nm:'Board · Standard',d:'75 questions · 75 minutes · balanced blueprint matching the most recent published exam outline.',mt:'30 / 40 / 30 difficulty',accent:'ox',badge:''},
+        {nm:'Board · Hard',d:'75 questions · 75 minutes · 60% hard items. For late-stage prep.',mt:'15 / 25 / 60 difficulty',accent:'gold',badge:'Challenge'},
+        {nm:'Half-exam',d:'40 questions · 40 minutes · even blueprint. For a focused study block.',mt:'30 / 40 / 30 difficulty',accent:'slate',badge:''},
+        {nm:'Pharm + procedures',d:'30 questions · 30 minutes · drug reactions, biologics, procedural derm.',mt:'topic-focused',accent:'moss',badge:''},
+        {nm:'Imaging round',d:'30 questions · 45 minutes · every item has a clinical image.',mt:'image-only',accent:'slate',badge:'Visual'},
+        {nm:'Calibration drill',d:'50 questions · 50 minutes · confidence required at each Q. Drives a deep Brier report.',mt:'calibration-focused',accent:'ox',badge:'Best for review'},
+      ].map(p=>`
+        <article class="card" style="border-top:3px solid var(--${p.accent});display:flex;flex-direction:column;gap:8px">
+          <h3 style="font:400 22px var(--font-display);margin:0;letter-spacing:-.005em">${p.nm}</h3>
+          <p class="muted" style="font-size:13px;line-height:1.55;margin:0">${p.d}</p>
+          ${p.badge?`<div style="display:flex;justify-content:flex-end;margin-top:6px"><span class="chip ${p.accent} small">${p.badge}</span></div>`:''}
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--line);margin-top:auto;font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em">
+            <span>${p.mt}</span>
+            <span style="color:var(--ox)">Start →</span>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+    <div class="card" style="background:var(--paper-w2);border-style:dashed"><div class="between"><div><div class="eyebrow">— or</div><div style="font:400 22px var(--font-display);margin-top:4px">Configure a custom exam</div><p class="muted small" style="margin:4px 0 0">Type a blueprint, dial weights, save as a personal preset.</p></div><button class="btn ghost">Custom →</button></div></div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ IN-PROGRESS ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">06·B</div><h2>Mock exam · in progress</h2><p class="desc">Big clock, q-map at top, question stem + lettered options, confidence + flag on the side. v1 is canonical. v2 adds a section view. v3 surfaces an "ask later" notes pane.</p></section>
+
+<!-- ─── exam-run v1 -->
+<div class="ab" id="er-v1">
+  <div class="ab-head"><h3>06d · Exam · in progress</h3><span class="ab-tag v1">v1 · canonical clock</span><span class="ab-meta">/mock-exam/run</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · mock exam · run · 4f2a</div><div class="topbar-right"><button class="pill">Exit</button><button class="pill">Submit early</button></div></header>
+    <div class="er1-grid">
+      <main>
+        <div class="eyebrow">— Question 38 · stem</div>
+        <h2 class="qstem">A 67-year-old farmer presents with a 4-month history of a slowly enlarging, painless, ulcerated nodule on the helix of his right ear. He works outdoors year-round. On exam, the lesion is a 1.2 cm pearly nodule with rolled borders and a central ulcer. Regional lymph nodes are not palpable. <strong>Which of the following is the most appropriate next step in management?</strong></h2>
+        <div class="opt-list">
+          <button class="opt"><span class="k">A</span> Topical 5-fluorouracil for 6 weeks, then re-evaluate</button>
+          <button class="opt sel"><span class="k">B</span> Shave biopsy of the lesion</button>
+          <button class="opt"><span class="k">C</span> Wide local excision with 1 cm margins immediately</button>
+          <button class="opt"><span class="k">D</span> Cryotherapy with liquid nitrogen</button>
+          <button class="opt"><span class="k">E</span> Reassurance and re-examination in 3 months</button>
+        </div>
+      </main>
+      <aside class="er1-side">
+        <div class="er1-timer">
+          <div class="n">42:18</div>
+          <div class="l">remaining · total 75:00</div>
+        </div>
+        <div class="card dense">
+          <div class="eyebrow">— You have flagged</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px"><span class="qm flag">04</span><span class="qm flag">10</span><span class="qm flag">18</span></div>
+        </div>
+      </aside>
+    </div>
+    <footer class="er1-actions">
+      <div class="conf">
+        <span class="lab">Confidence</span>
+        <button class="pt">Low</button>
+        <button class="pt on">Med</button>
+        <button class="pt">High</button>
+      </div>
+      <div class="acts">
+        <button class="btn ghost sm"><svg width="13" height="13"><use href="#i-flag"/></svg>Flag for review</button>
+        <button class="btn ghost sm">Add note</button>
+        <button class="btn primary sm">Submit · next →</button>
+      </div>
+    </footer>
+    <section class="er1-map-strip">
+      <div class="qmap">
+        <span class="qm ans">1</span><span class="qm ans">2</span><span class="qm ans">3</span><span class="qm flag">4</span><span class="qm ans">5</span><span class="qm ans">6</span><span class="qm ans">7</span><span class="qm ans">8</span><span class="qm ans">9</span><span class="qm flag">10</span><span class="qm ans">11</span><span class="qm ans">12</span><span class="qm ans">13</span><span class="qm ans">14</span><span class="qm ans">15</span><span class="qm ans">16</span><span class="qm ans">17</span><span class="qm flag">18</span><span class="qm ans">19</span><span class="qm ans">20</span><span class="qm ans">21</span><span class="qm ans">22</span><span class="qm ans">23</span><span class="qm ans">24</span><span class="qm ans">25</span><span class="qm ans">26</span><span class="qm ans">27</span><span class="qm ans">28</span><span class="qm ans">29</span><span class="qm ans">30</span><span class="qm ans">31</span><span class="qm ans">32</span><span class="qm ans">33</span><span class="qm ans">34</span><span class="qm ans">35</span><span class="qm ans">36</span><span class="qm ans">37</span><span class="qm cur">38</span><span class="qm">39</span><span class="qm">40</span><span class="qm">41</span><span class="qm">42</span><span class="qm">43</span><span class="qm">44</span><span class="qm">45</span><span class="qm">46</span><span class="qm">47</span><span class="qm">48</span><span class="qm">49</span><span class="qm">50</span><span class="qm">51</span><span class="qm">52</span><span class="qm">53</span><span class="qm">54</span><span class="qm">55</span><span class="qm">56</span><span class="qm">57</span><span class="qm">58</span><span class="qm">59</span><span class="qm">60</span><span class="qm">61</span><span class="qm">62</span><span class="qm">63</span><span class="qm">64</span><span class="qm">65</span><span class="qm">66</span><span class="qm">67</span><span class="qm">68</span><span class="qm">69</span><span class="qm">70</span><span class="qm">71</span><span class="qm">72</span><span class="qm">73</span><span class="qm">74</span><span class="qm">75</span>
+      </div>
+      <div class="exam-progress"><span>38 / 75</span><span>·</span><span style="color:var(--moss)">35 answered</span><span>·</span><span style="color:var(--gold)">3 flagged</span></div>
+    </section>
+  </div>
+</div>
+
+<!-- ─── exam-run v2 — section breakdown rail -->
+<div class="ab" id="er-v2">
+  <div class="ab-head"><h3>06e · Exam · sectioned</h3><span class="ab-tag v2">v2 · section rail</span><span class="ab-meta">/mock-exam/run</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · mock exam</div><div class="topbar-right"><button class="pill" style="background:var(--ox);color:var(--card);border-color:var(--ox)">Pause · 1 of 2 left</button></div></header>
+    <section class="exam-bar">
+      <div class="clock"><svg width="16" height="16"><use href="#i-clock"/></svg> 42:18 <span style="font:400 11px var(--font-mono);color:var(--ink-meta);margin-left:8px">remaining</span></div>
+      <div class="exam-progress"><span>Q 38 / 75</span><span>·</span><span>Section · Skin cancer</span></div>
+    </section>
+    <div style="display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px;padding:24px 32px">
+      <aside style="display:flex;flex-direction:column;gap:12px">
+        <div class="card dense">
+          <div class="eyebrow">— Sections</div>
+          
+          <div class="me-section" style="grid-template-columns:1fr 50px;"><div><div class="nm" style="font-size:12.5px">Psoriasis</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:100%;background:var(--moss)"></div></div></div><span class="ct" style="font-size:11px">11/11</span></div>
+          <div class="me-section" style="grid-template-columns:1fr 50px;"><div><div class="nm" style="font-size:12.5px">Eczema · atopic</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:100%;background:var(--moss)"></div></div></div><span class="ct" style="font-size:11px">9/9</span></div>
+          <div class="me-section" style="grid-template-columns:1fr 50px;"><div><div class="nm" style="font-size:12.5px">Lupus · CT</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:100%;background:var(--moss)"></div></div></div><span class="ct" style="font-size:11px">8/8</span></div>
+          <div class="me-section" style="grid-template-columns:1fr 50px;"><div><div class="nm" style="font-size:12.5px">Bacterial inf.</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:100%;background:var(--moss)"></div></div></div><span class="ct" style="font-size:11px">7/7</span></div>
+          <div class="me-section" style="grid-template-columns:1fr 50px;background:var(--ox-soft);border-radius:6px;padding:6px 8px"><div><div class="nm" style="font-size:12.5px">Skin cancer</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:56%;background:var(--ox)"></div></div></div><span class="ct" style="font-size:11px">5/9</span></div>
+          <div class="me-section" style="grid-template-columns:1fr 50px;"><div><div class="nm" style="font-size:12.5px">Pigment</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:0%;background:var(--ox)"></div></div></div><span class="ct" style="font-size:11px">0/5</span></div>
+          <div class="me-section" style="grid-template-columns:1fr 50px;"><div><div class="nm" style="font-size:12.5px">Hair · nails</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:0%;background:var(--ox)"></div></div></div><span class="ct" style="font-size:11px">0/6</span></div>
+          <div class="me-section" style="grid-template-columns:1fr 50px;"><div><div class="nm" style="font-size:12.5px">Procedures</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:0%;background:var(--ox)"></div></div></div><span class="ct" style="font-size:11px">0/5</span></div>
+          <div class="me-section" style="grid-template-columns:1fr 50px;"><div><div class="nm" style="font-size:12.5px">Drugs</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:0%;background:var(--ox)"></div></div></div><span class="ct" style="font-size:11px">0/5</span></div>
+          <div class="me-section" style="grid-template-columns:1fr 50px;"><div><div class="nm" style="font-size:12.5px">Pediatric</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:0%;background:var(--ox)"></div></div></div><span class="ct" style="font-size:11px">0/5</span></div>
+        
+        </div>
+        <div class="card dense" style="background:var(--paper-w2)">
+          <div class="eyebrow">— You have flagged</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px"><span class="qm flag">04</span><span class="qm flag">10</span><span class="qm flag">18</span></div>
+        </div>
+      </aside>
+      <div>
+        <div class="eyebrow">— Question 38 · stem</div>
+        <h2 class="qstem">67 y/o farmer · 4-month pearly nodule with rolled borders and central ulcer on helix of ear. Regional nodes not palpable. <strong>Most appropriate next step?</strong></h2>
+        <div class="opt-list">
+          <button class="opt"><span class="k">A</span> Topical 5-FU for 6 weeks then re-evaluate</button>
+          <button class="opt sel"><span class="k">B</span> Shave biopsy of the lesion</button>
+          <button class="opt"><span class="k">C</span> Wide local excision with 1 cm margins immediately</button>
+          <button class="opt"><span class="k">D</span> Cryotherapy with liquid nitrogen</button>
+          <button class="opt"><span class="k">E</span> Reassurance · re-examine in 3 months</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
+          <div class="conf-row" style="gap:6px"><span class="muted small" style="margin-right:6px;font:500 11px var(--font-body)">Confidence</span><button class="pt">Low</button><button class="pt on">Med</button><button class="pt">High</button></div>
+          <div style="display:flex;gap:8px"><button class="btn ghost sm">Flag</button><button class="btn primary">Submit · next →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── exam-run v3 — focus / note-taking -->
+<div class="ab" id="er-v3">
+  <div class="ab-head"><h3>06f · Exam · focus mode with notes</h3><span class="ab-tag v3">v3 · focus + notes</span><span class="ab-meta">/mock-exam/run</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · mock exam</div><div class="topbar-right"><button class="pill">Focus mode · on</button></div></header>
+    <section class="exam-bar" style="background:var(--ink-w);color:var(--card);border-bottom-color:var(--ox-deep)">
+      <div class="clock" style="color:var(--card)">42:18</div>
+      <div class="exam-progress" style="color:rgba(251,246,232,.7)">38 / 75 · 50% complete</div>
+    </section>
+    <div style="display:grid;grid-template-columns:minmax(0,1.6fr) 280px;gap:24px;padding:32px 40px">
+      <div style="max-width:760px">
+        <h2 style="font:400 24px/1.55 var(--font-display);letter-spacing:-.005em;color:var(--ink-w);margin:0 0 22px">A 67-year-old farmer · 4-month pearly nodule with rolled borders, central ulcer, on helix of right ear. He works outdoors year-round. Regional lymph nodes are not palpable. <strong>Most appropriate next step?</strong></h2>
+        <div class="opt-list">
+          <button class="opt"><span class="k">A</span> Topical 5-fluorouracil for 6 weeks</button>
+          <button class="opt sel"><span class="k">B</span> Shave biopsy of the lesion</button>
+          <button class="opt"><span class="k">C</span> Wide local excision with 1 cm margins</button>
+          <button class="opt"><span class="k">D</span> Cryotherapy</button>
+          <button class="opt"><span class="k">E</span> Reassurance, re-examine in 3 months</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:22px">
+          <div class="conf-row" style="gap:6px"><span class="muted small">Confidence</span><button class="pt">Low</button><button class="pt on">Med</button><button class="pt">High</button></div>
+          <div style="display:flex;gap:8px"><button class="btn ghost sm">Flag</button><button class="btn primary">Submit · next →</button></div>
+        </div>
+      </div>
+      <aside style="display:flex;flex-direction:column;gap:10px">
+        <div class="card dense">
+          <div class="eyebrow">— Quick note for review</div>
+          <textarea placeholder="Anything you want to revisit later — not visible during scoring" style="width:100%;min-height:120px;border:1px solid var(--line);border-radius:8px;background:var(--card-2);padding:10px;font:400 12.5px/1.5 var(--font-body);color:var(--ink-w);font-family:inherit;margin-top:8px;resize:vertical">Need to re-check shave vs. punch indications for an ulcerated lesion on the helix — depth matters.</textarea>
+        </div>
+        <div class="card dense" style="background:var(--paper-w2)">
+          <div class="eyebrow">— Saved notes · 3</div>
+          <div class="row" style="font:400 12px var(--font-body);padding:5px 0;color:var(--ink-w2)"><span class="mono small muted">Q04</span><span style="margin-left:8px">Maximum SLNB size?</span></div>
+          <div class="row" style="font:400 12px var(--font-body);padding:5px 0;color:var(--ink-w2)"><span class="mono small muted">Q10</span><span style="margin-left:8px">Recheck biologics + IBD</span></div>
+          <div class="row" style="font:400 12px var(--font-body);padding:5px 0;color:var(--ink-w2)"><span class="mono small muted">Q18</span><span style="margin-left:8px">Annular vs nummular pic</span></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ mobile ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">m</div><h2>Mobile</h2><p class="desc">Setup compresses to stacked sections with a sticky Start. The runner pins the clock to the top, the action row to the bottom.</p></section>
+
+<div class="ab" id="me-mob">
+  <div class="ab-head"><h3>06m · Setup · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/mock-exam</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar"><button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button><div class="wm">Mock exam</div><button class="ham"><svg width="20" height="20"><use href="#i-x"/></svg></button></header>
+      <div class="m-content" style="padding-bottom:140px">
+        <div><div class="eyebrow" style="font-size:10px">— Configure</div><h1 style="font:300 30px var(--font-display);margin:6px 0 0;letter-spacing:-.02em">Build your <em style="color:var(--ox);font-style:italic">blueprint</em>.</h1></div>
+        <div class="card dense"><div class="eyebrow" style="font-size:10px">— Preset</div><select style="margin-top:8px;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card-2);font-family:inherit"><option>Board · Standard</option><option>Board · Hard</option><option>Custom</option></select></div>
+        <div class="card dense"><div class="eyebrow" style="font-size:10px">— Length</div><div style="font:300 38px var(--font-display);margin-top:4px">75 <span style="font-size:14px;color:var(--ink-meta)">questions</span></div><div class="muted small">est. 75 min</div></div>
+        <div class="card dense"><div class="eyebrow" style="font-size:10px">— Difficulty mix</div><div style="display:flex;gap:4px;margin-top:8px;height:8px;border-radius:4px;overflow:hidden"><div style="flex:30;background:var(--moss)"></div><div style="flex:40;background:var(--gold)"></div><div style="flex:30;background:var(--ox)"></div></div><div style="font:500 11px var(--font-mono);margin-top:6px;color:var(--ink-meta);display:flex;justify-content:space-between"><span style="color:var(--moss)">Easy 30%</span><span style="color:#5C420A">Med 40%</span><span style="color:var(--ox)">Hard 30%</span></div></div>
+        <div class="insight warn" style="font-size:12px"><span class="lab" style="font-size:9px">Heads up</span><span>Once started, you have 2 pauses · 60 s each.</span></div>
+      </div>
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:var(--paper-warm);border-top:1px solid var(--line)"><button class="btn primary" style="width:100%">Start mock exam →</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="ab" id="er-mob">
+  <div class="ab-head"><h3>06n · Exam · in progress · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/mock-exam/run</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar" style="background:var(--ink-w);color:var(--card);border-bottom-color:var(--ox-deep)">
+        <button class="ham" style="color:var(--card)"><svg width="20" height="20"><use href="#i-ham"/></svg></button>
+        <div class="wm" style="color:var(--card);font:500 18px var(--font-mono);font-feature-settings:'tnum';letter-spacing:.04em">42:18</div>
+        <button class="ham" style="color:var(--card)"><svg width="20" height="20"><use href="#i-flag"/></svg></button>
+      </header>
+      <div style="padding:14px 16px;background:var(--paper-w2);border-bottom:1px solid var(--line);font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;display:flex;justify-content:space-between"><span>Q 38 / 75</span><span style="color:var(--moss)">· 35 ans</span></div>
+      <div style="padding:18px 16px 130px;display:flex;flex-direction:column;gap:12px">
+        <p style="font:400 15px/1.55 var(--font-body);color:var(--ink-w);margin:0">67 y/o farmer · 4-month pearly nodule with rolled borders and central ulcer on helix of ear. Regional nodes not palpable. <strong>Most appropriate next step?</strong></p>
+        <button class="m-qp-opt" style="display:flex;gap:10px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:9px;background:var(--card);font:400 13px var(--font-body);color:var(--ink-w);text-align:left"><span class="k" style="width:22px;height:22px;border-radius:9999px;background:var(--card-2);color:var(--ink-w3);display:grid;place-items:center;font:600 11px var(--font-body)">A</span>5-FU × 6 weeks</button>
+        <button class="m-qp-opt" style="display:flex;gap:10px;align-items:center;padding:11px;border:1px solid var(--ink-w);background:var(--card-2);border-radius:9px;font:400 13px var(--font-body);color:var(--ink-w);text-align:left"><span class="k" style="width:22px;height:22px;border-radius:9999px;background:var(--ink-w);color:var(--card);display:grid;place-items:center;font:600 11px var(--font-body)">B</span>Shave biopsy</button>
+        <button class="m-qp-opt" style="display:flex;gap:10px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:9px;background:var(--card);font:400 13px var(--font-body);color:var(--ink-w);text-align:left"><span class="k" style="width:22px;height:22px;border-radius:9999px;background:var(--card-2);color:var(--ink-w3);display:grid;place-items:center;font:600 11px var(--font-body)">C</span>WLE 1 cm margins</button>
+        <button class="m-qp-opt" style="display:flex;gap:10px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:9px;background:var(--card);font:400 13px var(--font-body);color:var(--ink-w);text-align:left"><span class="k" style="width:22px;height:22px;border-radius:9999px;background:var(--card-2);color:var(--ink-w3);display:grid;place-items:center;font:600 11px var(--font-body)">D</span>Cryotherapy</button>
+        <button class="m-qp-opt" style="display:flex;gap:10px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:9px;background:var(--card);font:400 13px var(--font-body);color:var(--ink-w);text-align:left"><span class="k" style="width:22px;height:22px;border-radius:9999px;background:var(--card-2);color:var(--ink-w3);display:grid;place-items:center;font:600 11px var(--font-body)">E</span>Reassurance</button>
+      </div>
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:12px 14px;background:var(--paper-warm);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:6px"><button class="pt" style="flex:1">Low</button><button class="pt on" style="flex:1">Med</button><button class="pt" style="flex:1">High</button></div>
+        <div style="display:flex;gap:6px"><button class="btn ghost sm" style="flex:1">Flag</button><button class="btn primary sm" style="flex:2">Submit · next →</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

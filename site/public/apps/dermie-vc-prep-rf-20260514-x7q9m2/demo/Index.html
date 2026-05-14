@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Platform mockups v2 · Index</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+.idx-wrap{max-width:1240px;margin:0 auto;padding:0 40px;}
+.idx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px;}
+.idx-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:10px;text-decoration:none;color:inherit;}
+.idx-card:hover{border-color:var(--ox);}
+.idx-card .num{font:500 11px var(--font-mono);color:var(--ox);letter-spacing:.08em;}
+.idx-card .title{font:400 26px var(--font-display);color:var(--ink-w);letter-spacing:-.01em;}
+.idx-card .scope{font:400 13px var(--font-body);color:var(--ink-meta);line-height:1.5;}
+.idx-card .pages{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.idx-card .pages .p{font:500 10px var(--font-mono);padding:2px 7px;background:var(--card-2);border:1px solid var(--line);border-radius:3px;color:var(--ink-w2);letter-spacing:.04em;}
+.idx-key{display:flex;gap:18px;flex-wrap:wrap;margin-top:36px;padding-top:24px;border-top:1px solid var(--line);font:400 12px var(--font-body);color:var(--ink-meta);}
+.idx-key .k{display:inline-flex;align-items:center;gap:6px;}
+.idx-key .swatch{width:10px;height:10px;border-radius:3px;border:1px solid var(--line);}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Index">
+
+<header class="cat-head">
+  <div>
+    <h1>Train the <em>eye</em>.</h1>
+    <p>Platform mockups, second pass. Every screen residents and admins touch, redrawn against the dermie editorial kit. Three desktop variations per page, plus a paired mobile artboard for every learner screen.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>v2 · paper / oxblood</span><span>·</span><span>~30 screens × 3 variations</span><span>·</span><span>updated 13 May 2026</span></div>
+  </div>
+</header>
+
+<div class="idx-wrap">
+  <div class="idx-grid">
+
+    <a class="idx-card" href="Dashboard.html">
+      <div class="num">01 · LEARNER</div>
+      <div class="title">Dashboard</div>
+      <div class="scope">Salutation, study plan, AI insights, quick actions, recent activity, streak.</div>
+      <div class="pages"><span class="p">/app</span><span class="p">v1·v2·v3</span><span class="p">+mobile</span></div>
+    </a>
+
+    <a class="idx-card" href="Auth.html">
+      <div class="num">02 · PUBLIC</div>
+      <div class="title">Auth &amp; legal</div>
+      <div class="scope">Sign in, create account, interim disclosure. Tweaks panel on this one.</div>
+      <div class="pages"><span class="p">/auth</span><span class="p">/legal/interim</span><span class="p">tweaks</span></div>
+    </a>
+
+    <a class="idx-card" href="Cases.html">
+      <div class="num">03 · LEARNER</div>
+      <div class="title">Cases</div>
+      <div class="scope">Case library catalogue + stepped case-player runner.</div>
+      <div class="pages"><span class="p">/cases</span><span class="p">/cases/:id</span></div>
+    </a>
+
+    <a class="idx-card" href="Quiz.html">
+      <div class="num">04 · LEARNER</div>
+      <div class="title">Quiz</div>
+      <div class="scope">Configure session, runner with confidence, summary with calibration KPIs.</div>
+      <div class="pages"><span class="p">/quiz/config</span><span class="p">/quiz/play</span><span class="p">/quiz/summary</span></div>
+    </a>
+
+    <a class="idx-card" href="Flashcards.html">
+      <div class="num">05 · LEARNER</div>
+      <div class="title">Flashcards</div>
+      <div class="scope">Pre-session landing + spaced-review runner.</div>
+      <div class="pages"><span class="p">/flashcards</span></div>
+    </a>
+
+    <a class="idx-card" href="MockExam.html">
+      <div class="num">06 · LEARNER</div>
+      <div class="title">Mock exam</div>
+      <div class="scope">Blueprint &amp; weights setup, timed in-progress shell.</div>
+      <div class="pages"><span class="p">/mock-exam</span></div>
+    </a>
+
+    <a class="idx-card" href="Performance.html">
+      <div class="num">07 · LEARNER</div>
+      <div class="title">Performance</div>
+      <div class="scope">KPIs, topic mastery, score trend, confusion insights, exam readiness, study recommendations.</div>
+      <div class="pages"><span class="p">/performance</span></div>
+    </a>
+
+    <a class="idx-card" href="Podcasts.html">
+      <div class="num">08 · LEARNER</div>
+      <div class="title">Podcasts</div>
+      <div class="scope">Library with topic filters; player with diagrams, transcript, references.</div>
+      <div class="pages"><span class="p">/podcasts</span><span class="p">/podcasts/:id</span></div>
+    </a>
+
+    <a class="idx-card" href="TutorMinigames.html">
+      <div class="num">09 · LEARNER</div>
+      <div class="title">Tutor &amp; minigames</div>
+      <div class="scope">Live Tutor (active + session complete), Minigames hub, SpotDx Sprint, Boss Battle, Differential Dash, Patient Interview.</div>
+      <div class="pages"><span class="p">/tutor</span><span class="p">/minigames</span><span class="p">/minigames/*</span></div>
+    </a>
+
+    <a class="idx-card" href="Profile.html">
+      <div class="num">10 · LEARNER</div>
+      <div class="title">Profile</div>
+      <div class="scope">Tabbed (Account · Themes · Achievements · Settings). Themes tab hosts the Classic / Tabs / RPG sidebar variants.</div>
+      <div class="pages"><span class="p">/profile</span></div>
+    </a>
+
+    <a class="idx-card" href="Admin.html">
+      <div class="num">11 · ADMIN</div>
+      <div class="title">Admin panel</div>
+      <div class="scope">Utilitarian. Dashboard, Content Hub (5 tabs), Cases + Sim Modal, Image Annotations, AI Forge (5 tabs), System (5 tabs), Telemetry (7 tabs).</div>
+      <div class="pages"><span class="p">/admin/*</span></div>
+    </a>
+
+    <a class="idx-card" href="Errors.html">
+      <div class="num">12 · SHARED</div>
+      <div class="title">Edge states</div>
+      <div class="scope">404, generic error boundary, inline-failure pattern, empty-state library.</div>
+      <div class="pages"><span class="p">/404</span><span class="p">/oops</span></div>
+    </a>
+
+  </div>
+
+  <div class="idx-key">
+    <div class="k"><span class="swatch" style="background:var(--ox)"></span> v1 — closest to baseline kit</div>
+    <div class="k"><span class="swatch" style="background:var(--moss)"></span> v2 — alternative composition</div>
+    <div class="k"><span class="swatch" style="background:var(--slate)"></span> v3 — most expressive / unconventional</div>
+    <div class="k"><span class="swatch" style="background:var(--gold)"></span> mob — paired mobile artboard</div>
+  </div>
+</div>
+
+</body>
+</html>

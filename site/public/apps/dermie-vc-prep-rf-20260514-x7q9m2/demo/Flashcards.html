@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Flashcards (landing + review)</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+/* Landing */
+.fl-landing{display:grid;grid-template-columns:1fr 360px;gap:32px;align-items:flex-start;}
+.fl-hero{padding:48px 56px;background:var(--card);border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column;gap:16px;text-align:center;align-items:center;}
+.fl-hero .due-n{font:300 96px/1 var(--font-display);color:var(--ink-w);letter-spacing:-.03em;font-feature-settings:"tnum";}
+.fl-hero .due-n em{color:var(--ox);font-style:italic;}
+.fl-hero .due-l{font:400 16px var(--font-body);color:var(--ink-meta);}
+.fl-hero .start-row{display:flex;gap:10px;margin-top:8px;}
+.fl-hero .keys{font:400 11.5px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+.fl-hero .keys kbd{padding:1px 7px;background:var(--card-2);border:1px solid var(--line);border-radius:4px;}
+
+.fl-side{display:flex;flex-direction:column;gap:14px;}
+.fl-stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:3px;}
+.fl-stat .l{font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta);}
+.fl-stat .n{font:300 32px var(--font-display);color:var(--ink-w);font-feature-settings:"tnum";line-height:1;}
+.fl-stat .n em{color:var(--ox);font-style:italic;}
+.fl-stat .b{font:400 11.5px var(--font-body);color:var(--ink-meta);}
+
+.fl-topic-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line);font:400 13px var(--font-body);align-items:center;}
+.fl-topic-row:last-child{border:0;}
+.fl-topic-row .n{font:500 11.5px var(--font-mono);color:var(--ox);font-feature-settings:"tnum";}
+
+.fl-fanout{position:relative;width:100%;max-width:560px;margin:0 auto 4px;height:160px;}
+.fl-fanout .fan{position:absolute;width:100px;height:140px;background:var(--card);border:1px solid var(--line);border-radius:8px;}
+.fl-fanout .fan.f1{left:calc(50% - 200px);transform:rotate(-9deg);}
+.fl-fanout .fan.f2{left:calc(50% - 130px);transform:rotate(-4deg);}
+.fl-fanout .fan.f3{left:calc(50% - 50px);box-shadow:0 12px 32px -8px rgba(0,0,0,.15);}
+.fl-fanout .fan.f4{left:calc(50% + 30px);transform:rotate(5deg);}
+.fl-fanout .fan.f5{left:calc(50% + 100px);transform:rotate(9deg);}
+.fl-fanout .fan .lab{font:500 9px var(--font-mono);color:var(--ink-meta);padding:6px;border-bottom:1px solid var(--line);letter-spacing:.04em;}
+
+/* Review card */
+.fc-deck{display:grid;grid-template-columns:1.3fr .8fr;gap:24px;}
+.fc-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:40px 44px;min-height:460px;display:flex;flex-direction:column;gap:22px;position:relative;}
+.fc-meta{display:flex;justify-content:space-between;font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;}
+.fc-front{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;}
+.fc-q{font:400 30px/1.25 var(--font-display);letter-spacing:-.01em;color:var(--ink-w);max-width:26ch;}
+.fc-q em{color:var(--ox);font-style:italic;}
+.fc-flip-hint{font:400 13px var(--font-body);color:var(--ink-meta);font-style:italic;display:flex;align-items:center;gap:10px;}
+.fc-flip-hint kbd{font:400 11px var(--font-mono);padding:1px 7px;background:var(--card-2);border:1px solid var(--line);border-radius:4px;}
+.fc-back{flex:1;display:flex;flex-direction:column;gap:14px;}
+.fc-back .answer{font:400 24px/1.3 var(--font-display);color:var(--ink-w);}
+.fc-back .answer em{color:var(--ox);font-style:italic;}
+.fc-back .clarify{font:400 13.5px/1.6 var(--font-body);color:var(--ink-w2);max-width:50ch;}
+.fc-back .cite{font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;padding-top:10px;border-top:1px dashed var(--line);}
+
+.fc-rate{display:flex;gap:8px;padding-top:18px;border-top:1px solid var(--line);}
+.fc-rate .btn{flex:1;flex-direction:column;gap:2px;padding:12px;min-height:64px;}
+.fc-rate .btn.again{border-color:var(--ox);color:var(--ox);}
+.fc-rate .btn.hard{border-color:var(--gold);color:#5C420A;}
+.fc-rate .btn.good{border-color:var(--line-2);color:var(--ink-w2);}
+.fc-rate .btn.easy{border-color:var(--moss);color:var(--moss);}
+.fc-rate .btn small{font:400 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;display:block;margin-top:2px;}
+.fc-rate .btn .key{font:500 10px var(--font-mono);background:var(--card-2);padding:1px 6px;border-radius:3px;color:var(--ink-meta);}
+
+.fc-side{display:flex;flex-direction:column;gap:12px;}
+.fc-prog{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;}
+.fc-prog .lab{font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-meta);}
+.fc-prog .bar{height:6px;background:var(--paper-w3);border-radius:3px;margin-top:8px;overflow:hidden;display:flex;gap:1px;}
+.fc-prog .bar > div{height:100%;}
+.fc-prog .ag{background:var(--ox);}
+.fc-prog .hd{background:var(--gold);}
+.fc-prog .gd{background:var(--ink-w3);}
+.fc-prog .es{background:var(--moss);}
+.fc-prog .rest{background:var(--paper-w3);}
+.fc-prog .legend{display:flex;justify-content:space-between;font:400 11px var(--font-body);color:var(--ink-meta);margin-top:8px;}
+
+.fc-history{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;}
+.fc-history .row{display:flex;align-items:center;gap:8px;padding:5px 0;font:400 12px var(--font-body);border-bottom:1px dashed var(--line);}
+.fc-history .row:last-child{border:0;}
+.fc-history .row .k{font:500 11px var(--font-mono);color:var(--ink-meta);}
+.fc-history .row .rating{margin-left:auto;font:500 11px var(--font-mono);}
+.fc-history .row .r-again{color:var(--ox);}
+.fc-history .row .r-hard{color:#5C420A;}
+.fc-history .row .r-good{color:var(--ink-w2);}
+.fc-history .row .r-easy{color:var(--moss);}
+
+/* v2 — full-bleed front */
+.fc-full{background:var(--ox);color:var(--card);padding:64px 72px;min-height:560px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:24px;text-align:center;}
+.fc-full .lab{font:500 11px var(--font-mono);color:#F0E2BC;letter-spacing:.08em;text-transform:uppercase;}
+.fc-full .q{font:300 56px/1.15 var(--font-display);color:var(--card);max-width:18ch;letter-spacing:-.02em;}
+.fc-full .q em{color:var(--gold);font-style:italic;}
+.fc-full .hint{font:300 14px var(--font-display);color:#F0E2BC;font-style:italic;}
+
+/* v3 — cluster */
+.fc-cluster{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.fc-mini{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;min-height:200px;display:flex;flex-direction:column;gap:8px;cursor:pointer;}
+.fc-mini.faded{opacity:.55;}
+.fc-mini .lab{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;}
+.fc-mini .q{font:400 18px/1.3 var(--font-display);color:var(--ink-w);}
+
+/* mobile */
+.m-fc{padding:24px 18px 130px;display:flex;flex-direction:column;gap:18px;min-height:780px;}
+.m-fc-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 22px;min-height:340px;display:flex;flex-direction:column;justify-content:center;gap:14px;}
+.m-fc-rate{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:var(--paper-warm);border-top:1px solid var(--line);}
+.m-fc-rate .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.m-fc-rate .b{padding:10px 6px;border-radius:9px;background:var(--card);border:1px solid var(--line-2);font:500 12px var(--font-body);color:var(--ink-w2);text-align:center;display:flex;flex-direction:column;gap:2px;}
+.m-fc-rate .b small{font:400 9px var(--font-mono);color:var(--ink-meta);}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Flashcards mockups">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></symbol>
+  <symbol id="i-ham" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 4h11v13H9z"/><path d="M5 8v12h12"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></symbol>
+  <symbol id="i-fc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+  <symbol id="i-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 9h4M8 7v4M15 10h.01M17 13h.01M12 17l-6 3a3 3 0 01-3-4l1-4a4 4 0 014-3h12a4 4 0 014 3l1 4a3 3 0 01-3 4l-6-3"/></symbol>
+  <symbol id="i-perf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol>
+  <symbol id="i-prof" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></symbol>
+  <symbol id="i-tutor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></symbol>
+  <symbol id="i-pod" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 18v-7a9 9 0 0118 0v7"/><path d="M21 19a2 2 0 01-2 2h-1v-6h3zM3 19a2 2 0 002 2h1v-6H3z"/></symbol>
+  <symbol id="i-exam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+</defs></svg>
+
+<header class="cat-head">
+  <div>
+    <h1>The <em>deck</em>.</h1>
+    <p>Spaced repetition. The landing page is the missing piece (production has a topic filter + due count + Start CTA before the review surface). The review card itself shows the same primitives in three different compositions.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/flashcards</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<template id="t-sidebar">
+  <aside class="sidebar">
+    <div class="usercard"><div class="av">RA</div><div class="meta"><div class="nm">Ramie F.</div><div class="sub">Lv. 7 · 2,835 XP</div><div class="lvbar"><span style="width:35%"></span></div></div></div>
+    <nav class="nav-group"><div class="nav-label">Study</div>
+      <button class="nav-item __a-dash"><span class="nav-ic"><svg><use href="#i-dash"/></svg></span><span>Dashboard</span></button>
+      <button class="nav-item __a-quiz"><span class="nav-ic"><svg><use href="#i-quiz"/></svg></span><span>Quiz</span></button>
+      <button class="nav-item __a-cases"><span class="nav-ic"><svg><use href="#i-cat"/></svg></span><span>Cases</span></button>
+      <button class="nav-item __a-fc"><span class="nav-ic"><svg><use href="#i-fc"/></svg></span><span>Flashcards</span><span class="nav-badge">19</span></button>
+      <button class="nav-item __a-exam"><span class="nav-ic"><svg><use href="#i-exam"/></svg></span><span>Mock exam</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Play</div>
+      <button class="nav-item __a-mini"><span class="nav-ic"><svg><use href="#i-mini"/></svg></span><span>Minigames</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Coach</div>
+      <button class="nav-item __a-tutor"><span class="nav-ic"><svg><use href="#i-tutor"/></svg></span><span>Live tutor</span></button>
+      <button class="nav-item __a-pod"><span class="nav-ic"><svg><use href="#i-pod"/></svg></span><span>Podcasts</span></button>
+      <button class="nav-item __a-perf"><span class="nav-ic"><svg><use href="#i-perf"/></svg></span><span>Performance</span></button>
+    </nav>
+    <div class="sidebar-foot"><button class="nav-item __a-prof"><span class="nav-ic"><svg><use href="#i-prof"/></svg></span><span>Profile</span></button><button class="tog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="opacity:.6;vertical-align:-2px"><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg> Dark</button><button class="signout">Sign out</button></div>
+  </aside>
+</template>
+<script>function sidebar(active){const t=document.getElementById('t-sidebar').content.cloneNode(true);const el=t.querySelector(`.__a-${active}`);if(el){el.classList.add('active');el.classList.remove(`__a-${active}`);}return t;}</script>
+
+<!-- ═══════════════════════════════════════════ LANDING ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">05·A</div><h2>Landing</h2><p class="desc">Pre-session orientation. Due count, topic filter, Start Review CTA, keyboard legend.</p></section>
+
+<!-- ─── landing v1 -->
+<div class="ab" id="fl-l-v1">
+  <div class="ab-head"><h3>05a · Flashcards landing</h3><span class="ab-tag v1">v1 · hero number</span><span class="ab-meta">/flashcards</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="avatar-btn" aria-label="Profile" title="Profile">RA</button><button class="pill"><svg width="13" height="13"><use href="#i-search"/></svg> Search <kbd>⌘K</kbd></button><button class="pill streak">12 day streak</button></div></header>
+    <div class="shell" id="fl-l-v1-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('fl-l-v1-shell').appendChild(sidebar('fc'));
+document.getElementById('fl-l-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Study</a><span class="sep">/</span>Flashcards<span class="right">Spaced repetition · half-life scheduling</span></div>
+    <div class="page-h">
+      <div>
+        <div class="eyebrow">— Spaced review</div>
+        <h1><em>Flashcards</em>, due today.</h1>
+        <p class="sub">Cards surface based on how often you've forgotten them and how long ago you last got them right. Rate honestly — Hard is fine, Easy moves the next review further out.</p>
+      </div>
+      <div class="actions">
+        <div class="seg"><button class="on">All topics</button><button>Due first</button><button>Failed last</button></div>
+      </div>
+    </div>
+
+    <div class="fl-landing">
+      <div class="fl-hero">
+        <div class="fl-fanout">
+          <div class="fan f1"><div class="lab">No. 011</div></div>
+          <div class="fan f2"><div class="lab">No. 074</div></div>
+          <div class="fan f3"><div class="lab">No. 132 · due</div></div>
+          <div class="fan f4"><div class="lab">No. 092</div></div>
+          <div class="fan f5"><div class="lab">No. 156</div></div>
+        </div>
+        <div class="eyebrow">— Due now</div>
+        <div class="due-n"><em>19</em></div>
+        <div class="due-l">cards ready for review · 4 from review streak risk</div>
+        <div class="start-row">
+          <button class="btn primary">Start review →</button>
+          <button class="btn ghost">Custom selection</button>
+        </div>
+        <div class="keys"><span><kbd>Space</kbd> flip</span><span><kbd>1</kbd> Again · <kbd>2</kbd> Hard · <kbd>3</kbd> Good · <kbd>4</kbd> Easy</span><span><kbd>Esc</kbd> end session</span></div>
+      </div>
+
+      <aside class="fl-side">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="fl-stat" style="text-align:center;align-items:center;justify-content:center"><div class="l">Cards mastered</div><div class="n" style="text-align:center">412 <span style="font-size:14px;color:var(--ink-meta)">/ 580</span></div><div class="b" style="text-align:center">71% of your deck</div></div>
+          <div class="fl-stat" style="text-align:center;align-items:center;justify-content:center"><div class="l">Retention · 7d</div><div class="n" style="text-align:center"><em>87</em>%</div><div class="b" style="text-align:center">+2 pts vs. previous</div></div>
+        </div>
+
+        <div class="card dense">
+          <div class="eyebrow">— Due by topic</div>
+          <div class="fl-topic-row"><span>Infectious bacterial</span><span class="n">6 due</span></div>
+          <div class="fl-topic-row"><span>Psoriasis</span><span class="n">4 due</span></div>
+          <div class="fl-topic-row"><span>Melanoma · staging</span><span class="n">3 due</span></div>
+          <div class="fl-topic-row"><span>Atopic dermatitis</span><span class="n">3 due</span></div>
+          <div class="fl-topic-row"><span>Acne · inflammatory</span><span class="n">2 due</span></div>
+          <div class="fl-topic-row"><span>Vitiligo / Pigmentary</span><span class="n">1 due</span></div>
+        </div>
+
+        <div class="insight tip"><span class="lab">Tip</span><span>Try the keyboard shortcuts — most users finish a 19-card deck in 9 minutes that way.</span></div>
+      </aside>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── landing v2 - editorial calendar style -->
+<div class="ab" id="fl-l-v2">
+  <div class="ab-head"><h3>05b · Landing · 7-day schedule</h3><span class="ab-tag v2">v2 · timeline</span><span class="ab-meta">/flashcards</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Custom selection</button></div></header>
+    <div class="shell" id="fl-l-v2-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('fl-l-v2-shell').appendChild(sidebar('fc'));
+document.getElementById('fl-l-v2-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h">
+      <div><div class="eyebrow">— Spaced review · week of 13 May</div><h1 style="font-size:36px">19 due <em>today</em>. 42 the rest of the week.</h1><p class="sub">Cards arrive at the door on a schedule. Rate them honestly and the door stays even.</p></div>
+      <div class="actions"><button class="btn primary">Start today's 19 →</button></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
+      ${[
+        {d:'Mon',n:'12',cnt:0,past:true},
+        {d:'Tue',n:'13',cnt:19,today:true},
+        {d:'Wed',n:'14',cnt:8},
+        {d:'Thu',n:'15',cnt:12},
+        {d:'Fri',n:'16',cnt:6},
+        {d:'Sat',n:'17',cnt:4},
+        {d:'Sun',n:'18',cnt:12},
+      ].map(d=>`
+        <div class="card dense" style="background:${d.today?'var(--ox)':d.past?'var(--card-2)':'var(--card)'};color:${d.today?'var(--card)':'inherit'};${d.today?'border-color:var(--ox);':''}min-height:140px;display:flex;flex-direction:column;gap:4px">
+          <div style="font:500 10px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:${d.today?'rgba(251,246,232,.7)':'var(--ink-meta)'}">${d.d}</div>
+          <div style="font:300 32px var(--font-display);line-height:1;color:${d.today?'var(--card)':'var(--ink-w)'}">${d.n}</div>
+          <div style="font:400 12px var(--font-body);color:${d.today?'rgba(251,246,232,.85)':'var(--ink-meta)'};margin-top:4px">${d.cnt===0?'—':d.cnt+' cards'}</div>
+          ${d.today?'<div style="margin-top:auto;font:500 11px var(--font-mono);color:var(--gold)">today</div>':''}
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="fl-landing" style="grid-template-columns:1fr 1fr;align-items:stretch">
+      <div class="card" style="display:flex;flex-direction:column;gap:12px">
+        <div class="eyebrow">— Today's deck · ordered by half-life</div>
+        ${['No. 132 · Honey-crusted lesions = ?','No. 074 · Wickham striae appear on ?','No. 011 · ABCDE for melanoma','No. 092 · Auspitz sign explains ?','No. 156 · Nikolsky sign positive in ?'].map((c,i)=>`
+          <div class="fl-topic-row"><span class="mono small muted">${String(i+1).padStart(2,'0')}.</span><span style="flex:1;margin-left:10px">${c}</span><span class="muted small">${[2,4,7,9,12][i]} days</span></div>
+        `).join('')}
+        <a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em;margin-top:6px">+ 14 more cards →</a>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:18px;justify-content:space-between">
+        <div>
+          <div class="eyebrow">— Retention by topic</div>
+          <p class="muted small" style="margin:6px 0 0">Per-topic retention over the last 14 days. Lower bars are the next places to study.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          ${[['Infectious bacterial',62,'ox'],['Atopic dermatitis',74,'gold'],['Melanoma · staging',81,'gold'],['Psoriasis',88,'moss'],['Acne · inflammatory',92,'moss']].map(([nm,p,c])=>`
+            <div style="display:grid;grid-template-columns:140px 1fr 40px;gap:10px;align-items:center">
+              <span style="font:400 12.5px var(--font-body);color:var(--ink-w2)">${nm}</span>
+              <div style="height:6px;background:var(--paper-w3);border-radius:3px;overflow:hidden"><div style="height:100%;width:${p}%;background:var(--${c})"></div></div>
+              <span class="mono small" style="text-align:right">${p}%</span>
+            </div>
+          `).join('')}
+        </div>
+        <div style="padding-top:14px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div class="muted small">Weakest \u00b7 <strong style="color:var(--ox)">Infectious</strong> \u00b7 strongest \u00b7 <strong style="color:var(--moss)">Acne</strong></div>
+          <button class="btn primary sm">Start today's 19 \u2192</button>
+        </div>
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ REVIEW CARD ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">05·B</div><h2>Review card</h2><p class="desc">Front / back / rate. v1 is the editorial card with a sidebar of session progress; v2 is full-bleed for focus; v3 lays the current card next to the "look-ahead" stack.</p></section>
+
+<!-- ─── review v1 — editorial -->
+<div class="ab" id="fl-r-v1">
+  <div class="ab-head"><h3>05c · Review · editorial card</h3><span class="ab-tag v1">v1 · sidebar progress</span><span class="ab-meta">/flashcards (review)</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · deck · Inflammatory</div><div class="topbar-right"><button class="pill">23 of 48</button><button class="pill">End session</button></div></header>
+    <div class="shell" id="fl-r-v1-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('fl-r-v1-shell').appendChild(sidebar('fc'));
+document.getElementById('fl-r-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Flashcards</a><span class="sep">/</span>Inflammatory deck<span class="right">Press space to flip</span></div>
+    <div class="fc-deck">
+      <article class="fc-card">
+        <div class="fc-meta"><span>Card 23 / 48</span><span>Half-life · 9 days</span></div>
+        <div class="fc-front">
+          <div class="eyebrow">— Front</div>
+          <h2 class="fc-q">The IL-23 / Th17 axis is the principal therapeutic target in <em>which</em> condition?</h2>
+          <div class="fc-flip-hint">Tap or press <kbd>Space</kbd> to reveal the back · <kbd>1</kbd>–<kbd>4</kbd> to rate</div>
+        </div>
+        <div class="fc-rate">
+          <button class="btn again">Again<span class="key">1</span><small>see again &lt; 10 min</small></button>
+          <button class="btn hard">Hard<span class="key">2</span><small>2 days</small></button>
+          <button class="btn good">Good<span class="key">3</span><small>9 days</small></button>
+          <button class="btn easy">Easy<span class="key">4</span><small>24 days</small></button>
+        </div>
+      </article>
+      <aside class="fc-side">
+        <div class="fc-prog">
+          <div class="lab">Session · 23 / 48</div>
+          <div class="bar"><div class="ag" style="width:8%"></div><div class="hd" style="width:12%"></div><div class="gd" style="width:21%"></div><div class="es" style="width:7%"></div><div class="rest" style="width:52%"></div></div>
+          <div class="legend"><span style="color:var(--ox)">Again · 4</span><span style="color:#5C420A">Hard · 6</span><span style="color:var(--ink-w2)">Good · 10</span><span style="color:var(--moss)">Easy · 3</span></div>
+        </div>
+        <div class="fc-history">
+          <div class="lab" style="font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-meta);margin-bottom:4px">Recent rates</div>
+          <div class="row"><span class="k">22</span><span>Annular vs nummular</span><span class="rating r-good">Good</span></div>
+          <div class="row"><span class="k">21</span><span>Wickham striae</span><span class="rating r-easy">Easy</span></div>
+          <div class="row"><span class="k">20</span><span>Koebner phenomenon</span><span class="rating r-again">Again</span></div>
+          <div class="row"><span class="k">19</span><span>Auspitz sign</span><span class="rating r-hard">Hard</span></div>
+          <div class="row"><span class="k">18</span><span>PASI score limits</span><span class="rating r-good">Good</span></div>
+        </div>
+        <div class="insight tip"><span class="lab">Tip</span><span>Rate Hard for cards you got right but had to think; "Good" should feel automatic.</span></div>
+      </aside>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── review v1 back state -->
+<div class="ab" id="fl-r-v1b">
+  <div class="ab-head"><h3>05d · Review · revealed (back)</h3><span class="ab-tag v1">v1 · back state</span><span class="ab-meta">/flashcards (review · revealed)</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · deck · Inflammatory</div><div class="topbar-right"><button class="pill">23 of 48</button></div></header>
+    <div class="shell" id="fl-r-v1b-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('fl-r-v1b-shell').appendChild(sidebar('fc'));
+document.getElementById('fl-r-v1b-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="fc-deck">
+      <article class="fc-card">
+        <div class="fc-meta"><span>Card 23 / 48 · revealed</span><span>Half-life · 9 days</span></div>
+        <div class="fc-back">
+          <div class="eyebrow">— Back</div>
+          <div class="answer"><em>Plaque psoriasis</em>.</div>
+          <p class="clarify">Risankizumab, guselkumab and tildrakizumab block IL-23 p19. Secukinumab and ixekizumab block IL-17A. Both pathways drive the chronic Th17-mediated inflammation that produces the well-demarcated, silvery-scaled plaques characteristic of the disease.</p>
+          <p class="clarify"><strong>Watch out for:</strong> IL-17 inhibitors are contraindicated in active inflammatory bowel disease; choose IL-23 in that population.</p>
+          <div class="cite">Source · BAD biologic guideline 2023 · seen Dec 2025</div>
+        </div>
+        <div class="fc-rate">
+          <button class="btn again">Again<span class="key">1</span><small>&lt; 10 min</small></button>
+          <button class="btn hard">Hard<span class="key">2</span><small>2 days</small></button>
+          <button class="btn good" style="background:var(--ink-w);color:var(--card)">Good<span class="key">3</span><small>9 days</small></button>
+          <button class="btn easy">Easy<span class="key">4</span><small>24 days</small></button>
+        </div>
+      </article>
+      <aside class="fc-side">
+        <div class="fc-prog">
+          <div class="lab">Session · 23 / 48</div>
+          <div class="bar"><div class="ag" style="width:8%"></div><div class="hd" style="width:12%"></div><div class="gd" style="width:21%"></div><div class="es" style="width:7%"></div><div class="rest" style="width:52%"></div></div>
+          <div class="legend"><span style="color:var(--ox)">Again · 4</span><span style="color:#5C420A">Hard · 6</span><span style="color:var(--ink-w2)">Good · 10</span><span style="color:var(--moss)">Easy · 3</span></div>
+        </div>
+        <div class="insight info"><span class="lab">Next</span><span>Card 24 · "Auspitz sign indicates which histologic finding?"</span></div>
+      </aside>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── review v2 — full bleed -->
+<div class="ab" id="fl-r-v2">
+  <div class="ab-head"><h3>05e · Review · full-bleed focus</h3><span class="ab-tag v2">v2 · full bleed</span><span class="ab-meta">/flashcards (review · focus)</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · deck</div><div class="topbar-right"><button class="pill">23 of 48</button><button class="pill">Exit</button></div></header>
+    <div style="display:flex;flex-direction:column;min-height:680px">
+      <div class="fc-full">
+        <div class="lab">No. 132 · Inflammatory · half-life 9 days</div>
+        <div class="q">IL-23 / Th17 is the principal therapeutic target in <em>which</em> condition?</div>
+        <div class="hint">Press space to reveal the back · 1–4 to rate</div>
+      </div>
+      <div style="display:flex;gap:8px;padding:18px 24px;background:var(--paper-w2);border-top:1px solid var(--line)">
+        <button class="btn again" style="flex:1;flex-direction:column;gap:1px"><span>Again</span><small style="font:400 10px var(--font-mono);color:var(--ink-meta)">&lt; 10 min</small></button>
+        <button class="btn hard" style="flex:1;flex-direction:column;gap:1px"><span>Hard</span><small style="font:400 10px var(--font-mono);color:var(--ink-meta)">2 days</small></button>
+        <button class="btn good" style="flex:1;flex-direction:column;gap:1px"><span>Good</span><small style="font:400 10px var(--font-mono);color:var(--ink-meta)">9 days</small></button>
+        <button class="btn easy" style="flex:1;flex-direction:column;gap:1px"><span>Easy</span><small style="font:400 10px var(--font-mono);color:var(--ink-meta)">24 days</small></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── review v3 — current + lookahead -->
+<div class="ab" id="fl-r-v3">
+  <div class="ab-head"><h3>05f · Review · with look-ahead</h3><span class="ab-tag v3">v3 · look-ahead</span><span class="ab-meta">/flashcards (review · context)</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · deck</div><div class="topbar-right"><button class="pill">23 of 48</button></div></header>
+    <div class="shell" id="fl-r-v3-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('fl-r-v3-shell').appendChild(sidebar('fc'));
+document.getElementById('fl-r-v3-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <article class="fc-card">
+      <div class="fc-meta"><span>Card 23 / 48</span><span>Half-life · 9 days</span></div>
+      <div class="fc-front">
+        <div class="eyebrow">— Front</div>
+        <h2 class="fc-q">The IL-23 / Th17 axis is the principal therapeutic target in <em>which</em> condition?</h2>
+      </div>
+      <div class="fc-rate">
+        <button class="btn again">Again<span class="key">1</span><small>&lt; 10 min</small></button>
+        <button class="btn hard">Hard<span class="key">2</span><small>2 days</small></button>
+        <button class="btn good">Good<span class="key">3</span><small>9 days</small></button>
+        <button class="btn easy">Easy<span class="key">4</span><small>24 days</small></button>
+      </div>
+    </article>
+
+    <div class="eyebrow" style="margin-top:8px">— Next up</div>
+    <div class="fc-cluster">
+      <article class="fc-mini faded"><div class="lab">No. 24 · Inflammatory</div><div class="q">Auspitz sign indicates which histologic finding?</div><div class="muted small" style="margin-top:auto">Half-life 11 days</div></article>
+      <article class="fc-mini faded"><div class="lab">No. 25 · Infectious</div><div class="q">First-line treatment for non-bullous impetigo?</div><div class="muted small" style="margin-top:auto">Half-life 7 days</div></article>
+      <article class="fc-mini faded"><div class="lab">No. 26 · Neoplastic</div><div class="q">Most reliable dermoscopic feature for melanoma?</div><div class="muted small" style="margin-top:auto">Half-life 4 days</div></article>
+      <article class="fc-mini faded"><div class="lab">No. 27 · Hair</div><div class="q">Most common cause of scarring alopecia?</div><div class="muted small" style="margin-top:auto">Half-life 6 days</div></article>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ mobile ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">m</div><h2>Mobile</h2><p class="desc">Two paired artboards: landing (due number + topic list) and review card with sticky rating row.</p></section>
+
+<div class="ab" id="fl-l-mob">
+  <div class="ab-head"><h3>05m · Landing · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/flashcards</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar">
+        <button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button>
+        <div class="wm">Flashcards</div>
+        <button class="ham"><svg width="20" height="20"><use href="#i-search"/></svg></button>
+      </header>
+      <div class="m-content">
+        <div><div class="eyebrow" style="font-size:10px">— Spaced review</div><h1 style="font:300 32px var(--font-display);margin:6px 0 0;letter-spacing:-.02em">Due <em style="color:var(--ox);font-style:italic">today</em>.</h1></div>
+        <div style="text-align:center;padding:28px 16px;background:var(--card);border:1px solid var(--line);border-radius:14px"><div style="font:300 80px var(--font-display);color:var(--ink-w);line-height:1"><em style="color:var(--ox);font-style:italic">19</em></div><div class="muted small" style="margin-top:6px">cards ready for review</div></div>
+        <button class="btn primary">Start review →</button>
+        <div style="font:400 11px var(--font-mono);color:var(--ink-meta);text-align:center;letter-spacing:.04em">Tap to flip · 1–4 to rate · ⌫ to undo</div>
+        <div class="card dense">
+          <div class="eyebrow" style="font-size:10px">— Due by topic</div>
+          <div class="fl-topic-row"><span>Infectious bacterial</span><span class="n">6</span></div>
+          <div class="fl-topic-row"><span>Psoriasis</span><span class="n">4</span></div>
+          <div class="fl-topic-row"><span>Melanoma · staging</span><span class="n">3</span></div>
+          <div class="fl-topic-row"><span>Atopic dermatitis</span><span class="n">3</span></div>
+          <div class="fl-topic-row"><span>Acne</span><span class="n">2</span></div>
+          <div class="fl-topic-row"><span>Vitiligo</span><span class="n">1</span></div>
+        </div>
+        <div class="m-prog">
+          <div class="p"><div class="l">Mastered</div><div class="n">412</div></div>
+          <div class="p"><div class="l">Retention</div><div class="n">87%</div></div>
+          <div class="p"><div class="l">Streak</div><div class="n">12d</div></div>
+        </div>
+      </div>
+      <nav class="m-tabbar"><a class="tab"><svg><use href="#i-dash"/></svg>Home</a><a class="tab active"><svg><use href="#i-fc"/></svg>Study</a><a class="tab"><svg><use href="#i-mini"/></svg>Play</a><a class="tab"><svg><use href="#i-perf"/></svg>Stats</a><a class="tab"><svg><use href="#i-prof"/></svg>You</a></nav>
+    </div>
+  </div>
+</div>
+
+<div class="ab" id="fl-r-mob">
+  <div class="ab-head"><h3>05n · Review card · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/flashcards (review)</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar">
+        <button class="ham"><svg width="20" height="20"><use href="#i-x"/></svg></button>
+        <div class="wm" style="font:500 12px var(--font-mono);letter-spacing:.04em;text-transform:uppercase">Card 23 / 48</div>
+        <button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button>
+      </header>
+      <div class="m-fc">
+        <div style="height:3px;background:var(--paper-w3);border-radius:2px;overflow:hidden"><div style="height:100%;width:48%;background:var(--ox)"></div></div>
+        <div class="m-fc-card">
+          <div style="font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">No. 132 · Inflammatory</div>
+          <div style="font:400 24px/1.3 var(--font-display);color:var(--ink-w);letter-spacing:-.01em">IL-23 / Th17 is the principal target in <em style="color:var(--ox);font-style:italic">which</em> condition?</div>
+          <div style="font:300 13px var(--font-display);font-style:italic;color:var(--ink-meta);margin-top:auto">Tap to reveal · half-life 9 days</div>
+        </div>
+        <div class="muted small" style="text-align:center;font:500 10px var(--font-mono);letter-spacing:.06em">Session · 4 again · 6 hard · 10 good · 3 easy</div>
+      </div>
+      <div class="m-fc-rate">
+        <div class="grid">
+          <button class="b" style="border-color:var(--ox);color:var(--ox)">Again<small>&lt;10m</small></button>
+          <button class="b" style="border-color:var(--gold);color:#5C420A">Hard<small>2d</small></button>
+          <button class="b">Good<small>9d</small></button>
+          <button class="b" style="border-color:var(--moss);color:var(--moss)">Easy<small>24d</small></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

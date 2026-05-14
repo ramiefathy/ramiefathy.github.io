@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Tutor &amp; Minigames</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+/* tutor */
+.tutor-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;}
+.voice-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:48px;display:flex;flex-direction:column;gap:28px;min-height:540px;align-items:center;justify-content:center;text-align:center;}
+.voice-orb{width:220px;height:220px;border-radius:9999px;background:radial-gradient(circle at 50% 50%,#F4DAD3 0%,#EAD1C5 40%,var(--card) 75%);border:1px solid var(--line-2);position:relative;display:grid;place-items:center;}
+.voice-orb::before,.voice-orb::after{content:"";position:absolute;inset:0;border-radius:9999px;border:1px solid rgba(107,36,24,.35);animation:pulse 2.4s ease-in-out infinite;}
+.voice-orb::before{inset:-24px;opacity:.7;}
+.voice-orb::after{inset:-48px;opacity:.4;border-color:rgba(107,36,24,.22);animation-delay:1.2s;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.05);opacity:.3}}
+.voice-orb .dot{width:24px;height:24px;border-radius:9999px;background:var(--ox);box-shadow:0 0 0 8px rgba(107,36,24,.18);}
+.voice-state{font:400 14px var(--font-mono);color:var(--ink-meta);letter-spacing:.08em;text-transform:uppercase;}
+.voice-transcript{font:300 28px/1.35 var(--font-display);color:var(--ink-w);max-width:34ch;letter-spacing:-.005em;}
+.voice-transcript em{color:var(--ox);font-style:italic;}
+.voice-ctrls{display:flex;gap:12px;}
+.voice-ctrls .btn{min-height:48px;padding:12px 24px;border-radius:9999px;}
+.voice-meter{display:flex;gap:3px;align-items:center;height:18px;}
+.voice-meter .b{width:3px;background:var(--ox);border-radius:1px;animation:meter .9s ease-in-out infinite;}
+.voice-meter .b:nth-child(2){animation-delay:.1s;height:12px;}
+.voice-meter .b:nth-child(3){animation-delay:.2s;height:18px;}
+.voice-meter .b:nth-child(4){animation-delay:.3s;height:10px;}
+.voice-meter .b:nth-child(5){animation-delay:.4s;height:14px;}
+.voice-meter .b:nth-child(6){animation-delay:.5s;height:8px;}
+.voice-meter .b:nth-child(7){animation-delay:.6s;height:16px;}
+.voice-meter .b:nth-child(8){animation-delay:.7s;height:12px;}
+.voice-meter .b:nth-child(9){animation-delay:.8s;height:10px;}
+@keyframes meter{0%,100%{height:6px}50%{height:18px}}
+
+.tutor-rail{display:flex;flex-direction:column;gap:14px;}
+.tutor-chat{padding:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto;}
+.tutor-chat .msg{display:flex;gap:8px;}
+.tutor-chat .msg .av{width:24px;height:24px;border-radius:9999px;background:var(--ox);color:var(--card);display:grid;place-items:center;font:500 10px var(--font-display);flex-shrink:0;}
+.tutor-chat .msg.you .av{background:var(--ink-w);}
+.tutor-chat .msg .b{flex:1;font:400 13px/1.5 var(--font-body);color:var(--ink-w);padding:8px 10px;background:var(--card-2);border-radius:8px;}
+.tutor-chat .msg.you .b{background:transparent;padding:8px 0;}
+
+/* tutor complete */
+.tutor-done{padding:64px 56px;background:var(--card);border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center;}
+.tutor-done .trophy{width:80px;height:80px;border-radius:18px;background:var(--gold-soft);color:#5C420A;display:grid;place-items:center;border:1px solid var(--gold);}
+.tutor-done .trophy svg{width:40px;height:40px;}
+.tutor-done h2{font:300 44px var(--font-display);color:var(--ink-w);margin:0;letter-spacing:-.02em;}
+.tutor-done h2 em{color:var(--ox);font-style:italic;}
+.tutor-done p{font:400 14px/1.5 var(--font-body);color:var(--ink-meta);max-width:46ch;margin:0;}
+.tutor-done .stats{display:flex;gap:0;margin:8px 0;background:var(--card-2);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.tutor-done .stats > div{padding:18px 28px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px;align-items:center;}
+.tutor-done .stats > div:last-child{border-right:0;}
+.tutor-done .stats .n{font:300 36px var(--font-display);color:var(--ink-w);font-feature-settings:"tnum";line-height:1;}
+.tutor-done .stats .n em{color:var(--ox);font-style:italic;}
+.tutor-done .stats .l{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.08em;text-transform:uppercase;}
+
+/* minigames hub */
+.mg-hero{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;align-items:stretch;}
+.mg-today{background:var(--ox-deep);color:var(--card);border-radius:14px;padding:24px 28px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden;}
+.mg-today::after{content:"";position:absolute;right:-100px;bottom:-100px;width:300px;height:300px;border-radius:9999px;background:radial-gradient(circle,rgba(217,207,184,.18) 0%,transparent 70%);}
+.mg-today .lab{font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--gold);position:relative;z-index:1;}
+.mg-today h2{font:300 36px/1.15 var(--font-display);color:var(--card);margin:0;letter-spacing:-.015em;position:relative;z-index:1;max-width:24ch;}
+.mg-today p{font:400 14px/1.55 var(--font-body);color:#F0E2BC;margin:0;max-width:46ch;position:relative;z-index:1;}
+.mg-today .row{display:flex;align-items:center;gap:16px;margin-top:8px;position:relative;z-index:1;}
+.mg-today .row .btn{background:var(--card);color:var(--ink-w);border-color:var(--card);}
+.mg-today .row .countdown{font:500 12px var(--font-mono);color:#D9CFB8;letter-spacing:.04em;}
+.mg-today .row .countdown .t{color:var(--gold);font-size:14px;}
+
+.mg-streak{padding:24px;background:var(--card);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;gap:6px;}
+.mg-streak .l{font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta);}
+.mg-streak .n{font:300 56px var(--font-display);color:var(--ink-w);letter-spacing:-.025em;line-height:1;font-feature-settings:"tnum";}
+.mg-streak .n em{color:var(--ox);font-style:italic;}
+.mg-streak .heat{display:grid;grid-template-columns:repeat(14,1fr);gap:2px;margin-top:10px;}
+.mg-streak .heat .c{aspect-ratio:1;border-radius:2px;background:var(--paper-w3);}
+.mg-streak .heat .c.on{background:var(--ox);}
+
+.mg-cat-tabs{display:flex;gap:6px;}
+.mg-cat-tab{padding:8px 14px;border-radius:999px;background:transparent;border:1px solid var(--line);color:var(--ink-w2);font:400 13px var(--font-body);cursor:pointer;font-family:inherit;}
+.mg-cat-tab.on{background:var(--ink-w);color:var(--card);border-color:var(--ink-w);}
+
+.mg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.mg-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;min-height:190px;cursor:pointer;border-top:3px solid var(--line);}
+.mg-card.daily{border-top-color:var(--ox);}
+.mg-card.new{border-top-color:var(--moss);}
+.mg-card .ic{width:36px;height:36px;border-radius:10px;background:var(--card-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-w);font:400 18px var(--font-display);}
+.mg-card .head{display:flex;align-items:center;gap:12px;}
+.mg-card h3{font:400 21px var(--font-display);color:var(--ink-w);margin:0;letter-spacing:-.005em;line-height:1.1;flex:1;}
+.mg-card .nm-chips{display:flex;gap:5px;flex-wrap:wrap;}
+.mg-card .desc{font:400 12.5px/1.55 var(--font-body);color:var(--ink-meta);flex:1;}
+.mg-card .foot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--line);font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;}
+.mg-card.locked{opacity:.55;}
+
+/* spotdx sprint runner */
+.sp-frame{background:var(--paper-w2);padding:24px 32px;display:flex;flex-direction:column;gap:18px;min-height:620px;}
+.sp-hud{display:flex;justify-content:space-between;align-items:flex-start;}
+.sp-hud .title-block .eyebrow{color:var(--ox);}
+.sp-hud .title-block h2{font:300 44px var(--font-display);margin:4px 0 0;color:var(--ink-w);letter-spacing:-.02em;}
+.sp-hud .title-block h2 .dot{color:var(--ox);}
+.sp-hud .stats{display:flex;gap:24px;text-align:right;}
+.sp-hud .stats .n{font:300 32px var(--font-display);color:var(--ink-w);font-feature-settings:"tnum";line-height:1;}
+.sp-hud .stats .l{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.08em;text-transform:uppercase;}
+
+.sp-stage{display:grid;grid-template-columns:1fr 1.4fr;gap:24px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;}
+.sp-plate{aspect-ratio:1;border-radius:10px;background:var(--card-2);border:1px solid var(--line);display:grid;place-items:center;position:relative;overflow:hidden;}
+.sp-plate::before{content:"";position:absolute;inset:15%;border-radius:50%;background:radial-gradient(ellipse 60% 50% at 39% 42%,rgba(212,158,94,.95) 0%,rgba(118,70,37,.94) 42%,rgba(45,30,20,.98) 76%,rgba(15,10,7,1) 100%);}
+.sp-plate .label{position:absolute;bottom:14px;left:14px;font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;z-index:1;}
+.sp-prompt{display:flex;flex-direction:column;gap:14px;}
+.sp-prompt h3{font:300 26px var(--font-display);color:var(--ink-w);margin:0;letter-spacing:-.01em;}
+.sp-prompt .step-line{font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;}
+.axes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.axis{padding:10px 12px;background:var(--card-2);border:1px solid var(--line);border-radius:9px;display:flex;flex-direction:column;gap:2px;}
+.axis.active{border-color:var(--ox);background:var(--card);box-shadow:inset 0 0 0 1px var(--ox);}
+.axis.done{border-color:var(--moss);background:#F4F6EE;}
+.axis .num{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;}
+.axis .nm{font:500 13px var(--font-body);color:var(--ink-w);}
+.axis .v{font:500 11.5px var(--font-mono);color:var(--ox);}
+.axis.done .v{color:var(--moss);}
+.morph-bank{display:flex;gap:6px;flex-wrap:wrap;}
+.morph-chip{padding:7px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line-2);font:400 13px var(--font-body);color:var(--ink-w2);cursor:pointer;font-family:inherit;}
+.morph-chip.on{background:var(--ink-w);color:var(--card);border-color:var(--ink-w);}
+.sp-foot{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--line);}
+.sp-turnbar{height:6px;background:var(--paper-w3);border-radius:3px;overflow:hidden;}
+.sp-turnbar > div{height:100%;background:var(--ox);}
+
+/* boss battle */
+.bb-stage{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;}
+.bb-arena{background:var(--paper-w2);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:18px;min-height:540px;}
+.bb-head{display:flex;align-items:center;gap:18px;}
+.bb-portrait{width:84px;height:84px;border-radius:9999px;background:radial-gradient(circle at 40% 35%,#cf3838 0%,#6b1a14 60%,#2b0c08 100%);border:2px solid var(--line);box-shadow:0 0 0 4px rgba(107,36,24,.18);}
+.bb-meta h3{font:300 28px var(--font-display);margin:0;color:var(--ink-w);}
+.bb-meta .sub{font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.08em;text-transform:uppercase;}
+.bb-meta .desc{font:400 13px var(--font-body);color:var(--ink-w2);margin-top:4px;max-width:48ch;}
+.hp{margin-top:10px;width:280px;height:14px;background:var(--paper-w3);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;}
+.hp .seg{flex:1;background:var(--ox);border-right:1px solid rgba(241,234,216,.4);}
+.hp .seg:last-child{border-right:0;}
+.hp .seg.dim{background:var(--paper-w3);}
+.bb-phase{display:flex;gap:6px;align-items:center;font:500 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-meta);}
+.investigation-list{display:flex;flex-direction:column;gap:6px;}
+.invest{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--card);border:1px solid var(--line);border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;width:100%;}
+.invest .cost{font:500 11px var(--font-mono);color:var(--ox);letter-spacing:.04em;min-width:60px;}
+.invest .nm{flex:1;font:400 13.5px var(--font-body);color:var(--ink-w);}
+.invest .yield{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;background:var(--card-2);border-radius:3px;}
+.invest.done .nm{color:var(--ink-meta);text-decoration:line-through;}
+.ddx-list{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;}
+.ddx{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--paper-w2);border-radius:8px;font:400 13.5px var(--font-body);cursor:grab;}
+.ddx .rank{font:500 12px var(--font-mono);color:var(--ink-meta);width:24px;font-feature-settings:"tnum";}
+.ddx.top{background:var(--ox-soft);color:var(--ox-deep);font-weight:500;}
+.ddx .grip{margin-left:auto;color:var(--ink-w4);font:500 14px monospace;}
+
+/* differential dash */
+.dd-stage{padding:30px 36px;display:flex;flex-direction:column;gap:18px;}
+.dd-vignette{padding:20px 22px;background:var(--paper-w2);border:1px solid var(--line);border-radius:11px;font:400 15px/1.65 var(--font-body);color:var(--ink-w);}
+.dd-vignette strong{color:var(--ox);}
+.dd-tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;min-height:360px;}
+.dd-tier{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.dd-tier h4{font:400 16px var(--font-display);color:var(--ink-w);margin:0;display:flex;justify-content:space-between;align-items:center;}
+.dd-tier h4 .ct{font:500 11px var(--font-mono);color:var(--ink-meta);}
+.dd-tier.t1{border-top:3px solid var(--ox);}
+.dd-tier.t2{border-top:3px solid var(--gold);}
+.dd-tier.t3{border-top:3px solid var(--ink-w3);}
+.dd-tier .slot{padding:10px 12px;background:var(--card-2);border:1px dashed var(--line);border-radius:8px;font:400 12.5px var(--font-body);color:var(--ink-w2);cursor:grab;}
+.dd-tier .slot.filled{background:var(--ox-soft);border-style:solid;border-color:var(--ox);color:var(--ox-deep);}
+.dd-tier .slot.empty{color:var(--ink-w4);font-style:italic;border-style:dashed;}
+
+/* patient interview */
+.pi-stage{display:grid;grid-template-columns:280px minmax(0,1fr);gap:18px;}
+.pi-patient{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;}
+.pi-avatar{width:100px;height:100px;border-radius:9999px;background:radial-gradient(circle at 35% 35%,#E4B67C,#A86C42 60%,#502E1A 100%);margin:0 auto;border:2px solid var(--line);}
+.pi-patient .nm{font:400 20px var(--font-display);text-align:center;color:var(--ink-w);}
+.pi-patient .lab{font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-meta);}
+.pi-patient .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font:400 12.5px var(--font-body);}
+.pi-patient .row:last-child{border:0;}
+.pi-chat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-height:540px;}
+.pi-msg{display:flex;gap:10px;align-items:flex-start;}
+.pi-msg.you{flex-direction:row-reverse;}
+.pi-msg .av{width:32px;height:32px;border-radius:9999px;flex-shrink:0;background:#A86C42;color:var(--card);display:grid;place-items:center;font:500 12px var(--font-display);}
+.pi-msg.you .av{background:var(--ink-w);}
+.pi-msg .b{max-width:78%;padding:11px 14px;background:var(--card-2);border-radius:12px;font:400 13.5px/1.5 var(--font-body);color:var(--ink-w);}
+.pi-msg.you .b{background:var(--ink-w);color:var(--card);}
+.pi-msg.you .b strong{color:var(--gold);}
+.pi-input{margin-top:auto;display:flex;gap:8px;align-items:center;padding-top:14px;border-top:1px solid var(--line);}
+.pi-input input{flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card-2);font:400 13px var(--font-body);font-family:inherit;}
+.pi-quick{display:flex;gap:6px;flex-wrap:wrap;}
+.pi-quick .q{padding:5px 12px;border-radius:9999px;background:var(--card-2);border:1px solid var(--line-2);font:400 12px var(--font-body);color:var(--ink-w2);cursor:pointer;font-family:inherit;}
+.pi-clipboard{padding:12px 14px;background:var(--paper-w2);border:1px solid var(--line);border-radius:9px;font:400 12px var(--font-body);}
+.pi-clipboard .lab{font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-meta);margin-bottom:6px;}
+.pi-clipboard .item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line);font-size:12px;}
+.pi-clipboard .item:last-child{border:0;}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Tutor &amp; Minigames mockups">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+  <symbol id="i-ham" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 1a3 3 0 013 3v8a3 3 0 11-6 0V4a3 3 0 013-3zM19 10v2a7 7 0 11-14 0v-2M12 19v4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 4h11v13H9z"/><path d="M5 8v12h12"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></symbol>
+  <symbol id="i-fc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+  <symbol id="i-exam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+  <symbol id="i-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 9h4M8 7v4M15 10h.01M17 13h.01M12 17l-6 3a3 3 0 01-3-4l1-4a4 4 0 014-3h12a4 4 0 014 3l1 4a3 3 0 01-3 4l-6-3"/></symbol>
+  <symbol id="i-tutor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></symbol>
+  <symbol id="i-pod" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 18v-7a9 9 0 0118 0v7"/><path d="M21 19a2 2 0 01-2 2h-1v-6h3zM3 19a2 2 0 002 2h1v-6H3z"/></symbol>
+  <symbol id="i-perf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol>
+  <symbol id="i-prof" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></symbol>
+</defs></svg>
+
+<header class="cat-head">
+  <div>
+    <h1>The <em>coach</em>.</h1>
+    <p>Live tutor and minigames sit under the same persona: a voice that asks questions, a deck of structured drills. The complete state on the tutor is a real production screen and was missing from v1.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/tutor · /minigames · /minigames/*</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<template id="t-sidebar">
+  <aside class="sidebar">
+    <div class="usercard"><div class="av">RA</div><div class="meta"><div class="nm">Ramie F.</div><div class="sub">Lv. 7 · 2,835 XP</div><div class="lvbar"><span style="width:35%"></span></div></div></div>
+    <nav class="nav-group"><div class="nav-label">Study</div>
+      <button class="nav-item __a-dash"><span class="nav-ic"><svg><use href="#i-dash"/></svg></span><span>Dashboard</span></button>
+      <button class="nav-item __a-quiz"><span class="nav-ic"><svg><use href="#i-quiz"/></svg></span><span>Quiz</span></button>
+      <button class="nav-item __a-cases"><span class="nav-ic"><svg><use href="#i-cat"/></svg></span><span>Cases</span></button>
+      <button class="nav-item __a-fc"><span class="nav-ic"><svg><use href="#i-fc"/></svg></span><span>Flashcards</span></button>
+      <button class="nav-item __a-exam"><span class="nav-ic"><svg><use href="#i-exam"/></svg></span><span>Mock exam</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Play</div><button class="nav-item __a-mini"><span class="nav-ic"><svg><use href="#i-mini"/></svg></span><span>Minigames</span><span class="nav-badge new">NEW</span></button></nav>
+    <nav class="nav-group"><div class="nav-label">Coach</div>
+      <button class="nav-item __a-tutor"><span class="nav-ic"><svg><use href="#i-tutor"/></svg></span><span>Live tutor</span></button>
+      <button class="nav-item __a-pod"><span class="nav-ic"><svg><use href="#i-pod"/></svg></span><span>Podcasts</span></button>
+      <button class="nav-item __a-perf"><span class="nav-ic"><svg><use href="#i-perf"/></svg></span><span>Performance</span></button>
+    </nav>
+    <div class="sidebar-foot"><button class="nav-item __a-prof"><span class="nav-ic"><svg><use href="#i-prof"/></svg></span><span>Profile</span></button><button class="tog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="opacity:.6;vertical-align:-2px"><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg> Dark</button><button class="signout">Sign out</button></div>
+  </aside>
+</template>
+<script>function sidebar(active){const t=document.getElementById('t-sidebar').content.cloneNode(true);const el=t.querySelector(`.__a-${active}`);if(el){el.classList.add('active');el.classList.remove(`__a-${active}`);}return t;}</script>
+
+<!-- ═══════════════════════════════════════════ TUTOR ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">09·A</div><h2>Live Tutor</h2><p class="desc">Voice-led Socratic session. v1 is the active state. v2 is the session-complete state (production has this, my v1 didn’t). v3 is the "start a new session" surface that sits before a session.</p></section>
+
+<div class="ab" id="tut-v1">
+  <div class="ab-head"><h3>09a · Live Tutor · active session</h3><span class="ab-tag v1">v1 · in session</span><span class="ab-meta">/tutor</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · live tutor</div><div class="topbar-right"><button class="avatar-btn" aria-label="Profile" title="Profile">RA</button><button class="pill">Transcript</button><button class="pill">End session</button></div></header>
+    <div class="shell" id="tut-v1-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('tut-v1-shell').appendChild(sidebar('tutor'));
+document.getElementById('tut-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Coach</a><span class="sep">/</span>Live tutor<span class="right">Session · 04:18 · psoriasis biologics</span></div>
+    <div class="tutor-grid">
+      <div class="voice-card">
+        <div class="voice-orb"><div class="dot"></div></div>
+        <div class="voice-state">Listening · 0.4 sec</div>
+        <h2 class="voice-transcript">"Walk me through the <em>first-line</em> biologic for plaque psoriasis in a patient with comorbid IBD…"</h2>
+        <div class="voice-meter"><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span></div>
+        <div class="voice-ctrls">
+          <button class="btn ghost"><svg width="14" height="14"><use href="#i-mic"/></svg> Mute</button>
+          <button class="btn primary">Continue voice</button>
+          <button class="btn ghost">Switch to text</button>
+        </div>
+        <div class="muted small" style="font-style:italic">Tutor will pause if you fall silent for 8 seconds.</div>
+      </div>
+      <aside class="tutor-rail">
+        <div class="card dense">
+          <div class="eyebrow">— Session</div>
+          <div class="row" style="display:flex;justify-content:space-between;padding:6px 0;font:400 12.5px var(--font-body)"><span class="muted">Topic</span><span>Psoriasis · biologics</span></div>
+          <div class="row" style="display:flex;justify-content:space-between;padding:6px 0;font:400 12.5px var(--font-body)"><span class="muted">Mode</span><span>Voice · Socratic</span></div>
+          <div class="row" style="display:flex;justify-content:space-between;padding:6px 0;font:400 12.5px var(--font-body)"><span class="muted">Duration</span><span class="mono">04:18 / 25:00</span></div>
+          <div class="row" style="display:flex;justify-content:space-between;padding:6px 0;font:400 12.5px var(--font-body)"><span class="muted">Questions</span><span>3 asked · 2 right</span></div>
+        </div>
+        <div class="tutor-chat">
+          <div class="eyebrow" style="margin-bottom:4px">— Last exchange</div>
+          <div class="msg"><div class="av">DT</div><div class="b">A 34-year-old with plaque psoriasis and inactive Crohn's disease is starting biologic therapy. Walk me through your first-line choice.</div></div>
+          <div class="msg you"><div class="av">RA</div><div class="b">IL-23 inhibitor — risankizumab or guselkumab. IL-17 inhibitors aren't first-line because of the IBD history.</div></div>
+          <div class="msg"><div class="av">DT</div><div class="b">Good. Why is IL-17 inhibition risky in IBD specifically?</div></div>
+        </div>
+        <div class="insight tip"><span class="lab">Tip</span><span>Long-form answers give the tutor more material to follow up on. Keep going past your first sentence.</span></div>
+      </aside>
+    </div>
+  </main>
+`);
+</script>
+
+<div class="ab" id="tut-v2">
+  <div class="ab-head"><h3>09b · Live Tutor · session complete</h3><span class="ab-tag v2">v2 · complete state</span><span class="ab-meta">/tutor (complete)</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · live tutor</div><div class="topbar-right"><button class="pill">Transcript</button><button class="pill">Share</button></div></header>
+    <div class="shell" id="tut-v2-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('tut-v2-shell').appendChild(sidebar('tutor'));
+document.getElementById('tut-v2-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Coach</a><span class="sep">/</span>Live tutor<span class="right">Session complete · 25:14</span></div>
+    <div class="tutor-grid">
+      <div class="tutor-done">
+        <div class="trophy"><svg><use href="#i-trophy"/></svg></div>
+        <h2>Session <em>complete</em>.</h2>
+        <p>You worked through psoriasis biologics for 25 minutes — answered 9 questions, missed 2 on the IL-17 / IBD interaction. Both have been queued for a flashcard tomorrow.</p>
+        <div class="stats">
+          <div><div class="n">25</div><div class="l">minutes</div></div>
+          <div><div class="n">9</div><div class="l">questions</div></div>
+          <div><div class="n"><em>7</em></div><div class="l">correct</div></div>
+          <div><div class="n">+45</div><div class="l">XP earned</div></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:6px"><button class="btn primary">Start a new session →</button><button class="btn ghost">Review transcript</button><button class="btn ghost">Save to flashcards</button></div>
+      </div>
+      <aside class="tutor-rail">
+        <div class="card dense">
+          <div class="eyebrow">— What we covered</div>
+          <div class="row" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line)"><span style="width:7px;height:7px;background:var(--moss);border-radius:50%"></span><span class="grow" style="font-size:13px">First-line biologic choice</span><span class="mono small muted"></span></div>
+          <div class="row" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line)"><span style="width:7px;height:7px;background:var(--moss);border-radius:50%"></span><span class="grow" style="font-size:13px">IL-23 mechanism</span><span class="mono small muted"></span></div>
+          <div class="row" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line)"><span style="width:7px;height:7px;background:var(--ox);border-radius:50%"></span><span class="grow" style="font-size:13px;color:var(--ox)">IL-17 / IBD interaction</span><span class="mono small" style="color:var(--ox)">×</span></div>
+          <div class="row" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line)"><span style="width:7px;height:7px;background:var(--moss);border-radius:50%"></span><span class="grow" style="font-size:13px">Screening before initiation</span><span class="mono small muted"></span></div>
+          <div class="row" style="display:flex;align-items:center;gap:8px;padding:7px 0"><span style="width:7px;height:7px;background:var(--ox);border-radius:50%"></span><span class="grow" style="font-size:13px;color:var(--ox)">PASI 75/90 thresholds</span><span class="mono small" style="color:var(--ox)">×</span></div>
+        </div>
+        <div class="insight info"><span class="lab">Next</span><span>Tomorrow's flashcard queue picked up these two for spaced review at the 24-hour mark.</span></div>
+      </aside>
+    </div>
+  </main>
+`);
+</script>
+
+<div class="ab" id="tut-v3">
+  <div class="ab-head"><h3>09c · Live Tutor · start screen</h3><span class="ab-tag v3">v3 · pre-session</span><span class="ab-meta">/tutor (idle)</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · live tutor</div><div class="topbar-right"><button class="pill">History · 12 sessions</button></div></header>
+    <div class="shell" id="tut-v3-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('tut-v3-shell').appendChild(sidebar('tutor'));
+document.getElementById('tut-v3-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h"><div><div class="eyebrow">— Live tutor</div><h1>What do you want to <em>talk through</em>?</h1><p class="sub">Voice or text. The tutor stays on one topic until you change it. Sessions average 18 minutes.</p></div></div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+      <button class="card" style="text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:8px;font-family:inherit;border:1px solid var(--line);background:var(--card);min-height:140px">
+        <span class="chip ox small" style="align-self:flex-start">Suggested · weak topic</span>
+        <h3 style="font:400 22px var(--font-display);margin:0;letter-spacing:-.005em">Melanoma · staging &amp; biopsy</h3>
+        <p class="muted small" style="margin:0">Two overconfident misses this week point here.</p>
+        <span style="font:500 11px var(--font-mono);color:var(--ox);letter-spacing:.04em;margin-top:auto">~ 20 min · voice + text</span>
+      </button>
+      <button class="card" style="text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:8px;font-family:inherit;background:var(--card);min-height:140px">
+        <span class="chip small" style="align-self:flex-start">Continue · 4 days ago</span>
+        <h3 style="font:400 22px var(--font-display);margin:0;letter-spacing:-.005em">Psoriasis biologics</h3>
+        <p class="muted small" style="margin:0">Last session ran through IL-23 mechanism. Pick up at PASI.</p>
+        <span style="font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;margin-top:auto">~ 25 min · voice</span>
+      </button>
+      <button class="card" style="text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:8px;font-family:inherit;background:var(--card);min-height:140px">
+        <span class="chip small" style="align-self:flex-start">Free choice</span>
+        <h3 style="font:400 22px var(--font-display);margin:0;letter-spacing:-.005em">Type a topic, any topic</h3>
+        <p class="muted small" style="margin:0">"Annular vs nummular", "VEXAS workup", "Erythroderma red flags"…</p>
+        <span style="font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;margin-top:auto">→ start fresh</span>
+      </button>
+    </div>
+
+    <div class="card" style="background:var(--paper-w2);border-style:dashed">
+      <div class="eyebrow">— Past sessions</div>
+      <div style="display:flex;flex-direction:column;margin-top:8px">
+        ${[
+          {when:'4 days ago',topic:'Psoriasis biologics',dur:'25 min',q:'9 / 7',xp:'+45'},
+          {when:'11 May',topic:'Annular eruptions · differential',dur:'14 min',q:'5 / 5',xp:'+30'},
+          {when:'8 May',topic:'Hair loss workup',dur:'18 min',q:'7 / 4',xp:'+25'},
+          {when:'6 May',topic:'Drug eruption timing',dur:'12 min',q:'4 / 3',xp:'+18'},
+        ].map(s=>`
+          <div style="display:grid;grid-template-columns:120px 1fr 80px 80px 60px 80px;gap:14px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);font:400 12.5px var(--font-body)">
+            <span class="mono small muted">${s.when}</span>
+            <span style="font:500 13px var(--font-body)">${s.topic}</span>
+            <span class="mono small muted">${s.dur}</span>
+            <span class="mono small">${s.q}</span>
+            <span class="mono small" style="color:var(--moss)">${s.xp}</span>
+            <a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none">Resume →</a>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ MINIGAMES HUB ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">09·B</div><h2>Minigames hub</h2><p class="desc">Today’s challenge sits in a dark capsule with a live countdown. Category tabs filter. Cards drop the heavy gamification stats from v1 and read as a clean catalogue.</p></section>
+
+<div class="ab" id="mg-v1">
+  <div class="ab-head"><h3>09d · Minigames · hub</h3><span class="ab-tag v1">v1 · catalogue</span><span class="ab-meta">/minigames</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Sound · on</button><button class="pill">Leaderboard</button></div></header>
+    <div class="shell" id="mg-v1-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('mg-v1-shell').appendChild(sidebar('mini'));
+document.getElementById('mg-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Play</a><span class="sep">/</span>Minigames<span class="right">Eight games · one daily challenge</span></div>
+    <div class="page-h">
+      <div><div class="eyebrow">— Play</div><h1><em>Minigames</em>.</h1><p class="sub">Same vocabulary as the rest of the app, faster pulse. Eight games, one daily challenge, a streak — that's the whole loop.</p></div>
+    </div>
+
+    <div class="mg-hero">
+      <div class="mg-today">
+        <span class="lab">Today's challenge · resets in</span>
+        <h2>Differential Dash · "The morbilliform eruption"</h2>
+        <p>Generate your own differential before the expert list — then justify your top pick in one sentence. 90 seconds.</p>
+        <div class="row"><button class="btn">Start challenge →</button><span class="countdown">in <span class="t">09 : 34 : 23</span></span></div>
+      </div>
+      <div class="mg-streak">
+        <span class="l">Daily streak</span>
+        <span class="n"><em>12</em> days</span>
+        <div class="heat">
+          ${Array.from({length:42},(_,i)=>`<span class="c ${[0,1,2,3,4,5,7,8,9,10,11,12,14,15,16,17,18,19,21,22,23,24,25,26,28,29,30,31,32,33,35,36,37,38,39,40,41].includes(i)?'on':''}"></span>`).join('')}
+        </div>
+        <span class="muted small">Next milestone · 14 days · +50 XP</span>
+      </div>
+    </div>
+
+    <div class="mg-cat-tabs">
+      <button class="mg-cat-tab on">All games · 8</button>
+      <button class="mg-cat-tab">Visual diagnosis · 2</button>
+      <button class="mg-cat-tab">Clinical reasoning · 4</button>
+      <button class="mg-cat-tab">Therapeutic · 2</button>
+    </div>
+
+    <div class="mg-grid">
+      ${[
+        {ic:'S',nm:'SpotDx Sprint',cat:'Visual · timed',d:'Describe the morphology, then diagnose. Two-phase, MCQ on a clock.',chips:['Classic','Daily'],kind:''},
+        {ic:'M',nm:'Morphology Match',cat:'Visual · vocabulary',d:'Identify terms from clinical vignettes, then write your own.',chips:['Classic','New'],kind:'new'},
+        {ic:'D',nm:'Differential Dash',cat:'Reasoning · ranked',d:'Generate your differential, rank the expert list, justify your top.',chips:['Daily'],kind:'daily'},
+        {ic:'S',nm:'Socratic Challenge',cat:'Conversation',d:'Dialogue with the tutor to master a concept end-to-end.',chips:['Conversation','New'],kind:'new'},
+        {ic:'P',nm:'Patient Interview',cat:'Conversation · history-taking',d:'Take a history from a simulated patient to uncover the diagnosis.',chips:['Conversation'],kind:''},
+        {ic:'B',nm:'Boss Battle',cat:'Conversation · workup',d:'Structured workup against a disease boss — investigations, hypotheses, evidence.',chips:['Conversation'],kind:''},
+        {ic:'C',nm:'Counterfactual Drill',cat:'Reasoning · explanation',d:'Explain your reasoning when clinical pivots change the diagnosis.',chips:['Locked · Lv. 8'],kind:'locked'},
+        {ic:'L',nm:'Management Ladder',cat:'Therapeutic · ranking',d:'Rank treatment steps in the correct therapeutic sequence; justify each.',chips:['Classic'],kind:''},
+      ].map(g=>`
+        <article class="mg-card ${g.kind}">
+          <div class="head"><div class="ic">${g.ic}</div><h3>${g.nm}</h3></div>
+          <div class="nm-chips">${g.chips.map(c=>`<span class="chip ${c==='Daily'?'ox':c==='New'?'moss':c.includes('Locked')?'':''} small">${c}</span>`).join('')}</div>
+          <p class="desc">${g.d}</p>
+          <div class="foot"><span>${g.cat}</span>${g.kind==='locked'?'<span>Locked · Lv. 8</span>':'<span style="color:var(--ox)">Play →</span>'}</div>
+        </article>
+      `).join('')}
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ SpotDx Sprint runner ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">09·C</div><h2>SpotDx Sprint runner</h2><p class="desc">Two-phase: describe (morphology axes + chip bank), then diagnose (MCQ). Production tracks 0 of 4 morphology axes filled.</p></section>
+
+<div class="ab" id="sp-v1">
+  <div class="ab-head"><h3>09e · SpotDx Sprint · describe phase</h3><span class="ab-tag v1">v1 · canonical</span><span class="ab-meta">/minigames/spotdx_sprint</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · spotdx sprint</div><div class="topbar-right"><button class="pill">Forfeit</button><button class="pill">Flag plate</button></div></header>
+    <div class="sp-frame">
+      <div class="sp-hud">
+        <div class="title-block">
+          <div class="eyebrow">— Fast visual diagnosis</div>
+          <h2>Spot<span class="dot">.</span>Dx Sprint</h2>
+        </div>
+        <div class="stats" style="display:flex;gap:32px">
+          <div><div class="n mono">00:42</div><div class="l">time</div></div>
+          <div><div class="n mono">+18</div><div class="l">points</div></div>
+          <div><div class="n mono">3 / 10</div><div class="l">plates</div></div>
+        </div>
+      </div>
+      <div class="sp-stage">
+        <div class="sp-plate"><span class="label">Plate 3 · trunk · Fitz IV</span></div>
+        <div class="sp-prompt">
+          <div class="step-line">— Phase 1 of 2 · describe</div>
+          <h3>Describe this lesion.</h3>
+          <p class="muted small" style="margin:0">Fill the four morphology axes from the chip bank. You can chain multiple chips per axis; some axes accept a free entry.</p>
+          <div class="axes">
+            <div class="axis done"><span class="num">01 · Primary</span><span class="nm">Papule</span><span class="v"></span></div>
+            <div class="axis active"><span class="num">02 · Color</span><span class="nm">— pending</span><span class="v">tap a chip ↓</span></div>
+            <div class="axis"><span class="num">03 · Configuration</span><span class="nm">— pending</span><span class="v">—</span></div>
+            <div class="axis"><span class="num">04 · Distribution</span><span class="nm">— pending</span><span class="v">—</span></div>
+          </div>
+          <div>
+            <div class="muted small" style="font:500 10px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Bank · 12 chips</div>
+            <div class="morph-bank">
+              <button class="morph-chip on">macule</button><button class="morph-chip on">papule</button><button class="morph-chip">plaque</button><button class="morph-chip">nodule</button><button class="morph-chip">vesicle</button><button class="morph-chip">bulla</button><button class="morph-chip">pustule</button><button class="morph-chip">patch</button><button class="morph-chip">tumor</button><button class="morph-chip">cyst</button><button class="morph-chip">wheal</button><button class="morph-chip">comedo</button>
+            </div>
+          </div>
+          <div class="sp-foot">
+            <div class="muted small">0 of 4 morphology axes complete</div>
+            <button class="btn primary">Submit description</button>
+          </div>
+          <div class="sp-turnbar"><div style="width:28%"></div></div>
+          <div class="muted small" style="text-align:center;font:500 11px var(--font-mono);letter-spacing:.06em;text-transform:uppercase">Turn 3 / 10</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ Boss Battle ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">09·D</div><h2>Boss Battle</h2><p class="desc">Structured workup against a disease "boss". Investigations cost stamina; correct hypotheses chip away at HP. Wraps clinical-reasoning practice in light RPG framing.</p></section>
+
+<div class="ab" id="bb-v1">
+  <div class="ab-head"><h3>09f · Boss Battle · vesicobullous</h3><span class="ab-tag v1">v1 · investigation</span><span class="ab-meta">/minigames/boss_battle</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · boss battle</div><div class="topbar-right"><button class="pill">Forfeit</button><button class="pill">Hint · 2 left</button></div></header>
+    <div class="main" style="padding:28px 32px">
+      <div class="page-h"><div><div class="eyebrow">— Boss · vesicobullous · hard</div><h1 style="font-size:36px"><em>The blistering elder</em>.</h1><p class="sub">82-year-old with tense bullae on flexor surfaces, no mucosal involvement, intense pruritus for 6 weeks. Lab is on the table; the boss has 4 HP.</p></div></div>
+      <div class="bb-stage">
+        <div class="bb-arena">
+          <div class="bb-head">
+            <div class="bb-portrait"></div>
+            <div class="bb-meta">
+              <div class="sub">— Vesicobullous · hard</div>
+              <h3>The blistering elder</h3>
+              <p class="desc">Tense bullae on flexor surfaces · no mucosal involvement · pruritus 6 weeks · 82 y/o · no recent drug exposure.</p>
+              <div class="hp"><div class="seg"></div><div class="seg"></div><div class="seg dim"></div><div class="seg dim"></div></div>
+              <div style="font:500 11px var(--font-mono);color:var(--ink-meta);margin-top:5px;letter-spacing:.04em">2 / 4 HP · 2 hits to victory</div>
+            </div>
+          </div>
+
+          <div class="bb-phase"><span style="width:7px;height:7px;background:var(--ox);border-radius:50%"></span>Phase 2 · investigations</div>
+
+          <div class="investigation-list">
+            <button class="invest done"><span class="cost mono">−1 stamina</span><span class="nm">Routine bloods</span><span class="yield">done · WBC, eos ↑</span></button>
+            <button class="invest done"><span class="cost mono">−2 stamina</span><span class="nm">Direct immunofluorescence</span><span class="yield">done · linear IgG &amp; C3 at BMZ</span></button>
+            <button class="invest"><span class="cost mono">−2 stamina</span><span class="nm">Indirect IF · salt-split skin</span><span class="yield">order →</span></button>
+            <button class="invest"><span class="cost mono">−3 stamina</span><span class="nm">BP180 / BP230 ELISA</span><span class="yield">order →</span></button>
+            <button class="invest"><span class="cost mono">−1 stamina</span><span class="nm">Skin biopsy · H&amp;E</span><span class="yield">order →</span></button>
+            <button class="invest"><span class="cost mono">−2 stamina</span><span class="nm">Tzanck smear</span><span class="yield">order →</span></button>
+          </div>
+
+          <div class="row" style="display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid var(--line)">
+            <div class="muted small">Stamina · <strong style="color:var(--ink-w)">7 / 10</strong> · 3 spent</div>
+            <div style="display:flex;gap:8px"><button class="btn ghost sm">Hint</button><button class="btn primary sm">Submit findings →</button></div>
+          </div>
+        </div>
+
+        <aside class="ddx-list">
+          <div class="eyebrow" style="margin-bottom:8px">— Your differential · drag to rank</div>
+          <div class="ddx top"><span class="rank">1</span>Bullous pemphigoid<span class="grip">≡</span></div>
+          <div class="ddx"><span class="rank">2</span>Pemphigus vulgaris<span class="grip">≡</span></div>
+          <div class="ddx"><span class="rank">3</span>Linear IgA disease<span class="grip">≡</span></div>
+          <div class="ddx"><span class="rank">4</span>Bullous SLE<span class="grip">≡</span></div>
+          <div class="ddx"><span class="rank">5</span>Dermatitis herpetiformis<span class="grip">≡</span></div>
+          <div style="padding-top:12px;border-top:1px solid var(--line);margin-top:6px"><div class="eyebrow" style="margin-bottom:6px">— Evidence collected</div><div class="muted small" style="font-size:12px;line-height:1.5">DIF · linear IgG/C3 at BMZ supports BP. No mucosal involvement makes PV unlikely. WBC mildly elevated, eos ↑.</div></div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ Differential Dash ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">09·E</div><h2>Differential Dash</h2><p class="desc">Generate your own differential by category tier, then justify the top pick before the timer ends. Today’s challenge in the hub.</p></section>
+
+<div class="ab" id="dd-v1">
+  <div class="ab-head"><h3>09g · Differential Dash · morbilliform</h3><span class="ab-tag v1">v1 · 3-tier sort</span><span class="ab-meta">/minigames/differential_dash</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · differential dash</div><div class="topbar-right"><button class="pill" style="background:var(--ox);color:var(--card);border-color:var(--ox)">01:14</button><button class="pill">Forfeit</button></div></header>
+    <div class="dd-stage">
+      <div class="page-h"><div><div class="eyebrow">— Daily challenge · 13 May</div><h1 style="font-size:36px">"The <em>morbilliform</em> eruption."</h1></div><div class="actions"><button class="btn ghost sm">Skip</button></div></div>
+      <div class="dd-vignette">
+        A <strong>32-year-old</strong> male presents with a 4-day history of widespread <strong>morbilliform eruption</strong> on the trunk and proximal extremities. Started oral <strong>amoxicillin</strong> for sinusitis on day 1, and developed <strong>low-grade fever</strong> and mild facial swelling on day 3. <strong>Generate your top three differentials in tier order</strong> — most likely first.
+      </div>
+      <div class="dd-tiers">
+        <div class="dd-tier t1">
+          <h4>Tier 1 · most likely <span class="ct">2 / 3</span></h4>
+          <div class="slot filled">DRESS syndrome</div>
+          <div class="slot filled">Drug eruption · simple morbilliform</div>
+          <div class="slot empty">— add a third</div>
+        </div>
+        <div class="dd-tier t2">
+          <h4>Tier 2 · possible <span class="ct">1 / 3</span></h4>
+          <div class="slot filled">Viral exanthem (EBV / CMV)</div>
+          <div class="slot empty">— add</div>
+          <div class="slot empty">— add</div>
+        </div>
+        <div class="dd-tier t3">
+          <h4>Tier 3 · cannot miss <span class="ct">0 / 1</span></h4>
+          <div class="slot empty">— must-rule-out diagnosis</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line)">
+        <div class="muted small">3 of 7 slots filled · 1:14 remaining</div>
+        <div style="display:flex;gap:10px"><button class="btn ghost">Add from bank</button><button class="btn primary">Submit differential →</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ Patient Interview ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">09·F</div><h2>Patient Interview</h2><p class="desc">Take a structured history from a simulated patient. Type or pick a quick question. The clipboard logs what you’ve gathered.</p></section>
+
+<div class="ab" id="pi-v1">
+  <div class="ab-head"><h3>09h · Patient Interview · pruritic rash</h3><span class="ab-tag v1">v1 · history-taking</span><span class="ab-meta">/minigames/patient_interview</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · patient interview</div><div class="topbar-right"><button class="pill">Skip turn</button><button class="pill">End interview</button></div></header>
+    <div class="main" style="padding:24px 32px;gap:18px">
+      <div class="page-h"><div><div class="eyebrow">— Simulated patient · history-taking drill</div><h1 style="font-size:32px"><em>Margaret</em>, 64, with a "rash everywhere".</h1></div><div class="actions"><span class="chip ox small">Turn 6 / 12</span><span class="chip moss small">Diagnostic confidence · 62%</span></div></div>
+
+      <div class="pi-stage">
+        <aside class="pi-patient">
+          <div class="pi-avatar"></div>
+          <div class="nm">Margaret R.</div>
+          <div style="font:500 11px var(--font-mono);color:var(--ink-meta);text-align:center;letter-spacing:.06em;text-transform:uppercase">Patient · 64 · F · Fitz III</div>
+          <div style="padding-top:10px;border-top:1px solid var(--line);margin-top:6px">
+            <div class="lab">Vitals (latest)</div>
+            <div class="row">T 37.4 ° C · HR 88 · BP 138/82 · SpO₂ 98%</div>
+            <div class="lab" style="margin-top:10px">Allergies</div>
+            <div class="row">NKDA</div>
+            <div class="lab" style="margin-top:10px">Active issues</div>
+            <div class="row">HTN (HCTZ · 4 mo) · OA</div>
+          </div>
+          <div class="insight tip" style="font-size:11.5px;margin-top:6px"><span class="lab" style="font-size:9px">Hint</span><span>Ask about <em>onset</em> in relation to medication start.</span></div>
+        </aside>
+        <div class="pi-chat">
+          <div class="pi-msg"><div class="av">M</div><div class="b">It’s been awful, doctor. The itching keeps me up.</div></div>
+          <div class="pi-msg you"><div class="av">RA</div><div class="b">I’m sorry to hear that. <strong>Where</strong> on your body does it itch the most, and <strong>when</strong> did it start?</div></div>
+          <div class="pi-msg"><div class="av">M</div><div class="b">It started on my shins about three weeks ago, then it spread to my arms. The worst bits are the inside of my elbows.</div></div>
+          <div class="pi-msg you"><div class="av">RA</div><div class="b">Have you started any <strong>new medications</strong> in the last few months?</div></div>
+          <div class="pi-msg"><div class="av">M</div><div class="b">My GP started me on a water tablet — hydrochlorothiazide — about four months ago for my blood pressure. Nothing else new.</div></div>
+          <div class="pi-msg you"><div class="av">RA</div><div class="b">Any blistering, bleeding, or open sores?</div></div>
+          <div class="pi-msg" style="opacity:.55"><div class="av">M</div><div class="b"><em>typing…</em></div></div>
+          <div class="pi-clipboard" style="margin-top:auto">
+            <div class="lab">Clipboard · what you’ve gathered</div>
+            <div class="item"><span class="muted">Distribution</span><span>shins → arms · elbow flexures</span></div>
+            <div class="item"><span class="muted">Duration</span><span>3 weeks · still spreading</span></div>
+            <div class="item"><span class="muted">Pruritus</span><span>severe · sleep-disturbing</span></div>
+            <div class="item"><span class="muted">Meds</span><span>HCTZ · started 4 mo ago</span></div>
+            <div class="item"><span class="muted">Blistering</span><span>— ask now</span></div>
+          </div>
+          <div class="pi-quick"><button class="q">Family history?</button><button class="q">Skin care routine?</button><button class="q">Photodistribution?</button><button class="q">Travel?</button></div>
+          <div class="pi-input"><input type="text" placeholder="Type your question…"/><button class="btn primary sm">Ask →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ mobile ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">m</div><h2>Mobile</h2><p class="desc">Hub + tutor compressed to phone widths.</p></section>
+
+<div class="ab" id="mg-mob">
+  <div class="ab-head"><h3>09m · Minigames · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/minigames</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar"><button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button><div class="wm">Play</div><button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button></header>
+      <div class="m-content">
+        <div class="mg-today" style="border-radius:12px;padding:18px"><span class="lab">Today’s challenge</span><h2 style="font-size:22px">Differential Dash<br><span class="muted small" style="font:300 13px var(--font-display);font-style:italic;color:#F0E2BC">"The morbilliform eruption"</span></h2><div class="row"><button class="btn xs" style="background:var(--card);color:var(--ink-w);border-color:var(--card)">Start →</button><span class="countdown">09 : 34 : 23</span></div></div>
+        <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px"><button style="padding:6px 12px;font:500 12px var(--font-body);background:var(--ink-w);color:var(--card);border:0;border-radius:999px;white-space:nowrap">All · 8</button><button style="padding:6px 12px;font:400 12px var(--font-body);background:var(--card);color:var(--ink-w2);border:1px solid var(--line);border-radius:999px;white-space:nowrap">Visual</button><button style="padding:6px 12px;font:400 12px var(--font-body);background:var(--card);color:var(--ink-w2);border:1px solid var(--line);border-radius:999px;white-space:nowrap">Reasoning</button><button style="padding:6px 12px;font:400 12px var(--font-body);background:var(--card);color:var(--ink-w2);border:1px solid var(--line);border-radius:999px;white-space:nowrap">Therapy</button></div>
+        <article class="mg-card daily" style="min-height:120px">
+          <div class="head" style="gap:10px"><div class="ic" style="width:30px;height:30px">S</div><h3 style="font-size:18px">SpotDx Sprint</h3></div>
+          <div class="muted small" style="font-size:12px;flex:1">90-second visual triage. Name the diagnosis before the timer ends.</div>
+          <div class="foot" style="font-size:11px">Visual · timed<span style="color:var(--ox)">Play →</span></div>
+        </article>
+        <article class="mg-card daily" style="min-height:120px">
+          <div class="head" style="gap:10px"><div class="ic" style="width:30px;height:30px">M</div><h3 style="font-size:18px">Morphology Match</h3></div>
+          <div class="muted small" style="font-size:12px;flex:1">Pair clinical photos with their descriptor terms. Lock the vocabulary.</div>
+          <div class="foot" style="font-size:11px">Visual · untimed<span style="color:var(--ox)">Play →</span></div>
+        </article>
+        <article class="mg-card daily" style="min-height:120px">
+          <div class="head" style="gap:10px"><div class="ic" style="width:30px;height:30px">D</div><h3 style="font-size:18px">Differential Dash</h3></div>
+          <div class="muted small" style="font-size:12px;flex:1">Generate a differential by category, then justify the top pick before time runs out.</div>
+          <div class="foot" style="font-size:11px">Reasoning · timed<span style="color:var(--ox)">Play →</span></div>
+        </article>
+        <article class="mg-card daily" style="min-height:120px">
+          <div class="head" style="gap:10px"><div class="ic" style="width:30px;height:30px">P</div><h3 style="font-size:18px">Patient Interview</h3></div>
+          <div class="muted small" style="font-size:12px;flex:1">Take a structured history from a simulated patient. Build the clipboard.</div>
+          <div class="foot" style="font-size:11px">Reasoning · untimed<span style="color:var(--ox)">Play →</span></div>
+        </article>
+      </div>
+      <nav class="m-tabbar"><a class="tab"><svg><use href="#i-dash"/></svg>Home</a><a class="tab"><svg><use href="#i-quiz"/></svg>Study</a><a class="tab active"><svg><use href="#i-mini"/></svg>Play</a><a class="tab"><svg><use href="#i-perf"/></svg>Stats</a><a class="tab"><svg><use href="#i-prof"/></svg>You</a></nav>
+    </div>
+  </div>
+</div>
+
+<div class="ab" id="tut-mob">
+  <div class="ab-head"><h3>09n · Live Tutor · mobile (active)</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/tutor</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar"><button class="ham"><svg width="20" height="20"><use href="#i-x"/></svg></button><div class="wm" style="font:500 12px var(--font-mono);letter-spacing:.04em;text-transform:uppercase">Tutor · 04:18</div><button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button></header>
+      <div class="m-content" style="text-align:center;align-items:center;padding-top:60px">
+        <div class="voice-orb" style="width:160px;height:160px"><div class="dot"></div></div>
+        <div class="voice-state" style="margin-top:24px">Listening · 0.4 sec</div>
+        <h2 class="voice-transcript" style="font-size:22px;margin-top:8px">"Walk me through the <em>first-line</em> biologic for psoriasis with comorbid IBD…"</h2>
+        <div class="voice-meter" style="margin-top:14px"><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span></div>
+        <div style="display:flex;gap:8px;margin-top:auto"><button class="btn ghost sm">Mute</button><button class="btn primary sm">Continue voice</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

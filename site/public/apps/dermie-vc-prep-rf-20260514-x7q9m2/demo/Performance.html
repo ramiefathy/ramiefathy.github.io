@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Performance / Analytics</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+.perf-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.kpi-tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden;}
+.kpi-tile .lab{font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta);}
+.kpi-tile .n{font:300 60px var(--font-display);color:var(--ink-w);letter-spacing:-.025em;font-feature-settings:"tnum";line-height:1;margin-top:4px;}
+.kpi-tile .n em{color:var(--ox);font-style:italic;}
+.kpi-tile .b{font:400 12.5px var(--font-body);color:var(--ink-meta);}
+.kpi-tile.score{background:linear-gradient(135deg,var(--card) 0%,var(--card-2) 100%);}
+.kpi-tile.taken{background:linear-gradient(135deg,#F4F6EE 0%,var(--moss-soft) 100%);}
+.kpi-tile.streak{background:var(--ox);color:var(--card);}
+.kpi-tile.streak .lab{color:rgba(251,246,232,.7);}
+.kpi-tile.streak .n{color:var(--card);}
+.kpi-tile.streak .b{color:rgba(251,246,232,.8);}
+
+/* 07a restructure: page header + compact KPI row in left col, score-trend on right */
+.perf-toprow{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:stretch;}
+.perf-left-col{display:flex;flex-direction:column;gap:20px;}
+.perf-left-col .page-h{margin:0;}
+.perf-left-col .page-h h1{font-size:clamp(40px,5vw,64px);line-height:1.05;letter-spacing:-.02em;}
+.perf-left-col .page-h .sub{max-width:46ch;margin-top:6px;}
+.perf-kpi-col{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:auto;}
+.perf-kpi-col .kpi-tile{padding:14px 12px;border-radius:12px;gap:4px;text-align:center;align-items:center;justify-content:center;aspect-ratio:1/1;min-height:0;}
+.perf-kpi-col .kpi-tile .lab{font-size:9.5px;letter-spacing:.16em;}
+.perf-kpi-col .kpi-tile .n{font-size:34px;line-height:1;margin-top:2px;display:inline-flex;align-items:baseline;gap:4px;}
+.perf-kpi-col .kpi-tile .n .u{font-size:13px;color:var(--ink-meta);font-family:var(--font-body);font-weight:500;}
+.perf-kpi-col .kpi-tile.streak .n .u{color:rgba(251,246,232,.85);}
+.perf-kpi-col .kpi-tile .b{font-size:10.5px;line-height:1.4;margin-top:2px;max-width:18ch;}
+.perf-toprow > .score-trend-card{margin:0;display:flex;flex-direction:column;}
+.perf-toprow > .score-trend-card .trend-chart{flex:1;min-height:240px;}
+@media (max-width:980px){.perf-toprow{grid-template-columns:1fr;}.perf-kpi-col .kpi-tile{aspect-ratio:auto;}}
+
+.perf-row2{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
+
+/* topic mastery */
+.tm-list{display:flex;flex-direction:column;gap:0;}
+.tm-row{display:grid;grid-template-columns:1fr 80px 70px 80px;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+.tm-row:last-child{border:0;}
+.tm-row .nm{font:400 14px var(--font-body);color:var(--ink-w);}
+.tm-row .sub{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;text-transform:uppercase;margin-top:1px;}
+.tm-row .bar{height:6px;background:var(--paper-w3);border-radius:3px;overflow:hidden;}
+.tm-row .bar > div{height:100%;background:var(--moss);}
+.tm-row .bar.bad > div{background:var(--ox);}
+.tm-row .bar.warn > div{background:var(--gold);}
+.tm-row .pct{font:500 12px var(--font-mono);color:var(--ink-w);text-align:right;font-feature-settings:"tnum";}
+.tm-foot{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding-top:14px;border-top:1px solid var(--line);font:400 12.5px var(--font-body);}
+.tm-foot .lab{font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-meta);margin-bottom:2px;}
+
+/* score trend */
+.trend-chart{height:220px;padding:8px 0 8px 36px;display:flex;flex-direction:column;gap:4px;position:relative;}
+.trend-chart svg{width:100%;height:100%;}
+.trend-chart .y-axis{position:absolute;left:0;top:8px;bottom:8px;width:32px;pointer-events:none;}
+.trend-chart .y-axis span{position:absolute;left:0;transform:translateY(-50%);font:500 10px var(--font-mono);color:var(--ink-meta);font-feature-settings:"tnum";letter-spacing:.02em;}
+.trend-chart .avg-label{position:absolute;right:8px;font:500 10px var(--font-mono);color:var(--moss);letter-spacing:.04em;pointer-events:none;background:var(--card);padding:0 4px;transform:translateY(-50%);}
+
+/* confusion insights */
+.conf-list{display:flex;flex-direction:column;gap:0;}
+.conf-row-item{display:grid;grid-template-columns:1fr 60px 60px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);font:400 12.5px var(--font-body);}
+.conf-row-item:last-child{border:0;}
+.conf-row-item .pair{display:flex;align-items:center;gap:8px;}
+.conf-row-item .pair .a{color:var(--ox);}
+.conf-row-item .pair .arr{color:var(--ink-w3);}
+.conf-row-item .pair .b{color:var(--moss);}
+.conf-row-item .ct{font:500 11px var(--font-mono);color:var(--ink-w);text-align:right;font-feature-settings:"tnum";}
+.conf-row-item .ct-x{color:var(--ox);}
+
+/* exam readiness */
+.ready{background:linear-gradient(135deg,var(--card) 0%,var(--moss-soft) 100%);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;}
+.ring{display:flex;align-items:center;gap:18px;}
+.ring svg{flex-shrink:0;}
+.ring-meta{flex:1;}
+.ring-meta .n{font:300 56px var(--font-display);color:var(--ink-w);letter-spacing:-.025em;line-height:1;font-feature-settings:"tnum";}
+.ring-meta .n em{color:var(--moss);font-style:italic;}
+.ring-meta .l{font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta);}
+.ring-meta .b{font:400 12.5px var(--font-body);color:var(--ink-meta);margin-top:4px;}
+
+.ready-list{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid rgba(0,0,0,.08);}
+.ready-list .row{display:flex;justify-content:space-between;font:400 12.5px var(--font-body);}
+.ready-list .row .k{color:var(--ink-meta);}
+.ready-list .row .v{color:var(--ink-w);font-weight:500;}
+
+/* study recommendations */
+.sr{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;}
+.sr-head{display:flex;align-items:baseline;justify-content:space-between;}
+.sr-hours{display:flex;align-items:baseline;gap:8px;}
+.sr-hours .n{font:300 64px var(--font-display);color:var(--ink-w);letter-spacing:-.025em;line-height:1;}
+.sr-hours .n em{color:var(--ox);font-style:italic;}
+.sr-hours .u{font:400 14px var(--font-body);color:var(--ink-meta);}
+.sr-row{display:grid;grid-template-columns:1fr 80px 90px 60px;gap:12px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line);font:400 13px var(--font-body);}
+.sr-row:last-of-type{border:0;}
+.sr-row .now{color:var(--ox);font:500 11px var(--font-mono);}
+.sr-row .arr{color:var(--ink-w3);}
+.sr-row .tgt{color:var(--moss);font:500 11px var(--font-mono);}
+.sr-row .lift{font:500 11px var(--font-mono);background:var(--moss-soft);color:#2A5235;padding:2px 6px;border-radius:4px;letter-spacing:.04em;text-align:center;}
+.sr-foot{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:24px;padding-top:18px;border-top:1px solid var(--line);align-items:end;font:400 12.5px var(--font-body);}
+.sr-foot .lab{font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-meta);margin-bottom:4px;}
+.sr-foot > div{display:flex;flex-direction:column;}
+.sr-foot .btn{align-self:end;}
+@media (max-width:780px){.sr-foot{grid-template-columns:1fr;}.sr-foot .btn{align-self:stretch;}}
+
+/* v2 — calibration plot */
+.calib-plot{padding:14px 14px 22px;background:var(--card);border:1px solid var(--line);border-radius:12px;height:300px;display:flex;align-items:flex-end;gap:8px;position:relative;}
+.calib-plot .bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;position:relative;z-index:1;}
+.calib-plot .ideal{position:absolute;left:14px;right:14px;bottom:22px;top:14px;width:auto;height:auto;pointer-events:none;z-index:0;}
+.calib-plot .bar-group .bar{width:50%;background:var(--ink-w2);border-radius:3px 3px 0 0;position:relative;transition:height var(--dur-norm,200ms) var(--ease-atrium,cubic-bezier(.2,.7,.2,1));}
+.calib-plot .bar-group .bar.under{background:var(--moss);}
+.calib-plot .bar-group .bar.over{background:var(--ox);}
+.calib-plot .bar-group .lab{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;}
+
+/* v3 — narrative */
+.narrative{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:32px 36px;display:flex;flex-direction:column;gap:14px;}
+.narrative p{font:400 16px/1.65 var(--font-body);color:var(--ink-w);margin:0;}
+.narrative p strong{color:var(--ox);font-weight:600;}
+.narrative .pull{font:300 28px/1.35 var(--font-display);color:var(--ink-w);font-style:italic;letter-spacing:-.01em;padding-left:20px;border-left:3px solid var(--ox);margin:14px 0;}
+
+/* mobile */
+.m-pf-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.m-pf-kpi .p{padding:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;gap:2px;}
+.m-pf-kpi .p.streak{background:var(--ox);color:var(--card);border-color:var(--ox);}
+.m-pf-kpi .p .n{font:300 26px var(--font-display);}
+.m-pf-kpi .p .l{font:600 9px var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-meta);}
+.m-pf-kpi .p.streak .l{color:rgba(251,246,232,.7);}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Performance mockups">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-ham" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 4h11v13H9z"/><path d="M5 8v12h12"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></symbol>
+  <symbol id="i-fc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+  <symbol id="i-exam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+  <symbol id="i-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 9h4M8 7v4M15 10h.01M17 13h.01M12 17l-6 3a3 3 0 01-3-4l1-4a4 4 0 014-3h12a4 4 0 014 3l1 4a3 3 0 01-3 4l-6-3"/></symbol>
+  <symbol id="i-tutor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></symbol>
+  <symbol id="i-pod" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 18v-7a9 9 0 0118 0v7"/><path d="M21 19a2 2 0 01-2 2h-1v-6h3zM3 19a2 2 0 002 2h1v-6H3z"/></symbol>
+  <symbol id="i-perf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol>
+  <symbol id="i-prof" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></symbol>
+</defs></svg>
+
+<header class="cat-head">
+  <div>
+    <h1>The <em>analytics</em> page.</h1>
+    <p>Topic mastery, score trend, confusion insights, exam readiness, study recommendations. The platform’s "did the work stick?" page — the one residents check at the end of each week.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/performance</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<template id="t-sidebar">
+  <aside class="sidebar">
+    <div class="usercard"><div class="av">RA</div><div class="meta"><div class="nm">Ramie F.</div><div class="sub">Lv. 7 · 2,835 XP</div><div class="lvbar"><span style="width:35%"></span></div></div></div>
+    <nav class="nav-group"><div class="nav-label">Study</div>
+      <button class="nav-item __a-dash"><span class="nav-ic"><svg><use href="#i-dash"/></svg></span><span>Dashboard</span></button>
+      <button class="nav-item __a-quiz"><span class="nav-ic"><svg><use href="#i-quiz"/></svg></span><span>Quiz</span></button>
+      <button class="nav-item __a-cases"><span class="nav-ic"><svg><use href="#i-cat"/></svg></span><span>Cases</span></button>
+      <button class="nav-item __a-fc"><span class="nav-ic"><svg><use href="#i-fc"/></svg></span><span>Flashcards</span></button>
+      <button class="nav-item __a-exam"><span class="nav-ic"><svg><use href="#i-exam"/></svg></span><span>Mock exam</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Play</div><button class="nav-item __a-mini"><span class="nav-ic"><svg><use href="#i-mini"/></svg></span><span>Minigames</span></button></nav>
+    <nav class="nav-group"><div class="nav-label">Coach</div>
+      <button class="nav-item __a-tutor"><span class="nav-ic"><svg><use href="#i-tutor"/></svg></span><span>Live tutor</span></button>
+      <button class="nav-item __a-pod"><span class="nav-ic"><svg><use href="#i-pod"/></svg></span><span>Podcasts</span></button>
+      <button class="nav-item __a-perf"><span class="nav-ic"><svg><use href="#i-perf"/></svg></span><span>Performance</span></button>
+    </nav>
+    <div class="sidebar-foot"><button class="nav-item __a-prof"><span class="nav-ic"><svg><use href="#i-prof"/></svg></span><span>Profile</span></button><button class="tog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="opacity:.6;vertical-align:-2px"><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg> Dark</button><button class="signout">Sign out</button></div>
+  </aside>
+</template>
+<script>function sidebar(active){const t=document.getElementById('t-sidebar').content.cloneNode(true);const el=t.querySelector(`.__a-${active}`);if(el){el.classList.add('active');el.classList.remove(`__a-${active}`);}return t;}</script>
+
+<!-- ═══════════════════════════════════════════ v1 — canonical analytics ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">07·v1</div><h2>Canonical analytics</h2><p class="desc">Closest to production. 3 KPI tiles up top, two-up rows below: Topic Mastery + Score Trend, then Confusion Insights + Exam Readiness, then Study Recommendations full-width.</p></section>
+
+<div class="ab" id="perf-v1">
+  <div class="ab-head"><h3>07a · Performance · canonical</h3><span class="ab-tag v1">v1 · analytics dashboard</span><span class="ab-meta">/performance</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="avatar-btn" aria-label="Profile" title="Profile">RA</button><button class="pill">Last 30 days</button><button class="pill">Export CSV</button><button class="pill streak">12 day streak</button></div></header>
+    <div class="shell" id="perf-v1-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('perf-v1-shell').appendChild(sidebar('perf'));
+document.getElementById('perf-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Coach</a><span class="sep">/</span>Performance<span class="right">Last 30 days</span></div>
+    <div class="perf-toprow">
+      <div class="perf-left-col">
+        <div class="page-h">
+          <div>
+            <div class="eyebrow">— Your learning analytics</div>
+            <h1><em>Performance</em>.</h1>
+            <p class="sub">Read the topic mastery list first; the rest is supporting evidence. The Confusion Insights pane shows pairs of answers where you confused option A with option B — these are usually your fastest-to-fix gaps.</p>
+          </div>
+        </div>
+        <div class="perf-kpi-col">
+          <div class="kpi-tile score"><div class="lab">Average score</div><div class="n"><em>68</em><span class="u">%</span></div><div class="b">+4 pts · Brier 0.31</div></div>
+          <div class="kpi-tile taken"><div class="lab">Quizzes taken</div><div class="n">35</div><div class="b">8 sessions · 218 min</div></div>
+          <div class="kpi-tile streak"><div class="lab">Study streak</div><div class="n">12<span class="u">days</span></div><div class="b">next milestone in 2</div></div>
+        </div>
+      </div>
+      <section class="card score-trend-card">
+        <div class="between"><div class="eyebrow">— Score trend · last 30 days</div><span class="muted small">range 42–84</span></div>
+        <div class="trend-chart">
+          <div class="y-axis">
+            <span style="top:0%">100</span>
+            <span style="top:20%">75</span>
+            <span style="top:50%">50</span>
+            <span style="top:80%">25</span>
+          </div>
+          <svg viewBox="0 0 600 220" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6B2418" stop-opacity=".22"/>
+                <stop offset="100%" stop-color="#6B2418" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <!-- gridlines -->
+            <line x1="0" y1="44" x2="600" y2="44" stroke="#D4C9AE" stroke-dasharray="2 4"/>
+            <line x1="0" y1="110" x2="600" y2="110" stroke="#D4C9AE" stroke-dasharray="2 4"/>
+            <line x1="0" y1="176" x2="600" y2="176" stroke="#D4C9AE" stroke-dasharray="2 4"/>
+            <!-- area -->
+            <path d="M 30 130 L 70 122 L 110 145 L 150 100 L 190 95 L 230 110 L 270 88 L 310 75 L 350 92 L 390 70 L 430 84 L 470 66 L 510 72 L 550 60 L 590 56 L 590 220 L 30 220 Z" fill="url(#g1)"/>
+            <!-- line: vector-effect keeps stroke width consistent under non-uniform scale -->
+            <path d="M 30 130 L 70 122 L 110 145 L 150 100 L 190 95 L 230 110 L 270 88 L 310 75 L 350 92 L 390 70 L 430 84 L 470 66 L 510 72 L 550 60 L 590 56" stroke="#6B2418" stroke-width="2" fill="none" vector-effect="non-scaling-stroke"/>
+            <!-- dots: scale-invariant -->
+            ${[[30,130],[70,122],[110,145],[150,100],[190,95],[230,110],[270,88],[310,75],[350,92],[390,70],[430,84],[470,66],[510,72],[550,60],[590,56]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3" fill="#6B2418" vector-effect="non-scaling-stroke"/>`).join('')}
+            <!-- avg line -->
+            <line x1="30" y1="84" x2="590" y2="84" stroke="#4F6B3B" stroke-dasharray="3 3" stroke-width="1" vector-effect="non-scaling-stroke"/>
+          </svg>
+          <div class="avg-label" style="top:38%">avg 68%</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;padding-top:10px;border-top:1px solid var(--line)">
+          <span>14 Apr</span><span>21 Apr</span><span>28 Apr</span><span>5 May</span><span>13 May</span>
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="between"><div class="eyebrow">— Topic mastery · 26 topics</div><span class="muted small">Overall · <strong style="color:var(--ink-w)">55%</strong></span></div>
+      <div class="tm-list">
+        ${[
+          {nm:'Atopic dermatitis',sub:'mastered',pct:96,cls:''},
+          {nm:'Psoriasis',sub:'mastered',pct:92,cls:''},
+          {nm:'Acne',sub:'practiced',pct:84,cls:''},
+          {nm:'Inflammatory eczema',sub:'practiced',pct:78,cls:''},
+          {nm:'Pediatric',sub:'practiced',pct:71,cls:''},
+          {nm:'Pigmentary',sub:'practiced',pct:58,cls:'warn'},
+          {nm:'Hair · alopecias',sub:'novice',pct:51,cls:'warn'},
+          {nm:'Melanoma · staging',sub:'novice',pct:42,cls:'bad'},
+          {nm:'Infectious bacterial',sub:'novice',pct:23,cls:'bad'},
+          {nm:'Drug reactions',sub:'novice',pct:18,cls:'bad'},
+        ].map(t=>`
+          <div class="tm-row">
+            <div><div class="nm">${t.nm}</div><div class="sub">${t.sub}</div></div>
+            <div class="bar ${t.cls}"><div style="width:${t.pct}%"></div></div>
+            <span class="pct">${t.pct}%</span>
+            <a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em;text-align:right">Study →</a>
+          </div>
+        `).join('')}
+      </div>
+      <div class="tm-foot">
+        <div>
+          <div class="lab">Weakest 3</div>
+          <span style="color:var(--ox)">Drug reactions · Infectious bacterial · Melanoma staging</span>
+        </div>
+        <div>
+          <div class="lab">Strongest 3</div>
+          <span style="color:var(--moss)">Atopic dermatitis · Psoriasis · Acne</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="perf-row2">
+      <section class="card">
+        <div class="between"><div class="eyebrow">— Confusion insights · 320 pairs seen</div><a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em">→ confusion pairs</a></div>
+        <p class="muted small" style="margin:8px 0 0">When you confuse one answer with another, both options end up here. The frequency is how many times you've made the same swap.</p>
+        <div class="conf-list" style="margin-top:14px">
+          ${[
+            {a:'Oral cephalexin',b:'Topical mupirocin',topic:'infectious.bacterial',ct:176,conf:67},
+            {a:'Asymmetry of the lesion',b:'Evolution (change over time)',topic:'neoplastic.melanoma',ct:56,conf:67},
+            {a:'Topical imiquimod',b:'Wide local excision with SLNB',topic:'melanoma',ct:20,conf:67},
+            {a:'Dacarbazine',b:'Pembrolizumab',topic:'melanoma',ct:11,conf:67},
+            {a:'Shave biopsy',b:'Excisional biopsy 1–2 mm margins',topic:'procedures.biopsy',ct:10,conf:67},
+            {a:'Oral isotretinoin',b:'Topical tretinoin',topic:'acne',ct:4,conf:73},
+          ].map(c=>`
+            <div class="conf-row-item">
+              <div>
+                <div class="pair"><span class="a">${c.a}</span><span class="arr">→</span><span class="b">${c.b}</span></div>
+                <div class="muted small mono" style="margin-top:2px">Topic · ${c.topic} · avg confidence ${c.conf}%</div>
+              </div>
+              <span class="ct ct-x">${c.ct}×</span>
+              <a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em;text-align:right">Drill →</a>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="ready">
+        <div class="eyebrow">— Exam readiness</div>
+        <div class="ring">
+          <svg width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="60" stroke="rgba(0,0,0,.08)" stroke-width="14" fill="none"/>
+            <circle cx="70" cy="70" r="60" stroke="#4F6B3B" stroke-width="14" fill="none"
+                    stroke-dasharray="309.1 377.0"
+                    stroke-linecap="round" transform="rotate(-90 70 70)"/>
+            <text x="70" y="76" text-anchor="middle" font-size="28" font-family="Fraunces" fill="#1F1A14">82%</text>
+          </svg>
+          <div class="ring-meta">
+            <div class="l">Predicted pass rate</div>
+            <div class="n"><em>82</em>%</div>
+            <div class="b">Confidence · medium · based on last 30 days of activity and calibration.</div>
+          </div>
+        </div>
+        <div class="ready-list">
+          <div class="row"><span class="k">Brier score</span><span class="v">0.31 · trending down </span></div>
+          <div class="row"><span class="k">Coverage</span><span class="v">11 of 11 topics seen</span></div>
+          <div class="row"><span class="k">Mock exams taken</span><span class="v">2 · avg 74%</span></div>
+          <div class="row"><span class="k">Days until exam</span><span class="v">42 · on track</span></div>
+        </div>
+        <button class="btn primary">Schedule a mock exam →</button>
+      </section>
+    </div>
+
+    <section class="sr">
+      <div class="sr-head">
+        <div>
+          <div class="eyebrow">— Study recommendations · this week</div>
+          <h3 style="font:400 24px var(--font-display);margin:4px 0 0">Five hours, well-placed.</h3>
+        </div>
+        <div class="sr-hours"><span class="n"><em>5</em></span><span class="u">hours this week<br><span class="mono small muted">distributed across 5 priority topics</span></span></div>
+      </div>
+      <div>
+        <div class="lab" style="font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-meta);margin-bottom:6px">Priority topics · lift opportunities</div>
+        <div class="sr-row" style="font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;padding-bottom:6px"><span>Topic</span><span>Now</span><span>Target</span><span>Lift</span></div>
+        <div class="sr-row"><span>Infectious bacterial</span><span class="now">23%</span><span class="tgt">80%</span><span class="lift">+57</span></div>
+        <div class="sr-row"><span>Melanoma · staging</span><span class="now">42%</span><span class="tgt">80%</span><span class="lift">+38</span></div>
+        <div class="sr-row"><span>Hair · alopecias</span><span class="now">51%</span><span class="tgt">80%</span><span class="lift">+29</span></div>
+        <div class="sr-row"><span>Drug reactions</span><span class="now">18%</span><span class="tgt">80%</span><span class="lift">+62</span></div>
+        <div class="sr-row"><span>Pigmentary</span><span class="now">58%</span><span class="tgt">80%</span><span class="lift">+22</span></div>
+      </div>
+      <div class="sr-foot">
+        <div><div class="lab">Strengths to maintain</div><span style="color:var(--moss)">Atopic dermatitis · Psoriasis · Acne</span></div>
+        <div><div class="lab">Weaknesses to address</div><span style="color:var(--ox)">Infectious · Melanoma · Drug reactions</span></div>
+        <button class="btn primary">Generate this week’s plan →</button>
+      </div>
+    </section>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ v2 — calibration-led ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">07·v2</div><h2>Calibration-led</h2><p class="desc">Same data, ordered around the confidence loop. The top hero is the Brier curve; the topic mastery list is collapsed to a single column on the right.</p></section>
+
+<div class="ab" id="perf-v2">
+  <div class="ab-head"><h3>07b · Performance · calibration-led</h3><span class="ab-tag v2">v2 · brier first</span><span class="ab-meta">/performance</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Last 30 days</button></div></header>
+    <div class="shell" id="perf-v2-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('perf-v2-shell').appendChild(sidebar('perf'));
+document.getElementById('perf-v2-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h">
+      <div><div class="eyebrow">— Calibration · last 30 days</div><h1 style="font-size:36px">Your <em>certainty</em> is off by 8 points.</h1><p class="sub">Where confidence and outcome disagree most strongly, study time pays the highest dividend.</p></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:18px">
+      <section class="card">
+        <div class="between"><div class="eyebrow">— Calibration curve · 30 days</div><span class="muted small">Brier · <strong style="color:var(--ink-w)">0.31</strong></span></div>
+        <p class="muted small" style="margin:6px 0 0">Bars show how often you were correct at each confidence band. The line is perfect calibration. The gap is where to study.</p>
+        <div class="calib-plot" style="height:260px;margin-top:12px">
+          <svg class="ideal" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <!-- perfect calibration line: passes through each bar's centre at the confidence-band midpoint. Low @ 20%, Lo-Med @ 35%, Med @ 50%, Med-Hi @ 70%, High @ 90% -->
+            <line x1="10" y1="80" x2="90" y2="10" stroke="#4F6B3B" stroke-width=".7" stroke-dasharray="2 2"/>
+            <!-- end-cap dots for legibility -->
+            <circle cx="10" cy="80" r="1.2" fill="#4F6B3B"/>
+            <circle cx="90" cy="10" r="1.2" fill="#4F6B3B"/>
+          </svg>
+          <div class="bar-group"><div class="bar under" style="height:34%" title="underconfident · +14 above line"></div><div class="lab" style="color:var(--moss)">Low</div></div>
+          <div class="bar-group"><div class="bar" style="height:38%"></div><div class="lab">Lo-Med</div></div>
+          <div class="bar-group"><div class="bar" style="height:47%"></div><div class="lab">Med</div></div>
+          <div class="bar-group"><div class="bar over" style="height:62%" title="overconfident · −8 below line"></div><div class="lab">Med-Hi</div></div>
+          <div class="bar-group"><div class="bar over" style="height:69%" title="overconfident · −21 below line"></div><div class="lab" style="color:var(--ox)">High</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font:400 12px var(--font-body);color:var(--ink-meta);margin-top:10px"><span>You're <strong style="color:var(--ox)">over</strong>confident at "High" by 21 points</span><span>You're <strong style="color:var(--moss)">under</strong>confident at "Low" by 14 points</span></div>
+      </section>
+
+      <section class="ready" style="background:var(--card)">
+        <div class="ring">
+          <svg width="120" height="120" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="60" stroke="rgba(0,0,0,.08)" stroke-width="14" fill="none"/>
+            <circle cx="70" cy="70" r="60" stroke="#4F6B3B" stroke-width="14" fill="none"
+                    stroke-dasharray="309.1 377.0"
+                    stroke-linecap="round" transform="rotate(-90 70 70)"/>
+            <text x="70" y="76" text-anchor="middle" font-size="26" font-family="Fraunces" fill="#1F1A14">82%</text>
+          </svg>
+          <div class="ring-meta"><div class="l">Predicted pass</div><div class="n" style="font-size:36px"><em>82</em>%</div><div class="b">Last mock · 74%</div></div>
+        </div>
+        <div class="insight tip"><span class="lab">Tip</span><span>Closing the "High" gap is worth more than any single topic — it lifts every "Medium" answer in your favour too.</span></div>
+      </section>
+    </div>
+
+    <div class="perf-row2" style="grid-template-columns:1.4fr 1fr">
+      <section class="card">
+        <div class="eyebrow">— Where calibration breaks · top pairs</div>
+        <div class="conf-list" style="margin-top:10px">
+          ${[
+            {a:'Oral cephalexin',b:'Topical mupirocin',ct:176,conf:'High'},
+            {a:'Asymmetry of the lesion',b:'Evolution (change over time)',ct:56,conf:'High'},
+            {a:'Topical imiquimod',b:'Wide local excision + SLNB',ct:20,conf:'High'},
+            {a:'Dacarbazine',b:'Pembrolizumab',ct:11,conf:'Med'},
+            {a:'Oral isotretinoin',b:'Topical tretinoin',ct:4,conf:'Low'},
+          ].map(c=>`
+            <div class="conf-row-item">
+              <div><div class="pair"><span class="a">${c.a}</span><span class="arr">→</span><span class="b">${c.b}</span></div></div>
+              <span class="chip ${c.conf==='High'?'ox':c.conf==='Med'?'gold':'moss'} small">${c.conf}</span>
+              <span class="ct ct-x">${c.ct}×</span>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="eyebrow">— Topic mastery · compressed</div>
+        <div class="tm-list" style="margin-top:8px">
+          ${[
+            {nm:'Drug reactions',pct:18,cls:'bad'},
+            {nm:'Infectious bacterial',pct:23,cls:'bad'},
+            {nm:'Melanoma staging',pct:42,cls:'bad'},
+            {nm:'Hair · alopecias',pct:51,cls:'warn'},
+            {nm:'Pigmentary',pct:58,cls:'warn'},
+            {nm:'Pediatric',pct:71,cls:''},
+            {nm:'Inflammatory eczema',pct:78,cls:''},
+            {nm:'Acne',pct:84,cls:''},
+            {nm:'Psoriasis',pct:92,cls:''},
+            {nm:'Atopic dermatitis',pct:96,cls:''},
+          ].map(t=>`
+            <div class="tm-row" style="grid-template-columns:1fr 60px 40px;gap:10px;padding:7px 0">
+              <span style="font-size:13px">${t.nm}</span>
+              <div class="bar ${t.cls}" style="height:5px"><div style="width:${t.pct}%"></div></div>
+              <span class="pct" style="font-size:11px">${t.pct}%</span>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+    </div>
+
+    <div class="insight warn"><span class="lab">Plan</span><span>If you only work on one thing this week, work on melanoma staging at the "High" confidence band. That single fix lifts your predicted pass rate to 87%.</span></div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ v3 — narrative ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">07·v3</div><h2>Narrative</h2><p class="desc">Same numbers, written out as a brief. For the weekly read where prose is faster than a chart. Charts collapse into hairline rules; the page is meant to be readable.</p></section>
+
+<div class="ab" id="perf-v3">
+  <div class="ab-head"><h3>07c · Performance · narrative brief</h3><span class="ab-tag v3">v3 · written brief</span><span class="ab-meta">/performance</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Last 30 days</button><button class="pill">Send to inbox</button></div></header>
+    <div class="shell" id="perf-v3-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('perf-v3-shell').appendChild(sidebar('perf'));
+document.getElementById('perf-v3-shell').insertAdjacentHTML('beforeend', `
+  <main class="main" style="max-width:840px;margin:0 auto;width:100%">
+    <div class="page-h"><div><div class="eyebrow">— Week of 13 May</div><h1 style="font-size:42px">Your <em>weekly</em> brief.</h1><p class="sub">A short read of what your numbers say. The full charts are one click away.</p></div></div>
+
+    <section class="narrative">
+      <p><strong>Headline.</strong> Average score moved from 64 to 68 percent. Brier score moved from 0.34 to 0.31 — calibration is improving, but only at the edges. Confidence at "High" still misses one in three.</p>
+      <p>Most of the gain came from <strong>melanoma · staging</strong> (42 to 51%) and <strong>infectious bacterial</strong> (18 to 23%). The remaining weakest topic is <strong>drug reactions</strong>, where 18% accuracy hasn't moved in two weeks.</p>
+      <div class="pull">"Wrong while certain" cost you the most marks this week. Two of three overconfident misses were on melanoma management.</div>
+      <p><strong>What changed.</strong> 35 questions across 8 sessions. 218 minutes practiced — ~30 min on top weeks. Your evening sessions (6–8 PM) scored 14 points higher than morning. Streak is 12 days; next milestone is 14.</p>
+      <p><strong>What to do.</strong> A 30-minute mixed-practice block tonight on the three weakest topics. A 50-question calibration drill on Sunday. One mock exam by Friday. If you only do one thing, it's the calibration drill.</p>
+    </section>
+
+    <section class="card">
+      <div class="eyebrow">— Numbers at a glance</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px;align-items:start">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+          <div style="font:600 10px var(--font-body);letter-spacing:.16em;color:var(--ink-meta);text-transform:uppercase">Score</div>
+          <div style="font:300 36px var(--font-display);line-height:1;display:inline-flex;align-items:baseline;gap:4px"><em style="color:var(--ox);font-style:italic">68</em><span style="font:500 14px var(--font-body);color:var(--ink-meta)">%</span></div>
+          <div style="font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em">+4 pts</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+          <div style="font:600 10px var(--font-body);letter-spacing:.16em;color:var(--ink-meta);text-transform:uppercase">Brier</div>
+          <div style="font:300 36px var(--font-display);line-height:1">0.31</div>
+          <div style="font:500 11px var(--font-mono);color:var(--moss);letter-spacing:.04em">−0.03</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+          <div style="font:600 10px var(--font-body);letter-spacing:.16em;color:var(--ink-meta);text-transform:uppercase">Streak</div>
+          <div style="font:300 36px var(--font-display);line-height:1;display:inline-flex;align-items:baseline;gap:4px">12<span style="font:500 14px var(--font-body);color:var(--ink-meta)">days</span></div>
+          <div style="font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em">next · 14d</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="eyebrow">— Three things this week</div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:32px;margin-top:14px;align-items:start">
+        <ol style="font:400 14px/1.7 var(--font-body);color:var(--ink-w);margin:0;padding-left:20px">
+          <li>30 min · mixed practice tonight · melanoma, infectious, drug reactions</li>
+          <li>50 Q · calibration drill · Sunday afternoon</li>
+          <li>1 mock exam · before Friday · use the Board-Standard preset</li>
+        </ol>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn primary">Generate this plan →</button>
+          <button class="btn ghost">Send to inbox</button>
+        </div>
+      </div>
+    </section>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ mobile ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">m</div><h2>Mobile</h2><p class="desc">Same five sections collapsed into a single scroll.</p></section>
+
+<div class="ab" id="perf-mob">
+  <div class="ab-head"><h3>07m · Performance · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/performance</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar"><button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button><div class="wm">Performance</div><button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button></header>
+      <div class="m-content">
+        <div><div class="eyebrow" style="font-size:10px">— Last 30 days</div><h1 style="font:300 30px var(--font-display);margin:6px 0 0;letter-spacing:-.02em"><em style="color:var(--ox);font-style:italic">Analytics</em>.</h1></div>
+        <div class="m-pf-kpi">
+          <div class="p"><div class="l">Score</div><div class="n">68%</div></div>
+          <div class="p"><div class="l">Quizzes</div><div class="n">35</div></div>
+          <div class="p streak"><div class="l">Streak</div><div class="n">12d</div></div>
+        </div>
+        <div class="m-pf-kpi" style="grid-template-columns:1fr">
+          <div class="p" style="background:linear-gradient(135deg,var(--card-2),var(--moss-soft))">
+            <div style="display:flex;align-items:center;gap:12px">
+              <svg width="64" height="64" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="60" stroke="rgba(0,0,0,.08)" stroke-width="14" fill="none"/>
+                <circle cx="70" cy="70" r="60" stroke="#4F6B3B" stroke-width="14" fill="none" stroke-dasharray="309.1 377.0" stroke-linecap="round" transform="rotate(-90 70 70)"/>
+                <text x="70" y="80" text-anchor="middle" font-size="34" font-family="Fraunces" fill="#1F1A14">82</text>
+              </svg>
+              <div><div class="l">Predicted pass</div><div style="font:300 30px var(--font-display);color:var(--ink-w);letter-spacing:-.02em"><em style="color:var(--moss);font-style:italic">82</em>%</div><div class="muted small">Confidence · medium</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card dense">
+          <div class="eyebrow" style="font-size:10px">— Weakest 3</div>
+          <div class="tm-row" style="grid-template-columns:1fr 50px 35px;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line)"><span style="font-size:13px">Drug reactions</span><div class="bar bad"><div style="width:18%"></div></div><span class="pct" style="font-size:11px">18%</span></div>
+          <div class="tm-row" style="grid-template-columns:1fr 50px 35px;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line)"><span style="font-size:13px">Infectious bacterial</span><div class="bar bad"><div style="width:23%"></div></div><span class="pct" style="font-size:11px">23%</span></div>
+          <div class="tm-row" style="grid-template-columns:1fr 50px 35px;gap:8px;padding:7px 0"><span style="font-size:13px">Melanoma staging</span><div class="bar bad"><div style="width:42%"></div></div><span class="pct" style="font-size:11px">42%</span></div>
+        </div>
+        <div class="card dense">
+          <div class="eyebrow" style="font-size:10px">— Top confusion</div>
+          <div class="conf-row-item" style="grid-template-columns:1fr 60px;padding:4px 0;border:0">
+            <div style="font-size:12.5px"><span style="color:var(--ox)">Cephalexin</span> → <span style="color:var(--moss)">Mupirocin</span></div>
+            <span class="ct ct-x">176×</span>
+          </div>
+          <div class="conf-row-item" style="grid-template-columns:1fr 60px;padding:4px 0;border:0">
+            <div style="font-size:12.5px"><span style="color:var(--ox)">Asymmetry</span> → <span style="color:var(--moss)">Evolution</span></div>
+            <span class="ct ct-x">56×</span>
+          </div>
+          <div class="conf-row-item" style="grid-template-columns:1fr 60px;padding:4px 0;border:0">
+            <div style="font-size:12.5px"><span style="color:var(--ox)">Imiquimod</span> → <span style="color:var(--moss)">WLE + SLNB</span></div>
+            <span class="ct ct-x">20×</span>
+          </div>
+        </div>
+        <div class="insight warn" style="font-size:12px"><span class="lab" style="font-size:9px">Plan</span><span>Focus on melanoma · 30 min tonight, calibration drill Sunday.</span></div>
+        <button class="btn primary">Generate this week’s plan →</button>
+      </div>
+      <nav class="m-tabbar"><a class="tab"><svg><use href="#i-dash"/></svg>Home</a><a class="tab"><svg><use href="#i-quiz"/></svg>Study</a><a class="tab"><svg><use href="#i-mini"/></svg>Play</a><a class="tab active"><svg><use href="#i-perf"/></svg>Stats</a><a class="tab"><svg><use href="#i-prof"/></svg>You</a></nav>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dermie — demo runner</title>
+<style>
+:root {
+  --paper: #FAFAF7;
+  --paper-warm: #F1EAD8;
+  --paper-w2: #EAE1CC;
+  --paper-w3: #DED3B9;
+  --card: #FBF6E8;
+  --card-2: #F6F0DE;
+  --line: #D4C9AE;
+  --line-2: #C2B695;
+  --ink-w: #1F1A14;
+  --ink-w2: #4A3F2E;
+  --ink-w3: #7D7059;
+  --ink-w4: #A89D85;
+  --ink-meta: #4E4534;
+  --ox: #6B2418;
+  --ox-soft: #F4DAD3;
+  --ox-deep: #421008;
+  --gold: #B68A2C;
+  --gold-soft: #F0E2BC;
+  --moss: #4F6B3B;
+  --moss-soft: #DCE3CC;
+
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--paper-w2);
+  color: var(--ink-w);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ───────── Top bar ───────── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 24px;
+  background: var(--paper-warm);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 10;
+}
+
+.brand {
+  font: 500 22px var(--font-display);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink-w);
+}
+.brand::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  background: var(--ox);
+}
+
+.brand .sep {
+  margin: 0 0 0 12px;
+  width: 1px;
+  height: 18px;
+  background: var(--line);
+}
+
+.brand .ctx {
+  font: 500 11px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-meta);
+}
+
+.timer {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 400 13px var(--font-mono);
+  color: var(--ink-w2);
+}
+
+.timer-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--ink-w);
+  letter-spacing: 0.02em;
+}
+
+.timer-bar {
+  width: 140px;
+  height: 4px;
+  background: var(--paper-w3);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.timer-bar > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--ox);
+  transition: width 0.18s linear;
+}
+
+.pill {
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-w2);
+  font: 400 12.5px var(--font-body);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  transition: background 0.12s, border-color 0.12s;
+}
+.pill:hover { background: var(--card-2); border-color: var(--line-2); }
+.pill kbd {
+  font: 400 10px var(--font-mono);
+  padding: 1px 5px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink-meta);
+  margin-left: 4px;
+}
+
+.pill.active { background: var(--ox); color: var(--card); border-color: var(--ox); }
+.pill.active kbd { background: var(--ox-deep); color: var(--gold-soft); border-color: var(--ox-deep); }
+
+/* ───────── Segment nav ───────── */
+
+.segnav {
+  display: flex;
+  align-items: stretch;
+  background: var(--paper-warm);
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.seg {
+  flex: 1;
+  min-width: 180px;
+  padding: 12px 18px;
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 3px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: background 0.12s;
+}
+.seg:hover { background: rgba(251,246,232,0.6); }
+.seg:last-child { border-right: 0; }
+.seg.active {
+  background: var(--card);
+  border-bottom-color: var(--ox);
+}
+.seg.bonus { background: rgba(79,107,59,0.04); }
+.seg.bonus.active { background: var(--moss-soft); border-bottom-color: var(--moss); }
+
+.seg-num {
+  font: 500 10px var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-meta);
+}
+.seg.active .seg-num { color: var(--ox); }
+.seg.bonus.active .seg-num { color: var(--moss); }
+
+.seg-title {
+  font: 500 14px var(--font-display);
+  color: var(--ink-w);
+  letter-spacing: -0.005em;
+}
+
+.seg-time {
+  font: 400 11px var(--font-mono);
+  color: var(--ink-w3);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ───────── Main stage ───────── */
+
+.stage {
+  display: grid;
+  grid-template-columns: 1fr 0;
+  height: calc(100% - 113px);
+  transition: grid-template-columns 0.22s ease;
+  position: relative;
+}
+.stage.notes-open {
+  grid-template-columns: 1fr 380px;
+}
+
+.frame-wrap {
+  position: relative;
+  background: var(--paper-w2);
+  overflow: hidden;
+}
+
+.frame-wrap iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--paper-w2);
+  display: block;
+}
+
+.frame-overlay {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.frame-wrap:hover .frame-overlay { opacity: 1; }
+.frame-overlay .tag {
+  font: 500 10px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  background: rgba(31,26,20,0.82);
+  color: var(--card);
+  border-radius: 3px;
+  
+}
+
+/* ───────── Notes panel ───────── */
+
+.notes {
+  background: var(--paper);
+  border-left: 1px solid var(--line);
+  overflow-y: auto;
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+}
+
+.notes-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.notes-head .lab {
+  font: 600 10px var(--font-body);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-meta);
+}
+
+.notes-head .seg-ref {
+  font: 400 11px var(--font-mono);
+  color: var(--ink-w3);
+}
+
+.notes h2 {
+  font: 400 22px var(--font-display);
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--ink-w);
+}
+.notes h2 em {
+  font-style: italic;
+  color: var(--ox);
+}
+
+.notes-section { display: flex; flex-direction: column; gap: 6px; }
+
+.notes-section .lab {
+  font: 600 10px var(--font-body);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-meta);
+}
+
+.click-path {
+  background: var(--card-2);
+  border-left: 3px solid var(--ox);
+  padding: 9px 12px;
+  font: 400 12.5px var(--font-mono);
+  line-height: 1.55;
+  border-radius: 0 4px 4px 0;
+  color: var(--ink-w2);
+}
+.click-path ol { margin: 0; padding-left: 1.2em; }
+.click-path code {
+  background: rgba(107,36,24,0.08);
+  padding: 1px 5px;
+  border-radius: 2px;
+  color: var(--ox-deep);
+  font-size: 0.96em;
+}
+
+.script-quote {
+  font: 400 italic 14px/1.55 var(--font-display);
+  background: var(--paper-warm);
+  border-left: 3px solid var(--gold);
+  padding: 12px 14px;
+  border-radius: 0 4px 4px 0;
+  color: var(--ink-w);
+}
+.script-quote::before {
+  content: "“";
+  color: var(--gold);
+  font-style: normal;
+  font-size: 1.4em;
+  line-height: 0;
+  vertical-align: -0.18em;
+  margin-right: 2px;
+}
+.script-quote::after {
+  content: "”";
+  color: var(--gold);
+  font-style: normal;
+  font-size: 1.4em;
+  line-height: 0;
+  vertical-align: -0.42em;
+  margin-left: 1px;
+}
+.script-quote em { font-weight: 500; color: var(--ox); font-style: italic; }
+
+.point-to {
+  background: var(--moss-soft);
+  border-left: 3px solid var(--moss);
+  padding: 9px 12px;
+  font: 400 12.5px/1.5 var(--font-body);
+  color: var(--ink-w);
+  border-radius: 0 4px 4px 0;
+}
+.point-to strong {
+  display: block;
+  font: 600 10px var(--font-body);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--moss);
+  margin-bottom: 4px;
+}
+.point-to em { font-style: italic; color: var(--ink-w); }
+
+.contingency {
+  background: var(--ox-soft);
+  border-left: 3px solid var(--ox);
+  padding: 9px 12px;
+  font: 400 12px/1.5 var(--font-body);
+  color: var(--ink-w);
+  border-radius: 0 4px 4px 0;
+}
+.contingency strong {
+  display: block;
+  font: 600 10px var(--font-body);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ox);
+  margin-bottom: 4px;
+}
+
+/* ───────── Help footer ───────── */
+
+.kbd-bar {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  padding: 8px 14px;
+  background: rgba(31,26,20,0.78);
+  color: var(--card);
+  border-radius: 999px;
+  
+  font: 400 11px var(--font-body);
+  letter-spacing: 0.02em;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.kbd-bar.visible { opacity: 1; pointer-events: auto; }
+.kbd-bar kbd {
+  font: 400 10px var(--font-mono);
+  padding: 2px 6px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 3px;
+  margin-right: 4px;
+}
+
+/* ───────── Hidden by default ───────── */
+
+.hidden { display: none !important; }
+
+/* ───────── Missing-mockups banner ───────── */
+
+.banner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  background: var(--paper-warm);
+  z-index: 2;
+}
+.banner h2 {
+  font: 400 28px var(--font-display);
+  margin: 0 0 12px;
+  color: var(--ink-w);
+}
+.banner h2 em { color: var(--ox); font-style: italic; }
+.banner p {
+  font: 400 14px/1.55 var(--font-body);
+  color: var(--ink-meta);
+  max-width: 48ch;
+  margin: 0 0 18px;
+}
+.banner code {
+  font: 400 12px var(--font-mono);
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: var(--ink-w);
+}
+
+/* ───────── Responsive ───────── */
+
+@media (max-width: 900px) {
+  .stage.notes-open { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+  .stage.notes-open .notes { border-left: 0; border-top: 1px solid var(--line); max-height: 50vh; }
+  .seg-title { font-size: 12px; }
+  .seg { min-width: 130px; padding: 10px 12px; }
+}
+</style>
+</head>
+<body id="demo-top">
+
+<header class="topbar">
+  <div class="brand">
+    dermie
+    <span class="sep"></span>
+    <span class="ctx">Demo runner · 60s VC walkthrough</span>
+  </div>
+
+  <div class="timer" id="timer" role="timer" aria-live="off">
+    <span class="timer-time" id="timer-time">0:00</span>
+    <div class="timer-bar"><span id="timer-fill"></span></div>
+    <span style="color: var(--ink-w3)">/ <span id="timer-target">1:25</span></span>
+  </div>
+
+  <button class="pill" id="timer-toggle">▶ Start <kbd>T</kbd></button>
+  <button class="pill active" id="notes-toggle">Notes <kbd>N</kbd></button>
+</header>
+
+<nav class="segnav" id="segnav">
+  <button class="seg active" data-seg="1">
+    <span class="seg-num">01</span>
+    <span class="seg-title">Dashboard tells you</span>
+    <span class="seg-time">0:00–0:25</span>
+  </button>
+  <button class="seg" data-seg="2">
+    <span class="seg-num">02</span>
+    <span class="seg-title">Calibration is the story</span>
+    <span class="seg-time">0:25–0:50</span>
+  </button>
+  <button class="seg" data-seg="3">
+    <span class="seg-num">03</span>
+    <span class="seg-title">Engagement that measures</span>
+    <span class="seg-time">0:50–1:15</span>
+  </button>
+  <button class="seg" data-seg="4">
+    <span class="seg-num">CLOSE</span>
+    <span class="seg-title">Hand off to questions</span>
+    <span class="seg-time">1:15–1:25</span>
+  </button>
+  <button class="seg bonus" data-seg="bonus">
+    <span class="seg-num">+ BONUS</span>
+    <span class="seg-title">Admin · governance</span>
+    <span class="seg-time">+0:40</span>
+  </button>
+</nav>
+
+<main class="stage notes-open" id="stage">
+  <div class="frame-wrap">
+    <div class="frame-overlay">
+      <span class="tag" id="frame-tag">Dashboard · v1 editorial</span>
+    </div>
+    <iframe id="mockup-frame" src="Dashboard.html#dash-v1" title="Mockup preview"></iframe>
+    <div class="banner hidden" id="banner">
+      <h2>Drop me in the <em>mockups</em> folder.</h2>
+      <p>This runner expects the dermie mockup HTML files (<code>Dashboard.html</code>, <code>Quiz.html</code>, <code>Flashcards.html</code>, <code>Admin.html</code>, plus <code>_shell.css</code>) to be in the same directory.</p>
+      <p>Open this file from inside the extracted <code>mockups/</code> folder and reload.</p>
+    </div>
+  </div>
+
+  <aside class="notes" id="notes">
+    <!-- Populated by JS -->
+  </aside>
+</main>
+
+<div class="kbd-bar" id="kbd-bar">
+  <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd><kbd>5</kbd>jump segment</span>
+  <span><kbd>←</kbd><kbd>→</kbd>prev/next</span>
+  <span><kbd>N</kbd>notes</span>
+  <span><kbd>T</kbd>timer</span>
+  <span><kbd>R</kbd>reload</span>
+  <span><kbd>?</kbd>this bar</span>
+</div>
+
+<script>
+/* ────────────────────────────────────────────────────────────
+   Demo runner — segment definitions
+   ──────────────────────────────────────────────────────────── */
+
+const SEGMENTS = {
+  "1": {
+    title: "Demo 1 · The dashboard tells you what it knows",
+    tag: "Dashboard · v1 editorial paper",
+    src: "Dashboard.html#dash-v1",
+    duration: 25,
+    range: "0:00 → 0:25",
+    clickPath: [
+      "Land on <code>/app</code> · Dashboard (already loaded)",
+      "Don't click anything for the first 8 seconds — let them read",
+      "Cursor-point to the three KPI tiles in order",
+      "Linger on <code>Avg score 68%</code> and its caption"
+    ],
+    script: `This is what a derm resident sees when they log in. The platform has already built a profile of their strengths and weaknesses across topics — and look at this caption under Avg Score: <em>"Brier 0.31 · slight overconfidence."</em> That's not a vanity metric. That's the platform telling you not just <em>what</em> you got wrong, but <em>what you thought you knew that you didn't.</em> Calibration as a first-class concept.`,
+    pointTo: `Avg Score tile, specifically the subline <em>"Brier 0.31 · slight overconfidence."</em> The whole demo's persuasive load hangs on that string.`,
+    contingency: `If asked "what's a Brier score?" — "A scalar measure of how well-calibrated probabilistic predictions are — lower is better, under 0.20 is considered well-calibrated. Don't worry about the number; the platform shows it as a sentence." Move on.`
+  },
+  "2": {
+    title: "Demo 2 · The quiz summary is where the story lives",
+    tag: "Quiz · summary v1 (calibration tiles)",
+    src: "Quiz.html#sum-v1",
+    duration: 25,
+    range: "0:25 → 0:50",
+    clickPath: [
+      "Click <code>02</code> in the segment nav — lands on Summary v1",
+      "Cursor-point to the four calibration tiles (Avg conf · Overconf misses · Underconf correct · Brier)",
+      "Scroll to a per-question learning-point card if time allows",
+      "Optionally jump to Summary v2 below for the distribution-first headline"
+    ],
+    script: `Here's a session this user just finished. Two out of five correct — but read the headline: <em>"and one of them was certain."</em> Score is the headline; calibration is the story. The platform identifies two overconfident misses in melanoma staging — and queues a 10-question calibration drill on that topic automatically. Static Q-banks tell you what you got wrong. dermie tells you what you got wrong <em>while certain</em>. That's the difference between studying more and studying better.`,
+    pointTo: `The four-tile calibration row. Then the <em>"Where to study"</em> insight callout that auto-queues a calibration drill. That's the system telling the user what to do next without being asked.`,
+    contingency: `If they react to the headline copy ("that's a great line") — don't take credit. Say "that's what calibrated learning actually looks like" and keep moving. The line should sound like a discovery, not a marketing artifact.`
+  },
+  "3": {
+    title: "Demo 3 · Engagement that measures — eight minigames feed one profile",
+    tag: "Minigames · Differential Dash · morbilliform (3-tier sort)",
+    src: "TutorMinigames.html#dd-v1",
+    duration: 25,
+    range: "0:50 → 1:15",
+    clickPath: [
+      "Click <code>03</code> in the segment nav — lands on Differential Dash",
+      "Briefly mention the eight-game catalogue (or scroll up to <code>mg-v1</code> hub for 3 seconds if you want to show breadth)",
+      "Cursor-point to the 3-tier sort: <em>likely · possible · unlikely</em>",
+      "Land on the line: <em>\"and the same learner profile gets updated\"</em>"
+    ],
+    script: `And here's the third thing. dermie has eight minigames, each measuring a clinical skill a question bank can't reach. This is Differential Dash — morbilliform rash. The user sorts likely conditions into three tiers, and we score not just <em>what</em> they ranked but <em>how confident they were</em> in each rank. Same learner profile updated, same calibration metric, same mastery model. Static Q-banks make studying a chore. Minigames make it a daily habit — and the data that comes out is richer than any multiple-choice answer can produce. It's the retention story <em>and</em> the measurement story in one surface.`,
+    pointTo: `The 3-tier sort visual. Then mention "eight games, one profile" — the unified learner-state model is the platform claim that everything else hangs on.`,
+    contingency: `If Differential Dash doesn't render, scroll up to the minigames hub (<code>mg-v1</code>) and let the eight-game catalogue carry the breadth story. The hub is visually impressive on its own. Mnemonic-pipeline and KG-grounding are now Q&A material, not core demo — say "happy to also show you the visual mnemonic generation or the knowledge graph grounding" if they ask about content quality.`
+  },
+  "4": {
+    title: "Close · Hand off to questions",
+    tag: "Quiz · summary v1 (held)",
+    src: "Quiz.html#sum-v1",
+    duration: 10,
+    range: "1:15 → 1:25",
+    clickPath: [
+      "Return to the Summary screen so they have something concrete while you talk",
+      "Look at the VC, not the screen",
+      "Stop talking"
+    ],
+    script: `Three demos. Working AI-native medical software. Happy to go deeper — the visual mnemonic generation pipeline, the knowledge graph grounding, or the admin side, where this all gets governed.`,
+    pointTo: `Your face. Eye contact. The screen is just background here. The three "deeper" baits — mnemonics, grounding, admin — are choose-your-own-Q&A for the VC.`,
+    contingency: `Trim the bait list to the one most aligned with what they cared about earlier. For consumer-edtech VCs, lead with mnemonics. For institutional/health-tech VCs, lead with admin. For technical partners, lead with KG grounding. Don't list all three if the room read narrow.`
+  },
+  "bonus": {
+    title: "Bonus · The admin console, in forty seconds",
+    tag: "Admin · AI Forge · Bypass (dual-admin approval)",
+    src: "Admin.html#ad-forge-bypass",
+    duration: 40,
+    range: "+0:00 → +0:40",
+    clickPath: [
+      "Click <code>+ BONUS</code> in segment nav — lands on AI Forge · Bypass",
+      "Point to the dual-admin approval requirement",
+      "Mention Content Hub, taxonomy mapping, audited import",
+      "Don't go deeper than 40 seconds total"
+    ],
+    script: `If you want to see how seriously we take content governance — every AI-generated item flows through a review queue. Items that bypass standard review require dual-admin approval. The taxonomy is mapped, the import pipeline is audited, the quality metrics are tracked. This is the operational substrate that lets us tell a residency program director "yes, you can license this for your trainees." It's the unsexy work that makes the institutional channel possible.`,
+    pointTo: `The dual-admin approval UI. That single design decision answers the question every institutional buyer asks: <em>"how do we know AI-generated content won't go out without human review?"</em>`,
+    contingency: `Only deploy this segment if you read the room as technical or institutional. For a generalist consumer-edtech VC, skip it entirely. The bonus is a tool, not an obligation.`
+  }
+};
+
+const ORDER = ["1", "2", "3", "4", "bonus"];
+const TOTAL_SECONDS = 85; // 1:25
+const BONUS_SECONDS = 40;
+
+/* ────────────────────────────────────────────────────────────
+   State
+   ──────────────────────────────────────────────────────────── */
+
+let current = "1";
+let timerRunning = false;
+let timerElapsed = 0;
+let timerInterval = null;
+
+/* ────────────────────────────────────────────────────────────
+   DOM refs
+   ──────────────────────────────────────────────────────────── */
+
+const $frame = document.getElementById('mockup-frame');
+const $frameTag = document.getElementById('frame-tag');
+const $banner = document.getElementById('banner');
+const $notes = document.getElementById('notes');
+const $stage = document.getElementById('stage');
+const $segnav = document.getElementById('segnav');
+const $notesToggle = document.getElementById('notes-toggle');
+const $timerTime = document.getElementById('timer-time');
+const $timerFill = document.getElementById('timer-fill');
+const $timerToggle = document.getElementById('timer-toggle');
+const $timerTarget = document.getElementById('timer-target');
+const $kbdBar = document.getElementById('kbd-bar');
+
+/* ────────────────────────────────────────────────────────────
+   Render
+   ──────────────────────────────────────────────────────────── */
+
+function selectSegment(key) {
+  if (!SEGMENTS[key]) return;
+  current = key;
+  const seg = SEGMENTS[key];
+
+  // iframe
+  $frame.src = seg.src;
+  $frameTag.textContent = seg.tag;
+
+  // active nav
+  document.querySelectorAll('.seg').forEach(s => {
+    s.classList.toggle('active', s.dataset.seg === key);
+  });
+
+  // notes
+  renderNotes(seg, key);
+
+  // adjust timer target for bonus
+  $timerTarget.textContent = (key === "bonus") ? "0:40" : "1:25";
+}
+
+function renderNotes(seg, key) {
+  $notes.innerHTML = `
+    <div class="notes-head">
+      <span class="lab">Speaker notes</span>
+      <span class="seg-ref">${seg.range}</span>
+    </div>
+
+    <h2>${seg.title}</h2>
+
+    <div class="notes-section">
+      <span class="lab">Click path</span>
+      <div class="click-path"><ol>${seg.clickPath.map(s => `<li>${s}</li>`).join('')}</ol></div>
+    </div>
+
+    <div class="notes-section">
+      <span class="lab">What to say</span>
+      <div class="script-quote">${seg.script}</div>
+    </div>
+
+    <div class="notes-section">
+      <span class="lab">What to point to</span>
+      <div class="point-to"><strong>Reference</strong>${seg.pointTo}</div>
+    </div>
+
+    <div class="notes-section">
+      <span class="lab">Contingency</span>
+      <div class="contingency"><strong>If something doesn't go to plan</strong>${seg.contingency}</div>
+    </div>
+  `;
+}
+
+/* ────────────────────────────────────────────────────────────
+   Notes toggle
+   ──────────────────────────────────────────────────────────── */
+
+function toggleNotes() {
+  $stage.classList.toggle('notes-open');
+  $notesToggle.classList.toggle('active');
+}
+
+/* ────────────────────────────────────────────────────────────
+   Timer
+   ──────────────────────────────────────────────────────────── */
+
+function fmtTime(s) {
+  const m = Math.floor(s / 60);
+  const ss = String(s % 60).padStart(2, '0');
+  return `${m}:${ss}`;
+}
+
+function tickTimer() {
+  timerElapsed += 1;
+  const target = (current === "bonus") ? BONUS_SECONDS : TOTAL_SECONDS;
+  $timerTime.textContent = fmtTime(timerElapsed);
+  $timerFill.style.width = Math.min(100, (timerElapsed / target) * 100) + '%';
+  if (timerElapsed >= target) {
+    $timerFill.style.background = 'var(--ox-deep)';
+  }
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    $timerToggle.innerHTML = '▶ Resume <kbd>T</kbd>';
+  } else {
+    timerInterval = setInterval(tickTimer, 1000);
+    timerRunning = true;
+    $timerToggle.innerHTML = '⏸ Pause <kbd>T</kbd>';
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerElapsed = 0;
+  $timerTime.textContent = '0:00';
+  $timerFill.style.width = '0%';
+  $timerFill.style.background = 'var(--ox)';
+  $timerToggle.innerHTML = '▶ Start <kbd>T</kbd>';
+}
+
+/* ────────────────────────────────────────────────────────────
+   Keyboard
+   ──────────────────────────────────────────────────────────── */
+
+document.addEventListener('keydown', (e) => {
+  // Ignore if focus is inside an input
+  if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) return;
+
+  const k = e.key.toLowerCase();
+  if (k === '1') selectSegment('1');
+  else if (k === '2') selectSegment('2');
+  else if (k === '3') selectSegment('3');
+  else if (k === '4') selectSegment('4');
+  else if (k === '5') selectSegment('bonus');
+  else if (k === 'n') { e.preventDefault(); toggleNotes(); }
+  else if (k === 't') { e.preventDefault(); toggleTimer(); }
+  else if (k === 'r') { e.preventDefault(); $frame.src = SEGMENTS[current].src + '?_=' + Date.now(); }
+  else if (k === 'arrowright') {
+    const idx = ORDER.indexOf(current);
+    if (idx < ORDER.length - 1) selectSegment(ORDER[idx + 1]);
+  } else if (k === 'arrowleft') {
+    const idx = ORDER.indexOf(current);
+    if (idx > 0) selectSegment(ORDER[idx - 1]);
+  } else if (k === '?') {
+    e.preventDefault();
+    $kbdBar.classList.toggle('visible');
+    setTimeout(() => $kbdBar.classList.remove('visible'), 4500);
+  }
+});
+
+/* ────────────────────────────────────────────────────────────
+   Click handlers
+   ──────────────────────────────────────────────────────────── */
+
+$segnav.addEventListener('click', (e) => {
+  const btn = e.target.closest('.seg');
+  if (btn) selectSegment(btn.dataset.seg);
+});
+
+$notesToggle.addEventListener('click', toggleNotes);
+$timerToggle.addEventListener('click', toggleTimer);
+
+/* ────────────────────────────────────────────────────────────
+   Health check — show banner if mockups not found
+   ──────────────────────────────────────────────────────────── */
+
+$frame.addEventListener('load', () => {
+  // If the iframe loaded a tiny 404-ish doc, the contentDocument body will be tiny
+  try {
+    const doc = $frame.contentDocument;
+    if (!doc) return; // cross-origin, can't inspect — assume OK
+    const text = doc.body?.innerText || '';
+    if (doc.title && doc.title.toLowerCase().includes('dermie')) {
+      $banner.classList.add('hidden');
+    } else if (text.length < 50) {
+      $banner.classList.remove('hidden');
+    }
+  } catch (err) {
+    // cross-origin or other — leave banner state alone
+  }
+});
+
+$frame.addEventListener('error', () => $banner.classList.remove('hidden'));
+
+/* ────────────────────────────────────────────────────────────
+   Boot
+   ──────────────────────────────────────────────────────────── */
+
+selectSegment('1');
+
+// Show keyboard help on first load for 5s
+setTimeout(() => $kbdBar.classList.add('visible'), 600);
+setTimeout(() => $kbdBar.classList.remove('visible'), 5800);
+</script>
+
+</body>
+</html>

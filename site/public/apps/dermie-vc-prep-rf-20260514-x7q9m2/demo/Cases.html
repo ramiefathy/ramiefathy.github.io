@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Cases mockups (library + player)</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+/* shared */
+.specimen{aspect-ratio:1.4;border-radius:10px;background:radial-gradient(ellipse 60% 50% at 39% 42%,rgba(212,158,94,.95) 0%,rgba(118,70,37,.94) 42%,rgba(45,30,20,.98) 76%,rgba(15,10,7,1) 100%);position:relative;overflow:hidden;}
+.specimen::after{content:"";position:absolute;inset:18%;border:1px solid rgba(255,255,255,.16);border-radius:9999px;}
+.specimen.s2{background:radial-gradient(ellipse 45% 70% at 70% 50%,rgba(196,109,87,.95) 0%,rgba(108,42,30,.94) 35%,rgba(36,22,16,.98) 75%,rgba(10,6,4,1) 100%);}
+.specimen.s2::after{inset:24% 14% 24% 30%;border-radius:40% 60% 50% 50% / 60% 40% 50% 50%;}
+.specimen.s3{background:linear-gradient(155deg,rgba(228,182,124,.94) 0%,rgba(168,108,66,.95) 35%,rgba(80,46,26,.96) 70%,rgba(28,16,10,1) 100%);}
+.specimen.s3::after{inset:30% 20%;border-radius:20px;border-color:rgba(255,255,255,.22);}
+.specimen.s4{background:radial-gradient(ellipse 30% 60% at 50% 55%,rgba(216,150,114,.95) 0%,rgba(126,58,38,.93) 40%,rgba(36,22,14,.98) 78%,rgba(10,8,5,1) 100%);}
+.specimen.s4::after{inset:8% 38%;border-radius:9999px;height:auto;}
+.specimen.s5{background:linear-gradient(180deg,rgba(186,140,90,.9),rgba(96,52,28,.95) 60%,rgba(20,12,8,1));}
+.specimen.s5::after{inset:35% 20% 20% 20%;border-radius:50% 50% 0 0/40% 40% 0 0;border-color:rgba(255,255,255,.22);}
+.specimen.s6{background:radial-gradient(ellipse 70% 30% at 50% 70%,rgba(200,130,90,.95) 0%,rgba(118,70,37,.94) 42%,rgba(45,30,20,.98) 76%,rgba(15,10,7,1) 100%);}
+.specimen.s6::after{inset:20% 12%;border-radius:18px;height:30%;border-color:rgba(255,255,255,.2);}
+
+/* — library v1 — */
+.lib-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.lib-stats > div{padding:18px 22px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:3px;}
+.lib-stats > div:last-child{border-right:0;}
+.lib-stats .lab{font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta);}
+.lib-stats .n{font:300 32px var(--font-display);color:var(--ink-w);line-height:1;font-feature-settings:"tnum";}
+.lib-stats .n em{color:var(--ox);font-style:italic;}
+.lib-stats .b{font:400 12px var(--font-body);color:var(--ink-meta);}
+
+.lib-filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:14px 0;border-bottom:1px solid var(--line);}
+.lib-pivots{display:flex;gap:18px;}
+.lib-pivot{padding:6px 0;background:transparent;border:0;font:500 13px var(--font-body);color:var(--ink-w3);cursor:pointer;border-bottom:2px solid transparent;font-family:inherit;}
+.lib-pivot.on{color:var(--ink-w);border-bottom-color:var(--ox);}
+.lib-pivot .ct{font:500 11px var(--font-mono);color:var(--ink-meta);margin-left:6px;font-feature-settings:"tnum";}
+
+.case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.case-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0;overflow:hidden;display:flex;flex-direction:column;gap:0;}
+.case-card .head{padding:14px 16px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.case-card .head .chips{display:flex;gap:6px;flex-wrap:wrap;}
+.case-card .body{padding:12px 16px 0;display:flex;flex-direction:column;gap:6px;}
+.case-card .num{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;}
+.case-card .title{font:400 20px/1.2 var(--font-display);color:var(--ink-w);letter-spacing:-.01em;}
+.case-card .desc{font:400 12.5px/1.55 var(--font-body);color:var(--ink-meta);}
+.case-card .foot{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font:400 12px var(--font-body);color:var(--ink-meta);margin-top:auto;border-top:1px solid var(--line);}
+.case-card .start{padding:6px 12px;background:var(--ox);color:var(--card);border-radius:6px;border:0;font:500 12px var(--font-body);font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+.case-card .pips{display:inline-flex;gap:3px;}
+.case-card .pip{width:6px;height:6px;border-radius:1px;background:transparent;box-shadow:inset 0 0 0 1px var(--ink-w4);}
+.case-card .pip.on{background:var(--ink-w2);box-shadow:none;}
+
+/* — library v2 — list with index — */
+.lib-list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.lib-list-row{display:grid;grid-template-columns:80px 64px minmax(0,1fr) 100px 80px 90px 120px;gap:18px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line);}
+.lib-list-row:last-child{border:0;}
+.lib-list-row:hover{background:var(--card-2);}
+.lib-list-row .num{font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;}
+.lib-list-row .specimen-tiny{aspect-ratio:1;border-radius:6px;}
+.lib-list-row .ti{font:400 16px var(--font-display);color:var(--ink-w);letter-spacing:-.005em;}
+.lib-list-row .sub{font:400 12px var(--font-body);color:var(--ink-meta);margin-top:2px;}
+.lib-head{display:grid;grid-template-columns:80px 64px minmax(0,1fr) 100px 80px 90px 120px;gap:18px;padding:11px 18px;background:var(--paper-w2);font:600 10px var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-meta);border-bottom:1px solid var(--line);}
+
+/* — case player — */
+.cp-header{padding:18px 28px;background:var(--card);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px;}
+.cp-header .top{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.cp-header .title{font:500 14px var(--font-mono);letter-spacing:.04em;color:var(--ink-w2);text-transform:uppercase;}
+.cp-header .step-meta{font:500 12px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;}
+.cp-bar{height:4px;background:var(--paper-w3);border-radius:2px;overflow:hidden;}
+.cp-bar>div{height:100%;background:var(--ox);}
+.cp-pills{display:flex;align-items:center;gap:10px;}
+.cp-score{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--moss-soft);border:1px solid rgba(79,107,59,.35);color:#2A5235;border-radius:999px;font:500 11.5px var(--font-mono);font-feature-settings:"tnum";}
+.cp-timer{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--font-mono);color:var(--ink-w);font-feature-settings:"tnum";}
+.cp-steps{display:inline-flex;align-items:center;gap:6px;font:500 12px var(--font-mono);color:var(--ink-meta);}
+
+.cp-stage{padding:28px 32px 24px;display:flex;flex-direction:column;gap:20px;max-width:880px;margin:0 auto;width:100%;}
+.cp-block{display:flex;flex-direction:column;gap:8px;}
+.cp-block .eyebrow{font:600 10px var(--font-body);letter-spacing:.16em;color:var(--ink-meta);text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;}
+.cp-block .eyebrow .ic{width:18px;height:18px;border-radius:5px;background:var(--ox-soft);color:var(--ox-deep);display:grid;place-items:center;}
+.cp-block .eyebrow .ic svg{width:11px;height:11px;}
+.cp-block h2{font:400 22px/1.4 var(--font-display);color:var(--ink-w);margin:0;letter-spacing:-.005em;max-width:62ch;}
+.cp-block p{font:400 14.5px/1.65 var(--font-body);color:var(--ink-w);margin:0;max-width:62ch;}
+
+.cp-question{font:400 18px/1.45 var(--font-display);color:var(--ink-w);margin:6px 0;letter-spacing:-.005em;}
+
+.cp-opts{display:flex;flex-direction:column;gap:8px;}
+.cp-opt{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:11px;background:var(--card);border:1px solid var(--line);cursor:pointer;text-align:left;font:400 14px/1.5 var(--font-body);color:var(--ink-w);font-family:inherit;width:100%;}
+.cp-opt:hover{border-color:var(--ink-w3);}
+.cp-opt .k{width:24px;height:24px;border-radius:9999px;background:var(--card-2);color:var(--ink-w3);display:grid;place-items:center;font:600 11px var(--font-body);flex-shrink:0;}
+.cp-opt.correct{border-color:var(--moss);background:#F0F4E8;}
+.cp-opt.correct .k{background:var(--moss);color:var(--card);}
+.cp-opt.correct .right{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.cp-opt.correct .check{width:20px;height:20px;border-radius:9999px;background:var(--moss);color:var(--card);display:grid;place-items:center;}
+.cp-opt.correct .check svg{width:11px;height:11px;}
+.cp-hy{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;background:var(--moss);color:var(--card);border-radius:5px;font:500 10.5px var(--font-mono);letter-spacing:.04em;}
+.cp-xp{display:inline-flex;align-items:center;padding:2px 9px;background:var(--card);border:1px solid var(--moss);color:var(--moss);border-radius:5px;font:500 11px var(--font-mono);}
+.cp-opt.wrong{border-color:var(--ox);background:#FBEEEA;}
+.cp-opt.wrong .k{background:var(--ox);color:var(--card);}
+
+.cp-panel{padding:16px 18px;background:#F4F6EE;border:1px solid var(--moss-soft);border-radius:10px;display:flex;gap:12px;}
+.cp-panel.rationale{background:var(--card);border-color:var(--line);border-left:3px solid var(--ox);}
+.cp-panel .pic{width:24px;height:24px;flex-shrink:0;border-radius:6px;background:var(--moss);color:var(--card);display:grid;place-items:center;}
+.cp-panel .pic svg{width:13px;height:13px;}
+.cp-panel.rationale .pic{background:var(--ox);}
+.cp-panel .body{flex:1;}
+.cp-panel .lab{font:600 10.5px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--moss);margin-bottom:4px;}
+.cp-panel.rationale .lab{color:var(--ox);}
+.cp-panel p{font:400 13.5px/1.55 var(--font-body);color:var(--ink-w);margin:0;}
+
+.cp-foot{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;background:var(--paper-w2);border-top:1px solid var(--line);}
+.cp-foot .ghost-row{display:flex;gap:10px;}
+
+/* — case player v2 - immersive — */
+.cp-imm{background:var(--paper-w2);}
+.cp-imm-grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:24px;padding:24px 32px;}
+.cp-side{display:flex;flex-direction:column;gap:14px;}
+.cp-side .specimen{aspect-ratio:1;}
+.cp-chart{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;}
+.cp-chart .chart-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--line);font:400 12px var(--font-body);}
+.cp-chart .chart-row:last-child{border:0;}
+.cp-chart .chart-row .k{color:var(--ink-meta);}
+.cp-chart .chart-row .v{color:var(--ink-w);font-weight:500;}
+
+/* — case player v3 - timeline — */
+.cp-tl{padding:24px 32px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:32px;}
+.cp-tl-rail{display:flex;flex-direction:column;gap:0;border-left:1px solid var(--line);padding-left:20px;position:relative;}
+.cp-tl-rail .tl-step{padding:8px 0;font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;position:relative;}
+.cp-tl-rail .tl-step::before{content:"";position:absolute;left:-26px;top:13px;width:10px;height:10px;border-radius:9999px;background:var(--paper-w3);border:1px solid var(--line);}
+.cp-tl-rail .tl-step.done::before{background:var(--moss);border-color:var(--moss);}
+.cp-tl-rail .tl-step.cur::before{background:var(--ox);border-color:var(--ox);box-shadow:0 0 0 4px var(--ox-soft);}
+.cp-tl-rail .tl-step.cur{color:var(--ink-w);}
+
+/* mobile case player */
+.m-cp-bar{padding:14px 16px;background:var(--card);border-bottom:1px solid var(--line);}
+.m-cp-bar .top{display:flex;justify-content:space-between;align-items:center;font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;}
+.m-cp-bar .bar{height:3px;background:var(--paper-w3);border-radius:2px;margin-top:6px;overflow:hidden;}
+.m-cp-bar .bar>div{height:100%;background:var(--ox);}
+.m-cp-stage{padding:18px 16px 100px;display:flex;flex-direction:column;gap:14px;}
+.m-cp-opt{padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;gap:10px;font:400 13px var(--font-body);}
+.m-cp-opt.correct{border-color:var(--moss);background:#F0F4E8;}
+.m-cp-opt .k{width:22px;height:22px;border-radius:9999px;background:var(--card-2);font:600 10px var(--font-body);display:grid;place-items:center;color:var(--ink-w3);}
+.m-cp-opt.correct .k{background:var(--moss);color:var(--card);}
+.m-cp-foot{position:absolute;left:0;right:0;bottom:0;padding:12px 16px;background:var(--paper-warm);border-top:1px solid var(--line);display:flex;gap:10px;}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Cases mockups">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12l5 5 9-12"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M11 12h1v5h1"/></symbol>
+  <symbol id="i-chief" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 21s-7-4.35-9-9c-2-4.65 1-9 5-9 2 0 4 1.5 4 4 0-2.5 2-4 4-4 4 0 7 4.35 5 9-2 4.65-9 9-9 9z"/></symbol>
+  <symbol id="i-step" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 12h4M11 12h4M19 12h2"/></symbol>
+  <symbol id="i-ham" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 4h11v13H9z"/><path d="M5 8v12h12"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></symbol>
+  <symbol id="i-fc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+  <symbol id="i-exam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+  <symbol id="i-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 9h4M8 7v4M15 10h.01M17 13h.01M12 17l-6 3a3 3 0 01-3-4l1-4a4 4 0 014-3h12a4 4 0 014 3l1 4a3 3 0 01-3 4l-6-3"/></symbol>
+  <symbol id="i-tutor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></symbol>
+  <symbol id="i-pod" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 18v-7a9 9 0 0118 0v7"/><path d="M21 19a2 2 0 01-2 2h-1v-6h3zM3 19a2 2 0 002 2h1v-6H3z"/></symbol>
+  <symbol id="i-perf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol>
+  <symbol id="i-prof" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></symbol>
+</defs></svg>
+
+<header class="cat-head">
+  <div>
+    <h1>The <em>catalogue</em>.</h1>
+    <p>Cases live in two surfaces: a curated library and a stepped Socratic-but-structured runner. The runner is the rework most overdue — production is multiple choice with rationale, not a chat.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/cases · /cases/:id</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<!-- ─── shared sidebar ─── -->
+<template id="t-sidebar">
+  <aside class="sidebar">
+    <div class="usercard"><div class="av">RA</div><div class="meta"><div class="nm">Ramie F.</div><div class="sub">Lv. 7 · 2,835 XP</div><div class="lvbar"><span style="width:35%"></span></div></div></div>
+    <nav class="nav-group"><div class="nav-label">Study</div>
+      <button class="nav-item __a-dash"><span class="nav-ic"><svg><use href="#i-dash"/></svg></span><span>Dashboard</span></button>
+      <button class="nav-item __a-quiz"><span class="nav-ic"><svg><use href="#i-quiz"/></svg></span><span>Quiz</span><span class="nav-badge">12</span></button>
+      <button class="nav-item __a-cases"><span class="nav-ic"><svg><use href="#i-cat"/></svg></span><span>Cases</span></button>
+      <button class="nav-item __a-fc"><span class="nav-ic"><svg><use href="#i-fc"/></svg></span><span>Flashcards</span><span class="nav-badge">19</span></button>
+      <button class="nav-item __a-exam"><span class="nav-ic"><svg><use href="#i-exam"/></svg></span><span>Mock exam</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Play</div>
+      <button class="nav-item __a-mini"><span class="nav-ic"><svg><use href="#i-mini"/></svg></span><span>Minigames</span><span class="nav-badge new">NEW</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Coach</div>
+      <button class="nav-item __a-tutor"><span class="nav-ic"><svg><use href="#i-tutor"/></svg></span><span>Live tutor</span></button>
+      <button class="nav-item __a-pod"><span class="nav-ic"><svg><use href="#i-pod"/></svg></span><span>Podcasts</span></button>
+      <button class="nav-item __a-perf"><span class="nav-ic"><svg><use href="#i-perf"/></svg></span><span>Performance</span></button>
+    </nav>
+    <div class="sidebar-foot">
+      <button class="nav-item __a-prof"><span class="nav-ic"><svg><use href="#i-prof"/></svg></span><span>Profile</span></button>
+      <button class="tog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="opacity:.6;vertical-align:-2px"><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg> Dark</button>
+      <button class="signout">Sign out</button>
+    </div>
+  </aside>
+</template>
+<script>
+function sidebar(active){
+  const t=document.getElementById('t-sidebar').content.cloneNode(true);
+  const el=t.querySelector(`.__a-${active}`);
+  if(el){el.classList.add('active');el.classList.remove(`__a-${active}`);}
+  return t;
+}
+</script>
+
+<!-- ═══════════════════════════════════════════ LIBRARY v1 ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">03·A</div><h2>Case library</h2><p class="desc">Catalogue. Three takes — grid with KPI strip, hairline index list, and a topic-led shelf.</p></section>
+
+<div class="ab" id="lib-v1">
+  <div class="ab-head"><h3>03a · Library · grid + KPIs</h3><span class="ab-tag v1">v1 · grid</span><span class="ab-meta">/cases</span></div>
+  <div class="ab-frame">
+    <header class="topbar">
+      <div class="topbar-wm">dermie</div>
+      <div class="topbar-right">
+        <button class="avatar-btn" aria-label="Profile" title="Profile">RA</button>
+        <button class="pill"><svg width="13" height="13"><use href="#i-search"/></svg> Search cases <kbd>⌘K</kbd></button>
+        <button class="pill streak">12 day streak</button>
+      </div>
+    </header>
+    <div class="shell" id="lib-v1-shell"></div>
+  </div>
+</div>
+
+<script>
+document.getElementById('lib-v1-shell').appendChild(sidebar('cases'));
+document.getElementById('lib-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Study</a><span class="sep">/</span>Cases<span class="right">142 specimens · curated</span></div>
+    <div class="page-h">
+      <div>
+        <div class="eyebrow">— Interactive cases</div>
+        <h1>Case <em>library</em>.</h1>
+        <p class="sub">Curated patient encounters, sorted by lesion morphology and body site. Step through history, exam, testing and management decisions; each step shows you the rationale and points to the strongest evidence.</p>
+      </div>
+      <div class="actions">
+        <button class="btn ghost sm">Saved · 8</button>
+        <button class="btn primary sm">Resume 014a →</button>
+      </div>
+    </div>
+
+    <div class="lib-stats">
+      <div><div class="lab">Cases completed</div><div class="n">12</div><div class="b">of 142 in library</div></div>
+      <div><div class="lab">Diagnosis accuracy</div><div class="n"><em>74</em>%</div><div class="b">across completed cases</div></div>
+      <div><div class="lab">Avg score</div><div class="n">3.4 / 5</div><div class="b">step-by-step reasoning</div></div>
+      <div><div class="lab">Minutes practiced</div><div class="n">218</div><div class="b">this month</div></div>
+    </div>
+
+    <div class="lib-filters">
+      <div class="lib-pivots">
+        <button class="lib-pivot on">All<span class="ct">142</span></button>
+        <button class="lib-pivot">In progress<span class="ct">3</span></button>
+        <button class="lib-pivot">Completed<span class="ct">12</span></button>
+        <button class="lib-pivot">Unseen<span class="ct">127</span></button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto">
+        <span class="chip dot ox">Inflammatory · 38</span>
+        <span class="chip">Neoplastic · 41</span>
+        <span class="chip">Infectious · 22</span>
+        <span class="chip">Pigmentary · 18</span>
+        <span class="chip">Pediatric · 14</span>
+        <span class="chip">Hair · 9</span>
+      </div>
+    </div>
+
+    <div class="case-grid">
+      ${[
+        {n:'No. 014a',t:'The farmer’s annular plaque',d:'Scalp · Fitz IV · advancing scaly border with central clearing.',chip:{c:'moss',l:'In progress · 3 of 12'},meta:'7 steps · ~14 min',pips:[1,1,1,0,0,0,0],s:''},
+        {n:'No. 022c',t:'A morbilliform eruption, day 9',d:'Trunk and proximal extremities · febrile · started cephalosporin Day 1.',chip:{c:'gold',l:'Unseen'},meta:'9 steps · ~18 min',pips:[0,0,0,0,0,0,0],s:'s2'},
+        {n:'No. 031b',t:'Brownish plaque on the cheek',d:'A 62-year-old woman · Fitz II · slowly enlarging over two years.',chip:{c:'',l:'Mastered'},meta:'5 steps · ~10 min',pips:[1,1,1,1,1,1,1],s:'s3'},
+        {n:'No. 045',t:'Linear vesicles after a hike',d:'Forearm · summer · pruritic streaks. The patient does not recall touching anything.',chip:{c:'moss',l:'2 of 8'},meta:'8 steps · ~15 min',pips:[1,1,0,0,0,0,0],s:'s4'},
+        {n:'No. 057',t:'A blanching macule under the breast',d:'Diabetic · obese · burning, not itching · pseudohyphae on KOH.',chip:{c:'gold',l:'Unseen'},meta:'6 steps · ~12 min',pips:[0,0,0,0,0,0,0],s:'s5'},
+        {n:'No. 063a',t:'The teenager’s persistent cheek',d:'15 y/o · open comedones, closed comedones, a single nodule on the jaw.',chip:{c:'',l:'Mastered'},meta:'11 steps · ~22 min',pips:[1,1,1,1,1,1,1],s:'s6'},
+      ].map(c=>`
+        <article class="case-card">
+          <div class="specimen ${c.s||''}"></div>
+          <div class="head"><div class="chips"><span class="chip ${c.chip.c} small">${c.chip.l}</span></div><div class="num">${c.n}</div></div>
+          <div class="body">
+            <div class="title">${c.t}</div>
+            <div class="desc">${c.d}</div>
+          </div>
+          <div class="foot">
+            <span class="muted small">${c.meta}</span>
+            <button class="start"><svg width="10" height="10"><use href="#i-play"/></svg> Start</button>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ LIBRARY v2 — list/index ═══════════════════════════════════════════ -->
+<div class="ab" id="lib-v2">
+  <div class="ab-head"><h3>03b · Library · index list</h3><span class="ab-tag v2">v2 · hairline index</span><span class="ab-meta">/cases</span></div>
+  <div class="ab-frame">
+    <header class="topbar">
+      <div class="topbar-wm">dermie</div>
+      <div class="topbar-right">
+        <button class="pill"><svg width="13" height="13"><use href="#i-search"/></svg> Search</button>
+        <button class="pill streak">12 day streak</button>
+      </div>
+    </header>
+    <div class="shell" id="lib-v2-shell"></div>
+  </div>
+</div>
+
+<script>
+document.getElementById('lib-v2-shell').appendChild(sidebar('cases'));
+document.getElementById('lib-v2-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Study</a><span class="sep">/</span>Cases<span class="right">Index view</span></div>
+    <div class="page-h">
+      <div>
+        <h1 style="font-size:36px">Case <em>index</em>.</h1>
+        <p class="sub">142 specimens, sorted by number. Hover any row to read the morphology line; click to start.</p>
+      </div>
+      <div class="actions">
+        <div class="search-bar" style="min-width:280px"><svg><use href="#i-search"/></svg>Search by morphology or diagnosis…</div>
+        <div class="seg">
+          <button class="on">List</button><button>Grid</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="lib-list">
+      <div class="lib-head"><span>No.</span><span></span><span>Specimen</span><span>Topic</span><span>Steps</span><span>Status</span><span></span></div>
+      ${[
+        {n:'014a',t:'The farmer’s annular plaque',sub:'Scalp · Fitz IV · advancing scaly border with central clearing',topic:'Infectious',s:'',steps:'3 / 7',status:{c:'moss',l:'In progress'}},
+        {n:'022c',t:'Morbilliform eruption, day 9',sub:'Trunk · febrile · cephalosporin Day 1',topic:'Inflammatory',s:'s2',steps:'— / 9',status:{c:'gold',l:'Unseen'}},
+        {n:'031b',t:'Brownish plaque on the cheek',sub:'62 y/o woman · Fitz II · enlarging over 2 years',topic:'Neoplastic',s:'s3',steps:'5 / 5',status:{c:'',l:'Mastered'}},
+        {n:'045',t:'Linear vesicles after a hike',sub:'Forearm · pruritic streaks · no recalled contact',topic:'Inflammatory',s:'s4',steps:'2 / 8',status:{c:'moss',l:'In progress'}},
+        {n:'057',t:'Blanching macule under the breast',sub:'Diabetic · pseudohyphae on KOH',topic:'Infectious',s:'s5',steps:'— / 6',status:{c:'gold',l:'Unseen'}},
+        {n:'063a',t:'Teenager’s persistent cheek',sub:'15 y/o · comedones · jawline nodule',topic:'Inflammatory',s:'s6',steps:'11 / 11',status:{c:'',l:'Mastered'}},
+        {n:'077',t:'A 9-year-old’s "stuck-on" papules',sub:'Periorbital · molluscoid · siblings affected',topic:'Pediatric',s:'',steps:'— / 7',status:{c:'gold',l:'Unseen'}},
+        {n:'091',t:'Punched-out ulcer on the heel',sub:'Type 2 DM · cool feet · long-standing',topic:'Neoplastic',s:'s4',steps:'— / 9',status:{c:'gold',l:'Unseen'}},
+      ].map(c=>`
+        <div class="lib-list-row">
+          <span class="num">${c.n}</span>
+          <div class="specimen ${c.s} specimen-tiny"></div>
+          <div><div class="ti">${c.t}</div><div class="sub">${c.sub}</div></div>
+          <span class="chip small">${c.topic}</span>
+          <span class="mono small muted">${c.steps}</span>
+          <span class="chip ${c.status.c} small">${c.status.l}</span>
+          <button class="btn ghost xs">Open →</button>
+        </div>
+      `).join('')}
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ LIBRARY v3 — topic shelves ═══════════════════════════════════════════ -->
+<div class="ab" id="lib-v3">
+  <div class="ab-head"><h3>03c · Library · topic shelves</h3><span class="ab-tag v3">v3 · horizontal shelves</span><span class="ab-meta">/cases</span></div>
+  <div class="ab-frame">
+    <header class="topbar">
+      <div class="topbar-wm">dermie</div>
+      <div class="topbar-right">
+        <button class="pill"><svg width="13" height="13"><use href="#i-search"/></svg> Search</button>
+        <button class="pill streak">12 day streak</button>
+      </div>
+    </header>
+    <div class="shell" id="lib-v3-shell"></div>
+  </div>
+</div>
+
+<script>
+document.getElementById('lib-v3-shell').appendChild(sidebar('cases'));
+document.getElementById('lib-v3-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h">
+      <div>
+        <div class="eyebrow">— Browse by topic</div>
+        <h1>Case <em>shelves</em>.</h1>
+        <p class="sub">Grouped by lesion morphology. Read across each shelf as a small editorial run.</p>
+      </div>
+    </div>
+
+    ${[
+      {topic:'Inflammatory',count:38,cases:[
+        {n:'045',t:'Linear vesicles after a hike',s:'s4',chip:{c:'moss',l:'2 of 8'}},
+        {n:'063a',t:'Teenager’s persistent cheek',s:'s6',chip:{c:'',l:'Mastered'}},
+        {n:'088',t:'Itchy lichenoid wrists',s:'s2',chip:{c:'gold',l:'Unseen'}},
+      ]},
+      {topic:'Neoplastic',count:41,cases:[
+        {n:'031b',t:'Brownish plaque on the cheek',s:'s3',chip:{c:'',l:'Mastered'}},
+        {n:'091',t:'Punched-out ulcer on the heel',s:'s4',chip:{c:'gold',l:'Unseen'}},
+        {n:'103',t:'A pigmented streak on the nail',s:'s5',chip:{c:'gold',l:'Unseen'}},
+      ]},
+      {topic:'Infectious',count:22,cases:[
+        {n:'014a',t:'Farmer’s annular plaque',s:'',chip:{c:'moss',l:'3 of 12'}},
+        {n:'057',t:'Blanching macule under the breast',s:'s5',chip:{c:'gold',l:'Unseen'}},
+        {n:'120',t:'Honey-crusted lip vesicles in a child',s:'s6',chip:{c:'gold',l:'Unseen'}},
+      ]},
+    ].map(shelf=>`
+      <section>
+        <div class="between" style="margin-bottom:12px"><div><div class="eyebrow">— ${shelf.topic} · ${shelf.count} specimens</div></div><a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em">→ see all</a></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+          ${shelf.cases.map(c=>`
+            <article class="case-card">
+              <div class="specimen ${c.s||''}"></div>
+              <div class="head"><div class="chips"><span class="chip ${c.chip.c} small">${c.chip.l}</span></div><div class="num">${c.n}</div></div>
+              <div class="body"><div class="title">${c.t}</div></div>
+              <div class="foot"><span class="muted small">7 steps · ~14 min</span><button class="start"><svg width="10" height="10"><use href="#i-play"/></svg> Start</button></div>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+    `).join('')}
+
+    <section>
+      <div class="between" style="margin-bottom:12px"><div class="eyebrow">— Pigmentary · 18 specimens</div><a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em">→ see all</a></div>
+      <div class="lib-list">
+        <div class="lib-list-row"><span class="mono small muted">No. 152</span><div class="specimen s3 specimen-tiny"></div><div><div class="ti">A halo around the mole</div><div class="sub">Trunk · 22 y/o · partial depigmentation</div></div><span class="chip small">Vitiligo / nevus</span><span class="mono small muted">— / 6</span><span class="chip gold small">Unseen</span><button class="btn ghost xs">Open →</button></div>
+        <div class="lib-list-row"><span class="mono small muted">No. 161</span><div class="specimen s4 specimen-tiny"></div><div><div class="ti">A grey-brown facial mottling</div><div class="sub">35 y/o female · gradual onset · OCP use</div></div><span class="chip small">Melasma</span><span class="mono small muted">— / 5</span><span class="chip gold small">Unseen</span><button class="btn ghost xs">Open →</button></div>
+      </div>
+    </section>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ CASE PLAYER — Section ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">03·B</div><h2>Case player</h2><p class="desc">Production is stepped multiple-choice with rationale — not a Socratic chat. v1 mirrors that. v2 adds a persistent chart rail. v3 reorganises the same loop as a step timeline. Mobile takes v1.</p></section>
+
+<!-- ─── CP v1 — canonical runner ─── -->
+<div class="ab" id="cp-v1">
+  <div class="ab-head"><h3>03d · Case player · canonical</h3><span class="ab-tag v1">v1 · single column</span><span class="ab-meta">/cases/014a</span></div>
+  <div class="ab-frame">
+    <header class="topbar">
+      <div class="topbar-wm">dermie · case 014a</div>
+      <div class="topbar-right">
+        <button class="pill">Save &amp; exit</button>
+      </div>
+    </header>
+    <section class="cp-header">
+      <div class="top">
+        <div class="title">Interactive case · the farmer’s annular plaque</div>
+        <div class="step-meta">Step 2 of 7</div>
+      </div>
+      <div class="cp-bar"><div style="width:28%"></div></div>
+      <div class="cp-pills between">
+        <div class="row">
+          <span class="cp-score">Score · +3</span>
+          <span class="cp-timer"><svg width="13" height="13"><use href="#i-clock"/></svg> 02:14</span>
+          <span class="cp-steps">High-yield · 2 · so far</span>
+        </div>
+        <div class="row">
+          <span class="chip ox dot">Infectious</span>
+          <span class="chip">Hard</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="cp-stage">
+      <div class="cp-block">
+        <div class="eyebrow"><span class="ic"><svg><use href="#i-chief"/></svg></span>Chief complaint</div>
+        <p>A 52-year-old male agricultural worker presents to the dermatology clinic complaining of "a slowly growing patch on the scalp" that has been spreading over four months. He reports mild itching and notes that the centre of the patch looks like normal skin while the edge remains scaly and slightly raised. He has not tried any treatment and is otherwise well.</p>
+      </div>
+
+      <div class="cp-block">
+        <div class="eyebrow"><span class="ic"><svg><use href="#i-step"/></svg></span>Step 2 · What is the most important next question?</div>
+        <h2 class="cp-question">Which of the following history items is most important to ask next?</h2>
+        <div class="cp-opts">
+          <button class="cp-opt correct">
+            <span class="k">A</span>
+            <span>Ask about sun exposure, occupational contact with animals, and other affected people in the household.</span>
+            <div class="right">
+              <span class="cp-hy">High yield</span>
+              <span class="cp-xp">+3 XP</span>
+              <span class="check"><svg><use href="#i-check"/></svg></span>
+            </div>
+          </button>
+          <button class="cp-opt">
+            <span class="k">B</span>
+            <span>Ask about recent medication changes.</span>
+          </button>
+          <button class="cp-opt">
+            <span class="k">C</span>
+            <span>Ask about family history of similar skin problems.</span>
+          </button>
+          <button class="cp-opt">
+            <span class="k">D</span>
+            <span>Ask about recent insect bites or arthropod exposure.</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="cp-panel">
+        <div class="pic"><svg><use href="#i-check"/></svg></div>
+        <div class="body">
+          <div class="lab">Information revealed</div>
+          <p>The patient has been clearing brush with his teenage son. The son also developed an itchy patch on the forearm last week. The patient’s farm has cattle and feral cats. He does not recall an arthropod bite.</p>
+        </div>
+      </div>
+
+      <div class="cp-panel rationale">
+        <div class="pic"><svg><use href="#i-info"/></svg></div>
+        <div class="body">
+          <div class="lab">Educational rationale</div>
+          <p>Establishing zoonotic and environmental exposures is the single highest-yield branch at this step. Annular, scaly, centrally-clearing plaques with multiple affected household members are characteristic of tinea (often <em>Trichophyton verrucosum</em> in cattle handlers, <em>Microsporum canis</em> in cat exposures). The remaining branches are reasonable but lower yield given the clinical picture.</p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="cp-foot">
+      <div class="ghost-row">
+        <button class="btn ghost sm">Re-read</button>
+        <button class="btn ghost sm">Flag for review</button>
+        <button class="btn ghost sm">Ask tutor</button>
+      </div>
+      <button class="btn primary">Continue to step 3 <svg width="14" height="14"><use href="#i-arrow"/></svg></button>
+    </footer>
+  </div>
+</div>
+
+<!-- ─── CP v2 — patient chart rail ─── -->
+<div class="ab" id="cp-v2">
+  <div class="ab-head"><h3>03e · Case player · with chart rail</h3><span class="ab-tag v2">v2 · two-column</span><span class="ab-meta">/cases/014a</span></div>
+  <div class="ab-frame cp-imm">
+    <header class="topbar">
+      <div class="topbar-wm">dermie · case 014a</div>
+      <div class="topbar-right"><button class="pill">Save &amp; exit</button></div>
+    </header>
+    <section class="cp-header">
+      <div class="top">
+        <div class="title">The farmer’s annular plaque</div>
+        <div class="step-meta">Step 2 of 7</div>
+      </div>
+      <div class="cp-bar"><div style="width:28%"></div></div>
+      <div class="cp-pills between">
+        <div class="row"><span class="cp-score">Score · +3</span><span class="cp-timer"><svg width="13" height="13"><use href="#i-clock"/></svg> 02:14</span></div>
+        <div class="row"><span class="chip ox dot">Infectious</span><span class="chip">Hard</span></div>
+      </div>
+    </section>
+    <div class="cp-imm-grid">
+      <aside class="cp-side">
+        <div class="specimen s2"></div>
+        <div class="cp-chart">
+          <div style="font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta);margin-bottom:8px">Patient chart</div>
+          <div class="chart-row"><span class="k">Age</span><span class="v">52</span></div>
+          <div class="chart-row"><span class="k">Sex</span><span class="v">M</span></div>
+          <div class="chart-row"><span class="k">Occupation</span><span class="v">Farmer</span></div>
+          <div class="chart-row"><span class="k">Fitz</span><span class="v">III</span></div>
+          <div class="chart-row"><span class="k">Duration</span><span class="v">4 mo</span></div>
+          <div class="chart-row"><span class="k">Site</span><span class="v">Vertex</span></div>
+          <div class="chart-row"><span class="k">Pruritus</span><span class="v">Mild</span></div>
+        </div>
+        <div class="cp-chart">
+          <div style="font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta);margin-bottom:8px">Working differential</div>
+          <div class="chart-row"><span class="k">1. Tinea capitis</span><span class="v">62%</span></div>
+          <div class="chart-row"><span class="k">2. Annular psoriasis</span><span class="v">18%</span></div>
+          <div class="chart-row"><span class="k">3. Nummular eczema</span><span class="v">12%</span></div>
+          <div class="chart-row"><span class="k">4. Granuloma annulare</span><span class="v">8%</span></div>
+        </div>
+      </aside>
+      <div class="cp-stage" style="max-width:none;padding:0">
+        <div class="cp-block">
+          <div class="eyebrow"><span class="ic"><svg><use href="#i-step"/></svg></span>Step 2 · what’s the most important next question?</div>
+          <h2 class="cp-question">Which of the following history items is most important to ask next?</h2>
+          <div class="cp-opts">
+            <button class="cp-opt correct"><span class="k">A</span><span>Ask about sun exposure, occupational contact with animals, and other affected people in the household.</span><div class="right"><span class="cp-hy">High yield</span><span class="cp-xp">+3 XP</span><span class="check"><svg><use href="#i-check"/></svg></span></div></button>
+            <button class="cp-opt"><span class="k">B</span><span>Ask about recent medication changes.</span></button>
+            <button class="cp-opt"><span class="k">C</span><span>Ask about family history of similar skin problems.</span></button>
+            <button class="cp-opt"><span class="k">D</span><span>Ask about recent insect bites or arthropod exposure.</span></button>
+          </div>
+        </div>
+        <div class="cp-panel"><div class="pic"><svg><use href="#i-check"/></svg></div><div class="body"><div class="lab">Information revealed</div><p>Patient clears brush with his teenage son, who also developed an itchy patch last week. Farm has cattle and feral cats. No recalled bite.</p></div></div>
+        <div class="cp-panel rationale"><div class="pic"><svg><use href="#i-info"/></svg></div><div class="body"><div class="lab">Educational rationale</div><p>Annular, scaly, centrally-clearing plaques + multiple affected household members suggest tinea — particularly <em>Trichophyton verrucosum</em> in cattle handlers. Establishing zoonotic exposures is the highest-yield branch at this step.</p></div></div>
+      </div>
+    </div>
+    <footer class="cp-foot"><div class="ghost-row"><button class="btn ghost sm">Re-read</button><button class="btn ghost sm">Flag</button><button class="btn ghost sm">Ask tutor</button></div><button class="btn primary">Continue to step 3 <svg width="14" height="14"><use href="#i-arrow"/></svg></button></footer>
+  </div>
+</div>
+
+<!-- ─── CP v3 — step timeline left rail ─── -->
+<div class="ab" id="cp-v3">
+  <div class="ab-head"><h3>03f · Case player · step timeline</h3><span class="ab-tag v3">v3 · timeline</span><span class="ab-meta">/cases/014a</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · case 014a</div><div class="topbar-right"><button class="pill">Save &amp; exit</button></div></header>
+    <section class="cp-header" style="background:transparent">
+      <div class="top"><div class="title">Step 2 · history</div><div class="step-meta">2 / 7 · score +3 · 02:14</div></div>
+      <div class="cp-bar"><div style="width:28%"></div></div>
+    </section>
+    <div class="cp-tl">
+      <aside class="cp-tl-rail">
+        <div class="tl-step done">01 · Chief complaint</div>
+        <div class="tl-step cur">02 · History &amp; exposures</div>
+        <div class="tl-step">03 · Focused exam</div>
+        <div class="tl-step">04 · Testing</div>
+        <div class="tl-step">05 · Differential</div>
+        <div class="tl-step">06 · Management</div>
+        <div class="tl-step">07 · Follow-up</div>
+      </aside>
+      <div class="cp-stage" style="padding:0">
+        <div class="cp-block">
+          <div class="eyebrow"><span class="ic"><svg><use href="#i-chief"/></svg></span>Recap</div>
+          <p style="font-size:13.5px">52 y/o agricultural worker · 4-month enlarging, annular scalp patch with central clearing. Mild pruritus. No medication trial.</p>
+        </div>
+        <div class="cp-block">
+          <h2 class="cp-question">Which history item is most important to ask next?</h2>
+          <div class="cp-opts">
+            <button class="cp-opt correct"><span class="k">A</span><span>Sun exposure, occupational contact with animals, household contacts</span><div class="right"><span class="cp-hy">High yield</span><span class="cp-xp">+3</span><span class="check"><svg><use href="#i-check"/></svg></span></div></button>
+            <button class="cp-opt"><span class="k">B</span><span>Recent medication changes</span></button>
+            <button class="cp-opt"><span class="k">C</span><span>Family history of similar problems</span></button>
+            <button class="cp-opt"><span class="k">D</span><span>Recent insect / arthropod bites</span></button>
+          </div>
+        </div>
+        <div class="cp-panel"><div class="pic"><svg><use href="#i-check"/></svg></div><div class="body"><div class="lab">Revealed</div><p>Son co-affected. Cattle and cats on farm. No bite recalled.</p></div></div>
+        <div class="cp-panel rationale"><div class="pic"><svg><use href="#i-info"/></svg></div><div class="body"><div class="lab">Why</div><p>Multiple household members + zoonotic exposure raise tinea (<em>T. verrucosum</em>) to the top of the differential.</p></div></div>
+        <div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn ghost sm">Flag</button><button class="btn primary">Continue → step 3 (Focused exam)</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ Library mobile ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">m</div><h2>Mobile</h2><p class="desc">Library reads as a single column with topic filter chips; case player keeps the progress band sticky and pushes options to a one-tap layout.</p></section>
+
+<div class="ab" id="lib-mob">
+  <div class="ab-head"><h3>03m · Library · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/cases</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar">
+        <button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button>
+        <div class="wm">Cases</div>
+        <button class="ham"><svg width="20" height="20"><use href="#i-search"/></svg></button>
+      </header>
+      <div class="m-content">
+        <div>
+          <div class="eyebrow" style="font-size:10px">— Interactive cases</div>
+          <h1 style="font:300 32px var(--font-display);letter-spacing:-.02em;margin:6px 0 0">Case <em style="color:var(--ox);font-style:italic">library</em>.</h1>
+        </div>
+        <div class="lib-stats" style="grid-template-columns:repeat(2,1fr)">
+          <div style="text-align:center"><div class="lab" style="padding:0 0 5px">Completed</div><div class="n">12</div></div>
+          <div style="text-align:center"><div class="lab" style="padding:0 0 5px">Accuracy</div><div class="n" style="text-align:center"><em>74</em>%</div></div>
+        </div>
+        <div style="display:flex;gap:6px;overflow-x:auto;padding:0 0 4px;text-align:center;height:40.7674px;justify-content:center"><span class="chip ox dot">All · 142</span><span class="chip">Inflammatory · 38</span><span class="chip">Neoplastic · 41</span><span class="chip">Infectious · 22</span></div>
+        <article class="case-card">
+          <div class="specimen"></div>
+          <div class="head"><div class="chips"><span class="chip moss small">In progress · 3 of 12</span></div><div class="num">No. 014a</div></div>
+          <div class="body"><div class="title">The farmer’s annular plaque</div><div class="desc">Scalp · Fitz IV · advancing scaly border with central clearing.</div></div>
+          <div class="foot"><span class="muted small">7 steps · ~14 min</span><button class="start"><svg width="10" height="10"><use href="#i-play"/></svg> Resume</button></div>
+        </article>
+        <article class="case-card">
+          <div class="specimen s2"></div>
+          <div class="head"><div class="chips"><span class="chip gold small">Unseen</span></div><div class="num">No. 022c</div></div>
+          <div class="body"><div class="title">Morbilliform eruption, day 9</div><div class="desc">Trunk · febrile · started cephalosporin Day 1.</div></div>
+          <div class="foot"><span class="muted small">9 steps · ~18 min</span><button class="start"><svg width="10" height="10"><use href="#i-play"/></svg> Start</button></div>
+        </article>
+        <article class="case-card">
+          <div class="specimen s3"></div>
+          <div class="head"><div class="chips"><span class="chip small">Mastered</span></div><div class="num">No. 031b</div></div>
+          <div class="body"><div class="title">Brownish plaque on the cheek</div></div>
+          <div class="foot"><span class="muted small">5 steps · ~10 min</span><button class="start" style="background:var(--card);color:var(--ink-w);border:1px solid var(--line)"><svg width="10" height="10"><use href="#i-play"/></svg> Replay</button></div>
+        </article>
+      </div>
+      <nav class="m-tabbar">
+        <a class="tab"><svg><use href="#i-dash"/></svg>Home</a>
+        <a class="tab active"><svg><use href="#i-cat"/></svg>Study</a>
+        <a class="tab"><svg><use href="#i-mini"/></svg>Play</a>
+        <a class="tab"><svg><use href="#i-perf"/></svg>Stats</a>
+        <a class="tab"><svg><use href="#i-prof"/></svg>You</a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<div class="ab" id="cp-mob">
+  <div class="ab-head"><h3>03n · Case player · mobile</h3><span class="ab-tag mob">412 × 780 · paired with v1</span><span class="ab-meta">/cases/014a</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner" style="background:var(--paper-warm)">
+      <header class="m-topbar">
+        <button class="ham"><svg width="20" height="20"><use href="#i-x"/></svg></button>
+        <div class="wm" style="font-size:13px;font-family:var(--font-mono);letter-spacing:.04em;text-transform:uppercase">Case 014a</div>
+        <button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button>
+      </header>
+      <div class="m-cp-bar">
+        <div class="top"><span>Step 2 of 7</span><span>+3 XP · 02:14</span></div>
+        <div class="bar"><div style="width:28%"></div></div>
+      </div>
+      <div class="m-cp-stage">
+        <div class="cp-block">
+          <div class="eyebrow" style="font-size:9px"><span class="ic" style="width:16px;height:16px"><svg><use href="#i-chief"/></svg></span>Chief complaint</div>
+          <p style="font-size:13px">52 y/o farmer. 4-month annular, scaly scalp patch with central clearing. Mild pruritus.</p>
+        </div>
+        <div class="cp-block">
+          <div class="eyebrow" style="font-size:9px">— Step 2</div>
+          <h2 style="font:400 17px/1.3 var(--font-display);color:var(--ink-w);margin:0">Most important next question?</h2>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <button class="m-cp-opt correct"><span class="k">A</span><span style="flex:1">Sun, animal contact, household contacts <span class="cp-hy" style="margin-left:4px">HY</span></span></button>
+          <button class="m-cp-opt"><span class="k">B</span><span style="flex:1">Recent medication changes</span></button>
+          <button class="m-cp-opt"><span class="k">C</span><span style="flex:1">Family history</span></button>
+          <button class="m-cp-opt"><span class="k">D</span><span style="flex:1">Insect bites</span></button>
+        </div>
+        <div class="cp-panel" style="font-size:12px"><div class="pic"><svg><use href="#i-check"/></svg></div><div class="body"><div class="lab" style="font-size:9px">Revealed</div><p style="font-size:12.5px">Son co-affected. Cattle and cats on farm.</p></div></div>
+      </div>
+      <div class="m-cp-foot">
+        <button class="btn ghost sm" style="flex:1">Flag</button>
+        <button class="btn primary sm" style="flex:2">Continue → 3</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

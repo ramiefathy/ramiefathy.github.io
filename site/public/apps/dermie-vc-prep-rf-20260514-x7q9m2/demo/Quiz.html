@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Quiz mockups (config / play / summary)</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+/* === CONFIG === */
+.cfg-grid{display:grid;grid-template-columns:minmax(0,1fr) 308px;gap:24px;align-items:flex-start;}
+
+.cfg-block{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px;}
+.cfg-block h3{font:400 20px var(--font-display);color:var(--ink-w);margin:0;letter-spacing:-.005em;}
+.cfg-block .help{font:400 12.5px var(--font-body);color:var(--ink-meta);}
+.cfg-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cfg-mode{padding:18px;background:var(--card-2);border:1px solid var(--line);border-radius:11px;cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left;}
+.cfg-mode.on{border-color:var(--ox);background:var(--card);box-shadow:inset 0 0 0 1px var(--ox);}
+.cfg-mode .nm{font:500 14px var(--font-body);color:var(--ink-w);}
+.cfg-mode .d{font:400 12.5px var(--font-body);color:var(--ink-meta);}
+.cfg-mode .roman{font:400 14px var(--font-mono);color:var(--ox);}
+
+.cfg-slider{display:flex;align-items:center;gap:14px;}
+.cfg-slider input[type=range]{flex:1;-webkit-appearance:none;background:transparent;}
+.cfg-slider input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--paper-w3);border-radius:2px;}
+.cfg-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--ox);border-radius:50%;margin-top:-7px;}
+.cfg-slider .num{font:400 28px var(--font-display);color:var(--ink-w);min-width:48px;text-align:right;font-feature-settings:"tnum";}
+.cfg-row-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px dashed var(--line);}
+.cfg-toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font:400 13px var(--font-body);color:var(--ink-w2);}
+.cfg-toggle .sw{width:30px;height:18px;background:var(--paper-w3);border-radius:9999px;position:relative;flex-shrink:0;}
+.cfg-toggle .sw::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;background:var(--card);border-radius:50%;transition:.2s;}
+.cfg-toggle.on .sw{background:var(--ox);}
+.cfg-toggle.on .sw::after{left:14px;}
+
+.cfg-cats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.cfg-cat{padding:14px;background:var(--card-2);border:1px solid var(--line);border-radius:10px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;text-align:left;}
+.cfg-cat.on{border-color:var(--ox);background:#FBEEEA;}
+.cfg-cat .ic{width:30px;height:30px;border-radius:8px;background:var(--ox-soft);color:var(--ox-deep);display:grid;place-items:center;flex-shrink:0;font:500 13px var(--font-display);}
+.cfg-cat .meta{flex:1;}
+.cfg-cat .nm{font:500 13px var(--font-body);color:var(--ink-w);}
+.cfg-cat .d{font:400 11.5px var(--font-body);color:var(--ink-meta);margin-top:2px;}
+.cfg-cat .ct{font:500 11px var(--font-mono);color:var(--ink-meta);}
+.cfg-cat input{margin-top:6px;accent-color:var(--ox);}
+
+.cfg-summary{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;position:sticky;top:24px;}
+.cfg-summary .h{font:400 20px var(--font-display);color:var(--ink-w);margin:0;letter-spacing:-.005em;}
+.cfg-summary .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font:400 13px var(--font-body);}
+.cfg-summary .row:last-of-type{border:0;}
+.cfg-summary .row .k{color:var(--ink-meta);}
+.cfg-summary .row .v{color:var(--ink-w);font-weight:500;}
+.cfg-summary .est{padding:12px;background:var(--card-2);border-radius:10px;text-align:center;font:400 13px var(--font-body);color:var(--ink-w2);}
+
+/* === PLAY === */
+.qp-bar{padding:16px 28px;display:flex;flex-direction:column;gap:6px;background:var(--card);border-bottom:1px solid var(--line);}
+.qp-bar .top{display:flex;align-items:center;justify-content:space-between;font:500 12px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;}
+.qp-bar .meta{display:inline-flex;align-items:center;gap:14px;}
+.qp-bar .meta .diff{display:inline-flex;align-items:center;gap:6px;}
+.qp-bar .meta .diff-bar{width:50px;height:4px;background:var(--paper-w3);border-radius:2px;overflow:hidden;}
+.qp-bar .meta .diff-bar>div{height:100%;background:var(--gold);}
+.qp-bar .progress{height:3px;background:var(--paper-w3);border-radius:2px;overflow:hidden;}
+.qp-bar .progress>div{height:100%;background:var(--ox);}
+
+.qp-stage{padding:32px 32px 12px;max-width:880px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:22px;}
+.qp-stem{font:400 22px/1.5 var(--font-display);color:var(--ink-w);letter-spacing:-.005em;margin:0;}
+.qp-opts{display:flex;flex-direction:column;gap:9px;}
+.qp-opt{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:11px;background:var(--card);border:1px solid var(--line);cursor:pointer;text-align:left;font:400 14.5px var(--font-body);color:var(--ink-w);font-family:inherit;width:100%;}
+.qp-opt:hover{border-color:var(--ink-w3);}
+.qp-opt.sel{border-color:var(--ink-w);background:var(--card-2);box-shadow:inset 0 0 0 1px var(--ink-w);}
+.qp-opt .k{width:28px;height:28px;border-radius:9999px;background:var(--card-2);color:var(--ink-w3);display:grid;place-items:center;font:600 12px var(--font-body);flex-shrink:0;}
+.qp-opt.sel .k{background:var(--ink-w);color:var(--card);}
+
+.qp-conf-wrap{display:flex;flex-direction:column;gap:6px;align-self:flex-start;}
+.qp-conf{display:inline-flex;align-items:center;gap:14px;padding:8px 14px;background:var(--card);border:1px solid var(--line);border-radius:9px;align-self:flex-start;}
+.qp-conf .lab{font:500 11.5px var(--font-body);color:var(--ink-w2);letter-spacing:.02em;}
+.qp-conf-help{font:400 11px var(--font-body);color:var(--ink-meta);padding-left:2px;}
+@media (max-width:720px){.qp-conf-help{display:none;}}
+.qp-conf .chips{display:inline-flex;gap:6px;}
+.qp-conf .chip{padding:4px 11px;background:var(--card-2);border:1px solid var(--line);border-radius:7px;cursor:pointer;font:500 11.5px var(--font-body);color:var(--ink-w2);}
+.qp-conf .chip.on{background:var(--ink-w);color:var(--card);border-color:var(--ink-w);}
+
+.qp-foot{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;background:var(--paper-w2);border-top:1px solid var(--line);}
+
+/* play v2 — split with image */
+.qp-split{display:grid;grid-template-columns:380px minmax(0,1fr);gap:28px;padding:24px 32px;}
+.qp-img-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.qp-img-card .specimen{aspect-ratio:1;border-radius:8px;background:radial-gradient(ellipse 60% 50% at 39% 42%,rgba(212,158,94,.95) 0%,rgba(118,70,37,.94) 42%,rgba(45,30,20,.98) 76%,rgba(15,10,7,1) 100%);position:relative;}
+.qp-img-card .specimen::after{content:"";position:absolute;inset:18%;border:1px solid rgba(255,255,255,.16);border-radius:9999px;}
+.qp-img-card .meta-tags{display:flex;justify-content:space-between;font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;}
+
+/* === SUMMARY === */
+.sum-hero{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.sum-hero>div{padding:24px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:4px;}
+.sum-hero>div:last-child{border-right:0;}
+.sum-hero .l{font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta);}
+.sum-hero .n{font:300 56px var(--font-display);color:var(--ink-w);letter-spacing:-.025em;font-feature-settings:"tnum";line-height:1;}
+.sum-hero .n em{color:var(--ox);font-style:italic;}
+.sum-hero .b{font:400 12px var(--font-body);color:var(--ink-meta);}
+
+.cal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px;}
+.cal-tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;}
+.cal-tile .l{font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-meta);}
+.cal-tile .n{font:400 28px var(--font-display);color:var(--ink-w);font-feature-settings:"tnum";margin-top:2px;line-height:1;}
+.cal-tile .n.bad{color:var(--ox);}
+.cal-tile .n.ok{color:var(--moss);}
+.cal-tile .b{font:400 11.5px var(--font-body);color:var(--ink-meta);margin-top:2px;}
+
+.sum-filters{display:flex;gap:6px;flex-wrap:wrap;margin-top:20px;padding-bottom:14px;border-bottom:1px solid var(--line);}
+.sum-filter{padding:7px 14px;border-radius:999px;background:transparent;border:1px solid var(--line-2);color:var(--ink-w2);font:500 12px var(--font-body);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;}
+.sum-filter.on{background:var(--ink-w);color:var(--card);border-color:var(--ink-w);}
+.sum-filter .ct{font:500 11px var(--font-mono);opacity:.7;font-feature-settings:"tnum";}
+
+.q-rev{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 28px;display:flex;flex-direction:column;gap:16px;}
+.q-rev .vignette{font:400 14.5px/1.65 var(--font-body);color:var(--ink-w);background:var(--card-2);padding:16px 18px;border-radius:10px;}
+.q-rev .top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.q-rev .q-id{display:inline-flex;align-items:center;gap:8px;font:500 14px var(--font-body);}
+.q-rev .q-id .mark{width:24px;height:24px;border-radius:9999px;display:grid;place-items:center;font:600 12px var(--font-body);}
+.q-rev .q-id .mark.ok{background:var(--moss-soft);color:#2A5235;}
+.q-rev .q-id .mark.bad{background:var(--ox-soft);color:var(--ox-deep);}
+.q-rev .q-actions{display:flex;align-items:center;gap:10px;font:500 12px var(--font-body);color:var(--ink-meta);}
+.q-rev .q-actions a{color:var(--ox);text-decoration:none;border-bottom:1px solid var(--ox-soft);}
+.q-rev .topic-row{display:flex;gap:6px;flex-wrap:wrap;}
+.q-rev .vignette{font:400 14px/1.6 var(--font-body);color:var(--ink-w);background:var(--card-2);padding:14px 16px;border-radius:10px;}
+.q-rev .vignette .q{font:500 14px var(--font-body);color:var(--ink-w);margin-top:8px;}
+.q-rev .opts{display:flex;flex-direction:column;gap:6px;}
+.q-rev .opt{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:8px;background:var(--card-2);border:1px solid transparent;font:400 13px var(--font-body);color:var(--ink-w2);}
+.q-rev .opt.correct{background:#F0F4E8;border-color:var(--moss);color:var(--ink-w);}
+.q-rev .opt.wrong{background:#FBEEEA;border-color:var(--ox);color:var(--ox-deep);}
+.q-rev .opt .k{width:22px;height:22px;border-radius:9999px;background:var(--paper-w3);font:600 10px var(--font-body);display:grid;place-items:center;color:var(--ink-w3);flex-shrink:0;}
+.q-rev .opt.correct .k{background:var(--moss);color:var(--card);}
+.q-rev .opt.wrong .k{background:var(--ox);color:var(--card);}
+.q-rev .opt .mk{margin-left:auto;font:500 11px var(--font-mono);}
+.q-rev .expl{font:400 13.5px/1.65 var(--font-body);color:var(--ink-w);padding:14px 16px;background:var(--paper-w2);border-radius:10px;border-left:3px solid var(--gold);}
+.q-rev .lp{font:400 13px/1.55 var(--font-body);color:var(--ink-w);padding:13px 16px;background:var(--paper-w2);border-radius:10px;border-left:3px solid var(--moss);display:flex;gap:10px;}
+.q-rev .lp strong{color:#2A5235;font-weight:600;letter-spacing:.02em;}
+.q-rev .meta-line{display:flex;justify-content:space-between;font:400 12px var(--font-body);color:var(--ink-meta);}
+
+/* mobile play */
+.m-qp-bar{padding:14px 16px;background:var(--card);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px;}
+.m-qp-bar .top{display:flex;justify-content:space-between;align-items:center;font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;}
+.m-qp-bar .bar{height:3px;background:var(--paper-w3);border-radius:2px;overflow:hidden;}
+.m-qp-bar .bar>div{height:100%;background:var(--ox);}
+.m-qp-content{padding:18px 16px 130px;display:flex;flex-direction:column;gap:14px;}
+.m-qp-opt{display:flex;gap:10px;align-items:center;padding:13px 14px;border-radius:10px;background:var(--card);border:1px solid var(--line);font:400 13.5px var(--font-body);color:var(--ink-w);}
+.m-qp-opt .k{width:22px;height:22px;border-radius:9999px;background:var(--card-2);color:var(--ink-w3);display:grid;place-items:center;font:600 11px var(--font-body);flex-shrink:0;}
+.m-qp-opt.sel{border-color:var(--ink-w);background:var(--card-2);}
+.m-qp-opt.sel .k{background:var(--ink-w);color:var(--card);}
+.m-qp-bottom{position:absolute;left:0;right:0;bottom:0;padding:12px 16px;background:var(--paper-warm);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px;}
+.m-qp-bottom .conf{display:flex;gap:6px;}
+.m-qp-bottom .conf button{flex:1;padding:7px;border-radius:8px;background:var(--card);border:1px solid var(--line);font:500 11px var(--font-body);color:var(--ink-w2);}
+.m-qp-bottom .conf button.on{background:var(--ink-w);color:var(--card);border-color:var(--ink-w);}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Quiz mockups">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12l5 5 9-12"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 22V4M5 4l13 5-13 4"/></symbol>
+  <symbol id="i-ham" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 4h11v13H9z"/><path d="M5 8v12h12"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></symbol>
+  <symbol id="i-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 9h4M8 7v4M15 10h.01M17 13h.01M12 17l-6 3a3 3 0 01-3-4l1-4a4 4 0 014-3h12a4 4 0 014 3l1 4a3 3 0 01-3 4l-6-3"/></symbol>
+  <symbol id="i-perf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol>
+  <symbol id="i-prof" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></symbol>
+  <symbol id="i-fc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+  <symbol id="i-exam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+  <symbol id="i-tutor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></symbol>
+  <symbol id="i-pod" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 18v-7a9 9 0 0118 0v7"/><path d="M21 19a2 2 0 01-2 2h-1v-6h3zM3 19a2 2 0 002 2h1v-6H3z"/></symbol>
+</defs></svg>
+
+<header class="cat-head">
+  <div>
+    <h1>The <em>quiz</em> loop.</h1>
+    <p>Configure a session, work through it, read a calibrated summary. Confidence is captured at every step and surfaces in the summary as a Brier score, overconfident misses, and underconfident corrects — the same loop that feeds Performance.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/quiz/config · /quiz/play · /quiz/summary</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<template id="t-sidebar">
+  <aside class="sidebar">
+    <div class="usercard"><div class="av">RA</div><div class="meta"><div class="nm">Ramie F.</div><div class="sub">Lv. 7 · 2,835 XP</div><div class="lvbar"><span style="width:35%"></span></div></div></div>
+    <nav class="nav-group"><div class="nav-label">Study</div>
+      <button class="nav-item __a-dash"><span class="nav-ic"><svg><use href="#i-dash"/></svg></span><span>Dashboard</span></button>
+      <button class="nav-item __a-quiz"><span class="nav-ic"><svg><use href="#i-quiz"/></svg></span><span>Quiz</span><span class="nav-badge">12</span></button>
+      <button class="nav-item __a-cases"><span class="nav-ic"><svg><use href="#i-cat"/></svg></span><span>Cases</span></button>
+      <button class="nav-item __a-fc"><span class="nav-ic"><svg><use href="#i-fc"/></svg></span><span>Flashcards</span><span class="nav-badge">19</span></button>
+      <button class="nav-item __a-exam"><span class="nav-ic"><svg><use href="#i-exam"/></svg></span><span>Mock exam</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Play</div>
+      <button class="nav-item __a-mini"><span class="nav-ic"><svg><use href="#i-mini"/></svg></span><span>Minigames</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Coach</div>
+      <button class="nav-item __a-tutor"><span class="nav-ic"><svg><use href="#i-tutor"/></svg></span><span>Live tutor</span></button>
+      <button class="nav-item __a-pod"><span class="nav-ic"><svg><use href="#i-pod"/></svg></span><span>Podcasts</span></button>
+      <button class="nav-item __a-perf"><span class="nav-ic"><svg><use href="#i-perf"/></svg></span><span>Performance</span></button>
+    </nav>
+    <div class="sidebar-foot">
+      <button class="nav-item __a-prof"><span class="nav-ic"><svg><use href="#i-prof"/></svg></span><span>Profile</span></button>
+      <button class="tog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="opacity:.6;vertical-align:-2px"><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg> Dark</button><button class="signout">Sign out</button></div>
+  </aside>
+</template>
+<script>
+function sidebar(active){const t=document.getElementById('t-sidebar').content.cloneNode(true);const el=t.querySelector(`.__a-${active}`);if(el){el.classList.add('active');el.classList.remove(`__a-${active}`);}return t;}
+</script>
+
+<!-- ═══════════════════════════════════════════ CONFIG ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">04·A</div><h2>Configure a quiz</h2><p class="desc">Three takes on the same three blocks: Learning Mode · Question Settings · Content Selection. The right rail is a sticky Quiz Summary with an estimated time and the Start Quiz CTA.</p></section>
+
+<!-- ─── v1 — vertical stack -->
+<div class="ab" id="cfg-v1">
+  <div class="ab-head"><h3>04a · Configure · vertical stack</h3><span class="ab-tag v1">v1 · stacked</span><span class="ab-meta">/quiz/config</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="avatar-btn" aria-label="Profile" title="Profile">RA</button><button class="pill">Cancel</button></div></header>
+    <div class="shell" id="cfg-v1-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('cfg-v1-shell').appendChild(sidebar('quiz'));
+document.getElementById('cfg-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Study</a><span class="sep">/</span>Quiz<span class="right">Configure and start</span></div>
+    <div class="page-h">
+      <div>
+        <div class="eyebrow">— New session</div>
+        <h1>Configure your <em>quiz</em>.</h1>
+        <p class="sub">Pick a mode, dial in the length, and choose what to draw from. Your last 7-day average and confidence calibration are factored into the difficulty automatically.</p>
+      </div>
+    </div>
+    <div class="cfg-grid">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <section class="cfg-block">
+          <div>
+            <div class="eyebrow">— i · learning mode</div>
+            <h3>How do you want to study?</h3>
+          </div>
+          <div class="cfg-modes">
+            <button class="cfg-mode on"><span class="roman">a.</span><span class="nm">Step-by-step</span><span class="d">See explanations immediately after each question. Best for learning unfamiliar topics.</span></button>
+            <button class="cfg-mode"><span class="roman">b.</span><span class="nm">Exam style</span><span class="d">Answer everything first, then review. Closer to the real exam experience.</span></button>
+          </div>
+        </section>
+
+        <section class="cfg-block">
+          <div class="between">
+            <div>
+              <div class="eyebrow">— ii · session length</div>
+              <h3>Question settings</h3>
+            </div>
+            <div class="help">Adaptive · weighted by your weakest topics</div>
+          </div>
+          <div class="field">
+            <label>Number of questions <strong style="color:var(--ox);margin-left:6px">25</strong></label>
+            <div class="cfg-slider"><input type="range" min="5" max="50" value="25"/><div class="num">25</div></div>
+            <div class="help">5 · 10 · 15 · 20 · <strong>25</strong> · 30 · 40 · 50</div>
+          </div>
+          <div class="cfg-row-bottom">
+            <div class="cfg-toggle"><span class="sw"></span> Enable timer (suggested 60s / question)</div>
+            <div class="cfg-toggle on"><span class="sw"></span> Capture confidence at each question</div>
+          </div>
+        </section>
+
+        <section class="cfg-block">
+          <div class="between">
+            <div>
+              <div class="eyebrow">— iii · content</div>
+              <h3>What should we ask?</h3>
+            </div>
+            <div class="seg"><button class="on">By category</button><button>By topic</button></div>
+          </div>
+          <p class="help">Pick a broad area, then refine. You can mix categories.</p>
+          <div class="cfg-cats">
+            <label class="cfg-cat on"><span class="ic"></span><span class="meta"><div class="nm">Inflammatory rashes <span class="ct">· 154</span></div><div class="d">Eczema, psoriasis, urticaria, more</div></span><input type="checkbox" checked/></label>
+            <label class="cfg-cat"><span class="ic">⨺</span><span class="meta"><div class="nm">Skin infections <span class="ct">· 158</span></div><div class="d">Bacterial, viral, fungal, parasitic</div></span><input type="checkbox"/></label>
+            <label class="cfg-cat on"><span class="ic">⌖</span><span class="meta"><div class="nm">Autoimmune &amp; blistering <span class="ct">· 80</span></div><div class="d">Connective tissue, vesicobullous</div></span><input type="checkbox" checked/></label>
+            <label class="cfg-cat"><span class="ic"></span><span class="meta"><div class="nm">Systemic disease on skin <span class="ct">· 144</span></div><div class="d">Metabolic, vascular, drug eruptions</div></span><input type="checkbox"/></label>
+            <label class="cfg-cat"><span class="ic"></span><span class="meta"><div class="nm">Hair · nails · glands <span class="ct">· 78</span></div><div class="d">Alopecias, nail disorders, sebaceous</div></span><input type="checkbox"/></label>
+            <label class="cfg-cat"><span class="ic">◐</span><span class="meta"><div class="nm">Pigment disorders <span class="ct">· 28</span></div><div class="d">Hyper- and hypopigmentation</div></span><input type="checkbox"/></label>
+            <label class="cfg-cat"><span class="ic"></span><span class="meta"><div class="nm">Environmental &amp; photo <span class="ct">· 33</span></div><div class="d">Photodermatoses, physical agents</div></span><input type="checkbox"/></label>
+            <label class="cfg-cat"><span class="ic"></span><span class="meta"><div class="nm">Skin cancer &amp; precancers <span class="ct">· 34</span></div><div class="d">Malignant neoplasms and precursors</div></span><input type="checkbox"/></label>
+          </div>
+        </section>
+      </div>
+
+      <aside class="cfg-summary">
+        <div class="eyebrow">— Quiz summary</div>
+        <h3 class="h">Ready when you are.</h3>
+        <div>
+          <div class="row"><span class="k">Mode</span><span class="v">Step-by-step</span></div>
+          <div class="row"><span class="k">Questions</span><span class="v">25</span></div>
+          <div class="row"><span class="k">Timer</span><span class="v">Off</span></div>
+          <div class="row"><span class="k">Confidence</span><span class="v">Captured</span></div>
+          <div class="row"><span class="k">Content</span><span class="v">2 categories</span></div>
+          <div class="row"><span class="k">Difficulty mix</span><span class="v">Adaptive</span></div>
+        </div>
+        <div class="est">Est. <strong>38–63 min</strong></div>
+        <button class="btn primary">Start quiz →</button>
+        <div class="insight tip" style="font-size:11.5px"><span class="lab">Tip</span><span>Sessions of 25 questions show your best retention. Keep this length.</span></div>
+      </aside>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── v2 — horizontal step wizard -->
+<div class="ab" id="cfg-v2">
+  <div class="ab-head"><h3>04b · Configure · step wizard</h3><span class="ab-tag v2">v2 · 3-step horizontal</span><span class="ab-meta">/quiz/config</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Cancel</button></div></header>
+    <div class="shell" id="cfg-v2-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('cfg-v2-shell').appendChild(sidebar('quiz'));
+document.getElementById('cfg-v2-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h">
+      <div><div class="eyebrow">— New session · step 3 of 3</div><h1 style="font-size:36px">Pick what we draw from.</h1></div>
+      <div class="actions"><button class="btn ghost sm">← Back</button><button class="btn primary sm">Start quiz · 38–63 min →</button></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px">
+      <div class="card" style="background:var(--card-2);border-color:var(--moss);border-left:3px solid var(--moss)">
+        <div class="between"><div class="eyebrow" style="color:var(--moss)">— Step 1 · mode</div><span class="chip moss small">done</span></div>
+        <h3 style="font:400 18px var(--font-display);margin:4px 0 0">Step-by-step</h3>
+        <p class="muted small" style="margin:2px 0 0">Explanations after each question.</p>
+        <a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em;margin-top:6px">Edit →</a>
+      </div>
+      <div class="card" style="background:var(--card-2);border-color:var(--moss);border-left:3px solid var(--moss)">
+        <div class="between"><div class="eyebrow" style="color:var(--moss)">— Step 2 · settings</div><span class="chip moss small">done</span></div>
+        <h3 style="font:400 18px var(--font-display);margin:4px 0 0">25 questions · no timer</h3>
+        <p class="muted small" style="margin:2px 0 0">Confidence captured at each step.</p>
+        <a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em;margin-top:6px">Edit →</a>
+      </div>
+      <div class="card" style="border-color:var(--ox);border-left:3px solid var(--ox)">
+        <div class="between"><div class="eyebrow" style="color:var(--ox)">— Step 3 · content</div><span class="chip ox small">In progress</span></div>
+        <h3 style="font:400 18px var(--font-display);margin:4px 0 0">2 categories selected</h3>
+        <p class="muted small" style="margin:2px 0 0">Inflammatory · Autoimmune</p>
+      </div>
+    </div>
+
+    <div class="cfg-block">
+      <div class="between"><h3>Content selection</h3><div class="seg"><button class="on">By category</button><button>By topic</button></div></div>
+      <p class="help">Pick a broad area, then refine if you want.</p>
+      <div class="cfg-cats" style="grid-template-columns:repeat(3,1fr)">
+        <label class="cfg-cat on"><span class="ic"></span><span class="meta"><div class="nm">Inflammatory <span class="ct">· 154</span></div><div class="d">Eczema, psoriasis, urticaria, more</div></span><input type="checkbox" checked/></label>
+        <label class="cfg-cat"><span class="ic">⨺</span><span class="meta"><div class="nm">Skin infections <span class="ct">· 158</span></div><div class="d">Bacterial, viral, fungal</div></span><input type="checkbox"/></label>
+        <label class="cfg-cat on"><span class="ic">⌖</span><span class="meta"><div class="nm">Autoimmune <span class="ct">· 80</span></div><div class="d">Connective tissue, vesicobullous</div></span><input type="checkbox" checked/></label>
+        <label class="cfg-cat"><span class="ic"></span><span class="meta"><div class="nm">Systemic on skin <span class="ct">· 144</span></div><div class="d">Metabolic, vascular, drug</div></span><input type="checkbox"/></label>
+        <label class="cfg-cat"><span class="ic"></span><span class="meta"><div class="nm">Hair · nails <span class="ct">· 78</span></div><div class="d">Alopecias, nail disorders</div></span><input type="checkbox"/></label>
+        <label class="cfg-cat"><span class="ic">◐</span><span class="meta"><div class="nm">Pigment <span class="ct">· 28</span></div><div class="d">Hyper / hypopigmentation</div></span><input type="checkbox"/></label>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--ox);background:#FBEEEA">
+      <div class="between"><div><div class="eyebrow" style="color:var(--ox)">— ready</div><div style="font:400 22px var(--font-display);margin-top:4px">2 categories · 234 questions in pool · estimated 38–63 min</div></div><button class="btn primary">Start quiz →</button></div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── v3 — preset gallery -->
+<div class="ab" id="cfg-v3">
+  <div class="ab-head"><h3>04c · Configure · preset gallery</h3><span class="ab-tag v3">v3 · curated presets</span><span class="ab-meta">/quiz/config</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Cancel</button></div></header>
+    <div class="shell" id="cfg-v3-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('cfg-v3-shell').appendChild(sidebar('quiz'));
+document.getElementById('cfg-v3-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h">
+      <div><div class="eyebrow">— New session</div><h1>Start a <em>preset</em>, or build your own.</h1><p class="sub">Six recipes that match how residents actually study. Each one is a fully-configured session you can start immediately or tweak.</p></div>
+      <div class="actions"><button class="btn ghost sm">Build custom →</button></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+      ${[
+        {nm:'15-minute warmup',d:'10 questions across your three weakest topics. No timer.',meta:'10 Q · ~15 min · adaptive',accent:'ox'},
+        {nm:'Daily 25',d:'25 questions, step-by-step, drawn from yesterday’s misses + due-for-review topics.',meta:'25 Q · ~38 min · review-weighted',accent:'gold'},
+        {nm:'Exam-style block',d:'40 questions, no explanations, with a 60-second-per-question timer.',meta:'40 Q · 40 min · timed',accent:'slate'},
+        {nm:'Inflammatory focus',d:'30 questions drawn only from Inflammatory rashes.',meta:'30 Q · ~45 min · single category',accent:'moss'},
+        {nm:'Calibration drill',d:'20 questions where confidence capture is mandatory. Targets your overconfident misses.',meta:'20 Q · ~30 min · calibration',accent:'ox'},
+        {nm:'Image-heavy round',d:'18 questions with clinical images. Tests visual diagnosis specifically.',meta:'18 Q · ~28 min · visual',accent:'gold'},
+      ].map(p=>`
+        <article class="card" style="border-top:3px solid var(--${p.accent});display:flex;flex-direction:column;gap:8px;min-height:180px;cursor:pointer">
+          <h3 style="font:400 22px var(--font-display);margin:0;letter-spacing:-.005em">${p.nm}</h3>
+          <p class="muted" style="font-size:13px;line-height:1.55;margin:0;flex:1">${p.d}</p>
+          <div class="between" style="padding-top:10px;border-top:1px solid var(--line);font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em">
+            <span>${p.meta}</span>
+            <span style="color:var(--ox)">Start →</span>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+    <div class="card" style="background:var(--paper-w2);border-style:dashed">
+      <div class="between"><div><div class="eyebrow">— or</div><div style="font:400 22px var(--font-display);margin-top:4px">Configure a fully custom session</div><p class="muted small" style="margin:4px 0 0">Pick mode, length, timer, confidence, and any combination of categories or topics.</p></div><button class="btn ghost">Build custom →</button></div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ PLAY ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">04·B</div><h2>Quiz runner</h2><p class="desc">The runner shown is review-mode (step-by-step). Confidence is captured before submit. v1 is single-column; v2 splits with a clinical image; v3 reveals the explanation in-place after submit.</p></section>
+
+<!-- ─── play v1 — single column -->
+<div class="ab" id="play-v1">
+  <div class="ab-head"><h3>04d · Quiz play · single column</h3><span class="ab-tag v1">v1 · canonical</span><span class="ab-meta">/quiz/play</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · session 12 of 25</div><div class="topbar-right"><button class="pill">Pause</button><button class="pill">Flag for review</button></div></header>
+    <section class="qp-bar">
+      <div class="top">
+        <div class="meta">
+          <span>Step-by-step · immediate feedback</span>
+          <span class="diff">Difficulty <span class="diff-bar"><div style="width:55%"></div></span> 0.55</span>
+        </div>
+        <div>Question 12 of 25 · <span style="color:var(--ink-w)">66% accuracy so far</span></div>
+      </div>
+      <div class="progress"><div style="width:48%"></div></div>
+    </section>
+    <div class="qp-stage">
+      <div>
+        <div class="eyebrow">— Q 12</div>
+        <p class="qp-stem">A 7-year-old boy presents with honey-crusted lesions around his mouth and nose that started 3 days ago. The lesions began as small vesicles that ruptured and formed golden crusts. He has no systemic symptoms and is otherwise healthy. <strong>Which of the following is the most appropriate initial treatment?</strong></p>
+      </div>
+      <div class="qp-opts">
+        <button class="qp-opt"><span class="k">A</span> Oral cephalexin</button>
+        <button class="qp-opt sel"><span class="k">B</span> Topical mupirocin</button>
+        <button class="qp-opt"><span class="k">C</span> Oral prednisone</button>
+        <button class="qp-opt"><span class="k">D</span> Topical hydrocortisone</button>
+        <button class="qp-opt"><span class="k">E</span> Oral acyclovir</button>
+      </div>
+      <div class="qp-conf-wrap">
+        <div class="qp-conf">
+          <span class="lab">Confidence level</span>
+          <span class="chips">
+            <span class="chip">Low</span>
+            <span class="chip">Medium</span>
+            <span class="chip on">High</span>
+          </span>
+        </div>
+        <small class="qp-conf-help">Captured at submission · drives your calibration report.</small>
+      </div>
+    </div>
+    <footer class="qp-foot">
+      <div style="display:flex;gap:8px"><button class="btn ghost sm">Ask tutor</button><button class="btn ghost sm">Skip</button></div>
+      <div style="display:flex;gap:8px"><button class="btn ghost">Save &amp; exit</button><button class="btn primary">Submit answer →</button></div>
+    </footer>
+  </div>
+</div>
+
+<!-- ─── play v2 — split with image -->
+<div class="ab" id="play-v2">
+  <div class="ab-head"><h3>04e · Quiz play · image-led split</h3><span class="ab-tag v2">v2 · image-led</span><span class="ab-meta">/quiz/play</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · session 12 of 25</div><div class="topbar-right"><button class="pill">Pause</button></div></header>
+    <section class="qp-bar"><div class="top"><span>Step-by-step</span><span>Q 12 of 25 · 66% so far</span></div><div class="progress"><div style="width:48%"></div></div></section>
+    <div class="qp-split">
+      <aside class="qp-img-card">
+        <div class="meta-tags"><span>Plate 1 / 1</span><span>Body site · Perioral</span></div>
+        <div class="specimen"></div>
+        <div class="muted small">7-year-old · 3-day eruption · golden crusts</div>
+      </aside>
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <p class="qp-stem">Which of the following is the most appropriate initial treatment?</p>
+        <div class="qp-opts">
+          <button class="qp-opt"><span class="k">A</span> Oral cephalexin</button>
+          <button class="qp-opt sel"><span class="k">B</span> Topical mupirocin</button>
+          <button class="qp-opt"><span class="k">C</span> Oral prednisone</button>
+          <button class="qp-opt"><span class="k">D</span> Topical hydrocortisone</button>
+          <button class="qp-opt"><span class="k">E</span> Oral acyclovir</button>
+        </div>
+        <div class="qp-conf"><span class="lab">Confidence</span><span class="chips"><span class="chip">Low</span><span class="chip">Medium</span><span class="chip on">High</span></span></div>
+      </div>
+    </div>
+    <footer class="qp-foot"><div style="display:flex;gap:8px"><button class="btn ghost sm">Ask tutor</button><button class="btn ghost sm">Flag</button></div><button class="btn primary">Submit answer →</button></footer>
+  </div>
+</div>
+
+<!-- ─── play v3 — post-submit reveal -->
+<div class="ab" id="play-v3">
+  <div class="ab-head"><h3>04f · Quiz play · post-submit reveal</h3><span class="ab-tag v3">v3 · inline reveal</span><span class="ab-meta">/quiz/play</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · session 12 of 25</div><div class="topbar-right"><button class="pill">Pause</button></div></header>
+    <section class="qp-bar"><div class="top"><span>Step-by-step · answered</span><span>Q 12 of 25 · <span style="color:var(--moss)">+1 correct</span></span></div><div class="progress"><div style="width:48%"></div></div></section>
+    <div class="qp-stage">
+      <p class="qp-stem">Which of the following is the most appropriate initial treatment for impetigo?</p>
+      <div class="qp-opts">
+        <button class="qp-opt" disabled><span class="k">A</span> Oral cephalexin</button>
+        <button class="qp-opt correct" disabled style="border-color:var(--moss);background:#F0F4E8;"><span class="k" style="background:var(--moss);color:var(--card)">B</span> Topical mupirocin <span style="margin-left:auto;color:var(--moss);font:500 11px var(--font-mono);display:inline-flex;align-items:center;gap:6px"><svg width="12" height="12"><use href="#i-check"/></svg> Correct · your answer</span></button>
+        <button class="qp-opt" disabled><span class="k">C</span> Oral prednisone</button>
+        <button class="qp-opt" disabled><span class="k">D</span> Topical hydrocortisone</button>
+        <button class="qp-opt" disabled><span class="k">E</span> Oral acyclovir</button>
+      </div>
+      <div class="cp-panel rationale" style="border-left-color:var(--moss);background:#F4F6EE;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:680px;margin:0 auto;padding:22px 28px;">
+        <div class="pic" style="background:var(--moss)"><svg width="13" height="13"><use href="#i-check"/></svg></div>
+        <div class="body" style="text-align:center">
+          <div class="lab" style="color:#2A5235;margin-bottom:8px">Correct · high confidence calibrated</div>
+          <p style="font:400 14px/1.65 var(--font-body);margin:0 auto;max-width:54ch">Localised non-bullous impetigo without systemic involvement is treated topically. Mupirocin 2% three times daily for 5 days is first-line. Oral antibiotics are reserved for extensive disease, systemic symptoms, or treatment failure.</p>
+          <div style="display:flex;gap:6px;margin-top:12px;justify-content:center;flex-wrap:wrap"><span class="chip moss small">Calibrated · "high" + correct</span><span class="chip small">Source · BAD impetigo guideline 2022</span></div>
+        </div>
+      </div>
+    </div>
+    <footer class="qp-foot"><div style="display:flex;gap:8px"><button class="btn ghost sm">Re-read explanation</button><button class="btn ghost sm">Save to flashcards</button></div><button class="btn primary">Next question →</button></footer>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SUMMARY ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">04·C</div><h2>Quiz summary</h2><p class="desc">The biggest production rebuild. Top KPIs, a four-tile calibration row (Avg confidence · Overconfident misses · Underconfident correct · Brier score), filter pivots, per-question review cards.</p></section>
+
+<div class="ab" id="sum-v1">
+  <div class="ab-head"><h3>04g · Summary · canonical</h3><span class="ab-tag v1">v1 · KPIs above review</span><span class="ab-meta">/quiz/summary/:id</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Print</button><button class="pill">Export CSV</button><button class="pill">New session</button></div></header>
+    <div class="shell" id="sum-v1-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('sum-v1-shell').appendChild(sidebar('quiz'));
+document.getElementById('sum-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Quiz</a><span class="sep">/</span>Summary<span class="right">Session · 11 May · 28 min</span></div>
+    <div class="page-h">
+      <div>
+        <div class="eyebrow">— Session complete</div>
+        <h1>Quiz <em>summary</em> · 11 May.</h1>
+        <p class="sub">Review every question with rationale. The four calibration tiles separate "wrong" from "wrong while certain" — the second is what you should look at first.</p>
+      </div>
+      <div class="actions"><button class="btn ghost sm">Save to flashcards</button><button class="btn primary sm">Start similar session →</button></div>
+    </div>
+
+    <div class="sum-hero">
+      <div><div class="l">Score</div><div class="n"><em>40</em>%</div><div class="b">below your 7-day avg of 68%</div></div>
+      <div><div class="l">Correct</div><div class="n">2 / 5</div><div class="b">2 correct · 3 incorrect</div></div>
+      <div><div class="l">Duration</div><div class="n">28<span style="font-size:24px;color:var(--ink-meta)">min</span></div><div class="b">avg 5.6 min/Q · expected 4.2</div></div>
+    </div>
+
+    <div class="cal-grid">
+      <div class="cal-tile"><div class="l">Avg confidence</div><div class="n">67%</div><div class="b">Range Low–High</div></div>
+      <div class="cal-tile"><div class="l">Overconfident misses</div><div class="n bad">2</div><div class="b">"High" + incorrect</div></div>
+      <div class="cal-tile"><div class="l">Underconfident correct</div><div class="n ok">1</div><div class="b">"Low" + correct</div></div>
+      <div class="cal-tile"><div class="l">Brier score</div><div class="n">0.31</div><div class="b">lower is better · &lt; 0.20 ideal</div></div>
+    </div>
+
+    <div class="sum-filters">
+      <button class="sum-filter on">All <span class="ct">5</span></button>
+      <button class="sum-filter">Overconfident misses <span class="ct">2</span></button>
+      <button class="sum-filter">Underconfident correct <span class="ct">1</span></button>
+      <button class="sum-filter">Low-confidence misses <span class="ct">1</span></button>
+      <button class="sum-filter">Correct <span class="ct">2</span></button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px"><span class="muted small">Sort</span><button class="btn ghost xs">Order</button></div>
+    </div>
+
+    <div class="q-rev">
+      <div class="top">
+        <div class="q-id"><span class="mark bad"><svg width="11" height="11"><use href="#i-x"/></svg></span><span>Q1 · Incorrect</span></div>
+        <div class="q-actions"><span>Chose <strong>A</strong> · correct <strong>B</strong></span><span>Confidence <strong>Medium</strong></span><span class="chip ox small">Overconfident</span><a href="#demo-top">Hide review</a><span>·</span><a href="#demo-top">Save feedback</a></div>
+      </div>
+      <div class="topic-row"><span class="chip small">Basic</span><span class="chip small">Inflammatory · impetigo</span></div>
+      <div class="vignette">
+        A 7-year-old boy presents with honey-crusted lesions around his mouth and nose that started 3 days ago. The lesions began as small vesicles that ruptured and formed golden crusts. He has no systemic symptoms and is otherwise healthy.
+        <div class="q">What is the most appropriate initial treatment?</div>
+      </div>
+      <div class="opts">
+        <div class="opt wrong"><span class="k">A</span> Oral cephalexin <span class="mk">Your answer</span></div>
+        <div class="opt correct"><span class="k">B</span> Topical mupirocin <span class="mk">Correct</span></div>
+        <div class="opt"><span class="k">C</span> Oral prednisone</div>
+        <div class="opt"><span class="k">D</span> Topical hydrocortisone</div>
+        <div class="opt"><span class="k">E</span> Oral acyclovir</div>
+      </div>
+      <div class="expl">This presentation is classic for non-bullous impetigo, a superficial bacterial skin infection commonly caused by <em>Staphylococcus aureus</em> or <em>Streptococcus pyogenes</em>. For localised impetigo without systemic symptoms, topical mupirocin is first line. Oral antibiotics like cephalexin are reserved for extensive disease or systemic involvement, and antivirals are not appropriate for bacterial infections.</div>
+      <div class="lp"><strong>Learning point.</strong> The correct answer is B. Localised non-bullous impetigo is treated topically; reserve orals for extensive or systemic disease.</div>
+      <div class="meta-line"><span>Source · BAD impetigo guideline 2022</span><span>Tagged · infectious · impetigo · paediatric</span></div>
+    </div>
+
+    <div class="q-rev">
+      <div class="top">
+        <div class="q-id"><span class="mark ok"><svg width="11" height="11"><use href="#i-check"/></svg></span><span>Q2 · Correct</span></div>
+        <div class="q-actions"><span>Chose <strong>A</strong> · correct <strong>A</strong></span><span>Confidence <strong>Low</strong></span><span class="chip moss small">Underconfident — calibrate up</span><a href="#demo-top">Hide review</a></div>
+      </div>
+      <div class="topic-row"><span class="chip small">Basic</span><span class="chip small">Atopic dermatitis</span></div>
+      <div class="vignette">A 4-month-old infant is brought in with erythematous, scaly patches on both cheeks. The mother reports the baby seems to scratch at the areas frequently. Family history is positive for asthma. <div class="q">What is the most appropriate initial management?</div></div>
+      <div class="opts">
+        <div class="opt correct"><span class="k">A</span> Daily bathing with gentle cleanser and liberal emollient use <span class="mk">Your answer · correct</span></div>
+        <div class="opt"><span class="k">B</span> Topical tacrolimus 0.03% ointment twice daily</div>
+        <div class="opt"><span class="k">C</span> Oral antihistamines for itch control</div>
+        <div class="opt"><span class="k">D</span> Elimination diet for the breastfeeding mother</div>
+      </div>
+      <div class="expl">This infant likely has atopic dermatitis. The first-line treatment is proper skin care with daily bathing using gentle cleansers and frequent application of emollients to restore the skin barrier. Topical calcineurin inhibitors like tacrolimus are not FDA-approved for infants under 2 years.</div>
+      <div class="lp"><strong>Learning point.</strong> You answered correctly with "Low" confidence — your instinct was right; trust it more. Calibrate up.</div>
+    </div>
+
+    <div class="q-rev">
+      <div class="top">
+        <div class="q-id"><span class="mark bad"><svg width="11" height="11"><use href="#i-x"/></svg></span><span>Q5 · Incorrect</span></div>
+        <div class="q-actions"><span>Chose <strong>A</strong> · correct <strong>B</strong></span><span>Confidence <strong>High</strong></span><span class="chip ox small">Overconfident · review carefully</span><a href="#demo-top">Hide review</a></div>
+      </div>
+      <div class="topic-row"><span class="chip small">Hard</span><span class="chip small">Melanoma · BRAF V600E</span></div>
+      <div class="vignette">A 58-year-old male with metastatic melanoma. Tumour is BRAF V600E mutation-positive. Most appropriate first-line systemic therapy? <div class="q">Which of the following is the most appropriate first-line therapy?</div></div>
+      <div class="opts">
+        <div class="opt wrong"><span class="k">A</span> Dacarbazine <span class="mk">Your answer</span></div>
+        <div class="opt correct"><span class="k">B</span> Pembrolizumab <span class="mk">Correct</span></div>
+        <div class="opt"><span class="k">C</span> Vemurafenib monotherapy</div>
+        <div class="opt"><span class="k">D</span> High-dose interferon alfa-2b</div>
+      </div>
+      <div class="expl">First-line therapy for unresectable or metastatic melanoma is immune checkpoint inhibition (pembrolizumab or nivolumab). Pembrolizumab is effective regardless of BRAF mutation status. Dacarbazine is now reserved for later lines.</div>
+      <div class="lp"><strong>Learning point.</strong> You were certain and wrong — exactly the answer to study next. Saved to your "Calibration drill" queue.</div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── summary v2 — distribution-first -->
+<div class="ab" id="sum-v2">
+  <div class="ab-head"><h3>04h · Summary · distribution-first</h3><span class="ab-tag v2">v2 · calibration plot</span><span class="ab-meta">/quiz/summary/:id</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Export</button><button class="pill">New session</button></div></header>
+    <div class="shell" id="sum-v2-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('sum-v2-shell').appendChild(sidebar('quiz'));
+document.getElementById('sum-v2-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h">
+      <div><div class="eyebrow">— Session of 11 May</div><h1 style="font-size:36px">2 out of 5 — and one of them was certain.</h1><p class="sub">Score is the headline; calibration is the story. Two overconfident misses cost you twice — points and trust in your own confidence rating.</p></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div class="card">
+        <div class="eyebrow">— Score · 40%</div>
+        <div style="display:flex;align-items:flex-end;gap:14px;margin-top:6px"><div style="font:300 64px var(--font-display);color:var(--ink-w);line-height:1"><em style="color:var(--ox);font-style:italic">40</em>%</div><div class="muted small">2 / 5 · 28 min</div></div>
+        <div style="display:flex;gap:6px;margin-top:14px">
+          <div style="height:10px;flex:2;background:var(--moss-soft);border-radius:5px"></div>
+          <div style="height:10px;flex:3;background:var(--ox);border-radius:5px"></div>
+        </div>
+        <div class="muted small" style="margin-top:6px">Below your 7-day average of 68%.</div>
+      </div>
+      <div class="card">
+        <div class="eyebrow">— Calibration · Brier 0.31</div>
+        <p class="muted small" style="margin:6px 0 12px">"Wrong while certain" is the worst signal. You had 2 of those.</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:grid;grid-template-columns:80px 1fr 40px;gap:10px;align-items:center"><span class="mono small muted">High</span><div style="height:8px;background:var(--paper-w3);border-radius:4px;position:relative"><div style="position:absolute;left:0;top:0;height:100%;width:67%;background:linear-gradient(90deg,var(--moss) 33%,var(--ox) 33%)"></div></div><span class="mono small" style="color:var(--ox)">⅔ miss</span></div>
+          <div style="display:grid;grid-template-columns:80px 1fr 40px;gap:10px;align-items:center"><span class="mono small muted">Medium</span><div style="height:8px;background:var(--paper-w3);border-radius:4px;position:relative"><div style="position:absolute;left:0;top:0;height:100%;width:33%;background:var(--ox)"></div></div><span class="mono small" style="color:var(--ox)">⅓ miss</span></div>
+          <div style="display:grid;grid-template-columns:80px 1fr 40px;gap:10px;align-items:center"><span class="mono small muted">Low</span><div style="height:8px;background:var(--paper-w3);border-radius:4px;position:relative"><div style="position:absolute;left:0;top:0;height:100%;width:50%;background:var(--moss)"></div></div><span class="mono small" style="color:var(--moss)">½ ok</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insights">
+      <div class="insight warn"><span class="lab">Where to study</span><span>Both overconfident misses were in melanoma staging. We've queued a 10-question calibration drill on that topic.</span></div>
+      <div class="insight info"><span class="lab">Calibrate up</span><span>One "Low confidence" answer was correct (atopic dermatitis · infant skincare). Trust your instinct there.</span></div>
+    </div>
+
+    <div class="sum-filters">
+      <button class="sum-filter on">Show overconfident misses · 2</button>
+      <button class="sum-filter">All · 5</button>
+      <button class="sum-filter">Correct · 2</button>
+    </div>
+
+    <div class="q-rev">
+      <div class="top"><div class="q-id"><span class="mark bad"><svg width="11" height="11"><use href="#i-x"/></svg></span><span>Q5 · Overconfident miss · "High" + Incorrect</span></div><div class="q-actions"><a href="#demo-top">Add to calibration drill →</a></div></div>
+      <div class="topic-row"><span class="chip ox small">Critical</span><span class="chip small">Melanoma · staging</span></div>
+      <div class="vignette">Metastatic melanoma · BRAF V600E +. <div class="q">First-line systemic therapy?</div></div>
+      <div class="opts">
+        <div class="opt wrong"><span class="k">A</span> Dacarbazine <span class="mk">Your "High" pick</span></div>
+        <div class="opt correct"><span class="k">B</span> Pembrolizumab <span class="mk">Correct</span></div>
+      </div>
+      <div class="lp"><strong>Learning point.</strong> First-line for unresectable/metastatic melanoma is checkpoint inhibition — pembrolizumab or nivolumab — irrespective of BRAF status.</div>
+    </div>
+
+    <div class="q-rev">
+      <div class="top"><div class="q-id"><span class="mark bad"><svg width="11" height="11"><use href="#i-x"/></svg></span><span>Q4 · Overconfident miss · "High" + Incorrect</span></div><div class="q-actions"><a href="#demo-top">Add to calibration drill →</a></div></div>
+      <div class="topic-row"><span class="chip ox small">Critical</span><span class="chip small">Melanoma · biopsy</span></div>
+      <div class="vignette">A pigmented lesion on the back of a 50-year-old male, suspicious for melanoma. <div class="q">What is the most appropriate next step?</div></div>
+      <div class="opts">
+        <div class="opt wrong"><span class="k">A</span> Topical imiquimod cream <span class="mk">Your "High" pick</span></div>
+        <div class="opt correct"><span class="k">B</span> Wide local excision with sentinel lymph node biopsy <span class="mk">Correct</span></div>
+      </div>
+      <div class="lp"><strong>Learning point.</strong> Suspicion of melanoma → diagnostic excisional biopsy first, with SLNB for staging when Breslow ≥ 1mm or with high-risk features.</div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── summary v3 — minimal review feed -->
+<div class="ab" id="sum-v3">
+  <div class="ab-head"><h3>04i · Summary · review feed</h3><span class="ab-tag v3">v3 · minimal feed</span><span class="ab-meta">/quiz/summary/:id</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Print</button></div></header>
+    <div class="shell" id="sum-v3-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('sum-v3-shell').appendChild(sidebar('quiz'));
+document.getElementById('sum-v3-shell').insertAdjacentHTML('beforeend', `
+  <main class="main" style="gap:14px">
+    <div class="page-h">
+      <div><div class="eyebrow">— Session of 11 May</div><h1 style="font-size:32px">5 questions answered. 28 minutes.</h1></div>
+      <div class="actions"><button class="btn ghost sm">Filter</button><button class="btn primary sm">Start similar →</button></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px">
+      <div class="card dense"><div style="font:600 9px var(--font-body);letter-spacing:.16em;color:var(--ink-meta);text-transform:uppercase">Score</div><div style="font:300 24px var(--font-display)"><em style="color:var(--ox);font-style:italic">40</em>%</div></div>
+      <div class="card dense"><div style="font:600 9px var(--font-body);letter-spacing:.16em;color:var(--ink-meta);text-transform:uppercase">Correct</div><div style="font:300 24px var(--font-display)">2/5</div></div>
+      <div class="card dense"><div style="font:600 9px var(--font-body);letter-spacing:.16em;color:var(--ink-meta);text-transform:uppercase">Avg conf</div><div style="font:300 24px var(--font-display)">67%</div></div>
+      <div class="card dense"><div style="font:600 9px var(--font-body);letter-spacing:.16em;color:var(--ink-meta);text-transform:uppercase">Over</div><div style="font:300 24px var(--font-display);color:var(--ox)">2</div></div>
+      <div class="card dense"><div style="font:600 9px var(--font-body);letter-spacing:.16em;color:var(--ink-meta);text-transform:uppercase">Under</div><div style="font:300 24px var(--font-display);color:var(--moss)">1</div></div>
+      <div class="card dense"><div style="font:600 9px var(--font-body);letter-spacing:.16em;color:var(--ink-meta);text-transform:uppercase">Brier</div><div style="font:300 24px var(--font-display);font-feature-settings:'tnum'">0.31</div></div>
+    </div>
+
+    ${[
+      {n:'Q1',ok:false,t:'Impetigo · initial treatment',you:'A',correct:'B',conf:'Medium',tag:'ox',tagL:'Overconfident'},
+      {n:'Q2',ok:true,t:'Atopic dermatitis · infant',you:'A',correct:'A',conf:'Low',tag:'moss',tagL:'Underconfident'},
+      {n:'Q3',ok:true,t:'Psoriasis · plaques on elbows',you:'A',correct:'A',conf:'Medium',tag:'',tagL:'Calibrated'},
+      {n:'Q4',ok:false,t:'Melanoma · biopsy approach',you:'A',correct:'B',conf:'High',tag:'ox',tagL:'Overconfident'},
+      {n:'Q5',ok:false,t:'BRAF V600E melanoma · therapy',you:'A',correct:'B',conf:'High',tag:'ox',tagL:'Overconfident'},
+    ].map(q=>`
+      <div class="card" style="display:grid;grid-template-columns:50px 1fr 100px 110px 120px 100px;gap:16px;align-items:center;padding:14px 18px">
+        <span class="q-id"><span class="mark ${q.ok?'ok':'bad'}"><svg width="11" height="11"><use href="#i-${q.ok?'check':'x'}"/></svg></span><span class="mono small">${q.n}</span></span>
+        <div><div style="font:500 13.5px var(--font-body)">${q.t}</div></div>
+        <span class="mono small muted">You · ${q.you}</span>
+        <span class="mono small muted">Correct · ${q.correct}</span>
+        <span class="chip ${q.tag} small">${q.tagL}</span>
+        <a href="#demo-top" style="font:500 12px var(--font-body);color:var(--ox);text-decoration:none;text-align:right">Review →</a>
+      </div>
+    `).join('')}
+
+    <div class="insight warn" style="margin-top:14px"><span class="lab">Suggest</span><span>Queue a 10-question calibration drill on melanoma. Two overconfident misses there cost you the round.</span></div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ Mobile play ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">m</div><h2>Mobile</h2><p class="desc">Two paired artboards: a sticky progress band + a compact bottom action stack on the runner, and a vertical KPI stack for the summary.</p></section>
+
+<div class="ab" id="play-mob">
+  <div class="ab-head"><h3>04m · Quiz play · mobile</h3><span class="ab-tag mob">412 × 780 · paired with v1</span><span class="ab-meta">/quiz/play</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar">
+        <button class="ham"><svg width="20" height="20"><use href="#i-x"/></svg></button>
+        <div class="wm" style="font:500 13px var(--font-mono);letter-spacing:.04em;text-transform:uppercase">Quiz · 12/25</div>
+        <button class="ham"><svg width="20" height="20"><use href="#i-flag"/></svg></button>
+      </header>
+      <div class="m-qp-bar">
+        <div class="top"><span>Step-by-step</span><span>Difficulty 0.55</span></div>
+        <div class="bar"><div style="width:48%"></div></div>
+      </div>
+      <div class="m-qp-content">
+        <p style="font:400 16px/1.5 var(--font-display);color:var(--ink-w);margin:0">A 7-year-old boy presents with honey-crusted lesions around his mouth that started 3 days ago. The lesions began as small vesicles that formed golden crusts. He is otherwise healthy. <strong>Most appropriate initial treatment?</strong></p>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <button class="m-qp-opt"><span class="k">A</span> Oral cephalexin</button>
+          <button class="m-qp-opt sel"><span class="k">B</span> Topical mupirocin</button>
+          <button class="m-qp-opt"><span class="k">C</span> Oral prednisone</button>
+          <button class="m-qp-opt"><span class="k">D</span> Topical hydrocortisone</button>
+          <button class="m-qp-opt"><span class="k">E</span> Oral acyclovir</button>
+        </div>
+      </div>
+      <div class="m-qp-bottom">
+        <div style="font:500 11px var(--font-body);color:var(--ink-w2);display:flex;justify-content:space-between"><span>Confidence</span><span class="muted small">Captured at submit</span></div>
+        <div class="conf">
+          <button>Low</button>
+          <button>Medium</button>
+          <button class="on">High</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn ghost sm" style="flex:1">Ask tutor</button>
+          <button class="btn primary sm" style="flex:2">Submit →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ab" id="sum-mob">
+  <div class="ab-head"><h3>04n · Quiz summary · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/quiz/summary/:id</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar">
+        <button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button>
+        <div class="wm">Summary</div>
+        <button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button>
+      </header>
+      <div class="m-content">
+        <div>
+          <div class="eyebrow" style="font-size:10px">— 11 May · 28 min</div>
+          <h1 style="font:300 28px var(--font-display);margin:6px 0 0;letter-spacing:-.02em">2 / 5 — one was certain.</h1>
+        </div>
+        <div class="sum-hero" style="grid-template-columns:1fr 1fr"><div><div class="l">Score</div><div class="n" style="font-size:36px"><em>40</em>%</div></div><div><div class="l">Avg conf</div><div class="n" style="font-size:36px">67%</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="cal-tile"><div class="l">Overconfident</div><div class="n bad">2</div></div>
+          <div class="cal-tile"><div class="l">Underconfident</div><div class="n ok">1</div></div>
+        </div>
+        <div style="display:flex;gap:6px;overflow-x:auto"><span class="chip ox small" style="white-space:nowrap">Overconfident · 2</span><span class="chip moss small" style="white-space:nowrap">Underconfident · 1</span><span class="chip small" style="white-space:nowrap">All · 5</span></div>
+        <div class="card dense">
+          <div class="between"><div class="q-id"><span class="mark bad" style="width:20px;height:20px"><svg width="9" height="9"><use href="#i-x"/></svg></span><span class="mono small">Q1</span></div><span class="chip ox small">Overconfident</span></div>
+          <div style="font:400 13.5px var(--font-body);margin-top:4px">Impetigo · initial treatment</div>
+          <div class="muted small" style="margin-top:2px">You chose A · correct B</div>
+        </div>
+        <div class="card dense">
+          <div class="between"><div class="q-id"><span class="mark ok" style="width:20px;height:20px"><svg width="9" height="9"><use href="#i-check"/></svg></span><span class="mono small">Q2</span></div><span class="chip moss small">Calibrate up</span></div>
+          <div style="font:400 13.5px var(--font-body);margin-top:4px">Atopic dermatitis · infant</div>
+          <div class="muted small">Correct with "Low"</div>
+        </div>
+        <div class="card dense">
+          <div class="between"><div class="q-id"><span class="mark bad" style="width:20px;height:20px"><svg width="9" height="9"><use href="#i-x"/></svg></span><span class="mono small">Q5</span></div><span class="chip ox small">Overconfident</span></div>
+          <div style="font:400 13.5px var(--font-body);margin-top:4px">BRAF V600E · first-line</div>
+          <div class="muted small">You "High" + chose A · correct B</div>
+        </div>
+        <button class="btn primary" style="margin-top:6px">Start similar session →</button>
+      </div>
+      <nav class="m-tabbar"><a class="tab"><svg><use href="#i-dash"/></svg>Home</a><a class="tab active"><svg><use href="#i-quiz"/></svg>Study</a><a class="tab"><svg><use href="#i-mini"/></svg>Play</a><a class="tab"><svg><use href="#i-perf"/></svg>Stats</a><a class="tab"><svg><use href="#i-prof"/></svg>You</a></nav>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

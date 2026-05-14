@@ -1,0 +1,389 @@
+<!DOCTYPE html><html lang="en"><head>
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Auth &amp; legal mockups</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+.auth-frame{display:grid;min-height:680px;}
+.auth-frame.split{grid-template-columns:1.1fr .9fr;}
+.auth-frame.split-flip{grid-template-columns:.9fr 1.1fr;}
+.auth-frame.centered{grid-template-columns:1fr;background:var(--paper);}
+.auth-pane{padding:56px 64px;display:flex;flex-direction:column;justify-content:center;gap:24px;background:var(--paper-warm);}
+.auth-pane.lit{background:var(--paper);}
+.auth-pane h1{font:300 56px/1.05 var(--font-display);letter-spacing:-.025em;margin:0;color:var(--ink-w);}
+.auth-pane h1 em{font-style:italic;color:var(--ox);}
+.auth-pane .sub{font:400 15px/1.55 var(--font-body);color:var(--ink-meta);max-width:42ch;}
+.auth-form{display:flex;flex-direction:column;gap:14px;max-width:420px;}
+.auth-form .row{display:flex;flex-direction:column;gap:5px;}
+.auth-form label{font:500 12px var(--font-body);color:var(--ink-w2);letter-spacing:.02em;}
+.auth-form input{padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);font:400 14px var(--font-body);color:var(--ink-w);font-family:inherit;}
+.auth-form input:focus{outline:0;border-color:var(--ox);}
+.auth-form .submit-row{display:flex;gap:10px;margin-top:6px;align-items:center;}
+.auth-foot{font:400 12.5px var(--font-body);color:var(--ink-meta);max-width:420px;display:flex;flex-wrap:wrap;gap:12px;}
+.auth-foot a{color:var(--ox);text-decoration:none;border-bottom:1px solid var(--ox-soft);}
+.auth-side{padding:48px 56px;background:var(--ox-deep);color:var(--card);display:flex;flex-direction:column;justify-content:space-between;gap:24px;position:relative;overflow:hidden;}
+.auth-side .lockup{font:500 22px var(--font-display);color:var(--card);display:flex;align-items:center;gap:10px;letter-spacing:-.005em;z-index:1;}
+.auth-side .lockup::before{content:"";width:10px;height:10px;border-radius:9999px;background:var(--gold);}
+.auth-side .q{font:300 28px/1.4 var(--font-display);font-style:italic;color:#F0E2BC;max-width:34ch;z-index:1;position:relative;}
+.auth-side .who{font:500 11px var(--font-mono);letter-spacing:.08em;color:#D9CFB8;text-transform:uppercase;z-index:1;}
+.auth-side .specimen-watermark{position:absolute;right:-100px;bottom:-100px;width:380px;height:380px;border-radius:9999px;background:radial-gradient(ellipse 60% 50% at 39% 42%,rgba(212,158,94,.35) 0%,rgba(118,70,37,.4) 42%,rgba(45,30,20,.5) 76%,transparent 100%);}
+
+.value-list{display:flex;flex-direction:column;gap:18px;z-index:1;}
+.value-list .v{display:flex;gap:14px;align-items:flex-start;}
+.value-list .v .nm{font:400 18px var(--font-display);color:var(--card);letter-spacing:-.005em;}
+.value-list .v .d{font:400 13px/1.5 var(--font-body);color:#D9CFB8;margin-top:2px;}
+.value-list .v .roman{font:400 16px var(--font-mono);color:var(--gold);letter-spacing:.02em;min-width:26px;padding-top:3px;}
+
+.centered-card{max-width:480px;margin:64px auto;padding:48px 40px;background:var(--card);border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column;gap:18px;}
+.centered-card .lockup{font:500 22px var(--font-display);display:flex;align-items:center;gap:9px;justify-content:center;}
+.centered-card .lockup::before{content:"";width:9px;height:9px;border-radius:9999px;background:var(--ox);}
+.centered-card h1{font:300 36px var(--font-display);text-align:center;margin:6px 0 0;letter-spacing:-.015em;}
+.centered-card h1 em{font-style:italic;color:var(--ox);}
+.centered-card .sub{font:400 13.5px var(--font-body);color:var(--ink-meta);text-align:center;}
+.centered-card .ssolink{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font:500 13px var(--font-body);color:var(--ink-w2);text-decoration:none;cursor:pointer;background:transparent;font-family:inherit;}
+.centered-card .ssolink:hover{border-color:var(--ox);}
+.centered-card .or{display:flex;align-items:center;gap:14px;font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.08em;text-transform:uppercase;}
+.centered-card .or::before,.centered-card .or::after{content:"";flex:1;height:1px;background:var(--line);}
+
+/* legal page */
+.legal-frame{padding:80px 64px;max-width:840px;margin:0 auto;background:var(--paper);}
+.legal-frame .back{font:500 13px var(--font-body);color:var(--ox);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:32px;}
+.legal-frame h1{font:300 64px/1.05 var(--font-display);letter-spacing:-.025em;margin:0 0 36px;color:var(--ink-w);}
+.legal-frame h2{font:400 22px var(--font-display);letter-spacing:-.005em;color:var(--ink-w);margin:36px 0 12px;}
+.legal-frame p{font:400 15px/1.7 var(--font-body);color:var(--ink-w2);margin:0 0 14px;max-width:62ch;}
+.legal-frame .intro{font:300 19px/1.55 var(--font-display);color:var(--ink-w);max-width:54ch;margin-bottom:18px;}
+.legal-frame .meta-line{font:400 12.5px var(--font-body);color:var(--ink-meta);padding-top:32px;border-top:1px solid var(--line);margin-top:48px;display:flex;justify-content:space-between;}
+.legal-frame .meta-line a{color:var(--ox);text-decoration:none;}
+
+/* mobile auth */
+.m-auth{padding:32px 22px;display:flex;flex-direction:column;gap:22px;min-height:780px;}
+.m-auth .lockup{font:500 22px var(--font-display);display:flex;align-items:center;gap:9px;}
+.m-auth .lockup::before{content:"";width:9px;height:9px;border-radius:9999px;background:var(--ox);}
+.m-auth h1{font:300 38px/1.1 var(--font-display);margin:8px 0 0;letter-spacing:-.02em;color:var(--ink-w);}
+.m-auth h1 em{font-style:italic;color:var(--ox);}
+.m-auth p.sub{font:400 13.5px/1.5 var(--font-body);color:var(--ink-meta);margin:0;}
+.m-auth form{display:flex;flex-direction:column;gap:12px;margin-top:4px;}
+.m-auth label{font:500 11.5px var(--font-body);color:var(--ink-w2);}
+.m-auth input{padding:13px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);font:400 14px var(--font-body);color:var(--ink-w);font-family:inherit;}
+.m-auth .quote-snip{margin-top:auto;padding:18px;background:var(--ox-deep);color:#F0E2BC;border-radius:12px;font:300 14px/1.4 var(--font-display);font-style:italic;}
+.m-auth .quote-snip .who{font:500 10px var(--font-mono);color:#D9CFB8;text-transform:uppercase;letter-spacing:.08em;font-style:normal;margin-top:8px;display:block;}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Auth &amp; Legal mockups" style="">
+
+<header class="cat-head">
+  <div>
+    <h1>Auth &amp; <em>legal</em>.</h1>
+    <p>The front door, before the catalogue. Three takes on sign-in plus a single editorial run for the interim disclosure page.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/auth · /legal/interim</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════ v1 — quiet door, value list on oxblood ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">v1</div><h2>Quiet door</h2><p class="desc">Paper-and-oxblood split. The right-hand pane reads like the inside cover of a small book: four roman-numeraled value lines and a single epigraph at the bottom.</p></section>
+
+<div class="ab" id="auth-v1">
+  <div class="ab-head"><h3>02a · Sign in</h3><span class="ab-tag v1">v1 · value list</span><span class="ab-meta">/auth</span></div>
+  <div class="ab-frame">
+    <div class="auth-frame split">
+      <div class="auth-pane">
+        <div class="lockup" style="font:500 22px var(--font-display);display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;background:var(--ox);border-radius:9999px"></span>dermie</div>
+        <div style="text-align:center">
+          <h1>Welcome <em>back</em>.</h1>
+          <p class="sub" style="text-align:center;margin-left:auto;margin-right:auto">Pick up where you left off. You’re 14 days into a 30-day cadence; Specimen No. 014a is paused at step 3.</p>
+        </div>
+        <form class="auth-form" onsubmit="return false">
+          <div class="row"><label>Email</label><input type="email" value="resident@derm.edu"></div>
+          <div class="row"><label>Password</label><input type="password" value="••••••••••••"></div>
+          <div class="submit-row" style="justify-content:center">
+            <button class="btn primary" type="submit" style="min-width:180px">Sign in</button>
+          </div>
+          <a href="#demo-top" data-tweak="forgot-link" style="font:500 12.5px var(--font-body);color:var(--ox);text-decoration:none;border-bottom:1px solid var(--ox-soft);align-self:center;margin-top:6px;text-align:center">Forgot password?</a>
+        </form>
+        <div class="auth-foot" style="justify-content:center;text-align:center">
+          <span>No account?</span><a href="#demo-top">Create one</a><span class="muted">·</span><a href="#demo-top">Sign in with SSO</a>
+        </div>
+      </div>
+      <aside class="auth-side" style="justify-content:center">
+        <div class="specimen-watermark"></div>
+        <div class="lockup" style="position:absolute;top:48px;left:56px">dermie</div>
+        <div class="value-list">
+          <div class="v"><span class="roman">i.</span><div><div class="nm">A personalised question bank.</div><div class="d">Adaptive item generation tuned to your weakest morphologies. Every session re-weights what you see.</div></div></div>
+          <div class="v"><span class="roman">ii.</span><div><div class="nm">Confidence-aware analytics.</div><div class="d">Brier score and calibration curves separate "wrong" from "wrong while certain".</div></div></div>
+          <div class="v"><span class="roman">iii.</span><div><div class="nm">Spaced repetition.</div><div class="d">Half-life scheduling that respects the curve, not the calendar.</div></div></div>
+          <div class="v"><span class="roman">iv.</span><div><div class="nm">Board-style mock exams.</div><div class="d">Timed, blueprinted, with the same calibration report a real attempt would give you.</div></div></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ v2 — flipped, with a single specimen-style epigraph ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">v2</div><h2>Specimen plate</h2><p class="desc">Form on the right, oversized specimen plate on the left. The image is the welcome — quieter copy, more horizon.</p></section>
+
+<div class="ab" id="auth-v2">
+  <div class="ab-head"><h3>02b · Sign in</h3><span class="ab-tag v2">v2 · specimen plate</span><span class="ab-meta">/auth</span></div>
+  <div class="ab-frame">
+    <div class="auth-frame split-flip">
+      <aside class="auth-side" style="padding:48px;justify-content:flex-end;align-items:flex-start;">
+        <div class="specimen-watermark" style="right:-180px;bottom:-180px;width:600px;height:600px;"></div>
+        <div class="lockup" style="position:absolute;top:48px;left:48px;">dermie</div>
+        <div style="position:absolute;top:48px;right:48px;font:500 11px var(--font-mono);color:#D9CFB8;letter-spacing:.08em;text-transform:uppercase">Specimen No. 014a</div>
+        <div style="position:relative;z-index:1">
+          <div class="who" style="margin-bottom:8px">No. 014a · annular plaque · Fitz IV</div>
+          <p style="font:300 36px/1.2 var(--font-display);font-style:italic;color:#F0E2BC;margin:0;max-width:18ch">"The edge tells the story."</p>
+        </div>
+      </aside>
+      <div class="auth-pane lit">
+        <div class="lockup" style="font:500 18px var(--font-display);color:var(--ink-meta);display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;background:var(--ox);border-radius:9999px"></span>dermie · sign in</div>
+        <div>
+          <h1 style="font-size:44px">Welcome <em>back</em>.</h1>
+          <p class="sub">Continue your study. Three sessions are queued for today.</p>
+        </div>
+        <form class="auth-form" onsubmit="return false">
+          <div class="row"><label>Email</label><input type="email" value="resident@derm.edu"></div>
+          <div class="row"><label>Password</label><input type="password" value="••••••••••••"></div>
+          <div class="submit-row"><button class="btn primary" type="submit" style="flex:1">Sign in</button></div>
+          <button class="btn ghost" type="button" style="margin-top:8px;width:100%">Sign in with SSO</button>
+        </form>
+        <div class="auth-foot"><span>New here?</span><a href="#demo-top">Request an account</a><span class="muted">·</span><a href="#demo-top">Forgot password?</a></div>
+        <div style="font:400 11.5px var(--font-body);color:var(--ink-meta);padding-top:18px;border-top:1px solid var(--line);max-width:420px">By signing in you agree to our <a href="#legal" style="color:var(--ox);text-decoration:none;border-bottom:1px solid var(--ox-soft)">interim disclosure</a>. A full Privacy Policy and Terms of Service are in progress.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ v3 — centred card on plain paper ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">v3</div><h2>Centred card</h2><p class="desc">No split, no plate. The whole frame is paper; sign-in arrives as a single card. The shortest path; saves the marketing arguments for the marketing site.</p></section>
+
+<div class="ab" id="auth-v3">
+  <div class="ab-head"><h3>02c · Sign in</h3><span class="ab-tag v3">v3 · centred card</span><span class="ab-meta">/auth</span></div>
+  <div class="ab-frame">
+    <div class="auth-frame centered" style="background:var(--paper)">
+      <div class="centered-card">
+        <div class="lockup">dermie</div>
+        <h1>Welcome <em>back</em>.</h1>
+        <p class="sub">Sign in to continue your study.</p>
+        <button class="ssolink"><span style="width:14px;height:14px;background:#4285F4;border-radius:3px"></span> Continue with Google</button>
+        <button class="ssolink"><span style="width:14px;height:14px;background:var(--ink-w);border-radius:3px"></span> Continue with institutional SSO</button>
+        <div class="or">or sign in with email</div>
+        <form class="auth-form" onsubmit="return false" style="max-width:none">
+          <div class="row"><label>Email</label><input type="email" value="resident@derm.edu"></div>
+          <div class="row"><label>Password</label><input type="password" value="••••••••••••"></div>
+          <button class="btn primary" type="submit" style="margin-top:6px">Sign in</button>
+        </form>
+        <div style="display:flex;justify-content:space-between;font:400 12.5px var(--font-body);color:var(--ink-meta);padding-top:14px;border-top:1px solid var(--line)">
+          <a href="#demo-top" style="color:var(--ink-w2);text-decoration:none">Forgot password?</a>
+          <a href="#demo-top" style="color:var(--ox);text-decoration:none">Request access →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ legal — interim disclosure ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">02·L</div><h2>Interim disclosure</h2><p class="desc">A narrow, good-faith page about what dermie collects and what it does not. Lives at /legal/interim and is linked from the auth footer.</p></section>
+
+<div class="ab" id="legal">
+  <div class="ab-head"><h3>02d · Interim disclosure</h3><span class="ab-tag v1">single version</span><span class="ab-meta">/legal/interim</span></div>
+  <div class="ab-frame">
+    <article class="legal-frame">
+      <a href="#demo-top" class="back">← Back</a>
+      <div class="eyebrow">— Last updated · 13 May 2026</div>
+      <h1>Interim <em style="font-style:italic;color:var(--ox)">disclosure</em>.</h1>
+      <p class="intro">dermie is in active development. A full Privacy Policy and Terms of Service are in progress. This page is a narrow, good-faith interim disclosure of what we do and do not do today.</p>
+
+      <h2>What we collect</h2>
+      <p>Account email (for sign-in), self-reported profile fields (display name, study preferences), and your activity inside the app — question answers, session timing, quiz and case scores, confidence ratings. We operate on Firebase (Google Cloud) and use Gemini (Google) for AI features. Error monitoring may be routed through Sentry.</p>
+
+      <h2>What we do not do</h2>
+      <p style="">We do not sell individual user data. We do not make any HIPAA or institutional-grade data handling claims. This product is a board-preparation tool for individual trainees and is not intended for clinical use or patient data.</p>
+
+      <h2>Deletion</h2>
+      <p>Email <a href="mailto:hello@dermie.io" style="color:var(--ox);text-decoration:none;border-bottom:1px solid var(--ox-soft)">hello@dermie.io</a> to request account and data deletion. We will acknowledge within 7 business days while the formal policy is being drafted.</p>
+
+      <h2>Changes</h2>
+      <p>This interim disclosure will be superseded by a full Privacy Policy and Terms of Service before open registration. We will notify users by email when that happens.</p>
+
+      <div class="meta-line">
+        <span>dermie · interim · 2026</span>
+        <span><a href="mailto:hello@dermie.io">hello@dermie.io</a></span>
+      </div>
+    </article>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ mobile auth ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">m</div><h2>Mobile</h2><p class="desc">Stacked layout, brand mark at top, form mid-screen, single quoted epigraph anchored at the bottom.</p></section>
+
+<div class="ab" id="auth-mob">
+  <div class="ab-head"><h3>02m · Sign in · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/auth</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <div class="m-auth">
+        <div class="lockup">dermie</div>
+        <div>
+          <div class="eyebrow" style="font-size:10px">— Welcome</div>
+          <h1>Welcome <em>back</em>.</h1>
+          <p class="sub">Pick up where you left off. Specimen 014a is paused at step 3.</p>
+        </div>
+        <form onsubmit="return false">
+          <div style="display:flex;flex-direction:column;gap:5px"><label>Email</label><input type="email" value="resident@derm.edu"></div>
+          <div style="display:flex;flex-direction:column;gap:5px"><label>Password</label><input type="password" value="••••••••••••"></div>
+          <button class="btn primary" type="submit" style="margin-top:8px">Sign in</button>
+          <button class="btn ghost" type="button">Sign in with SSO</button>
+        </form>
+        <div style="font:400 12.5px var(--font-body);color:var(--ink-meta);text-align:center"><a href="#demo-top" style="color:var(--ox);text-decoration:none">Forgot password?</a> · <a href="#demo-top" style="color:var(--ox);text-decoration:none">Create account</a></div>
+        <div class="quote-snip">
+          "The edge tells the story. Train the eye to read the edge, and the diagnosis names itself."
+          <span class="who">Six dermatology educators · 2023</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- React + Babel + Tweaks panel -->
+<script src="../../vendor/react.production.min.js"></script>
+<script src="../../vendor/react-dom.production.min.js"></script>
+<script src="../../vendor/babel.min.js"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+
+<div id="tweaks-root"></div>
+
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "v1_forgot_placement": "under",
+  "v1_epigraph_visible": false,
+  "v1_value_list_visible": true,
+  "v1_sso_visible": true,
+  "v1_email_value": "resident@derm.edu",
+  "v1_subhead": "Pick up where you left off. You're 14 days into a 30-day cadence; Specimen No. 014a is paused at step 3."
+}/*EDITMODE-END*/;
+
+function Tweaks(){
+  const { t, setTweak } = window.useTweaks(TWEAK_DEFAULTS);
+
+  // Apply tweaks to v1 DOM
+  React.useEffect(() => {
+    const root = document.getElementById('auth-v1');
+    if(!root) return;
+
+    // Forgot password placement
+    const forgotEl = root.querySelector('[data-tweak="forgot-link"]');
+    const submitRow = root.querySelector('.submit-row');
+    if(forgotEl && submitRow){
+      if(t.v1_forgot_placement === 'under'){
+        forgotEl.style.display = '';
+        forgotEl.style.alignSelf = 'center';
+        forgotEl.style.marginTop = '6px';
+        // Make sure it sits AFTER submit-row
+        if(forgotEl.previousElementSibling !== submitRow){
+          submitRow.parentNode.insertBefore(forgotEl, submitRow.nextSibling);
+        }
+      } else if(t.v1_forgot_placement === 'beside'){
+        forgotEl.style.display = '';
+        forgotEl.style.alignSelf = 'center';
+        forgotEl.style.marginTop = '0';
+        // Move it INTO submit-row, after the button
+        if(forgotEl.parentNode !== submitRow){
+          submitRow.appendChild(forgotEl);
+        }
+      } else {
+        forgotEl.style.display = 'none';
+      }
+    }
+
+    // Epigraph
+    const aside = root.querySelector('.auth-side');
+    let epigraph = aside && aside.querySelector('[data-tweak="epigraph"]');
+    if(aside){
+      if(t.v1_epigraph_visible && !epigraph){
+        epigraph = document.createElement('div');
+        epigraph.setAttribute('data-tweak','epigraph');
+        epigraph.innerHTML = `<p style="font:300 18px/1.45 var(--font-display);font-style:italic;color:#F0E2BC;margin:0 0 8px;max-width:34ch">"The edge tells the story. Train the eye to read the edge, and the diagnosis names itself."</p><div class="who">Six dermatology educators · 2023</div>`;
+        aside.appendChild(epigraph);
+      } else if(!t.v1_epigraph_visible && epigraph){
+        epigraph.remove();
+      }
+    }
+
+    // Value list
+    const valueList = root.querySelector('.value-list');
+    if(valueList) valueList.style.display = t.v1_value_list_visible ? '' : 'none';
+
+    // SSO link in footer
+    const footLinks = root.querySelectorAll('.auth-foot a');
+    footLinks.forEach(a => {
+      if(a.textContent.includes('SSO')){
+        a.style.display = t.v1_sso_visible ? '' : 'none';
+        const sep = a.previousElementSibling;
+        if(sep && sep.classList.contains('muted')) sep.style.display = t.v1_sso_visible ? '' : 'none';
+      }
+    });
+
+    // Email value
+    const emailInput = root.querySelector('input[type="email"]');
+    if(emailInput && emailInput.value !== t.v1_email_value) emailInput.value = t.v1_email_value;
+
+    // Subhead
+    const sub = root.querySelector('.auth-pane .sub');
+    if(sub && sub.textContent !== t.v1_subhead) sub.textContent = t.v1_subhead;
+  }, [t]);
+
+  const { TweaksPanel, TweakSection, TweakToggle, TweakRadio, TweakText } = window;
+
+  return (
+    <TweaksPanel title="Tweaks · v1 Quiet door">
+      <TweakSection label="Sign-in form">
+        <TweakRadio
+          label="Forgot password?"
+          value={t.v1_forgot_placement}
+          options={['under', 'beside', 'hidden']}
+          onChange={v => setTweak('v1_forgot_placement', v)}
+        />
+        <TweakToggle
+          label="SSO link in footer"
+          value={t.v1_sso_visible}
+          onChange={v => setTweak('v1_sso_visible', v)}
+        />
+        <TweakText
+          label="Default email"
+          value={t.v1_email_value}
+          onChange={v => setTweak('v1_email_value', v)}
+        />
+      </TweakSection>
+
+      <TweakSection label="Right pane · oxblood">
+        <TweakToggle
+          label="Show epigraph"
+          value={t.v1_epigraph_visible}
+          onChange={v => setTweak('v1_epigraph_visible', v)}
+        />
+        <TweakToggle
+          label="Show value list"
+          value={t.v1_value_list_visible}
+          onChange={v => setTweak('v1_value_list_visible', v)}
+        />
+      </TweakSection>
+
+      <TweakSection label="Copy">
+        <TweakText
+          label="Subhead"
+          value={t.v1_subhead}
+          onChange={v => setTweak('v1_subhead', v)}
+        />
+      </TweakSection>
+    </TweaksPanel>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<Tweaks />);
+</script>
+</body></html>
