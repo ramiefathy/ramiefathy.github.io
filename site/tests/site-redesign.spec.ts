@@ -67,7 +67,7 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
     // Phase 7 Atlas redesign: headline copy changed across all routes. Assertions
     // now match the Atlas display1 copy (with <em>...</em> emphasis rendered inline).
     await page.goto('/about', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/A clinician,\s*a builder,\s*a writer\./);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/A clinician,\s*a writer,\s*a builder\./);
 
     await page.goto('/apps', { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/\d+\s+browser-first\s*tools, indexed\./);
