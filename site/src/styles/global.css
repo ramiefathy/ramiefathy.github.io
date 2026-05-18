@@ -1381,25 +1381,12 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 60vh;
 }
 
+/* About portrait — Atlas-treated photo (asset at /public/portrait.jpg). */
 .about-cover .portrait {
-  background: linear-gradient(170deg, #5b7058 0%, #1a1a1a 60%);
+  background: url("/portrait.jpg") center 22% / cover no-repeat var(--ink);
   position: relative;
   overflow: hidden;
   border-right: 2px solid var(--ink);
-}
-
-.about-cover .portrait::before {
-  content: "R.F.";
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-emphasis);
-  font-style: italic;
-  font-weight: 300;
-  font-size: 280px;
-  color: rgba(244, 240, 232, 0.1);
-  letter-spacing: -0.05em;
 }
 
 .about-cover .text {
