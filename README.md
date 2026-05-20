@@ -1,9 +1,10 @@
 # Dr. Ramie Fathy – Personal & Professional Portfolio
 
-This repository powers [ramiefathy.github.io](https://ramiefathy.github.io) and its Netlify mirror. It combines:
+This repository powers [ramiefathy.com](https://ramiefathy.com) (deployed via Cloudflare) and contains:
 
 - **Astro static site** (`/site`) for the primary pages and navigation
 - **Interactive tools** (`/site/public/apps`) including the AI Dermatology Scribe, Dermatopathology Navigator, DermaScore calculators, and PDF utilities
+- **External subdomain apps** linked from the app catalog (e.g., **Skinoculars** at `https://skinoculars.ramiefathy.com/`, source: `ramiefathy/Skinoculars`)
 - **AI Scribe backend** (`/services/ai-scribe`) for websocket-driven transcription and Gemini-powered note generation
 - **Legacy archives** (`/legacy`) for historical research reports and prototypes
 
@@ -67,9 +68,26 @@ cd services/ai-scribe
 python app.py
 ```
 
-In development the AI Scribe client looks for the shared token stored in `localStorage.dermascribe.sessionToken`. Use the **Set Access Token** button inside the UI or pre-populate the value so it matches `SESSION_SECRET` in the backend `.env` file (default `development-token`).
+In development, the RAMIE AI Scribe frontend reads its backend connection settings from browser storage:
 
-Configure the AI Scribe service with environment variables in `services/ai-scribe/.env` (see the sample keys in `config.py`).
+- WebSocket URL: `dermascribe.websocketUrl`
+- Access Token: `dermascribe.sessionToken` (session-scoped by default; persisted only if you check “Remember token” in the UI)
+
+Open `/apps/dermatology-scribe/index.html` and use the **Backend Connection** card to set:
+
+- WebSocket URL (e.g. `ws://localhost:8765` for local dev)
+- Access Token (must match `SESSION_SECRET` in the backend `.env`, or be a JWT signed with `JWT_SIGNING_SECRET`)
+
+Configure the AI Scribe service with environment variables in `services/ai-scribe/.env` (see `services/ai-scribe/.env.example`).
+
+### Skinoculars (Standalone Subdomain App)
+
+Skinoculars is intentionally hosted as a **standalone** application and deployed from its own repository:
+
+- Canonical URL: `https://skinoculars.ramiefathy.com/`
+- Source/deploy repo: `ramiefathy/Skinoculars`
+
+The main site keeps a catalog entry in `site/src/data/apps.json` pointing to the canonical URL. Legacy in-site paths under `/apps/Skinoculars/*` are redirected to the subdomain via Cloudflare redirect rules (so the app is not duplicated in this repository).
 
 ## Ads Setup
 
@@ -102,7 +120,7 @@ The `/legacy` route lists archived HTML reports and application prototypes. Thes
 - Add automated lint/test/CI workflows for the Astro site and AI Scribe backend.
 - Harden the AI Scribe client with authentication and rate limiting as the deployment plan evolves.
 
-For any questions, contact **hello@ramiefathy.com**.
+For any questions, contact **ramiefathy@gmail.com**.
 
 ## Landing UI Upgrade
 

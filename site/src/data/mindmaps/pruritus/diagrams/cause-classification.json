@@ -1,0 +1,162 @@
+{
+  "id": "pruritus-cause-class",
+  "topic": "pruritus",
+  "title": "Chronic Pruritus Classification (IFSI 2007)",
+  "subtitle": "International Forum for the Study of Itch — six etiologic groups",
+  "type": "classification",
+  "data": {
+    "root": {
+      "id": "chronic-pruritus",
+      "name": "Chronic Pruritus (>6 weeks)",
+      "children": [
+        {
+          "id": "group-i",
+          "name": "Group I — Pruritus on diseased / inflamed skin",
+          "category": "Dermatologic",
+          "detail": "Primary skin lesions visible; itch is a consequence of skin inflammation or structural change.",
+          "children": [
+            {
+              "id": "gi-inflammatory",
+              "name": "Inflammatory",
+              "children": [
+                { "id": "ad", "name": "Atopic Dermatitis", "detail": "IL-4/IL-13 axis; Th2-skewed inflammation; filaggrin barrier defects. Hallmark: flexural itch, relapsing course." },
+                { "id": "psoriasis", "name": "Psoriasis vulgaris", "detail": "IL-17A/IL-23 axis; itch present in >60% of patients; often underreported. Biologic therapies reduce itch scores." },
+                { "id": "lp", "name": "Lichen Planus", "detail": "Lichenoid T-cell reaction; violaceous polygonal papules; mucosal involvement common." },
+                { "id": "contact", "name": "Contact Dermatitis (Allergic / Irritant)", "detail": "Delayed type IV hypersensitivity (allergic) or direct epidermal damage (irritant). Patch testing essential for allergic type." },
+                { "id": "urti", "name": "Urticaria (chronic spontaneous)", "detail": "Transient wheals <24h; autoimmune IgG against FcεRI or IgE in 40-50%. Omalizumab second-line." }
+              ]
+            },
+            {
+              "id": "gi-infectious",
+              "name": "Infectious",
+              "children": [
+                { "id": "scabies", "name": "Scabies", "detail": "Sarcoptes scabiei var hominis; interdigital burrows; nocturnal predominance; treat household simultaneously." },
+                { "id": "candida", "name": "Candidiasis (cutaneous / vulvovaginal)", "detail": "Macerated intertriginous erythema with satellite pustules; KOH prep confirms. Topical azoles first-line." },
+                { "id": "pediculus", "name": "Pediculosis (head / pubic lice)", "detail": "Nits on hair shafts; pubic lice in anogenital region. Permethrin or malathion topically." },
+                { "id": "varicella", "name": "Varicella / VZV (reactivation)", "detail": "Vesicular rash following dermatome (zoster). Postherpetic itch can persist months after lesion resolution." }
+              ]
+            },
+            {
+              "id": "gi-autoimmune",
+              "name": "Autoimmune",
+              "children": [
+                { "id": "bp", "name": "Bullous Pemphigoid", "detail": "Anti-BP180 (NC16A domain) + anti-BP230 IgG antibodies. Tense bullae on urticarial base; intense pruritus often precedes blistering." },
+                { "id": "dh", "name": "Dermatitis Herpetiformis (DH)", "detail": "IgA anti-transglutaminase deposition at DEJ; gluten-sensitive enteropathy; granular IgA on DIF is pathognomonic. Dapsone + gluten-free diet." },
+                { "id": "lich-scl", "name": "Lichen Sclerosus", "detail": "Figure-of-eight vulval/perianal distribution; sclerotic white plaques; 4-5% SCC risk with long-term disease." }
+              ]
+            },
+            {
+              "id": "gi-neoplastic",
+              "name": "Neoplastic / Lymphoproliferative",
+              "children": [
+                { "id": "mf", "name": "Mycosis Fungoides (CTCL)", "detail": "Most common CTCL; patch → plaque → tumor stage; pruritus may be the dominant symptom for years before diagnosis." },
+                { "id": "mast", "name": "Mastocytosis (Cutaneous)", "detail": "Urticaria pigmentosa: tan-brown macules/papules that urticates with stroking (Darier sign). Serum tryptase elevated in systemic disease." }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "group-ii",
+          "name": "Group II — Pruritus on non-diseased skin",
+          "category": "Systemic",
+          "detail": "Skin appears normal; itch driven by systemic disease, drugs, or metabolic derangements.",
+          "children": [
+            {
+              "id": "gii-renal",
+              "name": "Renal / Uremic",
+              "children": [
+                { "id": "ckd-pruritus", "name": "CKD-Associated Pruritus (formerly uremic pruritus)", "detail": "Affects 40-70% of hemodialysis patients. Uremic toxins + κ-opioid dysregulation + small-fiber neuropathy. Difelikefalin (κ-opioid agonist) FDA-approved 2021." }
+              ]
+            },
+            {
+              "id": "gii-hepatic",
+              "name": "Hepatic / Cholestatic",
+              "children": [
+                { "id": "pbc", "name": "Primary Biliary Cholangitis (PBC)", "detail": "AMA+ (>95%); elevated ALP/GGT; palmar-plantar itch worst at night. Cholestyramine, rifampin, naltrexone." },
+                { "id": "psc", "name": "Primary Sclerosing Cholangitis (PSC)", "detail": "Multi-focal biliary strictures; associated with IBD (especially UC); MRCP for diagnosis." },
+                { "id": "icp", "name": "Intrahepatic Cholestasis of Pregnancy (ICP)", "detail": "Third trimester; elevated bile acids; fetal risk (stillbirth). Ursodeoxycholic acid + early delivery at 36-37 weeks." },
+                { "id": "drug-chol", "name": "Drug-Induced Cholestasis", "detail": "Anabolic steroids, OCPs, amoxicillin-clavulanate, chlorpromazine; latency 1-12 weeks." }
+              ]
+            },
+            {
+              "id": "gii-hematologic",
+              "name": "Hematologic",
+              "children": [
+                { "id": "hodgkin", "name": "Hodgkin Lymphoma", "detail": "Cytokine-mediated (IL-31, IL-6, TARC); pruritus may precede diagnosis by years; resolves with effective chemotherapy." },
+                { "id": "pv", "name": "Polycythemia Vera / MPN", "detail": "Aquagenic pruritus: burning stinging within minutes of water contact. JAK2 V617F in 95%. Ruxolitinib for refractory pruritus." },
+                { "id": "iron-def", "name": "Iron-Deficiency Anemia", "detail": "Iron deficiency can cause generalized pruritus even before anemia develops. Ferritin <15 ng/mL diagnostic. Iron repletion curative." }
+              ]
+            },
+            {
+              "id": "gii-endocrine",
+              "name": "Endocrine / Metabolic",
+              "children": [
+                { "id": "thyroid", "name": "Thyroid Disease (hypo- and hyperthyroidism)", "detail": "Hypothyroidism: xerosis-driven itch. Hyperthyroidism: vasodilation + sweating-driven itch. TSH is first-line screen." },
+                { "id": "diabetes", "name": "Diabetes Mellitus", "detail": "Generalized pruritus via peripheral neuropathy and nephrogenic causes. Glycemic control + emollients + gabapentinoids." },
+                { "id": "hyperpth", "name": "Hyperparathyroidism (secondary in CKD)", "detail": "PTH-driven calcium-phosphate deposition in skin nerves contributes to uremic pruritus component." }
+              ]
+            },
+            {
+              "id": "gii-drug",
+              "name": "Drug-Induced",
+              "children": [
+                { "id": "opioids", "name": "Opioids", "detail": "Mu-opioid receptor-mediated; most intense with spinal opioids. Treat with nalbuphine (mixed κ-agonist/μ-antagonist) or low-dose naltrexone." },
+                { "id": "acei", "name": "ACE Inhibitors", "detail": "Bradykinin accumulation; may present as pruritus without angioedema. Switch to ARB." },
+                { "id": "statins", "name": "Statins / Chloroquine / Hydroxyurea", "detail": "Cholestatic mechanism (statins) or direct mast cell stimulation (chloroquine). Hydroxyurea causes prurigo-like papules." },
+                { "id": "immunotherapy", "name": "Checkpoint Inhibitors (immunotherapy)", "detail": "Pembrolizumab, nivolumab, atezolizumab; immune-related adverse events including pruritus in 10-25%; grade 3 pruritus managed with systemic steroids." }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "group-iii",
+          "name": "Group III — Pruritus with chronic scratch lesions",
+          "category": "Mixed / Secondary",
+          "detail": "Primary cause may be resolved or unclear; dominant feature is established secondary lesions from chronic scratching.",
+          "children": [
+            { "id": "lsc", "name": "Lichen Simplex Chronicus (LSC)", "detail": "Itch-scratch cycle causes lichenification. Common sites: nape of neck, ankles, anogenital. Potent topical steroids under occlusion; habit reversal therapy." },
+            { "id": "pn", "name": "Prurigo Nodularis", "detail": "Multiple hyperkeratotic papules/nodules on trunk and extremities. Intense itch drives chronic scratching. Dupilumab (FDA-approved 2022) and nemolizumab (IL-31Rα) are targeted therapies. PMID 23614588." }
+          ]
+        },
+        {
+          "id": "group-iv",
+          "name": "Group IV — Neuropathic Pruritus",
+          "category": "Neuropathic",
+          "detail": "Itch originating from peripheral or central nervous system pathology; no primary skin lesion; dermatomal or localized distribution with sensory abnormalities.",
+          "children": [
+            { "id": "brp", "name": "Brachioradial Pruritus", "detail": "Cervical radiculopathy (C5-C8); lateral forearm/dorsal arm; aggravated by UV (sun exposure); ice pack test positive. MRI cervical spine. Gabapentin, capsaicin." },
+            { "id": "np", "name": "Notalgia Paresthetica", "detail": "T2-T6 dorsal nerve entrapment at paraspinal muscles; interscapular itch; hyperpigmented patch at left/right paraspinal region. Capsaicin, gabapentin, physical therapy, botulinum toxin." },
+            { "id": "phi", "name": "Post-Herpetic Itch", "detail": "Chronic itch in healed herpes zoster dermatome; distinct from postherpetic neuralgia; allodynia and burning common. High-dose capsaicin patch (8%), gabapentinoids, TCAs." },
+            { "id": "sfn", "name": "Small-Fiber Neuropathy (SFN)", "detail": "Reduced intraepidermal nerve fiber density on skin biopsy; idiopathic or diabetes-associated; burning quality. Gabapentinoids, low-dose naltrexone, duloxetine." },
+            { "id": "ms-itch", "name": "Central Neuropathic Itch (MS, stroke, spinal cord)", "detail": "Multiple sclerosis: Lhermitte-type paroxysmal itch. Post-stroke or spinal cord injury: unilateral dermatomal itch. Gabapentinoids; low-dose opioid antagonists." }
+          ]
+        },
+        {
+          "id": "group-v",
+          "name": "Group V — Psychogenic / Somatoform Pruritus",
+          "category": "Psychiatric",
+          "detail": "Itch is driven by psychiatric illness; skin and systemic workup unrevealing; requires mental health co-management.",
+          "children": [
+            { "id": "dop", "name": "Delusions of Parasitosis (Delusional Infestation)", "detail": "Fixed delusion of skin infestation despite negative workup (matchbox sign). First-line: olanzapine or risperidone at low dose. Build therapeutic alliance; avoid confrontation. Do not use anti-parasitic treatments." },
+            { "id": "ocd-itch", "name": "OCD-Spectrum / Neurotic Excoriations", "detail": "Repetitive skin picking driven by anxiety or OCD; skin lesions reflect behavioral rather than dermatologic cause. SSRIs + CBT (habit reversal training)." },
+            { "id": "somatoform", "name": "Somatoform Pruritus", "detail": "Somatic symptom disorder where itch is the dominant complaint. Full systemic workup negative. Multidisciplinary management (dermatology + psychiatry + CBT)." }
+          ]
+        },
+        {
+          "id": "group-vi",
+          "name": "Group VI — Mixed / Multifactorial Pruritus",
+          "category": "Multifactorial",
+          "detail": "Most common group in clinical practice; multiple overlapping etiologies (e.g., atopic + drug-induced, uremic + xerosis, neuropathic + psychogenic).",
+          "children": [
+            { "id": "senile", "name": "Pruritus of the Elderly (Senile Pruritus)", "detail": "Multifactorial: xerosis + epidermal thinning + nerve fiber reduction + comorbidities + polypharmacy. Most common cause in >65 age group. Emollients, gabapentin, mirtazapine, treat comorbidities." },
+            { "id": "idiopathic", "name": "Chronic Idiopathic Pruritus", "detail": "Diagnosis of exclusion after comprehensive workup (PMID 23614588). Emerging evidence for IL-31 pathway (nemolizumab) and substance P/NK1 pathway (aprepitant) in idiopathic cases." }
+          ]
+        }
+      ]
+    }
+  },
+  "citations": [
+    { "pmid": "17598029", "quote": "Ständer S et al. Clinical classification of itch: a position paper of the International Forum for the Study of Itch. Acta Derm Venereol. 2007;87(4):291-294." },
+    { "pmid": "23614588", "quote": "Yosipovitch G, Bernhard JD. Clinical practice. Chronic pruritus. N Engl J Med. 2013;368(17):1625-1634." }
+  ]
+}

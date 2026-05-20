@@ -1,0 +1,37 @@
+{
+  "id": "nail-disease-pattern-dt",
+  "topic": "nail-disease",
+  "title": "Nail Disease Pattern Algorithm",
+  "subtitle": "Onychomycosis, psoriasis, lichen planus, trauma, and melanoma clues",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Single nail with longitudinal melanonychia, Hutchinson sign, splitting, pain, or rapid change?", "branches": [
+        { "label": "Yes", "nextStepId": "melanoma" },
+        { "label": "No", "nextStepId": "fungal" }
+      ] },
+      { "id": "melanoma", "type": "terminal", "prompt": "Nail unit melanoma/tumor pathway" },
+      { "id": "fungal", "type": "decision", "prompt": "Distal-lateral subungual debris, onycholysis, thickening, or tinea pedis?", "branches": [
+        { "label": "Yes", "nextStepId": "test" },
+        { "label": "No", "nextStepId": "inflammatory" }
+      ] },
+      { "id": "test", "type": "terminal", "prompt": "Confirm onychomycosis with KOH/PAS/culture before systemic therapy" },
+      { "id": "inflammatory", "type": "decision", "prompt": "Pitting, oil drops, salmon patches, or psoriasis elsewhere?", "branches": [
+        { "label": "Yes", "nextStepId": "psoriasis" },
+        { "label": "No", "nextStepId": "lp" }
+      ] },
+      { "id": "psoriasis", "type": "terminal", "prompt": "Nail psoriasis pathway" },
+      { "id": "lp", "type": "decision", "prompt": "Dorsal pterygium, thinning, ridging, twenty-nail dystrophy, or mucosal LP?", "branches": [
+        { "label": "Yes", "nextStepId": "lichen" },
+        { "label": "No", "nextStepId": "trauma" }
+      ] },
+      { "id": "lichen", "type": "terminal", "prompt": "Nail lichen planus pathway" },
+      { "id": "trauma", "type": "terminal", "prompt": "Trauma, eczema, paronychia, systemic disease, or biopsy pathway" }
+    ]
+  },
+  "citations": [
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK441853/", "quote": "StatPearls Onychomycosis review summarizes diagnosis with KOH, culture, histopathology, and treatment principles." },
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK559260/", "quote": "StatPearls Nail Psoriasis review describes nail pitting, onycholysis, oil-drop change, and differential diagnosis." }
+  ]
+}

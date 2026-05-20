@@ -1,0 +1,80 @@
+{
+  "id": "cicatricial-dt",
+  "topic": "alopecia",
+  "title": "Cicatricial Alopecia Workup",
+  "subtitle": "Decision tree: lymphocytic vs neutrophilic vs mixed",
+  "type": "decision-tree",
+  "data": {
+    "start": "presentation",
+    "steps": [
+      {
+        "id": "presentation",
+        "type": "decision",
+        "prompt": "Patient with hair loss. Permanent or active scarring noted on exam?",
+        "branches": [
+          { "label": "Yes — scarring", "nextStepId": "biopsy-decision" },
+          { "label": "No", "nextStepId": "non-cicatricial" }
+        ]
+      },
+      {
+        "id": "biopsy-decision",
+        "type": "action",
+        "prompt": "Order scalp biopsy",
+        "detail": "Take a 4mm punch from active disease edge. Submit for both vertical AND horizontal sectioning. Direct immunofluorescence if LE suspected.",
+        "branches": [
+          { "label": "Lymphocytic infiltrate", "nextStepId": "lymphocytic-pattern" },
+          { "label": "Neutrophilic infiltrate", "nextStepId": "neutrophilic-pattern" },
+          { "label": "Mixed / both", "nextStepId": "mixed-pattern" }
+        ]
+      },
+      {
+        "id": "lymphocytic-pattern",
+        "type": "decision",
+        "prompt": "Pattern of involvement?",
+        "branches": [
+          { "label": "Frontotemporal hairline + brow loss", "nextStepId": "ffa" },
+          { "label": "Vertex / multifocal + Wickham striae", "nextStepId": "lpp" },
+          { "label": "Crown centrifugal in patient of African descent", "nextStepId": "ccca" },
+          { "label": "Photodistributed + erythema + DIF positive", "nextStepId": "le" }
+        ]
+      },
+      {
+        "id": "neutrophilic-pattern",
+        "type": "decision",
+        "prompt": "Pustules and tufting present?",
+        "branches": [
+          { "label": "Yes, with hair tufting (5-15 hairs)", "nextStepId": "fd" },
+          { "label": "Boggy nodules + sinus tracts on vertex", "nextStepId": "dc" }
+        ]
+      },
+      {
+        "id": "mixed-pattern",
+        "type": "terminal",
+        "prompt": "Acne keloidalis nuchae",
+        "detail": "Mixed lymphocytic + neutrophilic infiltrate at occipital scalp/posterior neck with keloidal papules. Treat with topical/intralesional steroids ± topical retinoids; refractory cases consider laser hair removal."
+      },
+      {
+        "id": "non-cicatricial",
+        "type": "action",
+        "prompt": "Switch to non-scarring alopecia workup",
+        "detail": "AGA, AA, telogen effluvium, anagen effluvium, traction, trichotillomania, syphilis, tinea capitis. See separate workup pathway."
+      },
+      { "id": "lpp",  "type": "terminal", "prompt": "Lichen Planopilaris (LPP)",
+        "detail": "Lichenoid lymphocytic infiltrate at infundibulum. First-line: high-potency topical + intralesional steroids; second-line: hydroxychloroquine, doxycycline, mycophenolate." },
+      { "id": "ffa",  "type": "terminal", "prompt": "Frontal Fibrosing Alopecia (FFA)",
+        "detail": "LPP variant with fronto-temporal recession + eyebrow loss in postmenopausal women. Add 5α-reductase inhibitor (finasteride/dutasteride) to LPP regimen." },
+      { "id": "ccca", "type": "terminal", "prompt": "Central Centrifugal Cicatricial Alopecia (CCCA)",
+        "detail": "Premature desquamation of inner root sheath. Most common cicatricial alopecia in Black women. Moderate-strength topical steroid + minoxidil + counsel on avoiding traction/heat/relaxers." },
+      { "id": "le",   "type": "terminal", "prompt": "Discoid Lupus Erythematosus (Discoid LE)",
+        "detail": "Photodistributed scarring with erythema, scale, dyspigmentation; DIF shows continuous granular IgG/C3 along DEJ. Hydroxychloroquine + sun protection + topical/intralesional steroid." },
+      { "id": "fd",   "type": "terminal", "prompt": "Folliculitis Decalvans",
+        "detail": "Tufted folliculitis (5-15 hairs from one ostium) at vertex. Long-course antibiotics (doxycycline + rifampin combo, or clindamycin/rifampin), topical/intralesional steroid, isotretinoin in refractory cases." },
+      { "id": "dc",   "type": "terminal", "prompt": "Dissecting Cellulitis (Perifolliculitis Capitis Abscedens et Suffodiens)",
+        "detail": "Boggy nodules + interconnecting sinus tracts on vertex/occiput. Part of follicular occlusion tetrad. First-line: isotretinoin (long-course) + ablative therapy if refractory; biologics for severe disease." }
+    ]
+  },
+  "citations": [
+    { "pmid": "12522378", "quote": "Olsen EA et al. Summary of North American Hair Research Society (NAHRS)-sponsored Workshop on Cicatricial Alopecia. J Am Acad Dermatol. 2003." },
+    { "pmid": "23695609", "quote": "Filbrandt R et al. Primary cicatricial alopecia: diagnosis and treatment. CMAJ. 2013;185(18):1579-1585." }
+  ]
+}

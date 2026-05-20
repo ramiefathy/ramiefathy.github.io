@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#ffffff">
     <title>UI Enhancements Test - AI Dermatology Scribe</title>
+    <meta name="description" content="UI test harness for the dermatology scribe app to validate shell, accessibility, and theme behavior.">
 
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../vendor/tailwindcss.browser.js"></script>
+    <link rel="stylesheet" href="../shared/legacy-tokens.css">
+    <link rel="stylesheet" href="../shared/legacy-primitives.css">
+    <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
+    <script src="../shared/legacy-status.js" defer></script>
 
-    <!-- Material Icons -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared/material-symbols.css">
 
     <!-- Styles -->
     <link rel="stylesheet" href="style.css">
@@ -54,12 +55,12 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border-primary);
             border-radius: var(--border-radius);
-            transition: all var(--transition-normal);
+            transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background-color var(--transition-normal);
         }
 
         .feature-card:hover {
             box-shadow: var(--shadow-lg);
-            transform: translateY(-2px);
+            border-color: var(--accent-primary);
         }
 
         .feature-card h3 {
@@ -85,13 +86,13 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-slate-50">
+<body class="min-h-screen bg-slate-50 legacy-focus-ring" data-legacy-shell="true" data-ui-mode="harness" data-help-steps='["Use this page to validate focus rings, shell layout, and theme toggling.","Open Help and confirm steps render correctly.","This page is a test harness; not intended for clinical use."]'>
 
     <!-- Header -->
-    <header class="bg-slate-800 text-white p-4 shadow-md sticky top-0 z-50">
+    <header class="p-4 sticky top-0 z-50" style="background: var(--cl-surface); border: 1px solid var(--cl-border); border-radius: var(--radius-card);">
         <div class="container mx-auto">
             <h1 class="text-2xl font-semibold">UI Enhancements Demo</h1>
-            <p class="text-sm text-slate-300 mt-1">Testing new features for AI Dermatology Scribe</p>
+            <p class="text-sm mt-1" style="color: var(--cl-text-muted);">Internal test harness for UI enhancement features.</p>
         </div>
     </header>
 
@@ -100,7 +101,7 @@
 
         <!-- Introduction -->
         <div class="demo-section">
-            <h2 class="demo-title">🚀 Welcome to Enhanced UI Features</h2>
+            <h2 class="demo-title">Welcome to Enhanced UI Features</h2>
             <p class="demo-description">
                 This page demonstrates the new UI enhancements for the AI Dermatology Scribe application.
                 Try out the features below to see how they improve the user experience.
@@ -108,32 +109,32 @@
 
             <div class="feature-grid">
                 <div class="feature-card">
-                    <h3>🎨 Theme Switcher</h3>
+                    <h3>Theme Switcher</h3>
                     <p>Click the theme toggle button in the bottom-right corner to switch between light, dark, and auto themes.</p>
                 </div>
 
                 <div class="feature-card">
-                    <h3>⚡ Quick Actions Bar</h3>
+                    <h3>Quick Actions Bar</h3>
                     <p>A floating toolbar with common actions. Drag it anywhere on the screen!</p>
                 </div>
 
                 <div class="feature-card">
-                    <h3>🔍 Command Palette</h3>
+                    <h3>Command Palette</h3>
                     <p>Press <span class="keyboard-shortcut">Ctrl+K</span> or <span class="keyboard-shortcut">Cmd+K</span> to open the command palette.</p>
                 </div>
 
                 <div class="feature-card">
-                    <h3>🎯 Focus Mode</h3>
+                    <h3>Focus Mode</h3>
                     <p>Press <span class="keyboard-shortcut">Ctrl+Shift+F</span> to enter distraction-free focus mode.</p>
                 </div>
 
                 <div class="feature-card">
-                    <h3>♿ Accessibility</h3>
+                    <h3>Accessibility</h3>
                     <p>Enhanced keyboard navigation, screen reader support, and high contrast mode.</p>
                 </div>
 
                 <div class="feature-card">
-                    <h3>📐 Layout Manager</h3>
+                    <h3>Layout Manager</h3>
                     <p>Switch between different layout presets using the dropdown in the header.</p>
                 </div>
             </div>
@@ -141,7 +142,7 @@
 
         <!-- Keyboard Shortcuts -->
         <div class="demo-section">
-            <h2 class="demo-title">⌨️ Keyboard Shortcuts</h2>
+            <h2 class="demo-title">Keyboard Shortcuts</h2>
             <p class="demo-description">Master these shortcuts for maximum efficiency:</p>
 
             <table class="w-full mt-4">
@@ -209,7 +210,7 @@
 
         <!-- Sample Panels for Testing -->
         <div class="demo-section">
-            <h2 class="demo-title">📊 Sample Interface Elements</h2>
+            <h2 class="demo-title">Sample Interface Elements</h2>
             <p class="demo-description">These panels demonstrate the enhanced styling and interactions:</p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -262,42 +263,42 @@
 
         <!-- Feature Status -->
         <div class="demo-section">
-            <h2 class="demo-title">✅ Feature Implementation Status</h2>
+            <h2 class="demo-title">Feature Implementation Status</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
                 <div class="flex items-center gap-2 p-2">
-                    <span class="text-green-500">✓</span>
+                    <span class="text-green-700 text-xs font-semibold uppercase">Done</span>
                     <span>Dark Mode Theme</span>
                 </div>
                 <div class="flex items-center gap-2 p-2">
-                    <span class="text-green-500">✓</span>
+                    <span class="text-green-700 text-xs font-semibold uppercase">Done</span>
                     <span>Theme Toggle Button</span>
                 </div>
                 <div class="flex items-center gap-2 p-2">
-                    <span class="text-green-500">✓</span>
+                    <span class="text-green-700 text-xs font-semibold uppercase">Done</span>
                     <span>Focus Mode</span>
                 </div>
                 <div class="flex items-center gap-2 p-2">
-                    <span class="text-green-500">✓</span>
+                    <span class="text-green-700 text-xs font-semibold uppercase">Done</span>
                     <span>Quick Actions Bar</span>
                 </div>
                 <div class="flex items-center gap-2 p-2">
-                    <span class="text-green-500">✓</span>
+                    <span class="text-green-700 text-xs font-semibold uppercase">Done</span>
                     <span>Command Palette</span>
                 </div>
                 <div class="flex items-center gap-2 p-2">
-                    <span class="text-green-500">✓</span>
+                    <span class="text-green-700 text-xs font-semibold uppercase">Done</span>
                     <span>Keyboard Shortcuts</span>
                 </div>
                 <div class="flex items-center gap-2 p-2">
-                    <span class="text-green-500">✓</span>
+                    <span class="text-green-700 text-xs font-semibold uppercase">Done</span>
                     <span>Accessibility Features</span>
                 </div>
                 <div class="flex items-center gap-2 p-2">
-                    <span class="text-green-500">✓</span>
+                    <span class="text-green-700 text-xs font-semibold uppercase">Done</span>
                     <span>Layout Manager</span>
                 </div>
                 <div class="flex items-center gap-2 p-2">
-                    <span class="text-green-500">✓</span>
+                    <span class="text-green-700 text-xs font-semibold uppercase">Done</span>
                     <span>Responsive Design</span>
                 </div>
             </div>
@@ -321,31 +322,34 @@
         // Additional demo-specific code
         console.log('UI Enhancements Test Page Loaded');
 
-        // Show welcome message
-        setTimeout(() => {
-            const welcome = document.createElement('div');
-            welcome.style.cssText = `
-                position: fixed;
-                top: 100px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 20px 30px;
-                border-radius: 12px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-                z-index: 2000;
-                animation: slideDown 500ms ease;
-                max-width: 500px;
-                text-align: center;
-            `;
-            welcome.innerHTML = `
-                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 10px;">Welcome to UI Enhancements! 🎉</h3>
-                <p style="margin-bottom: 15px;">Try pressing <span style="background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace;">Ctrl+K</span> to open the command palette</p>
-                <button onclick="this.parentElement.remove()" style="background: white; color: #764ba2; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">Got it!</button>
-            `;
-            document.body.appendChild(welcome);
-        }, 1000);
+        if (window.LegacyGuidance?.maybeShow) {
+            window.LegacyGuidance.maybeShow('dermatology-scribe-ui-demo', [
+                'Try keyboard shortcuts listed on this page to validate command actions.',
+                'Use the sample panel controls to verify focus, contrast, and interaction states.',
+                'Use shell Theme and Reset for quick accessibility and state testing.'
+            ]);
+        }
+
+        const transcriptionContainer = document.getElementById('transcriptionOutput');
+        if (window.LegacyStatus && transcriptionContainer) {
+            window.LegacyStatus.showEmpty(
+                transcriptionContainer,
+                'No sample transcription yet. Use the Upload Sample Audio action to run a preflight-ready demo path.'
+            );
+        }
+
+        const demoNotice = document.createElement('section');
+        demoNotice.className = 'legacy-status-panel';
+        demoNotice.style.maxWidth = '780px';
+        demoNotice.style.margin = '0 auto 1.5rem';
+        demoNotice.innerHTML = `
+            <h3>Demo context</h3>
+            <p>This is an internal UI test harness. Use <strong>Ctrl/Cmd + K</strong> to validate command palette behavior.</p>
+        `;
+        const main = document.querySelector('main');
+        if (main) {
+            main.prepend(demoNotice);
+        }
     </script>
 
 </body>

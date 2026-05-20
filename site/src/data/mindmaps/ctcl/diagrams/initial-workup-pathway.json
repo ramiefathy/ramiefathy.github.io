@@ -1,0 +1,186 @@
+{
+  "id": "ctcl-initial-workup",
+  "topic": "ctcl",
+  "title": "Suspected CTCL — Initial Workup Pathway",
+  "subtitle": "History → Examination → Biopsy → Staging labs and imaging",
+  "type": "workup-pathway",
+  "data": {
+    "stages": [
+      {
+        "id": "history",
+        "name": "History",
+        "items": [
+          {
+            "id": "h1",
+            "label": "Duration and chronicity of skin rash",
+            "detail": "<p>CTCL is notorious for diagnostic delay (median 4-6 years from symptom onset). Ask about prior diagnoses of eczema, psoriasis, or contact dermatitis that failed appropriate treatment.</p>"
+          },
+          {
+            "id": "h2",
+            "label": "Refractoriness to potent topical corticosteroids",
+            "detail": "<p>Chronic patches or plaques that persist despite multiple courses of class I-II topical steroids are a classic red flag. Inquire specifically about the number and duration of prior steroid trials.</p>"
+          },
+          {
+            "id": "h3",
+            "label": "Distribution of lesions — sun-protected areas, bathing-suit pattern",
+            "detail": "<p>Early MF classically affects the hips, buttocks, lower trunk, and inner thighs — areas covered by a bathing suit. Sun-exposed distribution is less typical.</p>"
+          },
+          {
+            "id": "h4",
+            "label": "Symptoms: pruritus (often severe), burning, or pain"
+          },
+          {
+            "id": "h5",
+            "label": "Prior biopsies and pathology reports — review all previous histology"
+          },
+          {
+            "id": "h6",
+            "label": "B symptoms: unexplained fever, night sweats, weight loss >10%",
+            "detail": "<p>Constitutional symptoms suggest advanced systemic disease. Document carefully as they affect staging and management.</p>"
+          },
+          {
+            "id": "h7",
+            "label": "Atypical eczema features: onset in adulthood, waxing/waning course, large poikilodermatous patches"
+          },
+          {
+            "id": "h8",
+            "label": "Medications: recent new drugs, immunosuppressants (may mask or mimic CTCL)"
+          },
+          {
+            "id": "h9",
+            "label": "Personal or family history of lymphoma or other hematologic malignancies"
+          }
+        ]
+      },
+      {
+        "id": "exam",
+        "name": "Physical Examination",
+        "items": [
+          {
+            "id": "e1",
+            "label": "Full body skin examination with body surface area (BSA) mapping",
+            "detail": "<p>Use the rule-of-nines or palmar method. Document the type (patch, plaque, tumor, erythroderma) and anatomical distribution of all lesions. Photograph and map for longitudinal tracking.</p>"
+          },
+          {
+            "id": "e2",
+            "label": "Identify patch vs. plaque vs. tumor morphology",
+            "detail": "<p>Patches are flat, non-indurated areas with fine scale or wrinkled texture. Plaques are indurated and elevated. Tumors are solid nodules &gt;1 cm in depth. Classification drives T-staging.</p>"
+          },
+          {
+            "id": "e3",
+            "label": "Assess for erythroderma (T4): erythema involving ≥80% BSA",
+            "detail": "<p>Erythrodermic MF or Sézary syndrome. Patients may have desquamation, edema, ectropion, and leonine facies. Requires blood staging (Sézary count, flow cytometry).</p>"
+          },
+          {
+            "id": "e4",
+            "label": "Palpate all nodal basins: cervical, axillary, inguinal, femoral",
+            "detail": "<p>Note size, consistency, mobility. Nodes &gt;1.5 cm or firm/fixed are clinically abnormal. Adenopathy directly affects N staging.</p>"
+          },
+          {
+            "id": "e5",
+            "label": "Hepatosplenomegaly assessment (abdominal palpation, percussion)"
+          },
+          {
+            "id": "e6",
+            "label": "Ophthalmologic review if periorbital or facial involvement suspected"
+          },
+          {
+            "id": "e7",
+            "label": "Dermoscopy (trichoscopy if folliculotropic MF suspected)",
+            "detail": "<p>Folliculotropic MF may show follicular plugging, perifollicular erythema, and alopecia without obvious scale. Dermoscopy aids in identifying follicular involvement.</p>"
+          },
+          {
+            "id": "e8",
+            "label": "Photo-document all lesions at baseline"
+          }
+        ]
+      },
+      {
+        "id": "biopsy",
+        "name": "Skin Biopsy",
+        "items": [
+          {
+            "id": "b1",
+            "label": "Take multiple (at least 2) deep punch biopsies from most indurated, active lesion edges",
+            "detail": "<p>Single biopsy is insufficient — diagnostic yield improves with multiple specimens from different sites. Use 4mm punch minimum. Avoid scarred, excoriated, or secondarily infected areas.</p>"
+          },
+          {
+            "id": "b2",
+            "label": "Submit for routine H&amp;E histopathology: evaluate epidermotropism and Pautrier microabscesses",
+            "detail": "<p>Pautrier microabscesses (intraepidermal clusters of atypical lymphocytes) are pathognomonic but seen in only ~10-30% of cases. Band-like lymphocytic infiltrate with epidermotropism is the hallmark.</p>"
+          },
+          {
+            "id": "b3",
+            "label": "Immunohistochemistry panel: CD3, CD4, CD7, CD8, CD20, CD30, CD56",
+            "detail": "<p>Classic MF: CD3+, CD4+, CD7 loss (CD7- in &gt;50% of tumor cells is supportive), CD8-, CD30 variable. Loss of pan-T markers (CD2, CD5, CD7) increases specificity. CD30+ (≥10%) predicts response to brentuximab vedotin.</p>"
+          },
+          {
+            "id": "b4",
+            "label": "T-cell receptor (TCR) gene rearrangement by PCR or next-generation sequencing",
+            "detail": "<p>Clonal TCR-gamma rearrangement supports diagnosis but is not pathognomonic (benign inflammatory dermatoses can show clonality). Correlate with histology and clinical picture. Useful for comparing blood and skin clones.</p>"
+          },
+          {
+            "id": "b5",
+            "label": "If folliculotropic MF suspected: request levels/serial sections to identify follicular involvement",
+            "branchIf": "Follicular papules, alopecia, or comedone-like lesions present"
+          },
+          {
+            "id": "b6",
+            "label": "Repeat biopsy if initial is non-diagnostic — serial biopsies over time may be required",
+            "detail": "<p>Early CTCL frequently requires multiple biopsies over months to years before a definitive diagnosis can be established. The diagnosis should integrate clinical, histological, immunophenotypic, and molecular data.</p>"
+          }
+        ]
+      },
+      {
+        "id": "staging",
+        "name": "Staging Labs and Imaging",
+        "items": [
+          {
+            "id": "s1",
+            "label": "CBC with manual differential — Sézary cell count",
+            "detail": "<p>Request manual differential to identify atypical lymphocytes (Sézary cells: cerebriform nucleus). Sézary cells &gt;1000/mcL define B2 blood involvement. Routine CBC differentials may miss these cells.</p>"
+          },
+          {
+            "id": "s2",
+            "label": "Peripheral blood flow cytometry: CD4/CD8 ratio, CD4+CD7-, CD4+CD26-",
+            "detail": "<p>CD4:CD8 ratio &gt;10, CD4+CD7- &gt;40%, or CD4+CD26- &gt;30% each define B2 (high-burden) blood involvement. Order if there is erythroderma, B symptoms, or clinical suspicion for Sézary syndrome.</p>"
+          },
+          {
+            "id": "s3",
+            "label": "Peripheral blood TCR clonality — compare to skin clone",
+            "detail": "<p>Identical TCR clone in blood and skin strongly supports Sézary syndrome when combined with B2 criteria. Submit blood and skin to the same laboratory for direct comparison.</p>"
+          },
+          {
+            "id": "s4",
+            "label": "Lactate dehydrogenase (LDH) — correlates with tumor burden"
+          },
+          {
+            "id": "s5",
+            "label": "Comprehensive metabolic panel, uric acid, beta-2 microglobulin"
+          },
+          {
+            "id": "s6",
+            "label": "CT chest, abdomen, and pelvis with contrast",
+            "detail": "<p>Recommended for all patients with T2 or higher disease, palpable adenopathy, or B symptoms. Assess lymph node size, hepatosplenomegaly, and visceral involvement. PET-CT may replace CT in some centers.</p>",
+            "branchIf": "T2, T3, T4, or any lymphadenopathy"
+          },
+          {
+            "id": "s7",
+            "label": "PET-CT if high-stage or aggressive disease suspected",
+            "detail": "<p>PET-CT improves sensitivity for nodal and visceral involvement compared to CT alone. Particularly useful for identifying the optimal biopsy site and assessing treatment response.</p>",
+            "branchIf": "Stage IIB or higher, or rapid clinical progression"
+          },
+          {
+            "id": "s8",
+            "label": "Lymph node biopsy of most abnormal node if palpable adenopathy or CT-enlarged nodes present",
+            "detail": "<p>Preferentially excise the most abnormal node. Core needle biopsy is acceptable if excision is not feasible. Send for histology, flow cytometry, and TCR clonality. Grade per Dutch/NCI system (N1-N4).</p>"
+          }
+        ]
+      }
+    ]
+  },
+  "citations": [
+    { "pmid": "17540844", "quote": "Olsen EA et al. Revisions to the staging and classification of mycosis fungoides and Sezary syndrome: ISCL/EORTC proposal. Blood. 2007;110(6):1713-1722." },
+    { "pmid": "28365528", "quote": "Trautinger F et al. EORTC consensus recommendations for the treatment of mycosis fungoides/Sezary syndrome. Eur J Cancer. 2017;77:57-74." }
+  ]
+}

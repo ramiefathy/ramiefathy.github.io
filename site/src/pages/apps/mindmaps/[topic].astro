@@ -31,24 +31,30 @@ const otherMaps = available.filter((manifest) => manifest.id !== dataset.manifes
 <MainLayout title={`${dataset.manifest.title} – Interactive Mind Map`} description={`Interactive dermatology mind map for ${dataset.manifest.title}.`}>
   <Header client:load />
   <main id="main-content" class="mindmap-page">
-    <section class="mindmap-hero">
-      <div class="mindmap-hero__content">
-        <h1>{dataset.manifest.title}</h1>
-        <p>
-          Explore diagnostic pathways, disease classifications, and treatment strategies using an accessible, fully interactive mind map.
-          Tabs organize content into focused perspectives; search, annotations, and export tools support study and teaching workflows.
-        </p>
-        {otherMaps.length ? (
-          <div class="mindmap-hero__other">
-            <span>Explore other mind maps:</span>
-            <ul>
-              {otherMaps.map((map) => (
-                <li><a href={`/apps/mindmaps/${map.id}`}>{map.title}</a></li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+    <section class="section mindmap-intro">
+      <div class="plate-stamp"><b>Mind Map</b><span class="barcode"></span><span>{dataset.manifest.title}</span></div>
+      <div class="plate-head">
+        <div>
+          <span class="kicker">Interactive · D3 · Searchable</span>
+          <h1 class="display1 mindmap-title">{dataset.manifest.title}</h1>
+        </div>
+        <div class="right">
+          Diagnostic pathways +<br>
+          treatment strategies.<br>
+          <span style="color:var(--terracotta)">Tabs · Search · Export</span>
+        </div>
       </div>
+      <p class="lede">
+        Explore diagnostic pathways, disease classifications, and treatment strategies using an accessible, fully interactive mind map.
+        Tabs organize content into focused perspectives; search, annotations, and export tools support study and teaching workflows.
+      </p>
+      {otherMaps.length ? (
+        <p class="mindmap-other">
+          Other mind maps: {otherMaps.map((map, i) => (
+            <span><a href={`/apps/mindmaps/${map.id}`} style="color:var(--terracotta);border-bottom:1px solid var(--terracotta)">{map.title}</a>{i < otherMaps.length - 1 ? ' · ' : ''}</span>
+          ))}
+        </p>
+      ) : null}
     </section>
     <section class="mindmap-runtime" id="mindmap-runtime">
       <MindMapApp client:load dataset={dataset} />

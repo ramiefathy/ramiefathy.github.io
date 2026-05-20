@@ -1,0 +1,137 @@
+{
+  "id": "psoriasis-severity-dt",
+  "topic": "psoriasis",
+  "title": "Psoriasis Severity Stratification",
+  "subtitle": "BSA / PASI / DLQI → therapy class decision tree",
+  "type": "decision-tree",
+  "data": {
+    "start": "presentation",
+    "steps": [
+      {
+        "id": "presentation",
+        "type": "decision",
+        "prompt": "Patient presents with plaque psoriasis. Assess BSA, PASI, and DLQI.",
+        "branches": [
+          { "label": "BSA <3% AND PASI <3 AND DLQI <5", "nextStepId": "mild" },
+          { "label": "BSA 3-10% OR PASI 3-10 OR DLQI 5-10", "nextStepId": "moderate-check" },
+          { "label": "BSA >10% OR PASI >10 OR DLQI >10", "nextStepId": "severe" },
+          { "label": "Special site involvement (face/genital/nails/scalp)", "nextStepId": "special-site" }
+        ]
+      },
+      {
+        "id": "mild",
+        "type": "action",
+        "prompt": "Mild psoriasis — topical therapy",
+        "detail": "<p>First-line: high-potency topical corticosteroid (class I–II) ± vitamin D analog (calcipotriene/calcitriol). Use calcineurin inhibitors (tacrolimus, pimecrolimus) for sensitive sites (face, intertriginous). Reassess at 4–8 weeks.</p>",
+        "branches": [
+          { "label": "Adequate response (PASI 50)", "nextStepId": "mild-success" },
+          { "label": "Inadequate response or frequent relapse", "nextStepId": "moderate-check" }
+        ]
+      },
+      {
+        "id": "mild-success",
+        "type": "terminal",
+        "prompt": "Continue topical maintenance",
+        "detail": "<p>Taper to lowest effective frequency. Vitamin D analogs can be used long-term; tachyphylaxis limits prolonged steroid use. Reassess annually.</p>"
+      },
+      {
+        "id": "moderate-check",
+        "type": "decision",
+        "prompt": "Moderate psoriasis — assess for special sites and comorbidities",
+        "branches": [
+          { "label": "No comorbidities, phototherapy accessible", "nextStepId": "moderate-photo" },
+          { "label": "PsA, IBD, or oral systemic preferred", "nextStepId": "moderate-oral" },
+          { "label": "Refractory or special site with DLQI impact", "nextStepId": "moderate-biologic" }
+        ]
+      },
+      {
+        "id": "moderate-photo",
+        "type": "terminal",
+        "prompt": "Moderate — Phototherapy",
+        "detail": "<p>Narrowband UVB (NB-UVB) is preferred for widespread plaque psoriasis; 3× weekly, expect response at 20–30 sessions. PUVA for palmoplantar disease. Excimer laser for limited/localized disease. Continue topicals as adjunct.</p>"
+      },
+      {
+        "id": "moderate-oral",
+        "type": "terminal",
+        "prompt": "Moderate — Conventional orals",
+        "detail": "<p>Methotrexate 10–25 mg/week (oral or SC): first-choice systemic; also beneficial for PsA. Apremilast 30 mg BID (PDE4 inhibitor): favorable safety, no lab monitoring. Cyclosporine 2.5–5 mg/kg/day: rapid onset, use as short bridge ≤1 year due to nephrotoxicity/hypertension. Acitretin for pustular/erythrodermic variants.</p>"
+      },
+      {
+        "id": "moderate-biologic",
+        "type": "action",
+        "prompt": "Step up to biologic — screen first",
+        "detail": "<p>Complete baseline workup: CBC, CMP, LFTs, lipids, HBV/HCV/HIV serology, QuantiFERON-TB Gold. Update vaccinations before starting. Then select biologic by comorbidity profile.</p>",
+        "branches": [
+          { "label": "Comorbid PsA", "nextStepId": "comorb-psa" },
+          { "label": "Comorbid IBD (Crohn's/UC)", "nextStepId": "comorb-ibd" },
+          { "label": "Comorbid MS or demyelinating disease", "nextStepId": "comorb-ms" },
+          { "label": "High CV / MACE risk", "nextStepId": "comorb-cv" },
+          { "label": "Pregnancy or planning", "nextStepId": "pregnancy" },
+          { "label": "No relevant comorbidity", "nextStepId": "severe" }
+        ]
+      },
+      {
+        "id": "severe",
+        "type": "action",
+        "prompt": "Severe psoriasis — biologic therapy",
+        "detail": "<p>IL-23 p19 inhibitors (guselkumab, risankizumab, tildrakizumab) are preferred for plaque psoriasis: highest PASI 90/100 rates, Q8–12 week dosing, favorable safety profile. IL-17 inhibitors (secukinumab, ixekizumab, bimekizumab) if rapid clearance needed or concurrent PsA. TNF-α inhibitors if comorbid IBD or cost constraints. Topicals remain adjunctive.</p>",
+        "branches": [
+          { "label": "Comorbid PsA", "nextStepId": "comorb-psa" },
+          { "label": "Comorbid IBD", "nextStepId": "comorb-ibd" },
+          { "label": "Pregnancy or planning", "nextStepId": "pregnancy" },
+          { "label": "No relevant comorbidity", "nextStepId": "biologic-success" }
+        ]
+      },
+      {
+        "id": "special-site",
+        "type": "action",
+        "prompt": "Special site psoriasis — escalate if DLQI impacted",
+        "detail": "<p>Scalp: high-potency steroid solution/foam ± calcipotriene scalp solution; shampoo formulations. Nail: intralesional triamcinolone to nail matrix, topical calcipotriene under occlusion; biologic if severe. Genital/face: low-potency steroid or calcineurin inhibitor. If DLQI >5, treat as at least moderate disease.</p>",
+        "branches": [
+          { "label": "DLQI ≤5 with special site", "nextStepId": "mild-success" },
+          { "label": "DLQI >5 with special site", "nextStepId": "moderate-biologic" }
+        ]
+      },
+      {
+        "id": "comorb-psa",
+        "type": "terminal",
+        "prompt": "Comorbid Psoriatic Arthritis",
+        "detail": "<p>Prefer IL-17 inhibitors (secukinumab, ixekizumab, bimekizumab) or IL-23 inhibitors (guselkumab, risankizumab) — both have PsA indication. TNF-α inhibitors (adalimumab, certolizumab, etanercept, infliximab, golimumab) remain valid. Apremilast for mild-moderate PsA. Avoid IL-17 if concurrent IBD.</p>"
+      },
+      {
+        "id": "comorb-ibd",
+        "type": "terminal",
+        "prompt": "Comorbid IBD (Crohn's or UC)",
+        "detail": "<p>Prefer TNF-α inhibitors (adalimumab, infliximab, certolizumab) — have IBD indications. AVOID IL-17 inhibitors (can exacerbate IBD). IL-23 inhibitors generally safer (risankizumab approved for Crohn's). Avoid cyclosporine in combination with IBD biologics.</p>"
+      },
+      {
+        "id": "comorb-ms",
+        "type": "terminal",
+        "prompt": "Comorbid MS / demyelinating disease",
+        "detail": "<p>AVOID TNF-α inhibitors (may demyelinate/worsen MS). Prefer IL-17, IL-23 inhibitors, or apremilast. Methotrexate can be used. Consult neurology before initiating biologic therapy.</p>"
+      },
+      {
+        "id": "comorb-cv",
+        "type": "terminal",
+        "prompt": "High cardiovascular / MACE risk",
+        "detail": "<p>Psoriasis independently increases MACE risk. IL-23 and IL-17 inhibitors appear cardiovascular-neutral or beneficial. Avoid cyclosporine (hypertension, dyslipidemia). Methotrexate may have modest cardioprotective benefit. Deucravacitinib (TYK2) has limited long-term CV data.</p>"
+      },
+      {
+        "id": "pregnancy",
+        "type": "terminal",
+        "prompt": "Pregnancy or planning pregnancy",
+        "detail": "<p>Certolizumab pegol (TNF-α inhibitor): preferred biologic — PEGylated Fc-free, minimal placental transfer (Category B equivalent). Avoid methotrexate, acitretin (teratogenic — washout required). Narrowband UVB is safe in pregnancy. Topical low-potency steroids and emollients acceptable. If postpartum breastfeeding, certolizumab is also preferred.</p>"
+      },
+      {
+        "id": "biologic-success",
+        "type": "terminal",
+        "prompt": "Monitor biologic response at 12–16 weeks",
+        "detail": "<p>Assess PASI and DLQI at 12–16 weeks. Target: PASI 90 (preferred) or ≥75% improvement. If inadequate, switch within or across class. Annual monitoring: CBC, CMP, LFTs, TB surveillance, injection-site reactions. Screen for new comorbidities annually.</p>"
+      }
+    ]
+  },
+  "citations": [
+    { "pmid": "30772098", "quote": "Menter A et al. Joint AAD-NPF guidelines of care for the management and treatment of psoriasis with biologics. J Am Acad Dermatol. 2019." },
+    { "pmid": "30772097", "quote": "Elmets CA et al. Joint AAD-NPF guidelines of care for psoriasis with awareness and attention to comorbidities. J Am Acad Dermatol. 2019." }
+  ]
+}

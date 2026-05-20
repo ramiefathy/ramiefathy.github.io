@@ -3,24 +3,38 @@ import MainLayout from '../layouts/MainLayout.astro';
 import Header from '../components/Header.jsx';
 import ScholarFeedEnhanced from '../components/ScholarFeedEnhanced.jsx';
 ---
-<MainLayout title="Research – Ramie Fathy, MD" description="Recent publications, presentations, and scholarly projects.">
+<MainLayout title="Publications – Ramie Fathy, MD" description="Publications, presentations, and scholarly projects.">
   <Header client:load />
   <main id="main-content">
     <section class="section">
-      <div class="section__inner scroll-fade" data-scroll-fade>
-        <div class="section__intro">
-          <h1 class="section__title">Publications</h1>
-          <p class="section__subtitle">
-            Inflammatory dermatoses, autoimmune disease, dermatopathology, and clinical AI.
-          </p>
+      <div class="plate-stamp"><b>Research</b><span class="barcode"></span><span>Index of works</span></div>
+
+      <div class="plate-head">
+        <div>
+          <span class="kicker">Publications</span>
+          <h1 class="display1" style="margin-top:14px">Selected <em>scholarship</em>.</h1>
         </div>
-        <p class="muted-callout">
-          Filter by year or type. Export citations in BibTeX, RIS, or EndNote. Open the co-author network to see collaborations.
-        </p>
+        <div class="right">
+          Aggregate index,<br>
+          sortable by topic,<br>
+          venue, and year.
+        </div>
       </div>
-    </section>
-    <section class="section" style="padding-top:0">
-      <div class="section__inner">
+
+      <p class="lede">Selected research spanning inflammatory dermatoses, autoimmune disease, dermatopathology, and clinical AI evaluation.</p>
+
+      <!-- Featured callout: dermoscopy LLM dashboard -->
+      <div style="margin-top:48px;border:2px solid var(--ink);background:var(--plate-bg);display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;padding:24px 28px">
+        <div>
+          <span class="kicker">Interactive Dashboard</span>
+          <h2 style="font-family:var(--font-display);font-weight:500;font-size:28px;letter-spacing:-0.018em;line-height:1.1;margin-top:6px">Dermoscopy <em style="font-family:var(--font-emphasis);font-style:italic;font-weight:400;color:var(--terracotta)">LLM Evaluation</em></h2>
+          <p style="font-size:14.5px;color:var(--ink-soft);line-height:1.55;margin-top:8px;max-width:580px">Explore model performance across prompting strategies, diagnoses, and cost/latency tradeoffs in an interactive view of one of my studies.</p>
+        </div>
+        <a class="button button--primary" href="/research/dermoscopy-llm-dashboard">Open dashboard →</a>
+      </div>
+
+      <!-- Full publication feed (ScholarFeedEnhanced) -->
+      <div style="margin-top:48px">
         <ScholarFeedEnhanced client:visible />
       </div>
     </section>

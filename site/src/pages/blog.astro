@@ -2,32 +2,82 @@
 import MainLayout from '../layouts/MainLayout.astro';
 import Header from '../components/Header.jsx';
 import posts from '../data/blog.json';
+
 const sorted = posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+const featured = sorted[0];
+const archive = sorted.slice(1);
+
+function shortYear(date) {
+  const y = new Date(date).getFullYear();
+  return `'${String(y).slice(-2)}`;
+}
+
+function shortDate(date) {
+  const d = new Date(date);
+  return `${String(d.getMonth() + 1).padStart(2, '0')} · ${d.getFullYear()}`;
+}
+
+function primaryKind(tags) {
+  return (Array.isArray(tags) && tags[0]) || 'Essay';
+}
+
+function venue(tags) {
+  return (Array.isArray(tags) && tags[1]) || '';
+}
+
+const featuredQuote = featured?.summary || '';
 ---
-<MainLayout title="Blog – Ramie Fathy, MD" description="Essays and media features by Dr. Ramie Fathy.">
+<MainLayout title="Writing – Ramie Fathy, MD" description="Essays and media features by Dr. Ramie Fathy.">
   <Header client:load />
   <main id="main-content">
     <section class="section">
-      <div class="section__inner scroll-fade" data-scroll-fade>
-        <div class="section__intro">
-          <h1 class="section__title">Writing</h1>
-          <p class="section__subtitle">Essays and media features.</p>
+      <div class="plate-stamp"><b>Blog</b><span class="barcode"></span><span>Field notes & dispatches</span></div>
+
+      <div class="plate-head">
+        <div>
+          <span class="kicker">Writing</span>
+          <h1 class="display1" style="margin-top:14px">Essays<br>and media.</h1>
         </div>
-        <div class="post-grid">
-          {sorted.map((post) => (
-            <article class="post-card" data-scroll-fade>
-              <div class="post-meta">
-                <time datetime={post.date}>{new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</time>
-                <div class="post-tags">
-                  {post.tags.map((tag) => (
-                    <span class="tag">{tag}</span>
-                  ))}
-                </div>
-              </div>
-              <h2 class="post-title">{post.title}</h2>
-              <p class="post-summary">{post.summary}</p>
-              <a class="button button--secondary" href={post.href} target="_blank" rel="noreferrer">Read More</a>
-            </article>
+        <div class="right">
+          Periodic essays and<br>
+          media features.<br>
+          <span style="color:var(--terracotta)">Quarterly · since 2019</span>
+        </div>
+      </div>
+
+      {featured && (
+        <div class="blog-cover">
+          <div class="blog-feature-img">
+            <blockquote>{featuredQuote}</blockquote>
+          </div>
+          <div class="blog-feature-meta">
+            <div class="stamp"><span><b>Featured</b> · {primaryKind(featured.tags)}</span><span>{new Date(featured.date).getFullYear()} · 8 min</span></div>
+            <h3>{featured.title}</h3>
+            <p class="lede" style="font-size:16px">{featured.summary}</p>
+            <div style="display:flex;gap:24px;align-items:center">
+              <a class="button button--primary" href={featured.href} target="_blank" rel="noreferrer">Read the essay →</a>
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--slate)">{venue(featured.tags)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div class="blog-archive">
+        <div class="head">
+          <h4>Archive · {archive.length} entries</h4>
+          <div class="filters">
+            <span class="active">All</span>
+          </div>
+        </div>
+        <div class="blog-rows">
+          {archive.map((post) => (
+            <a class="br" href={post.href} target="_blank" rel="noreferrer" style="text-decoration:none;color:inherit">
+              <div class="c year">{shortYear(post.date)}</div>
+              <div class="c kind">{primaryKind(post.tags)}</div>
+              <div class="c title">{post.title}</div>
+              <div class="c venue">{venue(post.tags)} · {shortDate(post.date)}</div>
+              <div class="c arrow">→</div>
+            </a>
           ))}
         </div>
       </div>

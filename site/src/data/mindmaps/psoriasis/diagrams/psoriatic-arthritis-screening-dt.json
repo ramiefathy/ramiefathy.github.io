@@ -1,0 +1,32 @@
+{
+  "id": "psoriatic-arthritis-screening-dt",
+  "topic": "psoriasis",
+  "title": "Psoriatic Arthritis Screening",
+  "subtitle": "Dermatology visit triggers for rheumatology referral",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Psoriasis patient with joint pain, morning stiffness, heel pain, dactylitis, or swollen joints?", "branches": [
+        { "label": "Yes", "nextStepId": "inflammatory" },
+        { "label": "No", "nextStepId": "routine" }
+      ] },
+      { "id": "routine", "type": "terminal", "prompt": "Repeat PsA screen periodically" },
+      { "id": "inflammatory", "type": "decision", "prompt": "Inflammatory pattern: morning stiffness >30 min, improves with activity, swelling, dactylitis?", "branches": [
+        { "label": "Yes", "nextStepId": "refer" },
+        { "label": "No", "nextStepId": "risk" }
+      ] },
+      { "id": "risk", "type": "decision", "prompt": "High-risk features: nail psoriasis, scalp/inverse disease, severe skin disease, family history?", "branches": [
+        { "label": "Yes", "nextStepId": "low-threshold" },
+        { "label": "No", "nextStepId": "msk" }
+      ] },
+      { "id": "refer", "type": "terminal", "prompt": "Rheumatology referral for suspected PsA" },
+      { "id": "low-threshold", "type": "terminal", "prompt": "Low threshold rheumatology referral or validated screen" },
+      { "id": "msk", "type": "terminal", "prompt": "Evaluate mechanical/non-PsA pain and monitor" }
+    ]
+  },
+  "citations": [
+    { "url": "https://www.aad.org/member/clinical-quality/guidelines/psoriasis", "quote": "AAD-NPF psoriasis guidelines include comorbid disease screening and management considerations." },
+    { "pmid": "30772097", "quote": "Elmets CA et al. Joint AAD-NPF guidelines of care for psoriasis with awareness and attention to comorbidities. J Am Acad Dermatol. 2019." }
+  ]
+}

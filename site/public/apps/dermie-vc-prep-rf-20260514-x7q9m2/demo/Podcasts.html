@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Podcasts (library + player)</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+/* library */
+.pod-search{padding:14px 18px;background:var(--card);border:1px solid var(--line);border-radius:12px;display:flex;align-items:center;gap:12px;}
+.pod-search input{flex:1;border:0;background:transparent;font:400 15px var(--font-body);color:var(--ink-w);outline:0;font-family:inherit;}
+.pod-search input::placeholder{color:var(--ink-meta);}
+.pod-search svg{color:var(--ink-w3);}
+
+.topic-tabs{display:flex;gap:4px;padding:0;overflow-x:auto;border-bottom:1px solid var(--line);}
+.topic-tab{padding:11px 16px;font:400 13.5px var(--font-body);color:var(--ink-w2);background:transparent;border:0;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.topic-tab.on{color:var(--ink-w);font-weight:500;border-bottom-color:var(--ox);}
+
+.pod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.pod-card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;}
+.pod-art{aspect-ratio:1.6;background:linear-gradient(155deg,var(--ox) 0%,var(--ox-deep) 100%);position:relative;overflow:hidden;}
+.pod-art::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(217,207,184,.22) 0%,transparent 60%);}
+.pod-art::after{content:"";position:absolute;inset:32%;border-radius:9999px;background:radial-gradient(circle,rgba(240,226,188,.55) 0%,rgba(217,207,184,.12) 65%,transparent 80%);}
+.pod-art .ep{position:absolute;top:14px;left:14px;font:500 11px var(--font-mono);color:#F0E2BC;letter-spacing:.06em;}
+.pod-art .dur{position:absolute;bottom:14px;right:14px;font:500 11px var(--font-mono);color:#F0E2BC;letter-spacing:.04em;background:rgba(0,0,0,.3);padding:2px 7px;border-radius:4px;}
+.pod-art.alt{background:linear-gradient(155deg,#3E5670 0%,#1B3A5B 100%);}
+.pod-art.alt2{background:linear-gradient(155deg,#4F6B3B 0%,#2A5235 100%);}
+.pod-art.alt3{background:linear-gradient(155deg,#B68A2C 0%,#5C420A 100%);}
+.pod-card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;}
+.pod-card .topic{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;}
+.pod-card .title{font:400 18px/1.3 var(--font-display);color:var(--ink-w);letter-spacing:-.005em;}
+.pod-card .desc{font:400 12.5px/1.5 var(--font-body);color:var(--ink-meta);}
+.pod-card .foot{display:flex;align-items:center;justify-content:space-between;font:400 11.5px var(--font-body);color:var(--ink-meta);margin-top:auto;}
+.pod-card .foot .play-sm{width:30px;height:30px;border-radius:9999px;background:var(--ox);color:var(--card);display:grid;place-items:center;border:0;cursor:pointer;}
+.pod-card .foot .play-sm .tri{width:0;height:0;border-left:8px solid currentColor;border-top:5px solid transparent;border-bottom:5px solid transparent;transform:translateX(1px);}
+
+/* library v2 — index list */
+.pod-list-row{display:grid;grid-template-columns:60px 60px 1fr 110px 80px 90px 40px;gap:16px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line);}
+.pod-list-row:hover{background:var(--card-2);}
+.pod-list-row:last-child{border:0;}
+.pod-list-row .pod-art-tiny{aspect-ratio:1;border-radius:6px;background:linear-gradient(155deg,var(--ox) 0%,var(--ox-deep) 100%);position:relative;overflow:hidden;}
+
+/* PLAYER */
+.player-hero{display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;}
+.player-art{aspect-ratio:1;border-radius:14px;background:linear-gradient(155deg,var(--ox) 0%,var(--ox-deep) 100%);position:relative;overflow:hidden;}
+.player-art::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(217,207,184,.22) 0%,transparent 60%);}
+.player-art::after{content:"";position:absolute;inset:32%;border-radius:9999px;background:radial-gradient(circle,rgba(240,226,188,.55) 0%,rgba(217,207,184,.12) 65%,transparent 80%);}
+.player-meta{display:flex;flex-direction:column;gap:8px;justify-content:center;}
+.player-meta .ep{font:500 11px var(--font-mono);letter-spacing:.08em;color:var(--ox);text-transform:uppercase;}
+.player-meta h2{font:400 36px var(--font-display);color:var(--ink-w);letter-spacing:-.015em;margin:0;}
+.player-meta .desc{font:400 14.5px/1.55 var(--font-body);color:var(--ink-meta);max-width:62ch;margin:0;}
+.player-meta .by{font:500 12px var(--font-body);color:var(--ink-w2);}
+.player-meta .chips-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+
+.player-scrub{padding:18px 22px;background:var(--paper-w2);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:18px;}
+.player-scrub .play-big{width:56px;height:56px;border-radius:9999px;background:var(--ox);color:var(--card);display:grid;place-items:center;border:0;cursor:pointer;flex-shrink:0;}
+.player-scrub .play-big .tri{width:0;height:0;border-left:16px solid currentColor;border-top:10px solid transparent;border-bottom:10px solid transparent;transform:translateX(2px);}
+.player-scrub .play-big.pause{display:flex;align-items:center;justify-content:center;gap:4px;}
+.player-scrub .play-big.pause::before,.player-scrub .play-big.pause::after{content:"";width:5px;height:18px;background:currentColor;border-radius:1px;}
+.player-scrub .scrub{flex:1;display:flex;flex-direction:column;gap:6px;}
+.player-scrub .scrub .bar{position:relative;height:4px;background:var(--paper-w3);border-radius:2px;overflow:visible;}
+.player-scrub .scrub .bar .fill{position:absolute;left:0;top:0;height:100%;background:var(--ox);border-radius:2px;}
+.player-scrub .scrub .bar .head{position:absolute;top:50%;width:14px;height:14px;background:var(--ox);border-radius:9999px;transform:translate(-50%,-50%);border:3px solid var(--paper-warm);}
+.player-scrub .scrub .bar .ckpt{position:absolute;top:-6px;width:2px;height:16px;background:var(--gold);border-radius:1px;}
+.player-scrub .scrub .legend{display:flex;justify-content:space-between;font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.04em;font-feature-settings:"tnum";}
+.player-scrub .skip{padding:8px 12px;border:1px solid var(--line-2);border-radius:9px;background:transparent;color:var(--ink-w2);font:500 12px var(--font-mono);cursor:pointer;font-family:inherit;}
+.player-scrub .speed{padding:8px 12px;border:1px solid var(--line-2);border-radius:9px;background:var(--card);color:var(--ink-w);font:500 12px var(--font-mono);cursor:pointer;font-family:inherit;}
+
+/* diagrams + tabs */
+.player-body{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:flex-start;}
+.diagrams{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px;min-height:520px;}
+.diagrams .top{display:flex;justify-content:space-between;align-items:center;}
+.diagrams .top h3{font:500 14px var(--font-mono);letter-spacing:.04em;color:var(--ink-w);text-transform:uppercase;margin:0;}
+.diagrams .nav{display:flex;align-items:center;gap:6px;font:500 12px var(--font-mono);color:var(--ink-meta);}
+.diagrams .nav button{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink-w2);cursor:pointer;}
+.diagrams .stage{flex:1;background:var(--card-2);border-radius:10px;padding:24px;display:grid;place-items:center;min-height:340px;}
+.diagrams .stage svg{max-width:100%;height:auto;}
+.diagrams .caption{font:300 14px/1.45 var(--font-display);color:var(--ink-meta);font-style:italic;text-align:center;}
+.diagrams .pager{display:flex;gap:6px;justify-content:center;}
+.diagrams .pager .dot{width:6px;height:6px;border-radius:9999px;background:var(--paper-w3);}
+.diagrams .pager .dot.on{background:var(--ox);width:18px;border-radius:3px;}
+
+.pl-tabs{background:var(--card);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;min-height:520px;}
+.pl-tabbar{display:flex;border-bottom:1px solid var(--line);padding:0 8px;}
+.pl-tabbar .t{padding:13px 14px;background:transparent;border:0;font:500 13px var(--font-body);color:var(--ink-w2);cursor:pointer;border-bottom:2px solid transparent;font-family:inherit;}
+.pl-tabbar .t.on{color:var(--ink-w);border-bottom-color:var(--ox);}
+.pl-content{padding:18px 22px;overflow-y:auto;font:400 14px/1.7 var(--font-body);color:var(--ink-w);flex:1;}
+.pl-transcript p{margin:0 0 12px;color:var(--ink-w);}
+.pl-transcript p.active{background:var(--card-2);border-left:3px solid var(--ox);padding:8px 12px;margin-left:-12px;border-radius:0 8px 8px 0;}
+.pl-transcript .ts{display:inline-block;font:500 11px var(--font-mono);color:var(--ink-meta);min-width:46px;margin-right:8px;font-feature-settings:"tnum";}
+.pl-transcript .spk{font-weight:500;color:var(--ox-deep);}
+.pl-ref{padding:12px 14px;background:var(--card-2);border-radius:9px;font:400 13px var(--font-body);color:var(--ink-w);display:flex;gap:10px;align-items:flex-start;}
+.pl-ref .num{font:500 11px var(--font-mono);color:var(--ink-meta);min-width:18px;}
+.pl-ref a{color:var(--ox);text-decoration:none;border-bottom:1px solid var(--ox-soft);}
+
+/* mobile */
+.m-pl{padding:18px;display:flex;flex-direction:column;gap:14px;min-height:780px;}
+.m-pl-art{aspect-ratio:1;border-radius:14px;background:linear-gradient(155deg,var(--ox) 0%,var(--ox-deep) 100%);position:relative;overflow:hidden;}
+.m-pl-art::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(217,207,184,.22) 0%,transparent 60%);}
+.m-pl-art::after{content:"";position:absolute;inset:32%;border-radius:9999px;background:radial-gradient(circle,rgba(240,226,188,.55) 0%,transparent 80%);}
+.m-pl-meta{text-align:center;display:flex;flex-direction:column;gap:6px;}
+.m-pl-meta .ep{font:500 10px var(--font-mono);color:var(--ox);letter-spacing:.08em;text-transform:uppercase;}
+.m-pl-meta h2{font:400 22px var(--font-display);color:var(--ink-w);margin:0;letter-spacing:-.005em;}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Podcasts mockups">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-ham" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-bm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="18" cy="19" r="3"/><circle cx="6" cy="12" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-fwd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-rew" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 5L4 12l7 7M11 12h9"/></symbol>
+  <symbol id="i-ff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 19l7-7-7-7M4 12h9"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 4h11v13H9z"/><path d="M5 8v12h12"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></symbol>
+  <symbol id="i-fc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+  <symbol id="i-exam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+  <symbol id="i-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 9h4M8 7v4M15 10h.01M17 13h.01M12 17l-6 3a3 3 0 01-3-4l1-4a4 4 0 014-3h12a4 4 0 014 3l1 4a3 3 0 01-3 4l-6-3"/></symbol>
+  <symbol id="i-tutor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></symbol>
+  <symbol id="i-pod" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 18v-7a9 9 0 0118 0v7"/><path d="M21 19a2 2 0 01-2 2h-1v-6h3zM3 19a2 2 0 002 2h1v-6H3z"/></symbol>
+  <symbol id="i-perf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol>
+  <symbol id="i-prof" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></symbol>
+</defs></svg>
+
+<header class="cat-head">
+  <div>
+    <h1>The <em>podcast</em>.</h1>
+    <p>Editorial dermatology audio with synchronised diagrams, transcript and references. Production splits the surface in two — a library page and a player page — and that’s the right separation.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/podcasts · /podcasts/:id</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<template id="t-sidebar">
+  <aside class="sidebar">
+    <div class="usercard"><div class="av">RA</div><div class="meta"><div class="nm">Ramie F.</div><div class="sub">Lv. 7 · 2,835 XP</div><div class="lvbar"><span style="width:35%"></span></div></div></div>
+    <nav class="nav-group"><div class="nav-label">Study</div>
+      <button class="nav-item __a-dash"><span class="nav-ic"><svg><use href="#i-dash"/></svg></span><span>Dashboard</span></button>
+      <button class="nav-item __a-quiz"><span class="nav-ic"><svg><use href="#i-quiz"/></svg></span><span>Quiz</span></button>
+      <button class="nav-item __a-cases"><span class="nav-ic"><svg><use href="#i-cat"/></svg></span><span>Cases</span></button>
+      <button class="nav-item __a-fc"><span class="nav-ic"><svg><use href="#i-fc"/></svg></span><span>Flashcards</span></button>
+      <button class="nav-item __a-exam"><span class="nav-ic"><svg><use href="#i-exam"/></svg></span><span>Mock exam</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Play</div><button class="nav-item __a-mini"><span class="nav-ic"><svg><use href="#i-mini"/></svg></span><span>Minigames</span></button></nav>
+    <nav class="nav-group"><div class="nav-label">Coach</div>
+      <button class="nav-item __a-tutor"><span class="nav-ic"><svg><use href="#i-tutor"/></svg></span><span>Live tutor</span></button>
+      <button class="nav-item __a-pod"><span class="nav-ic"><svg><use href="#i-pod"/></svg></span><span>Podcasts</span></button>
+      <button class="nav-item __a-perf"><span class="nav-ic"><svg><use href="#i-perf"/></svg></span><span>Performance</span></button>
+    </nav>
+    <div class="sidebar-foot"><button class="nav-item __a-prof"><span class="nav-ic"><svg><use href="#i-prof"/></svg></span><span>Profile</span></button><button class="tog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="opacity:.6;vertical-align:-2px"><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg> Dark</button><button class="signout">Sign out</button></div>
+  </aside>
+</template>
+<script>function sidebar(active){const t=document.getElementById('t-sidebar').content.cloneNode(true);const el=t.querySelector(`.__a-${active}`);if(el){el.classList.add('active');el.classList.remove(`__a-${active}`);}return t;}</script>
+
+<!-- ═══════════════════════════════════════════ LIBRARY ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">08·A</div><h2>Podcast library</h2><p class="desc">Search + topic tabs + results grid. v1 is a 3-column card grid; v2 is a hairline list; v3 is editorial with a featured episode at the top.</p></section>
+
+<!-- ─── lib v1 — card grid -->
+<div class="ab" id="pod-l-v1">
+  <div class="ab-head"><h3>08a · Library · card grid</h3><span class="ab-tag v1">v1 · grid</span><span class="ab-meta">/podcasts</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="avatar-btn" aria-label="Profile" title="Profile">RA</button><button class="pill">Subscribe · RSS</button><button class="pill streak">12 day streak</button></div></header>
+    <div class="shell" id="pod-l-v1-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('pod-l-v1-shell').appendChild(sidebar('pod'));
+document.getElementById('pod-l-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Coach</a><span class="sep">/</span>Podcasts<span class="right">Educational dermatology podcasts</span></div>
+    <div class="page-h">
+      <div>
+        <div class="eyebrow">— 42 episodes · ~18 hrs</div>
+        <h1>Podcast <em>library</em>.</h1>
+        <p class="sub">Two-host audio with synchronised diagrams. Each episode is editorial, peer-reviewed, and short — 18 to 26 minutes — so it fits a commute or a coffee.</p>
+      </div>
+      <div class="actions"><div class="seg"><button class="on">Library</button><button>Saved · 4</button><button>Played</button></div></div>
+    </div>
+
+    <div class="pod-search"><svg width="14" height="14"><use href="#i-search"/></svg><input type="text" placeholder="Search episodes, hosts, topics…"/><span class="muted small">42 results</span></div>
+
+    <div class="topic-tabs">
+      <button class="topic-tab on">All topics</button>
+      <button class="topic-tab">Inflammatory</button>
+      <button class="topic-tab">Infectious</button>
+      <button class="topic-tab">Neoplastic</button>
+      <button class="topic-tab">Pigmentary</button>
+      <button class="topic-tab">Autoimmune</button>
+      <button class="topic-tab">Pediatric</button>
+      <button class="topic-tab">Procedural</button>
+      <button class="topic-tab">Pharmacology</button>
+      <button class="topic-tab">Boards prep</button>
+    </div>
+
+    <div class="pod-grid">
+      ${[
+        {ep:'014',title:'The edge that names the diagnosis',desc:'Why morphology survives the dermatoscope, the smartphone and the AI. Five annular eruptions and one descriptor that separates them.',topic:'Morphology · boards prep',dur:'22 min',art:''},
+        {ep:'013',title:'Wickham, Auspitz, Nikolsky — and the signs we actually use',desc:'Three eponyms, three pitfalls. When to look for them, when to skip them, what they mean in 2026.',topic:'Inflammatory',dur:'18 min',art:'alt'},
+        {ep:'012',title:'Pembrolizumab vs vemurafenib · the BRAF question',desc:'A 12-minute primer on first-line systemic therapy for metastatic melanoma · with the AAD's 2025 update.',topic:'Neoplastic',dur:'26 min',art:'alt2'},
+        {ep:'011',title:'Linear IgA vs DH · the conversation you wish you'd had as a PGY-2',desc:'Two diseases that confuse generations of residents. Side-by-side, with the histology that ends the debate.',topic:'Autoimmune',dur:'21 min',art:'alt3'},
+        {ep:'010',title:'Atopic dermatitis in infancy · what NOT to do',desc:'A panel of three pediatric dermatologists on the four mistakes we keep making.',topic:'Pediatric',dur:'19 min',art:''},
+        {ep:'009',title:'Biologics & IBD · a 7-minute primer',desc:'Why IL-17 inhibitors are contraindicated in active IBD, why IL-23 is fine, and how to think about TYK2.',topic:'Pharmacology',dur:'7 min',art:'alt'},
+      ].map(p=>`
+        <article class="pod-card">
+          <div class="pod-art ${p.art}">
+            <span class="ep">No. ${p.ep}</span>
+            <span class="dur">${p.dur}</span>
+          </div>
+          <div class="body">
+            <div class="topic">${p.topic}</div>
+            <div class="title">${p.title}</div>
+            <div class="desc">${p.desc}</div>
+            <div class="foot"><span>4 checkpoints · transcript</span><button class="play-sm"><span class="tri"></span></button></div>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── lib v2 — index list -->
+<div class="ab" id="pod-l-v2">
+  <div class="ab-head"><h3>08b · Library · index list</h3><span class="ab-tag v2">v2 · hairline list</span><span class="ab-meta">/podcasts</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">RSS</button></div></header>
+    <div class="shell" id="pod-l-v2-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('pod-l-v2-shell').appendChild(sidebar('pod'));
+document.getElementById('pod-l-v2-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h"><div><div class="eyebrow">— 42 episodes</div><h1 style="font-size:36px">Podcast <em>index</em>.</h1></div><div class="actions"><div class="search-bar" style="min-width:280px"><svg width="14" height="14"><use href="#i-search"/></svg>Search…</div><div class="seg"><button>Grid</button><button class="on">List</button></div></div></div>
+    <div class="topic-tabs"><button class="topic-tab on">All</button><button class="topic-tab">Inflammatory</button><button class="topic-tab">Neoplastic</button><button class="topic-tab">Autoimmune</button><button class="topic-tab">Pediatric</button><button class="topic-tab">Pharmacology</button></div>
+    <div class="card" style="padding:0">
+      ${[
+        {ep:'014',title:'The edge that names the diagnosis',sub:'Morphology · 5 annular eruptions and one descriptor that separates them.',topic:'Morphology',dur:'22 min',art:'',pct:60},
+        {ep:'013',title:'Wickham, Auspitz, Nikolsky',sub:'Three eponyms, three pitfalls.',topic:'Inflammatory',dur:'18 min',art:'alt',pct:100},
+        {ep:'012',title:'Pembrolizumab vs vemurafenib · the BRAF question',sub:'A 12-minute primer with the AAD 2025 update.',topic:'Neoplastic',dur:'26 min',art:'alt2',pct:0},
+        {ep:'011',title:'Linear IgA vs DH',sub:'Two diseases that confuse generations of residents.',topic:'Autoimmune',dur:'21 min',art:'alt3',pct:0},
+        {ep:'010',title:'Atopic dermatitis in infancy',sub:'Four mistakes we keep making.',topic:'Pediatric',dur:'19 min',art:'',pct:0},
+        {ep:'009',title:'Biologics & IBD',sub:'IL-17 vs IL-23 vs TYK2.',topic:'Pharmacology',dur:'7 min',art:'alt',pct:0},
+        {ep:'008',title:'The dermoscopy starter pack',sub:'Five patterns that change management in 60 seconds.',topic:'Neoplastic',dur:'15 min',art:'alt2',pct:0},
+        {ep:'007',title:'Photodermatoses · think the diagnosis or miss it',sub:'Distribution as diagnosis.',topic:'Inflammatory',dur:'17 min',art:'alt3',pct:0},
+      ].map(p=>`
+        <div class="pod-list-row">
+          <span class="mono small muted">No. ${p.ep}</span>
+          <div class="pod-art-tiny ${p.art==='alt'?'':p.art==='alt2'?'':p.art==='alt3'?'':''}" style="background:linear-gradient(155deg,var(--${p.art==='alt'?'slate':p.art==='alt2'?'moss':p.art==='alt3'?'gold':'ox'}) 0%, ${p.art?'rgba(0,0,0,.4)':'var(--ox-deep)'} 100%)"></div>
+          <div><div style="font:400 15px var(--font-display);color:var(--ink-w)">${p.title}</div><div class="muted small" style="margin-top:2px">${p.sub}</div></div>
+          <span class="chip small">${p.topic}</span>
+          <span class="mono small muted">${p.dur}</span>
+          <div>${p.pct===100?'<span class="chip moss small">Played</span>':p.pct?`<div style="font:500 11px var(--font-mono);color:var(--ox)">${p.pct}% · resume</div><div style="height:3px;background:var(--paper-w3);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${p.pct}%;background:var(--ox)"></div></div>`:'<span class="mono small muted">Unplayed</span>'}</div>
+          <button class="play-sm" style="width:30px;height:30px;border-radius:9999px;background:var(--ox);color:var(--card);border:0;display:grid;place-items:center;cursor:pointer"><span style="width:0;height:0;border-left:8px solid currentColor;border-top:5px solid transparent;border-bottom:5px solid transparent;transform:translateX(1px)"></span></button>
+        </div>
+      `).join('')}
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── lib v3 — editorial w/ featured -->
+<div class="ab" id="pod-l-v3">
+  <div class="ab-head"><h3>08c · Library · editorial</h3><span class="ab-tag v3">v3 · featured + shelves</span><span class="ab-meta">/podcasts</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">RSS</button></div></header>
+    <div class="shell" id="pod-l-v3-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('pod-l-v3-shell').appendChild(sidebar('pod'));
+document.getElementById('pod-l-v3-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="page-h"><div><div class="eyebrow">— This week's pick</div></div></div>
+    <article class="player-hero" style="background:var(--ox);border-color:var(--ox);color:var(--card)">
+      <div class="player-art" style="border:1px solid rgba(251,246,232,.18)"></div>
+      <div class="player-meta">
+        <span class="ep" style="color:var(--gold)">Episode 014 · 22 min · 4 checkpoints</span>
+        <h2 style="color:var(--card)">The edge that names the diagnosis.</h2>
+        <p class="desc" style="color:#F0E2BC">Why morphology survives the dermatoscope, the smartphone and the AI. A walk through five annular eruptions and the one descriptor that separates them.</p>
+        <p class="by" style="color:var(--gold)">Six dermatology educators · seeded reference: BAD morphology atlas 2023</p>
+        <div class="chips-row"><span class="chip" style="background:rgba(251,246,232,.15);color:var(--card);border-color:rgba(251,246,232,.3)">Morphology</span><span class="chip" style="background:rgba(251,246,232,.15);color:var(--card);border-color:rgba(251,246,232,.3)">Boards prep</span></div>
+        <div style="display:flex;gap:10px;margin-top:14px"><button class="btn" style="background:var(--card);color:var(--ink-w);border-color:var(--card)">Play episode</button><button class="btn" style="background:transparent;color:var(--card);border-color:rgba(251,246,232,.4)">Add to queue</button></div>
+      </div>
+    </article>
+
+    <div>
+      <div class="between" style="margin-bottom:12px"><div class="eyebrow">— Recently added</div><a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em">→ see all</a></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        ${[
+          {ep:'013',title:'Wickham, Auspitz, Nikolsky',topic:'Inflammatory',dur:'18 min',art:'alt'},
+          {ep:'012',title:'Pembrolizumab vs vemurafenib',topic:'Neoplastic',dur:'26 min',art:'alt2'},
+          {ep:'011',title:'Linear IgA vs DH',topic:'Autoimmune',dur:'21 min',art:'alt3'},
+        ].map(p=>`
+          <article class="pod-card">
+            <div class="pod-art ${p.art}"><span class="ep">No. ${p.ep}</span><span class="dur">${p.dur}</span></div>
+            <div class="body"><div class="topic">${p.topic}</div><div class="title">${p.title}</div></div>
+          </article>
+        `).join('')}
+      </div>
+    </div>
+
+    <div>
+      <div class="between" style="margin-bottom:12px"><div class="eyebrow">— Boards prep shelf · 8 episodes</div><a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em">→ shelf</a></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+        ${[
+          {ep:'008',title:'Dermoscopy starter pack',dur:'15 min',art:'alt2'},
+          {ep:'006',title:'Patch-test panel decoded',dur:'19 min',art:''},
+          {ep:'005',title:'Lichen planus · pearls',dur:'14 min',art:'alt3'},
+          {ep:'004',title:'Drug eruptions · timing',dur:'12 min',art:'alt'},
+        ].map(p=>`
+          <article class="pod-card">
+            <div class="pod-art ${p.art}" style="aspect-ratio:1"><span class="ep">No. ${p.ep}</span><span class="dur">${p.dur}</span></div>
+            <div class="body" style="padding:12px 14px"><div class="title" style="font-size:15px">${p.title}</div></div>
+          </article>
+        `).join('')}
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ PLAYER ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">08·B</div><h2>Player</h2><p class="desc">Scrubber with checkpoint markers, synchronised diagram carousel, Transcript / References tabs. v1 is the canonical layout; v2 keeps everything in a single column; v3 sets the player at the top of a long-form essay.</p></section>
+
+<!-- ─── player v1 -->
+<div class="ab" id="pod-p-v1">
+  <div class="ab-head"><h3>08d · Player · two-column</h3><span class="ab-tag v1">v1 · diagrams + tabs</span><span class="ab-meta">/podcasts/014</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · podcasts</div><div class="topbar-right"><button class="pill"><svg width="13" height="13"><use href="#i-bm"/></svg> Save</button><button class="pill"><svg width="13" height="13"><use href="#i-share"/></svg></button><button class="pill">Speed · 1.2×</button></div></header>
+    <div class="shell" id="pod-p-v1-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('pod-p-v1-shell').appendChild(sidebar('pod'));
+document.getElementById('pod-p-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">Podcasts</a><span class="sep">/</span>Episode 014</div>
+
+    <article class="player-hero">
+      <div class="player-art"></div>
+      <div class="player-meta">
+        <span class="ep">Episode 014 · 22 min · 4 checkpoints</span>
+        <h2>The edge that names the diagnosis</h2>
+        <p class="desc">Why morphology survives the dermatoscope, the smartphone and the AI. A walk through five annular eruptions and the one descriptor that separates them.</p>
+        <p class="by">Six dermatology educators · seeded reference: BAD morphology atlas 2023</p>
+        <div class="chips-row"><span class="chip ox dot">Morphology</span><span class="chip">Boards prep</span><span class="chip moss small">60% played</span></div>
+      </div>
+    </article>
+
+    <div class="player-scrub">
+      <button class="play-big pause"></button>
+      <div class="scrub">
+        <div class="bar">
+          <div class="fill" style="width:60%"></div>
+          <div class="head" style="left:60%"></div>
+          <div class="ckpt" style="left:14%" title="Definitions"></div>
+          <div class="ckpt" style="left:38%" title="Five annular eruptions"></div>
+          <div class="ckpt" style="left:64%" title="The dominant descriptor"></div>
+          <div class="ckpt" style="left:88%" title="A practical heuristic"></div>
+        </div>
+        <div class="legend"><span>13:12</span><span class="mono" style="color:var(--ox)">The dominant descriptor · chapter 3</span><span>– 8:48</span></div>
+      </div>
+      <button class="skip"><svg width="13" height="13"><use href="#i-rew"/></svg> 15</button>
+      <button class="skip">15 <svg width="13" height="13"><use href="#i-ff"/></svg></button>
+      <button class="speed">1.2×</button>
+    </div>
+
+    <div class="player-body">
+      <div class="diagrams">
+        <div class="top">
+          <h3>Diagrams · 4 of 4</h3>
+          <div class="nav"><button>‹</button><span>3 / 4</span><button>›</button></div>
+        </div>
+        <div class="stage">
+          <svg viewBox="0 0 320 220" style="max-width:280px">
+            <!-- annular plaque diagram -->
+            <circle cx="160" cy="110" r="68" fill="none" stroke="#6B2418" stroke-width="6"/>
+            <circle cx="160" cy="110" r="68" fill="rgba(212,158,94,.18)" stroke="none"/>
+            <circle cx="160" cy="110" r="40" fill="rgba(251,246,232,.7)"/>
+            <text x="160" y="32" text-anchor="middle" font-family="Fraunces" font-size="14" fill="#1F1A14" font-style="italic">Annular plaque, central clearing</text>
+            <text x="160" y="48" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#4E4534">↓ active border · ↑ resolved centre</text>
+            <line x1="100" y1="180" x2="220" y2="180" stroke="#1F1A14"/>
+            <text x="160" y="200" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#4E4534">10 cm</text>
+          </svg>
+        </div>
+        <div class="caption">Plate 3 — the advancing border vs. resolving centre that separates tinea from nummular eczema.</div>
+        <div class="pager"><span class="dot"></span><span class="dot"></span><span class="dot on"></span><span class="dot"></span></div>
+      </div>
+
+      <div class="pl-tabs">
+        <div class="pl-tabbar">
+          <button class="t on">Transcript</button>
+          <button class="t">References</button>
+          <button class="t">Quiz · 3 Q</button>
+          <button class="t">Show notes</button>
+        </div>
+        <div class="pl-content pl-transcript">
+          <p><span class="ts">12:48</span><span class="spk">Dr K · </span>Look closely at how the border behaves. Is it active and scaly, or is it just the perimeter of an old plaque that has flattened?</p>
+          <p class="active"><span class="ts">13:12</span><span class="spk">Dr P · </span>That's the whole bit. The active border is the thing the dermatoscope cannot fake. A nummular plaque has an even surface; a tinea plaque has a leading edge.</p>
+          <p><span class="ts">13:41</span><span class="spk">Dr K · </span>And the centre. Tinea clears centrally because the fungus is moving outward; nummular doesn't.</p>
+          <p><span class="ts">14:08</span><span class="spk">Dr P · </span>Right. So when you see annular with central clearing — name the descriptor first, then test for it. KOH if you don't trust your eye. We've talked about that pitfall before.</p>
+          <p><span class="ts">14:36</span><span class="spk">Dr K · </span>The other annular eruptions don't behave this way. Granuloma annulare has firm borders without scale; subacute lupus has scaly borders but on photodistributed sites; erythema annulare centrifugum trails a fine collarette behind the leading edge.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ─── player v2 — single column long-form -->
+<div class="ab" id="pod-p-v2">
+  <div class="ab-head"><h3>08e · Player · single column</h3><span class="ab-tag v2">v2 · inline diagrams</span><span class="ab-meta">/podcasts/014</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie · podcasts</div><div class="topbar-right"><button class="pill">Speed · 1.2×</button></div></header>
+    <div class="shell" id="pod-p-v2-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('pod-p-v2-shell').appendChild(sidebar('pod'));
+document.getElementById('pod-p-v2-shell').insertAdjacentHTML('beforeend', `
+  <main class="main" style="max-width:760px;width:100%;margin:0 auto">
+    <article class="card">
+      <div class="eyebrow">— Episode 014</div>
+      <h1 style="font:300 44px/1.15 var(--font-display);letter-spacing:-.02em;margin:8px 0 0">The edge that names the diagnosis.</h1>
+      <p class="muted" style="margin-top:8px;font-size:14px">22 minutes · 4 checkpoints · seeded reference: BAD morphology atlas 2023</p>
+      <div class="player-scrub" style="margin-top:18px">
+        <button class="play-big pause"></button>
+        <div class="scrub">
+          <div class="bar">
+            <div class="fill" style="width:60%"></div>
+            <div class="head" style="left:60%"></div>
+          </div>
+          <div class="legend"><span>13:12</span><span class="mono">3 of 4 chapters</span><span>– 8:48</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="eyebrow">— Show notes</div>
+      <p style="font:400 15px/1.7 var(--font-body);color:var(--ink-w);margin:14px 0 0">Five annular eruptions — tinea corporis, nummular eczema, granuloma annulare, subacute lupus, erythema annulare centrifugum — and one descriptor that separates them. The advancing scaly border with central clearing is morphology's most specific sentence.</p>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+        <div style="display:flex;gap:14px;padding:12px;background:var(--card-2);border-radius:9px;align-items:center"><span class="mono small muted" style="min-width:42px">00:00</span><span style="flex:1;font:500 13.5px var(--font-body)">Definitions · why morphology still beats the camera</span><a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none">Jump →</a></div>
+        <div style="display:flex;gap:14px;padding:12px;background:var(--card-2);border-radius:9px;align-items:center"><span class="mono small muted" style="min-width:42px">05:14</span><span style="flex:1;font:500 13.5px var(--font-body)">Five annular eruptions, side by side</span><a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none">Jump →</a></div>
+        <div style="display:flex;gap:14px;padding:12px;background:var(--ox-soft);border:1px solid var(--ox);border-radius:9px;align-items:center"><span class="mono small" style="min-width:42px;color:var(--ox)">12:48</span><span style="flex:1;font:500 13.5px var(--font-body);color:var(--ox-deep)">The dominant descriptor · active border, central clearing <span class="chip ox small" style="margin-left:6px">now</span></span></div>
+        <div style="display:flex;gap:14px;padding:12px;background:var(--card-2);border-radius:9px;align-items:center"><span class="mono small muted" style="min-width:42px">19:24</span><span style="flex:1;font:500 13.5px var(--font-body)">A practical heuristic for the clinic</span><a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none">Jump →</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="eyebrow">— Diagrams · 4</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+        <div class="stage" style="background:var(--card-2);border-radius:10px;padding:24px;display:grid;place-items:center;aspect-ratio:1.4"><svg viewBox="0 0 200 140" style="max-width:160px"><circle cx="100" cy="70" r="50" fill="none" stroke="#6B2418" stroke-width="5"/><text x="100" y="135" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#4E4534">Plate 1 · annular border</text></svg></div>
+        <div class="stage" style="background:var(--card-2);border-radius:10px;padding:24px;display:grid;place-items:center;aspect-ratio:1.4"><svg viewBox="0 0 200 140" style="max-width:160px"><circle cx="100" cy="70" r="50" fill="rgba(212,158,94,.3)" stroke="#6B2418" stroke-width="5"/><circle cx="100" cy="70" r="30" fill="var(--card)"/><text x="100" y="135" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#4E4534">Plate 3 · central clearing (here)</text></svg></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="eyebrow">— References</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
+        <div class="pl-ref"><span class="num">1.</span><span><a href="#demo-top">BAD morphology atlas, 2023</a> · annular eruptions chapter, plates 14–22.</span></div>
+        <div class="pl-ref"><span class="num">2.</span><span><a href="#demo-top">AAD ABCDE criteria, 2024 update</a> · seeded reference for melanoma comparison.</span></div>
+        <div class="pl-ref"><span class="num">3.</span><span><a href="#demo-top">Sasseville, JAAD 2019</a> · "Annular skin disorders: a diagnostic approach."</span></div>
+      </div>
+    </article>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ mobile ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">m</div><h2>Mobile</h2><p class="desc">Library is a vertical card stack with sticky search + topic tabs; player is a centred audio surface with tabs for diagrams / transcript / references swiping below.</p></section>
+
+<div class="ab" id="pod-l-mob">
+  <div class="ab-head"><h3>08m · Library · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/podcasts</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar"><button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button><div class="wm">Podcasts</div><button class="ham"><svg width="20" height="20"><use href="#i-search"/></svg></button></header>
+      <div class="m-content">
+        <div><div class="eyebrow" style="font-size:10px">— 42 episodes</div><h1 style="font:300 30px var(--font-display);margin:6px 0 0;letter-spacing:-.02em">Podcast <em style="color:var(--ox);font-style:italic">library</em>.</h1></div>
+        <div class="pod-search" style="padding:12px 14px"><svg width="14" height="14"><use href="#i-search"/></svg><input type="text" placeholder="Search…"/></div>
+        <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px"><button class="topic-tab on" style="padding:7px 12px;font-size:12px;background:var(--ink-w);color:var(--card);border-radius:999px;border:0;white-space:nowrap">All</button><button class="topic-tab" style="padding:7px 12px;font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:999px;white-space:nowrap">Inflammatory</button><button class="topic-tab" style="padding:7px 12px;font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:999px;white-space:nowrap">Neoplastic</button><button class="topic-tab" style="padding:7px 12px;font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:999px;white-space:nowrap">Pediatric</button></div>
+        <article class="pod-card">
+          <div class="pod-art" style="aspect-ratio:2"><span class="ep">No. 014</span><span class="dur">22 min</span></div>
+          <div class="body"><div class="topic">Morphology</div><div class="title" style="font-size:16px">The edge that names the diagnosis</div><div class="foot"><span>4 checkpoints</span><button class="play-sm"><span class="tri"></span></button></div></div>
+        </article>
+        <article class="pod-card">
+          <div class="pod-art alt" style="aspect-ratio:2"><span class="ep">No. 013</span><span class="dur">18 min</span></div>
+          <div class="body"><div class="topic">Inflammatory</div><div class="title" style="font-size:16px">Wickham, Auspitz, Nikolsky</div><div class="foot"><span>4 checkpoints</span><button class="play-sm"><span class="tri"></span></button></div></div>
+        </article>
+        <article class="pod-card">
+          <div class="pod-art alt2" style="aspect-ratio:2"><span class="ep">No. 012</span><span class="dur">26 min</span></div>
+          <div class="body"><div class="topic">Neoplastic</div><div class="title" style="font-size:16px">Pembrolizumab vs vemurafenib</div><div class="foot"><span>4 checkpoints</span><button class="play-sm"><span class="tri"></span></button></div></div>
+        </article>
+        <article class="pod-card">
+          <div class="pod-art alt3" style="aspect-ratio:2"><span class="ep">No. 011</span><span class="dur">21 min</span></div>
+          <div class="body"><div class="topic">Autoimmune</div><div class="title" style="font-size:16px">Linear IgA vs DH</div><div class="foot"><span>4 checkpoints</span><button class="play-sm"><span class="tri"></span></button></div></div>
+        </article>
+      </div>
+      <nav class="m-tabbar"><a class="tab"><svg><use href="#i-dash"/></svg>Home</a><a class="tab"><svg><use href="#i-quiz"/></svg>Study</a><a class="tab"><svg><use href="#i-mini"/></svg>Play</a><a class="tab active"><svg><use href="#i-pod"/></svg>Listen</a><a class="tab"><svg><use href="#i-prof"/></svg>You</a></nav>
+    </div>
+  </div>
+</div>
+
+<div class="ab" id="pod-p-mob">
+  <div class="ab-head"><h3>08n · Player · mobile</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/podcasts/014</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar"><button class="ham"><svg width="20" height="20"><use href="#i-back"/></svg></button><div class="wm">Now playing</div><button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button></header>
+      <div class="m-pl">
+        <div class="m-pl-art"></div>
+        <div class="m-pl-meta">
+          <span class="ep">Episode 014 · 22 min</span>
+          <h2>The edge that names the diagnosis</h2>
+          <p class="muted small">Six dermatology educators · seeded BAD atlas</p>
+        </div>
+        <div style="padding:0 4px">
+          <div style="position:relative;height:4px;background:var(--paper-w3);border-radius:2px"><div style="position:absolute;left:0;top:0;height:100%;width:60%;background:var(--ox);border-radius:2px"></div><div style="position:absolute;left:60%;top:50%;width:14px;height:14px;background:var(--ox);border-radius:9999px;transform:translate(-50%,-50%);border:3px solid var(--paper-warm)"></div></div>
+          <div style="display:flex;justify-content:space-between;font:500 11px var(--font-mono);color:var(--ink-meta);margin-top:8px;font-feature-settings:'tnum'"><span>13:12</span><span style="color:var(--ox)">3/4 · chapter</span><span>– 8:48</span></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin-top:6px">
+          <button class="ham" style="color:var(--ink-w2)"><svg width="22" height="22"><use href="#i-rew"/></svg></button>
+          <button style="width:64px;height:64px;border-radius:9999px;background:var(--ox);color:var(--card);border:0;display:flex;align-items:center;justify-content:center;gap:5px"><span style="width:5px;height:22px;background:currentColor"></span><span style="width:5px;height:22px;background:currentColor"></span></button>
+          <button class="ham" style="color:var(--ink-w2)"><svg width="22" height="22"><use href="#i-ff"/></svg></button>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:4px"><button class="btn ghost xs">1.2×</button><button class="btn ghost xs"><svg width="11" height="11"><use href="#i-bm"/></svg> Save</button><button class="btn ghost xs"><svg width="11" height="11"><use href="#i-share"/></svg></button></div>
+        <div style="display:flex;gap:4px;padding:0 4px;border-bottom:1px solid var(--line);margin-top:8px"><button style="flex:1;padding:10px;background:transparent;border:0;border-bottom:2px solid var(--ox);font:500 12.5px var(--font-body);color:var(--ink-w)">Diagrams · 4</button><button style="flex:1;padding:10px;background:transparent;border:0;font:400 12.5px var(--font-body);color:var(--ink-w2)">Transcript</button><button style="flex:1;padding:10px;background:transparent;border:0;font:400 12.5px var(--font-body);color:var(--ink-w2)">Refs</button></div>
+        <div style="background:var(--card-2);border-radius:10px;padding:18px;display:grid;place-items:center;aspect-ratio:1.4"><svg viewBox="0 0 200 140" style="max-width:120px"><circle cx="100" cy="70" r="50" fill="rgba(212,158,94,.3)" stroke="#6B2418" stroke-width="5"/><circle cx="100" cy="70" r="30" fill="var(--card)"/></svg></div>
+        <div class="muted small" style="text-align:center;font:300 13px var(--font-display);font-style:italic">Plate 3 — annular plaque with central clearing.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

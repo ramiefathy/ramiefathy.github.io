@@ -1,0 +1,61 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Header from '../../components/Header.jsx';
+import DermoscopyLLMEvaluationDashboard from '../../components/DermoscopyLLMEvaluationDashboard.jsx';
+---
+
+<MainLayout
+  title="Dermoscopy LLM Evaluation Dashboard – Ramie Fathy, MD"
+  description="Interactive dashboard exploring multimodal LLM performance on dermoscopic image classification across 17 models and 6 prompting strategies."
+>
+  <Header client:load />
+  <main id="main-content">
+    <section class="section">
+      <div class="plate-stamp"><b>Dashboard</b><span class="barcode"></span><span>Dermoscopy LLM · 2025</span></div>
+
+      <div class="plate-head">
+        <div>
+          <span class="kicker">/research/dermoscopy-llm-dashboard</span>
+          <h1 class="display1" style="margin-top:14px">17 models. <em>10,200</em><br>trials. One question.</h1>
+        </div>
+        <div class="right">
+          Aggregate evaluation,<br>
+          multimodal LLMs on<br>
+          dermoscopy.<br>
+          <span style="color:var(--terracotta)">JAAD 2025 (in press)</span>
+        </div>
+      </div>
+
+      <div class="dash-cover">
+        <div class="text">
+          <span class="kicker">Question · Method · Limit</span>
+          <p class="lede" style="font-size:22px">Can a multimodal LLM, prompted carefully, recognize dermatoscopic features as well as a board-certified dermatologist? Across 6 prompting arms and 8 diagnoses — short answer: <em>not yet, but the gap is closing.</em></p>
+          <p class="body-copy">Dataset spans 8 dermatologic diagnoses tested across 17 multimodal LLMs from OpenAI and Google. 6 prompting strategies cover zero-shot label list, few-shot exemplars, primer board, anti-anchoring, and free-form variants.</p>
+          <div style="display:flex;gap:24px;margin-top:14px">
+            <a class="button button--secondary" href="/research">Back to research →</a>
+            <a class="button button--primary" href="/apps">Browse apps →</a>
+          </div>
+        </div>
+        <div class="meta">
+          <b>Method</b>
+          Aggregate accuracy, sensitivity,<br>
+          and specificity across all<br>
+          model × prompt × diagnosis<br>
+          combinations.
+          <b>Citation</b>
+          Tadros AR, Zhuo W, Fathy RA,<br>
+          et al. JAAD 2025 (in press).
+          <b>Disclaimer</b>
+          Research dashboard. Not medical<br>
+          advice. Not for clinical use.
+        </div>
+      </div>
+
+      <!-- React dashboard mounted inside Atlas chrome.
+           Internal styling sweep happens in Phase 4. -->
+      <div style="margin-top:48px">
+        <DermoscopyLLMEvaluationDashboard client:load />
+      </div>
+    </section>
+  </main>
+</MainLayout>

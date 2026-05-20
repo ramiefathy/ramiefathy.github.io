@@ -1,0 +1,155 @@
+@import url('./legacy-fonts.css');
+
+/* =============================================================================
+   ATLAS TOKENS · Clinical Atlas identity
+   Palette: bone + ink + terracotta + slate + moss + gold
+   Type: Bricolage Grotesque (display) · Newsreader (body) · Space Mono (data)
+   See docs/mockups/02-clinical-atlas.html for the canonical reference.
+   ============================================================================= */
+
+:root {
+  /* Atlas palette — primary identity tokens */
+  --cl-bone: #f4f0e8;
+  --cl-bone-2: #e8e2d4;
+  --cl-plate-bg: #fbf8f1;
+  --cl-ink: #0a0a0a;
+  --cl-ink-soft: #1f1f1f;
+  --cl-slate: #475569;
+  --cl-slate-soft: #94a3b8;
+  --cl-terracotta: #c2674a;
+  --cl-terracotta-2: #9f4d36;
+  --cl-moss: #5b7058;
+  --cl-gold: #a37b2a;
+  --cl-rule: #0a0a0a;
+  --cl-rule-soft: rgba(10, 10, 10, 0.12);
+
+  /* Semantic aliases — preserve names so existing consumers keep working */
+  --cl-primary: var(--cl-terracotta);
+  --cl-primary-hover: var(--cl-terracotta-2);
+  --cl-primary-subtle: var(--cl-bone);
+  --cl-accent: var(--cl-slate);
+  --cl-surface: var(--cl-plate-bg);
+  --cl-surface-alt: var(--cl-bone-2);
+  --cl-border: var(--cl-rule);
+  --cl-border-strong: var(--cl-ink);
+  --cl-text: var(--cl-ink);
+  --cl-text-muted: var(--cl-ink-soft);
+  --cl-text-faint: var(--cl-slate);
+  --cl-danger: #6b1f1f;
+  --cl-success: var(--cl-moss);
+  --cl-warning: var(--cl-gold);
+
+  /* Clinical severity badges (Biologic dashboard, etc.) — kept as semantic signals.
+     Re-tinted toward ink/bone palette so they sit on Atlas surfaces without screaming. */
+  --cl-badge-danger-bg: #f6e6e0;
+  --cl-badge-danger-text: #6b1f1f;
+  --cl-badge-danger-border: #d9aa9b;
+
+  --cl-badge-caution-bg: #f3eadc;
+  --cl-badge-caution-text: #6e4a1c;
+  --cl-badge-caution-border: #d8c39a;
+
+  --cl-badge-info-bg: var(--cl-bone-2);
+  --cl-badge-info-text: var(--cl-ink-soft);
+  --cl-badge-info-border: var(--cl-rule-soft);
+
+  /* Structural / informational color (non-interactive only) */
+  --cl-structural: var(--cl-slate);
+  --cl-structural-light: var(--cl-slate-soft);
+
+  /* Type */
+  --font-heading: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'Newsreader', Georgia, serif;
+  --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Spacing scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  /* Atlas runs sharper geometry — tight radii on framed elements; pills only on chips */
+  --radius: 2px;
+  --radius-card: 0px;
+  --radius-pill: 9999px;
+
+  /* Shadows — Atlas uses borders not drop-shadows; keep soft tokens for legacy needs */
+  --shadow-surface: 0 1px 0 rgba(10, 10, 10, 0.06);
+  --shadow-raised: 0 1px 2px rgba(10, 10, 10, 0.08);
+  --shadow-overlay: 0 2px 6px rgba(10, 10, 10, 0.10);
+  --shadow-modal: 0 6px 18px rgba(10, 10, 10, 0.16);
+
+  --duration-fast: 150ms;
+  --duration-layout: 250ms;
+  --ease-out: ease-out;
+  --ease-in: ease-in;
+  --ease-in-out: ease-in-out;
+
+  /* Generic shadcn-style aliases used by some legacy apps */
+  --background: var(--cl-bone);
+  --foreground: var(--cl-text);
+  --muted: var(--cl-surface-alt);
+  --muted-foreground: var(--cl-text-muted);
+  --primary: var(--cl-primary);
+  --accent: var(--cl-accent);
+
+  /* Backwards-compat aliases for older legacy-* token names */
+  --legacy-font-sans: var(--font-body);
+  --legacy-bg: var(--cl-bone);
+  --legacy-surface: var(--cl-surface);
+  --legacy-surface-muted: var(--cl-surface-alt);
+  --legacy-text: var(--cl-text);
+  --legacy-text-muted: var(--cl-text-muted);
+  --legacy-border: var(--cl-border);
+  --legacy-primary: var(--cl-primary);
+  --legacy-primary-strong: var(--cl-primary-hover);
+  --legacy-success: var(--cl-success);
+  --legacy-warning: var(--cl-warning);
+  --legacy-danger: var(--cl-danger);
+  --legacy-radius-sm: var(--radius);
+  --legacy-radius-md: var(--radius-card);
+  --legacy-radius-lg: var(--radius-card);
+  --legacy-shadow-surface: var(--shadow-surface);
+  --legacy-shadow-raised: var(--shadow-raised);
+  --legacy-shadow-overlay: var(--shadow-overlay);
+  --legacy-shadow: var(--shadow-overlay);
+  --legacy-focus-ring: 0 0 0 3px color-mix(in oklab, var(--cl-terracotta), white 60%);
+  --legacy-space-1: var(--space-xs);
+  --legacy-space-2: var(--space-sm);
+  --legacy-space-3: 0.75rem;
+  --legacy-space-4: var(--space-md);
+  --legacy-space-5: 1.25rem;
+  --legacy-space-6: var(--space-lg);
+  --legacy-duration-fast: var(--duration-fast);
+  --legacy-duration-base: var(--duration-layout);
+  --legacy-ease-in: var(--ease-in);
+  --legacy-ease-out: var(--ease-out);
+  --legacy-ease-in-out: var(--ease-in-out);
+}
+
+/* Atlas is light-only — dark mode dropped per design decision. */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 1ms;
+    --duration-layout: 1ms;
+    --legacy-duration-fast: 1ms;
+    --legacy-duration-base: 1ms;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --space-xl: 1.5rem;
+    --space-2xl: 2.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --space-lg: 1.25rem;
+    --space-xl: 1.5rem;
+  }
+}

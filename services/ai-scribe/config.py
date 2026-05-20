@@ -2,13 +2,14 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file at the project root (if it exists)
-# This allows .env to be outside the server directory for easier management.
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+# Load runtime configuration from services/ai-scribe/.env (if present).
+#
+# IMPORTANT: Avoid implicit dotenv discovery (e.g., searching parent directories or $HOME),
+# because it makes behavior non-deterministic and can accidentally pull unrelated secrets
+# from the developer machine.
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path)
-else: # Fallback to .env in the same directory as this config file (server/.env)
-    load_dotenv()
+    load_dotenv(dotenv_path, override=False)
 
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -21,6 +22,7 @@ GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "models/gemini-2.0-flash-
 GEMINI_SUGGESTION_MODEL = os.getenv("GEMINI_SUGGESTION_MODEL", "models/gemini-2.0-flash-exp")
 
 SESSION_SECRET = os.getenv("SESSION_SECRET")
+JWT_SIGNING_SECRET = os.getenv("JWT_SIGNING_SECRET")
 ALLOWED_ORIGINS = set(
     origin.strip()
     for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:4321").split(',')
@@ -32,3 +34,10 @@ if not GEMINI_API_KEY:
 
 if not SESSION_SECRET:
     raise RuntimeError("SESSION_SECRET must be set before starting the AI Scribe service.")
+
+if not JWT_SIGNING_SECRET:
+    JWT_SIGNING_SECRET = SESSION_SECRET
+    print(
+        "WARNING: JWT_SIGNING_SECRET is not set. Falling back to SESSION_SECRET for JWT signing. "
+        "This is not recommended; set JWT_SIGNING_SECRET to a different long random string."
+    )

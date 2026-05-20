@@ -13,25 +13,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js 20
+      - name: Use Node.js from .nvmrc
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
       - name: Install site dependencies
         run: npm --prefix site install
+      - name: Run site unit tests
+        run: npm run site:test
       - name: Build site
         run: npm run site:build
-      - name: Check CDN Links
+      - name: Guard against simulated RAMIE scribe
         run: |
-          echo "Checking CDN URLs used in clinic-scheduler-pro..."
-          curl -f --connect-timeout 10 "https://esm.sh/date-fns@2.30.0?bundle" || (echo "❌ date-fns CDN failed" && exit 1)
-          curl -f --connect-timeout 10 "https://esm.sh/recharts@2.5.0?bundle" || (echo "❌ recharts CDN failed" && exit 1)
-          curl -f --connect-timeout 10 "https://esm.sh/papaparse@5.4.1?bundle" || (echo "❌ papaparse CDN failed" && exit 1)
-          curl -f --connect-timeout 10 "https://esm.sh/lucide@0.462.0?bundle" || (echo "❌ lucide CDN failed" && exit 1)
-          curl -f --connect-timeout 10 "https://esm.sh/framer-motion@11.0.3?bundle" || (echo "❌ framer-motion CDN failed" && exit 1)
-          curl -f --connect-timeout 10 https://cdn.tailwindcss.com || (echo "❌ tailwindcss CDN failed" && exit 1)
-          echo "✅ All CDN links verified"
+          echo "Checking that the deployed RAMIE AI Scribe is not simulated..."
+          if grep -R -n -E "AI Generation Functions \\(Placeholders\\)|Simulated response" site/dist/apps/dermatology-scribe/index.html; then
+            echo "❌ Simulation markers detected in deployed scribe entrypoint"
+            exit 1
+          fi
+          echo "✅ No simulation markers found"
       # Removed Playwright console regression checks; they are run locally as needed
+
+  e2e-playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Install site dependencies
+        run: npm --prefix site install
+      - name: Install Playwright (Chromium)
+        working-directory: site
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright e2e
+        working-directory: site
+        run: npx playwright test --reporter=line
 
   ai-scribe-lint:
     runs-on: ubuntu-latest
@@ -47,3 +65,5 @@ jobs:
           pip install -r services/ai-scribe/requirements.txt
       - name: Lint (syntax check)
         run: python -m compileall services/ai-scribe
+      - name: Run backend tests
+        run: python -m pytest services/ai-scribe/tests -q

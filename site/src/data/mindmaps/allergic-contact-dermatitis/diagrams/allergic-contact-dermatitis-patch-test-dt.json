@@ -1,0 +1,31 @@
+{
+  "id": "allergic-contact-dermatitis-patch-test-dt",
+  "topic": "allergic-contact-dermatitis",
+  "title": "Patch Test Triage Algorithm",
+  "subtitle": "When distribution and persistence justify patch testing",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Eczematous dermatitis with exposure-pattern distribution or chronic/refractory course?", "branches": [
+        { "label": "Yes", "nextStepId": "distribution" },
+        { "label": "No", "nextStepId": "other" }
+      ] },
+      { "id": "other", "type": "terminal", "prompt": "Consider atopic, irritant, seborrheic, stasis, psoriasis, or infection" },
+      { "id": "distribution", "type": "decision", "prompt": "Face/eyelid, hands, anogenital, occupational, device, topical medication, or shoe pattern?", "branches": [
+        { "label": "Yes", "nextStepId": "patch" },
+        { "label": "No", "nextStepId": "empiric" }
+      ] },
+      { "id": "patch", "type": "terminal", "prompt": "Patch testing with baseline + exposure-directed series" },
+      { "id": "empiric", "type": "decision", "prompt": "Does avoidance plus topical therapy clear and stay clear?", "branches": [
+        { "label": "Yes", "nextStepId": "avoid" },
+        { "label": "No", "nextStepId": "patch" }
+      ] },
+      { "id": "avoid", "type": "terminal", "prompt": "Continue allergen/irritant avoidance and relapse monitoring" }
+    ]
+  },
+  "citations": [
+    { "url": "https://www.aad.org/public/diseases/eczema/types/contact-dermatitis", "quote": "AAD contact dermatitis guidance describes allergen exposure review and patch testing for allergic contact dermatitis." },
+    { "pmid": "32947457", "quote": "American Contact Dermatitis Society Core Allergen Series: 2020 Update supports baseline allergen selection for patch testing." }
+  ]
+}

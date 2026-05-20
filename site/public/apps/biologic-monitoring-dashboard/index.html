@@ -8,28 +8,34 @@
       name="description"
       content="Interactive reference for baseline screening, follow-up laboratories, and safety monitoring for systemic dermatology regimens."
     />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="stylesheet" href="../shared/legacy-tokens.css" />
+    <link rel="stylesheet" href="../shared/legacy-primitives.css" />
+    <link rel="stylesheet" href="../shared/legacy-shell.css" />
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body data-view="cards">
+  <body class="legacy-focus-ring" data-view="cards" data-legacy-shell="true" data-help-steps='["Start with Quick search, then narrow with filters.","Switch Cards/Table view for comparison.","Use Reset filters to return to the full reference."]'>
     <main class="page">
-      <section class="hero">
+      <section class="hero" id="overview">
         <div class="hero__content">
+          <p class="hero__kicker">Clinical reference</p>
           <h1>Biologic Monitoring Dashboard</h1>
-          <p>
+          <p class="cl-page-subtitle">
             Searchable, filterable monitoring guidance for dermatology biologics and systemic immunomodulators. Built from
             FDA prescribing information and consensus guidelines updated September&nbsp;23,&nbsp;2025. Use it to double-check baseline labs,
             follow-up cadence, and safety counseling before initiating or refilling therapy.
           </p>
+          <nav class="jump-nav" aria-label="Jump to section">
+            <a href="#controls">Filters</a>
+            <a href="#comparison-view">Comparison</a>
+            <a href="#result-count">Results</a>
+            <a href="#results">Entries</a>
+          </nav>
         </div>
       </section>
 
-      <section class="controls" aria-label="Filters">
+      <section id="controls" class="controls" aria-label="Filters">
         <div class="control-card control-card--search">
           <label for="search-input">Quick search</label>
           <div class="search-input">
@@ -100,11 +106,53 @@
 
       <section id="comparison-view" class="comparison-section" aria-label="Side-by-side comparison" aria-live="polite"></section>
 
-      <p id="result-count"></p>
+      <p id="result-count" class="result-count-anchor"></p>
       <section id="results" class="entries" aria-live="polite"></section>
     </main>
 
     <div id="modal-root"></div>
+    <script>
+      if (window.LegacyGuidance?.maybeShow) {
+        window.LegacyGuidance.maybeShow('biologic-monitoring-dashboard', [
+          'Start with Quick search, then narrow using dropdown filters.',
+          'Use category pills and view toggle to compare treatments quickly.',
+          'Use Reset filters to return to the full monitoring reference.'
+        ])
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const navLinks = Array.from(document.querySelectorAll('.jump-nav a'))
+        const sections = navLinks
+          .map((link) => {
+            const target = document.querySelector(link.getAttribute('href'))
+            return target ? { link, target } : null
+          })
+          .filter(Boolean)
+
+        if (!sections.length) return
+
+        const setActive = (targetId) => {
+          sections.forEach(({ link, target }) => {
+            const isActive = target.id === targetId
+            link.classList.toggle('is-active', isActive)
+          })
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+            if (visible?.target?.id) {
+              setActive(visible.target.id)
+            }
+          },
+          { threshold: [0.25, 0.5, 0.75], rootMargin: '-96px 0px -45% 0px' }
+        )
+
+        sections.forEach(({ target }) => observer.observe(target))
+      })
+    </script>
     <script type="module" src="./app.js"></script>
   </body>
 </html>

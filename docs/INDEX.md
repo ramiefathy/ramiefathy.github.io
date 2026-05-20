@@ -46,9 +46,20 @@ Completed implementation plans, superseded approaches, and future concepts.
 
 Documentation living with applications:
 
-### Clinic Scheduler Pro
-- [README](../site/public/apps/clinic-scheduler-pro/README.md) - User guide
-- [Firebase Setup](../site/public/apps/clinic-scheduler-pro/firebase-setup.md) - Technical setup
+### Skinoculars
+- Canonical URL: `https://skinoculars.ramiefathy.com/`
+- Source/deploy repo: `ramiefathy/Skinoculars`
+- Integration + redirect details: [Skinoculars Subdomain Hosting](skinoculars-subdomain.md)
+
+### Clinisched
+- Canonical URL: `https://clinisched.ramiefathy.com/`
+- Source/deploy repo: `ramiefathy/clinisched`
+- Integration + redirect details: [Clinisched Subdomain Hosting](clinisched-subdomain.md)
+
+### KSA Sovereign Credit Analytics
+- Canonical URL: `https://ksa-credit.ramiefathy.com/`
+- Source/deploy directory: `/Users/ramiefathy/Downloads/ksa-sovereign-credit-analytics-completed`
+- Private Cloudflare Access integration details: [KSA Sovereign Credit Analytics Subdomain Hosting](ksa-credit-subdomain.md)
 
 ### Dermatopathology Navigator
 - [Project Handoff](../site/public/apps/dermatopathology-modern/PROJECT-HANDOFF-DOCUMENT.md)
@@ -103,9 +114,8 @@ Documentation living with applications:
 - Implementation Status ✅
 - Enhancement Plan (archived) ✅
 
-**Clinic Scheduler Pro**
-- Firebase Setup ✅
-- App README ✅
+**Clinisched**
+- Subdomain hosting + redirects ✅
 
 **Biologic Monitoring**
 - Handoff Document ✅
@@ -122,9 +132,9 @@ Documentation living with applications:
 **"I need to deploy RAMIE"**
 → [AI Scribe Operational Runbook](ai-scribe-operational-runbook.md)
 
-**"I need to set up clinic scheduler"**
-→ [Clinic Scheduler README](../site/public/apps/clinic-scheduler-pro/README.md)
-→ [Firebase Setup Guide](../site/public/apps/clinic-scheduler-pro/firebase-setup.md)
+**"I need to set up Clinisched"**
+→ [Clinisched Subdomain Hosting](clinisched-subdomain.md)
+→ See `ramiefathy/clinisched` repo docs (private)
 
 **"I need to understand why RAMIE was built this way"**
 → [RAMIE Implementation Status](ramie-implementation-status.md)

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Profile (tabbed, with theme variants)</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+/* profile header chips */
+.pf-chips{display:flex;gap:8px;align-items:center;margin-top:8px;}
+.pf-chips .x{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:9999px;background:var(--card);border:1px solid var(--line);font:500 12px var(--font-body);color:var(--ink-w2);}
+.pf-chips .x.lv{background:var(--ox);color:var(--card);border-color:var(--ox);}
+.pf-chips .x .ic{width:14px;height:14px;color:currentColor;}
+
+/* profile tabs */
+.pf-tabs{display:flex;gap:2px;padding:0;border-bottom:1px solid var(--line);}
+.pf-tab{padding:13px 18px;background:transparent;border:0;border-bottom:2px solid transparent;font:500 13px var(--font-body);color:var(--ink-w2);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;}
+.pf-tab.on{color:var(--ink-w);border-bottom-color:var(--ox);font-weight:500;}
+.pf-tab .ic{width:14px;height:14px;}
+
+/* Account */
+.acc-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:flex-start;}
+.acc-grid .card{padding:28px 30px;}
+.acc-grid h3{font:400 20px var(--font-display);color:var(--ink-w);margin:0 0 6px;letter-spacing:-.005em;}
+.acc-right{display:flex;flex-direction:column;gap:16px;}
+.acc-kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.acc-kpi{padding:16px 18px;background:var(--card);border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column;gap:6px;}
+.acc-kpi .lab{font:600 10px var(--font-body);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-meta);}
+.acc-kpi .n{font:300 30px var(--font-display);color:var(--ink-w);font-feature-settings:"tnum";line-height:1;}
+.acc-form-fields{display:flex;flex-direction:column;gap:16px;margin-top:18px;}
+.acc-actions{display:flex;gap:10px;margin-top:22px;padding-top:20px;border-top:1px solid var(--line);justify-content:flex-end;}
+
+.lvl-card{background:linear-gradient(135deg,var(--card) 0%,var(--card-2) 100%);}
+.lvl-card .top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
+.lvl-card .top .lv{font:300 56px var(--font-display);color:var(--ox);line-height:1;font-feature-settings:"tnum";}
+.lvl-card .top .title{font:400 24px var(--font-display);color:var(--ink-w);margin:0;letter-spacing:-.005em;}
+.lvl-card .top .lab{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;margin-top:2px;}
+.lvl-card .total{font:400 14px var(--font-body);color:var(--ink-w);text-align:right;}
+.lvl-card .total .n{font:300 28px var(--font-display);color:var(--ink-w);}
+.lvl-card .bar-row{margin-top:14px;}
+.lvl-card .bar-row .legend{display:flex;justify-content:space-between;font:500 11px var(--font-mono);color:var(--ink-meta);margin-bottom:6px;font-feature-settings:"tnum";}
+.lvl-card .bar-row .bar{height:8px;background:var(--paper-w3);border-radius:4px;overflow:hidden;}
+.lvl-card .bar-row .bar > div{height:100%;background:var(--ox);}
+.lvl-card .bar-row .to{font:400 12px var(--font-body);color:var(--ink-meta);text-align:right;margin-top:6px;}
+
+/* Themes */
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.theme-card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;}
+.theme-card.on{outline:2px solid var(--ox);outline-offset:0;}
+.theme-card .preview{aspect-ratio:1.3;background:var(--paper-warm);border-bottom:1px solid var(--line);position:relative;overflow:hidden;}
+.theme-card .pv-classic{display:grid;grid-template-columns:62px 1fr;height:100%;}
+.theme-card .pv-classic .sb{background:var(--paper-warm);border-right:1px solid var(--line);padding:8px 6px;display:flex;flex-direction:column;gap:4px;}
+.theme-card .pv-classic .sb .av{width:18px;height:18px;border-radius:50%;background:var(--ox);}
+.theme-card .pv-classic .sb .it{height:6px;background:var(--paper-w3);border-radius:2px;}
+.theme-card .pv-classic .sb .it.on{background:var(--card);box-shadow:inset 2px 0 0 var(--ox);}
+.theme-card .pv-classic .main{padding:8px;background:var(--paper-w2);}
+.theme-card .pv-classic .main .h{height:8px;width:60%;background:var(--ink-w2);border-radius:2px;}
+.theme-card .pv-classic .main .sub{height:5px;width:40%;background:var(--ink-w4);border-radius:2px;margin-top:5px;}
+.theme-card .pv-classic .main .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px;}
+.theme-card .pv-classic .main .grid .b{aspect-ratio:1.2;background:var(--card);border-radius:3px;}
+
+.theme-card .pv-tabs{display:flex;flex-direction:column;height:100%;background:var(--paper-warm);}
+.theme-card .pv-tabs .tb{padding:6px 8px;background:rgba(241,234,216,.95);border-bottom:1px solid var(--line);display:flex;gap:5px;}
+.theme-card .pv-tabs .tb .it{height:5px;width:18px;background:var(--paper-w3);border-radius:2px;}
+.theme-card .pv-tabs .tb .it.on{background:var(--ox);}
+.theme-card .pv-tabs .main{padding:8px;flex:1;background:var(--paper-w2);}
+.theme-card .pv-tabs .main .h{height:8px;width:60%;background:var(--ink-w2);border-radius:2px;}
+.theme-card .pv-tabs .main .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-top:8px;}
+.theme-card .pv-tabs .main .grid .b{aspect-ratio:1.4;background:var(--card);border-radius:3px;}
+
+.theme-card .pv-rpg{display:grid;grid-template-columns:26px 1fr;height:100%;}
+.theme-card .pv-rpg .sb{background:var(--paper-warm);border-right:1px solid var(--line);padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.theme-card .pv-rpg .sb .av{width:14px;height:14px;border-radius:3px;background:var(--ox);}
+.theme-card .pv-rpg .sb .ic{width:12px;height:12px;border-radius:2px;background:var(--paper-w3);}
+.theme-card .pv-rpg .sb .ic.on{background:var(--ox);}
+.theme-card .pv-rpg .main{padding:8px;background:var(--paper-w2);}
+.theme-card .pv-rpg .main .h{height:8px;width:60%;background:var(--ink-w2);border-radius:2px;}
+.theme-card .pv-rpg .main .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px;}
+.theme-card .pv-rpg .main .grid .b{aspect-ratio:1.2;background:var(--card);border-radius:3px;}
+
+.theme-card .meta{padding:14px 16px;display:flex;flex-direction:column;gap:4px;}
+.theme-card .meta .nm{font:500 14px var(--font-body);color:var(--ink-w);}
+.theme-card .meta .nm .badge{font:500 10px var(--font-mono);background:var(--ox);color:var(--card);padding:2px 7px;border-radius:3px;margin-left:6px;letter-spacing:.04em;}
+.theme-card .meta .d{font:400 12px var(--font-body);color:var(--ink-meta);line-height:1.5;}
+
+.theme-darkmode{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.theme-darkmode .meta{flex:1;}
+.theme-darkmode .nm{font:500 14px var(--font-body);}
+.theme-darkmode .d{font:400 12.5px var(--font-body);color:var(--ink-meta);margin-top:2px;}
+.tog-sw{width:46px;height:26px;background:var(--paper-w3);border-radius:9999px;position:relative;cursor:pointer;flex-shrink:0;}
+.tog-sw::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;background:var(--card);border-radius:50%;transition:.2s;}
+.tog-sw.on{background:var(--ox);}
+.tog-sw.on::after{left:23px;}
+
+/* Achievements */
+.ach-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.ach{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;}
+.ach.locked{opacity:.45;}
+.ach .badge-art{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--ox-soft),var(--gold-soft));display:grid;place-items:center;color:var(--ox-deep);font:400 24px var(--font-display);border:2px solid var(--gold-soft);}
+.ach .badge-art.gold{background:radial-gradient(circle at 35% 35%,var(--gold),#5C420A);color:#FBF6E8;border-color:var(--gold);}
+.ach .badge-art.moss{background:radial-gradient(circle at 35% 35%,var(--moss-soft),var(--moss));color:var(--moss-soft);border-color:var(--moss);}
+.ach .badge-art.slate{background:radial-gradient(circle at 35% 35%,var(--slate-soft),var(--slate));color:var(--slate-soft);border-color:var(--slate);}
+.ach.locked .badge-art{background:var(--paper-w3);color:var(--ink-w4);border-color:var(--paper-w3);}
+.ach .nm{font:500 13.5px var(--font-body);color:var(--ink-w);}
+.ach .d{font:400 11.5px var(--font-body);color:var(--ink-meta);line-height:1.45;}
+.ach .meta{font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;padding-top:8px;border-top:1px dashed var(--line);width:100%;text-align:center;margin-top:auto;}
+
+.ach-section h3{font:400 22px var(--font-display);margin:0 0 12px;color:var(--ink-w);letter-spacing:-.005em;}
+.ach-section{display:flex;flex-direction:column;gap:14px;}
+
+/* Settings */
+.set-section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;}
+.set-section h3{font:400 20px var(--font-display);color:var(--ink-w);margin:0;letter-spacing:-.005em;}
+.set-row{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:14px 0;border-bottom:1px dashed var(--line);}
+.set-row:last-child{border:0;padding-bottom:0;}
+.set-row .meta{flex:1;}
+.set-row .nm{font:500 13.5px var(--font-body);color:var(--ink-w);}
+.set-row .d{font:400 12.5px var(--font-body);color:var(--ink-meta);margin-top:2px;max-width:48ch;}
+.set-row .action{flex-shrink:0;}
+.danger-zone{border:1px solid var(--ox);background:#FBEEEA;}
+.danger-zone h3{color:var(--ox);}
+
+/* mobile */
+.m-pf-head{padding:24px 18px 16px;background:var(--paper-warm);}
+.m-pf-head .av{width:64px;height:64px;border-radius:50%;background:var(--ox);color:var(--card);display:grid;place-items:center;font:300 26px var(--font-display);}
+.m-pf-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);overflow-x:auto;background:var(--paper-warm);}
+.m-pf-tabs button{flex:1;padding:11px 8px;background:transparent;border:0;border-bottom:2px solid transparent;font:500 12.5px var(--font-body);color:var(--ink-w2);font-family:inherit;}
+.m-pf-tabs button.on{color:var(--ink-w);border-bottom-color:var(--ox);}
+</style>
+</head>
+<body id="demo-top" data-screen-label="Profile mockups">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-ham" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-acct" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></symbol>
+  <symbol id="i-theme" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 22a10 10 0 010-20 7 7 0 014 13c-2 1-2 3 0 3a3 3 0 01-4 4z"/><circle cx="6.5" cy="11.5" r=".8" fill="currentColor"/><circle cx="9.5" cy="7.5" r=".8" fill="currentColor"/><circle cx="14.5" cy="7.5" r=".8" fill="currentColor"/><circle cx="17.5" cy="11.5" r=".8" fill="currentColor"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3h0a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8v0a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 4h11v13H9z"/><path d="M5 8v12h12"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></symbol>
+  <symbol id="i-fc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+  <symbol id="i-exam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+  <symbol id="i-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 9h4M8 7v4M15 10h.01M17 13h.01M12 17l-6 3a3 3 0 01-3-4l1-4a4 4 0 014-3h12a4 4 0 014 3l1 4a3 3 0 01-3 4l-6-3"/></symbol>
+  <symbol id="i-tutor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></symbol>
+  <symbol id="i-pod" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 18v-7a9 9 0 0118 0v7"/><path d="M21 19a2 2 0 01-2 2h-1v-6h3zM3 19a2 2 0 002 2h1v-6H3z"/></symbol>
+  <symbol id="i-perf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol>
+  <symbol id="i-prof" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></symbol>
+</defs></svg>
+
+<header class="cat-head">
+  <div>
+    <h1>The <em>profile</em>.</h1>
+    <p>Four tabs: Account · Themes · Achievements · Settings. The Themes tab is where the three sidebar layouts (Classic / Tabs / RPG) plus Dark Mode live — moved from the production sidebar footer into a proper settings home.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/profile</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<template id="t-sidebar">
+  <aside class="sidebar">
+    <div class="usercard"><div class="av">RA</div><div class="meta"><div class="nm">Ramie F.</div><div class="sub">Lv. 7 · 2,835 XP</div><div class="lvbar"><span style="width:35%"></span></div></div></div>
+    <nav class="nav-group"><div class="nav-label">Study</div>
+      <button class="nav-item __a-dash"><span class="nav-ic"><svg><use href="#i-dash"/></svg></span><span>Dashboard</span></button>
+      <button class="nav-item __a-quiz"><span class="nav-ic"><svg><use href="#i-quiz"/></svg></span><span>Quiz</span></button>
+      <button class="nav-item __a-cases"><span class="nav-ic"><svg><use href="#i-cat"/></svg></span><span>Cases</span></button>
+      <button class="nav-item __a-fc"><span class="nav-ic"><svg><use href="#i-fc"/></svg></span><span>Flashcards</span></button>
+      <button class="nav-item __a-exam"><span class="nav-ic"><svg><use href="#i-exam"/></svg></span><span>Mock exam</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Play</div><button class="nav-item __a-mini"><span class="nav-ic"><svg><use href="#i-mini"/></svg></span><span>Minigames</span></button></nav>
+    <nav class="nav-group"><div class="nav-label">Coach</div><button class="nav-item __a-tutor"><span class="nav-ic"><svg><use href="#i-tutor"/></svg></span><span>Live tutor</span></button><button class="nav-item __a-pod"><span class="nav-ic"><svg><use href="#i-pod"/></svg></span><span>Podcasts</span></button><button class="nav-item __a-perf"><span class="nav-ic"><svg><use href="#i-perf"/></svg></span><span>Performance</span></button></nav>
+    <div class="sidebar-foot"><button class="nav-item __a-prof"><span class="nav-ic"><svg><use href="#i-prof"/></svg></span><span>Profile</span></button><button class="tog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="opacity:.6;vertical-align:-2px"><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg> Dark</button><button class="signout">Sign out</button></div>
+  </aside>
+</template>
+<script>function sidebar(active){const t=document.getElementById('t-sidebar').content.cloneNode(true);const el=t.querySelector(`.__a-${active}`);if(el){el.classList.add('active');el.classList.remove(`__a-${active}`);}return t;}</script>
+
+<!-- ═══════════════════════════════════════════ ACCOUNT TAB ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">10·A</div><h2>Account tab (default)</h2><p class="desc">Display name + email + Total Questions + Accuracy + Level &amp; Progress side card. The production parity surface.</p></section>
+
+<div class="ab" id="pf-acc">
+  <div class="ab-head"><h3>10a · Profile · Account tab</h3><span class="ab-tag v1">tab 1 of 4</span><span class="ab-meta">/profile</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="avatar-btn" aria-label="Profile" title="Profile">RA</button><button class="pill"><svg width="13" height="13"><use href="#i-search"/></svg> Search <kbd>⌘K</kbd></button></div></header>
+    <div class="shell" id="pf-acc-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('pf-acc-shell').appendChild(sidebar('prof'));
+document.getElementById('pf-acc-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs"><a href="#demo-top">You</a><span class="sep">/</span>Profile</div>
+    <div class="page-h">
+      <div>
+        <div class="eyebrow">— Your account &amp; achievements</div>
+        <h1>Ramie <em>Fathy</em>.</h1>
+        <p class="sub">Manage your account, themes, achievements and settings. The four tabs below are independent — your edits save on each one.</p>
+      </div>
+      <div class="pf-chips" style="margin-top:0;display:grid;grid-template-columns:auto auto;gap:8px;justify-content:end;justify-items:end;">
+        <span class="x">5,360 XP</span>
+        <span class="x lv">Lv. 9 · Fellow</span>
+        <span class="x">12 day streak</span>
+        <span class="x">Top 14% of users</span>
+      </div>
+    </div>
+
+    <nav class="pf-tabs">
+      <button class="pf-tab on"><svg class="ic"><use href="#i-acct"/></svg>Account</button>
+      <button class="pf-tab"><svg class="ic"><use href="#i-theme"/></svg>Themes</button>
+      <button class="pf-tab"><svg class="ic"><use href="#i-trophy"/></svg>Achievements <span class="muted small" style="font:500 11px var(--font-mono);background:var(--card-2);padding:1px 6px;border-radius:3px;margin-left:6px">14 / 48</span></button>
+      <button class="pf-tab"><svg class="ic"><use href="#i-gear"/></svg>Settings</button>
+    </nav>
+
+    <div class="acc-grid">
+      <section class="card">
+        <h3>Account</h3>
+        <p class="muted small" style="margin:0;max-width:56ch">Your sign-in identity. Display name shows up on leaderboards and shared screens — pick something you don't mind being seen.</p>
+        <div class="acc-form-fields">
+          <div class="field"><label>Display name</label><input type="text" value="Ramie Fathy"/></div>
+          <div class="field"><label>Email address</label><input type="email" value="ramie@derm.example.edu" disabled style="opacity:.65"/><span class="hint">Linked to SSO · contact admin to change</span></div>
+          <div class="field"><label>Time zone</label><select><option>America / New York (UTC−4)</option><option>America / Los Angeles</option><option>Europe / London</option></select></div>
+        </div>
+        <div class="acc-actions"><button class="btn primary">Save changes</button><button class="btn ghost">Cancel</button></div>
+      </section>
+
+      <div class="acc-right">
+        <div class="acc-kpis">
+          <div class="acc-kpi"><span class="lab">Total questions</span><span class="n">1,420</span></div>
+          <div class="acc-kpi"><span class="lab">Accuracy</span><span class="n">68%</span></div>
+        </div>
+
+        <aside class="card lvl-card">
+          <div class="eyebrow">— Level &amp; progress</div>
+          <div class="top">
+            <div>
+              <div class="lv">9</div>
+              <div class="lab">Level 9</div>
+              <h4 class="title">Fellow</h4>
+            </div>
+            <div class="total"><div class="lab" style="font:500 10px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase">Total XP</div><div class="n">5,360</div></div>
+          </div>
+          <div class="bar-row">
+            <div class="legend"><span>1,160 XP</span><span>1,300 XP</span></div>
+            <div class="bar"><div style="width:78%"></div></div>
+            <div class="to">140 XP to Level 10 · "Senior Fellow"</div>
+          </div>
+          <div class="insight info" style="margin-top:10px"><span class="lab">Next</span><span>You earn XP for every quiz, case, podcast, and minigame. Mock exams give the most.</span></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ THEMES TAB ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">10·B</div><h2>Themes tab</h2><p class="desc">Three sidebar layouts — Classic (the editorial default), Tabs (top horizontal nav), RPG (icon-only rail) — plus Dark Mode. Live preview cards click to switch.</p></section>
+
+<div class="ab" id="pf-thm">
+  <div class="ab-head"><h3>10b · Profile · Themes tab</h3><span class="ab-tag v1">tab 2 of 4 · sidebar variants live here</span><span class="ab-meta">/profile (themes)</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Reset to default</button></div></header>
+    <div class="shell" id="pf-thm-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('pf-thm-shell').appendChild(sidebar('prof'));
+document.getElementById('pf-thm-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <nav class="pf-tabs">
+      <button class="pf-tab"><svg class="ic"><use href="#i-acct"/></svg>Account</button>
+      <button class="pf-tab on"><svg class="ic"><use href="#i-theme"/></svg>Themes</button>
+      <button class="pf-tab"><svg class="ic"><use href="#i-trophy"/></svg>Achievements</button>
+      <button class="pf-tab"><svg class="ic"><use href="#i-gear"/></svg>Settings</button>
+    </nav>
+
+    <div>
+      <div class="eyebrow">— Sidebar layout</div>
+    <h2 style="font:300 32px var(--font-display);margin:4px 0 12px;letter-spacing:-.015em">Pick how the app <em style="color:var(--ox);font-style:italic">looks</em>.</h2>
+      <p class="muted small" style="margin:0 0 18px;max-width:48ch">Three navigation styles, all the same screens underneath.</p>
+    </div>
+
+    <div class="theme-grid">
+      <article class="theme-card on">
+        <div class="preview">
+          <div class="pv-classic">
+            <div class="sb"><div class="av"></div><div class="it on"></div><div class="it"></div><div class="it"></div><div class="it"></div><div class="it"></div><div class="it"></div><div class="it"></div></div>
+            <div class="main"><div class="h"></div><div class="sub"></div><div class="grid"><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div></div></div>
+          </div>
+        </div>
+        <div class="meta"><div class="nm">Classic <span class="badge">Active</span></div><div class="d">Left sidebar with grouped sections. The editorial default. Best on wider screens.</div></div>
+      </article>
+      <article class="theme-card">
+        <div class="preview">
+          <div class="pv-tabs">
+            <div class="tb"><div class="it on"></div><div class="it"></div><div class="it"></div><div class="it"></div><div class="it"></div></div>
+            <div class="main"><div class="h"></div><div class="grid"><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div></div></div>
+          </div>
+        </div>
+        <div class="meta"><div class="nm">Tabs</div><div class="d">Horizontal top navigation. Maximises content width — best for narrow displays or focus mode.</div></div>
+      </article>
+      <article class="theme-card">
+        <div class="preview">
+          <div class="pv-rpg">
+            <div class="sb"><div class="av"></div><div class="ic on"></div><div class="ic"></div><div class="ic"></div><div class="ic"></div><div class="ic"></div></div>
+            <div class="main"><div class="h"></div><div class="grid"><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div></div></div>
+          </div>
+        </div>
+        <div class="meta"><div class="nm">RPG</div><div class="d">Compact icon-only rail. Maximum content area; for users who already know the map by heart.</div></div>
+      </article>
+    </div>
+
+    <div class="theme-darkmode">
+      <div class="meta">
+        <div class="nm">Dark mode</div>
+        <div class="d">Inverts paper to a warm dark canvas. Charts and chips remap automatically.</div>
+      </div>
+      <div class="tog-sw"></div>
+    </div>
+
+    <div class="theme-darkmode">
+      <div class="meta">
+        <div class="nm">Reduce motion</div>
+        <div class="d">Disables transitions, page changes, and orbit animations on the live tutor.</div>
+      </div>
+      <div class="tog-sw on"></div>
+    </div>
+
+    <div>
+      <div class="eyebrow">— Live preview · current selection</div>
+      <h3 style="font:400 22px var(--font-display);margin:6px 0 12px">Classic · at scale</h3>
+      <div class="ab-frame" style="background:var(--paper-warm);max-width:none">
+        <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Preview only</button></div></header>
+        <div class="shell" style="min-height:420px">
+          ${(() => {
+            const sb = document.getElementById('t-sidebar').content.cloneNode(true);
+            const el = sb.querySelector('.__a-dash'); if(el){el.classList.add('active');}
+            const wrap = document.createElement('div'); wrap.appendChild(sb);
+            return wrap.innerHTML;
+          })()}
+          <main class="main" style="padding:24px 32px"><div class="page-h"><div><div class="eyebrow">— Live preview</div><h1 style="font-size:32px">Welcome back, <em>Ramie</em>.</h1></div></div><div class="card"><div class="muted small">Sample dashboard content rendered in the active theme — this is what the dashboard looks like with Classic + light mode + standard motion.</div></div></main>
+        </div>
+      </div>
+
+      <h3 style="font:400 22px var(--font-display);margin:24px 0 12px">Tabs · at scale</h3>
+      <div class="ab-frame" style="background:var(--paper-warm);max-width:none">
+        <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Preview only</button></div></header>
+        <nav class="tabnav"><button class="tabnav-item active">Dashboard</button><button class="tabnav-item">Quiz <span class="badge">12</span></button><button class="tabnav-item">Cases</button><button class="tabnav-item">Flashcards <span class="badge">19</span></button><button class="tabnav-item">Mock exam</button><button class="tabnav-item">Minigames</button><button class="tabnav-item">Live tutor</button><button class="tabnav-item">Podcasts</button><button class="tabnav-item">Performance</button></nav>
+        <main class="main" style="padding:24px 32px"><div class="page-h"><div><div class="eyebrow">— Live preview</div><h1 style="font-size:32px">Same dashboard, different chrome.</h1></div></div><div class="card"><div class="muted small">Horizontal nav across the top, more vertical space below.</div></div></main>
+      </div>
+
+      <h3 style="font:400 22px var(--font-display);margin:24px 0 12px">RPG · at scale</h3>
+      <div class="ab-frame" style="background:var(--paper-warm);max-width:none">
+        <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Preview only</button></div></header>
+        <div class="shell rpg" style="min-height:380px">
+          <aside class="sidebar rpg">
+            <div class="av" style="width:42px;height:42px;border-radius:10px;background:var(--ox);color:var(--card);display:grid;place-items:center;font:500 14px var(--font-display)">RA</div>
+            <div class="rpg-sep"></div>
+            <button class="rpg-ic active"><svg><use href="#i-dash"/></svg></button>
+            <button class="rpg-ic"><svg><use href="#i-quiz"/></svg><span class="badge"></span></button>
+            <button class="rpg-ic"><svg><use href="#i-cat"/></svg></button>
+            <button class="rpg-ic"><svg><use href="#i-fc"/></svg></button>
+            <button class="rpg-ic"><svg><use href="#i-exam"/></svg></button>
+            <div class="rpg-sep"></div>
+            <button class="rpg-ic"><svg><use href="#i-mini"/></svg><span class="badge"></span></button>
+            <div class="rpg-sep"></div>
+            <button class="rpg-ic"><svg><use href="#i-tutor"/></svg></button>
+            <button class="rpg-ic"><svg><use href="#i-pod"/></svg></button>
+            <button class="rpg-ic"><svg><use href="#i-perf"/></svg></button>
+          </aside>
+          <main class="main" style="padding:24px 32px"><div class="page-h"><div><div class="eyebrow">— Live preview</div><h1 style="font-size:32px">Maximum canvas.</h1></div></div><div class="card"><div class="muted small">Compact icon rail, hover for labels. Best for power-users.</div></div></main>
+        </div>
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ ACHIEVEMENTS TAB ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">10·C</div><h2>Achievements tab</h2><p class="desc">Hosts the trophy wall — earned + locked. Production has these scattered in the sidebar; here they get a proper home.</p></section>
+
+<div class="ab" id="pf-ach">
+  <div class="ab-head"><h3>10c · Profile · Achievements tab</h3><span class="ab-tag v1">tab 3 of 4</span><span class="ab-meta">/profile (achievements)</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Share collection</button></div></header>
+    <div class="shell" id="pf-ach-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('pf-ach-shell').appendChild(sidebar('prof'));
+document.getElementById('pf-ach-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <nav class="pf-tabs">
+      <button class="pf-tab"><svg class="ic"><use href="#i-acct"/></svg>Account</button>
+      <button class="pf-tab"><svg class="ic"><use href="#i-theme"/></svg>Themes</button>
+      <button class="pf-tab on"><svg class="ic"><use href="#i-trophy"/></svg>Achievements <span class="muted small" style="font:500 11px var(--font-mono);background:var(--card-2);padding:1px 6px;border-radius:3px;margin-left:6px">14 / 48</span></button>
+      <button class="pf-tab"><svg class="ic"><use href="#i-gear"/></svg>Settings</button>
+    </nav>
+
+    <div class="page-h"><div><div class="eyebrow">— 14 of 48 earned</div><h2 style="font:300 32px var(--font-display);margin:4px 0;letter-spacing:-.015em">The <em>trophy</em> wall.</h2><p class="sub">Achievements split into Habits, Mastery and Milestones. Locked ones show the criterion so you know what you're working toward.</p></div></div>
+
+    <div class="ach-section">
+      <h3>Habits · 6 / 12</h3>
+      <div class="ach-row">
+        ${[
+          {nm:'Two-week resident',d:'14 day study streak.',art:'gold',ic:'14',got:true},
+          {nm:'Calibrated mind',d:'Brier score below 0.20 over 100 questions.',art:'',ic:'⊕',got:true},
+          {nm:'Daily for a month',d:'30 consecutive days of activity.',art:'moss',ic:'30',got:true},
+          {nm:'Early riser',d:'15 sessions started before 7 AM.',art:'',ic:'7',got:false},
+        ].map(a=>`<article class="ach ${a.got?'':'locked'}"><div class="badge-art ${a.art}">${a.ic}</div><div class="nm">${a.nm}</div><div class="d">${a.d}</div><div class="meta">${a.got?'Earned · 8 May':'Locked'}</div></article>`).join('')}
+      </div>
+    </div>
+
+    <div class="ach-section">
+      <h3>Mastery · 5 / 22</h3>
+      <div class="ach-row">
+        ${[
+          {nm:'Inflammation expert',d:'90%+ on all inflammatory topics, over 50 questions.',art:'gold',ic:'I',got:true},
+          {nm:'Psoriasis-fluent',d:'100% accuracy on psoriasis topic, 30+ Q.',art:'moss',ic:'P',got:true},
+          {nm:'The eye',d:'Identify 50 plates without error in SpotDx Sprint.',art:'',ic:'◎',got:false},
+          {nm:'Boss-slayer',d:'Defeat 10 disease bosses without a hint.',art:'',ic:'10',got:false},
+        ].map(a=>`<article class="ach ${a.got?'':'locked'}"><div class="badge-art ${a.art}">${a.ic}</div><div class="nm">${a.nm}</div><div class="d">${a.d}</div><div class="meta">${a.got?'Earned · 2 May':'Locked'}</div></article>`).join('')}
+      </div>
+    </div>
+
+    <div class="ach-section">
+      <h3>Milestones · 3 / 14</h3>
+      <div class="ach-row">
+        ${[
+          {nm:'Fellow',d:'Reach Level 9.',art:'slate',ic:'9',got:true},
+          {nm:'First mock',d:'Complete your first mock exam.',art:'gold',ic:'1°',got:true},
+          {nm:'Five for five',d:'Pass five mock exams in a row.',art:'',ic:'5',got:false},
+          {nm:'Senior Fellow',d:'Reach Level 10.',art:'',ic:'10',got:false},
+        ].map(a=>`<article class="ach ${a.got?'':'locked'}"><div class="badge-art ${a.art}">${a.ic}</div><div class="nm">${a.nm}</div><div class="d">${a.d}</div><div class="meta">${a.got?'Earned':'Locked'}</div></article>`).join('')}
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ SETTINGS TAB ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">10·D</div><h2>Settings tab</h2><p class="desc">Notifications, data export, privacy controls. Including the danger zone.</p></section>
+
+<div class="ab" id="pf-set">
+  <div class="ab-head"><h3>10d · Profile · Settings tab</h3><span class="ab-tag v1">tab 4 of 4</span><span class="ab-meta">/profile (settings)</span></div>
+  <div class="ab-frame">
+    <header class="topbar"><div class="topbar-wm">dermie</div><div class="topbar-right"><button class="pill">Save all</button></div></header>
+    <div class="shell" id="pf-set-shell"></div>
+  </div>
+</div>
+<script>
+document.getElementById('pf-set-shell').appendChild(sidebar('prof'));
+document.getElementById('pf-set-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <nav class="pf-tabs">
+      <button class="pf-tab"><svg class="ic"><use href="#i-acct"/></svg>Account</button>
+      <button class="pf-tab"><svg class="ic"><use href="#i-theme"/></svg>Themes</button>
+      <button class="pf-tab"><svg class="ic"><use href="#i-trophy"/></svg>Achievements</button>
+      <button class="pf-tab on"><svg class="ic"><use href="#i-gear"/></svg>Settings</button>
+    </nav>
+
+    <section class="set-section">
+      <h3>Notifications</h3>
+      <div class="set-row">
+        <div class="meta"><div class="nm">Daily study reminder</div><div class="d">A single push notification when it's time to start your daily plan. Off by default; we don't want to nag.</div></div>
+        <div class="action"><div class="tog-sw on"></div></div>
+      </div>
+      <div class="set-row">
+        <div class="meta"><div class="nm">Streak risk alert</div><div class="d">Sent if you haven't logged any activity by 9 PM local — only on streaks ≥ 3 days.</div></div>
+        <div class="action"><div class="tog-sw on"></div></div>
+      </div>
+      <div class="set-row">
+        <div class="meta"><div class="nm">Weekly brief</div><div class="d">Email digest of last week's performance, sent each Sunday at 8 PM local.</div></div>
+        <div class="action"><div class="tog-sw"></div></div>
+      </div>
+    </section>
+
+    <section class="set-section">
+      <h3>Learning</h3>
+      <div class="set-row">
+        <div class="meta"><div class="nm">Confidence capture</div><div class="d">When on, every quiz question asks for a Low / Medium / High confidence rating before submit. Powers the calibration loop on the summary and Performance pages.</div></div>
+        <div class="action"><div class="tog-sw on"></div></div>
+      </div>
+      <div class="set-row">
+        <div class="meta"><div class="nm">Adaptive difficulty</div><div class="d">Lets the system pick item difficulty based on your last 20 answers. Turn off to keep difficulty fixed at "Medium".</div></div>
+        <div class="action"><div class="tog-sw on"></div></div>
+      </div>
+      <div class="set-row">
+        <div class="meta"><div class="nm">Image-heavy sessions</div><div class="d">When set, the personal quiz drawer prefers items with a clinical image. Adds about 30 seconds per question.</div></div>
+        <div class="action"><div class="tog-sw"></div></div>
+      </div>
+    </section>
+
+    <section class="set-section">
+      <h3>Data &amp; privacy</h3>
+      <div class="set-row">
+        <div class="meta"><div class="nm">Export your data</div><div class="d">Download a single JSON with every question answered, every flashcard rating, and every minigame score, going back to your first session.</div></div>
+        <div class="action"><button class="btn ghost sm">Generate export →</button></div>
+      </div>
+      <div class="set-row">
+        <div class="meta"><div class="nm">Anonymous performance telemetry</div><div class="d">Helps us tune item difficulty for everyone. No personal identifiers ever leave with this data.</div></div>
+        <div class="action"><div class="tog-sw on"></div></div>
+      </div>
+      <div class="set-row">
+        <div class="meta"><div class="nm">Interim disclosure</div><div class="d">A narrow, good-faith account of what dermie collects and what it doesn't.</div></div>
+        <div class="action"><a href="Auth.html#legal" class="btn ghost sm">Read →</a></div>
+      </div>
+    </section>
+
+    <section class="set-section danger-zone">
+      <h3>Danger zone</h3>
+      <div class="set-row" style="border-color:rgba(168,35,30,.3)">
+        <div class="meta"><div class="nm" style="color:var(--ox)">Reset progress</div><div class="d">Clears every quiz, case, flashcard, and minigame record. Cannot be undone. Display name and account survive.</div></div>
+        <div class="action"><button class="btn" style="border-color:var(--ox);color:var(--ox)">Reset progress…</button></div>
+      </div>
+      <div class="set-row" style="border:0;padding-bottom:0">
+        <div class="meta"><div class="nm" style="color:var(--ox)">Delete account</div><div class="d">Email <a href="mailto:hello@dermie.io" style="color:var(--ox);text-decoration:none;border-bottom:1px solid var(--ox-soft)">hello@dermie.io</a> · we will acknowledge within 7 business days while the formal deletion policy is being drafted.</div></div>
+        <div class="action"><button class="btn" style="background:var(--ox);color:var(--card);border-color:var(--ox)">Email request →</button></div>
+      </div>
+    </section>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ mobile ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">m</div><h2>Mobile</h2><p class="desc">Tab bar moves below the title; each tab scrolls independently.</p></section>
+
+<div class="ab" id="pf-mob">
+  <div class="ab-head"><h3>10m · Profile · mobile (Account)</h3><span class="ab-tag mob">412 × 780</span><span class="ab-meta">/profile</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar"><button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button><div class="wm">You</div><button class="ham"><svg width="20" height="20"><use href="#i-gear"/></svg></button></header>
+      <div class="m-pf-head">
+        <div style="display:flex;align-items:center;gap:14px"><div class="av">R</div><div><div style="font:300 24px var(--font-display);color:var(--ink-w);letter-spacing:-.01em">Ramie Fathy</div><div class="muted small mono">ramie@derm.example.edu</div></div></div>
+        <div class="pf-chips" style="margin-top:14px;flex-wrap:wrap;gap:6px"><span class="x" style="font-size:11px">5,360 XP</span><span class="x lv" style="font-size:11px">Lv. 9</span><span class="x" style="font-size:11px">12d</span></div>
+      </div>
+      <nav class="m-pf-tabs">
+        <button class="on">Account</button>
+        <button>Themes</button>
+        <button>Trophies</button>
+        <button>Settings</button>
+      </nav>
+      <div class="m-content" style="padding-top:14px">
+        <div class="card dense">
+          <div class="eyebrow" style="font-size:10px">— Account</div>
+          <div class="field" style="margin-top:6px"><label>Display name</label><input type="text" value="Ramie Fathy"/></div>
+          <div class="field"><label>Email</label><input type="email" value="ramie@derm.example.edu" disabled style="opacity:.6"/></div>
+        </div>
+        <div class="card dense lvl-card">
+          <div class="top" style="margin-top:0"><div><div class="lv" style="font-size:42px">9</div><div class="lab">Level 9</div><h4 class="title" style="font-size:20px">Fellow</h4></div><div class="total"><div class="lab">Total XP</div><div class="n" style="font-size:22px">5,360</div></div></div>
+          <div class="bar-row"><div class="legend"><span>1,160</span><span>1,300</span></div><div class="bar"><div style="width:78%"></div></div><div class="to">140 XP to L10</div></div>
+        </div>
+        <div class="m-prog">
+          <div class="p"><div class="l">Questions</div><div class="n">1,420</div></div>
+          <div class="p"><div class="l">Accuracy</div><div class="n">68%</div></div>
+          <div class="p"><div class="l">Trophies</div><div class="n">14</div></div>
+        </div>
+        <button class="btn primary">Save changes</button>
+      </div>
+      <nav class="m-tabbar"><a class="tab"><svg><use href="#i-dash"/></svg>Home</a><a class="tab"><svg><use href="#i-quiz"/></svg>Study</a><a class="tab"><svg><use href="#i-mini"/></svg>Play</a><a class="tab"><svg><use href="#i-perf"/></svg>Stats</a><a class="tab active"><svg><use href="#i-prof"/></svg>You</a></nav>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

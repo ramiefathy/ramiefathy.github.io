@@ -2,32 +2,61 @@
 import MainLayout from '../../layouts/MainLayout.astro';
 import Header from '../../components/Header.jsx';
 import legacy from '../../data/legacy.json';
+
+let runningIndex = 0;
+const sectionsWithIds = legacy.sections.map((section) => {
+  const items = section.items.map((item) => {
+    runningIndex += 1;
+    return { ...item, plateNumber: `L.${String(runningIndex).padStart(2, '0')}` };
+  });
+  return { ...section, items };
+});
 ---
 <MainLayout title="Legacy Work – Ramie Fathy, MD" description="Archived research reports and prototypes maintained for reference.">
   <Header client:load />
-
   <main id="main-content">
-    <section class="section" style="padding-top:4rem">
-      <div class="section__inner">
-        {legacy.sections.map((section) => (
-          <div style="margin-bottom:3rem">
-            <div class="section__intro" style="margin-bottom:2rem">
-              <h2 class="section__title" style="margin-bottom:0.5rem">{section.title}</h2>
-            </div>
-            <div class="card-grid">
-              {section.items.map((item) => (
-                <a class="card" href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined}>
-                  <h3 class="card__title">{item.name}</h3>
-                  <p>{item.note ?? 'Archived.'}</p>
-                  <div class="card__meta">
-                    <span class="tag">{item.year}</span>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-        ))}
+    <section class="section">
+      <div class="plate-stamp"><b>Legacy</b><span class="barcode"></span><span>Archive · {runningIndex} entries</span></div>
+
+      <div class="plate-head">
+        <div>
+          <span class="kicker">Archived for record</span>
+          <h1 class="display1" style="margin-top:14px">The <em>archive</em>.</h1>
+        </div>
+        <div class="right">
+          Reports and prototypes<br>
+          retained for historical<br>
+          reference.<br>
+          <span style="color:var(--terracotta)">Read-only</span>
+        </div>
       </div>
+
+      <p class="lede">Older research reports and archived applications. Active versions live under <a href="/apps" style="color:var(--terracotta);border-bottom:1px solid var(--terracotta)">Apps & Projects</a>.</p>
+
+      {sectionsWithIds.map((section, sIdx) => (
+        <div style="margin-top:48px">
+          <div style="display:flex;justify-content:space-between;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:0">
+            <div>
+              <span class="kicker">Section {String.fromCharCode(65 + sIdx)}</span>
+              <h2 class="display2" style="margin-top:6px;font-size:36px">{section.title}</h2>
+            </div>
+            <p style="font-family:var(--font-mono);font-size:11px;color:var(--slate);letter-spacing:0.06em">{section.items.length} entries</p>
+          </div>
+          <div style="background:var(--plate-bg);border:1px solid var(--ink);border-top:0;display:grid;grid-template-columns:80px 80px 1fr 80px">
+            {section.items.map((item) => (
+              <a class="br" href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined} style="text-decoration:none;color:inherit">
+                <div class="c year" style="font-family:var(--font-mono);font-size:11px;color:var(--terracotta);font-weight:700">{item.plateNumber}</div>
+                <div class="c year">{item.year}</div>
+                <div class="c title" style="font-family:var(--font-display);font-size:17px;font-weight:500;letter-spacing:-0.005em">
+                  {item.name}
+                  {item.note && <small style="display:block;font-family:var(--font-emphasis);font-style:italic;color:var(--slate);font-size:13px;margin-top:4px;font-weight:400">{item.note}</small>}
+                </div>
+                <div class="c arrow">→</div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
     </section>
   </main>
 </MainLayout>

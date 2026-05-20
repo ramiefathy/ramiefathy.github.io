@@ -1,0 +1,41 @@
+{
+  "id": "aga-causes",
+  "topic": "alopecia",
+  "title": "AGA · Causes & Cofactors",
+  "subtitle": "Mechanisms, modifiers, and treatment targets",
+  "type": "concept-map",
+  "data": {
+    "nodes": [
+      { "id": "aga",  "name": "AGA",  "kind": "condition" },
+      { "id": "dht",  "name": "DHT",  "kind": "mechanism", "detail": "<p>Dihydrotestosterone: the active 5α-reductase product driving follicular miniaturization.</p>" },
+      { "id": "5ar2", "name": "5α-reductase type II", "kind": "mechanism" },
+      { "id": "test", "name": "Testosterone", "kind": "cause" },
+      { "id": "ar",   "name": "Androgen receptor sensitivity", "kind": "mechanism" },
+      { "id": "fhx",  "name": "Family history (polygenic)", "kind": "cause" },
+      { "id": "age",  "name": "Age", "kind": "modifier" },
+      { "id": "stress","name": "Stress / TE overlap", "kind": "modifier" },
+      { "id": "fin",  "name": "Finasteride", "kind": "treatment" },
+      { "id": "dut",  "name": "Dutasteride", "kind": "treatment" },
+      { "id": "min",  "name": "Minoxidil", "kind": "treatment" },
+      { "id": "spi",  "name": "Spironolactone", "kind": "treatment" }
+    ],
+    "edges": [
+      { "from": "test", "to": "5ar2", "kind": "associated-with" },
+      { "from": "5ar2", "to": "dht",  "kind": "causes" },
+      { "from": "dht",  "to": "ar",   "kind": "associated-with" },
+      { "from": "dht",  "to": "aga",  "kind": "causes" },
+      { "from": "ar",   "to": "aga",  "kind": "causes" },
+      { "from": "fhx",  "to": "ar",   "kind": "causes" },
+      { "from": "age",  "to": "aga",  "kind": "exacerbates" },
+      { "from": "stress","to": "aga", "kind": "exacerbates" },
+      { "from": "fin",  "to": "5ar2", "kind": "treats" },
+      { "from": "dut",  "to": "5ar2", "kind": "treats" },
+      { "from": "spi",  "to": "ar",   "kind": "treats" },
+      { "from": "min",  "to": "aga",  "kind": "treats" }
+    ]
+  },
+  "citations": [
+    { "pmid": "12213548", "quote": "Trueb RM. Molecular mechanisms of androgenetic alopecia. Exp Gerontol. 2002;37(8-9):981-990." },
+    { "pmid": "14585162", "quote": "Ellis JA, Sinclair RD, Harrap SB. Androgenetic alopecia: pathogenesis and potential for therapy. Expert Rev Mol Med. 2002." }
+  ]
+}

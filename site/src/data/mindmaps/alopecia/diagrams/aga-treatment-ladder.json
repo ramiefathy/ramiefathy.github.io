@@ -1,0 +1,44 @@
+{
+  "id": "aga-tx-ladder",
+  "topic": "alopecia",
+  "title": "Androgenetic Alopecia · Treatment Ladder",
+  "subtitle": "By line of therapy and patient sex",
+  "type": "swimlane",
+  "data": {
+    "lanes": [
+      { "id": "first",  "name": "First-line" },
+      { "id": "second", "name": "Second-line" },
+      { "id": "third",  "name": "Refractory / adjunct" }
+    ],
+    "rows": [
+      {
+        "id": "male", "name": "Male AGA",
+        "cells": {
+          "first":  { "text": "Topical minoxidil 5% solution or foam BID", "emphasis": "primary", "detail": "<p>Strongest evidence; preferred initial therapy. Counsel on 4-6 month time-to-response.</p>" },
+          "second": { "text": "Oral finasteride 1mg daily", "detail": "<p>5α-reductase inhibitor. Counsel on sexual side effects (rare, often resolve on discontinuation).</p>" },
+          "third":  { "text": "Dutasteride 0.5mg daily off-label · PRP · LLLT (caps/combs) · Hair transplant" }
+        }
+      },
+      {
+        "id": "female", "name": "Female pattern hair loss",
+        "cells": {
+          "first":  { "text": "Topical minoxidil 5% foam QD or 2% solution BID", "emphasis": "primary" },
+          "second": { "text": "Oral spironolactone 100-200mg daily ± oral minoxidil 1.25-2.5mg", "detail": "<p>Spironolactone for antiandrogen effect. Monitor K+ and BP.</p>" },
+          "third":  { "text": "PRP · LLLT · Topical antiandrogens · Transplant if stable", "emphasis": "muted" }
+        }
+      },
+      {
+        "id": "monitor", "name": "Monitoring",
+        "cells": {
+          "first":  { "text": "Photographs at baseline + 6 + 12 months" },
+          "second": { "text": "Hair pull test + density assessment + adverse events", "emphasis": "caution" },
+          "third":  { "text": "Reassess dx if no response by 12 months — consider biopsy", "emphasis": "caution" }
+        }
+      }
+    ]
+  },
+  "citations": [
+    { "url": "https://www.aad.org/public/diseases/hair-loss/types/female-pattern", "quote": "American Academy of Dermatology public guidance describes topical minoxidil and antiandrogen options used in female pattern hair loss." },
+    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK430924/", "quote": "StatPearls Androgenetic Alopecia review summarizes topical minoxidil, finasteride, and adjunctive non-surgical options." }
+  ]
+}

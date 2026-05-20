@@ -20,7 +20,7 @@ site/public/apps/biologic-monitoring-dashboard/
 └── app.js              # Vanilla JS controller (search/filter/render)
 
 site/src/data/apps.json # Updated to register the new app in Astro listing
-site/public/apps/index.html # Static hub updated with marketing card for the dashboard
+site/public/apps/legacy/index.html # Static hub updated with marketing card for the dashboard
 
 docs/
 ├── biologic-monitoring-dashboard.md # Source-verified monitoring tables
@@ -50,7 +50,7 @@ docs/
 3. **App implementation:** built the dashboard UI (`index.html`, `styles.css`, `app.js`, `data.js`) with search/filter/copy functionality and accessible markup.
 4. **Site integration:**
    - `site/src/data/apps.json` includes a new “Biologic Monitoring Dashboard” entry with stack tags and accent colors.
-   - `site/public/apps/index.html` now displays a launch card with iconography and marketing copy.
+   - `site/public/apps/legacy/index.html` now displays a launch card with iconography and marketing copy.
 5. **Handoff documentation:** this file captures scope, approach, current status, and next actions.
 
 ## 4. Outstanding Work & Open Issues

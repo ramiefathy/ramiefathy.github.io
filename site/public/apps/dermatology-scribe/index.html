@@ -1,107 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0f1419">
-    <title>RAMIE - AI Dermatology Scribe</title>
-
-    <!-- Material Icons -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-
-    <!-- Inter Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#F8FAFB">
+    <title>RAMIE — AI Dermatology Scribe</title>
+    <meta name="description" content="Draft structured dermatology clinic notes from transcripts with local autosave, review, and export tools.">
 
     <!-- Styles -->
+    <link rel="stylesheet" href="../shared/material-symbols.css">
     <link rel="stylesheet" href="style-modern.css">
+    <link rel="stylesheet" href="../shared/legacy-tokens.css">
+    <link rel="stylesheet" href="../shared/legacy-primitives.css">
+    <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-status.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
 </head>
-<body>
+
+<body class="legacy-focus-ring" data-legacy-shell="true" data-ui-mode="landing" data-help-steps='["Type or paste transcript text.","Autosave runs locally; watch the Saved/Unsaved status in the header.","If a recovery banner appears, review and accept or discard.","Use Export to download the note."]'>
+    <div id="recovery-banner" class="legacy-status-panel hidden" role="status" aria-live="polite"></div>
     <!-- Landing Page (Initial View) -->
     <div id="landingPage" class="landing-container">
-        <div class="landing-card">
-            <div class="landing-logo">
-                <span class="material-symbols-outlined" style="font-size: 48px; color: #0f1419;">medical_services</span>
-            </div>
-
-            <h1 class="landing-title">RAMIE</h1>
-            <p class="landing-subtitle">Realtime Articulate Medical Intelligence Explorer</p>
-            <p class="landing-description">
-                Explore advanced AI capabilities for dermatological consultations.
-                Choose an interaction mode below to begin a new session.
-            </p>
-
-            <!-- API Configuration -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <span class="card-title">
-                        <span class="material-symbols-outlined card-title-icon">key</span>
-                        Configure API Key
-                    </span>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-3" style="font-size: 0.875rem;">
-                        Enter your Gemini API Key. This key is stored locally in your browser.
-                        For server-side AI features, the application is typically configured with an API key
-                        via environment variables on the server.
-                    </p>
-                    <div class="form-group">
-                        <label class="form-label">Gemini API Key</label>
-                        <input type="password" class="form-input" id="apiKeyInput" placeholder="Enter your API key">
+        <div class="ramie-landing">
+            <main class="ramie-landing__main" aria-label="RAMIE launcher">
+                <div class="ramie-brand">
+                    <div class="ramie-brand__icon" aria-hidden="true">
+                        <span class="material-symbols-outlined">medical_services</span>
                     </div>
-                    <button class="btn-modern btn-primary" style="width: 100%;" onclick="saveApiKey()">
-                        Save API Key
-                    </button>
+                    <div class="ramie-brand__text">
+                        <h1 class="ramie-brand__title">RAMIE</h1>
+                        <p class="ramie-brand__tagline">Realtime Articulate Medical Intelligence Explorer</p>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Mode Selection -->
-            <div class="mode-grid">
-                <div class="mode-card" onclick="startChatMode()">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined mode-icon">chat</span>
-                        <div>
-                            <h3 class="mode-title">Chat with RAMIE</h3>
-                            <p class="mode-description">
-                                Engage in a multimodal diagnostic conversation.
-                                Upload images and documents to enhance the interaction.
-                            </p>
+                <p class="cl-page-subtitle ramie-subtitle">
+                    AI-assisted dermatological consultations with multimodal diagnostic support, real-time transcription, and differential diagnosis.
+                </p>
+
+                <section class="ramie-command" aria-label="Command input">
+                    <div class="ramie-command__input">
+                        <span class="material-symbols-outlined ramie-command__icon" aria-hidden="true">terminal</span>
+                        <input id="ramieCommandInput" class="ramie-command__field" type="text"
+                            placeholder="Describe the consult or type a command…" autocomplete="off">
+                    </div>
+                    <div class="ramie-command__hint" aria-hidden="true">
+                        <span><kbd>/</kbd> Commands</span>
+                        <span><kbd>↑</kbd> Recent</span>
+                        <span><kbd>⌘K</kbd> Quick search</span>
+                    </div>
+                </section>
+
+                <section class="ramie-actions" aria-label="Quick actions">
+                    <p class="caption ramie-section-label">Quick actions</p>
+                    <div class="ramie-quick-actions">
+                        <div class="cl-card ramie-action" id="startChatModeCard" role="button" tabindex="0" data-interactive="true">
+                            <div class="ramie-action__icon" aria-hidden="true">
+                                <span class="material-symbols-outlined">chat</span>
+                            </div>
+                            <div class="ramie-action__text">
+                                <h3 class="ramie-action__title">Start new conversation</h3>
+                                <p class="ramie-action__desc">Chat with image and document upload.</p>
+                            </div>
+                        </div>
+
+                        <div class="cl-card ramie-action" id="startTranscriptionModeCard" role="button" tabindex="0" data-interactive="true">
+                            <div class="ramie-action__icon ramie-action__icon--accent" aria-hidden="true">
+                                <span class="material-symbols-outlined">mic</span>
+                            </div>
+                            <div class="ramie-action__text">
+                                <h3 class="ramie-action__title">Begin transcription</h3>
+                                <p class="ramie-action__desc">Live audio with real-time DDx guidance.</p>
+                            </div>
+                        </div>
+
+                        <div class="cl-card ramie-action" id="viewSavedSessionsCard" role="button" tabindex="0" data-interactive="true">
+                            <div class="ramie-action__icon ramie-action__icon--muted" aria-hidden="true">
+                                <span class="material-symbols-outlined">history</span>
+                            </div>
+                            <div class="ramie-action__text">
+                                <h3 class="ramie-action__title">Resume session</h3>
+                                <p class="ramie-action__desc">Browse and reopen saved consultations.</p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <div class="mode-card" onclick="startTranscriptionMode()">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined mode-icon">mic</span>
-                        <div>
-                            <h3 class="mode-title">Live Transcription & DDx</h3>
-                            <p class="mode-description">
-                                Transcribe patient audio in real-time and receive
-                                AI-generated differential diagnosis suggestions and clinical guidance.
-                            </p>
-                        </div>
+                <div class="ramie-bottom-bar" aria-label="Footer links">
+                    <div class="ramie-bottom-bar__status">
+                        <span class="ramie-status-dot" aria-hidden="true"></span>
+                        UI ready · offline-safe
+                    </div>
+                    <div class="ramie-bottom-bar__links">
+                        <button class="ramie-bottom-bar__link" type="button" data-action="open-settings-link">Settings</button>
+                        <button class="ramie-bottom-bar__link" type="button" data-action="open-help-link">Help</button>
                     </div>
                 </div>
 
-                <div class="mode-card" onclick="viewSavedSessions()">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined mode-icon">folder_open</span>
-                        <div>
-                            <h3 class="mode-title">View Saved Sessions</h3>
-                            <p class="mode-description">
-                                Load or manage previously saved consultation sessions.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <p class="ramie-legal">
+                    © 2026 RAMIE Project. For research and demonstration purposes only. Not for actual medical use. Always consult a qualified healthcare professional.
+                </p>
+            </main>
 
-            <!-- Footer -->
-            <p class="text-muted mt-4" style="font-size: 0.75rem;">
-                © 2025 RAMIE Project. For research and demonstration purposes only.<br>
-                Not for actual medical use. Always consult a qualified healthcare professional.
-            </p>
+            <aside class="ramie-landing__aside" aria-label="Connection settings">
+                <!-- Backend Connection (WebSocket) -->
+                <details class="cl-card ramie-connection" id="connectionSettings">
+                    <summary class="ramie-connection__summary">
+                        <span class="ramie-connection__title">
+                            <span class="material-symbols-outlined ramie-connection__title-icon" aria-hidden="true">link</span>
+                            Connection settings
+                        </span>
+                    </summary>
+                    <div class="ramie-connection__body">
+                        <p class="ramie-connection__help">
+                            Configure the AI Scribe backend WebSocket endpoint and access token. These values are stored locally in your browser.
+                        </p>
+                        <div class="form-group">
+                            <label class="form-label">WebSocket URL</label>
+                            <input type="text" class="form-input" id="websocketUrlInput" placeholder="e.g., ws://localhost:8765 or wss://your-host:8765">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Access Token</label>
+                            <input type="password" class="form-input" id="sessionTokenInput" placeholder="Enter backend token (shared secret or JWT)">
+                            <div class="flex items-center gap-2 mt-2">
+                                <input type="checkbox" id="rememberTokenCheckbox">
+                                <label for="rememberTokenCheckbox" class="text-muted" style="font-size: 0.75rem;">
+                                    Remember token on this device
+                                </label>
+                            </div>
+                        </div>
+                        <button class="btn-modern btn-primary ramie-connection__save" id="saveBackendConfigBtn" type="button">
+                            Save backend settings
+                        </button>
+                    </div>
+                </details>
+            </aside>
         </div>
     </div>
 
@@ -119,7 +153,10 @@
 
                 <div class="header-actions">
                     <span id="sessionMode" class="status-badge status-idle">Live Session Mode</span>
-                    <button class="btn-modern btn-ghost btn-icon" onclick="backToHome()" title="Back to Home">
+                    <button class="btn-modern btn-ghost btn-icon" id="saveSessionBtn" type="button" title="Save session (Ctrl+S)">
+                        <span class="material-symbols-outlined">save</span>
+                    </button>
+                    <button class="btn-modern btn-ghost btn-icon" id="backToHomeBtn" type="button" title="Back to Home">
                         <span class="material-symbols-outlined">home</span>
                     </button>
                 </div>
@@ -136,6 +173,9 @@
                         Live Transcription
                     </span>
                     <div class="flex gap-2">
+                        <button class="btn-modern btn-ghost btn-icon" id="transcriptionImageUploadBtn" type="button" title="Analyze Image">
+                            <span class="material-symbols-outlined">image</span>
+                        </button>
                         <button id="clearTranscriptBtn" class="btn-modern btn-ghost btn-icon" title="Clear">
                             <span class="material-symbols-outlined">clear_all</span>
                         </button>
@@ -194,27 +234,29 @@
                     </button>
                 </div>
                 <div class="panel-content">
-                    <div id="managementOutput">
-                        <p class="text-muted mb-3">AI-suggested investigations, treatments, and referrals.</p>
+	                    <div id="managementOutput">
+	                        <p class="text-muted mb-3">AI-suggested investigations, treatments, and referrals.</p>
 
                         <div class="form-group">
                             <label class="form-label">Diagnoses (comma-separated)</label>
                             <input type="text" class="form-input" id="diagnosesInput"
-                                   placeholder="e.g., Hypertension, Type 2 Diabetes">
+                                placeholder="e.g., Hypertension, Type 2 Diabetes">
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Transcript Summary</label>
                             <textarea class="form-textarea" id="transcriptSummary"
-                                      placeholder="Enter patient transcript or summary..."></textarea>
+                                placeholder="Enter patient transcript or summary..."></textarea>
                         </div>
 
-                        <p class="text-muted mt-3" style="font-size: 0.75rem;">
-                            Fill in diagnoses & transcript, then click "Generate Plan". The plan will appear here.
-                        </p>
-                    </div>
-                </div>
-            </div>
+	                        <p class="text-muted mt-3" style="font-size: 0.75rem;">
+	                            Fill in diagnoses & transcript, then click "Generate Plan". The plan will appear here.
+	                        </p>
+	
+	                        <div id="managementPlanResult" class="mt-4"></div>
+	                    </div>
+	                </div>
+	            </div>
 
             <!-- Panel 4: Clinical SOAP Note -->
             <div class="card panel">
@@ -233,7 +275,8 @@
 
                         <div class="mt-4" style="text-align: center;">
                             <p class="text-accent">
-                                Generate a management plan first. The SOAP note will appear here after clicking "Generate Note".
+                                Generate a management plan first. The SOAP note will appear here after clicking
+                                "Generate Note".
                             </p>
                         </div>
                     </div>
@@ -249,17 +292,21 @@
                         <span class="material-symbols-outlined card-title-icon">chat</span>
                         Live Chat
                     </span>
-                    <div class="flex gap-2">
-                        <button class="btn-modern btn-ghost" onclick="saveRawChat()">
-                            <span class="material-symbols-outlined">save</span>
-                            Save Raw Chat
-                        </button>
-                        <button class="btn-modern btn-primary" onclick="finalizeAndGenerateNote()">
-                            <span class="material-symbols-outlined">edit_note</span>
-                            Finalize & Generate Note
-                        </button>
-                    </div>
-                </div>
+	                    <div class="flex gap-2">
+	                        <button class="btn-modern btn-ghost" id="chatSaveSessionBtn" type="button">
+	                            <span class="material-symbols-outlined">save</span>
+	                            Save Session
+	                        </button>
+	                        <button class="btn-modern btn-ghost" id="chatViewOutputsBtn" type="button">
+	                            <span class="material-symbols-outlined">article</span>
+	                            View Outputs
+	                        </button>
+	                        <button class="btn-modern btn-primary" id="chatFinalizeBtn" type="button">
+	                            <span class="material-symbols-outlined">edit_note</span>
+	                            Finalize & Generate Note
+	                        </button>
+	                    </div>
+	                </div>
 
                 <div class="chat-messages" id="chatMessages">
                     <div class="chat-message chat-message-ai">
@@ -267,20 +314,19 @@
                             <span class="material-symbols-outlined" style="color: #0f1419;">smart_toy</span>
                         </div>
                         <div class="chat-content">
-                            <p>Hello! I am RAMIE, your Realtime Medical Explorer assistant. How can I help you today?</p>
+                            <p>Hello! I am RAMIE, your Realtime Medical Explorer assistant. How can I help you today?
+                            </p>
                             <p class="text-muted mt-2" style="font-size: 0.75rem;">08:47 PM</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="chat-input-container">
-                    <input type="text" class="chat-input" id="chatInput"
-                           placeholder="Type your message..."
-                           onkeypress="if(event.key==='Enter') sendChatMessage()">
-                    <button class="btn-modern btn-ghost btn-icon" title="Attach Image">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
+                    <button class="btn-modern btn-ghost btn-icon" id="chatAttachImageBtn" type="button" title="Attach Image">
                         <span class="material-symbols-outlined">attach_file</span>
                     </button>
-                    <button class="btn-modern btn-primary" onclick="sendChatMessage()">
+                    <button class="btn-modern btn-primary" id="chatSendBtn" type="button">
                         Send
                     </button>
                 </div>
@@ -289,315 +335,286 @@
     </div>
 
     <!-- JavaScript -->
-    <script>
-        // Global state
-        let currentMode = null;
-        let isRecording = false;
-        let recognition = null;
-        // API key held in memory only for the active tab (not persisted).
-        let apiKey = '';
+    <script src="ui-enhancements.js" defer></script>
+    <script src="app.js" defer></script>
 
-        // Initialize Speech Recognition
-        if (window.SpeechRecognition || window.webkitSpeechRecognition) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
+    <!-- Modal backdrop styles -->
+    <style>
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
         }
 
-        // API Key Management
-        function saveApiKey() {
-            const input = document.getElementById('apiKeyInput');
-            if (!input.value) return;
-            apiKey = input.value.trim();
-            showNotification('API Key stored in-memory for this session', 'success');
-            input.value = '';
-        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
 
-        // Mode Selection
-        function startChatMode() {
-            currentMode = 'chat';
-            document.getElementById('landingPage').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('chatView').classList.remove('hidden');
-            document.getElementById('transcriptionView').classList.add('hidden');
-            document.getElementById('sessionMode').textContent = 'Chat Mode';
-            document.getElementById('sessionMode').classList.remove('status-idle');
-            document.getElementById('sessionMode').classList.add('status-processing');
-        }
-
-        function startTranscriptionMode() {
-            currentMode = 'transcription';
-            document.getElementById('landingPage').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('transcriptionView').classList.remove('hidden');
-            document.getElementById('chatView').classList.add('hidden');
-            document.getElementById('sessionMode').textContent = 'Live Transcription Mode';
-            document.getElementById('sessionMode').classList.remove('status-idle');
-            document.getElementById('sessionMode').classList.add('status-recording');
-            setupTranscription();
-        }
-
-        function viewSavedSessions() {
-            showNotification('Saved sessions feature coming soon', 'info');
-        }
-
-        function backToHome() {
-            currentMode = null;
-            document.getElementById('mainApp').classList.add('hidden');
-            document.getElementById('landingPage').classList.remove('hidden');
-            if (recognition && isRecording) {
-                recognition.stop();
-                isRecording = false;
+            to {
+                opacity: 1;
             }
         }
 
-        // Transcription Setup
-        function setupTranscription() {
-            const startBtn = document.getElementById('startBtn');
-            const stopBtn = document.getElementById('stopBtn');
-            const clearBtn = document.getElementById('clearTranscriptBtn');
-
-            startBtn.addEventListener('click', startRecording);
-            stopBtn.addEventListener('click', stopRecording);
-            clearBtn.addEventListener('click', clearTranscript);
-
-            document.getElementById('generatePlanBtn').addEventListener('click', generateManagementPlan);
-            document.getElementById('generateNoteBtn').addEventListener('click', generateSOAPNote);
+        .modal-content {
+            animation: slideUp 0.2s ease;
         }
 
-        function startRecording() {
-            if (!recognition) {
-                showNotification('Speech recognition not supported', 'error');
-                return;
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
             }
 
-            isRecording = true;
-            document.getElementById('startBtn').classList.add('hidden');
-            document.getElementById('stopBtn').classList.remove('hidden');
-            document.getElementById('transcriptionOutput').innerHTML =
-                '<p class="text-accent">Listening...</p>';
-
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
-
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
-                    } else {
-                        interimTranscript += transcript;
-                    }
-                }
-
-                const output = document.getElementById('transcriptionOutput');
-                if (finalTranscript || interimTranscript) {
-                    output.innerHTML = `
-                        <p class="transcript-text">${finalTranscript}</p>
-                        <p class="text-muted" style="font-style: italic;">${interimTranscript}</p>
-                    `;
-                }
-
-                // Auto-generate DDx after significant transcript
-                if (finalTranscript.split(' ').length > 50) {
-                    generateDifferentialDiagnosis(finalTranscript);
-                }
-            };
-
-            recognition.start();
-        }
-
-        function stopRecording() {
-            isRecording = false;
-            if (recognition) recognition.stop();
-            document.getElementById('stopBtn').classList.add('hidden');
-            document.getElementById('startBtn').classList.remove('hidden');
-
-            // Final DDx generation
-            const transcript = document.getElementById('transcriptionOutput').textContent;
-            if (transcript && transcript.length > 100) {
-                generateDifferentialDiagnosis(transcript);
+            to {
+                transform: translateY(0);
+                opacity: 1;
             }
         }
 
-        function clearTranscript() {
-            document.getElementById('transcriptionOutput').innerHTML =
-                '<p class="transcript-placeholder">Press \'Start\' to begin transcription...</p>';
+        .template-card:hover {
+            border-color: var(--accent-primary) !important;
+            transform: translateY(-2px);
         }
 
-        // AI Generation Functions (Placeholders)
-        function generateDifferentialDiagnosis(transcript) {
-            const output = document.getElementById('differentialOutput');
-            output.innerHTML = `
-                <div class="loading-spinner"></div>
-                <p class="text-muted">Generating differential diagnosis...</p>
-            `;
-
-            // Simulated response (replace with actual AI call)
-            setTimeout(() => {
-                output.innerHTML = `
-                    <h4 class="text-accent mb-3">Differential Diagnosis:</h4>
-                    <ol class="diagnosis-list">
-                        <li><strong>Contact Dermatitis</strong> - Based on erythematous papular presentation</li>
-                        <li><strong>Atopic Dermatitis</strong> - Consider given distribution and pruritus</li>
-                        <li><strong>Psoriasis</strong> - Less likely but consider if plaques present</li>
-                    </ol>
-                `;
-            }, 2000);
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 220ms ease;
+            box-shadow: var(--shadow-lg);
         }
 
-        function generateManagementPlan() {
-            const diagnoses = document.getElementById('diagnosesInput').value;
-            const summary = document.getElementById('transcriptSummary').value;
+        .theme-toggle:hover {
+            background: var(--accent-primary);
+            color: var(--text-inverse);
+        }
 
-            if (!diagnoses) {
-                showNotification('Please enter diagnoses', 'warning');
-                return;
+        /* Quick Actions Bar */
+        .quick-actions-bar {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
+            padding: 8px 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 999;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .quick-actions-bar.dragging {
+            cursor: grabbing;
+        }
+
+        .qa-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 160ms ease, color 160ms ease;
+        }
+
+        .qa-btn:hover {
+            background: var(--accent-muted);
+            color: var(--accent-primary);
+        }
+
+        .qa-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .qa-separator {
+            width: 1px;
+            background: var(--border-primary);
+            margin: 4px 0;
+        }
+
+        /* Command Palette */
+        .command-palette-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 15vh;
+            z-index: 10000;
+            animation: fadeIn 0.15s ease;
+        }
+
+        .command-palette {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--border-radius);
+            width: 500px;
+            max-width: 90vw;
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.15s ease;
+        }
+
+        .command-palette input {
+            width: 100%;
+            padding: 16px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            font-size: 16px;
+            outline: none;
+        }
+
+        .command-palette input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        #command-suggestions {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .command-suggestion {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.1s ease;
+        }
+
+        .command-suggestion:hover,
+        .command-suggestion.selected {
+            background: var(--bg-hover);
+        }
+
+        .command-suggestion .icon {
+            font-size: 18px;
+        }
+
+        .command-suggestion .text {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .command-suggestion .shortcut {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            background: var(--bg-primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Focus Mode */
+        body.focus-mode .modern-header,
+        body.focus-mode .quick-actions-bar,
+        body.focus-mode .theme-toggle {
+            display: none;
+        }
+
+        body.focus-mode .main-grid {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        .focus-mode-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .focus-mode-controls button {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+        }
+
+        .focus-mode-controls button:hover {
+            background: var(--accent-primary);
+            color: var(--text-inverse);
+        }
+
+        /* Skip Links for Accessibility */
+        .skip-links-container {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            z-index: 10001;
+        }
+
+        .skip-links {
+            position: absolute;
+            background: var(--accent-primary);
+            color: var(--text-inverse);
+            padding: 8px 16px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .skip-links:focus {
+            top: 40px;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
             }
 
-            const output = document.getElementById('managementOutput');
-            output.innerHTML = `
-                <div class="loading-spinner"></div>
-                <p class="text-muted">Generating management plan...</p>
-            `;
-
-            // Simulated response
-            setTimeout(() => {
-                output.innerHTML = `
-                    <h4 class="text-accent mb-3">Management Plan:</h4>
-                    <div class="plan-section">
-                        <h5>Investigations:</h5>
-                        <ul>
-                            <li>Patch testing if contact dermatitis suspected</li>
-                            <li>Total IgE and specific IgE if atopic</li>
-                        </ul>
-                    </div>
-                    <div class="plan-section mt-3">
-                        <h5>Treatment:</h5>
-                        <ul>
-                            <li>Topical corticosteroids - moderate potency</li>
-                            <li>Emollients for barrier repair</li>
-                            <li>Antihistamines for pruritus</li>
-                        </ul>
-                    </div>
-                `;
-            }, 2000);
-        }
-
-        function generateSOAPNote() {
-            const output = document.getElementById('soapNoteOutput');
-            output.innerHTML = `
-                <div class="loading-spinner"></div>
-                <p class="text-muted">Generating SOAP note...</p>
-            `;
-
-            // Simulated response
-            setTimeout(() => {
-                output.innerHTML = `
-                    <h4 class="text-accent mb-3">SOAP Note:</h4>
-                    <div class="soap-section">
-                        <h5>Subjective:</h5>
-                        <p>Patient presents with 2-week history of erythematous papular rash on bilateral forearms with mild pruritus.</p>
-                    </div>
-                    <div class="soap-section mt-3">
-                        <h5>Objective:</h5>
-                        <p>Examination reveals bilateral symmetric papular eruption on forearms, no vesicles or scaling noted.</p>
-                    </div>
-                    <div class="soap-section mt-3">
-                        <h5>Assessment:</h5>
-                        <p>Contact dermatitis vs atopic dermatitis</p>
-                    </div>
-                    <div class="soap-section mt-3">
-                        <h5>Plan:</h5>
-                        <p>Start topical corticosteroids, patch testing if no improvement in 2 weeks.</p>
-                    </div>
-                `;
-            }, 2000);
-        }
-
-        // Chat Functions
-        function sendChatMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-
-            if (!message) return;
-
-            // Add user message
-            addChatMessage(message, 'user');
-            input.value = '';
-
-            // Simulated AI response
-            setTimeout(() => {
-                addChatMessage('I understand your concern. Can you provide more details about the symptoms?', 'ai');
-            }, 1000);
-        }
-
-        function addChatMessage(text, sender) {
-            const messagesContainer = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message chat-message-${sender}`;
-
-            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-            messageDiv.innerHTML = `
-                <div class="chat-avatar">
-                    <span class="material-symbols-outlined" style="color: #0f1419;">
-                        ${sender === 'user' ? 'person' : 'smart_toy'}
-                    </span>
-                </div>
-                <div class="chat-content">
-                    <p>${text}</p>
-                    <p class="text-muted mt-2" style="font-size: 0.75rem;">${time}</p>
-                </div>
-            `;
-
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        function saveRawChat() {
-            showNotification('Chat saved successfully', 'success');
-        }
-
-        function finalizeAndGenerateNote() {
-            showNotification('Generating clinical note from chat...', 'info');
-        }
-
-        // Utility Functions
-        function showNotification(message, type = 'info') {
-            // Simple notification (can be enhanced with a proper notification system)
-            console.log(`[${type.toUpperCase()}] ${message}`);
-
-            // Create temporary notification
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 80px;
-                right: 20px;
-                padding: 1rem 1.5rem;
-                background: var(--bg-tertiary);
-                border: 1px solid var(--accent-primary);
-                border-radius: var(--border-radius);
-                color: var(--text-primary);
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-            `;
-            notification.textContent = message;
-
-            document.body.appendChild(notification);
-            setTimeout(() => notification.remove(), 3000);
-        }
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check for saved API key
-            if (apiKey) {
-                document.getElementById('apiKeyInput').placeholder = 'API Key already configured';
+            to {
+                transform: translateX(0);
+                opacity: 1;
             }
-        });
-    </script>
+        }
+    </style>
 </body>
+
 </html>

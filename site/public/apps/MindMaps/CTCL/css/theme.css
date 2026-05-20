@@ -1,0 +1,32 @@
+/* CTCL MindMaps theme colors */
+
+body {
+    --mindmap-node-fill-0: color-mix(in oklab, var(--cl-primary, #9f4d36), white 80%);
+    --mindmap-node-fill-1: color-mix(in oklab, var(--cl-primary, #9f4d36), white 86%);
+    --mindmap-node-fill-2: color-mix(in oklab, var(--cl-accent, #164e63), white 88%);
+    --mindmap-node-fill-3: color-mix(in oklab, var(--cl-accent, #164e63), white 92%);
+    --mindmap-node-fill-4: color-mix(in oklab, var(--cl-primary, #9f4d36), white 94%);
+    --mindmap-link: color-mix(in oklab, var(--cl-accent, #164e63), white 72%);
+    --mindmap-node-stroke: color-mix(in oklab, var(--cl-accent, #164e63), black 6%);
+    --mindmap-collapsible-stroke: color-mix(in oklab, var(--cl-primary, #9f4d36), black 10%);
+}
+
+.tab-group-blue,
+.tab-group-accent,
+.tab-group-green {
+    color: var(--cl-accent, #164e63);
+}
+
+.tab-group-blue.active,
+.tab-group-accent.active,
+.tab-group-green.active {
+    font-weight: 600;
+    background-color: color-mix(in oklab, var(--cl-primary-subtle, #f4f0e8), white 45%);
+    border-color: var(--cl-primary, #9f4d36);
+}
+
+.tooltip-title { color: color-mix(in oklab, var(--cl-accent, #164e63), white 36%); }
+.tooltip-content strong { color: color-mix(in oklab, var(--cl-primary, #9f4d36), white 18%); }
+
+.search-result-item:hover { background-color: color-mix(in oklab, var(--cl-primary-subtle, #f4f0e8), white 45%); }
+.search-result-item-active { background-color: color-mix(in oklab, var(--cl-primary, #9f4d36), white 88%); }

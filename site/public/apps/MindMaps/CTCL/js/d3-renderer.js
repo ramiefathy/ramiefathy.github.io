@@ -1,8 +1,15 @@
 // js/d3-renderer.js
 
 function MindMapRenderer(container, data, options = {}) {
-    const { onNodeClick } = options;
+    const { onNodeClick, onNodeSelect } = options;
     const tooltip = d3.select('#tooltip');
+    const fallbackNodePalette = ['#dccdb1', '#c98562', '#dcd2bd', '#5b7058', '#e8e2d4'];
+    const getNodeFillCss = (depth) => {
+        const clampedDepth = Math.max(0, Math.min(fallbackNodePalette.length - 1, Number.isFinite(depth) ? depth : 0));
+        const fallbackColor = fallbackNodePalette[clampedDepth] || fallbackNodePalette[fallbackNodePalette.length - 1];
+        // Use CSS properties (not SVG attributes) so the browser can resolve color-mix() values in custom properties.
+        return `var(--mindmap-node-fill-${clampedDepth}, ${fallbackColor})`;
+    };
 
     // --- Configuration ---
     const CONFIG = {
@@ -11,18 +18,13 @@ function MindMapRenderer(container, data, options = {}) {
             mobile: { minRadius: 20, maxRadius: 38, minFont: 5, maxFont: 9 },
             desktop: { minRadius: 25, maxRadius: 45, minFont: 6, maxFont: 11 }
         },
-        colors: {
-            nodes: ['#c4b5fd', '#ddd6fe', '#e9d5ff', '#f3e8ff', '#faf5ff'],
-            collapsible: '#3730a3'
-        },
+        colors: {},
         zoom: { min: 0.5, max: 3 }
     };
 
     // --- Setup SVG and Main Group ---
     const { width, height } = container.getBoundingClientRect();
-    
-    // *** DEBUG: Add validation for container dimensions ***
-    console.log('Container dimensions:', { width, height });
+
     if (!width || !height || width <= 0 || height <= 0) {
         console.error('Invalid container dimensions:', { width, height });
         return null;
@@ -36,15 +38,161 @@ function MindMapRenderer(container, data, options = {}) {
         .attr("viewBox", [-width / 2, -height / 2, width, height])
         .style("font", "10px sans-serif");
     
-    // *** FIX: Append the SVG to the DOM IMMEDIATELY ***
-    // This ensures that all subsequent measurements like getComputedTextLength() will work.
     container.append(svg.node());
 
+    const NODE_TEXT = {
+        fontPx: 14,
+        lineHeightEm: 1.15,
+        hPadPx: 24,
+        vPadPx: 16,
+        minRxPx: 50,
+        minRyPx: 40
+    };
+
+    const measureTextElement = svg.append('text')
+        .attr('class', 'mindmap-measure-text')
+        .attr('x', 0)
+        .attr('y', 0)
+        .style('visibility', 'hidden')
+        .style('font-family', 'var(--font-body, var(--legacy-font-sans, ui-sans-serif))')
+        .style('font-weight', '500')
+        .attr('text-anchor', 'start')
+        .attr('dominant-baseline', 'alphabetic');
+
     const g = svg.append("g");
-    
-    // *** FIX: Create separate groups for links and nodes to ensure proper layering ***
     const linksGroup = g.append("g").attr("class", "links-group");
     const nodesGroup = g.append("g").attr("class", "nodes-group");
+    let currentNodeDimensionsById = new Map();
+
+    const getNodeSizeCeilings = () => {
+        const maxR = Math.min(width, height) * 0.12;
+        return {
+            maxRy: maxR,
+            maxRx: maxR * 1.3
+        };
+    };
+
+    const measureTextWidthPx = (text, fontPx) => {
+        const safeFontPx = Number.isFinite(fontPx) ? fontPx : NODE_TEXT.fontPx;
+        measureTextElement.attr('font-size', `${safeFontPx}px`).text(text);
+        const node = measureTextElement.node();
+        if (!node) return 0;
+        const measured = node.getComputedTextLength();
+        return Number.isFinite(measured) ? measured : 0;
+    };
+
+    const tokenizeLabelForWrap = (label) => {
+        const trimmed = ((label || '') + '').trim();
+        if (!trimmed) return [];
+
+        const words = trimmed.split(/\s+/).filter(Boolean);
+        const tokens = [];
+
+        words.forEach((word, wordIndex) => {
+            const wordJoiner = wordIndex === 0 ? '' : ' ';
+            if (!word.includes('-')) {
+                tokens.push({ text: word, joinerBefore: wordJoiner });
+                return;
+            }
+
+            const segments = word.split('-');
+            segments.forEach((segment, segmentIndex) => {
+                if (!segment) return;
+                const joinerBefore = segmentIndex === 0 ? wordJoiner : '';
+                const text = segmentIndex < segments.length - 1 ? `${segment}-` : segment;
+                tokens.push({ text, joinerBefore });
+            });
+        });
+
+        return tokens;
+    };
+
+    const wrapTokensToLines = (tokens, { maxWidthPx, fontPx, maxLines }) => {
+        const safeMaxWidth = Math.max(24, Number.isFinite(maxWidthPx) ? maxWidthPx : 0);
+        const safeMaxLines = Math.max(1, Math.floor(Number.isFinite(maxLines) ? maxLines : 1));
+        const safeFontPx = Number.isFinite(fontPx) ? fontPx : NODE_TEXT.fontPx;
+
+        if (!tokens.length) return [''];
+
+        const lines = [];
+        let current = '';
+
+        for (const token of tokens) {
+            const joiner = current ? (token.joinerBefore || '') : '';
+            const candidate = `${current}${joiner}${token.text}`;
+            const candidateWidth = measureTextWidthPx(candidate, safeFontPx);
+
+            if (current && candidateWidth > safeMaxWidth) {
+                lines.push(current.trim());
+                current = token.text;
+            } else {
+                current = candidate;
+            }
+        }
+
+        if (current.trim()) lines.push(current.trim());
+
+        if (lines.length <= safeMaxLines) return lines;
+
+        const head = lines.slice(0, safeMaxLines - 1);
+        const tail = lines.slice(safeMaxLines - 1).join(' ');
+        return [...head, tail.trim()].filter(Boolean);
+    };
+
+    const getNodeMaxLines = (depth) => (depth <= 1 ? 3 : 2);
+
+    const computeNodeDimensions = (label, depth) => {
+        const fontPx = NODE_TEXT.fontPx;
+        const maxLines = getNodeMaxLines(depth);
+        const { maxRx, maxRy } = getNodeSizeCeilings();
+
+        const maxLineWidthPx = Math.max(40, (maxRx - NODE_TEXT.hPadPx) * 2);
+        const tokens = tokenizeLabelForWrap(label);
+        const lines = wrapTokensToLines(tokens, {
+            maxWidthPx: maxLineWidthPx,
+            fontPx,
+            maxLines
+        });
+
+        const lineWidths = lines.map((line) => measureTextWidthPx(line, fontPx));
+        const widestLine = Math.max(0, ...lineWidths);
+        const rx = Math.min(maxRx, Math.max(NODE_TEXT.minRxPx, widestLine / 2 + NODE_TEXT.hPadPx));
+
+        const lineHeightPx = fontPx * NODE_TEXT.lineHeightEm;
+        const totalTextHeightPx = Math.max(1, lines.length) * lineHeightPx;
+        const ry = Math.min(maxRy, Math.max(NODE_TEXT.minRyPx, totalTextHeightPx / 2 + NODE_TEXT.vPadPx));
+
+        return {
+            rx,
+            ry,
+            fontPx,
+            lines
+        };
+    };
+
+    const renderWrappedText = (element, { lines, fontPx }) => {
+        const textElement = d3.select(element);
+        const safeFontPx = Number.isFinite(fontPx) ? fontPx : NODE_TEXT.fontPx;
+        const safeLines = Array.isArray(lines) && lines.length ? lines : [''];
+
+        textElement
+            .text(null)
+            .attr('font-size', `${safeFontPx}px`)
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'central')
+            .style('font-family', 'var(--font-body, var(--legacy-font-sans, ui-sans-serif))')
+            .style('font-weight', '500');
+
+        const startDy = -((safeLines.length - 1) * NODE_TEXT.lineHeightEm) / 2;
+        safeLines.forEach((lineText, index) => {
+            textElement
+                .append('tspan')
+                .attr('x', 0)
+                .attr('dy', `${index === 0 ? startDy : NODE_TEXT.lineHeightEm}em`)
+                .text(lineText);
+        });
+    };
+
 
     // --- Setup Zoom Behavior ---
     const zoom = d3.zoom()
@@ -56,29 +204,70 @@ function MindMapRenderer(container, data, options = {}) {
 
     // --- Hierarchy and Layout ---
     const root = d3.hierarchy(data);
-    root.descendants().forEach((d, i) => { 
+    root.descendants().forEach((d, i) => {
         d.id = d.data.id || `node-${i}`;
-        // *** FIX: Set initial coordinates to center (0,0) for radial layout ***
         d.x0 = 0; // angle
         d.y0 = 0; // radius from center
     });
-    
-    // *** FIX: Calculate tree radius and run initial layout ***
+
     const treeRadius = Math.min(width, height) / 2 - (isMobile ? 60 : 100);
-    console.log('Tree layout parameters:', { width, height, treeRadius, isMobile });
-    
+
     if (!treeRadius || treeRadius <= 0) {
         console.error('Invalid tree radius:', treeRadius);
         return null;
     }
-    
-    // *** Apply initial fixed sector positioning ***
+
+    const toFiniteNumber = (value, fallback = 0) => {
+        const parsed = typeof value === 'number' ? value : Number(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    };
+
+    const safeNodePoint = (node, fallbackNode = null) => {
+        const fallbackX = fallbackNode
+            ? toFiniteNumber(fallbackNode.x, toFiniteNumber(fallbackNode.x0, 0))
+            : 0;
+        const fallbackY = fallbackNode
+            ? toFiniteNumber(fallbackNode.y, toFiniteNumber(fallbackNode.y0, 0))
+            : 0;
+
+        return {
+            x: toFiniteNumber(node?.x, toFiniteNumber(node?.x0, fallbackX)),
+            y: toFiniteNumber(node?.y, toFiniteNumber(node?.y0, fallbackY))
+        };
+    };
+
+    const linkGenerator = d3.linkRadial()
+        .angle(point => point.x)
+        .radius(point => point.y);
+
+    const safeCollapsedPath = (sourceNode) => {
+        const sourcePoint = safeNodePoint(sourceNode);
+        try {
+            return linkGenerator({ source: sourcePoint, target: sourcePoint }) || 'M0,0L0,0';
+        } catch {
+            return 'M0,0L0,0';
+        }
+    };
+
+    const safeLinkPath = (linkDatum) => {
+        const sourcePoint = safeNodePoint(linkDatum?.source);
+        const targetPoint = safeNodePoint(linkDatum?.target, linkDatum?.source);
+        try {
+            return linkGenerator({ source: sourcePoint, target: targetPoint }) || 'M0,0L0,0';
+        } catch {
+            return 'M0,0L0,0';
+        }
+    };
+
     applyFixedSectorPositioning(root);
     
     // Set initial positions for all nodes
     root.descendants().forEach(d => {
-        d.x0 = d.x || 0;
-        d.y0 = d.y || 0;
+        const point = safeNodePoint(d);
+        d.x = point.x;
+        d.y = point.y;
+        d.x0 = point.x;
+        d.y0 = point.y;
     });
     
     // Initial collapse of all nodes beyond the first level
@@ -86,47 +275,61 @@ function MindMapRenderer(container, data, options = {}) {
         root.children.forEach(collapse);
     }
     
-    // *** FIXED ANGULAR SECTORS: Custom positioning to prevent redistribution ***
+    // Fixed angular sectors for stable branch positioning.
     function applyFixedSectorPositioning(rootNode) {
-        // Get main branches (direct children of root)
         const mainBranches = rootNode.children || [];
+        if (mainBranches.length === 0) {
+            rootNode.x = 0;
+            rootNode.y = 0;
+            return rootNode;
+        }
+
+        if (mainBranches.length === 2) {
+            rootNode.x = 0;
+            rootNode.y = 0;
+            const dualBranchAngles = [Math.PI * 0.25, Math.PI * 1.25];
+
+            mainBranches.forEach((branch, index) => {
+                branch.x = toFiniteNumber(dualBranchAngles[index], 0);
+                branch.y = toFiniteNumber(treeRadius * 0.52);
+            });
+
+            return rootNode;
+        }
+
         const sectorSize = (2 * Math.PI) / mainBranches.length;
         const padding = 0.1; // Small padding between sectors
-        
-        console.log('Applying fixed sectors for', mainBranches.length, 'main branches');
-        
+
         // Position root at center
         rootNode.x = 0;
         rootNode.y = 0;
-        
+
         // Assign fixed sectors to main branches
         mainBranches.forEach((branch, index) => {
             const sectorStart = index * sectorSize + padding;
             const sectorEnd = (index + 1) * sectorSize - padding;
             const sectorCenter = (sectorStart + sectorEnd) / 2;
-            
+
             // Position main branch at fixed angle
-            branch.x = sectorCenter;
-            branch.y = treeRadius * 0.45; // Position at 45% of radius for more spacing from center
-            
-            console.log(`Branch ${branch.data.id}: sector ${sectorStart.toFixed(2)} to ${sectorEnd.toFixed(2)}, center ${sectorCenter.toFixed(2)}`);
-            
+            branch.x = toFiniteNumber(sectorCenter);
+            branch.y = toFiniteNumber(treeRadius * 0.45); // Position at 45% of radius for more spacing from center
+
             // Position children within the branch's sector
             if (branch.children && branch.children.length > 0) {
                 const childSectorSize = (sectorEnd - sectorStart) / branch.children.length;
-                
+
                 branch.children.forEach((child, childIndex) => {
                     const childAngle = sectorStart + (childIndex + 0.5) * childSectorSize;
-                    child.x = childAngle;
-                    child.y = treeRadius * 0.75; // Position at 75% of radius for better spacing
-                    
+                    child.x = toFiniteNumber(childAngle, branch.x);
+                    child.y = toFiniteNumber(treeRadius * 0.75, branch.y); // Position at 75% of radius for better spacing
+
                     // Position grandchildren if they exist
                     if (child.children && child.children.length > 0) {
                         const grandChildSectorSize = childSectorSize / child.children.length;
                         child.children.forEach((grandChild, grandIndex) => {
                             const grandChildAngle = childAngle - childSectorSize/2 + (grandIndex + 0.5) * grandChildSectorSize;
-                            grandChild.x = grandChildAngle;
-                            grandChild.y = treeRadius * 0.95; // Position at 95% of radius for better spacing
+                            grandChild.x = toFiniteNumber(grandChildAngle, child.x);
+                            grandChild.y = toFiniteNumber(treeRadius * 0.95, child.y); // Position at 95% of radius for better spacing
                         });
                     }
                 });
@@ -139,90 +342,95 @@ function MindMapRenderer(container, data, options = {}) {
     // --- Render Function ---
     function update(source) {
         const duration = CONFIG.animation.duration;
-        
-        // *** Use custom fixed sector positioning instead of D3 tree layout ***
+
+        const sourcePoint = safeNodePoint(source);
+        source.x = sourcePoint.x;
+        source.y = sourcePoint.y;
+        source.x0 = toFiniteNumber(source.x0, sourcePoint.x);
+        source.y0 = toFiniteNumber(source.y0, sourcePoint.y);
+
         const treeData = applyFixedSectorPositioning(root);
         const nodes = treeData.descendants().reverse();
         const links = treeData.links();
 
-        const { radii } = calculateSizing(nodes);
+        currentNodeDimensionsById = new Map();
+        nodes.forEach((node) => {
+            const depth = Number.isFinite(node.depth) ? node.depth : 0;
+            currentNodeDimensionsById.set(node.id, computeNodeDimensions(node.data?.name || '', depth));
+        });
 
         // --- Links ---
         linksGroup.selectAll(".link").data(links, d => d.target.id)
             .join(
                 enter => enter.append("path").attr("class", "link")
-                    .attr("d", d => {
-                        const o = { x: source.x0 || 0, y: source.y0 || 0 };
-                        // *** DEBUG: Check for NaN in link source coordinates ***
-                        if (isNaN(o.x) || isNaN(o.y)) {
-                            console.error('NaN in link source coordinates:', { source: source, o: o });
-                            o.x = 0; o.y = 0;
-                        }
-                        return d3.linkRadial()({ source: o, target: o });
-                    }),
+                    .attr("d", () => safeCollapsedPath(source)),
                 update => update,
-                exit => exit.transition().duration(duration).attr("d", d => {
-                    const o = { x: source.x || 0, y: source.y || 0 };
-                    // *** DEBUG: Check for NaN in link exit coordinates ***
-                    if (isNaN(o.x) || isNaN(o.y)) {
-                        console.error('NaN in link exit coordinates:', { source: source, o: o });
-                        o.x = 0; o.y = 0;
-                    }
-                    return d3.linkRadial()({ source: o, target: o });
-                }).remove()
+                exit => exit.transition().duration(duration)
+                    .attr("d", () => safeCollapsedPath(source))
+                    .remove()
             )
             .transition().duration(duration)
-            .attr("d", d => {
-                // *** FIX: Robust coordinate validation and safe path generation ***
-                try {
-                    const sourceX = d.source.x || 0;
-                    const sourceY = d.source.y || 0;
-                    const targetX = d.target.x || 0;
-                    const targetY = d.target.y || 0;
-                    
-                    if (isNaN(sourceX) || isNaN(sourceY) || isNaN(targetX) || isNaN(targetY)) {
-                        console.warn('Invalid coordinates, using safe path');
-                        return "M0,0L0,0";
-                    }
-                    
-                    return d3.linkRadial().angle(d => d.x || 0).radius(d => d.y || 0)(d);
-                } catch (error) {
-                    console.error('Error generating link path:', error);
-                    return "M0,0L0,0";
-                }
-            });
+            .attr("d", d => safeLinkPath(d));
 
         // --- Nodes ---
+        const nodeTranslate = (node, fallbackNode = null) => {
+            const { x, y } = safeNodePoint(node, fallbackNode);
+            const [tx, ty] = radialPoint(x, y);
+            return `translate(${tx},${ty})`;
+        };
+
         nodesGroup.selectAll(".node").data(nodes, d => d.id)
             .join(
                 enter => {
                     const nodeEnter = enter.append("g")
                         .attr("class", "node")
-                        .attr("transform", d => `translate(${radialPoint(source.x0, source.y0)})`)
+                        .attr("transform", () => nodeTranslate(source))
                         .on("click", clickHandler);
 
-                    nodeEnter.append("circle").attr("r", 1e-6);
-                    nodeEnter.append("text").attr("class", "node-text")
-                        .each(function(d) { wrapText(this, d, radii); });
+                    nodeEnter.append("ellipse")
+                        .attr("rx", 1e-6)
+                        .attr("ry", 1e-6)
+                        .style("fill", d => getNodeFillCss(d.depth));
+                    nodeEnter.append("text").attr("class", "node-text");
                     
                     return nodeEnter;
                 },
                 update => update,
                 exit => exit.transition().duration(duration)
-                    .attr("transform", d => `translate(${radialPoint(source.x, source.y)})`).remove()
-                    .select("circle").attr("r", 1e-6)
+                    .attr("transform", () => nodeTranslate(source)).remove()
+                    .select("ellipse").attr("rx", 1e-6).attr("ry", 1e-6)
             )
             .attr("tabindex", -1) // For focus
             .on('mousemove', tooltipMoveHandler)
             .on('mouseleave', tooltipLeaveHandler)
-            .transition().duration(duration)
-            .attr("transform", d => `translate(${radialPoint(d.x, d.y)})`)
-            .select("circle")
-            .attr("r", d => radii[d.depth] || radii[radii.length-1])
-            .attr("fill", d => CONFIG.colors.nodes[d.depth] || CONFIG.colors.nodes[CONFIG.colors.nodes.length-1])
+            .select("ellipse")
+            .style("fill", d => getNodeFillCss(d.depth))
             .attr("class", d => d._children ? "collapsible" : "");
         
-        nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
+        nodesGroup.selectAll(".node").data(nodes, d => d.id)
+            .transition().duration(duration)
+            .attr("transform", d => nodeTranslate(d, source));
+
+        nodesGroup.selectAll(".node").data(nodes, d => d.id)
+            .select("ellipse")
+            .transition().duration(duration)
+            .attr("rx", d => currentNodeDimensionsById.get(d.id)?.rx || 50)
+            .attr("ry", d => currentNodeDimensionsById.get(d.id)?.ry || 40);
+
+        const nodeTexts = nodesGroup.selectAll(".node text.node-text");
+        nodeTexts.each(function(d) {
+            const dims = currentNodeDimensionsById.get(d.id);
+            if (!dims) return;
+            renderWrappedText(this, dims);
+        });
+
+        nodes.forEach(d => {
+            const point = safeNodePoint(d);
+            d.x = point.x;
+            d.y = point.y;
+            d.x0 = point.x;
+            d.y0 = point.y;
+        });
     }
 
     // --- Helper Functions ---
@@ -232,20 +440,18 @@ function MindMapRenderer(container, data, options = {}) {
         let sizeMultiplier = 1.0;
         if (visibleNodeCount <= 10) sizeMultiplier = 1.1;
         else if (visibleNodeCount > 20) sizeMultiplier = 0.9;
-        
+
         const config = isMobile ? CONFIG.sizing.mobile : CONFIG.sizing.desktop;
-        const baseRadii = [config.maxRadius, 38, 32, 28, config.minRadius];
+        const maxAllowedRadius = Math.max(config.minRadius, Math.round(Math.min(width, height) * 0.12));
+        const baseRadii = [Math.min(config.maxRadius, maxAllowedRadius), 38, 32, 28, config.minRadius];
         const radii = baseRadii.map(r => Math.round(r * sizeMultiplier));
         return { radii };
     }
 
-    function radialPoint(x, y) { 
-        // *** DEBUG: Add validation for radial point calculations ***
-        if (isNaN(x) || isNaN(y)) {
-            console.error('NaN values in radialPoint:', { x, y });
-            return [0, 0]; // Return safe default
-        }
-        return [(y = +y) * Math.cos(x -= Math.PI / 2), y * Math.sin(x)]; 
+    function radialPoint(x, y) {
+        const safeX = toFiniteNumber(x);
+        const safeY = toFiniteNumber(y);
+        return [safeY * Math.cos(safeX - Math.PI / 2), safeY * Math.sin(safeX - Math.PI / 2)];
     }
     
     function collapse(d) {
@@ -256,30 +462,202 @@ function MindMapRenderer(container, data, options = {}) {
         }
     }
 
-    function wrapText(element, d, radii) {
+    function wrapText(element, d, radii, { render = true, radiusCeiling = null } = {}) {
         const textElement = d3.select(element);
-        const words = d.data.name.split(/\s+/).filter(w => w.length > 0);
-        const lineHeight = 1.1;
-        const radius = radii[d.depth] || radii[radii.length-1];
-        const maxLineWidth = (radius - 5) * 2;
-        textElement.text(null);
+        const depth = Number.isFinite(d.depth) ? d.depth : 0;
+        const radiusBase = radii[depth] || radii[radii.length - 1] || 24;
+        const label = ((d.data?.name || '') + '').trim();
+        const words = label.split(/\s+/).filter(Boolean);
 
-        let lines = []; let line = [];
-        let tempTspan = textElement.append("tspan");
-        words.forEach(word => {
-            line.push(word);
-            tempTspan.text(line.join(" "));
-            if (tempTspan.node().getComputedTextLength() > maxLineWidth && line.length > 1) {
-                line.pop(); lines.push(line.join(" ")); line = [word];
+        const fontPx = 14;
+        const lineHeightEm = 1.1;
+        const paddingPx = 2;
+        const maxLines = depth <= 1 ? 3 : 2;
+        const radiusMax = depth <= 1
+            ? Math.min(Number.isFinite(radiusCeiling) ? radiusCeiling : radiusBase, Math.round(radiusBase * 1.25))
+            : radiusBase;
+
+        const renderLines = (lines) => {
+            textElement
+                .text(null)
+                .attr("font-size", `${fontPx}px`)
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "central")
+                // Ensure measurements use the final suite typography immediately (avoids post-font-load overflow).
+                .style("font-family", "var(--font-body, var(--legacy-font-sans, ui-sans-serif))")
+                .style("font-weight", "500");
+            const startDy = -((lines.length - 1) * lineHeightEm) / 2;
+            lines.forEach((lineText, index) => {
+                textElement
+                    .append("tspan")
+                    .attr("x", 0)
+                    .attr("dy", index === 0 ? `${startDy}em` : `${lineHeightEm}em`)
+                    .text(lineText);
+            });
+        };
+
+        const renderedTextFitsCircle = (radius) => {
+            const node = textElement.node();
+            if (!node) return true;
+            const bbox = node.getBBox();
+            if (bbox.width <= 0 || bbox.height <= 0) return true;
+            const radiusSafe = Math.max(4, radius - paddingPx);
+            const corners = [
+                { x: bbox.x, y: bbox.y },
+                { x: bbox.x + bbox.width, y: bbox.y },
+                { x: bbox.x, y: bbox.y + bbox.height },
+                { x: bbox.x + bbox.width, y: bbox.y + bbox.height }
+            ];
+            return corners.every((corner) => Math.hypot(corner.x, corner.y) <= radiusSafe);
+        };
+
+        const maxCornerDistance = () => {
+            const node = textElement.node();
+            if (!node) return Number.POSITIVE_INFINITY;
+            const bbox = node.getBBox();
+            if (bbox.width <= 0 || bbox.height <= 0) return 0;
+            const corners = [
+                { x: bbox.x, y: bbox.y },
+                { x: bbox.x + bbox.width, y: bbox.y },
+                { x: bbox.x, y: bbox.y + bbox.height },
+                { x: bbox.x + bbox.width, y: bbox.y + bbox.height }
+            ];
+            return Math.max(...corners.map((corner) => Math.hypot(corner.x, corner.y)));
+        };
+
+        const isMicroLine = (line) => /^[A-Za-z]{1,2}(?:…)?$/.test(line);
+
+        const truncateLastLineToFit = (lines, radius) => {
+            if (!lines.length) return null;
+            const lastIndex = lines.length - 1;
+            const base = lines[lastIndex].trim();
+            if (!base) return null;
+
+            const minChars = 3;
+            const attempts = [];
+            if (base.includes(" ")) {
+                const parts = base.split(/\s+/);
+                for (let cut = parts.length - 1; cut >= 1; cut -= 1) {
+                    attempts.push(`${parts.slice(0, cut).join(" ")}…`);
+                }
             }
-        });
-        lines.push(line.join(" "));
-        tempTspan.remove();
 
-        const startY = -(lines.length - 1) * 0.5 * lineHeight;
-        lines.forEach((lineText, i) => {
-            textElement.append("tspan").attr("x", 0).attr("dy", i === 0 ? `${startY}em` : `${lineHeight}em`).text(lineText);
-        });
+            for (let len = base.length; len >= minChars; len -= 1) {
+                attempts.push(`${base.slice(0, len).trimEnd()}…`);
+            }
+
+            for (const candidate of attempts) {
+                const core = candidate.replace(/…$/, "");
+                if (core.length < minChars) continue;
+                if (isMicroLine(candidate)) continue;
+                const mutated = [...lines];
+                mutated[lastIndex] = candidate;
+                renderLines(mutated);
+                if (renderedTextFitsCircle(radius)) return mutated;
+            }
+
+            return null;
+        };
+
+        const buildCandidates = () => {
+            if (!words.length) return [[""]];
+            const candidates = [];
+            candidates.push([words.join(" ")]);
+
+            if (words.length >= 2 && maxLines >= 2) {
+                for (let i = 1; i < words.length; i += 1) {
+                    candidates.push([words.slice(0, i).join(" "), words.slice(i).join(" ")]);
+                }
+            }
+
+            if (words.length >= 3 && maxLines >= 3) {
+                for (let i = 1; i < words.length - 1; i += 1) {
+                    for (let j = i + 1; j < words.length; j += 1) {
+                        candidates.push([
+                            words.slice(0, i).join(" "),
+                            words.slice(i, j).join(" "),
+                            words.slice(j).join(" ")
+                        ]);
+                    }
+                }
+            }
+
+            return candidates;
+        };
+
+        const pickBest = (radius, allowEllipsis) => {
+            const candidates = buildCandidates();
+            let best = null;
+
+            for (const candidate of candidates) {
+                if (candidate.slice(0, -1).some((line) => isMicroLine(line))) continue;
+                renderLines(candidate);
+                let ellipsisUsed = false;
+                let lines = candidate;
+
+                if (!renderedTextFitsCircle(radius)) {
+                    if (!allowEllipsis) continue;
+                    const truncated = truncateLastLineToFit(candidate, radius);
+                    if (!truncated) continue;
+                    ellipsisUsed = true;
+                    lines = truncated;
+                }
+
+                if (lines.slice(0, -1).some((line) => line.endsWith("…"))) continue;
+                if (lines.filter((line) => line.endsWith("…")).length > 1) continue;
+                if (lines.length > 1 && isMicroLine(lines[lines.length - 1])) continue;
+
+                const margin = Math.max(0, Math.max(4, radius - paddingPx) - maxCornerDistance());
+                const solution = { lines, ellipsisUsed, margin };
+
+                if (!best) {
+                    best = solution;
+                    continue;
+                }
+
+                const bestScore = [best.ellipsisUsed ? 1 : 0, best.lines.length, -best.margin];
+                const evalScore = [solution.ellipsisUsed ? 1 : 0, solution.lines.length, -solution.margin];
+                const isBetter =
+                    evalScore[0] < bestScore[0] ||
+                    (evalScore[0] === bestScore[0] && evalScore[1] < bestScore[1]) ||
+                    (evalScore[0] === bestScore[0] && evalScore[1] === bestScore[1] && evalScore[2] < bestScore[2]);
+
+                if (isBetter) best = solution;
+            }
+
+            return best;
+        };
+
+        let requestedRadius = null;
+        if (!render && depth <= 1 && radiusMax > radiusBase) {
+            if (!pickBest(radiusBase, false)) {
+                for (let r = radiusBase; r <= radiusMax; r += 2) {
+                    if (pickBest(r, false)) {
+                        requestedRadius = r;
+                        break;
+                    }
+                }
+            }
+            textElement
+                .text(null)
+                .attr("font-size", `${fontPx}px`)
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "central")
+                .style("font-family", "var(--font-body, var(--legacy-font-sans, ui-sans-serif))")
+                .style("font-weight", "500");
+            return requestedRadius;
+        }
+
+        const radius = radiusBase;
+        const solution = pickBest(radius, false) || pickBest(radius, true);
+        if (solution) {
+            renderLines(solution.lines);
+        } else {
+            const fallback = label ? `${label.slice(0, 3)}…` : "";
+            renderLines([fallback]);
+        }
+
+        return null;
     }
 
     // --- Event Handlers ---
@@ -293,6 +671,14 @@ function MindMapRenderer(container, data, options = {}) {
             d._children = null;
         }
         update(d);
+        if (onNodeSelect) {
+            onNodeSelect({
+                id: d.data.id,
+                name: d.data.name,
+                content: d.data.tooltip?.content || '',
+                breadcrumb: d.ancestors().map(node => node.data.name).reverse()
+            });
+        }
         if (onNodeClick) {
             onNodeClick();
         }
@@ -302,7 +688,7 @@ function MindMapRenderer(container, data, options = {}) {
         tooltip.style('visibility', 'visible').style('opacity', '1');
         const [x, y] = d3.pointer(event, document.body);
         tooltip.style('left', `${x + 15}px`).style('top', `${y + 15}px`);
-        tooltip.html(`<div class="tooltip-title">${d.data.tooltip.title}</div><div class="tooltip-content">${d.data.tooltip.content}</div>`);
+        tooltip.html(`<div class="tooltip-title">${d.data.tooltip?.title || d.data.name}</div><div class="tooltip-content">${d.data.tooltip?.content || ''}</div>`);
     }
 
     function tooltipLeaveHandler() {
@@ -311,9 +697,70 @@ function MindMapRenderer(container, data, options = {}) {
 
     // --- Initial Render ---
     update(root);
+    requestAnimationFrame(() => fitToScreen({ duration: 0 }));
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready
+            .then(() => {
+                update(root);
+                fitToScreen({ duration: 0 });
+            })
+            .catch(() => {});
+    }
     // The SVG is already appended, so no need for the line here.
 
     // --- Public API ---
+    function getProjectedNodeBounds(nodes) {
+        if (!nodes.length) return null;
+
+        let minX = Number.POSITIVE_INFINITY;
+        let minY = Number.POSITIVE_INFINITY;
+        let maxX = Number.NEGATIVE_INFINITY;
+        let maxY = Number.NEGATIVE_INFINITY;
+
+        nodes.forEach((node) => {
+            const point = safeNodePoint(node);
+            const [x, y] = radialPoint(point.x, point.y);
+            const dims = currentNodeDimensionsById.get(node.id) || computeNodeDimensions(node.data?.name || '', node.depth || 0);
+            const rx = Number.isFinite(dims?.rx) ? dims.rx : 50;
+            const ry = Number.isFinite(dims?.ry) ? dims.ry : 40;
+            minX = Math.min(minX, x - rx);
+            maxX = Math.max(maxX, x + rx);
+            minY = Math.min(minY, y - ry);
+            maxY = Math.max(maxY, y + ry);
+        });
+
+        if (![minX, minY, maxX, maxY].every(Number.isFinite)) return null;
+        return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
+    }
+
+    function fitToScreen({ duration = 350 } = {}) {
+        const graphNode = g.node();
+        if (!graphNode) return;
+
+        const visibleNodes = root.descendants().filter((node) => node.depth <= 1);
+        const bounds = getProjectedNodeBounds(visibleNodes.length ? visibleNodes : root.descendants());
+        if (!bounds || bounds.width <= 0 || bounds.height <= 0) {
+            return;
+        }
+
+        const insetRatio = 0.12;
+        const paddedWidth = width * (1 - insetRatio * 2);
+        const paddedHeight = height * (1 - insetRatio * 2);
+        const computedScale = Math.min(paddedWidth / bounds.width, paddedHeight / bounds.height);
+        const clampedScale = Math.max(CONFIG.zoom.min, Math.min(CONFIG.zoom.max, computedScale));
+        const centerX = bounds.minX + bounds.width / 2;
+        const centerY = bounds.minY + bounds.height / 2;
+        const translateX = -centerX * clampedScale;
+        const translateY = -centerY * clampedScale;
+        const transform = d3.zoomIdentity.translate(translateX, translateY).scale(clampedScale);
+
+        if (duration > 0) {
+            svg.transition().duration(duration).call(zoom.transform, transform);
+        } else {
+            svg.call(zoom.transform, transform);
+        }
+    }
+
     return {
         svg,
         zoom,
@@ -348,8 +795,20 @@ function MindMapRenderer(container, data, options = {}) {
                 const targetNode = nodesGroup.selectAll(".node").filter(d => d.data.id === path[path.length - 1]);
                 targetNode.classed('search-highlight', true);
                 targetNode.node()?.focus();
+                const targetDatum = targetNode.datum();
+                if (targetDatum && onNodeSelect) {
+                    onNodeSelect({
+                        id: targetDatum.data.id,
+                        name: targetDatum.data.name,
+                        content: targetDatum.data.tooltip?.content || '',
+                        breadcrumb: targetDatum.ancestors().map(node => node.data.name).reverse()
+                    });
+                }
                 setTimeout(() => targetNode.classed('search-highlight', false), 2500);
             }, CONFIG.animation.duration);
+        },
+        fitToScreen() {
+            fitToScreen();
         },
         getExpansionState() {
             return root.descendants().filter(d => d.children).map(d => d.data.id);

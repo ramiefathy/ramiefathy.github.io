@@ -1,0 +1,37 @@
+{
+  "id": "cd30-lymphoproliferative-dt",
+  "topic": "ctcl",
+  "title": "CD30+ Lymphoproliferative Disorders",
+  "subtitle": "LyP vs pcALCL vs transformed MF",
+  "type": "decision-tree",
+  "data": {
+    "start": "start",
+    "steps": [
+      { "id": "start", "type": "decision", "prompt": "Biopsy shows CD30+ atypical lymphoid infiltrate?", "branches": [
+        { "label": "Yes", "nextStepId": "course" },
+        { "label": "No", "nextStepId": "other" }
+      ] },
+      { "id": "other", "type": "terminal", "prompt": "Use non-CD30 CTCL/pathology pathway" },
+      { "id": "course", "type": "decision", "prompt": "Do lesions wax and wane or spontaneously regress?", "branches": [
+        { "label": "Yes", "nextStepId": "lyp" },
+        { "label": "No", "nextStepId": "solitary" }
+      ] },
+      { "id": "lyp", "type": "terminal", "prompt": "Lymphomatoid papulosis pattern" },
+      { "id": "solitary", "type": "decision", "prompt": "Solitary/localized tumor without systemic disease?", "branches": [
+        { "label": "Yes", "nextStepId": "pcalcl" },
+        { "label": "No", "nextStepId": "systemic" }
+      ] },
+      { "id": "pcalcl", "type": "terminal", "prompt": "Primary cutaneous ALCL pattern" },
+      { "id": "systemic", "type": "decision", "prompt": "History of MF or extracutaneous/systemic ALCL evidence?", "branches": [
+        { "label": "MF history", "nextStepId": "transformed" },
+        { "label": "Systemic evidence", "nextStepId": "systemic-end" }
+      ] },
+      { "id": "transformed", "type": "terminal", "prompt": "Large-cell transformation of MF" },
+      { "id": "systemic-end", "type": "terminal", "prompt": "Exclude systemic ALCL with secondary skin involvement" }
+    ]
+  },
+  "citations": [
+    { "pmid": "30635287", "quote": "Willemze R et al. The 2018 update of the WHO-EORTC classification for primary cutaneous lymphomas. Blood. 2019;133(16):1703-1714." },
+    { "pmid": "37890355", "quote": "EORTC 2023 consensus update assigns MF/Sezary syndrome treatment options by disease stage and line of therapy." }
+  ]
+}

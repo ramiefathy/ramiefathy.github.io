@@ -1,180 +1,149 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import Header from '../../components/Header.jsx';
-import AppsShowcase from '../../components/AppsShowcase.jsx';
 import apps from '../../data/apps.json';
-import collections from '../../data/collections.json';
+
+// Map slugs to Atlas categories (clinical / learning / reference / productivity / external).
+const CATEGORY_BY_SLUG: Record<string, 'clinical' | 'learning' | 'reference' | 'productivity' | 'external'> = {
+  'dermatology-scribe': 'clinical',
+  'skinoculars': 'clinical',
+  'dermatopathology-navigator': 'learning',
+  'mindmaps': 'learning',
+  'dermoscopy-llm-dashboard': 'reference',
+  'biologic-monitoring': 'reference',
+  'skinscores': 'reference',
+  'pdf-tools': 'productivity',
+  'scheduler-pro': 'clinical',
+  'dermai-reference': 'productivity',
+  'dermascribe-legacy': 'clinical'
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  all: 'All',
+  clinical: 'Clinical',
+  learning: 'Learning',
+  reference: 'Reference',
+  productivity: 'Productivity'
+};
 
 const active = apps.filter((app) => app.status === 'active');
-const beta = apps.filter((app) => app.status === 'beta');
-const archived = apps.filter((app) => app.status === 'legacy');
+const enriched = active.map((app, idx) => ({
+  ...app,
+  plateNumber: `III.${String(idx + 1).padStart(2, '0')}`,
+  category: CATEGORY_BY_SLUG[app.slug] ?? 'clinical',
+  isExternal: typeof app.href === 'string' && app.href.startsWith('http')
+}));
+
+const totalCount = enriched.length;
+const counts: Record<string, number> = {
+  all: totalCount,
+  featured: enriched.filter((app) => app.featured).length,
+  clinical: enriched.filter((app) => app.category === 'clinical').length,
+  learning: enriched.filter((app) => app.category === 'learning').length,
+  reference: enriched.filter((app) => app.category === 'reference').length,
+  productivity: enriched.filter((app) => app.category === 'productivity').length
+};
 ---
 <MainLayout title="Applications – Ramie Fathy, MD" description="Interactive dermatology tools and prototypes developed by Dr. Ramie Fathy.">
   <Header client:load />
   <main id="main-content">
-    <section class="section" style="padding-top:4rem">
-      <div class="section__inner">
-        <div class="section__intro" style="margin-bottom:2.5rem">
-          <h1 class="section__title">Applications</h1>
-          <p class="section__subtitle">Browser-based tools for clinic, education, and research. No accounts needed.</p>
-        </div>
+    <section class="section">
+      <div class="plate-stamp"><b>Apps</b><span class="barcode"></span><span>Catalog</span></div>
 
-        <AppsShowcase
-          apps={apps}
-          collections={collections}
-          client:visible
-        />
+      <div class="plate-head">
+        <div>
+          <span class="kicker">Applications</span>
+          <h1 class="display1" style="margin-top:14px">Browser-first<br><em>clinical tools</em>.</h1>
+        </div>
+        <div class="right">
+          Apps & projects · 2026.<br>
+          Local-first by default.<br>
+          <span style="color:var(--terracotta)">— sorted by ID —</span>
+        </div>
+      </div>
+
+      <p class="lede">Applications for resident clinics, dermatology education, and research workflows.</p>
+
+      <div class="apps-toolbar" style="margin-top:48px">
+        <div class="left" id="apps-filters">
+          <button class="active" data-filter="all">All <span class="c">{counts.all}</span></button>
+          <button data-filter="featured">Featured <span class="c">{counts.featured}</span></button>
+          <button data-filter="clinical">Clinical <span class="c">{counts.clinical}</span></button>
+          <button data-filter="learning">Learning <span class="c">{counts.learning}</span></button>
+          <button data-filter="reference">Reference <span class="c">{counts.reference}</span></button>
+          <button data-filter="productivity">Productivity <span class="c">{counts.productivity}</span></button>
+        </div>
+        <div class="right" style="display:flex;align-items:center;gap:10px">
+          <span>›</span>
+          <input id="apps-search" type="search" placeholder="filter by name, stack, or tag…" />
+        </div>
+      </div>
+
+      <div class="apps-plates" id="apps-grid">
+        {enriched.map((app) => (
+          <a
+            class={`app-plate cat-${app.category}`}
+            href={app.href}
+            target={app.isExternal ? '_blank' : undefined}
+            rel={app.isExternal ? 'noreferrer' : undefined}
+            data-name={app.name.toLowerCase()}
+            data-stack={(app.stack || []).join(' ').toLowerCase()}
+            data-category={app.category}
+            data-featured={app.featured ? 'true' : 'false'}
+          >
+            <span class="swatch"></span>
+            <div class="stamp">
+              <span class="pn">{app.plateNumber}</span>
+              <span class={`st ${app.featured ? 'featured' : ''}`}>{app.featured ? 'Featured' : (app.isExternal ? 'External' : 'Active')}</span>
+            </div>
+            <h4>{app.name.replace(/^RAMIE - /, 'RAMIE — ')}</h4>
+            <p>{app.description}</p>
+            <div class="stack">
+              {(app.stack || []).slice(0, 3).map((tag) => <span>{tag}</span>)}
+            </div>
+          </a>
+        ))}
       </div>
     </section>
-
-    {false && archived.length ? (
-      <section class="section" style="background:linear-gradient(180deg, rgba(236,253,245,0.6), rgba(255,255,255,0.94))">
-        <div class="section__inner">
-          <div class="section__intro">
-            <h2 class="section__title">Archived</h2>
-            <p class="section__subtitle">Older prototypes kept for reference.</p>
-          </div>
-          <div class="card-grid">
-            {archived.map((app) => (
-              <a class="card" href={app.href}>
-                <h3 class="card__title">{app.name}</h3>
-                <p>{app.description || 'Experimental project archived for reference.'}</p>
-                <div class="card__meta">
-                  <span class="tag">Legacy</span>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-    ) : null}
   </main>
 
-  <style is:global>
-    /* Tilt effect script enhancement */
-    .app-showcase-card.is-hovered {
-      box-shadow: 0 40px 70px rgba(15, 23, 42, 0.24);
-      border-color: rgba(56, 189, 248, 0.24);
-    }
-
-    .app-showcase-card.is-hovered .app-showcase-row {
-      transform: translateZ(12px);
-    }
-
-    .app-showcase-card.is-hovered .app-showcase-glare {
-      opacity: 1;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .app-showcase-card {
-        transform: none !important;
-        transition: none;
-      }
-
-      .app-showcase-card.is-hovered .app-showcase-row {
-        transform: none;
-      }
-    }
-  </style>
-
   <script>
-    // Tilt effect for app cards
-    function initTiltEffect() {
-      const cards = document.querySelectorAll('[data-app-tilt]');
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    (function () {
+      const filterButtons = document.querySelectorAll('#apps-filters button');
+      const searchInput = document.getElementById('apps-search') as HTMLInputElement | null;
+      const grid = document.getElementById('apps-grid');
+      if (!grid) return;
+      const cards = Array.from(grid.querySelectorAll<HTMLElement>('.app-plate'));
 
-      const disableTilt = () => {
-        cards.forEach((card) => {
-          card.classList.remove('is-hovered');
-          card.style.removeProperty('--tilt-x');
-          card.style.removeProperty('--tilt-y');
-          card.style.removeProperty('--glare-x');
-          card.style.removeProperty('--glare-y');
-        });
+      let activeFilter = 'all';
+      let activeSearch = '';
+
+      const applyFilters = () => {
+        for (const card of cards) {
+          const matchesFilter =
+            activeFilter === 'all' ||
+            (activeFilter === 'featured' ? card.dataset.featured === 'true' : card.dataset.category === activeFilter);
+          const haystack = `${card.dataset.name || ''} ${card.dataset.stack || ''}`;
+          const matchesSearch = !activeSearch || haystack.includes(activeSearch);
+          card.style.display = matchesFilter && matchesSearch ? '' : 'none';
+        }
       };
 
-      if (!cards.length) return;
-
-      if (prefersReducedMotion.matches) {
-        disableTilt();
-        return;
-      }
-
-      cards.forEach((card) => {
-        let frame = 0;
-
-        const reset = () => {
-          card.style.setProperty('--tilt-x', '0deg');
-          card.style.setProperty('--tilt-y', '0deg');
-          card.style.setProperty('--glare-x', '50%');
-          card.style.setProperty('--glare-y', '50%');
-          card.classList.remove('is-hovered');
-        };
-
-        const applyTilt = (clientX, clientY) => {
-          const rect = card.getBoundingClientRect();
-          const x = clientX - rect.left;
-          const y = clientY - rect.top;
-          const rotateY = ((x / rect.width) - 0.5) * 14;
-          const rotateX = ((y / rect.height) - 0.5) * -12;
-
-          card.style.setProperty('--tilt-x', `${rotateY.toFixed(2)}deg`);
-          card.style.setProperty('--tilt-y', `${rotateX.toFixed(2)}deg`);
-          card.style.setProperty('--glare-x', `${(x / rect.width) * 100}%`);
-          card.style.setProperty('--glare-y', `${(y / rect.height) * 100}%`);
-        };
-
-        card.addEventListener('pointermove', (event) => {
-          const { clientX, clientY } = event;
-          if (frame) return;
-          frame = requestAnimationFrame(() => {
-            frame = 0;
-            applyTilt(clientX, clientY);
-          });
+      filterButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          filterButtons.forEach((other) => other.classList.remove('active'));
+          button.classList.add('active');
+          activeFilter = (button as HTMLButtonElement).dataset.filter || 'all';
+          applyFilters();
         });
-
-        card.addEventListener('pointerenter', (event) => {
-          card.classList.add('is-hovered');
-          applyTilt(event.clientX, event.clientY);
-        });
-
-        const clearFrame = () => {
-          if (frame) {
-            cancelAnimationFrame(frame);
-            frame = 0;
-          }
-        };
-
-        const tearDown = () => {
-          clearFrame();
-          reset();
-        };
-
-        card.addEventListener('pointerleave', tearDown);
-        card.addEventListener('pointerup', tearDown);
-        card.addEventListener('pointercancel', tearDown);
-
-        reset();
       });
-    }
 
-    // Initialize on load and on navigation
-    initTiltEffect();
-    document.addEventListener('astro:after-swap', initTiltEffect);
-
-    // Re-initialize when React component updates (using MutationObserver)
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.addedNodes.length > 0) {
-          initTiltEffect();
-          break;
-        }
+      if (searchInput) {
+        searchInput.addEventListener('input', () => {
+          activeSearch = searchInput.value.trim().toLowerCase();
+          applyFilters();
+        });
       }
-    });
-
-    const showcase = document.querySelector('.apps-showcase-wrapper');
-    if (showcase) {
-      observer.observe(showcase, { childList: true, subtree: true });
-    }
+    })();
   </script>
 </MainLayout>

@@ -1,59 +1,106 @@
 ---
 import '../styles/global.css';
+import profile from '../data/profile.json';
 const {
   title = 'Ramie Fathy, MD',
-  description = 'Dermatology resident and AI researcher. Clinical tools, evaluation work, and writing.',
-  canonical = 'https://ramiefathy.github.io'
+  description = 'Dermatology, clinical AI, research, writing, and software by Dr. Ramie Fathy.',
+  canonical,
+  noindex = false
 } = Astro.props;
+
+const siteUrl = (Astro.site instanceof URL ? Astro.site.toString() : Astro.site) || 'https://ramiefathy.com';
+const canonicalUrl = canonical === null ? new URL(Astro.url.pathname, siteUrl).toString() : canonical || new URL(Astro.url.pathname, siteUrl).toString();
+const shouldRenderCanonical = canonical !== null;
+const ogImageUrl = new URL('/og.svg', siteUrl).toString();
+
+const footerLinks = [
+  { label: 'Home', href: '/' },
+  { label: 'About', href: '/about' },
+  { label: 'Apps & Projects', href: '/apps' },
+  { label: 'Research', href: '/research' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Contact', href: '/contact' }
+];
 ---
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="theme-color" content="#f4f0e8" />
+    <meta property="og:site_name" content="Ramie Fathy, MD" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <link rel="preload" href="/apps/shared/fonts/BricolageGrotesque-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/apps/shared/fonts/Newsreader-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/apps/shared/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/apps/shared/legacy-fonts.css" />
     <link rel="stylesheet" href="/style.css" />
-    <script>
-      {`
-        (function() {
-          try {
-            const stored = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = stored || (prefersDark ? 'dark' : 'light');
-            document.documentElement.dataset.theme = theme;
-          } catch (err) {
-            document.documentElement.dataset.theme = 'light';
-          }
-        })();
-      `}
-    </script>
     <title>{title}</title>
-    <link rel="canonical" href={canonical} />
+    {shouldRenderCanonical && <link rel="canonical" href={canonicalUrl} />}
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <div id="scroll-fade-status" class="sr-only" role="status" aria-live="polite"></div>
     <slot />
     <footer class="layout-footer">
-      <p>© {new Date().getFullYear()} Ramie Fathy, MD. All rights reserved.</p>
-      <p>
-        Questions? <a href="mailto:hello@ramiefathy.com">Email Dr. Fathy</a>.
-      </p>
+      <div class="layout-footer__inner">
+        <div class="layout-footer__brand">
+          <p class="layout-footer__name">Ramie <em>Fathy</em>, MD</p>
+          <p class="layout-footer__tagline">Dermatology · AI · Equity · Baltimore.</p>
+          <p class="layout-footer__meta">
+            © {new Date().getFullYear()} {profile.name} · Atlas Vol. IV.
+          </p>
+        </div>
+        <div class="layout-footer__group">
+          <p class="layout-footer__group-title">Pages</p>
+          <a class="layout-footer__link" href="/">Home</a>
+          <a class="layout-footer__link" href="/about">About</a>
+          <a class="layout-footer__link" href="/apps">Apps</a>
+          <a class="layout-footer__link" href="/research">Research</a>
+          <a class="layout-footer__link" href="/blog">Blog</a>
+          <a class="layout-footer__link" href="/contact">Contact</a>
+        </div>
+        <div class="layout-footer__group">
+          <p class="layout-footer__group-title">Connect</p>
+          <a class="layout-footer__link" href={profile.contact.email}>Email</a>
+          <a class="layout-footer__link" href={profile.contact.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+          <a class="layout-footer__link" href={profile.contact.scholar} target="_blank" rel="noreferrer">Google Scholar</a>
+          <a class="layout-footer__link" href={profile.contact.researchgate} target="_blank" rel="noreferrer">ResearchGate</a>
+        </div>
+        <div class="layout-footer__group">
+          <p class="layout-footer__group-title">Colophon</p>
+          <a class="layout-footer__link" href="https://github.com/ramiefathy/ramiefathy.github.io" target="_blank" rel="noreferrer">Source on GitHub</a>
+          <a class="layout-footer__link" href="/legacy">Legacy archive</a>
+          <span class="layout-footer__link" style="cursor:default">Bricolage · Newsreader · Space Mono</span>
+        </div>
+      </div>
     </footer>
     <script>
       (function(){
-        const elements = document.querySelectorAll('[data-scroll-fade]');
+        const elements = new Set(Array.from(document.querySelectorAll('[data-scroll-fade]')));
         const status = document.getElementById('scroll-fade-status');
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        const applyDelayToken = (el) => {
+          const delay = el.getAttribute('data-enter-delay');
+          if (delay) el.style.setProperty('--enter-delay', delay);
+        };
 
         const revealAll = () => {
           elements.forEach((el) => el.classList.add('is-visible'));
           if (status) status.textContent = '';
         };
 
-        if (!elements.length) return;
+        if (!elements.size) return;
 
         if (!('IntersectionObserver' in window) || prefersReducedMotion.matches) {
           revealAll();
@@ -69,10 +116,35 @@ const {
             }
           });
         }, { threshold: 0.15 });
-        elements.forEach((el) => observer.observe(el));
+
+        const observe = (el) => {
+          if (elements.has(el)) return;
+          elements.add(el);
+          applyDelayToken(el);
+          observer.observe(el);
+        };
+
+        elements.forEach((el) => {
+          applyDelayToken(el);
+          observer.observe(el);
+        });
+
+        const mutationObserver = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+              if (!(node instanceof Element)) return;
+              if (node.matches?.('[data-scroll-fade]')) observe(node);
+              node.querySelectorAll?.('[data-scroll-fade]').forEach((child) => observe(child));
+            });
+          });
+        });
+
+        mutationObserver.observe(document.documentElement, { childList: true, subtree: true });
+
         prefersReducedMotion.addEventListener('change', () => {
           if (prefersReducedMotion.matches) {
             observer.disconnect();
+            mutationObserver.disconnect();
             revealAll();
           }
         });

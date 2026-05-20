@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<title>dermie — Dashboard mockups (v1 / v2 / v3 + mobile)</title>
+<link rel="stylesheet" href="_shell.css">
+<style>
+/* ─── Dashboard-specific ─── */
+
+/* Salutation block */
+.salute{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;}
+.salute h1{font:300 48px/1.05 var(--font-display);letter-spacing:-.025em;margin:0;color:var(--ink-w);}
+.salute h1 em{font-style:italic;color:var(--ox);}
+.salute .sub{font:400 14.5px/1.5 var(--font-body);color:var(--ink-meta);margin-top:8px;max-width:46ch;}
+.salute .right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font:400 12.5px var(--font-body);color:var(--ink-meta);}
+
+/* Quick Actions — v1 quiet editorial tiles */
+.qa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.qa{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:6px;min-height:140px;text-align:left;cursor:pointer;text-decoration:none;color:inherit;position:relative;overflow:hidden;}
+.qa:hover{border-color:var(--ox);}
+.qa .ic{width:36px;height:36px;border-radius:10px;background:var(--ox-soft);color:var(--ox-deep);display:grid;place-items:center;margin-bottom:8px;}
+.qa .ic svg{width:18px;height:18px;}
+.qa .nm{font:500 17px var(--font-display);color:var(--ink-w);letter-spacing:-.005em;}
+.qa .d{font:400 12px var(--font-body);color:var(--ink-meta);}
+.qa .n{font:400 28px var(--font-display);color:var(--ink-w);font-feature-settings:"tnum";margin-top:auto;}
+.qa .arrow{position:absolute;bottom:14px;right:14px;color:var(--ink-w3);transition:transform .2s;}
+.qa:hover .arrow{transform:translateX(3px);color:var(--ox);}
+
+/* Progress KPI tiles */
+.prog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.prog-grid.prog-tight .prog{padding:14px 16px 12px;gap:6px;text-align:center;align-items:center;}
+.prog-grid.prog-tight .prog .lab{font-size:9.5px;letter-spacing:.16em;}
+.prog-grid.prog-tight .prog .fig{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.prog-grid.prog-tight .prog .n{font-size:34px;line-height:1.05;}
+.prog-grid.prog-tight .prog .n em{font-style:italic;color:var(--ox);}
+.prog-grid.prog-tight .prog .n .u{font-size:14px;color:var(--ink-meta);margin-left:3px;}
+.prog-grid.prog-tight .prog .b{font-size:11px;color:var(--ink-meta);}
+.prog-grid.prog-tight .prog-spark{width:100%;max-width:120px;height:18px;opacity:.55;}
+.prog{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden;}
+.prog .lab{font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta);}
+.prog .n{font:300 48px var(--font-display);color:var(--ink-w);letter-spacing:-.02em;font-feature-settings:"tnum";line-height:1;}
+.prog .n em{font-style:italic;color:var(--ox);font-weight:400;}
+.prog .b{font:400 12px var(--font-body);color:var(--ink-meta);}
+.prog .sparkline{position:absolute;bottom:14px;right:18px;width:80px;height:24px;opacity:.5;}
+
+/* Study Plan */
+.plan{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:18px;}
+.plan-hd{display:flex;align-items:baseline;justify-content:space-between;}
+.plan-hd h3{font:400 22px var(--font-display);color:var(--ink-w);margin:0;letter-spacing:-.005em;}
+.plan-hd .goal{font:400 12.5px var(--font-body);color:var(--ink-meta);}
+.plan-day{background:var(--ox);color:var(--card);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;}
+.plan-day .between{color:var(--card);}
+.plan-day .when{font:500 12px var(--font-mono);letter-spacing:.06em;color:rgba(251,246,232,.7);text-transform:uppercase;}
+.plan-day .total{font:500 12px var(--font-mono);color:rgba(251,246,232,.85);}
+.plan-day .h{font:400 20px var(--font-display);color:var(--card);letter-spacing:-.005em;}
+.plan-sess{display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(251,246,232,.07);border:1px solid rgba(251,246,232,.18);border-radius:9px;}
+.plan-sess .lab{flex:1;}
+.plan-sess .nm{font:500 13px var(--font-body);color:var(--card);}
+.plan-sess .sub{font:400 11.5px var(--font-body);color:rgba(251,246,232,.65);}
+.plan-sess .start{padding:5px 12px;background:var(--card);color:var(--ink-w);border:0;border-radius:6px;font:500 11.5px var(--font-body);cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:inherit;}
+.plan-conf{display:flex;align-items:center;gap:10px;}
+.plan-conf .bar{flex:1;height:4px;background:rgba(251,246,232,.18);border-radius:2px;overflow:hidden;}
+.plan-conf .bar>span{display:block;height:100%;background:var(--gold);}
+.plan-conf .lab{font:500 11px var(--font-mono);color:rgba(251,246,232,.85);}
+
+.plan-upnext{display:flex;flex-direction:column;gap:8px;}
+.plan-upnext .row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card-2);border:1px solid var(--line);border-radius:9px;}
+.plan-upnext .row .when{font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;}
+.plan-upnext .row .meta{font:400 12px var(--font-body);color:var(--ink-w2);}
+
+.goals-chips{display:flex;flex-wrap:wrap;gap:6px;padding-top:6px;border-top:1px solid var(--line);}
+
+/* Insights stack */
+.insights{display:flex;flex-direction:column;gap:8px;}
+
+/* Recent activity */
+.activity{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:4px;}
+.activity .row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line);}
+.activity .row:last-child{border:0;padding-bottom:4px;}
+.activity .row .ic{width:28px;height:28px;border-radius:8px;background:var(--card-2);border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-w3);}
+.activity .row .nm{font:400 13px var(--font-body);color:var(--ink-w);}
+.activity .row .sub{font:400 11.5px var(--font-body);color:var(--ink-meta);}
+.activity .row .score{font:500 13px var(--font-mono);color:var(--ink-w);font-feature-settings:"tnum";}
+.activity .row .score.good{color:var(--moss);}
+.activity .row .score.bad{color:var(--ox);}
+
+/* Quote banner */
+.quote{background:var(--ox-deep);color:var(--card);border-radius:14px;padding:28px;display:flex;align-items:center;gap:24px;}
+.quote .mark{font:300 80px var(--font-display);line-height:.6;color:var(--gold);font-style:italic;}
+.quote .body{font:400 18px/1.45 var(--font-display);color:var(--card);font-style:italic;flex:1;}
+.quote .who{font:500 11px var(--font-mono);color:#D9CFB8;letter-spacing:.08em;text-transform:uppercase;}
+
+/* — v2 specifics — */
+.v2-shell{display:grid;grid-template-columns:236px minmax(0,1fr) 320px;min-height:780px;}
+.v2-rail{border-left:1px solid var(--line);padding:24px 22px;background:var(--paper-w2);display:flex;flex-direction:column;gap:18px;overflow-y:auto;}
+.v2-rail .rail-lab{font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta);}
+.rail-stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;}
+.rail-stat .ic{width:32px;height:32px;border-radius:8px;background:var(--ox-soft);display:grid;place-items:center;color:var(--ox-deep);}
+.rail-stat .ic svg{width:16px;height:16px;}
+.rail-stat .meta{flex:1;}
+.rail-stat .n{font:400 22px var(--font-display);color:var(--ink-w);font-feature-settings:"tnum";line-height:1;}
+.rail-stat .l{font:400 11.5px var(--font-body);color:var(--ink-meta);}
+
+/* — v3 specifics — */
+.dense-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
+.dense-grid > .span2{grid-column:span 2;}
+.dense-grid > .span3{grid-column:span 3;}
+.dense-grid > .span4{grid-column:span 4;}
+.dense-grid > .span6{grid-column:span 6;}
+
+.bigchart{height:170px;display:flex;align-items:flex-end;gap:6px;padding:8px 0;}
+.bigchart .bar{flex:1;background:var(--ox-soft);border-radius:3px 3px 0 0;position:relative;}
+.bigchart .bar.on{background:var(--ox);}
+.bigchart .bar .pct{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font:500 10px var(--font-mono);color:var(--ink-meta);font-feature-settings:"tnum";}
+.heat{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;}
+.heat .cell{aspect-ratio:1;border-radius:2px;background:var(--card-2);}
+.heat .cell.h1{background:var(--ox-soft);}
+.heat .cell.h2{background:rgba(168,35,30,.45);}
+.heat .cell.h3{background:var(--ox);}
+
+/* mobile-only */
+.m-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;}
+.m-card .nm{font:500 14px var(--font-body);color:var(--ink-w);}
+.m-card .d{font:400 12px var(--font-body);color:var(--ink-meta);}
+.m-action{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.m-action a{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;}
+.m-action a .ic{width:30px;height:30px;border-radius:8px;background:var(--ox-soft);color:var(--ox-deep);display:grid;place-items:center;}
+.m-action a .ic svg{width:15px;height:15px;}
+.m-action a .nm{font:500 14px var(--font-body);color:var(--ink-w);}
+.m-action a .d{font:400 11.5px var(--font-body);color:var(--ink-meta);}
+.m-streak{padding:14px;background:var(--ox);color:var(--card);border-radius:12px;display:flex;align-items:center;justify-content:space-between;}
+.m-streak .nm{font:500 14px var(--font-body);}
+.m-streak .day{font:300 32px var(--font-display);color:var(--card);font-feature-settings:"tnum";line-height:1;}
+.m-prog{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.m-prog .p{padding:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;gap:2px;text-align:left;}
+.m-prog .p .n{font:300 24px var(--font-display);color:var(--ink-w);}
+.m-prog .p .l{font:600 9px var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-meta);}
+
+</style>
+</head>
+<body id="demo-top" data-screen-label="Dashboard mockups">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 4h11v13H9z"/><path d="M5 8v12h12"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></symbol>
+  <symbol id="i-fc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></symbol>
+  <symbol id="i-exam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0z"/><path d="M5 6H3a2 2 0 002 4M19 6h2a2 2 0 01-2 4"/></symbol>
+  <symbol id="i-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 9h4M8 7v4M15 10h.01M17 13h.01M12 17l-6 3a3 3 0 01-3-4l1-4a4 4 0 014-3h12a4 4 0 014 3l1 4a3 3 0 01-3 4l-6-3"/></symbol>
+  <symbol id="i-tutor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></symbol>
+  <symbol id="i-pod" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 18v-7a9 9 0 0118 0v7"/><path d="M21 19a2 2 0 01-2 2h-1v-6h3zM3 19a2 2 0 002 2h1v-6H3z"/></symbol>
+  <symbol id="i-perf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol>
+  <symbol id="i-prof" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 016-6h4a6 6 0 016 6v1"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2c1 4 4 5 4 9a4 4 0 01-8 0c0-2 1-3 1-5 2 1 3 0 3-4z"/></symbol>
+  <symbol id="i-ham" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M18 16v-5a6 6 0 10-12 0v5l-2 2h16l-2-2zM10 21h4"/></symbol>
+</defs></svg>
+
+<!-- ═══════════════════════════════════════════ header ═══════════════════════════════════════════ -->
+<header class="cat-head">
+  <div>
+    <h1>Learner <em>dashboard</em>.</h1>
+    <p>The screen residents land on. Three compositions of the same primitives: salutation, Quick Actions, Progress KPIs, Study Plan with AI Insights, Recent Activity, motivational close.</p>
+    <div class="meta-row" style="margin-top:18px"><span class="dot"></span><span>/app</span><span>·</span><span>v1 / v2 / v3 + mobile</span><span>·</span><a href="Index.html" style="color:inherit;text-decoration:none;border-bottom:1px solid var(--line)">Back to index</a></div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════ shared sidebar template (will be re-used by section files) ═══════════════════════════════════════════ -->
+<template id="t-sidebar">
+  <aside class="sidebar">
+    <div class="usercard"><div class="av">RA</div><div class="meta"><div class="nm">Ramie F.</div><div class="sub">Lv. 7 · 2,835 XP</div><div class="lvbar"><span style="width:35%"></span></div></div></div>
+    <nav class="nav-group"><div class="nav-label">Study</div>
+      <button class="nav-item __active-dash"><span class="nav-ic"><svg><use href="#i-dash"/></svg></span><span>Dashboard</span></button>
+      <button class="nav-item __active-quiz"><span class="nav-ic"><svg><use href="#i-quiz"/></svg></span><span>Quiz</span><span class="nav-badge">12</span></button>
+      <button class="nav-item __active-cases"><span class="nav-ic"><svg><use href="#i-cat"/></svg></span><span>Cases</span></button>
+      <button class="nav-item __active-fc"><span class="nav-ic"><svg><use href="#i-fc"/></svg></span><span>Flashcards</span><span class="nav-badge">19</span></button>
+      <button class="nav-item __active-exam"><span class="nav-ic"><svg><use href="#i-exam"/></svg></span><span>Mock exam</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Play</div>
+      <button class="nav-item __active-mini"><span class="nav-ic"><svg><use href="#i-mini"/></svg></span><span>Minigames</span><span class="nav-badge new">NEW</span></button>
+    </nav>
+    <nav class="nav-group"><div class="nav-label">Coach</div>
+      <button class="nav-item __active-tutor"><span class="nav-ic"><svg><use href="#i-tutor"/></svg></span><span>Live tutor</span></button>
+      <button class="nav-item __active-pod"><span class="nav-ic"><svg><use href="#i-pod"/></svg></span><span>Podcasts</span></button>
+      <button class="nav-item __active-perf"><span class="nav-ic"><svg><use href="#i-perf"/></svg></span><span>Performance</span></button>
+    </nav>
+    <div class="sidebar-foot">
+      <button class="nav-item __active-prof"><span class="nav-ic"><svg><use href="#i-prof"/></svg></span><span>Profile</span></button>
+      <button class="tog"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="opacity:.6;vertical-align:-2px"><path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/></svg> Dark</button>
+      <button class="signout">Sign out</button>
+    </div>
+  </aside>
+</template>
+
+<!-- helper to stamp the sidebar with an "active" class -->
+<script>
+function sidebar(active){
+  const t = document.getElementById('t-sidebar').content.cloneNode(true);
+  const el = t.querySelector(`.__active-${active}`);
+  if(el){ el.classList.add('active'); el.classList.remove(`__active-${active}`); }
+  return t;
+}
+</script>
+
+<!-- ═══════════════════════════════════════════ v1 — editorial paper ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">v1</div><h2>Editorial paper</h2><p class="desc">Closest to the baseline dermie kit. Quiet vertical rhythm, large display type, hairline rules.</p></section>
+
+<div class="ab" id="dash-v1">
+  <div class="ab-head"><h3>01a · Dashboard</h3><span class="ab-tag v1">v1 · editorial</span><span class="ab-meta">/app</span></div>
+  <div class="ab-frame">
+    <header class="topbar">
+      <div class="topbar-wm">dermie</div>
+      <div class="topbar-right">
+        <button class="avatar-btn" aria-label="Profile" title="Profile">RA</button>
+        <button class="pill"><svg width="13" height="13"><use href="#i-search"/></svg> Search <kbd>⌘K</kbd></button>
+        <button class="pill"><svg width="13" height="13"><use href="#i-bell"/></svg></button>
+        <button class="pill streak">12 day streak</button>
+      </div>
+    </header>
+    <div class="shell" id="dash-v1-shell"></div>
+  </div>
+</div>
+
+<script>
+document.getElementById('dash-v1-shell').appendChild(sidebar('dash'));
+document.getElementById('dash-v1-shell').insertAdjacentHTML('beforeend', `
+  <main class="main">
+    <div class="crumbs">Today · <span class="mono">Wed 13 May 2026</span> <span class="right">Goal · 210 min this week</span></div>
+
+    <div class="salute">
+      <div>
+        <div class="eyebrow">— Good afternoon</div>
+        <h1>Welcome back, <em>Ramie</em>.</h1>
+        <p class="sub">Three sessions are due today. The closest concept-gap is <em>annular vs. nummular</em> — keep widening that distinction.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="eyebrow" style="margin-bottom:10px">— Quick actions</div>
+      <div class="qa-grid">
+        <a class="qa" href="Quiz.html">
+          <div class="ic"><svg><use href="#i-quiz"/></svg></div>
+          <div class="nm">Start a quiz</div>
+          <div class="d">Adaptive, 25 questions.</div>
+          <div class="n">25</div>
+          <div class="arrow"><svg width="16" height="16"><use href="#i-arrow"/></svg></div>
+        </a>
+        <a class="qa" href="Cases.html">
+          <div class="ic"><svg><use href="#i-cat"/></svg></div>
+          <div class="nm">Open a case</div>
+          <div class="d">Step through a real encounter.</div>
+          <div class="n">142</div>
+          <div class="arrow"><svg width="16" height="16"><use href="#i-arrow"/></svg></div>
+        </a>
+        <a class="qa" href="Flashcards.html">
+          <div class="ic"><svg><use href="#i-fc"/></svg></div>
+          <div class="nm">Flashcards</div>
+          <div class="d">19 due for spaced review.</div>
+          <div class="n">19</div>
+          <div class="arrow"><svg width="16" height="16"><use href="#i-arrow"/></svg></div>
+        </a>
+        <a class="qa" href="MockExam.html">
+          <div class="ic"><svg><use href="#i-exam"/></svg></div>
+          <div class="nm">Mock exam</div>
+          <div class="d">Board-style, timed.</div>
+          <div class="n">75</div>
+          <div class="arrow"><svg width="16" height="16"><use href="#i-arrow"/></svg></div>
+        </a>
+      </div>
+    </div>
+
+    <div>
+      <div class="eyebrow" style="margin-bottom:10px">— Your progress</div>
+      <div class="prog-grid prog-tight">
+        <div class="prog">
+          <div class="lab">Quizzes completed</div>
+          <div class="fig">
+            <div class="n">35</div>
+            <svg class="prog-spark" viewBox="0 0 90 24" preserveAspectRatio="none"><polyline points="0,18 12,16 24,14 36,15 48,11 60,9 72,7 84,4" fill="none" stroke="var(--ox)" stroke-width="1.4"/></svg>
+          </div>
+          <div class="b">+4 since last week</div>
+        </div>
+        <div class="prog">
+          <div class="lab">Average score</div>
+          <div class="fig">
+            <div class="n"><em>68</em>%</div>
+            <svg class="prog-spark" viewBox="0 0 90 24" preserveAspectRatio="none"><polyline points="0,14 12,16 24,12 36,9 48,11 60,7 72,9 84,5" fill="none" stroke="var(--ox)" stroke-width="1.4"/></svg>
+          </div>
+          <div class="b">Calibrated · Brier 0.31</div>
+        </div>
+        <div class="prog">
+          <div class="lab">Study streak</div>
+          <div class="fig">
+            <div class="n">12<span class="u">d</span></div>
+            <svg class="prog-spark" viewBox="0 0 90 24" preserveAspectRatio="none"><g fill="var(--ox)"><rect x="0" y="16" width="5" height="8"/><rect x="7" y="14" width="5" height="10"/><rect x="14" y="12" width="5" height="12"/><rect x="21" y="10" width="5" height="14"/><rect x="28" y="13" width="5" height="11"/><rect x="35" y="8" width="5" height="16"/><rect x="42" y="6" width="5" height="18"/><rect x="49" y="9" width="5" height="15"/><rect x="56" y="5" width="5" height="19"/><rect x="63" y="3" width="5" height="21"/><rect x="70" y="6" width="5" height="18"/><rect x="77" y="2" width="5" height="22"/></g></svg>
+          </div>
+          <div class="b">Next milestone · 14 days · <span class="mono">+50 XP</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:start">
+      <div class="plan">
+        <div class="plan-hd">
+          <h3>Your study plan</h3>
+          <div class="goal">210 min · 4 areas this week</div>
+        </div>
+        <div class="plan-day">
+          <div class="between"><span class="when">Today · 3:00 PM</span><span class="total">30 min · 4 sessions</span></div>
+          <div class="plan-sess">
+            <div class="lab">
+              <div class="nm">Infectious bacterial</div>
+              <div class="sub">Spaced repetition review · 8 cards</div>
+            </div>
+            <button class="start"><svg width="10" height="10"><use href="#i-play"/></svg> Start</button>
+          </div>
+          <div class="plan-sess">
+            <div class="lab">
+              <div class="nm">Psoriasis</div>
+              <div class="sub">Not seen in 86 days</div>
+            </div>
+            <button class="start"><svg width="10" height="10"><use href="#i-play"/></svg> Start</button>
+          </div>
+          <div class="plan-sess">
+            <div class="lab">
+              <div class="nm">Mixed practice</div>
+              <div class="sub">12 questions, drawn across topics</div>
+            </div>
+            <button class="start"><svg width="10" height="10"><use href="#i-play"/></svg> Start</button>
+          </div>
+          <div class="plan-conf">
+            <span class="lab">Confidence · 65%</span>
+            <span class="bar"><span style="width:65%"></span></span>
+          </div>
+        </div>
+
+        <div>
+          <div class="eyebrow" style="margin-bottom:8px;font-size:10px">— Coming up</div>
+          <div class="plan-upnext">
+            <div class="row"><span class="when">Tomorrow · 3:00 PM</span><span class="meta">30 min · 4 activities</span></div>
+            <div class="row"><span class="when">Thu 14 May · 3:00 PM</span><span class="meta">30 min · 4 activities</span></div>
+            <div class="row"><span class="when">Fri 15 May · 3:00 PM</span><span class="meta">45 min · 6 activities</span></div>
+          </div>
+        </div>
+
+        <div class="goals-chips">
+          <span class="chip dot"><span class="mono">210 min</span></span>
+          <span class="chip ox"><span class="mono">420 XP</span></span>
+          <span class="chip">Infectious bacterial</span>
+          <span class="chip">Psoriasis</span>
+          <span class="chip">Inflammatory psoriasis</span>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="eyebrow">— AI insights</div>
+          <div class="insights" style="margin-top:10px">
+            <div class="insight info"><span class="lab">Pattern</span><span>You score 14% higher around 7:00 PM. Schedule heavier sessions then.</span></div>
+            <div class="insight tip"><span class="lab">Tip</span><span>You tend to do best in 30-minute sessions — keep them close to that length.</span></div>
+            <div class="insight warn"><span class="lab">Focus</span><span>Lower retention in Infectious, Psoriasis, Inflammatory. Plan reviews this week.</span></div>
+          </div>
+        </div>
+        <div class="activity">
+          <div class="eyebrow">— Recent activity</div>
+          <div class="row"><div class="ic"><svg width="14" height="14"><use href="#i-quiz"/></svg></div><div><div class="nm">Personalized quiz · Inflammatory</div><div class="sub">11 May · 20 min</div></div><div class="score good">+72%</div></div>
+          <div class="row"><div class="ic"><svg width="14" height="14"><use href="#i-cat"/></svg></div><div><div class="nm">Case 014a · paused</div><div class="sub">10 May · step 3 of 12</div></div><div class="score">—</div></div>
+          <div class="row"><div class="ic"><svg width="14" height="14"><use href="#i-fc"/></svg></div><div><div class="nm">Flashcards · 19 cards</div><div class="sub">10 May · 9 min</div></div><div class="score good">+84%</div></div>
+          <div class="row"><div class="ic"><svg width="14" height="14"><use href="#i-quiz"/></svg></div><div><div class="nm">Personalized quiz · Melanoma</div><div class="sub">8 May · 28 min</div></div><div class="score bad">42%</div></div>
+          <a href="Performance.html" style="font:500 12px var(--font-body);color:var(--ox);text-decoration:none;border-bottom:1px solid var(--ox-soft);align-self:flex-start;margin-top:6px">View all activity →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote">
+      <div class="mark">“</div>
+      <div>
+        <div class="body">Recognition decays faster than residents expect. Daily review — even brief — keeps the catalogue intact.</div>
+        <div class="who" style="margin-top:6px">Six dermatology educators · 2023</div>
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ v2 — three-pane with persistent agenda ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">v2</div><h2>Three-pane · persistent agenda</h2><p class="desc">A right rail holds the day’s agenda so it’s always available. Main column is reserved for orientation and insights. Best for sessions that span many short visits.</p></section>
+
+<div class="ab" id="dash-v2">
+  <div class="ab-head"><h3>01b · Dashboard</h3><span class="ab-tag v2">v2 · agenda rail</span><span class="ab-meta">/app</span></div>
+  <div class="ab-frame">
+    <header class="topbar">
+      <div class="topbar-wm">dermie</div>
+      <div class="topbar-right">
+        <button class="pill"><svg width="13" height="13"><use href="#i-search"/></svg> Search <kbd>⌘K</kbd></button>
+        <button class="pill streak">12 day streak</button>
+      </div>
+    </header>
+    <div class="v2-shell" id="dash-v2-shell"></div>
+  </div>
+</div>
+
+<script>
+document.getElementById('dash-v2-shell').appendChild(sidebar('dash'));
+document.getElementById('dash-v2-shell').insertAdjacentHTML('beforeend', `
+  <main class="main" style="background:#F3ECD8">
+    <div class="crumbs">Today · <span class="mono">Wed 13 May 2026</span></div>
+
+    <div>
+      <div class="eyebrow">— Wednesday, 13 May</div>
+      <h1 style="font:300 80px/.95 var(--font-display);letter-spacing:-.03em;margin:8px 0 14px;color:var(--ink-w)">Welcome back,<br><em style="color:var(--ox);font-style:italic">Ramie.</em></h1>
+      <p style="font:300 17px/1.55 var(--font-body);color:var(--ink-meta);max-width:48ch;margin:0">Three sessions queued, fifteen minutes between meetings, and an unfinished case on the desk. The closest concept-gap is <em>annular vs. nummular</em>.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px">
+      <div class="card" style="background:linear-gradient(135deg,#F1EAD8 0%,#EAE1CC 100%)">
+        <div class="eyebrow">— Today's question</div>
+        <h2 style="font:400 26px/1.25 var(--font-display);color:var(--ink-w);margin:8px 0;letter-spacing:-.005em">"What single descriptor would change your diagnosis?"</h2>
+        <p class="muted small" style="margin:0">Drawn from your last incorrect answer · psoriasis vs. nummular eczema.</p>
+        <div style="margin-top:14px;display:flex;gap:8px"><button class="btn primary sm">Answer now</button><button class="btn ghost sm">Skip</button></div>
+      </div>
+      <div class="card" style="background:var(--ox-deep);color:var(--card);border-color:var(--ox-deep)">
+        <div class="eyebrow" style="color:#D9CFB8">— Pulse</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:10px">
+          <div><div style="font:300 38px var(--font-display);color:var(--card);line-height:1">35</div><div style="font:400 11px var(--font-body);color:#D9CFB8;margin-top:2px">Quizzes</div></div>
+          <div><div style="font:300 38px var(--font-display);color:var(--card);line-height:1"><em style="color:var(--gold);font-style:italic">68</em>%</div><div style="font:400 11px var(--font-body);color:#D9CFB8;margin-top:2px">7-day avg</div></div>
+          <div><div style="font:300 38px var(--font-display);color:var(--card);line-height:1">12</div><div style="font:400 11px var(--font-body);color:#D9CFB8;margin-top:2px">Streak</div></div>
+        </div>
+        <div style="margin-top:14px;font:400 12px var(--font-body);color:#D9CFB8">Calibration · Brier 0.31 · slightly overconfident</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="between"><div class="eyebrow">— AI insights</div><a href="Performance.html" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em">→ analytics</a></div>
+      <div class="insights" style="margin-top:12px">
+        <div class="insight info"><span class="lab">Pattern</span><span>You score 14% higher around 7:00 PM. Move heavier sessions to evening.</span></div>
+        <div class="insight tip"><span class="lab">Tip</span><span>Your best blocks are 30 minutes — keep sessions close to that length.</span></div>
+        <div class="insight warn"><span class="lab">Focus</span><span>Infectious bacterial · Psoriasis · Inflammatory — these show the steepest forgetting curves this week.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="between" style="margin-bottom:10px"><div class="eyebrow">— Recent</div><a href="Performance.html" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em">→ all activity</a></div>
+      <div class="activity" style="border:0;padding:0">
+        <div class="row" style="grid-template-columns:auto 1fr auto auto;align-items:center"><div class="ic"><svg width="14" height="14"><use href="#i-quiz"/></svg></div><div><div class="nm">Personalized quiz · Inflammatory</div><div class="sub">11 May · 20 min · confidence Medium</div></div><div class="score good">+72%</div><span class="chip moss" style="font-size:10px">on target</span></div>
+        <div class="row" style="grid-template-columns:auto 1fr auto auto"><div class="ic"><svg width="14" height="14"><use href="#i-cat"/></svg></div><div><div class="nm">Case 014a · paused</div><div class="sub">10 May · step 3 of 12</div></div><div class="score">—</div><span class="chip">resume</span></div>
+        <div class="row" style="grid-template-columns:auto 1fr auto auto"><div class="ic"><svg width="14" height="14"><use href="#i-quiz"/></svg></div><div><div class="nm">Personalized quiz · Melanoma</div><div class="sub">8 May · 28 min · overconfident</div></div><div class="score bad">42%</div><span class="chip ox" style="font-size:10px">review</span></div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="v2-rail">
+    <div class="between"><div class="rail-lab">Today's agenda</div><div style="font:500 11px var(--font-mono);color:var(--ink-meta)">3 of 4</div></div>
+
+    <div class="rail-stat" style="background:var(--ox);border-color:var(--ox);color:var(--card)">
+      <div class="ic" style="background:rgba(251,246,232,.15);color:var(--gold)"><svg><use href="#i-flame"/></svg></div>
+      <div class="meta">
+        <div class="n" style="color:var(--card)">12 days</div>
+        <div class="l" style="color:rgba(251,246,232,.7)">Streak · next milestone in 2</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;margin-top:4px">Now · 3:00 PM</div>
+      <div class="card dense" style="border-left:3px solid var(--ox)">
+        <div style="font:500 13px var(--font-body);color:var(--ink-w)">Infectious bacterial review</div>
+        <div class="muted small">8 cards · spaced repetition</div>
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn primary xs">Start now</button><button class="btn ghost xs">Skip</button></div>
+      </div>
+
+      <div style="font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;margin-top:4px">Later today</div>
+      <div class="card dense">
+        <div style="font:500 13px var(--font-body)">Psoriasis · 86 days unseen</div>
+        <div class="muted small">15-question quiz · 12 min</div>
+      </div>
+      <div class="card dense">
+        <div style="font:500 13px var(--font-body)">Mixed practice</div>
+        <div class="muted small">10 questions drawn across topics</div>
+      </div>
+
+      <div style="font:500 11px var(--font-mono);color:var(--ink-meta);letter-spacing:.06em;text-transform:uppercase;margin-top:4px">Tomorrow</div>
+      <div class="card flat dense">
+        <div class="muted small">3:00 PM · 30 min · 4 activities</div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;font:300 14px/1.5 var(--font-display);color:var(--ink-meta);font-style:italic;padding-top:14px;border-top:1px solid var(--line)">"The edge tells the story." — six dermatology educators, 2023</div>
+  </aside>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ v3 — dense analytics-first ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">v3</div><h2>Dense · analytics-first</h2><p class="desc">For users who treat the dashboard as a status read-out. Charts above prose, 6-column grid, study plan compressed to a single strip.</p></section>
+
+<div class="ab" id="dash-v3">
+  <div class="ab-head"><h3>01c · Dashboard</h3><span class="ab-tag v3">v3 · analytics</span><span class="ab-meta">/app</span></div>
+  <div class="ab-frame">
+    <header class="topbar">
+      <div class="topbar-wm">dermie</div>
+      <div class="topbar-right">
+        <span class="muted small">Wed 13 May 2026 · 3:02 PM</span>
+        <button class="pill"><svg width="13" height="13"><use href="#i-search"/></svg> Search <kbd>⌘K</kbd></button>
+        <button class="pill streak">12 days</button>
+      </div>
+    </header>
+    <div class="shell" id="dash-v3-shell"></div>
+  </div>
+</div>
+
+<script>
+document.getElementById('dash-v3-shell').appendChild(sidebar('dash'));
+document.getElementById('dash-v3-shell').insertAdjacentHTML('beforeend', `
+  <main class="main" style="gap:14px">
+    <div class="between">
+      <div>
+        <div class="eyebrow">— Status</div>
+        <h1 style="font:400 32px var(--font-display);margin:4px 0 0;color:var(--ink-w);letter-spacing:-.01em">Ramie · <span class="muted" style="font-weight:300">Lv. 7 · 2,835 XP</span></h1>
+      </div>
+      <div style="display:flex;gap:8px"><button class="btn ghost sm">Last 7 days</button><button class="btn primary sm">Resume case 014a →</button></div>
+    </div>
+
+    <div class="dense-grid">
+      <div class="card dense span2"><div class="lab" style="font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta)">Quizzes</div><div style="font:300 40px var(--font-display);line-height:1;font-feature-settings:'tnum'">35</div><div class="muted small">+4 this week</div></div>
+      <div class="card dense span2"><div class="lab" style="font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta)">Avg score</div><div style="font:300 40px var(--font-display);line-height:1"><em style="color:var(--ox);font-style:italic">68</em>%</div><div class="muted small">Brier 0.31 · slight overconfidence</div></div>
+      <div class="card dense span2"><div class="lab" style="font:600 10px var(--font-body);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-meta)">Streak</div><div style="font:300 40px var(--font-display);line-height:1">12 <span class="muted" style="font-size:18px">days</span></div><div class="muted small">Next milestone in 2</div></div>
+
+      <div class="card span4">
+        <div class="between"><div class="eyebrow">— Score trend · last 14 days</div><div class="muted small mono">avg 68% · range 42–84</div></div>
+        <div class="bigchart">
+          <div class="bar" style="height:40%"></div>
+          <div class="bar" style="height:48%"></div>
+          <div class="bar" style="height:32%"></div>
+          <div class="bar" style="height:55%"></div>
+          <div class="bar on" style="height:62%"></div>
+          <div class="bar" style="height:58%"></div>
+          <div class="bar" style="height:42%"></div>
+          <div class="bar" style="height:70%"></div>
+          <div class="bar on" style="height:74%"></div>
+          <div class="bar" style="height:64%"></div>
+          <div class="bar on" style="height:68%"></div>
+          <div class="bar" style="height:80%"></div>
+          <div class="bar" style="height:78%"></div>
+          <div class="bar on" style="height:84%"></div>
+        </div>
+      </div>
+
+      <div class="card span2">
+        <div class="eyebrow">— Activity</div>
+        <div class="heat" style="margin-top:14px">
+          ${Array.from({length:91},(_,i)=>{
+            const r=Math.random();
+            const cls=r>.85?'h3':r>.6?'h2':r>.3?'h1':'';
+            return `<div class="cell ${cls}"></div>`;
+          }).join('')}
+        </div>
+        <div class="muted small" style="margin-top:8px">13 weeks · ${'■'.repeat(0)}</div>
+      </div>
+
+      <div class="card span4">
+        <div class="between"><div class="eyebrow">— Today's agenda · 3 sessions</div><a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none;letter-spacing:.04em">→ full plan</a></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px">
+          <div style="padding:12px;border:1px solid var(--ox);border-radius:9px;background:var(--ox-soft)">
+            <div class="mono" style="font-size:10px;color:var(--ox);letter-spacing:.08em;text-transform:uppercase">Now · 3:00 PM</div>
+            <div style="font:500 13.5px var(--font-body);margin-top:3px">Infectious bacterial</div>
+            <div class="muted small">8 cards · spaced</div>
+          </div>
+          <div style="padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--card-2)">
+            <div class="mono" style="font-size:10px;color:var(--ink-meta);letter-spacing:.08em;text-transform:uppercase">5:30 PM</div>
+            <div style="font:500 13.5px var(--font-body);margin-top:3px">Psoriasis</div>
+            <div class="muted small">15-Q quiz · 12 min</div>
+          </div>
+          <div style="padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--card-2)">
+            <div class="mono" style="font-size:10px;color:var(--ink-meta);letter-spacing:.08em;text-transform:uppercase">8:00 PM</div>
+            <div style="font:500 13.5px var(--font-body);margin-top:3px">Mixed practice</div>
+            <div class="muted small">10 questions</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span2">
+        <div class="eyebrow">— Weakest topics</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+          <div style="display:grid;grid-template-columns:1fr 60px;gap:10px;align-items:center"><div style="font:500 12.5px var(--font-body)">Infectious bacterial</div><div class="mono" style="font-size:11px;color:var(--ox);text-align:right">23%</div></div>
+          <div style="display:grid;grid-template-columns:1fr 60px;gap:10px;align-items:center"><div style="font:500 12.5px var(--font-body)">Melanoma · staging</div><div class="mono" style="font-size:11px;color:var(--ox);text-align:right">42%</div></div>
+          <div style="display:grid;grid-template-columns:1fr 60px;gap:10px;align-items:center"><div style="font:500 12.5px var(--font-body)">Hair · alopecias</div><div class="mono" style="font-size:11px;color:var(--gold);text-align:right">51%</div></div>
+          <div style="display:grid;grid-template-columns:1fr 60px;gap:10px;align-items:center"><div style="font:500 12.5px var(--font-body)">Pigmentary</div><div class="mono" style="font-size:11px;color:var(--gold);text-align:right">58%</div></div>
+        </div>
+      </div>
+
+      <div class="span6" style="margin-top:6px">
+        <div class="insights">
+          <div class="insight info"><span class="lab">Pattern</span><span>Evening sessions (6–8 PM) score 14% higher than morning. Heaviest study blocks should shift later.</span></div>
+          <div class="insight warn"><span class="lab">Focus</span><span>3 topics show retention &lt; 60% across the last 14 days. Suggested: schedule a mixed 30-minute review tonight.</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+`);
+</script>
+
+<!-- ═══════════════════════════════════════════ mobile (paired with v1) ═══════════════════════════════════════════ -->
+<section class="section-head"><div class="num">m</div><h2>Mobile</h2><p class="desc">Single-column, hamburger nav, sticky bottom tabbar. Five primary tabs match the sidebar groups.</p></section>
+
+<div class="ab" id="dash-mob">
+  <div class="ab-head"><h3>01m · Dashboard · mobile</h3><span class="ab-tag mob">412 × 780 · paired with v1</span><span class="ab-meta">/app</span></div>
+  <div class="ab-frame mobile-frame">
+    <div class="mobile-inner">
+      <header class="m-topbar">
+        <button class="ham"><svg width="20" height="20"><use href="#i-ham"/></svg></button>
+        <div class="wm">dermie</div>
+        <button class="ham"><svg width="20" height="20"><use href="#i-bell"/></svg></button>
+      </header>
+      <div class="m-content">
+        <div>
+          <div class="eyebrow" style="font-size:10px">— Good afternoon</div>
+          <h1 style="font:300 32px/1.1 var(--font-display);margin:6px 0 4px;color:var(--ink-w);letter-spacing:-.02em">Welcome back, <em style="color:var(--ox);font-style:italic">Ramie</em>.</h1>
+          <p style="font:400 13px/1.4 var(--font-body);color:var(--ink-meta);margin:0">Three sessions due today.</p>
+        </div>
+
+        <div class="m-streak">
+          <div>
+            <div class="nm">12 day streak</div>
+            <div style="font:400 11px var(--font-body);color:rgba(251,246,232,.65);margin-top:2px">Next milestone in 2 days</div>
+          </div>
+          <div class="day">12</div>
+        </div>
+
+        <div>
+          <div class="eyebrow" style="font-size:10px;margin-bottom:8px">— Quick actions</div>
+          <div class="m-action">
+            <a><span class="ic"><svg><use href="#i-quiz"/></svg></span><span class="nm">Start a quiz</span><span class="d">25 questions</span></a>
+            <a><span class="ic"><svg><use href="#i-cat"/></svg></span><span class="nm">Open a case</span><span class="d">142 in library</span></a>
+            <a><span class="ic"><svg><use href="#i-fc"/></svg></span><span class="nm">Flashcards</span><span class="d">19 due</span></a>
+            <a><span class="ic"><svg><use href="#i-exam"/></svg></span><span class="nm">Mock exam</span><span class="d">Board-style</span></a>
+          </div>
+        </div>
+
+        <div>
+          <div class="eyebrow" style="font-size:10px;margin-bottom:8px">— Your progress</div>
+          <div class="m-prog">
+            <div class="p"><div class="l">Quizzes</div><div class="n">35</div></div>
+            <div class="p"><div class="l">Avg</div><div class="n">68%</div></div>
+            <div class="p"><div class="l">Streak</div><div class="n">12d</div></div>
+          </div>
+        </div>
+
+        <div class="m-card" style="background:var(--ox);border-color:var(--ox);color:var(--card)">
+          <div style="font:500 11px var(--font-mono);color:rgba(251,246,232,.7);letter-spacing:.06em;text-transform:uppercase">Now · 3:00 PM</div>
+          <div style="font:500 15px var(--font-body);color:var(--card);margin-top:2px">Infectious bacterial</div>
+          <div style="font:400 12px var(--font-body);color:rgba(251,246,232,.75)">8 cards · spaced repetition</div>
+          <div style="display:flex;gap:8px;margin-top:8px"><button class="btn xs" style="background:var(--card);color:var(--ink-w);border-color:var(--card)">Start now</button><button class="btn xs" style="background:transparent;color:var(--card);border-color:rgba(251,246,232,.4)">Snooze</button></div>
+        </div>
+
+        <div class="m-card">
+          <div class="eyebrow" style="font-size:10px">— Insights</div>
+          <div class="insight info" style="margin-top:6px;font-size:12px"><span class="lab" style="font-size:9px">Pattern</span><span>You score 14% higher around 7 PM.</span></div>
+          <div class="insight warn" style="font-size:12px"><span class="lab" style="font-size:9px">Focus</span><span>Infectious, Psoriasis, Inflammatory — lower retention.</span></div>
+        </div>
+
+        <div class="m-card">
+          <div class="between"><div class="eyebrow" style="font-size:10px">— Recent</div><a href="#demo-top" style="font:500 11px var(--font-mono);color:var(--ox);text-decoration:none">→ all</a></div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)"><div><div style="font:400 12.5px var(--font-body)">Inflammatory quiz</div><div class="muted small">11 May · 20 min</div></div><div class="mono" style="font-size:12px;color:var(--moss)">+72%</div></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)"><div><div style="font:400 12.5px var(--font-body)">Case 014a · paused</div><div class="muted small">10 May · step 3 of 12</div></div><div class="muted small">—</div></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0"><div><div style="font:400 12.5px var(--font-body)">Melanoma quiz</div><div class="muted small">8 May · 28 min</div></div><div class="mono" style="font-size:12px;color:var(--ox)">42%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="m-tabbar">
+        <a class="tab active"><svg><use href="#i-dash"/></svg>Home</a>
+        <a class="tab"><svg><use href="#i-quiz"/></svg>Study</a>
+        <a class="tab"><svg><use href="#i-mini"/></svg>Play</a>
+        <a class="tab"><svg><use href="#i-perf"/></svg>Stats</a>
+        <a class="tab"><svg><use href="#i-prof"/></svg>You</a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

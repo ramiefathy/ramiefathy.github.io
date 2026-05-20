@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A systematic analysis of Ramie Fathy's all-time top 100 Spotify songs — artist concentration, era cartography, sonic signature, and what the data quietly reveals.">
+<meta name="theme-color" content="#f4f0e8">
+<meta property="og:site_name" content="Ramie Fathy, MD">
+<meta property="og:title" content="Sonic Self-Portrait — Ramie Fathy">
+<meta property="og:description" content="A reading of my Spotify all-time top 100 — 100 songs, 25 artists, four obsessions, one mood.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ramiefathy.com/music/">
+<meta name="twitter:card" content="summary_large_image">
+<title>Sonic Self-Portrait · Ramie Fathy</title>
+<link rel="canonical" href="https://ramiefathy.com/music/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+:root {
+  --bone:        #f4f0e8;
+  --bone-2:      #e8e2d4;
+  --plate-bg:    #fbf8f1;
+  --ink:         #0a0a0a;
+  --ink-soft:    #1f1f1f;
+  --slate:       #475569;
+  --slate-soft:  #94a3b8;
+  --terracotta:  #c2674a;
+  --terracotta-2:#9f4d36;
+  --moss:        #5b7058;
+  --gold:        #a37b2a;
+  --rule:        #0a0a0a;
+  --rule-soft:   rgba(10,10,10,0.12);
+  --font-display:'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:   'Newsreader', Georgia, serif;
+  --font-mono:   'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bone); color: var(--ink);
+  font-family: var(--font-body); line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01","onum","liga";
+}
+::selection { background: var(--terracotta); color: var(--bone); }
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--terracotta); }
+:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+h1,h2,h3,h4 {
+  font-family: var(--font-display); font-weight: 500;
+  letter-spacing: -0.015em; color: var(--ink); margin: 0;
+}
+em { font-style: italic; color: var(--terracotta); }
+.shell { max-width: 1100px; margin: 0 auto; padding: 24px 32px 96px; }
+@media (max-width: 720px) { .shell { padding: 16px 18px 64px; } }
+
+/* ===== Plate stamp + masthead ===== */
+.plate-stamp {
+  display:flex; align-items:center; gap:14px;
+  font-family: var(--font-mono); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--slate); padding: 10px 0; border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule); margin-bottom: 28px;
+}
+.plate-stamp b { color: var(--ink); font-weight: 700; }
+.barcode { flex: 1; height: 14px; background:
+  repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 4px,
+                            var(--ink) 4px 5px, transparent 5px 9px,
+                            var(--ink) 9px 11px, transparent 11px 13px); opacity: 0.55; }
+.kicker {
+  font-family: var(--font-mono); font-size: 11px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.18em;
+}
+.display1 { font-size: clamp(40px, 6vw, 80px); line-height: 0.98; letter-spacing: -0.025em; font-weight: 600; }
+.display2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; }
+.display3 { font-size: clamp(22px, 2.6vw, 30px); line-height: 1.1; font-weight: 500; }
+/* Lede stays constrained for callout effect; body fills the section width to match figures. */
+.lede { font-size: 21px; line-height: 1.55; color: var(--ink-soft); max-width: 70ch; }
+.body-copy { font-size: 17.5px; line-height: 1.62; color: var(--ink-soft); margin: 0 0 14px; }
+.body-copy + .body-copy { margin-top: 0; }
+
+.masthead-head {
+  display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end;
+  margin-bottom: 32px;
+}
+.masthead-head .right {
+  font-family: var(--font-mono); font-size: 12px; color: var(--slate);
+  text-align: right; line-height: 1.5;
+}
+@media (max-width: 720px) {
+  .masthead-head { grid-template-columns: 1fr; }
+  .masthead-head .right { text-align: left; }
+}
+
+/* ===== Big stats row ===== */
+.stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  margin: 32px 0 8px;
+}
+@media (max-width: 720px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+.stat-cell {
+  background: var(--plate-bg); border: 1px solid var(--rule);
+  padding: 18px 16px 16px; position: relative;
+}
+.stat-cell .stat-num {
+  font-family: var(--font-display); font-size: clamp(34px, 4.4vw, 52px);
+  font-weight: 600; line-height: 1; letter-spacing: -0.02em; color: var(--ink);
+}
+.stat-cell .stat-num.small { font-size: clamp(22px, 2.4vw, 30px); }
+.stat-cell .stat-label {
+  font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: 0.16em; color: var(--slate); margin-top: 8px;
+}
+.stat-cell .stat-sub { color: var(--slate); font-size: 13px; margin-top: 4px; }
+
+/* ===== Carousel (weighted album marquee) ===== */
+.carousel {
+  margin: 56px -32px 12px; padding: 16px 0; border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule); background: var(--plate-bg); overflow: hidden;
+  position: relative;
+}
+.carousel::before, .carousel::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 80px; pointer-events: none; z-index: 2;
+}
+.carousel::before { left: 0; background: linear-gradient(90deg, var(--plate-bg), transparent); }
+.carousel::after  { right: 0; background: linear-gradient(-90deg, var(--plate-bg), transparent); }
+.carousel-track {
+  display: flex; align-items: flex-end; gap: 16px;
+  width: max-content; animation: marquee 180s linear infinite;
+}
+.carousel:hover .carousel-track { animation-play-state: paused; }
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carousel-track { animation: none; overflow-x: auto; }
+}
+.album-tile {
+  flex: 0 0 var(--tw); width: var(--tw); display: block;
+  border: 1px solid var(--rule); background: var(--bone);
+  transition: transform .25s var(--ease-out, ease);
+}
+.album-tile:hover { transform: translateY(-3px); }
+.album-tile img {
+  display: block; width: 100%; aspect-ratio: 1/1; object-fit: cover;
+  background: var(--bone-2);
+}
+.album-tile .album-meta { padding: 8px 10px 10px; line-height: 1.2; }
+.album-tile .album-title {
+  display: block; font-family: var(--font-display); font-weight: 600;
+  font-size: 13px; color: var(--ink); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.album-tile .album-artist {
+  display: block; font-family: var(--font-mono); font-size: 10px;
+  color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+}
+.album-tile .album-artist em { color: var(--terracotta); font-style: normal; font-weight: 700; }
+.carousel-caption {
+  font-family: var(--font-mono); font-size: 11px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.16em; margin: 14px 0 0;
+}
+
+/* ===== Section plate ===== */
+.section { margin: 72px 0 0; }
+.section-head {
+  display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: end;
+  margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--rule);
+}
+.section-num {
+  font-family: var(--font-mono); font-size: 12px; color: var(--terracotta);
+  letter-spacing: 0.18em; padding-bottom: 6px;
+}
+.section-head h2 { font-size: clamp(26px, 3.4vw, 38px); line-height: 1.05; }
+.two-col {
+  display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px;
+}
+@media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } }
+
+/* Equal-width side-by-side tables for §I (artist concentration view). */
+.tables-side-by-side {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+  margin-top: 36px; padding-top: 28px;
+  border-top: 1px solid var(--rule-soft);
+}
+.tables-side-by-side .col-head {
+  font-family: var(--font-mono); font-size: 11px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.16em; margin: 0 0 12px;
+}
+.tables-side-by-side .col-head.accent { color: var(--terracotta); }
+@media (max-width: 820px) {
+  .tables-side-by-side { grid-template-columns: 1fr; gap: 28px; }
+}
+
+/* ===== Tables ===== */
+table.atlas {
+  width: 100%; border-collapse: collapse; font-family: var(--font-body);
+  font-size: 15.5px;
+}
+table.atlas th {
+  text-align: left; font-family: var(--font-mono); font-size: 10.5px;
+  text-transform: uppercase; letter-spacing: 0.16em; color: var(--slate);
+  border-bottom: 1px solid var(--rule); padding: 8px 8px 6px; font-weight: 400;
+}
+table.atlas td { padding: 8px 8px; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+table.atlas td.rank, table.atlas td.rk {
+  font-family: var(--font-mono); color: var(--slate); font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.12em; width: 56px;
+}
+table.atlas td.name b { font-weight: 600; }
+table.atlas td.album, table.atlas td.track, table.atlas td.name { display: block; }
+table.atlas td.album .sub, table.atlas td.track .sub, table.atlas td.name .sub {
+  display: block; font-family: var(--font-mono); font-size: 11px;
+  color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em;
+  margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-weight: 400;
+}
+table.atlas td.track b { font-weight: 600; }
+/* Bar cell: explicit flex layout so the bar lives in its own track and
+   the count number is on its own column — they cannot visually collide. */
+table.atlas td.count {
+  width: 220px; padding: 8px 8px;
+}
+table.atlas td.count .bar-track {
+  display: inline-block; vertical-align: middle;
+  width: calc(100% - 36px); height: 8px;
+  background: rgba(10,10,10,0.07); margin-right: 8px;
+}
+table.atlas td.count .bar {
+  display: block; height: 100%;
+  width: calc(100% * var(--w-frac, 0)); background: var(--terracotta);
+}
+table.atlas td.count .num {
+  display: inline-block; vertical-align: middle;
+  font-family: var(--font-mono); font-size: 13px; color: var(--ink);
+  font-weight: 700; min-width: 24px; text-align: right;
+}
+table.atlas td.pct { width: 50px; font-family: var(--font-mono); font-size: 12px; color: var(--slate); text-align: right; }
+table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40px; color: var(--ink); font-weight: 700; }
+
+/* ===== Decade strip ===== */
+.decade-strip {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 0;
+  border: 1px solid var(--rule); background: var(--plate-bg);
+  margin-top: 8px;
+}
+.decade-col {
+  padding: 32px 6px 10px; border-right: 1px solid var(--rule-soft);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.decade-col:last-child { border-right: 0; }
+.decade-bar-wrap {
+  width: 100%; height: 130px; display: flex; align-items: flex-end; justify-content: center;
+  border-bottom: 1px solid var(--rule);
+}
+.decade-bar {
+  width: 60%; background: var(--terracotta); height: var(--h, 0%); min-height: 2px;
+  position: relative;
+}
+.decade-bar::after {
+  content: attr(data-count); position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink); font-weight: 700;
+  white-space: nowrap;
+}
+.decade-count { display: none; }
+.decade-label { font-family: var(--font-mono); font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* ===== Pull-quote / curiosity callouts ===== */
+.curiosity-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  margin-top: 24px;
+}
+@media (max-width: 720px) { .curiosity-grid { grid-template-columns: 1fr; } }
+.curiosity {
+  background: var(--plate-bg); border: 1px solid var(--rule); padding: 20px 22px;
+  position: relative;
+}
+.curiosity .ct {
+  font-family: var(--font-mono); font-size: 11px; color: var(--terracotta);
+  letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 10px;
+}
+.curiosity h3 { font-size: 22px; line-height: 1.1; margin-bottom: 6px; }
+.curiosity p { margin: 0; color: var(--ink-soft); font-size: 16px; line-height: 1.5; }
+
+/* ===== Long-tail appendix: explicit two-column grid (no CSS columns) ===== */
+.long-tail {
+  margin-top: 24px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px;
+}
+.long-tail .col {
+  border-right: 1px solid var(--rule-soft); padding-right: 32px;
+}
+.long-tail .col:last-child { border-right: 0; padding-right: 0; padding-left: 32px; margin-left: -32px; }
+.long-tail table { width: 100%; }
+@media (max-width: 720px) {
+  .long-tail { grid-template-columns: 1fr; }
+  .long-tail .col { border-right: 0; padding-right: 0; padding-left: 0; margin-left: 0; }
+}
+
+/* ===== Footer/colophon ===== */
+.colophon {
+  margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+  font-family: var(--font-mono); font-size: 12px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.12em; line-height: 1.6;
+}
+.colophon a { color: var(--ink); border-bottom: 1px solid var(--rule-soft); }
+.colophon a:hover { color: var(--terracotta); border-color: var(--terracotta); }
+@media (max-width: 720px) { .colophon { grid-template-columns: 1fr; } }
+
+/* ===== Charts: donut + legend ===== */
+.chart-row {
+  display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 40px;
+  align-items: center; margin-top: 8px;
+}
+.chart-row.compact {
+  grid-template-columns: minmax(200px, 240px) 1fr; gap: 28px;
+}
+@media (max-width: 720px) {
+  .chart-row, .chart-row.compact { grid-template-columns: 1fr; gap: 20px; }
+}
+.chart-row svg {
+  width: 100%; height: auto; max-width: 360px; display: block; margin: 0 auto;
+}
+.chart-legend {
+  list-style: none; margin: 0; padding: 0;
+}
+.chart-legend li {
+  display: grid; grid-template-columns: 14px 1fr auto;
+  align-items: center; gap: 10px; padding: 8px 0;
+  border-bottom: 1px solid var(--rule-soft); font-size: 14.5px;
+}
+.chart-legend li:last-child { border-bottom: 0; }
+.chart-legend .swatch {
+  width: 12px; height: 12px; display: inline-block; border: 1px solid rgba(10,10,10,0.2);
+}
+.chart-legend .lbl { font-family: var(--font-body); color: var(--ink); }
+.chart-legend .ct {
+  font-family: var(--font-mono); font-size: 12px; color: var(--ink);
+  font-weight: 700; letter-spacing: 0.04em;
+}
+.chart-legend .ct em { color: var(--slate); font-weight: 400; font-style: normal; }
+
+.dual-donut {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 32px;
+  border-top: 1px solid var(--rule-soft); padding-top: 28px;
+}
+.dual-donut .donut-block { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.dual-donut .donut-block svg { width: 100%; max-width: 220px; height: auto; margin: 0 auto; display: block; }
+.donut-block .donut-caption {
+  font-family: var(--font-mono); font-size: 11px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.14em; text-align: center;
+}
+@media (max-width: 720px) {
+  .dual-donut { grid-template-columns: 1fr; }
+}
+
+/* ===== Spotify link-out card ===== */
+.spotify-card {
+  margin: 32px 0 0; border: 1px solid var(--rule); background: var(--plate-bg);
+  padding: 22px 24px; display: grid;
+  grid-template-columns: 64px 1fr auto; gap: 20px; align-items: center;
+}
+.spotify-card .sp-icon {
+  width: 64px; height: 64px; background: var(--ink); color: var(--bone);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: -0.02em;
+}
+.spotify-card .sp-body p { margin: 0; line-height: 1.4; }
+.spotify-card .sp-eyebrow {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.18em;
+}
+.spotify-card .sp-title {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  color: var(--ink); letter-spacing: -0.012em; margin-top: 6px;
+}
+.spotify-card .sp-meta {
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-soft);
+  margin-top: 4px; letter-spacing: 0.04em;
+}
+.spotify-card .sp-cta {
+  font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--bone); background: var(--terracotta);
+  padding: 12px 16px; border: 1px solid var(--terracotta-2); white-space: nowrap;
+  transition: background .15s ease;
+}
+.spotify-card .sp-cta:hover { background: var(--terracotta-2); color: var(--bone); }
+@media (max-width: 720px) {
+  .spotify-card { grid-template-columns: 48px 1fr; }
+  .spotify-card .sp-icon { width: 48px; height: 48px; font-size: 22px; }
+  .spotify-card .sp-cta { grid-column: 1 / -1; text-align: center; }
+}
+.spotify-caption {
+  font-family: var(--font-mono); font-size: 11px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.16em; margin: 10px 0 0;
+}
+
+/* ===== Back link ===== */
+.back-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.16em; padding: 8px 0;
+  margin-bottom: 8px; border-bottom: 1px dashed var(--rule-soft);
+}
+.back-link:hover { color: var(--terracotta); }
+</style>
+</head>
+<body>
+<main class="shell">
+
+  <a class="back-link" href="/about/">← Back to About</a>
+
+  <div class="plate-stamp"><b>Atlas Vol. IV · Sonic Map</b><span class="barcode"></span><span>Issued 2026 · 05 · 15</span></div>
+
+  <header class="masthead-head">
+    <div>
+      <span class="kicker">Personal essay · v.1 · 2026</span>
+      <h1 class="display1" style="margin-top:14px">100 songs, four <em>obsessions</em>,<br>one mood.</h1>
+    </div>
+    <div class="right">
+      Source · Spotify Wrapped<br>
+      All-time top tracks<br>
+      Method · honest tabulation
+    </div>
+  </header>
+
+  <p class="lede">A close reading of my Spotify all-time top 100. The data is unflattering in the way honest data tends to be: a stable, narrow palette built up over a decade, anchored on four artists, weighted toward the kind of music that flatters a long drive at dusk.</p>
+
+  <!-- Spotify link-out card. The "Made For You" playlist is personalized and not
+       publicly embeddable (Spotify's iframe returns blank for non-authenticated viewers),
+       so a link-out is the correct affordance. -->
+  <a class="spotify-card" href="https://open.spotify.com/playlist/37i9dQZF1CL5ezo6O1xDca" target="_blank" rel="noreferrer" aria-label="Open Your All-Time Top Songs on Spotify">
+    <span class="sp-icon" aria-hidden="true">▶</span>
+    <div class="sp-body">
+      <p class="sp-eyebrow">Spotify · Made for ramiefathy</p>
+      <p class="sp-title">Your All-Time Top Songs</p>
+      <p class="sp-meta">100 tracks · 7h 03m 52s · 7,323 lifetime listens</p>
+    </div>
+    <span class="sp-cta">Open in Spotify ↗</span>
+  </a>
+  <p class="spotify-caption">Personalized playlists aren't publicly embeddable; the link opens it in your Spotify account.</p>
+
+  <!-- Big stats row -->
+  <section class="stats-row" aria-label="Headline statistics">
+    <div class="stat-cell">
+      <div class="stat-num">7,323</div>
+      <div class="stat-label">Lifetime listens</div>
+      <div class="stat-sub">73 mean / 66 median per track</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">151</div>
+      <div class="stat-label">Most-played track</div>
+      <div class="stat-sub">"White Gloves" — Khruangbin · #1</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num small">1964–2022</div>
+      <div class="stat-label">Year span</div>
+      <div class="stat-sub">58 years; modal era 2010s</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">59<span style="color:var(--slate);font-size:.55em">%</span></div>
+      <div class="stat-label">Top-4 artist share of plays</div>
+      <div class="stat-sub">Top 10 tracks alone = 16%</div>
+    </div>
+  </section>
+
+  <!-- Weighted album-cover carousel -->
+  <div class="carousel" role="region" aria-label="Album covers, sized by representation">
+    <div class="carousel-track">
+      <a class="album-tile" style="--tw:280px" href="#" data-artist="Khruangbin" data-album="Mordechai" data-count="6" aria-label="Mordechai by Khruangbin, 6 songs"><img src="./assets/albums/khruangbin--mordechai.jpg" alt="Mordechai cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Mordechai</span><span class="album-artist">Khruangbin <em>· 6</em></span></div></a>
+<a class="album-tile" style="--tw:240px" href="#" data-artist="Radiohead" data-album="OK Computer" data-count="5" aria-label="OK Computer by Radiohead, 5 songs"><img src="./assets/albums/radiohead--ok-computer.jpg" alt="OK Computer cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">OK Computer</span><span class="album-artist">Radiohead <em>· 5</em></span></div></a>
+<a class="album-tile" style="--tw:240px" href="#" data-artist="Radiohead" data-album="In Rainbows" data-count="5" aria-label="In Rainbows by Radiohead, 5 songs"><img src="./assets/albums/radiohead--in-rainbows.jpg" alt="In Rainbows cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">In Rainbows</span><span class="album-artist">Radiohead <em>· 5</em></span></div></a>
+<a class="album-tile" style="--tw:240px" href="#" data-artist="Tame Impala" data-album="Lonerism" data-count="5" aria-label="Lonerism by Tame Impala, 5 songs"><img src="./assets/albums/tame-impala--lonerism.jpg" alt="Lonerism cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Lonerism</span><span class="album-artist">Tame Impala <em>· 5</em></span></div></a>
+<a class="album-tile" style="--tw:240px" href="#" data-artist="Khruangbin" data-album="The Universe Smiles Upon You" data-count="5" aria-label="The Universe Smiles Upon You by Khruangbin, 5 songs"><img src="./assets/albums/khruangbin--the-universe-smiles-upon-you.jpg" alt="The Universe Smiles Upon You cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Universe Smiles Upon You</span><span class="album-artist">Khruangbin <em>· 5</em></span></div></a>
+<a class="album-tile" style="--tw:210px" href="#" data-artist="The Beatles" data-album="Abbey Road" data-count="4" aria-label="Abbey Road by The Beatles, 4 songs"><img src="./assets/albums/the-beatles--abbey-road.jpg" alt="Abbey Road cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Abbey Road</span><span class="album-artist">The Beatles <em>· 4</em></span></div></a>
+<a class="album-tile" style="--tw:210px" href="#" data-artist="Tame Impala" data-album="Innerspeaker" data-count="4" aria-label="Innerspeaker by Tame Impala, 4 songs"><img src="./assets/albums/tame-impala--innerspeaker.jpg" alt="Innerspeaker cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Innerspeaker</span><span class="album-artist">Tame Impala <em>· 4</em></span></div></a>
+<a class="album-tile" style="--tw:210px" href="#" data-artist="Connan Mockasin" data-album="Forever Dolphin Love" data-count="4" aria-label="Forever Dolphin Love by Connan Mockasin, 4 songs"><img src="./assets/albums/connan-mockasin--forever-dolphin-love.jpg" alt="Forever Dolphin Love cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Forever Dolphin Love</span><span class="album-artist">Connan Mockasin <em>· 4</em></span></div></a>
+<a class="album-tile" style="--tw:210px" href="#" data-artist="Tame Impala" data-album="The Slow Rush" data-count="4" aria-label="The Slow Rush by Tame Impala, 4 songs"><img src="./assets/albums/tame-impala--the-slow-rush.jpg" alt="The Slow Rush cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Slow Rush</span><span class="album-artist">Tame Impala <em>· 4</em></span></div></a>
+<a class="album-tile" style="--tw:170px" href="#" data-artist="Khruangbin" data-album="Con Todo El Mundo" data-count="3" aria-label="Con Todo El Mundo by Khruangbin, 3 songs"><img src="./assets/albums/khruangbin--con-todo-el-mundo.jpg" alt="Con Todo El Mundo cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Con Todo El Mundo</span><span class="album-artist">Khruangbin <em>· 3</em></span></div></a>
+<a class="album-tile" style="--tw:170px" href="#" data-artist="Her&#x27;s" data-album="Invitation to Her&#x27;s" data-count="3" aria-label="Invitation to Her&#x27;s by Her&#x27;s, 3 songs"><img src="./assets/albums/her-s--invitation-to-her-s.jpg" alt="Invitation to Her&#x27;s cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Invitation to Her&#x27;s</span><span class="album-artist">Her&#x27;s <em>· 3</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="The Beatles" data-album="The White Album" data-count="2" aria-label="The White Album by The Beatles, 2 songs"><img src="./assets/albums/the-beatles--the-white-album.jpg" alt="The White Album cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The White Album</span><span class="album-artist">The Beatles <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Pink Floyd" data-album="The Dark Side of the Moon" data-count="2" aria-label="The Dark Side of the Moon by Pink Floyd, 2 songs"><img src="./assets/albums/pink-floyd--the-dark-side-of-the-moon.jpg" alt="The Dark Side of the Moon cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Dark Side of the Moon</span><span class="album-artist">Pink Floyd <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Red Hot Chili Peppers" data-album="Californication" data-count="2" aria-label="Californication by Red Hot Chili Peppers, 2 songs"><img src="./assets/albums/red-hot-chili-peppers--californication.jpg" alt="Californication cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Californication</span><span class="album-artist">Red Hot Chili Peppers <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Connan Mockasin" data-album="Caramel" data-count="2" aria-label="Caramel by Connan Mockasin, 2 songs"><img src="./assets/albums/connan-mockasin--caramel.jpg" alt="Caramel cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Caramel</span><span class="album-artist">Connan Mockasin <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Mac DeMarco" data-album="Salad Days" data-count="2" aria-label="Salad Days by Mac DeMarco, 2 songs"><img src="./assets/albums/mac-demarco--salad-days.jpg" alt="Salad Days cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Salad Days</span><span class="album-artist">Mac DeMarco <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="alt-J" data-album="This Is All Yours" data-count="2" aria-label="This Is All Yours by alt-J, 2 songs"><img src="./assets/albums/alt-j--this-is-all-yours.jpg" alt="This Is All Yours cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">This Is All Yours</span><span class="album-artist">alt-J <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Tame Impala" data-album="Currents" data-count="2" aria-label="Currents by Tame Impala, 2 songs"><img src="./assets/albums/tame-impala--currents.jpg" alt="Currents cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Currents</span><span class="album-artist">Tame Impala <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Mac DeMarco" data-album="This Old Dog" data-count="2" aria-label="This Old Dog by Mac DeMarco, 2 songs"><img src="./assets/albums/mac-demarco--this-old-dog.jpg" alt="This Old Dog cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">This Old Dog</span><span class="album-artist">Mac DeMarco <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="alt-J" data-album="Relaxer" data-count="2" aria-label="Relaxer by alt-J, 2 songs"><img src="./assets/albums/alt-j--relaxer.jpg" alt="Relaxer cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Relaxer</span><span class="album-artist">alt-J <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Gorillaz" data-album="The Now Now" data-count="2" aria-label="The Now Now by Gorillaz, 2 songs"><img src="./assets/albums/gorillaz--the-now-now.jpg" alt="The Now Now cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Now Now</span><span class="album-artist">Gorillaz <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Connan Mockasin" data-album="Jassbusters" data-count="2" aria-label="Jassbusters by Connan Mockasin, 2 songs"><img src="./assets/albums/connan-mockasin--jassbusters.jpg" alt="Jassbusters cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Jassbusters</span><span class="album-artist">Connan Mockasin <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="The Animals" data-album="The Animals" data-count="1" aria-label="The Animals by The Animals, 1 song"><img src="./assets/albums/the-animals--the-animals.jpg" alt="The Animals cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Animals</span><span class="album-artist">The Animals <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Jimi Hendrix" data-album="Axis: Bold as Love" data-count="1" aria-label="Axis: Bold as Love by Jimi Hendrix, 1 song"><img src="./assets/albums/jimi-hendrix--axis-bold-as-love.jpg" alt="Axis: Bold as Love cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Axis: Bold as Love</span><span class="album-artist">Jimi Hendrix <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="The Velvet Underground" data-album="Loaded" data-count="1" aria-label="Loaded by The Velvet Underground, 1 song"><img src="./assets/albums/the-velvet-underground--loaded.jpg" alt="Loaded cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Loaded</span><span class="album-artist">The Velvet Underground <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Led Zeppelin" data-album="Led Zeppelin IV" data-count="1" aria-label="Led Zeppelin IV by Led Zeppelin, 1 song"><img src="./assets/albums/led-zeppelin--led-zeppelin-iv.jpg" alt="Led Zeppelin IV cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Led Zeppelin IV</span><span class="album-artist">Led Zeppelin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Pixies" data-album="Surfer Rosa" data-count="1" aria-label="Surfer Rosa by Pixies, 1 song"><img src="./assets/albums/pixies--surfer-rosa.jpg" alt="Surfer Rosa cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Surfer Rosa</span><span class="album-artist">Pixies <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Nirvana" data-album="Nevermind" data-count="1" aria-label="Nevermind by Nirvana, 1 song"><img src="./assets/albums/nirvana--nevermind.jpg" alt="Nevermind cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Nevermind</span><span class="album-artist">Nirvana <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Red Hot Chili Peppers" data-album="Blood Sugar Sex Magik" data-count="1" aria-label="Blood Sugar Sex Magik by Red Hot Chili Peppers, 1 song"><img src="./assets/albums/red-hot-chili-peppers--blood-sugar-sex-magik.jpg" alt="Blood Sugar Sex Magik cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Blood Sugar Sex Magik</span><span class="album-artist">Red Hot Chili Peppers <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Radiohead" data-album="Pablo Honey" data-count="1" aria-label="Pablo Honey by Radiohead, 1 song"><img src="./assets/albums/radiohead--pablo-honey.jpg" alt="Pablo Honey cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Pablo Honey</span><span class="album-artist">Radiohead <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Radiohead" data-album="The Bends" data-count="1" aria-label="The Bends by Radiohead, 1 song"><img src="./assets/albums/radiohead--the-bends.jpg" alt="The Bends cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Bends</span><span class="album-artist">Radiohead <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Radiohead" data-album="Kid A" data-count="1" aria-label="Kid A by Radiohead, 1 song"><img src="./assets/albums/radiohead--kid-a.jpg" alt="Kid A cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Kid A</span><span class="album-artist">Radiohead <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Red Hot Chili Peppers" data-album="By the Way" data-count="1" aria-label="By the Way by Red Hot Chili Peppers, 1 song"><img src="./assets/albums/red-hot-chili-peppers--by-the-way.jpg" alt="By the Way cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">By the Way</span><span class="album-artist">Red Hot Chili Peppers <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Radiohead" data-album="Hail to the Thief" data-count="1" aria-label="Hail to the Thief by Radiohead, 1 song"><img src="./assets/albums/radiohead--hail-to-the-thief.jpg" alt="Hail to the Thief cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Hail to the Thief</span><span class="album-artist">Radiohead <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Red Hot Chili Peppers" data-album="Stadium Arcadium" data-count="1" aria-label="Stadium Arcadium by Red Hot Chili Peppers, 1 song"><img src="./assets/albums/red-hot-chili-peppers--stadium-arcadium.jpg" alt="Stadium Arcadium cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Stadium Arcadium</span><span class="album-artist">Red Hot Chili Peppers <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Washed Out" data-album="Life of Leisure EP" data-count="1" aria-label="Life of Leisure EP by Washed Out, 1 song"><img src="./assets/albums/washed-out--life-of-leisure-ep.jpg" alt="Life of Leisure EP cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Life of Leisure EP</span><span class="album-artist">Washed Out <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="The xx" data-album="xx" data-count="1" aria-label="xx by The xx, 1 song"><img src="./assets/albums/the-xx--xx.jpg" alt="xx cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">xx</span><span class="album-artist">The xx <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Arcade Fire" data-album="The Suburbs" data-count="1" aria-label="The Suburbs by Arcade Fire, 1 song"><img src="./assets/albums/arcade-fire--the-suburbs.jpg" alt="The Suburbs cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Suburbs</span><span class="album-artist">Arcade Fire <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Mac DeMarco" data-album="2" data-count="1" aria-label="2 by Mac DeMarco, 1 song"><img src="./assets/albums/mac-demarco--2.jpg" alt="2 cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">2</span><span class="album-artist">Mac DeMarco <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="alt-J" data-album="An Awesome Wave" data-count="1" aria-label="An Awesome Wave by alt-J, 1 song"><img src="./assets/albums/alt-j--an-awesome-wave.jpg" alt="An Awesome Wave cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">An Awesome Wave</span><span class="album-artist">alt-J <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Foxygen" data-album="We Are the 21st Century Ambassadors" data-count="1" aria-label="We Are the 21st Century Ambassadors by Foxygen, 1 song"><img src="./assets/albums/foxygen--we-are-the-21st-century-ambassadors.jpg" alt="We Are the 21st Century Ambassadors cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">We Are the 21st Century Ambassadors</span><span class="album-artist">Foxygen <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Unknown Mortal Orchestra" data-album="II" data-count="1" aria-label="II by Unknown Mortal Orchestra, 1 song"><img src="./assets/albums/unknown-mortal-orchestra--ii.jpg" alt="II cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">II</span><span class="album-artist">Unknown Mortal Orchestra <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="alt-J" data-album="This Is All Yours (deluxe)" data-count="1" aria-label="This Is All Yours (deluxe) by alt-J, 1 song"><img src="./assets/albums/alt-j--this-is-all-yours-deluxe-.jpg" alt="This Is All Yours (deluxe) cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">This Is All Yours (deluxe)</span><span class="album-artist">alt-J <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Chrome Sparks" data-album="Goddess EP" data-count="1" aria-label="Goddess EP by Chrome Sparks, 1 song"><img src="./assets/albums/chrome-sparks--goddess-ep.jpg" alt="Goddess EP cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Goddess EP</span><span class="album-artist">Chrome Sparks <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Soft Hair" data-album="Soft Hair" data-count="1" aria-label="Soft Hair by Soft Hair, 1 song"><img src="./assets/albums/soft-hair--soft-hair.jpg" alt="Soft Hair cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Soft Hair</span><span class="album-artist">Soft Hair <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Her&#x27;s" data-album="Songs of Her&#x27;s" data-count="1" aria-label="Songs of Her&#x27;s by Her&#x27;s, 1 song"><img src="./assets/albums/her-s--songs-of-her-s.jpg" alt="Songs of Her&#x27;s cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Songs of Her&#x27;s</span><span class="album-artist">Her&#x27;s <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Khruangbin" data-album="The Infamous Bill EP" data-count="1" aria-label="The Infamous Bill EP by Khruangbin, 1 song"><img src="./assets/albums/khruangbin--the-infamous-bill-ep.jpg" alt="The Infamous Bill EP cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Infamous Bill EP</span><span class="album-artist">Khruangbin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Connan Mockasin" data-album="Caramel-era collab" data-count="1" aria-label="Caramel-era collab by Connan Mockasin, 1 song"><img src="./assets/albums/connan-mockasin--caramel-era-collab.jpg" alt="Caramel-era collab cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Caramel-era collab</span><span class="album-artist">Connan Mockasin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Maribou State" data-album="Kingdoms in Colour" data-count="1" aria-label="Kingdoms in Colour by Maribou State, 1 song"><img src="./assets/albums/maribou-state--kingdoms-in-colour.jpg" alt="Kingdoms in Colour cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Kingdoms in Colour</span><span class="album-artist">Maribou State <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Khruangbin" data-album="Hasta El Cielo" data-count="1" aria-label="Hasta El Cielo by Khruangbin, 1 song"><img src="./assets/albums/khruangbin--hasta-el-cielo.jpg" alt="Hasta El Cielo cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Hasta El Cielo</span><span class="album-artist">Khruangbin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Khruangbin" data-album="Texas Sun EP" data-count="1" aria-label="Texas Sun EP by Khruangbin, 1 song"><img src="./assets/albums/khruangbin--texas-sun-ep.jpg" alt="Texas Sun EP cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Texas Sun EP</span><span class="album-artist">Khruangbin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Khruangbin" data-album="Texas Moon EP" data-count="1" aria-label="Texas Moon EP by Khruangbin, 1 song"><img src="./assets/albums/khruangbin--texas-moon-ep.jpg" alt="Texas Moon EP cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Texas Moon EP</span><span class="album-artist">Khruangbin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:280px" href="#" data-artist="Khruangbin" data-album="Mordechai" data-count="6" aria-label="Mordechai by Khruangbin, 6 songs"><img src="./assets/albums/khruangbin--mordechai.jpg" alt="Mordechai cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Mordechai</span><span class="album-artist">Khruangbin <em>· 6</em></span></div></a>
+<a class="album-tile" style="--tw:240px" href="#" data-artist="Radiohead" data-album="OK Computer" data-count="5" aria-label="OK Computer by Radiohead, 5 songs"><img src="./assets/albums/radiohead--ok-computer.jpg" alt="OK Computer cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">OK Computer</span><span class="album-artist">Radiohead <em>· 5</em></span></div></a>
+<a class="album-tile" style="--tw:240px" href="#" data-artist="Radiohead" data-album="In Rainbows" data-count="5" aria-label="In Rainbows by Radiohead, 5 songs"><img src="./assets/albums/radiohead--in-rainbows.jpg" alt="In Rainbows cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">In Rainbows</span><span class="album-artist">Radiohead <em>· 5</em></span></div></a>
+<a class="album-tile" style="--tw:240px" href="#" data-artist="Tame Impala" data-album="Lonerism" data-count="5" aria-label="Lonerism by Tame Impala, 5 songs"><img src="./assets/albums/tame-impala--lonerism.jpg" alt="Lonerism cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Lonerism</span><span class="album-artist">Tame Impala <em>· 5</em></span></div></a>
+<a class="album-tile" style="--tw:240px" href="#" data-artist="Khruangbin" data-album="The Universe Smiles Upon You" data-count="5" aria-label="The Universe Smiles Upon You by Khruangbin, 5 songs"><img src="./assets/albums/khruangbin--the-universe-smiles-upon-you.jpg" alt="The Universe Smiles Upon You cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Universe Smiles Upon You</span><span class="album-artist">Khruangbin <em>· 5</em></span></div></a>
+<a class="album-tile" style="--tw:210px" href="#" data-artist="The Beatles" data-album="Abbey Road" data-count="4" aria-label="Abbey Road by The Beatles, 4 songs"><img src="./assets/albums/the-beatles--abbey-road.jpg" alt="Abbey Road cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Abbey Road</span><span class="album-artist">The Beatles <em>· 4</em></span></div></a>
+<a class="album-tile" style="--tw:210px" href="#" data-artist="Tame Impala" data-album="Innerspeaker" data-count="4" aria-label="Innerspeaker by Tame Impala, 4 songs"><img src="./assets/albums/tame-impala--innerspeaker.jpg" alt="Innerspeaker cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Innerspeaker</span><span class="album-artist">Tame Impala <em>· 4</em></span></div></a>
+<a class="album-tile" style="--tw:210px" href="#" data-artist="Connan Mockasin" data-album="Forever Dolphin Love" data-count="4" aria-label="Forever Dolphin Love by Connan Mockasin, 4 songs"><img src="./assets/albums/connan-mockasin--forever-dolphin-love.jpg" alt="Forever Dolphin Love cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Forever Dolphin Love</span><span class="album-artist">Connan Mockasin <em>· 4</em></span></div></a>
+<a class="album-tile" style="--tw:210px" href="#" data-artist="Tame Impala" data-album="The Slow Rush" data-count="4" aria-label="The Slow Rush by Tame Impala, 4 songs"><img src="./assets/albums/tame-impala--the-slow-rush.jpg" alt="The Slow Rush cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Slow Rush</span><span class="album-artist">Tame Impala <em>· 4</em></span></div></a>
+<a class="album-tile" style="--tw:170px" href="#" data-artist="Khruangbin" data-album="Con Todo El Mundo" data-count="3" aria-label="Con Todo El Mundo by Khruangbin, 3 songs"><img src="./assets/albums/khruangbin--con-todo-el-mundo.jpg" alt="Con Todo El Mundo cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Con Todo El Mundo</span><span class="album-artist">Khruangbin <em>· 3</em></span></div></a>
+<a class="album-tile" style="--tw:170px" href="#" data-artist="Her&#x27;s" data-album="Invitation to Her&#x27;s" data-count="3" aria-label="Invitation to Her&#x27;s by Her&#x27;s, 3 songs"><img src="./assets/albums/her-s--invitation-to-her-s.jpg" alt="Invitation to Her&#x27;s cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Invitation to Her&#x27;s</span><span class="album-artist">Her&#x27;s <em>· 3</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="The Beatles" data-album="The White Album" data-count="2" aria-label="The White Album by The Beatles, 2 songs"><img src="./assets/albums/the-beatles--the-white-album.jpg" alt="The White Album cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The White Album</span><span class="album-artist">The Beatles <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Pink Floyd" data-album="The Dark Side of the Moon" data-count="2" aria-label="The Dark Side of the Moon by Pink Floyd, 2 songs"><img src="./assets/albums/pink-floyd--the-dark-side-of-the-moon.jpg" alt="The Dark Side of the Moon cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Dark Side of the Moon</span><span class="album-artist">Pink Floyd <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Red Hot Chili Peppers" data-album="Californication" data-count="2" aria-label="Californication by Red Hot Chili Peppers, 2 songs"><img src="./assets/albums/red-hot-chili-peppers--californication.jpg" alt="Californication cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Californication</span><span class="album-artist">Red Hot Chili Peppers <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Connan Mockasin" data-album="Caramel" data-count="2" aria-label="Caramel by Connan Mockasin, 2 songs"><img src="./assets/albums/connan-mockasin--caramel.jpg" alt="Caramel cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Caramel</span><span class="album-artist">Connan Mockasin <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Mac DeMarco" data-album="Salad Days" data-count="2" aria-label="Salad Days by Mac DeMarco, 2 songs"><img src="./assets/albums/mac-demarco--salad-days.jpg" alt="Salad Days cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Salad Days</span><span class="album-artist">Mac DeMarco <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="alt-J" data-album="This Is All Yours" data-count="2" aria-label="This Is All Yours by alt-J, 2 songs"><img src="./assets/albums/alt-j--this-is-all-yours.jpg" alt="This Is All Yours cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">This Is All Yours</span><span class="album-artist">alt-J <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Tame Impala" data-album="Currents" data-count="2" aria-label="Currents by Tame Impala, 2 songs"><img src="./assets/albums/tame-impala--currents.jpg" alt="Currents cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Currents</span><span class="album-artist">Tame Impala <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Mac DeMarco" data-album="This Old Dog" data-count="2" aria-label="This Old Dog by Mac DeMarco, 2 songs"><img src="./assets/albums/mac-demarco--this-old-dog.jpg" alt="This Old Dog cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">This Old Dog</span><span class="album-artist">Mac DeMarco <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="alt-J" data-album="Relaxer" data-count="2" aria-label="Relaxer by alt-J, 2 songs"><img src="./assets/albums/alt-j--relaxer.jpg" alt="Relaxer cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Relaxer</span><span class="album-artist">alt-J <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Gorillaz" data-album="The Now Now" data-count="2" aria-label="The Now Now by Gorillaz, 2 songs"><img src="./assets/albums/gorillaz--the-now-now.jpg" alt="The Now Now cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Now Now</span><span class="album-artist">Gorillaz <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:140px" href="#" data-artist="Connan Mockasin" data-album="Jassbusters" data-count="2" aria-label="Jassbusters by Connan Mockasin, 2 songs"><img src="./assets/albums/connan-mockasin--jassbusters.jpg" alt="Jassbusters cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Jassbusters</span><span class="album-artist">Connan Mockasin <em>· 2</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="The Animals" data-album="The Animals" data-count="1" aria-label="The Animals by The Animals, 1 song"><img src="./assets/albums/the-animals--the-animals.jpg" alt="The Animals cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Animals</span><span class="album-artist">The Animals <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Jimi Hendrix" data-album="Axis: Bold as Love" data-count="1" aria-label="Axis: Bold as Love by Jimi Hendrix, 1 song"><img src="./assets/albums/jimi-hendrix--axis-bold-as-love.jpg" alt="Axis: Bold as Love cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Axis: Bold as Love</span><span class="album-artist">Jimi Hendrix <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="The Velvet Underground" data-album="Loaded" data-count="1" aria-label="Loaded by The Velvet Underground, 1 song"><img src="./assets/albums/the-velvet-underground--loaded.jpg" alt="Loaded cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Loaded</span><span class="album-artist">The Velvet Underground <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Led Zeppelin" data-album="Led Zeppelin IV" data-count="1" aria-label="Led Zeppelin IV by Led Zeppelin, 1 song"><img src="./assets/albums/led-zeppelin--led-zeppelin-iv.jpg" alt="Led Zeppelin IV cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Led Zeppelin IV</span><span class="album-artist">Led Zeppelin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Pixies" data-album="Surfer Rosa" data-count="1" aria-label="Surfer Rosa by Pixies, 1 song"><img src="./assets/albums/pixies--surfer-rosa.jpg" alt="Surfer Rosa cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Surfer Rosa</span><span class="album-artist">Pixies <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Nirvana" data-album="Nevermind" data-count="1" aria-label="Nevermind by Nirvana, 1 song"><img src="./assets/albums/nirvana--nevermind.jpg" alt="Nevermind cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Nevermind</span><span class="album-artist">Nirvana <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Red Hot Chili Peppers" data-album="Blood Sugar Sex Magik" data-count="1" aria-label="Blood Sugar Sex Magik by Red Hot Chili Peppers, 1 song"><img src="./assets/albums/red-hot-chili-peppers--blood-sugar-sex-magik.jpg" alt="Blood Sugar Sex Magik cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Blood Sugar Sex Magik</span><span class="album-artist">Red Hot Chili Peppers <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Radiohead" data-album="Pablo Honey" data-count="1" aria-label="Pablo Honey by Radiohead, 1 song"><img src="./assets/albums/radiohead--pablo-honey.jpg" alt="Pablo Honey cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Pablo Honey</span><span class="album-artist">Radiohead <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Radiohead" data-album="The Bends" data-count="1" aria-label="The Bends by Radiohead, 1 song"><img src="./assets/albums/radiohead--the-bends.jpg" alt="The Bends cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Bends</span><span class="album-artist">Radiohead <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Radiohead" data-album="Kid A" data-count="1" aria-label="Kid A by Radiohead, 1 song"><img src="./assets/albums/radiohead--kid-a.jpg" alt="Kid A cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Kid A</span><span class="album-artist">Radiohead <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Red Hot Chili Peppers" data-album="By the Way" data-count="1" aria-label="By the Way by Red Hot Chili Peppers, 1 song"><img src="./assets/albums/red-hot-chili-peppers--by-the-way.jpg" alt="By the Way cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">By the Way</span><span class="album-artist">Red Hot Chili Peppers <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Radiohead" data-album="Hail to the Thief" data-count="1" aria-label="Hail to the Thief by Radiohead, 1 song"><img src="./assets/albums/radiohead--hail-to-the-thief.jpg" alt="Hail to the Thief cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Hail to the Thief</span><span class="album-artist">Radiohead <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Red Hot Chili Peppers" data-album="Stadium Arcadium" data-count="1" aria-label="Stadium Arcadium by Red Hot Chili Peppers, 1 song"><img src="./assets/albums/red-hot-chili-peppers--stadium-arcadium.jpg" alt="Stadium Arcadium cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Stadium Arcadium</span><span class="album-artist">Red Hot Chili Peppers <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Washed Out" data-album="Life of Leisure EP" data-count="1" aria-label="Life of Leisure EP by Washed Out, 1 song"><img src="./assets/albums/washed-out--life-of-leisure-ep.jpg" alt="Life of Leisure EP cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Life of Leisure EP</span><span class="album-artist">Washed Out <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="The xx" data-album="xx" data-count="1" aria-label="xx by The xx, 1 song"><img src="./assets/albums/the-xx--xx.jpg" alt="xx cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">xx</span><span class="album-artist">The xx <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Arcade Fire" data-album="The Suburbs" data-count="1" aria-label="The Suburbs by Arcade Fire, 1 song"><img src="./assets/albums/arcade-fire--the-suburbs.jpg" alt="The Suburbs cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Suburbs</span><span class="album-artist">Arcade Fire <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Mac DeMarco" data-album="2" data-count="1" aria-label="2 by Mac DeMarco, 1 song"><img src="./assets/albums/mac-demarco--2.jpg" alt="2 cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">2</span><span class="album-artist">Mac DeMarco <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="alt-J" data-album="An Awesome Wave" data-count="1" aria-label="An Awesome Wave by alt-J, 1 song"><img src="./assets/albums/alt-j--an-awesome-wave.jpg" alt="An Awesome Wave cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">An Awesome Wave</span><span class="album-artist">alt-J <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Foxygen" data-album="We Are the 21st Century Ambassadors" data-count="1" aria-label="We Are the 21st Century Ambassadors by Foxygen, 1 song"><img src="./assets/albums/foxygen--we-are-the-21st-century-ambassadors.jpg" alt="We Are the 21st Century Ambassadors cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">We Are the 21st Century Ambassadors</span><span class="album-artist">Foxygen <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Unknown Mortal Orchestra" data-album="II" data-count="1" aria-label="II by Unknown Mortal Orchestra, 1 song"><img src="./assets/albums/unknown-mortal-orchestra--ii.jpg" alt="II cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">II</span><span class="album-artist">Unknown Mortal Orchestra <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="alt-J" data-album="This Is All Yours (deluxe)" data-count="1" aria-label="This Is All Yours (deluxe) by alt-J, 1 song"><img src="./assets/albums/alt-j--this-is-all-yours-deluxe-.jpg" alt="This Is All Yours (deluxe) cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">This Is All Yours (deluxe)</span><span class="album-artist">alt-J <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Chrome Sparks" data-album="Goddess EP" data-count="1" aria-label="Goddess EP by Chrome Sparks, 1 song"><img src="./assets/albums/chrome-sparks--goddess-ep.jpg" alt="Goddess EP cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Goddess EP</span><span class="album-artist">Chrome Sparks <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Soft Hair" data-album="Soft Hair" data-count="1" aria-label="Soft Hair by Soft Hair, 1 song"><img src="./assets/albums/soft-hair--soft-hair.jpg" alt="Soft Hair cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Soft Hair</span><span class="album-artist">Soft Hair <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Her&#x27;s" data-album="Songs of Her&#x27;s" data-count="1" aria-label="Songs of Her&#x27;s by Her&#x27;s, 1 song"><img src="./assets/albums/her-s--songs-of-her-s.jpg" alt="Songs of Her&#x27;s cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Songs of Her&#x27;s</span><span class="album-artist">Her&#x27;s <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Khruangbin" data-album="The Infamous Bill EP" data-count="1" aria-label="The Infamous Bill EP by Khruangbin, 1 song"><img src="./assets/albums/khruangbin--the-infamous-bill-ep.jpg" alt="The Infamous Bill EP cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">The Infamous Bill EP</span><span class="album-artist">Khruangbin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Connan Mockasin" data-album="Caramel-era collab" data-count="1" aria-label="Caramel-era collab by Connan Mockasin, 1 song"><img src="./assets/albums/connan-mockasin--caramel-era-collab.jpg" alt="Caramel-era collab cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Caramel-era collab</span><span class="album-artist">Connan Mockasin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Maribou State" data-album="Kingdoms in Colour" data-count="1" aria-label="Kingdoms in Colour by Maribou State, 1 song"><img src="./assets/albums/maribou-state--kingdoms-in-colour.jpg" alt="Kingdoms in Colour cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Kingdoms in Colour</span><span class="album-artist">Maribou State <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Khruangbin" data-album="Hasta El Cielo" data-count="1" aria-label="Hasta El Cielo by Khruangbin, 1 song"><img src="./assets/albums/khruangbin--hasta-el-cielo.jpg" alt="Hasta El Cielo cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Hasta El Cielo</span><span class="album-artist">Khruangbin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Khruangbin" data-album="Texas Sun EP" data-count="1" aria-label="Texas Sun EP by Khruangbin, 1 song"><img src="./assets/albums/khruangbin--texas-sun-ep.jpg" alt="Texas Sun EP cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Texas Sun EP</span><span class="album-artist">Khruangbin <em>· 1</em></span></div></a>
+<a class="album-tile" style="--tw:110px" href="#" data-artist="Khruangbin" data-album="Texas Moon EP" data-count="1" aria-label="Texas Moon EP by Khruangbin, 1 song"><img src="./assets/albums/khruangbin--texas-moon-ep.jpg" alt="Texas Moon EP cover" loading="lazy" decoding="async"><div class="album-meta"><span class="album-title">Texas Moon EP</span><span class="album-artist">Khruangbin <em>· 1</em></span></div></a>
+    </div>
+  </div>
+  <p class="carousel-caption">Album tiles sized by representation in the playlist · 53 unique releases · sorted descending · pause on hover</p>
+
+  <!-- ============================================================== -->
+  <!-- SECTION I — The Pareto problem (now: by both metrics)           -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ I · 01</div>
+      <h2 class="display2">The Pareto problem.<br><em>Four artists. Sixty percent of the listens.</em></h2>
+    </div>
+
+    <p class="body-copy" >A list of one hundred favorites should, in principle, be a wide net. Mine isn't. The top four artists — Khruangbin, Tame Impala, Radiohead, Connan Mockasin — together account for 56 of the 100 slots. By the more honest metric — total lifetime listens — the same four artists account for 59% of <em>all the music I've actually played</em>. The concentration is not just present in the song count; it's amplified at the play level.</p>
+    <p class="body-copy" >In economics this distribution is called a Pareto. In a personality, it reads as conviction. I am not a buffet listener. I find a band, I move into the back catalog, and I stay until I have lived inside the records long enough to know which third-track-on-side-B is secretly the best song. This list is the residue of that pattern.</p>
+    <p class="body-copy" >Khruangbin alone — the Houston-based trio of Laura Lee, Mark Speer, and DJ Johnson — supplies 1,546 of my 7,323 lifetime listens, or 21% of the playlist's total play volume. That is not "I like that band"; that is a relationship.</p>
+    <p class="body-copy" >Worth noting: Her's averages 76 plays per song over their four entries — punching above their song-count weight — while alt-J averages only 59. The song count tells you what's <i>on</i> the list. The listen count tells you what I actually <i>play</i>.</p>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head">By song count</p>
+        <table class="atlas" aria-label="Top 10 artists by song count">
+          <thead><tr><th>Rank</th><th>Artist</th><th>Songs</th><th>%</th></tr></thead>
+          <tbody><tr><td class="rank">A·01</td><td class="name"><b>Khruangbin</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0000"></span></span><span class="num">18</span></td><td class="pct">18%</td></tr><tr><td class="rank">A·02</td><td class="name"><b>Tame Impala</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.8333"></span></span><span class="num">15</span></td><td class="pct">15%</td></tr><tr><td class="rank">A·03</td><td class="name"><b>Radiohead</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.7778"></span></span><span class="num">14</span></td><td class="pct">14%</td></tr><tr><td class="rank">A·04</td><td class="name"><b>Connan Mockasin</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.5000"></span></span><span class="num">9</span></td><td class="pct">9%</td></tr><tr><td class="rank">A·05</td><td class="name"><b>The Beatles</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.3333"></span></span><span class="num">6</span></td><td class="pct">6%</td></tr><tr><td class="rank">A·06</td><td class="name"><b>alt-J</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.3333"></span></span><span class="num">6</span></td><td class="pct">6%</td></tr><tr><td class="rank">A·07</td><td class="name"><b>Mac DeMarco</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.2778"></span></span><span class="num">5</span></td><td class="pct">5%</td></tr><tr><td class="rank">A·08</td><td class="name"><b>Red Hot Chili Peppers</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.2778"></span></span><span class="num">5</span></td><td class="pct">5%</td></tr><tr><td class="rank">A·09</td><td class="name"><b>Her&#x27;s</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.2222"></span></span><span class="num">4</span></td><td class="pct">4%</td></tr><tr><td class="rank">A·10</td><td class="name"><b>Gorillaz</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.1111"></span></span><span class="num">2</span></td><td class="pct">2%</td></tr></tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head accent">By total listens (lifetime plays)</p>
+        <table class="atlas" aria-label="Top 10 artists by lifetime listens">
+          <thead><tr><th>Rank</th><th>Artist</th><th>Total plays</th></tr></thead>
+          <tbody><tr><td class="rank">L·01</td><td class="name"><b>Khruangbin</b><span class="sub">18 songs · avg 86</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0000"></span></span><span class="num">1546</span></td></tr><tr><td class="rank">L·02</td><td class="name"><b>Radiohead</b><span class="sub">14 songs · avg 81</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.7367"></span></span><span class="num">1139</span></td></tr><tr><td class="rank">L·03</td><td class="name"><b>Tame Impala</b><span class="sub">15 songs · avg 70</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6785"></span></span><span class="num">1049</span></td></tr><tr><td class="rank">L·04</td><td class="name"><b>Connan Mockasin</b><span class="sub">9 songs · avg 73</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.4230"></span></span><span class="num">654</span></td></tr><tr><td class="rank">L·05</td><td class="name"><b>The Beatles</b><span class="sub">6 songs · avg 66</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.2561"></span></span><span class="num">396</span></td></tr><tr><td class="rank">L·06</td><td class="name"><b>Mac DeMarco</b><span class="sub">5 songs · avg 72</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.2322"></span></span><span class="num">359</span></td></tr><tr><td class="rank">L·07</td><td class="name"><b>alt-J</b><span class="sub">6 songs · avg 59</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.2296"></span></span><span class="num">355</span></td></tr><tr><td class="rank">L·08</td><td class="name"><b>Her&#x27;s</b><span class="sub">4 songs · avg 76</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.1953"></span></span><span class="num">302</span></td></tr><tr><td class="rank">L·09</td><td class="name"><b>Red Hot Chili Peppers</b><span class="sub">5 songs · avg 58</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.1882"></span></span><span class="num">291</span></td></tr><tr><td class="rank">L·10</td><td class="name"><b>Gorillaz</b><span class="sub">2 songs · avg 78</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.1003"></span></span><span class="num">155</span></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION II — Most-played individual tracks                      -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ II · 02</div>
+      <h2 class="display2">The most-played tracks.<br><em>Where the head of the curve actually sits.</em></h2>
+    </div>
+
+    <p class="body-copy" >Per-track listen counts make the head-vs-tail dynamics impossible to hide. The top-ranked track, Khruangbin's "White Gloves," has been played 151 times — almost three times as often as the median track on the list. The top ten tracks alone account for 1,179 listens, or 16% of all the play volume across all 100 songs combined. The tail flattens fast: the bottom of the list contains six tracks tied at exactly 53 plays, suggesting that's roughly the threshold Spotify uses to decide what makes the cut.</p>
+
+    <table class="atlas" aria-label="Top 20 tracks by listens" style="margin-top:14px">
+      <thead><tr><th>Rank</th><th>Track</th><th>Plays</th></tr></thead>
+      <tbody><tr><td class="rank">T·01</td><td class="track"><b>White Gloves</b><span class="sub">Khruangbin · #1 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0000"></span></span><span class="num">151</span></td></tr><tr><td class="rank">T·02</td><td class="track"><b>Charlotte&#x27;s Thong</b><span class="sub">Connan Mockasin · #2 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.9470"></span></span><span class="num">143</span></td></tr><tr><td class="rank">T·03</td><td class="track"><b>The Suburbs</b><span class="sub">Arcade Fire · #3 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.8278"></span></span><span class="num">125</span></td></tr><tr><td class="rank">T·04</td><td class="track"><b>People Everywhere (Still Alive)</b><span class="sub">Khruangbin · #4 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.7815"></span></span><span class="num">118</span></td></tr><tr><td class="rank">T·05</td><td class="track"><b>No Surprises</b><span class="sub">Radiohead · #5 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.7616"></span></span><span class="num">115</span></td></tr><tr><td class="rank">T·06</td><td class="track"><b>Time (You and I)</b><span class="sub">Khruangbin · #6 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.7417"></span></span><span class="num">112</span></td></tr><tr><td class="rank">T·07</td><td class="track"><b>What Once Was</b><span class="sub">Her&#x27;s · #7 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.7086"></span></span><span class="num">107</span></td></tr><tr><td class="rank">T·08</td><td class="track"><b>It Is Not Meant To Be</b><span class="sub">Tame Impala · #8 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6821"></span></span><span class="num">103</span></td></tr><tr><td class="rank">T·09</td><td class="track"><b>Stairway to Heaven - Remaster</b><span class="sub">Led Zeppelin · #9 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6821"></span></span><span class="num">103</span></td></tr><tr><td class="rank">T·10</td><td class="track"><b>Creep</b><span class="sub">Radiohead · #10 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6755"></span></span><span class="num">102</span></td></tr><tr><td class="rank">T·11</td><td class="track"><b>Apocalypse Dreams</b><span class="sub">Tame Impala · #11 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6623"></span></span><span class="num">100</span></td></tr><tr><td class="rank">T·12</td><td class="track"><b>Two Fish and an Elephant</b><span class="sub">Khruangbin · #12 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6623"></span></span><span class="num">100</span></td></tr><tr><td class="rank">T·13</td><td class="track"><b>Karma Police</b><span class="sub">Radiohead · #13 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6556"></span></span><span class="num">99</span></td></tr><tr><td class="rank">T·14</td><td class="track"><b>Nude</b><span class="sub">Radiohead · #14 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6490"></span></span><span class="num">98</span></td></tr><tr><td class="rank">T·15</td><td class="track"><b>Endors Toi</b><span class="sub">Tame Impala · #15 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6424"></span></span><span class="num">97</span></td></tr><tr><td class="rank">T·16</td><td class="track"><b>Paranoid Android</b><span class="sub">Radiohead · #16 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6159"></span></span><span class="num">93</span></td></tr><tr><td class="rank">T·17</td><td class="track"><b>Ode to Viceroy</b><span class="sub">Mac DeMarco · #17 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6093"></span></span><span class="num">92</span></td></tr><tr><td class="rank">T·18</td><td class="track"><b>Weird Fishes / Arpeggi</b><span class="sub">Radiohead · #18 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6093"></span></span><span class="num">92</span></td></tr><tr><td class="rank">T·19</td><td class="track"><b>Exit Music (For A Film)</b><span class="sub">Radiohead · #19 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6093"></span></span><span class="num">92</span></td></tr><tr><td class="rank">T·20</td><td class="track"><b>So We Won&#x27;t Forget</b><span class="sub">Khruangbin · #20 on the list</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6093"></span></span><span class="num">92</span></td></tr></tbody>
+    </table>
+
+    <p class="body-copy" style="margin-top:24px">The top of the list is what you'd expect — slow, hazy psychedelia from Khruangbin's first record, plus the songs I've kept playing since college (Charlotte's Thong, The Suburbs, No Surprises). What surprises me reading this is how flat the ranking is in the middle: from rank ~30 onward, songs are within a 30-play window of each other. The top is genuinely the top; everything below ~rank 20 is essentially "tied for second tier."</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION III — Era cartography                                   -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ III · 03</div>
+      <h2 class="display2">Era cartography.<br><em>Where the years pile up.</em></h2>
+    </div>
+
+    <p class="body-copy" >Charted by decade of release, the playlist has a long, flat tail through the 1960s and 70s, an oddly thin 1980s (one song — the Pixies' "Where Is My Mind?" — does the entire decade's work), a respectable 1990s and 2000s plateau (mostly Radiohead), and then a 2010s mountain that contains <b>more than half of every song on the list</b>. The 2020s spike is almost a single year — most of those tracks come from <i>Mordechai</i> (June 2020) and <i>The Slow Rush</i> (February 2020), released within four months of each other.</p>
+
+    <div class="decade-strip" aria-label="Songs per decade">
+      <div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" style="--h:15%" data-count="8"></div></div><div class="decade-count">8</div><div class="decade-label">1960s</div></div><div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" style="--h:7%" data-count="4"></div></div><div class="decade-count">4</div><div class="decade-label">1970s</div></div><div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" style="--h:1%" data-count="1"></div></div><div class="decade-count">1</div><div class="decade-label">1980s</div></div><div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" style="--h:20%" data-count="11"></div></div><div class="decade-count">11</div><div class="decade-label">1990s</div></div><div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" style="--h:20%" data-count="11"></div></div><div class="decade-count">11</div><div class="decade-label">2000s</div></div><div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" style="--h:100%" data-count="53"></div></div><div class="decade-count">53</div><div class="decade-label">2010s</div></div><div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" style="--h:22%" data-count="12"></div></div><div class="decade-count">12</div><div class="decade-label">2020s</div></div>
+    </div>
+
+    <p class="body-copy" style="margin-top:24px">A listener whose musical formation happened roughly between 2010 and 2015, who has assembled a backwards-compatible canon (Beatles, Pink Floyd, Hendrix, Zeppelin, Velvet Underground, the Animals) but largely skipped over the decade of new wave and synth-pop. The 1980s aren't missing because I dislike the music — Pixies are right there in the data — they're missing because I never went looking.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION III — Sonic signature                                   -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ IV · 04</div>
+      <h2 class="display2">Sonic signature.<br><em>Hazy, reverb-saturated, slightly off-axis.</em></h2>
+    </div>
+
+    <p class="body-copy" >Despite the breadth of years and the four-artist concentration, the production palette across the list is remarkably consistent. If you played any ten random tracks in a row to a stranger, the unifying texture would arrive within the first thirty seconds: a bass-forward mix, generous tape reverb, drums recorded a little too closely, a vocal line sung in a falsetto or a loose middle register, and a tempo that never quite breaks into "danceable." This is contemplative funk and unhurried psychedelia — even the Radiohead tracks (<i>No Surprises</i>, <i>Nude</i>, <i>Reckoner</i>, <i>Let Down</i>, <i>House of Cards</i>, <i>Weird Fishes/Arpeggi</i>) skew toward the band's quietest, most internal records.</p>
+
+    <!-- Genre donut + legend -->
+    <h3 class="display3" style="margin-top:36px;margin-bottom:14px">The genre map.</h3>
+    <p class="body-copy" style="margin-bottom:18px">Each song bucketed to one primary genre (per-artist consistency rule), so the chart sums cleanly to 100. The collection is more than half psychedelic — Khruangbin's funk-instrumental tradition plus the Tame Impala / Connan / Foxygen / UMO revival school account for 46 of the 100 slots — with art-rock as the second pillar.</p>
+    <div class="chart-row">
+      <div class="chart-svg"><svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Donut chart"><path d="M 160.00 14.00 A 146.00 146.00 0 0 1 304.85 178.30 L 247.31 171.03 A 88.00 88.00 0 0 0 160.00 72.00 Z" fill="#9f4d36" stroke="#fbf8f1" stroke-width="2"><title>Psychedelic Rock &amp; Pop: 27 songs (27%)</title></path><text x="247.8" y="82.6" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#fbf8f1">27</text><path d="M 304.85 178.30 A 146.00 146.00 0 0 1 141.70 304.85 L 148.97 247.31 A 88.00 88.00 0 0 0 247.31 171.03 Z" fill="#475569" stroke="#fbf8f1" stroke-width="2"><title>Art Rock · Alternative: 25 songs (25%)</title></path><text x="231.7" y="252.4" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#fbf8f1">25</text><path d="M 141.70 304.85 A 146.00 146.00 0 0 1 18.59 196.31 L 74.76 181.88 A 88.00 88.00 0 0 0 148.97 247.31 Z" fill="#c2674a" stroke="#fbf8f1" stroke-width="2"><title>Psychedelic Funk · Global Instrumental: 19 songs (19%)</title></path><text x="82.6" y="247.8" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#fbf8f1">19</text><path d="M 18.59 196.31 A 146.00 146.00 0 0 1 32.06 89.66 L 82.89 117.61 A 88.00 88.00 0 0 0 74.76 181.88 Z" fill="#a37b2a" stroke="#fbf8f1" stroke-width="2"><title>Classic Rock Canon (60s–70s): 12 songs (12%)</title></path><text x="43.9" y="145.3" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#fbf8f1">12</text><path d="M 32.06 89.66 A 146.00 146.00 0 0 1 89.66 32.06 L 117.61 82.89 A 88.00 88.00 0 0 0 82.89 117.61 Z" fill="#7d3927" stroke="#fbf8f1" stroke-width="2"><title>Indie · Jangle · Bedroom Pop: 9 songs (9%)</title></path><text x="77.3" y="77.3" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#fbf8f1">9</text><path d="M 89.66 32.06 A 146.00 146.00 0 0 1 132.64 16.59 L 143.51 73.56 A 88.00 88.00 0 0 0 117.61 82.89 Z" fill="#5b7058" stroke="#fbf8f1" stroke-width="2"><title>Funk Rock: 5 songs (5%)</title></path><path d="M 132.64 16.59 A 146.00 146.00 0 0 1 160.00 14.00 L 160.00 72.00 A 88.00 88.00 0 0 0 143.51 73.56 Z" fill="#94a3b8" stroke="#fbf8f1" stroke-width="2"><title>Chillwave · Electronic: 3 songs (3%)</title></path><text x="160.0" y="156.0" text-anchor="middle" dominant-baseline="middle" font-family="Bricolage Grotesque, sans-serif" font-size="28" font-weight="600" fill="#0a0a0a">7</text><text x="160.0" y="178.0" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="10" fill="#475569" letter-spacing="0.12em">GENRE BUCKETS</text></svg></div>
+      <div><ul class="chart-legend"><li><span class="swatch" style="background:#9f4d36"></span><span class="lbl">Psychedelic Rock &amp; Pop</span><span class="ct">27 <em>· 27%</em></span></li><li><span class="swatch" style="background:#475569"></span><span class="lbl">Art Rock · Alternative</span><span class="ct">25 <em>· 25%</em></span></li><li><span class="swatch" style="background:#c2674a"></span><span class="lbl">Psychedelic Funk · Global Instrumental</span><span class="ct">19 <em>· 19%</em></span></li><li><span class="swatch" style="background:#a37b2a"></span><span class="lbl">Classic Rock Canon (60s–70s)</span><span class="ct">12 <em>· 12%</em></span></li><li><span class="swatch" style="background:#7d3927"></span><span class="lbl">Indie · Jangle · Bedroom Pop</span><span class="ct">9 <em>· 9%</em></span></li><li><span class="swatch" style="background:#5b7058"></span><span class="lbl">Funk Rock</span><span class="ct">5 <em>· 5%</em></span></li><li><span class="swatch" style="background:#94a3b8"></span><span class="lbl">Chillwave · Electronic</span><span class="ct">3 <em>· 3%</em></span></li></ul></div>
+    </div>
+
+    <p class="body-copy" style="margin-top:36px">Khruangbin functions as the connective tissue. Their instrumental grammar — mid-tempo grooves drawing on Thai funk, Persian classical, dub reggae, and Stax-era soul — happens to share a great deal of vocabulary with Tame Impala's bedroom-psychedelic phase, with Connan Mockasin's mannered surrealism, with Mac DeMarco's jangly slacker-pop, and even with the In Rainbows-era Radiohead aesthetic. One could almost program a "Ramie's brain" playlist that none of these artists ever recorded, just by interpolating between them.</p>
+
+    <p class="body-copy" >10 of the 100 tracks are explicit instrumentals or interludes — roughly ten times what you would find on a typical Top 100 list. The collection actively prefers texture over lyric. When the lyrics arrive, they tend to be either melancholic-introspective (Radiohead's mode) or romantic-impressionistic (Khruangbin & Leon Bridges; Her's; the Beatles' love ballads). There is essentially no political content, no hip-hop syntax, no high-octane rock energy. Nothing here would fit at a wedding reception.</p>
+
+    <!-- Two supporting mini-donuts -->
+    <div class="dual-donut">
+      <div class="donut-block">
+        <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Donut chart"><path d="M 110.00 14.00 A 96.00 96.00 0 1 1 53.57 32.33 L 79.44 67.93 A 52.00 52.00 0 1 0 110.00 58.00 Z" fill="#475569" stroke="#fbf8f1" stroke-width="2"><title>Vocal Track: 90 songs (90%)</title></path><path d="M 53.57 32.33 A 96.00 96.00 0 0 1 110.00 14.00 L 110.00 58.00 A 52.00 52.00 0 0 0 79.44 67.93 Z" fill="#c2674a" stroke="#fbf8f1" stroke-width="2"><title>Instrumental / Interlude: 10 songs (10%)</title></path><text x="110.0" y="106.0" text-anchor="middle" dominant-baseline="middle" font-family="Bricolage Grotesque, sans-serif" font-size="22" font-weight="600" fill="#0a0a0a">10/100</text><text x="110.0" y="128.0" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="9" fill="#475569" letter-spacing="0.12em">INSTRUMENTAL</text></svg>
+        <div class="donut-caption">Instrumental share</div>
+        <ul class="chart-legend"><li><span class="swatch" style="background:#475569"></span><span class="lbl">Vocal Track</span><span class="ct">90 <em>· 90%</em></span></li><li><span class="swatch" style="background:#c2674a"></span><span class="lbl">Instrumental / Interlude</span><span class="ct">10 <em>· 10%</em></span></li></ul>
+      </div>
+      <div class="donut-block">
+        <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Donut chart"><path d="M 110.00 14.00 A 96.00 96.00 0 0 1 156.25 25.87 L 135.05 64.43 A 52.00 52.00 0 0 0 110.00 58.00 Z" fill="#a37b2a" stroke="#fbf8f1" stroke-width="2"><title>1960s: 8 songs (8%)</title></path><path d="M 156.25 25.87 A 96.00 96.00 0 0 1 175.72 40.02 L 145.60 72.09 A 52.00 52.00 0 0 0 135.05 64.43 Z" fill="#7d3927" stroke="#fbf8f1" stroke-width="2"><title>1970s: 4 songs (4%)</title></path><path d="M 175.72 40.02 A 96.00 96.00 0 0 1 179.98 44.28 L 147.91 74.40 A 52.00 52.00 0 0 0 145.60 72.09 Z" fill="#94a3b8" stroke="#fbf8f1" stroke-width="2"><title>1980s: 1 song (1%)</title></path><path d="M 179.98 44.28 A 96.00 96.00 0 0 1 205.81 103.97 L 161.90 106.73 A 52.00 52.00 0 0 0 147.91 74.40 Z" fill="#475569" stroke="#fbf8f1" stroke-width="2"><title>1990s: 11 songs (11%)</title></path><path d="M 205.81 103.97 A 96.00 96.00 0 0 1 187.67 166.43 L 152.07 140.56 A 52.00 52.00 0 0 0 161.90 106.73 Z" fill="#5b7058" stroke="#fbf8f1" stroke-width="2"><title>2000s: 11 songs (11%)</title></path><path d="M 187.67 166.43 A 96.00 96.00 0 1 1 44.28 40.02 L 74.40 72.09 A 52.00 52.00 0 1 0 152.07 140.56 Z" fill="#c2674a" stroke="#fbf8f1" stroke-width="2"><title>2010s: 53 songs (53%)</title></path><path d="M 44.28 40.02 A 96.00 96.00 0 0 1 110.00 14.00 L 110.00 58.00 A 52.00 52.00 0 0 0 74.40 72.09 Z" fill="#9f4d36" stroke="#fbf8f1" stroke-width="2"><title>2020s: 12 songs (12%)</title></path><text x="110.0" y="106.0" text-anchor="middle" dominant-baseline="middle" font-family="Bricolage Grotesque, sans-serif" font-size="22" font-weight="600" fill="#0a0a0a">53%</text><text x="110.0" y="128.0" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="9" fill="#475569" letter-spacing="0.12em">FROM THE 2010S</text></svg>
+        <div class="donut-caption">Decade share</div>
+        <ul class="chart-legend"><li><span class="swatch" style="background:#a37b2a"></span><span class="lbl">1960s</span><span class="ct">8 <em>· 8%</em></span></li><li><span class="swatch" style="background:#7d3927"></span><span class="lbl">1970s</span><span class="ct">4 <em>· 4%</em></span></li><li><span class="swatch" style="background:#94a3b8"></span><span class="lbl">1980s</span><span class="ct">1 <em>· 1%</em></span></li><li><span class="swatch" style="background:#475569"></span><span class="lbl">1990s</span><span class="ct">11 <em>· 11%</em></span></li><li><span class="swatch" style="background:#5b7058"></span><span class="lbl">2000s</span><span class="ct">11 <em>· 11%</em></span></li><li><span class="swatch" style="background:#c2674a"></span><span class="lbl">2010s</span><span class="ct">53 <em>· 53%</em></span></li><li><span class="swatch" style="background:#9f4d36"></span><span class="lbl">2020s</span><span class="ct">12 <em>· 12%</em></span></li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION IV — Album obsessions                                   -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ V · 05</div>
+      <h2 class="display2">Album obsessions.<br><em>Records, not singles.</em></h2>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <p class="body-copy">The artist concentration becomes sharper at the album level. Khruangbin's <i>Mordechai</i> (2020) supplies six of the 100 tracks — the single most-represented record. Five-track tier: <i>The Universe Smiles Upon You</i>, <i>OK Computer</i>, <i>Lonerism</i>, <i>In Rainbows</i>. Together with the four-track tier, the top nine albums account for 42 of 100 songs.</p>
+        <p class="body-copy">This is what a record collector's data looks like, not a playlist hopper's. I hear an album, I keep the album, the album keeps appearing in shuffle, the playcount accumulates. Two albums of <i>Forever Dolphin Love</i> here are worth more than a hundred passing radio hits.</p>
+        <p class="body-copy">Honorable mention: <i>Abbey Road</i> (1969) places four songs in the top 100. The Beatles' tightly-edited late catalog rewards exactly this kind of deep-listening pattern — short songs, sequenced as a suite, every cut load-bearing.</p>
+      </div>
+      <div>
+        <table class="atlas" aria-label="Top 12 albums by representation">
+          <thead><tr><th>Rank</th><th>Album</th><th>Tracks</th></tr></thead>
+          <tbody><tr><td class="rank">B·01</td><td class="album"><b>Mordechai</b><span class="sub">Khruangbin · 2020</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0000"></span></span><span class="num">6</span></td></tr><tr><td class="rank">B·02</td><td class="album"><b>OK Computer</b><span class="sub">Radiohead · 1997</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.8333"></span></span><span class="num">5</span></td></tr><tr><td class="rank">B·03</td><td class="album"><b>In Rainbows</b><span class="sub">Radiohead · 2007</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.8333"></span></span><span class="num">5</span></td></tr><tr><td class="rank">B·04</td><td class="album"><b>Lonerism</b><span class="sub">Tame Impala · 2012</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.8333"></span></span><span class="num">5</span></td></tr><tr><td class="rank">B·05</td><td class="album"><b>The Universe Smiles Upon You</b><span class="sub">Khruangbin · 2015</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.8333"></span></span><span class="num">5</span></td></tr><tr><td class="rank">B·06</td><td class="album"><b>Abbey Road</b><span class="sub">The Beatles · 1969</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6667"></span></span><span class="num">4</span></td></tr><tr><td class="rank">B·07</td><td class="album"><b>Innerspeaker</b><span class="sub">Tame Impala · 2010</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6667"></span></span><span class="num">4</span></td></tr><tr><td class="rank">B·08</td><td class="album"><b>Forever Dolphin Love</b><span class="sub">Connan Mockasin · 2011</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6667"></span></span><span class="num">4</span></td></tr><tr><td class="rank">B·09</td><td class="album"><b>The Slow Rush</b><span class="sub">Tame Impala · 2020</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.6667"></span></span><span class="num">4</span></td></tr><tr><td class="rank">B·10</td><td class="album"><b>Con Todo El Mundo</b><span class="sub">Khruangbin · 2018</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.5000"></span></span><span class="num">3</span></td></tr><tr><td class="rank">B·11</td><td class="album"><b>Invitation to Her&#x27;s</b><span class="sub">Her&#x27;s · 2018</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.5000"></span></span><span class="num">3</span></td></tr><tr><td class="rank">B·12</td><td class="album"><b>The White Album</b><span class="sub">The Beatles · 1968</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.3333"></span></span><span class="num">2</span></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION V — Curiosities                                          -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ VI · 06</div>
+      <h2 class="display2">Statistical curiosities.<br><em>Things that fall out of the data.</em></h2>
+    </div>
+
+    <div class="curiosity-grid">
+      <div class="curiosity">
+        <div class="ct">Curiosity · 01</div>
+        <h3>Two "House of the Rising Sun"s.</h3>
+        <p>The Animals' 1964 reading sits at #50. alt-J's 2014 reading sits at #60. Two completely different arrangements of the same pre-WWII folk song, fifty years apart, both in my top 100. Either I have a thing for the song, or I have a thing for cover-as-reinterpretation. Both, probably.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">Curiosity · 02</div>
+        <h3>The 8-minute Connan track.</h3>
+        <p>"Charlotte's Thong" — Connan Mockasin's sprawling, falsetto, vaguely sinister ballad — clocks in at 8m 56s and is ranked #2. The longest song in the entire list, and a sui generis piece of music that most listeners experience as a curiosity at best. For me it is essentially a comfort object.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">Curiosity · 03</div>
+        <h3>Connan Mockasin appears under three banners.</h3>
+        <p>Nine tracks as the lead artist; one as Soft Hair (his project with LA Priest); one as a co-credit with Devonté Hynes. That is 10+ effective appearances by one mannered New Zealander, hidden across credits. The data doesn't lie about what I actually listen to.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">Curiosity · 04</div>
+        <h3>White Gloves: 151 plays.</h3>
+        <p>The single most-played track on the list. Across the full top 100, the median song has been played 66 times — meaning my number-one track has been played roughly <i>2.3× more than the median</i>. The shape of the curve is steep at the top and very flat in the middle.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">Curiosity · 05</div>
+        <h3>Her's punches above its weight.</h3>
+        <p>Four songs on the list, but they average 76 plays each — the highest per-song average in the top tier. By contrast alt-J has 6 songs averaging only 59 plays, and RHCP has 5 averaging 58. Some artists fill slots; some artists fill ears.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">Curiosity · 06</div>
+        <h3>Mean track 4m 14s, median 4m 12s.</h3>
+        <p>A typical pop song is around 3m 20s. Mine averages a full minute longer. The list contains six songs over six minutes long and ten under three minutes. I prefer compositions that have time to breathe — and I don't need a chorus on loop within ninety seconds.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION VI — What is absent                                     -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ VII · 07</div>
+      <h2 class="display2">What is conspicuously <em>absent</em>.</h2>
+    </div>
+
+    <p class="body-copy" >The negative space tells almost as much as the positive. There is no hip-hop on this list — none. No country. No metal. No house, techno, drum-and-bass, or anything that would fill a club. The female lead-vocalist count rounds to zero. There is no jazz proper (Connan Mockasin's "Faking Jazz Together" is a joke, not a genre). There is no contemporary pop, no Beyoncé or Frank Ocean or Kendrick — artists I admire intellectually but apparently do not live with. Almost nothing on the list was released after 2022.</p>
+
+    <p class="body-copy" >Geographically, it is overwhelmingly Anglophone — UK, US (especially Texas, courtesy of Khruangbin), Australia (Tame Impala), New Zealand (Mockasin). The Spanish-language Khruangbin tracks ("Cómo Me Quieres", "Maria También") and the global samples woven into the band's instrumentals are the closest thing to non-English content. There is no K-pop, J-pop, Latin, Afrobeats, or Arabic music — striking, given my own background, and a gap I notice with some surprise when laid out this plainly.</p>
+
+    <p class="body-copy" >The takeaway is not that I dismiss any of these traditions. It is that "favorite" — operationalized as "what I actually replay over and over" — turns out to be a much narrower category than "music I enjoy". The first is governed by mood-regulation and habit; the second is governed by curiosity. The data is reporting the first.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION VII — Diagnosis                                         -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ VIII · 08</div>
+      <h2 class="display2">A diagnosis.<br><em>What this collection is for.</em></h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:14px">Read as a single object, my top 100 is a soundtrack for thinking — not for celebrating, not for moving the body, not for shaking off a bad day, but for the long flat stretches where attention needs to settle and the inner voice needs cover.</p>
+
+    <p class="body-copy" >The aesthetic — warm, hazy, slightly off-kilter, melodically generous, often slow — is the music of the late drive home, the quiet first hour at a desk, the long-haul flight, the intern call rooms after hours. It pairs with reading and with writing and with looking out a window. It does not pair with exercise or with cooking for a dinner party. The collection has, in this sense, a job: it is the ambient layer underneath cognitive work.</p>
+
+    <p class="body-copy" >That the same artists keep appearing — and that the list has clearly stabilized over years rather than refreshing constantly — is, on reflection, a feature. If your favorite music is a tool, the tool ought to fit the hand. Khruangbin's instrumentals fit the hand. Lonerism fits. Mordechai fits. In Rainbows fits. The list is doing what a tool should do: it is dependable.</p>
+
+    <p class="body-copy" >If there is a self-criticism to extract, it is the negative space. I would like, in the next decade of listening, to learn to live with the music I currently only admire from a distance. To rebuild my "favorites" category to look a little more like the world. The data, helpfully, makes the gap impossible to ignore.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- APPENDIX — Long tail                                            -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ APPENDIX</div>
+      <h2 class="display2">All artists, by song count.</h2>
+    </div>
+
+    <div class="long-tail">
+      <div class="col">
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th>n</th></tr></thead>
+          <tbody><tr><td class="rk">01</td><td>Khruangbin</td><td class="ct">18</td></tr><tr><td class="rk">02</td><td>Tame Impala</td><td class="ct">15</td></tr><tr><td class="rk">03</td><td>Radiohead</td><td class="ct">14</td></tr><tr><td class="rk">04</td><td>Connan Mockasin</td><td class="ct">9</td></tr><tr><td class="rk">05</td><td>The Beatles</td><td class="ct">6</td></tr><tr><td class="rk">06</td><td>alt-J</td><td class="ct">6</td></tr><tr><td class="rk">07</td><td>Mac DeMarco</td><td class="ct">5</td></tr><tr><td class="rk">08</td><td>Red Hot Chili Peppers</td><td class="ct">5</td></tr><tr><td class="rk">09</td><td>Her&#x27;s</td><td class="ct">4</td></tr><tr><td class="rk">10</td><td>Gorillaz</td><td class="ct">2</td></tr><tr><td class="rk">11</td><td>Pink Floyd</td><td class="ct">2</td></tr><tr><td class="rk">12</td><td>Arcade Fire</td><td class="ct">1</td></tr><tr><td class="rk">13</td><td>Led Zeppelin</td><td class="ct">1</td></tr></tbody>
+        </table>
+      </div>
+      <div class="col">
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th>n</th></tr></thead>
+          <tbody><tr><td class="rk">14</td><td>Foxygen</td><td class="ct">1</td></tr><tr><td class="rk">15</td><td>The Animals</td><td class="ct">1</td></tr><tr><td class="rk">16</td><td>Jimi Hendrix</td><td class="ct">1</td></tr><tr><td class="rk">17</td><td>The Velvet Underground</td><td class="ct">1</td></tr><tr><td class="rk">18</td><td>Unknown Mortal Orchestra</td><td class="ct">1</td></tr><tr><td class="rk">19</td><td>Nirvana</td><td class="ct">1</td></tr><tr><td class="rk">20</td><td>Washed Out</td><td class="ct">1</td></tr><tr><td class="rk">21</td><td>Pixies</td><td class="ct">1</td></tr><tr><td class="rk">22</td><td>The xx</td><td class="ct">1</td></tr><tr><td class="rk">23</td><td>Maribou State</td><td class="ct">1</td></tr><tr><td class="rk">24</td><td>Chrome Sparks</td><td class="ct">1</td></tr><tr><td class="rk">25</td><td>Soft Hair</td><td class="ct">1</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Colophon -->
+  <footer class="colophon">
+    <div>
+      <p style="margin:0 0 6px"><b style="color:var(--ink)">Method</b></p>
+      <p style="margin:0">Lead-artist credit per Spotify's listing. Featured-artist appearances counted in the body text. Album/year/duration/genre tagged by hand from the user's listening data. Cover art via MusicBrainz · Cover Art Archive and the iTunes Search API.</p>
+    </div>
+    <div>
+      <p style="margin:0 0 6px"><b style="color:var(--ink)">Source</b></p>
+      <p style="margin:0"><a href="https://open.spotify.com/playlist/37i9dQZF1CL5ezo6O1xDca" target="_blank" rel="noreferrer">Your All-Time Top Songs</a> · Made for ramiefathy · Spotify · 2026</p>
+      <p style="margin:14px 0 0">Bricolage · Newsreader · Space Mono · © 2026 Ramie Fathy, MD · Atlas Vol. IV</p>
+    </div>
+  </footer>
+
+</main>
+</body>
+</html>

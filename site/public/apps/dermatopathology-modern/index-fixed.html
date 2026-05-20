@@ -3,43 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Experimental dermatopathology navigator prototype for exploring patterns, diagnoses, and supporting visuals.">
     <title>Dermatopathology Navigator - Modern UI</title>
 
     <!-- External Dependencies -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/framer-motion@11.0.3/dist/framer-motion.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-
-    <!-- Modern Font Stack -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Berkeley+Mono&display=swap" rel="stylesheet">
+    <script src="../vendor/react.production.min.js"></script>
+    <script src="../vendor/react-dom.production.min.js"></script>
+    <script src="../vendor/babel.min.js"></script>
+    <script src="../vendor/tailwindcss.browser.js"></script>
+    <script src="../vendor/framer-motion.min.js"></script>
+    <script src="../vendor/lucide.min.js"></script>
+    <script src="../vendor/fuse.min.js"></script>
+    <script src="../vendor/d3.min.js"></script>
+    <link rel="stylesheet" href="../shared/legacy-tokens.css">
+    <link rel="stylesheet" href="../shared/legacy-primitives.css">
+    <link rel="stylesheet" href="../shared/legacy-shell.css">
+    <link rel="stylesheet" href="./clinical-reference.css">
+    <script src="../shared/legacy-shell.js" defer></script>
+    <script src="../shared/legacy-guidance.js" defer></script>
 
     <style>
         /* Custom Tailwind Config */
         :root {
-            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --font-mono: 'Berkeley Mono', 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            --font-sans: var(--font-body, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
 
         /* Glassmorphism Base */
         .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.25);
         }
 
         .glass-dark {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(7, 26, 31, 0.92);
+            border: 1px solid rgba(103, 232, 249, 0.14);
         }
 
         /* Custom Scrollbar */
@@ -73,13 +71,13 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
-        /* Gradient Background */
+        /* Clinical Accent Backgrounds */
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #c2674a 0%, #0e7490 100%);
         }
 
         .gradient-bg-alt {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #14b8a6 0%, #c2674a 100%);
         }
 
         /* Loading Animation */
@@ -106,19 +104,11 @@
 
         /* Card Hover Effects */
         .card-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color 160ms ease, border-color 160ms ease, box-shadow 220ms ease;
         }
 
         .card-hover:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Smooth Transitions */
-        * {
-            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 150ms;
+            box-shadow: 0 18px 46px rgba(2, 6, 23, 0.14);
         }
 
         /* Network Graph Container */
@@ -144,7 +134,7 @@
             height: 8px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.3);
-            transition: all 0.3s;
+            transition: width 300ms ease, background-color 200ms ease, border-radius 300ms ease, opacity 200ms ease;
         }
 
         .swipe-dot.active {
@@ -171,10 +161,10 @@
 
         /* Category Colors */
         .category-inflammatory { border-left: 4px solid #ef4444; }
-        .category-neoplastic { border-left: 4px solid #8b5cf6; }
+        .category-neoplastic { border-left: 4px solid #c2674a; }
         .category-infectious { border-left: 4px solid #f59e0b; }
         .category-metabolic { border-left: 4px solid #10b981; }
-        .category-genetic { border-left: 4px solid #3b82f6; }
+        .category-genetic { border-left: 4px solid #475569; }
         .category-other { border-left: 4px solid #6b7280; }
 
         /* Achievement Badge */
@@ -234,7 +224,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'sans': ['IBM Plex Sans', 'system-ui', '-apple-system', 'sans-serif'],
                         'mono': ['Berkeley Mono', 'SF Mono', 'Monaco', 'monospace'],
                     },
                     animation: {
@@ -261,7 +251,7 @@
         }
     </script>
 </head>
-<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<body class="clinical-reference font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Use search to find diagnoses or patterns.","Open a result to review key features and references.","Use Reset if the prototype state looks stuck."]'>
     <!-- React Root -->
     <div id="root"></div>
 
@@ -271,7 +261,8 @@
     <!-- Main App Component -->
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo, useCallback, createContext, useContext, useReducer } = React;
-        const { motion, AnimatePresence } = window.FramerMotion || {
+        const framerMotionApi = window.FramerMotion || window.Motion;
+        const { motion, AnimatePresence } = framerMotionApi || {
             motion: {
                 div: (props) => React.createElement('div', props),
                 button: (props) => React.createElement('button', props)
@@ -356,7 +347,7 @@
 
         // Loading Component
         const LoadingScreen = () => (
-            <div className="fixed inset-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-teal-700 flex items-center justify-center z-50">
                 <div className="relative">
                     <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center">
                         <Icon name="microscope" className="w-10 h-10 text-white" />
@@ -504,21 +495,21 @@
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-2">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-teal-700 flex items-center justify-center">
                                         <Icon name="microscope" className="w-6 h-6 text-white" />
                                     </div>
                                     <div>
-                                        <h1 className="text-xl font-semibold">Dermatopathology Navigator</h1>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Modern Learning Experience</p>
+                                        <h1>Dermatopathology Navigator</h1>
+                                        <p className="cl-page-subtitle">Clinical Dermatopathology Reference</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex items-center space-x-4">
                                 {studyStats.streak > 0 && (
-                                    <div className="flex items-center space-x-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-                                        <span className="text-2xl fire-animation">🔥</span>
-                                        <span className="text-sm font-medium">{studyStats.streak} day streak!</span>
+                                    <div className="streak-badge flex items-center space-x-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                                        <span className="text-sm font-semibold uppercase tracking-wide">Streak</span>
+                                        <span className="text-sm font-medium">{studyStats.streak} day review streak</span>
                                     </div>
                                 )}
 
@@ -814,12 +805,12 @@
 
                 gradient.append("stop")
                     .attr("offset", "0%")
-                    .attr("stop-color", "#8b5cf6")
+                    .attr("stop-color", "#c2674a")
                     .attr("stop-opacity", 0.8);
 
                 gradient.append("stop")
                     .attr("offset", "100%")
-                    .attr("stop-color", "#6366f1")
+                    .attr("stop-color", "#0e7490")
                     .attr("stop-opacity", 0.6);
 
                 // Create nodes
@@ -846,12 +837,18 @@
                     .force("center", d3.forceCenter(width / 2, height / 2))
                     .force("collision", d3.forceCollide().radius(d => d.r + 10));
 
+                const rootStyles = getComputedStyle(document.documentElement);
+                const tokenPrimary = rootStyles.getPropertyValue('--cl-primary').trim() || '#c2674a';
+                const tokenAccent = rootStyles.getPropertyValue('--cl-accent').trim() || '#164e63';
+                const tokenBorder = rootStyles.getPropertyValue('--cl-border').trim() || '#e2e8f0';
+                const tokenSurfaceAlt = rootStyles.getPropertyValue('--cl-surface-alt').trim() || '#f8fafc';
+
                 // Create links
                 const link = svg.append("g")
                     .selectAll("line")
                     .data(links)
                     .join("line")
-                    .attr("stroke", "#e5e7eb")
+                    .attr("stroke", tokenBorder)
                     .attr("stroke-width", 2)
                     .attr("opacity", 0.6);
 
@@ -865,8 +862,8 @@
                 // Add circles
                 node.append("circle")
                     .attr("r", d => d.r)
-                    .attr("fill", d => d.group === 0 ? "url(#node-gradient)" : "#e0e7ff")
-                    .attr("stroke", d => d.group === 0 ? "#7c3aed" : "#6366f1")
+                    .attr("fill", tokenSurfaceAlt)
+                    .attr("stroke", d => d.group === 0 ? tokenPrimary : tokenAccent)
                     .attr("stroke-width", 2)
                     .style("cursor", "pointer")
                     .on("click", (event, d) => {
@@ -974,25 +971,22 @@
             return (
                 <div className="glass dark:glass-dark rounded-xl p-6">
                     <div className="flex items-center space-x-2 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
-                            <Icon name="sparkles" className="w-4 h-4 text-white" />
-                        </div>
-                        <h3 className="text-lg font-semibold">AI Insights</h3>
+                        <h3 className="text-lg font-semibold">Clinical Correlations</h3>
                     </div>
 
                     <div className="space-y-3">
                         {recommendations.map((rec, index) => (
                             <div
                                 key={index}
-                                className="flex items-start space-x-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg fade-enter-active"
+                                className="flex items-start space-x-3 p-3 bg-slate-50 dark:bg-slate-900/20 rounded-lg fade-enter-active"
                             >
-                                <Icon name="lightbulb" className="w-4 h-4 text-blue-500 mt-0.5" />
+                                <Icon name="lightbulb" className="w-4 h-4 text-teal-700 mt-0.5" />
                                 <p className="text-sm">{rec}</p>
                             </div>
                         ))}
                     </div>
 
-                    <button className="mt-4 w-full p-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all">
+                    <button className="mt-4 w-full p-3 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 rounded-lg hover:border-teal-700 transition-colors">
                         Generate Study Plan
                     </button>
                 </div>
@@ -1056,113 +1050,115 @@
             }
 
             return (
-                <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+                <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
                     <CommandPalette />
                     <Header />
 
-                    <main className="container mx-auto px-4 py-8">
-                        {/* Finding Selector */}
-                        <div className="mb-8">
-                            <label className="block text-sm font-medium mb-2">Current Finding</label>
-                            <select
-                                value={selectedFinding || ''}
-                                onChange={(e) => dispatch({ type: 'SET_SELECTED_FINDING', payload: e.target.value })}
-                                className="w-full max-w-md px-4 py-3 glass dark:glass-dark rounded-lg border border-gray-200 dark:border-gray-700"
-                            >
-                                <option value="">Select a finding...</option>
-                                {findings.map(finding => (
-                                    <option key={finding} value={finding}>{finding}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {selectedFinding && diagnoses.length > 0 && (
-                            <>
-                                {/* View Selector */}
-                                <div className="flex space-x-2 mb-6">
-                                    {['grid', 'flashcards', 'network'].map(view => (
-                                        <button
-                                            key={view}
-                                            onClick={() => setActiveView(view)}
-                                            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                                                activeView === view
-                                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                                                    : 'glass dark:glass-dark hover:bg-gray-100 dark:hover:bg-gray-800'
-                                            }`}
-                                        >
-                                            <Icon
-                                                name={view === 'grid' ? 'grid' : view === 'flashcards' ? 'layers' : 'share-2'}
-                                                className="w-4 h-4 inline mr-2"
-                                            />
-                                            {view.charAt(0).toUpperCase() + view.slice(1)}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* Main Content Area */}
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                    <div className="lg:col-span-2">
-                                        {activeView === 'grid' && (
-                                            <div className="grid gap-4">
-                                                {diagnoses.map((diagnosis, index) => (
-                                                    <DiagnosisCard
-                                                        key={diagnosis.name}
-                                                        diagnosis={diagnosis}
-                                                        category={index % 6 === 0 ? 'inflammatory' :
-                                                                 index % 6 === 1 ? 'neoplastic' :
-                                                                 index % 6 === 2 ? 'infectious' :
-                                                                 index % 6 === 3 ? 'metabolic' :
-                                                                 index % 6 === 4 ? 'genetic' : 'other'}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {activeView === 'flashcards' && (
-                                            <FlashcardDeck diagnoses={diagnoses} />
-                                        )}
-
-                                        {activeView === 'network' && (
-                                            <NetworkGraph finding={selectedFinding} diagnoses={diagnoses} />
-                                        )}
-                                    </div>
-
-                                    {/* Sidebar */}
-                                    <div className="space-y-6">
-                                        {/* Stats Card */}
-                                        <div className="glass dark:glass-dark rounded-xl p-6">
-                                            <h3 className="text-lg font-semibold mb-4">Progress Overview</h3>
-                                            <div className="space-y-3">
-                                                <div className="flex justify-between">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Total Diagnoses</span>
-                                                    <span className="font-medium">{diagnoses.length}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Favorites</span>
-                                                    <span className="font-medium">{favorites.size}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">Study Progress</span>
-                                                    <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                        <div
-                                                            className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
-                                                            style={{ width: '65%' }}
-                                                        ></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* AI Recommendations */}
-                                        <AIRecommendations currentFinding={selectedFinding} diagnoses={diagnoses} />
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </main>
+	                    <main className="cl-panel-layout cl-panel-layout--three-pane">
+	                        <div className="cl-panel-layout__sidebar">
+	                            <div className="cl-card">
+	                                <div className="legacy-workflow__field">
+	                                    <label className="block text-sm font-medium">Current Finding</label>
+	                                    <select
+	                                        value={selectedFinding || ''}
+	                                        onChange={(e) => dispatch({ type: 'SET_SELECTED_FINDING', payload: e.target.value })}
+	                                        className="w-full px-4 py-3 glass dark:glass-dark rounded-lg border border-gray-200 dark:border-gray-700"
+	                                    >
+	                                        <option value="">Select a finding...</option>
+	                                        {findings.map(finding => (
+	                                            <option key={finding} value={finding}>{finding}</option>
+	                                        ))}
+	                                    </select>
+	                                </div>
+	
+	                                {selectedFinding && diagnoses.length > 0 && (
+	                                    <div className="legacy-workflow__actions" style={{ marginTop: '1rem' }}>
+	                                        {['grid', 'flashcards', 'network'].map(view => (
+	                                            <button
+	                                                key={view}
+	                                                onClick={() => setActiveView(view)}
+	                                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+	                                                    activeView === view
+	                                                        ? 'bg-teal-700 text-white'
+	                                                        : 'glass dark:glass-dark hover:bg-gray-100 dark:hover:bg-gray-800'
+	                                                }`}
+	                                            >
+	                                                <Icon
+	                                                    name={view === 'grid' ? 'grid' : view === 'flashcards' ? 'layers' : 'share-2'}
+	                                                    className="w-4 h-4 inline mr-2"
+	                                                />
+	                                                {view.charAt(0).toUpperCase() + view.slice(1)}
+	                                            </button>
+	                                        ))}
+	                                    </div>
+	                                )}
+	                            </div>
+	                        </div>
+	
+	                        <section className="cl-panel-layout__main">
+	                            {selectedFinding && diagnoses.length > 0 && (
+	                                <>
+	                                    {activeView === 'grid' && (
+	                                        <div className="grid gap-4">
+	                                            {diagnoses.map((diagnosis, index) => (
+	                                                <DiagnosisCard
+	                                                    key={diagnosis.name}
+	                                                    diagnosis={diagnosis}
+	                                                    category={index % 6 === 0 ? 'inflammatory' :
+	                                                             index % 6 === 1 ? 'neoplastic' :
+	                                                             index % 6 === 2 ? 'infectious' :
+	                                                             index % 6 === 3 ? 'metabolic' :
+	                                                             index % 6 === 4 ? 'genetic' : 'other'}
+	                                                />
+	                                            ))}
+	                                        </div>
+	                                    )}
+	
+	                                    {activeView === 'flashcards' && (
+	                                        <FlashcardDeck diagnoses={diagnoses} />
+	                                    )}
+	
+	                                    {activeView === 'network' && (
+	                                        <NetworkGraph finding={selectedFinding} diagnoses={diagnoses} />
+	                                    )}
+	                                </>
+	                            )}
+	                        </section>
+	
+	                        <aside className="cl-panel-layout__inspector">
+	                            {selectedFinding && diagnoses.length > 0 && (
+	                                <>
+	                                    <div className="glass dark:glass-dark rounded-xl p-6">
+	                                        <h3 className="text-lg font-semibold mb-4">Progress Overview</h3>
+	                                        <div className="space-y-3">
+	                                            <div className="flex justify-between">
+	                                                <span className="text-sm text-gray-600 dark:text-gray-400">Total Diagnoses</span>
+	                                                <span className="font-medium">{diagnoses.length}</span>
+	                                            </div>
+	                                            <div className="flex justify-between">
+	                                                <span className="text-sm text-gray-600 dark:text-gray-400">Favorites</span>
+	                                                <span className="font-medium">{favorites.size}</span>
+	                                            </div>
+	                                            <div className="flex justify-between">
+	                                                <span className="text-sm text-gray-600 dark:text-gray-400">Study Progress</span>
+	                                                <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+	                                                    <div
+	                                                        className="bg-teal-700 h-2 rounded-full"
+	                                                        style={{ width: '65%' }}
+	                                                    ></div>
+	                                                </div>
+	                                            </div>
+	                                        </div>
+	                                    </div>
+	
+	                                    <AIRecommendations currentFinding={selectedFinding} diagnoses={diagnoses} />
+	                                </>
+	                            )}
+	                        </aside>
+	                    </main>
 
                     {/* Floating Action Button */}
-                    <button className="fab bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                    <button className="fab bg-teal-700 text-white">
                         <Icon name="plus" className="w-6 h-6" />
                     </button>
                 </div>
@@ -1176,6 +1172,15 @@
                 <App />
             </StateProvider>
         );
+    </script>
+    <script>
+        if (window.LegacyGuidance?.maybeShow) {
+            window.LegacyGuidance.maybeShow('dermatopathology-modern-fixed', [
+                'Start with search or category filters, then select one finding to open context.',
+                'Use keyboard navigation with visible focus rings to move through controls.',
+                'Use shell Help/Reset controls when state becomes noisy during exploration.'
+            ]);
+        }
     </script>
 </body>
 </html>

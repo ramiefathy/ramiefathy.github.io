@@ -1,0 +1,100 @@
+{
+  "id": "psoriasis-biologic-cmp",
+  "topic": "psoriasis",
+  "title": "Psoriasis Biologic Classes",
+  "subtitle": "TNF-α inhibitors vs IL-17 inhibitors vs IL-23 inhibitors",
+  "entities": [
+    { "id": "tnf",  "name": "TNF-α Inhibitors",  "shortName": "TNF-α" },
+    { "id": "il17", "name": "IL-17 Inhibitors",  "shortName": "IL-17" },
+    { "id": "il23", "name": "IL-23 p19 Inhibitors", "shortName": "IL-23" }
+  ],
+  "features": [
+    {
+      "id": "agents",
+      "name": "Approved agents",
+      "values": {
+        "tnf":  "Adalimumab, etanercept, infliximab, certolizumab pegol, golimumab",
+        "il17": "Secukinumab, ixekizumab (IL-17A); bimekizumab (IL-17A/F); brodalumab (IL-17RA)",
+        "il23": "Guselkumab, risankizumab, tildrakizumab, mirikizumab"
+      }
+    },
+    {
+      "id": "onset",
+      "name": "Speed of onset (weeks to PASI 75)",
+      "values": {
+        "tnf":  "~12–16 weeks (infliximab fastest: 4–8 weeks IV)",
+        "il17": "~12 weeks; bimekizumab notable clearance at 4 weeks",
+        "il23": "~16 weeks (slower induction; superior durability)"
+      }
+    },
+    {
+      "id": "efficacy",
+      "name": "Long-term PASI 90 / PASI 100 rate",
+      "values": {
+        "tnf":  "PASI 90 ~40–50%; PASI 100 ~20–30% (adalimumab at 1 year)",
+        "il17": "PASI 90 ~60–85%; PASI 100 ~40–60% (bimekizumab and ixekizumab highest)",
+        "il23": "PASI 90 ~70–88%; PASI 100 ~45–65% (risankizumab/guselkumab at 1–2 years)"
+      }
+    },
+    {
+      "id": "comorb",
+      "name": "Comorbidity profile — preferred indications",
+      "isDistinguisher": true,
+      "values": {
+        "tnf":  "PsA ★ (all 5 agents); IBD (adalimumab, infliximab, certolizumab) ★; ankylosing spondylitis. PREFERRED when IBD comorbidity. Certolizumab PREFERRED in pregnancy.",
+        "il17": "PsA ★ (secukinumab, ixekizumab, bimekizumab, brodalumab); ankylosing spondylitis. AVOID in IBD (can exacerbate or trigger IBD flares). Preferred for rapid skin clearance.",
+        "il23": "PsA (guselkumab, risankizumab); IBD (risankizumab approved for Crohn's, mirikizumab for UC) ★. Preferred for moderate-severe plaque psoriasis WITHOUT a specific comorbidity preference. Safest class overall."
+      }
+    },
+    {
+      "id": "safety",
+      "name": "Black box warnings and key safety signals",
+      "isDistinguisher": true,
+      "values": {
+        "tnf":  "BLACK BOX: serious infections (TB reactivation ★, opportunistic infections), malignancy (lymphoma ★, NMSC). HBV reactivation. Demyelination risk — CONTRAINDICATED in MS. Heart failure exacerbation (avoid in NYHA III–IV). Lupus-like reaction.",
+        "il17": "No black box for most; BRODALUMAB BLACK BOX: suicidal ideation / behavior (REMS program). Class effect: mucocutaneous candidiasis (10–20%; usually mild, responds to fluconazole). IBD exacerbation — do NOT use in active IBD. Neutropenia (monitor CBC).",
+        "il23": "No black box warnings. No REMS. Cleanest safety profile of any biologic class. Rare: upper respiratory infections, injection-site reactions. No signal for IBD exacerbation. No increased malignancy signal to date."
+      }
+    },
+    {
+      "id": "dosing",
+      "name": "Dosing schedule and route",
+      "values": {
+        "tnf":  "Adalimumab: SC q2w. Etanercept: SC q1–2w. Infliximab: IV infusion (0, 2, 6 wk → q8w). Certolizumab: SC q2w. Golimumab: SC q4w or IV.",
+        "il17": "Secukinumab: SC q4w after loading. Ixekizumab: SC q2w × 12 wk then q4w. Bimekizumab: SC q4w × 16 wk then q8w. Brodalumab: SC q2w after loading.",
+        "il23": "Guselkumab: SC at 0, 4 wk → q8w. Risankizumab: SC at 0, 4 wk → q12w. Tildrakizumab: SC at 0, 4 wk → q12w. Mirikizumab: SC at 0, 4, 8 wk → q8w."
+      }
+    },
+    {
+      "id": "tb-risk",
+      "name": "Latent TB reactivation risk",
+      "values": {
+        "tnf":  "HIGHEST risk: TNF-α is critical for granuloma maintenance. Screen with QuantiFERON-TB Gold before starting. LTBI treatment required before initiation (9 months INH or 4 months rifampin). Annual surveillance if ongoing high-risk exposure.",
+        "il17": "Lower risk than TNF inhibitors; IL-17 less critical for TB granuloma. Screen at baseline (QuantiFERON-TB Gold) per guidelines. Some guidelines allow biologic initiation after ≥1 month of LTBI treatment.",
+        "il23": "Lowest class risk; IL-23 less critical for granuloma integrity than TNF. Screen at baseline. Some evidence that LTBI treatment can be initiated concurrently (not proven as safe as with TNF — consult ID)."
+      }
+    },
+    {
+      "id": "pregnancy",
+      "name": "Use in pregnancy and breastfeeding",
+      "values": {
+        "tnf":  "Certolizumab pegol PREFERRED — Fc-free, minimal placental transfer (<1%); can be continued throughout pregnancy and breastfeeding. Adalimumab/etanercept: low transfer in 1st–2nd trimester; consider stopping in 3rd trimester. Neonates exposed to IgG-Fc TNF inhibitors in 3rd trimester: no live vaccines for 6 months.",
+        "il17": "INSUFFICIENT safety data for pregnancy. Animal studies show some risk at high doses. Not recommended during pregnancy or breastfeeding. Switch to certolizumab or NB-UVB before conception.",
+        "il23": "INSUFFICIENT safety data for pregnancy. Not recommended. NB-UVB and certolizumab are preferred alternatives during pregnancy."
+      }
+    },
+    {
+      "id": "response-monitoring",
+      "name": "Time to assess response and monitoring",
+      "values": {
+        "tnf":  "Assess at 12 weeks. Therapeutic drug level monitoring available for adalimumab and infliximab (detect antidrug antibodies). Annual screen: CBC, LFTs. Infliximab: pre-infusion checks each visit.",
+        "il17": "Assess at 12 weeks (IL-17A) or 16 weeks (bimekizumab). Routine labs not required; CBC if neutropenia concern. Monitor for candidiasis and IBD symptoms.",
+        "il23": "Assess at 16 weeks (longer induction response curve). No routine lab monitoring required. Reassess at 16 and 28 weeks before considering switch. Durable response minimizes need for frequent monitoring."
+      }
+    }
+  ],
+  "citations": [
+    { "pmid": "30772098", "quote": "Menter A et al. Joint AAD-NPF guidelines of care for the management and treatment of psoriasis with biologics. J Am Acad Dermatol. 2019." },
+    { "pmid": "30772097", "quote": "Elmets CA et al. Joint AAD-NPF guidelines of care for psoriasis with awareness and attention to comorbidities. J Am Acad Dermatol. 2019." }
+  ]
+}

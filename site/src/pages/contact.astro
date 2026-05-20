@@ -1,0 +1,139 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Header from '../components/Header.jsx';
+import profile from '../data/profile.json';
+
+const emailAddress = profile.contact.email.replace(/^mailto:/, '');
+---
+<MainLayout title="Contact – Ramie Fathy, MD" description="Contact Dr. Ramie Fathy for collaborations, speaking invitations, and dermatology AI projects.">
+  <Header client:load />
+  <main id="main-content">
+    <section class="section">
+      <div class="plate-stamp"><b>Contact</b><span class="barcode"></span><span>Direct & form</span></div>
+
+      <div class="plate-head">
+        <div>
+          <span class="kicker">Contact</span>
+          <h1 class="display1" style="margin-top:14px">Let's build<br><em>clinician-grade</em> tools.</h1>
+        </div>
+        <div class="right">
+          For collaborations,<br>
+          speaking invitations,<br>
+          and research projects.<br>
+          <span style="color:var(--terracotta)">Reply within ~1 week</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.05fr 0.95fr;gap:48px;align-items:start;margin-top:32px" class="contact-grid">
+        <div>
+          <p class="lede">For collaborations, speaking invitations, and research projects across dermatology and clinical AI.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:24px">
+            <span class="tag">Clinical AI</span>
+            <span class="tag">Dermatology Education</span>
+            <span class="tag">Research</span>
+            <span class="tag">Speaking</span>
+          </div>
+        </div>
+
+        <aside class="contact-card__links" aria-label="Direct contact links">
+          <a class="contact-link" href={profile.contact.email} data-copy-email title="Click to copy email address">
+            <span class="contact-link__icon">Email</span>
+            <span class="contact-link__label">Direct mail</span>
+            <span class="contact-link__value">{emailAddress}</span>
+          </a>
+          <a class="contact-link" href={profile.contact.linkedin} target="_blank" rel="noreferrer">
+            <span class="contact-link__icon">LinkedIn</span>
+            <span class="contact-link__label">Connect</span>
+            <span class="contact-link__value">/ramie-fathy</span>
+          </a>
+          <a class="contact-link" href={profile.contact.scholar} target="_blank" rel="noreferrer">
+            <span class="contact-link__icon">Scholar</span>
+            <span class="contact-link__label">Publications</span>
+            <span class="contact-link__value">Google Scholar</span>
+          </a>
+          <a class="contact-link" href={profile.contact.researchgate} target="_blank" rel="noreferrer">
+            <span class="contact-link__icon">RG</span>
+            <span class="contact-link__label">Profile</span>
+            <span class="contact-link__value">ResearchGate</span>
+          </a>
+          <p id="contact-status" class="sr-only" role="status" aria-live="polite"></p>
+        </aside>
+      </div>
+
+      <div style="margin-top:64px;border-top:2px solid var(--ink);padding-top:32px">
+        <div style="display:flex;justify-content:space-between;align-items:end;gap:32px;border-bottom:1px solid var(--rule);padding-bottom:14px">
+          <div>
+            <span class="kicker">Send a note</span>
+            <h2 class="display2" style="margin-top:6px">Compose a <em>message</em>.</h2>
+          </div>
+          <p style="font-family:var(--font-mono);font-size:11px;color:var(--slate);letter-spacing:0.06em;text-align:right">This form composes an email in your default mail client.<br>No third-party form provider.</p>
+        </div>
+
+        <form class="contact-form" data-mailto-form style="margin-top:24px">
+          <div class="form-row">
+            <label>Name<input type="text" name="name" autocomplete="name" /></label>
+            <label>Email<input type="email" name="email" autocomplete="email" /></label>
+          </div>
+          <label>Subject<input type="text" name="subject" autocomplete="off" /></label>
+          <label>Message<textarea name="message" rows="6" required></textarea></label>
+          <button class="button button--primary" type="submit" style="align-self:flex-start">Compose Email →</button>
+          <p class="muted-callout" style="margin:0">If the button doesn't open your email client, you can email directly: <a href={profile.contact.email}>{emailAddress}</a>.</p>
+        </form>
+      </div>
+
+      <p class="muted-callout" style="margin-top:48px">This site is not for medical advice. For patient questions, please contact your clinician or local emergency services.</p>
+    </section>
+  </main>
+
+  <style>
+    @media (max-width: 900px) {
+      .contact-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
+
+  <script define:vars={{ emailAddress }}>
+    (function () {
+      const status = document.getElementById('contact-status');
+      const copyButton = document.querySelector('[data-copy-email]');
+      const mailtoForm = document.querySelector('[data-mailto-form]');
+      const email = emailAddress;
+
+      const announce = (message) => { if (status) status.textContent = message; };
+
+      if (copyButton) {
+        copyButton.addEventListener('click', async (event) => {
+          if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button === 1)) return;
+          if (event) event.preventDefault();
+          try {
+            await navigator.clipboard.writeText(email);
+            announce('Email copied to clipboard.');
+          } catch (err) {
+            announce('Copy failed. Please copy the email address manually.');
+          }
+        });
+      }
+
+      if (mailtoForm) {
+        mailtoForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          const data = new FormData(mailtoForm);
+          const name = String(data.get('name') || '').trim();
+          const fromEmail = String(data.get('email') || '').trim();
+          const subject = String(data.get('subject') || '').trim() || 'Website inquiry';
+          const message = String(data.get('message') || '').trim();
+          const body = [
+            name ? `Name: ${name}` : null,
+            fromEmail ? `Email: ${fromEmail}` : null,
+            '',
+            message ? message : '(No message provided)'
+          ].filter(Boolean).join('\n');
+          const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          window.location.assign(mailtoUrl);
+          announce('Opening your email client.');
+        });
+      }
+    })();
+  </script>
+</MainLayout>

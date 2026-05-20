@@ -6,18 +6,26 @@ const NAV_LINKS = [
   { label: 'Apps & Projects', href: '/apps' },
   { label: 'Research', href: '/research' },
   { label: 'Blog', href: '/blog' },
-  { label: 'Contact', href: '/#contact' }
+  { label: 'Contact', href: '/contact' }
 ];
 
+function isActiveLink(pathname, href) {
+  if (!pathname || !href) return false;
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 const Header = () => {
-  const [theme, setTheme] = useState('light');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activePath, setActivePath] = useState('');
   const previousOverflow = useRef('');
 
   useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const current = document.documentElement.dataset.theme || 'light';
-    setTheme(current);
+    if (typeof window === 'undefined') return;
+    const updatePath = () => setActivePath(window.location.pathname || '/');
+    updatePath();
+    window.addEventListener('popstate', updatePath);
+    return () => window.removeEventListener('popstate', updatePath);
   }, []);
 
   useEffect(() => {
@@ -41,23 +49,11 @@ const Header = () => {
     };
   }, [menuOpen]);
 
-  const toggleTheme = () => {
-    if (typeof document === 'undefined') return;
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    document.documentElement.dataset.theme = next;
-    try {
-      window.localStorage.setItem('theme', next);
-    } catch (err) {
-      console.warn('Unable to persist theme preference', err);
-    }
-  };
-
   const toggleMenu = () => setMenuOpen((value) => !value);
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <header className="header-shell" data-scroll-fade>
+    <header className="header-shell">
       <div className="header-inner">
         <a href="/" aria-label="Ramie Fathy home" className="header-logo">
           <img src="/favicon.ico" width="32" height="32" alt="Ramie Fathy logo" />
@@ -68,7 +64,7 @@ const Header = () => {
             <a
               key={`desktop-${link.label}`}
               href={link.href}
-              className="header-link"
+              className={`header-link ${isActiveLink(activePath, link.href) ? 'is-active' : ''}`}
               target={link.href.startsWith('http') ? '_blank' : undefined}
               rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
             >
@@ -77,15 +73,6 @@ const Header = () => {
           ))}
         </nav>
         <div className="header-actions">
-          <button
-            type="button"
-            className="theme-toggle"
-            onClick={toggleTheme}
-            aria-label="Toggle dark mode"
-            aria-pressed={theme === 'dark'}
-          >
-            <span aria-hidden="true">{theme === 'dark' ? '☾' : '☀︎'}</span>
-          </button>
           <button
             type="button"
             className="header-menu"
@@ -109,7 +96,7 @@ const Header = () => {
             <a
               key={`mobile-${link.label}`}
               href={link.href}
-              className="header-drawer__link"
+              className={`header-drawer__link ${isActiveLink(activePath, link.href) ? 'is-active' : ''}`}
               target={link.href.startsWith('http') ? '_blank' : undefined}
               rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
               onClick={closeMenu}

@@ -1,0 +1,94 @@
+{
+  "id": "pemphigus-vs-pemphigoid-cmp",
+  "topic": "autoimmune-bullous",
+  "title": "Pemphigus Vulgaris vs Bullous Pemphigoid vs Dermatitis Herpetiformis",
+  "subtitle": "Key distinguishing features for differential diagnosis",
+  "entities": [
+    { "id": "pv",  "name": "Pemphigus Vulgaris",      "shortName": "PV" },
+    { "id": "bp",  "name": "Bullous Pemphigoid",      "shortName": "BP" },
+    { "id": "dh",  "name": "Dermatitis Herpetiformis","shortName": "DH" }
+  ],
+  "features": [
+    {
+      "id": "demo",
+      "name": "Typical demographic",
+      "values": {
+        "pv": "40–60 y; M = F; higher prevalence in Ashkenazi Jewish and Mediterranean populations",
+        "bp": ">70 y; M slightly > F; drug triggers (DPP-4 inhibitors, checkpoint inhibitors, furosemide); associated neurological disease (dementia, Parkinson's)",
+        "dh": "Young adults (20–40 y); M > F; Northern European; strongly associated with celiac disease (HLA-DQ2/DQ8)"
+      }
+    },
+    {
+      "id": "blister",
+      "name": "Blister character",
+      "isDistinguisher": true,
+      "values": {
+        "pv": "Flaccid, easily ruptured blisters; Nikolsky sign positive (lateral pressure extends blister); crusted erosions common; oral erosions may precede skin disease",
+        "bp": "Tense, intact blisters on urticarial, erythematous, or eczematous base; Nikolsky sign negative; intense pruritus; lower trunk and flexures",
+        "dh": "Grouped, intensely pruritic vesicles on extensor surfaces (elbows, knees, scalp, buttocks); often excoriated before reaching clinical assessment; vesicles not tense"
+      }
+    },
+    {
+      "id": "mucosal",
+      "name": "Mucosal involvement",
+      "isDistinguisher": true,
+      "values": {
+        "pv": "Typical — often the FIRST sign; oral erosions in >90%; nasal, pharyngeal, genital, conjunctival involvement common",
+        "bp": "Rare (<30%); mild when present; mucosal scarring NOT a feature — helps distinguish from MMP",
+        "dh": "Rare; no significant mucosal blistering; GI manifestations (bloating, diarrhea) from celiac enteropathy are common but not mucosal blisters"
+      }
+    },
+    {
+      "id": "histology",
+      "name": "Level of split (histology)",
+      "values": {
+        "pv": "Intraepidermal — suprabasilar acantholysis; 'row of tombstones' basal layer; eosinophilic spongiosis may be seen early",
+        "bp": "Subepidermal — clean split at lamina lucida; eosinophilic infiltrate with eosinophils lining the blister floor; neutrophils in early lesions",
+        "dh": "Subepidermal — neutrophil microabscesses at tips of dermal papillae; papillary fibrin deposition; vesicle formation by papillary coalescence"
+      }
+    },
+    {
+      "id": "dif",
+      "name": "DIF pattern",
+      "isDistinguisher": true,
+      "values": {
+        "pv": "Intercellular IgG + C3 throughout epidermis — 'fishnet' or 'honeycomb' pattern; pathognomonic; biopsy from perilesional normal skin",
+        "bp": "Linear IgG + C3 along basement membrane zone (BMZ); salt-split skin: epidermal (roof) pattern — BP is above lamina lucida",
+        "dh": "Granular IgA deposits at tips of dermal papillae — pathognomonic; biopsy from uninvolved skin (not perilesional); IIF on substrate usually negative"
+      }
+    },
+    {
+      "id": "antigen",
+      "name": "Target autoantigen",
+      "values": {
+        "pv": "Desmoglein 3 (Dsg3) — mucosal-dominant; Dsg3 + Dsg1 — mucocutaneous; desmosomal cadherins; ELISA: anti-Dsg3 and/or anti-Dsg1 IgG",
+        "bp": "BP180 (BPAG2, type XVII collagen; NC16A domain most immunogenic) + BP230 (BPAG1; plakin family); hemidesmosomal proteins; ELISA: anti-BP180 + anti-BP230 IgG",
+        "dh": "Tissue transglutaminase (tTG; TG2) IgA — marker of celiac; epidermal transglutaminase (eTG; TG3) IgA — specific to DH skin disease; serum anti-tTG IgA + anti-endomysial IgA positive"
+      }
+    },
+    {
+      "id": "tx-first",
+      "name": "First-line treatment",
+      "values": {
+        "pv": "Rituximab 1 g IV × 2 (D0 + D14) — Ritux 3 first-line trial (PMID 28342637); superior to prednisone monotherapy; ± short-course prednisone bridge",
+        "bp": "Superpotent topical clobetasol propionate 0.05% BID — PMID 11821508; non-inferior to oral prednisone with lower 1-year mortality in elderly; doxycycline 200 mg + niacinamide for mild/frail",
+        "dh": "Dapsone 50–200 mg/day — dramatic response within 72 h is near-pathognomonic; PLUS strict gluten-free diet (GFD) — definitive long-term treatment; check G6PD before starting dapsone"
+      }
+    },
+    {
+      "id": "prognosis",
+      "name": "Prognosis / mortality if untreated",
+      "values": {
+        "pv": "HIGH — historically uniformly fatal before systemic steroids (pre-1950s); significant morbidity from superinfection and sepsis; current 5-year mortality ~5–10% in treated patients (PMID 31498102)",
+        "bp": "SIGNIFICANT in elderly — 1-year mortality 20–40% in elderly patients even with treatment, largely from comorbidities and steroid adverse effects; disease itself rarely directly fatal in younger patients (PMID 35646449)",
+        "dh": "LOW disease-specific mortality; persistent quality-of-life impact from pruritus and dietary restriction; untreated celiac enteropathy increases risk of GI lymphoma (EATL); GFD normalizes cancer risk (PMID 35646449)"
+      }
+    }
+  ],
+  "citations": [
+    { "pmid": "31498102", "quote": "Schmidt E et al. Pemphigus. Lancet. 2019;394(10201):882-894." },
+    { "pmid": "35646449", "quote": "Serological biomarkers and their detection in autoimmune bullous skin diseases. Dermatol Pract Concept. 2022." },
+    { "pmid": "28342637", "quote": "Joly P et al. First-line rituximab combined with short-term prednisone versus prednisone alone for pemphigus (Ritux 3). Lancet. 2017." },
+    { "pmid": "11821508", "quote": "Joly P et al. A comparison of oral and topical corticosteroids in patients with bullous pemphigoid. N Engl J Med. 2002." }
+  ]
+}

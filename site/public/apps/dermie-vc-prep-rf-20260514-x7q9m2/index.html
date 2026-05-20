@@ -1,0 +1,1392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="description" content="Unlisted dermie VC pitch packet and demo materials.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dermie — pitch packet (financial sketch, use of funds, milestones, demo script, competitive landscape)</title>
+<style>
+:root {
+  --ink:        #14110D;
+  --paper:      #FAF4EB;
+  --paper-2:    #F2EADC;
+  --petrol:     #0E3835;
+  --petrol-2:   #15524E;
+  --sage:       #D9DCD0;
+  --amber:      #C7811F;
+  --amber-soft: #E6BE7E;
+  --rust:       #8B3A0E;
+  --green:      #2D5F3F;
+  --muted:      #5C5651;
+  --rule:       rgba(20,17,13,0.16);
+  --rule-soft:  rgba(20,17,13,0.08);
+
+  --display: Georgia, "Times New Roman", serif;
+  --body:    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono:    ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper-2);
+  color: var(--ink);
+  font-family: var(--body);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "ss02", "kern";
+}
+
+::selection { background: var(--amber-soft); color: var(--ink); }
+
+h1, h2, h3, h4 {
+  font-family: var(--display);
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 80, "SOFT" 30;
+}
+
+h1 {
+  font-size: 2.3rem;
+  line-height: 1;
+  font-weight: 400;
+  font-variation-settings: "opsz" 144, "SOFT" 20;
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  font-size: 1.4rem;
+  line-height: 1.15;
+  font-weight: 500;
+  font-variation-settings: "opsz" 60, "SOFT" 30;
+}
+
+h3 {
+  font-size: 1.05rem;
+  line-height: 1.25;
+  font-weight: 600;
+  font-variation-settings: "opsz" 36, "SOFT" 40;
+}
+
+h4 {
+  font-size: 0.72rem;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+  color: var(--petrol);
+}
+
+p { margin: 0 0 0.7em 0; }
+
+strong { font-weight: 600; color: var(--ink); }
+
+em { font-style: italic; font-family: var(--display); font-weight: 400; }
+
+/* ---------- Packet shell ---------- */
+
+.packet-toc {
+  position: sticky;
+  top: 0;
+  background: rgba(250,244,235,0.96);
+  
+  border-bottom: 1px solid var(--rule-soft);
+  z-index: 20;
+  padding: 0.7rem 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.packet-toc-inner {
+  max-width: 64rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.packet-toc-inner::-webkit-scrollbar { display: none; }
+.packet-toc-title {
+  font-weight: 600;
+  color: var(--petrol);
+  padding-right: 1.5rem;
+  border-right: 1px solid var(--rule-soft);
+}
+.packet-toc-inner a {
+  color: var(--muted);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.18s;
+}
+.packet-toc-inner a:hover { color: var(--petrol); }
+.packet-toc-inner a .n {
+  color: var(--amber);
+  font-weight: 600;
+}
+
+/* ---------- Page ---------- */
+
+.page {
+  background: var(--paper);
+  margin: 1.5rem auto;
+  max-width: 64rem;
+  padding: 2.5rem 3rem;
+  box-shadow: 0 2px 12px rgba(20,17,13,0.04), 0 0 0 1px rgba(20,17,13,0.06);
+  border-radius: 2px;
+  position: relative;
+}
+
+@media (max-width: 720px) {
+  .page { padding: 1.5rem 1.25rem; margin: 0.75rem; }
+}
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.page-head::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 12%;
+  height: 2px;
+  background: var(--amber);
+}
+
+.page-head-left h4 {
+  margin-bottom: 0.35rem;
+}
+
+.page-head-right {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.page-head-right strong {
+  color: var(--petrol);
+  font-weight: 500;
+  display: block;
+}
+
+.lead {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  max-width: 42rem;
+  font-variation-settings: "opsz" 36, "SOFT" 50;
+}
+
+/* ---------- Big numbers ---------- */
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  margin: 1rem 0 1.5rem;
+}
+
+@media (max-width: 720px) {
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.metric {
+  padding: 1rem 1rem;
+  border-right: 1px solid var(--rule-soft);
+}
+.metric:last-child { border-right: none; }
+
+@media (max-width: 720px) {
+  .metric:nth-child(2n) { border-right: none; }
+  .metric:nth-child(1), .metric:nth-child(2) { border-bottom: 1px solid var(--rule-soft); }
+}
+
+.metric .label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.metric .value {
+  font-family: var(--display);
+  font-size: 1.65rem;
+  line-height: 1;
+  font-weight: 500;
+  color: var(--petrol);
+  font-variation-settings: "opsz" 96, "SOFT" 20;
+  letter-spacing: -0.02em;
+}
+
+.metric .sub {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+
+/* ---------- Scenarios table ---------- */
+
+.scenarios {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.scenarios th, .scenarios td {
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.scenarios thead th {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  background: var(--petrol);
+  color: var(--paper);
+  border-bottom: none;
+}
+
+.scenarios thead th:first-child { border-top-left-radius: 4px; }
+.scenarios thead th:last-child { border-top-right-radius: 4px; }
+
+.scenarios tbody td:first-child {
+  font-family: var(--display);
+  font-weight: 500;
+  color: var(--petrol);
+  font-variation-settings: "opsz" 36, "SOFT" 40;
+  font-size: 1rem;
+}
+
+.scenarios .phase-cell {
+  background: var(--sage);
+  color: var(--petrol-2) !important;
+  font-family: var(--mono) !important;
+  font-size: 0.65rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  vertical-align: middle !important;
+  white-space: nowrap;
+  border-right: 2px solid var(--petrol);
+}
+
+.scenarios .num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.scenarios .num-base { font-weight: 600; color: var(--petrol); }
+.scenarios .num-conservative { color: var(--muted); }
+.scenarios .num-ambitious { color: var(--amber); font-weight: 500; }
+
+.scenarios tbody tr:last-child td { border-bottom: none; }
+
+.scenarios .stratum-row td {
+  background: var(--paper-2);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  font-weight: 500;
+  padding: 0.4rem 0.85rem;
+  border-bottom: none;
+}
+
+/* ---------- Assumptions sidebar ---------- */
+
+.with-side {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 720px) {
+  .with-side {
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+  }
+}
+
+.side-panel {
+  background: var(--paper-2);
+  padding: 1.1rem 1.2rem;
+  border-left: 3px solid var(--petrol);
+  border-radius: 0 4px 4px 0;
+}
+
+.side-panel h4 {
+  margin-bottom: 0.7rem;
+}
+
+.side-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.side-panel ul li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.side-panel ul li:last-child { border-bottom: none; }
+
+.side-panel ul li strong {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--amber);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+/* ---------- Use of funds ---------- */
+
+.uof-grid {
+  display: grid;
+  gap: 0;
+  margin: 1rem 0 1.5rem;
+}
+
+.uof-row {
+  display: grid;
+  grid-template-columns: 5rem 1fr 6rem;
+  gap: 1rem;
+  align-items: baseline;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.uof-row.total-row {
+  border-top: 2px solid var(--petrol);
+  border-bottom: 2px solid var(--petrol);
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.uof-pct {
+  font-family: var(--display);
+  font-variation-settings: "opsz" 60, "SOFT" 30;
+  font-weight: 500;
+  font-size: 1.15rem;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+.uof-total .uof-pct { color: var(--petrol); }
+
+.uof-desc h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.15rem;
+}
+
+.uof-desc p {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.uof-amt {
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--petrol);
+  font-weight: 500;
+}
+
+.total-row .uof-pct,
+.total-row .uof-desc h3,
+.total-row .uof-amt {
+  font-weight: 600;
+}
+
+.total-row .uof-pct { color: var(--petrol); }
+
+/* ---------- Milestones ---------- */
+
+.milestones {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0;
+}
+
+.milestone-block {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+}
+
+.milestone-block:last-child { border-bottom: none; padding-bottom: 0; }
+
+@media (min-width: 720px) {
+  .milestone-block {
+    grid-template-columns: 8rem 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+}
+
+.milestone-label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--amber);
+  font-weight: 600;
+  padding-top: 0.3rem;
+}
+
+.milestone-label strong {
+  display: block;
+  font-family: var(--display);
+  font-variation-settings: "opsz" 60, "SOFT" 30;
+  font-size: 1.45rem;
+  letter-spacing: -0.02em;
+  color: var(--petrol);
+  font-weight: 500;
+  margin-bottom: 0.15rem;
+  text-transform: none;
+}
+
+.milestone-items {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.milestone-items > div {
+  display: grid;
+  grid-template-columns: 1rem 1fr;
+  gap: 0.6rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.milestone-items > div::before {
+  content: "›";
+  font-family: var(--display);
+  color: var(--amber);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+/* ---------- Demo script ---------- */
+
+.demo-timeline {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0;
+}
+
+.demo-segment {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.demo-segment:last-child { border-bottom: none; }
+
+@media (min-width: 720px) {
+  .demo-segment {
+    grid-template-columns: 6.5rem 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.demo-time {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--paper);
+  background: var(--petrol);
+  padding: 0.3rem 0.5rem;
+  border-radius: 3px;
+  text-align: center;
+  align-self: start;
+  display: inline-block;
+  width: fit-content;
+}
+
+.demo-body h3 {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: var(--petrol);
+  font-variation-settings: "opsz" 48, "SOFT" 40;
+}
+
+.demo-script {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--paper-2);
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--amber);
+  border-radius: 0 3px 3px 0;
+  margin: 0.5rem 0;
+  font-variation-settings: "opsz" 24, "SOFT" 60;
+}
+
+.demo-script::before {
+  content: "“";
+  font-size: 1.4rem;
+  color: var(--amber);
+  font-style: normal;
+  font-family: var(--display);
+  line-height: 0;
+  vertical-align: -0.15em;
+  margin-right: 0.1em;
+}
+
+.demo-script::after {
+  content: "”";
+  font-size: 1.4rem;
+  color: var(--amber);
+  font-style: normal;
+  font-family: var(--display);
+  line-height: 0;
+  vertical-align: -0.4em;
+  margin-left: 0.1em;
+}
+
+.demo-action {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--rust);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 0.5rem;
+}
+
+.demo-action::before {
+  content: "▸ ";
+  color: var(--rust);
+}
+
+.demo-contingency {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.4rem;
+  padding-left: 0.8rem;
+  border-left: 2px solid var(--rule-soft);
+}
+
+.demo-contingency strong {
+  color: var(--rust);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: inline-block;
+  margin-right: 0.4rem;
+}
+
+/* ---------- Pre-flight checklist ---------- */
+
+.preflight {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.preflight h4 {
+  margin-bottom: 0.7rem;
+}
+
+.preflight-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+}
+
+@media (min-width: 720px) {
+  .preflight-list { grid-template-columns: 1fr 1fr; gap: 0.5rem 2rem; }
+}
+
+.preflight-list > div {
+  display: grid;
+  grid-template-columns: 1.1rem 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+  padding: 0.3rem 0;
+}
+
+.preflight-list > div::before {
+  content: "[ ]";
+  font-family: var(--mono);
+  color: var(--petrol);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+/* ---------- Competitive landscape ---------- */
+
+.compare-table {
+  margin: 1rem 0;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.compare-table th {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  background: var(--petrol);
+  color: var(--paper);
+  padding: 0.75rem 0.7rem;
+  text-align: left;
+  vertical-align: bottom;
+  position: sticky;
+  top: 0;
+}
+
+.compare-table td {
+  padding: 0.65rem 0.7rem;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: middle;
+  text-align: center;
+}
+
+.compare-table td:first-child {
+  font-family: var(--display);
+  font-weight: 500;
+  color: var(--petrol);
+  font-variation-settings: "opsz" 36, "SOFT" 40;
+  font-size: 0.98rem;
+  text-align: left;
+}
+
+.compare-table tbody tr.our-row {
+  background: linear-gradient(90deg, rgba(199,129,31,0.08), rgba(199,129,31,0.03));
+}
+
+.compare-table tbody tr.our-row td:first-child {
+  color: var(--amber);
+  font-weight: 600;
+}
+
+.dot-yes {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.dot-partial {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--amber);
+  opacity: 0.6;
+}
+
+.dot-no {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid var(--rule);
+}
+
+.legend {
+  display: flex;
+  gap: 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin: 0.5rem 0 1rem;
+  flex-wrap: wrap;
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.diff-callout {
+  margin-top: 1.5rem;
+  padding: 1rem 1.2rem;
+  background: var(--paper-2);
+  border-left: 3px solid var(--amber);
+  border-radius: 0 4px 4px 0;
+}
+
+.diff-callout h4 {
+  margin-bottom: 0.5rem;
+}
+
+.diff-callout ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+}
+
+.diff-callout li {
+  margin-bottom: 0.3rem;
+}
+
+/* ---------- Misc ---------- */
+
+.note {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--rule-soft);
+  line-height: 1.5;
+}
+
+.note strong { color: var(--rust); font-weight: 600; }
+
+/* ---------- Print ---------- */
+
+@media print {
+  body { background: white; font-size: 10pt; }
+  .packet-toc { display: none; }
+  .page {
+    background: white;
+    margin: 0;
+    box-shadow: none;
+    page-break-after: always;
+    max-width: 100%;
+    border-radius: 0;
+    padding: 1rem 1.25rem;
+  }
+  .page:last-child { page-break-after: auto; }
+  h1 { font-size: 18pt; }
+  h2 { font-size: 12pt; }
+  h3 { font-size: 10pt; }
+  .lead { font-size: 11pt; }
+  .metric .value { font-size: 14pt; }
+  .uof-pct { font-size: 12pt; }
+  .milestone-label strong { font-size: 14pt; }
+  .demo-time { background: #333; color: white; }
+  .scenarios thead th, .compare-table th { background: #222; color: white; }
+  .compare-table tbody tr.our-row { background: #f4ebd9; }
+}
+</style>
+</head>
+<body>
+
+<nav class="packet-toc" aria-label="Pitch packet sections">
+  <div class="packet-toc-inner">
+    <span class="packet-toc-title">Pitch packet</span>
+    <a href="#financial"><span class="n">01</span>Financial sketch</a>
+    <a href="#funds"><span class="n">02</span>Use of funds</a>
+    <a href="#milestones"><span class="n">03</span>18-month milestones</a>
+    <a href="#demo"><span class="n">04</span>60-second demo</a>
+    <a href="#competition"><span class="n">05</span>Competitive landscape</a>
+    <a href="demo/demo-runner.html"><span class="n">06</span>Demo runner</a>
+  </div>
+</nav>
+
+<!-- ==================================================== -->
+<!-- 01 FINANCIAL SKETCH                                 -->
+<!-- ==================================================== -->
+<article class="page" id="financial">
+  <header class="page-head">
+    <div class="page-head-left">
+      <h4>01 — Financial sketch</h4>
+      <h1>Scenarios, not promises.</h1>
+    </div>
+    <div class="page-head-right">
+      <strong>For the meeting</strong>
+      Three numbers per phase<br>
+      Conservative · Base · Ambitious
+    </div>
+  </header>
+
+  <p class="lead">A four-phase, three-scenario view of revenue, gross margin, and active user count. These are stress-tested assumptions intended to anchor the conversation, not commitments to a five-year DCF. The base case is the negotiation target.</p>
+
+  <table class="scenarios">
+    <thead>
+      <tr>
+        <th style="width: 10%">Phase</th>
+        <th style="width: 22%">Period &amp; focus</th>
+        <th>Active users</th>
+        <th>ARR</th>
+        <th>Gross margin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="stratum-row"><td colspan="5">Conservative · Base · Ambitious</td></tr>
+      <tr>
+        <td class="phase-cell">Y1</td>
+        <td>B2C derm beachhead<br><span style="font-size:0.78rem;color:var(--muted)">3 program LOIs · 25% Pro mix</span></td>
+        <td><span class="num num-conservative">200</span> · <span class="num num-base">500</span> · <span class="num num-ambitious">1,000</span></td>
+        <td><span class="num num-conservative">$80K</span> · <span class="num num-base">$200K</span> · <span class="num num-ambitious">$455K</span></td>
+        <td><span class="num num-conservative">65%</span> · <span class="num num-base">70%</span> · <span class="num num-ambitious">70%</span></td>
+      </tr>
+      <tr>
+        <td class="phase-cell">Y2</td>
+        <td>Multi-specialty expansion<br><span style="font-size:0.78rem;color:var(--muted)">12+ programs · 30% Pro mix</span></td>
+        <td><span class="num num-conservative">800</span> · <span class="num num-base">2,500</span> · <span class="num num-ambitious">5,000</span></td>
+        <td><span class="num num-conservative">$330K</span> · <span class="num num-base">$1.0M</span> · <span class="num num-ambitious">$2.1M</span></td>
+        <td><span class="num num-conservative">70%</span> · <span class="num num-base">75%</span> · <span class="num num-ambitious">75%</span></td>
+      </tr>
+      <tr>
+        <td class="phase-cell">Y3</td>
+        <td>Institutional + KG API<br><span style="font-size:0.78rem;color:var(--muted)">5 specialties · 35% Pro mix</span></td>
+        <td><span class="num num-conservative">2,500</span> · <span class="num num-base">10,000</span> · <span class="num num-ambitious">25,000</span></td>
+        <td><span class="num num-conservative">$1.2M</span> · <span class="num num-base">$5.0M</span> · <span class="num num-ambitious">$12M</span></td>
+        <td><span class="num num-conservative">73%</span> · <span class="num num-base">78%</span> · <span class="num num-ambitious">78%</span></td>
+      </tr>
+      <tr>
+        <td class="phase-cell">Y4–5</td>
+        <td>International + adjacent verticals<br><span style="font-size:0.78rem;color:var(--muted)">Sketchy WL, nursing/PA · 40% Pro mix</span></td>
+        <td><span class="num num-conservative">6K</span> · <span class="num num-base">25K</span> · <span class="num num-ambitious">75K</span></td>
+        <td><span class="num num-conservative">$3M</span> · <span class="num num-base">$15M</span> · <span class="num num-ambitious">$40M</span></td>
+        <td><span class="num num-conservative">75%</span> · <span class="num num-base">80%</span> · <span class="num num-ambitious">80%</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="metrics-grid">
+    <div class="metric">
+      <div class="label">Y3 base ARR</div>
+      <div class="value">$5.0M</div>
+      <div class="sub">~78% GM · 10K users</div>
+    </div>
+    <div class="metric">
+      <div class="label">Y4–5 base ARR</div>
+      <div class="value">$15M</div>
+      <div class="sub">~80% GM · 25K users</div>
+    </div>
+    <div class="metric">
+      <div class="label">Y1 ARPU (B2C blended)</div>
+      <div class="value">$25/mo</div>
+      <div class="sub">Core $19 · Pro $44 · 25% Pro</div>
+    </div>
+    <div class="metric">
+      <div class="label">Y1 program license</div>
+      <div class="value">$15K</div>
+      <div class="sub">$5–25K range</div>
+    </div>
+  </div>
+
+  <div class="with-side">
+    <div>
+      <h4>Revenue composition (base case)</h4>
+      <p style="font-size:0.9rem">Y1 is &gt;80% B2C subscription revenue from derm residents and fellows, split between <strong>Core ($19/mo)</strong> for active board-prep users and <strong>Pro ($44/mo)</strong> for power users with mock exams, analytics, live tutor, and advanced simulation access. Pro mix starts at ~25% in Y1 and rises to ~40% by Y4–5 as power-user features mature and users upgrade closer to their board dates. Y2 layers in B2B2C program licenses (~17% of mix) as specialty expansion drives a step function in addressable users. Y3 is the inflection: institutional enterprise contracts (~12%), early knowledge-graph API revenue (~4%), and Sketchy-style content licensing (~3%) diversify the stack. By Y4–5, B2C is below 50% of revenue and the platform monetizes across consumer, B2B2C, institutional, and API channels.</p>
+
+      <h4 style="margin-top:1.25rem">Why the base case is the negotiation anchor</h4>
+      <p style="font-size:0.9rem">The Y3 base case ($5M ARR at 78% GM) maps to roughly the post-money valuation range a healthy Series A would support, anchoring the seed round in a return-justifying trajectory. The Y4–5 base case ($15M ARR) is the figure VCs will run their venture-multiple math against. The ambitious case is the upside scenario for term-sheet preference negotiations; the conservative case is the downside protection you can offer if pressed on revenue durability. Rising Pro mix (25→40%) is the lever that makes the same user-count trajectory produce higher ARR over time without raising headline price.</p>
+    </div>
+
+    <aside class="side-panel">
+      <h4>Key assumptions</h4>
+      <ul>
+        <li><strong>B2C Core</strong>$19/mo · core Q-bank, flashcards, cases, minigames</li>
+        <li><strong>B2C Pro</strong>$44/mo · mock exams, analytics, live tutor, advanced sim</li>
+        <li><strong>Pro mix</strong>25% Y1 → 40% Y5 (blended $25 → $29/mo)</li>
+        <li><strong>Program license</strong>$5K–25K/yr ($15K midpoint)</li>
+        <li><strong>Institutional</strong>$50K–500K/yr ($200K midpoint)</li>
+        <li><strong>COGS</strong>$5–15/user/mo (inference + storage + reviewer)</li>
+        <li><strong>US derm trainees</strong>~1,700/yr × 4 yrs = ~6,800 active</li>
+        <li><strong>Multi-specialty TAM</strong>~140K residents + ~140K students</li>
+        <li><strong>Initial CAC</strong>community + DermTwitter + AAD</li>
+        <li><strong>LTV / CAC</strong>target &gt;3× by Y2</li>
+      </ul>
+    </aside>
+  </div>
+
+  <div class="note"><strong>Important.</strong> Numbers reflect plausible base- and bracket-case execution given current platform state, the addressable market sizes documented in the assumptions panel, and comparable medical-edtech unit economics. Present these as scenarios with explicit assumption sensitivity; do not commit to point estimates beyond Y1 without further validation.</div>
+</article>
+
+<!-- ==================================================== -->
+<!-- 02 USE OF FUNDS                                     -->
+<!-- ==================================================== -->
+<article class="page" id="funds">
+  <header class="page-head">
+    <div class="page-head-left">
+      <h4>02 — Use of funds</h4>
+      <h1>$2.25M seed. 18 months. Specific milestones.</h1>
+    </div>
+    <div class="page-head-right">
+      <strong>Ask range</strong>
+      $1.5M – $3M<br>
+      Midpoint $2.25M
+    </div>
+  </header>
+
+  <p class="lead">A defensible breakdown for the midpoint of the seed ask. Every line item maps to a measurable outcome on the 18-month milestone plan. The two largest categories — engineering hiring and clinical reviewer compensation — are the unsexy investments that produce defensibility.</p>
+
+  <div class="uof-grid">
+
+    <div class="uof-row">
+      <div class="uof-pct">40%</div>
+      <div class="uof-desc">
+        <h3>Engineering hires (2–3 FTE × 18 months)</h3>
+        <p>Two senior engineers + one ML/clinical engineer. Includes salaries, benefits, equipment, and infrastructure. Directly unblocks specialty expansion and Sketchy-style pipeline scaling.</p>
+      </div>
+      <div class="uof-amt">$900K</div>
+    </div>
+
+    <div class="uof-row">
+      <div class="uof-pct">13%</div>
+      <div class="uof-desc">
+        <h3>Content / curation (Sketchy WL + KG expansion)</h3>
+        <p>Scaling the visual mnemonic library, expanding the knowledge graph to cover the first two additional specialties, building white-label infrastructure for content licensing.</p>
+      </div>
+      <div class="uof-amt">$300K</div>
+    </div>
+
+    <div class="uof-row">
+      <div class="uof-pct">11%</div>
+      <div class="uof-desc">
+        <h3>Specialty expansion (IM + 1 more)</h3>
+        <p>Subject matter expert contracting, content adaptation for two new specialties, integration testing, vertical-specific QA. Validates architecture portability.</p>
+      </div>
+      <div class="uof-amt">$250K</div>
+    </div>
+
+    <div class="uof-row">
+      <div class="uof-pct">11%</div>
+      <div class="uof-desc">
+        <h3>Go-to-market</h3>
+        <p>Program licensing sales motion (~one part-time BD hire), AAD/specialty conference presence, sample-content lead generation, design-partner agreements.</p>
+      </div>
+      <div class="uof-amt">$250K</div>
+    </div>
+
+    <div class="uof-row">
+      <div class="uof-pct">9%</div>
+      <div class="uof-desc">
+        <h3>Clinical reviewer compensation</h3>
+        <p>3–5 board-certified dermatologists at ~5 hrs/week × 18 months. The clinical quality bottleneck the AAD ask also identifies. Real recurring cost; foundational to defensibility.</p>
+      </div>
+      <div class="uof-amt">$200K</div>
+    </div>
+
+    <div class="uof-row">
+      <div class="uof-pct">7%</div>
+      <div class="uof-desc">
+        <h3>LLM / inference budget</h3>
+        <p>Production-scale question generation, Socratic AI tutor traffic, podcast and video script generation. Includes contingency for premium-model use on hard items.</p>
+      </div>
+      <div class="uof-amt">$150K</div>
+    </div>
+
+    <div class="uof-row">
+      <div class="uof-pct">5%</div>
+      <div class="uof-desc">
+        <h3>Validation studies</h3>
+        <p>IRB-approved psychometric pilot with cooperating residency programs measuring item difficulty, discrimination, calibration shifts, and learning gains. Generates the evidence base for institutional sales.</p>
+      </div>
+      <div class="uof-amt">$100K</div>
+    </div>
+
+    <div class="uof-row">
+      <div class="uof-pct">4%</div>
+      <div class="uof-desc">
+        <h3>Legal, IP, operations</h3>
+        <p>Delaware incorporation, IP protection (trademark, content licensing terms, knowledge graph protection), privacy/DUA agreements with partner institutions, standard ops infrastructure.</p>
+      </div>
+      <div class="uof-amt">$100K</div>
+    </div>
+
+    <div class="uof-row total-row">
+      <div class="uof-pct">100%</div>
+      <div class="uof-desc">
+        <h3>Total seed ask (midpoint)</h3>
+        <p>Tranchable across two milestones if the VC prefers staged release: $1.25M close, $1M second tranche on validated Y1 metrics.</p>
+      </div>
+      <div class="uof-amt">$2.25M</div>
+    </div>
+
+  </div>
+
+  <div class="note"><strong>How to position.</strong> Be ready for the VC to ask how the budget changes at $1.5M vs $3M. The answer: $1.5M cuts go-to-market to community-only, drops one engineering hire, deferring institutional sales to Series A. $3M accelerates the second specialty into Y1, doubles the validation study scope (adds an outcomes arm), and brings forward the KG API beta from Y2 to late Y1.</div>
+</article>
+
+<!-- ==================================================== -->
+<!-- 03 MILESTONES                                       -->
+<!-- ==================================================== -->
+<article class="page" id="milestones">
+  <header class="page-head">
+    <div class="page-head-left">
+      <h4>03 — 18-month milestones</h4>
+      <h1>Falsifiable, time-bound, defensible.</h1>
+    </div>
+    <div class="page-head-right">
+      <strong>The compact</strong>
+      Each milestone tied<br>
+      to a use-of-funds line
+    </div>
+  </header>
+
+  <p class="lead">Every quarter has both a hard metric and a strategic deliverable. The metric is what the VC will use to mark you to market at the next financing; the strategic deliverable is what the VC will use to decide whether to lead it. Both matter equally.</p>
+
+  <div class="milestones">
+
+    <div class="milestone-block">
+      <div class="milestone-label">
+        <strong>Q1</strong>
+        Months 0–3 · Foundation
+      </div>
+      <div class="milestone-items">
+        <div>Close seed financing; finalize cap table and option pool</div>
+        <div>Hire engineering team (2 FTE), formalize clinical advisory board of 3–5 board-certified dermatologists</div>
+        <div>Open paid B2C launch on dermie.io to derm residents; <strong>target: 200+ paid users</strong></div>
+        <div>Sign 3 residency program LOIs (Hopkins, Penn alumni, one Stanford-adjacent)</div>
+        <div>Post first preprint: dermie MCQ quality validation vs human-written items</div>
+      </div>
+    </div>
+
+    <div class="milestone-block">
+      <div class="milestone-label">
+        <strong>Q2</strong>
+        Months 4–6 · Early traction
+      </div>
+      <div class="milestone-items">
+        <div><strong>500 paid B2C users</strong>; first cohort retention metric &gt;70%</div>
+        <div>5 residency program licenses signed and live; first program-level usage data</div>
+        <div>Internal Medicine expansion shipped — proves architecture portability</div>
+        <div>Second preprint posted: cross-model open-weight benchmark on ABD items</div>
+        <div><strong>$200K+ ARR run rate</strong></div>
+      </div>
+    </div>
+
+    <div class="milestone-block">
+      <div class="milestone-label">
+        <strong>Q3</strong>
+        Months 7–9 · Multi-specialty
+      </div>
+      <div class="milestone-items">
+        <div>Pediatrics expansion shipped; total of 3 specialties live</div>
+        <div>1,000+ active paid users across specialties</div>
+        <div>10 residency program licenses; first multi-program enterprise contract LOI</div>
+        <div>First peer-reviewed publication accepted (target: JAAD Int)</div>
+        <div>Sketchy-style content library exceeds 500 generated assets</div>
+      </div>
+    </div>
+
+    <div class="milestone-block">
+      <div class="milestone-label">
+        <strong>Q4</strong>
+        Months 10–12 · Institutional pilots
+      </div>
+      <div class="milestone-items">
+        <div>1,500+ active paid users; 12 program licenses</div>
+        <div>2 medical school institutional pilots launched (Penn alumni network, BIDMC affiliate)</div>
+        <div>Validation study primary endpoint readout: psychometric properties of dermie items vs published board-prep benchmarks</div>
+        <div><strong>$700K+ ARR run rate</strong></div>
+        <div>Begin Series A conversations with warm intros from seed lead</div>
+      </div>
+    </div>
+
+    <div class="milestone-block">
+      <div class="milestone-label">
+        <strong>Q5</strong>
+        Months 13–15 · Platform consolidation
+      </div>
+      <div class="milestone-items">
+        <div>Radiology or first non-medical vertical pilot (depending on team capacity)</div>
+        <div>2,000+ paid users; 18+ program licenses; 3 institutional contracts</div>
+        <div>Knowledge graph API beta launched with 2 design partners (publisher + CDS company)</div>
+        <div>Sketchy-style white-label pilot signed with one specialty society</div>
+      </div>
+    </div>
+
+    <div class="milestone-block">
+      <div class="milestone-label">
+        <strong>Q6</strong>
+        Months 16–18 · Series A position
+      </div>
+      <div class="milestone-items">
+        <div>2,500+ paid users across 4 specialties; <strong>$1.5M+ ARR run rate</strong></div>
+        <div>20+ program licenses, 4+ institutional contracts, first international LOI</div>
+        <div>Knowledge graph API in production with first revenue</div>
+        <div>2nd peer-reviewed publication accepted (calibration / outcomes)</div>
+        <div>Series A term sheet target: $8–15M at $40–60M post-money</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note"><strong>Discipline.</strong> Communicate to the VC that this plan is reviewed and recommitted to quarterly with the board, and that any slip of more than one quarter on a hard metric triggers a written explanation, not a silent revision. VCs reward operators who treat their own plan with the seriousness they expect from a board member.</div>
+</article>
+
+<!-- ==================================================== -->
+<!-- 04 DEMO SCRIPT                                      -->
+<!-- ==================================================== -->
+<article class="page" id="demo">
+  <header class="page-head">
+    <div class="page-head-left">
+      <h4>04 — Sixty-second demo</h4>
+      <h1>Three demos. Ninety seconds. What gets remembered.</h1>
+    </div>
+    <div class="page-head-right">
+      <strong>Stage cue</strong>
+      Open dermie.io<br>
+      logged-in, fresh tab
+    </div>
+  </header>
+
+  <p class="lead">VCs see decks every day. They see working AI-native medical software with clinical content rarely. The three demos below show calibration, content quality, and substrate — in that order, with deliberate compression and built-in contingencies for what to say if something doesn't render.</p>
+
+  <div class="demo-timeline">
+
+    <div class="demo-segment">
+      <div class="demo-time">0:00–0:20</div>
+      <div class="demo-body">
+        <h3>Demo 1 · The adaptive quiz cycle</h3>
+        <div class="demo-action">Open dermie.io to a fresh quiz / dashboard</div>
+        <p class="demo-script">This is what a derm resident sees when they log in. The platform has already built a profile of their strengths and weaknesses across topics. As they answer, dermie captures both the answer and the confidence rating — and six weeks in, the platform knows not just what they don't know, but what they think they know that's wrong. That's the calibration we discussed.</p>
+        <div class="demo-contingency"><strong>If the dashboard doesn't load —</strong> describe the user profile concept verbally and pivot directly to a single adaptive question. Don't apologize. Confidence under live demo pressure reads as confidence in the product.</div>
+      </div>
+    </div>
+
+    <div class="demo-segment">
+      <div class="demo-time">0:20–0:40</div>
+      <div class="demo-body">
+        <h3>Demo 2 · The Sketchy-style mnemonic</h3>
+        <div class="demo-action">Navigate to the visual mnemonic page; ideally pre-loaded</div>
+        <p class="demo-script">Now let me show you something that doesn't exist anywhere else in the category. This is a visual mnemonic in the same creative density as the leading hand-illustrated competitor — generated by our pipeline. The difference is that they need an illustrator team to produce each one. We can produce a hundred in the time it took them to produce one, and we can target each generation to the specific gaps in each learner's profile.</p>
+        <div class="demo-contingency"><strong>If image gen is slow —</strong> show a pre-generated example from the library and verbally describe the live-generation workflow. The static example still makes the point. Do not name the competitor in writing or recorded audio.</div>
+      </div>
+    </div>
+
+    <div class="demo-segment">
+      <div class="demo-time">0:40–1:00</div>
+      <div class="demo-body">
+        <h3>Demo 3 · The knowledge graph substrate</h3>
+        <div class="demo-action">Open a question with grounded explanation, or a KG view if available</div>
+        <p class="demo-script">And here's the substrate. Every question we generate is grounded against this evidence-backed knowledge graph. When the platform tells a learner why an answer is correct, it's pulling from cited primary literature — not from the latent space of a frontier model. Static question banks can't do this. Bolt-on AI tools can't do this. This is what gets us defensible content quality at scale.</p>
+        <div class="demo-contingency"><strong>If KG visualization unavailable —</strong> open a question and walk through the citation pane on the explanation. The point is grounded explanation, not the graph view itself.</div>
+      </div>
+    </div>
+
+    <div class="demo-segment">
+      <div class="demo-time">1:00–1:10</div>
+      <div class="demo-body">
+        <h3>Close · Hand off to questions</h3>
+        <p class="demo-script">Three demos, ninety seconds. Working AI-native medical software in your inbox. Happy to go deeper into any of them.</p>
+        <div class="demo-contingency"><strong>Note.</strong> Don't add a fourth demo even if asked. Let them pick which one to dive into. The economy of the ninety-second package is itself a signal of how you think about execution discipline.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="preflight">
+    <h4>Pre-flight checklist · 30 minutes before</h4>
+    <div class="preflight-list">
+      <div>dermie.io open in two tabs (primary + backup)</div>
+      <div>Logged in with a fresh demo account, profile pre-warmed</div>
+      <div>Adaptive quiz fresh-loaded; no half-finished session</div>
+      <div>One Sketchy-style mnemonic pre-generated and tabbed</div>
+      <div>One question with full explanation/citations open</div>
+      <div>Wi-Fi tested; phone hotspot ready as failover</div>
+      <div>Browser zoom at 110%–125% for laptop demo readability</div>
+      <div>Notifications silenced; clean desktop background</div>
+      <div>Energy: coffee taken 30 min prior, not 5 min prior</div>
+      <div>Practiced the 90-second script out loud at least twice</div>
+    </div>
+  </div>
+
+  <div class="note"><strong>The discipline.</strong> The single most common failure mode in live VC demos is overrun. Each segment is twenty seconds. Set a silent timer on your phone if necessary. Stopping at sixty seconds when you could have spoken for ten minutes is the move that gets remembered as confidence in your own product.</div>
+</article>
+
+<!-- ==================================================== -->
+<!-- 05 COMPETITIVE LANDSCAPE                            -->
+<!-- ==================================================== -->
+<article class="page" id="competition">
+  <header class="page-head">
+    <div class="page-head-left">
+      <h4>05 — Competitive landscape</h4>
+      <h1>What we have that nobody else does.</h1>
+    </div>
+    <div class="page-head-right">
+      <strong>Quick-reference</strong>
+      6 competitors<br>
+      8 capabilities
+    </div>
+  </header>
+
+  <p class="lead">Use this as your mental cheat sheet. The investor will probably name UWorld or Amboss as the obvious comparison. The matrix below makes clear that the obvious comparison is also the wrong one — none of them have what dermie has, structurally.</p>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th style="width:13%">Platform</th>
+        <th style="width:9%">AI-native architecture</th>
+        <th style="width:9%">Multi-modal learning</th>
+        <th style="width:9%">Visual mnemonics</th>
+        <th style="width:9%">Knowledge graph grounding</th>
+        <th style="width:9%">Adaptive personalization</th>
+        <th style="width:9%">Confidence calibration</th>
+        <th style="width:9%">Skin-tone diversity (by design)</th>
+        <th style="width:12%">Specialty coverage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="our-row">
+        <td>dermie</td>
+        <td><span class="dot-yes" title="Yes"></span></td>
+        <td><span class="dot-yes"></span></td>
+        <td><span class="dot-yes"></span></td>
+        <td><span class="dot-yes"></span></td>
+        <td><span class="dot-yes"></span></td>
+        <td><span class="dot-yes"></span></td>
+        <td><span class="dot-yes"></span></td>
+        <td>Derm wedge → multi-specialty</td>
+      </tr>
+      <tr>
+        <td>UWorld</td>
+        <td><span class="dot-partial"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-partial"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td>Multi-specialty (USMLE-first)</td>
+      </tr>
+      <tr>
+        <td>Amboss</td>
+        <td><span class="dot-partial"></span></td>
+        <td><span class="dot-partial"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-partial"></span></td>
+        <td><span class="dot-partial"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td>Multi-specialty</td>
+      </tr>
+      <tr>
+        <td>Sketchy Medical</td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-yes"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td>USMLE / Step focus</td>
+      </tr>
+      <tr>
+        <td>Boards &amp; Beyond</td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td>USMLE / Step focus</td>
+      </tr>
+      <tr>
+        <td>Truelearn</td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-partial"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td>Specialty-focused (incl. derm)</td>
+      </tr>
+      <tr>
+        <td>Anki + community decks</td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-partial"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td><span class="dot-no"></span></td>
+        <td>All (decentralized)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="legend">
+    <span><span class="dot-yes"></span> Yes, by design</span>
+    <span><span class="dot-partial"></span> Partial / bolted on</span>
+    <span><span class="dot-no"></span> Not present</span>
+  </div>
+
+  <div class="diff-callout">
+    <h4>The differentiation in one sentence</h4>
+    <p style="font-size:0.95rem; margin: 0;">dermie is the only platform in the category that combines AI-native generation, multi-modal learning across a single unified learner profile, knowledge-graph-grounded content, confidence calibration, and skin-tone-inclusive imagery — with comparable visual mnemonic quality to the hand-illustrated category leader, at one-to-three orders of magnitude lower content production cost.</p>
+    <ul style="margin-top:0.8rem">
+      <li><strong>vs UWorld/Amboss:</strong> AI-native architecture, not a static bank with bolt-on features. Bolt-on AI is structurally inferior and they cannot retrofit without rebuilding.</li>
+      <li><strong>vs Sketchy:</strong> AI-generated visual mnemonics produce content at one-to-three orders of magnitude lower cost than hand-illustration, with targeting to learner gaps that static libraries cannot match.</li>
+      <li><strong>vs Boards &amp; Beyond / Truelearn:</strong> They are single-modality (video, Q-bank). dermie spans Q-bank, cases, flashcards, mock exams, tutor, podcasts, and <strong>eight clinical minigames</strong> — all feeding one unified learner profile. The minigames measure skills MCQs structurally cannot reach: morphology language, prioritization, treatment sequencing, history-taking strategy.</li>
+      <li><strong>vs Anki community decks:</strong> Quality-controlled, citation-grounded, board-aligned content. Anki is brilliant but unstructured; dermie is structured, evidence-backed learning.</li>
+    </ul>
+  </div>
+
+  <div class="note"><strong>How to use this in the room.</strong> If the VC says <em>"how is this different from UWorld?"</em>, do not run through the matrix verbally. Pick one capability that they will immediately understand — typically calibration or knowledge-graph grounding — and explain why that single capability is structurally unavailable to a static-bank competitor. Save the full matrix for the leave-behind packet.</div>
+</article>
+
+</body>
+</html>

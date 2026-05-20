@@ -71,7 +71,7 @@ Three significant pull requests were merged, completely transforming the applica
 **Changes Implemented:**
 - Complete rebranding from DERMIE to RAMIE
 - Modern design as default (index.html)
-- Original design archived (index-original.html)
+- Original design archived via git history (no longer deployed)
 - Updated site metadata and app listings
 - Production deployment configuration
 
@@ -131,13 +131,15 @@ Three significant pull requests were merged, completely transforming the applica
 ### File Organization
 ```
 /site/public/apps/dermatology-scribe/
-├── index.html              # Modern RAMIE (production)
-├── index-original.html     # Legacy version (archived)
-├── index-modern.html       # Modern source
-├── style-modern.css        # RAMIE styles
-├── ui-enhancements.js      # Enhancement features
-├── design-comparison.html  # Visual comparison tool
-└── script.js              # Core functionality
+├── index.html                # RAMIE (WS-backed entrypoint)
+├── app.js                    # Main app logic (externalized; no inline scripts)
+├── style-modern.css          # RAMIE styles
+├── style.css                 # Support styles (used by test/demo page)
+├── ui-enhancements.js        # Enhancement features (theme/accessibility)
+├── vendor/
+│   ├── docx.umd.js           # DOCX export support
+│   └── jspdf.umd.min.js      # PDF export support
+└── test-ui-enhancements.html # UI enhancements demo/test page
 ```
 
 ## Performance Metrics
@@ -204,13 +206,13 @@ Three significant pull requests were merged, completely transforming the applica
 
 ### Production URLs
 - **Main Application:** `/apps/dermatology-scribe/index.html`
-- **Legacy Version:** `/apps/dermatology-scribe/index-original.html`
-- **Design Comparison:** `/apps/dermatology-scribe/design-comparison.html`
+
+> Legacy mock/demo pages were removed from deployment to enforce the **no-simulation** requirement. Archived prototypes remain available via git history if needed for reference.
 
 ### GitHub Repository
 - **Repository:** ramiefathy/ramiefathy.github.io
 - **Branch:** master (production)
-- **CI/CD:** GitHub Actions + Netlify
+- **CI/CD:** GitHub Actions + Cloudflare Pages
 
 ### Recent Pull Requests
 1. **PR #36:** UI/UX Enhancements - [Merged]
@@ -258,18 +260,18 @@ Three significant pull requests were merged, completely transforming the applica
 
 ## Conclusion
 
-RAMIE has successfully evolved from a basic transcription tool to a comprehensive medical intelligence platform. The modern interface, extensive feature set, and professional polish position it as a valuable tool for dermatology professionals. The application is production-ready with a clear roadmap for future enhancements.
+RAMIE has evolved from a basic transcription tool to a comprehensive medical intelligence **research prototype**. The modern interface and expanded feature set support demo and research workflows, but the system is **not intended for clinical use** and should not be described as production-ready.
 
 ### Key Achievements
 1. **100% Feature Implementation** - All planned UI/UX enhancements completed
 2. **Modern Professional Design** - Dark navy theme with clinical aesthetic
 3. **Accessibility Compliance** - WCAG 2.1 AA standards met
 4. **Performance Optimized** - Sub-3 second load times achieved
-5. **Production Ready** - Successfully deployed and operational
+5. **Demo Ready** - Successfully deployed and operational for research/demo use
 
 ---
 
 **Document Version:** 1.0.0
-**Last Updated:** January 18, 2025
-**Next Review:** February 2025
+**Last Updated:** December 14, 2025
+**Next Review:** January 2026
 **Author:** RAMIE Development Team

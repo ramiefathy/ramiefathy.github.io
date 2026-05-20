@@ -1,5 +1,17 @@
 // UI Enhancements Module for AI Dermatology Scribe
 
+const safeParseJson = (rawValue, fallbackValue) => {
+  if (!rawValue) return fallbackValue
+  try {
+    return JSON.parse(rawValue)
+  } catch (error) {
+    console.warn('Failed to parse stored JSON payload, using fallback.', error)
+    return fallbackValue
+  }
+}
+
+const getUiMode = () => document.body?.dataset?.uiMode || 'active'
+
 // ========== Theme Manager ==========
 class ThemeManager {
   constructor() {
@@ -153,14 +165,27 @@ class FocusMode {
   createControls() {
     const controls = document.createElement('div');
     controls.className = 'focus-mode-controls';
-    controls.innerHTML = `
-      <button onclick="focusMode.exit()" aria-label="Exit focus mode">
-        <span class="material-symbols-outlined">close_fullscreen</span> Exit Focus
-      </button>
-      <button onclick="document.getElementById('saveButton').click()" aria-label="Save session">
-        <span class="material-symbols-outlined">save</span> Save
-      </button>
+    const exitButton = document.createElement('button');
+    exitButton.type = 'button';
+    exitButton.setAttribute('aria-label', 'Exit focus mode');
+    exitButton.innerHTML = `
+      <span class="material-symbols-outlined">close_fullscreen</span> Exit Focus
     `;
+    exitButton.addEventListener('click', () => this.exit());
+
+    const saveButton = document.createElement('button');
+    saveButton.type = 'button';
+    saveButton.setAttribute('aria-label', 'Save session');
+    saveButton.innerHTML = `
+      <span class="material-symbols-outlined">save</span> Save
+    `;
+    saveButton.addEventListener('click', () => {
+      // Prefer the header save button if present, otherwise fall back to the global save shortcut.
+      document.getElementById('saveSessionBtn')?.click();
+    });
+
+    controls.appendChild(exitButton);
+    controls.appendChild(saveButton);
     document.body.appendChild(controls);
   }
 
@@ -376,16 +401,16 @@ class QuickActionsBar {
 class CommandPalette {
   constructor() {
     this.commands = [
-      { text: 'Start Recording', action: 'startRecording', icon: '🎙️', shortcut: 'Alt+R' },
-      { text: 'Stop Recording', action: 'stopRecording', icon: '⏹️', shortcut: 'Alt+S' },
-      { text: 'View Notes', action: 'viewNotes', icon: '📝', shortcut: 'Alt+N' },
-      { text: 'View Transcription', action: 'viewTranscription', icon: '📋', shortcut: 'Alt+T' },
-      { text: 'Patient History', action: 'patientHistory', icon: '📚' },
-      { text: 'Add Diagnosis', action: 'addDiagnosis', icon: '🔍' },
-      { text: 'Order Labs', action: 'orderLabs', icon: '🧪' },
-      { text: 'Toggle Theme', action: 'toggleTheme', icon: '🎨' },
-      { text: 'Focus Mode', action: 'focusMode', icon: '🎯' },
-      { text: 'Help', action: 'showHelp', icon: '❓' }
+      { text: 'Start Recording', action: 'startRecording', icon: 'mic', shortcut: 'Alt+R' },
+      { text: 'Stop Recording', action: 'stopRecording', icon: 'stop', shortcut: 'Alt+S' },
+      { text: 'View Notes', action: 'viewNotes', icon: 'description', shortcut: 'Alt+N' },
+      { text: 'View Transcription', action: 'viewTranscription', icon: 'notes', shortcut: 'Alt+T' },
+      { text: 'Patient History', action: 'patientHistory', icon: 'history' },
+      { text: 'Add Diagnosis', action: 'addDiagnosis', icon: 'playlist_add' },
+      { text: 'Order Labs', action: 'orderLabs', icon: 'science' },
+      { text: 'Toggle Theme', action: 'toggleTheme', icon: 'dark_mode' },
+      { text: 'Focus Mode', action: 'focusMode', icon: 'center_focus_strong' },
+      { text: 'Help', action: 'showHelp', icon: 'help' }
     ];
 
     this.setupKeyboardShortcut();
@@ -469,7 +494,7 @@ class CommandPalette {
       <div class="command-suggestion ${index === 0 ? 'selected' : ''}"
            data-action="${cmd.action}"
            data-index="${index}">
-        <span class="icon">${cmd.icon}</span>
+        <span class="material-symbols-outlined icon">${cmd.icon}</span>
         <span class="text">${cmd.text}</span>
         ${cmd.shortcut ? `<span class="shortcut">${cmd.shortcut}</span>` : ''}
       </div>
@@ -763,14 +788,14 @@ class LayoutManager {
     };
 
     // Load custom layouts from localStorage
-    const customLayouts = JSON.parse(localStorage.getItem('dermascribe.customLayouts') || '{}');
+    const customLayouts = safeParseJson(localStorage.getItem('dermascribe.customLayouts'), {});
 
     return { ...defaultLayouts, ...customLayouts };
   }
 
   setupLayoutSwitcher() {
     // Add layout switcher to header
-    const header = document.querySelector('header .container');
+    const header = document.querySelector('.modern-header .header-content') || document.querySelector('header .container');
     if (header) {
       const switcher = document.createElement('select');
       switcher.className = 'layout-switcher';
@@ -825,7 +850,7 @@ class LayoutManager {
   }
 
   saveCustomLayout(name, configuration) {
-    const customLayouts = JSON.parse(localStorage.getItem('dermascribe.customLayouts') || '{}');
+    const customLayouts = safeParseJson(localStorage.getItem('dermascribe.customLayouts'), {});
     customLayouts[name] = { name, ...configuration };
     localStorage.setItem('dermascribe.customLayouts', JSON.stringify(customLayouts));
 
@@ -841,13 +866,20 @@ function initializeUIEnhancements() {
 
   console.log('Initializing UI Enhancements...');
 
+  const uiMode = getUiMode()
+  if (uiMode === 'landing') {
+    window.uiEnhancementsInitialized = true
+    console.log('UI Enhancements skipped for landing mode')
+    return
+  }
+
   // Initialize managers
   window.themeManager = new ThemeManager();
   window.quickActionsBar = new QuickActionsBar();
-  window.commandPalette = new CommandPalette();
   window.accessibilityManager = new AccessibilityManager();
   window.layoutManager = new LayoutManager();
   window.focusMode = new FocusMode();
+  window.commandPalette = new CommandPalette();
 
   // Mark as initialized
   window.uiEnhancementsInitialized = true;

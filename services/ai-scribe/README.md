@@ -14,11 +14,16 @@ python app.py
 By default the server listens on `ws://0.0.0.0:8765`.
 
 ### Authentication (JWT + legacy secret)
-- Preferred: send `Authorization: Bearer <jwt>` or `?token=<jwt>` where the JWT is signed with `SESSION_SECRET` using HS256.
-- Legacy clients may still send the raw `SESSION_SECRET` via `X-Auth-Token` or `?token=`. When accepted, the server replies in `connection_ack` with a short‑lived JWT (15 minutes). Clients should reconnect using that JWT for subsequent sessions.
+- Preferred: send a JWT signed with `JWT_SIGNING_SECRET` (HS256).
+- **Browser clients (recommended):** use the WebSocket subprotocol header because browsers don't allow custom headers:
+  - `Sec-WebSocket-Protocol: ramie-auth.<base64url(token)>`
+  - In JS: `new WebSocket(wsUrl, ["ramie-auth." + base64url(token)])`
+- **Non-browser clients:** may use `Authorization: Bearer <jwt>` or `X-Auth-Token: <token>`.
+- Legacy clients may still send the raw `SESSION_SECRET`. When accepted, the server replies in `connection_ack` with a short‑lived JWT (15 minutes). Clients should reconnect using that JWT for subsequent sessions.
+- `?token=` remains supported as a legacy fallback, but is discouraged because URLs are more likely to be logged or leaked.
 - Invalid or missing tokens close the socket with code `4008`.
 
-> **Tip:** generate a long random `SESSION_SECRET` for production deployments and update `ALLOWED_ORIGINS` to include trusted frontends (e.g., `https://ramiefathy.github.io`).
+> **Tip:** keep `JWT_SIGNING_SECRET` different from `SESSION_SECRET` so clients who know the shared secret cannot mint arbitrary JWTs.
 
 ## Configuration
 
@@ -29,6 +34,7 @@ By default the server listens on `ws://0.0.0.0:8765`.
 | `GEMINI_VISION_MODEL`  | Model used for multimodal image analysis                  |
 | `GEMINI_SUGGESTION_MODEL` | Model used for real-time suggestion prompts           |
 | `SESSION_SECRET`       | Shared secret required for websocket authentication       |
+| `JWT_SIGNING_SECRET`   | Secret used to sign/verify JWTs (HS256)                   |
 | `ALLOWED_ORIGINS`      | Comma-separated list of allowed `Origin` headers          |
 
 ## Deployment Notes

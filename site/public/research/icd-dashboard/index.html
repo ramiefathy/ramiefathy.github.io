@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ridiculous ICD-10-CM Codes Dashboard | California Hospital Discharge Data 2016-2024</title>
+  <link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F7F5F0;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #F0EDE6;
+      --bg-nav: #0B5351;
+      --border: #E2DED6;
+      --border-accent: #C9C4B8;
+      --text: #1A1A2E;
+      --text-dim: #4A5060;
+      --text-muted: #8E949C;
+      --primary: #0B5351;
+      --primary-light: #0E7370;
+      --accent: #D4A843;
+      --accent-light: #E0BC68;
+      --ed: #0077B6;
+      --ip: #D4A843;
+      --as: #2A9D8F;
+      --cat-animal: #0077B6;
+      --cat-bizarre: #E76F51;
+      --cat-transport: #E63946;
+      --cat-places: #2A9D8F;
+      --cat-social: #D4A843;
+      --positive: #2A9D8F;
+      --negative: #E63946;
+      --gap: 16px;
+      --radius-sm: 3px;
+      --radius: 6px;
+      --radius-lg: 12px;
+      --radius-full: 999px;
+      --shadow-1: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-2: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-3: 0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Commissioner', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; font-size: 13px; }
+    h1, h2, h3 { font-family: 'Fraunces', serif; }
+    h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+    h3 { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .header { background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: var(--radius); padding: 24px 28px; margin-bottom: var(--gap); box-shadow: var(--shadow-1); }
+    .header h1 { margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: var(--text-dim); margin-bottom: 14px; line-height: 1.5; }
+    .meta { display: flex; gap: 28px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+    .meta span b { color: var(--text); font-weight: 600; }
+    .filters { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: var(--gap); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; box-shadow: var(--shadow-1); }
+    .filter-group { display: flex; gap: 8px; align-items: center; }
+    .filter-group label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+    select, input[type="text"] { font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-card); color: var(--text); cursor: pointer; }
+    select:hover { background: var(--bg-card-hover); }
+    .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-card); border-radius: var(--radius) var(--radius) 0 0; margin-bottom: var(--gap); gap: 0; }
+    .tab-button { flex: 1; padding: 12px 16px; border: none; background: transparent; color: var(--text-dim); font-family: 'Commissioner', sans-serif; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: color 0.2s ease, background 0.2s ease; border-bottom: 2px solid transparent; }
+    .tab-button.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-button:hover:not(.active) { color: var(--text); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .kpi-bento { display: grid; grid-template-columns: 1fr 2fr; gap: var(--gap); margin-bottom: var(--gap); }
+    .kpi-hero { background: var(--primary); color: #fff; border-radius: var(--radius-lg); padding: 28px 32px; box-shadow: var(--shadow-2); }
+    .kpi-hero .label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.7); margin-bottom: 8px; }
+    .kpi-hero .value { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+    .kpi-hero .sub { font-size: 11px; color: rgba(255,255,255,0.6); }
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: auto auto; gap: var(--gap); }
+    .kpi { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow-1); transition: box-shadow 0.2s ease, background 0.2s ease; }
+    .kpi:hover { box-shadow: var(--shadow-2); background: var(--bg-card-hover); }
+    .kpi .label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 6px; }
+    .kpi .value { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .kpi .sub { font-size: 10px; color: var(--text-muted); }
+    .kpi .sub.pos { color: var(--positive); }
+    .chart-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gap); margin-bottom: var(--gap); }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow-1); transition: box-shadow 0.2s ease; }
+    .card:hover { box-shadow: var(--shadow-2); }
+    .card h3 { margin-bottom: 16px; color: var(--text); }
+    .chart-container { position: relative; height: 320px; width: 100%; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    thead { background: var(--bg); border-bottom: 1px solid var(--border); }
+    th { padding: 12px; text-align: left; font-family: 'Commissioner', sans-serif; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+    td { padding: 12px; border-bottom: 1px solid var(--border-accent); font-family: 'Commissioner', sans-serif; }
+    tbody tr:hover { background: var(--bg-card-hover); }
+    tbody tr.clickable-row { cursor: pointer; }
+    .code-col { font-weight: 600; color: var(--primary); }
+    .cat-badge { display: inline-block; padding: 4px 10px; border-radius: var(--radius-full); font-size: 10px; font-weight: 600; color: #fff; }
+    .cat-ANIMAL_ENCOUNTERS { background: var(--cat-animal); }
+    .cat-BIZARRE_MECHANISMS { background: var(--cat-bizarre); }
+    .cat-PLACES_ACTIVITIES { background: var(--cat-places); }
+    .cat-SOCIAL_LIFESTYLE { background: var(--cat-social); }
+    .cat-TRANSPORT_ABSURDITY { background: var(--cat-transport); }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: var(--radius); font-size: 10px; font-weight: 600; background: var(--primary); color: #fff; }
+    .pct-bar { position: relative; padding: 4px 8px; }
+    .pct-bar-fill { position: absolute; top: 0; left: 0; bottom: 0; opacity: 0.15; border-radius: var(--radius-sm); }
+    .covid-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); margin-bottom: var(--gap); }
+    select[multiple] { font-family: 'Commissioner', sans-serif; font-size: 12px; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius); }
+    .footer { text-align: center; padding: 24px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 40px; }
+    @media (max-width: 1024px) { .chart-row { grid-template-columns: 1fr; } .kpi-bento { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 768px) { .container { padding: 16px; } .kpi-grid { grid-template-columns: 1fr; } .meta { gap: 16px; } .filters { flex-direction: column; align-items: flex-start; } .filter-group { width: 100%; } table { font-size: 11px; } th, td { padding: 8px; } }
+    @media print { body { background: #fff; color: #000; } .card, .kpi { border: 1px solid #ddd; background: #fff; box-shadow: none; } .filters, .tabs { display: none; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Struck by Orca, Pecked by Chicken, Sucked into Jet Engine</h1>
+    <div class="subtitle">The Taxonomy of the Absurd: Ridiculous ICD-10-CM Codes in California Hospital Discharge Data, 2016–2024</div>
+    <div class="meta">
+      <span><b>4,228,137</b> total encounters</span>
+      <span><b>37</b> codes analyzed</span>
+      <span><b>9</b> years (2016–2024)</span>
+      <span><b>3</b> care settings (ED, IP, AS)</span>
+      <span>Source: California HCAI</span>
+    </div>
+  </div>
+  <div class="filters">
+    <div class="filter-group">
+      <label for="yearFilter">Filter by Year</label>
+      <select id="yearFilter">
+        <option value="">All Years</option>
+        <option value="2016">2016</option>
+        <option value="2017">2017</option>
+        <option value="2018">2018</option>
+        <option value="2019">2019</option>
+        <option value="2020">2020</option>
+        <option value="2021">2021</option>
+        <option value="2022">2022</option>
+        <option value="2023">2023</option>
+        <option value="2024">2024</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="categoryFilter">Filter by Category</label>
+      <select id="categoryFilter">
+        <option value="">All Categories</option>
+        <option value="ANIMAL_ENCOUNTERS">Animal Encounters</option>
+        <option value="BIZARRE_MECHANISMS">Bizarre Mechanisms</option>
+        <option value="PLACES_ACTIVITIES">Places & Activities</option>
+        <option value="SOCIAL_LIFESTYLE">Social & Lifestyle</option>
+        <option value="TRANSPORT_ABSURDITY">Transport Absurdity</option>
+      </select>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab-button active" data-tab="overview">Overview</button>
+    <button class="tab-button" data-tab="trends">Trends</button>
+    <button class="tab-button" data-tab="settings">Care Settings</button>
+    <button class="tab-button" data-tab="covid">COVID-19 Impact</button>
+    <button class="tab-button" data-tab="mortality">Mortality</button>
+    <button class="tab-button" data-tab="explorer">Code Explorer</button>
+  </div>
+
+  <!-- TAB 1: OVERVIEW -->
+  <div id="overview" class="tab-content active">
+    <div class="kpi-bento">
+      <div class="kpi-hero">
+        <div class="label">Total Encounters</div>
+        <div class="value" id="kpi-total"></div>
+        <div class="sub">All 37 codes across 9 years</div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="label">ED Encounters</div><div class="value" id="kpi-ed"></div><div class="sub" id="kpi-ed-pct"></div></div>
+        <div class="kpi"><div class="label">IP Admissions</div><div class="value" id="kpi-ip"></div><div class="sub" id="kpi-ip-pct"></div></div>
+        <div class="kpi"><div class="label">AS Encounters</div><div class="value" id="kpi-as"></div><div class="sub" id="kpi-as-pct"></div></div>
+        <div class="kpi"><div class="label">Rarest Code</div><div class="value" style="font-size:16px">W56.22</div><div class="sub">Struck by orca — 1 encounter</div></div>
+        <div class="kpi"><div class="label">Fastest Growing</div><div class="value" style="font-size:16px">W53.21</div><div class="sub pos">Squirrel bites +101%</div></div>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="card">
+        <h3>Annual Encounters by Care Setting</h3>
+        <div class="chart-container"><canvas id="annualSettingChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Distribution by Category (Excl. Dominant Codes)</h3>
+        <div class="chart-container"><canvas id="categoryDoughnut"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3 style="margin-bottom:0">Category Trends Over Time</h3>
+          <div class="filter-group">
+            <label for="scaleToggle">Scale</label>
+            <select id="scaleToggle">
+              <option value="all">All Codes</option>
+              <option value="excl">Excl. Dominant (W01, Z72.0)</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-container"><canvas id="catAreaChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Top 15 Codes by Total Encounters</h3>
+        <div class="chart-container" style="height:400px"><canvas id="top15Chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: TRENDS -->
+  <div id="trends" class="tab-content">
+    <div class="chart-row">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3 style="margin-bottom:0">Animal Encounter Trends</h3>
+          <div class="filter-group">
+            <label for="animalSelect">Select Codes</label>
+            <select id="animalSelect" multiple style="height:120px; min-width:200px;"></select>
+          </div>
+        </div>
+        <div class="chart-container"><canvas id="animalTrendsChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>The Squirrel Epidemic: W53.21 Bites Over Time</h3>
+        <div class="chart-container"><canvas id="squirrelChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Statistically Significant Trends (p &lt; 0.05)</h3>
+      <table id="trendsTable">
+        <thead><tr><th>Code</th><th>Description</th><th>Direction</th><th>% Change</th><th>Slope (cases/yr)</th><th>R²</th><th>P-Value</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 3: CARE SETTINGS -->
+  <div id="settings" class="tab-content">
+    <div class="card" style="margin-bottom:var(--gap)">
+      <h3>ED vs IP Distribution by Code</h3>
+      <div class="chart-container" style="height:600px"><canvas id="settingBarChart"></canvas></div>
+    </div>
+    <div class="chart-row">
+      <div class="card">
+        <h3>Sibling Rivalry (Z62.891) by Setting &amp; Year</h3>
+        <div class="chart-container"><canvas id="siblingChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Top IP-Predominant Codes (Setting Inversions)</h3>
+        <div class="chart-container"><canvas id="inversionsChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: COVID-19 IMPACT -->
+  <div id="covid" class="tab-content">
+    <div class="covid-kpi-row">
+      <div class="kpi"><div class="label">Pre-COVID Avg (2018-19)</div><div class="value" id="covid-pre"></div></div>
+      <div class="kpi"><div class="label">COVID Year 2020</div><div class="value" id="covid-2020"></div></div>
+      <div class="kpi"><div class="label">Biggest COVID Surge</div><div class="value" id="covid-surge" style="font-size:14px"></div></div>
+      <div class="kpi"><div class="label">Only Decline in 2020</div><div class="value" id="covid-decline" style="font-size:14px"></div></div>
+    </div>
+    <div class="chart-row">
+      <div class="card">
+        <h3>COVID-19 Impact: % Change from Pre-Pandemic</h3>
+        <div class="chart-container" style="height:500px"><canvas id="covidImpactChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Recovery: Post-COVID vs Pre-COVID</h3>
+        <div class="chart-container" style="height:500px"><canvas id="recoveryChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>COVID Impact Detail by Code</h3>
+      <table id="covidTable">
+        <thead><tr><th>Code</th><th>Description</th><th>Pre-COVID Avg</th><th>2020</th><th>Post-COVID Avg</th><th>Impact %</th><th>Recovery %</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 5: MORTALITY -->
+  <div id="mortality" class="tab-content">
+    <div class="chart-row">
+      <div class="card">
+        <h3>California Encounters vs US Deaths by Code Range</h3>
+        <div class="chart-container"><canvas id="mortalityChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Mortality Context</h3>
+        <table id="mortalityTable">
+          <thead><tr><th>Code Range</th><th>CA Encounters</th><th>US Deaths (2018-21)</th><th>Deaths per 1000 Encounters</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div style="margin-top:12px; font-size:11px; color:var(--text-muted);">
+          Note: Encounter and death data are from different populations (CA vs US) and time periods. Direct comparison should be interpreted cautiously.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 6: CODE EXPLORER -->
+  <div id="explorer" class="tab-content">
+    <div class="card" style="margin-bottom:var(--gap)">
+      <h3>Code Explorer</h3>
+      <div class="filters" style="background:transparent; border:none; padding:0; box-shadow:none; margin-bottom:16px;">
+        <div class="filter-group">
+          <label for="explorerCat">Category</label>
+          <select id="explorerCat">
+            <option value="">All Categories</option>
+            <option value="ANIMAL_ENCOUNTERS">Animal Encounters</option>
+            <option value="BIZARRE_MECHANISMS">Bizarre Mechanisms</option>
+            <option value="PLACES_ACTIVITIES">Places & Activities</option>
+            <option value="SOCIAL_LIFESTYLE">Social & Lifestyle</option>
+            <option value="TRANSPORT_ABSURDITY">Transport Absurdity</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="explorerSort">Sort by</label>
+          <select id="explorerSort">
+            <option value="total">Total (High→Low)</option>
+            <option value="totalAsc">Total (Low→High)</option>
+            <option value="code">Code (A→Z)</option>
+            <option value="ed">ED % (High→Low)</option>
+            <option value="ip">IP % (High→Low)</option>
+          </select>
+        </div>
+        <div class="filter-group" style="flex:1">
+          <label for="codeSearch">Search</label>
+          <input type="text" id="codeSearch" placeholder="Search by code or description..." style="width:100%">
+        </div>
+      </div>
+      <table id="explorerTable">
+        <thead>
+          <tr>
+            <th>Code</th><th>Description</th><th>Category</th>
+            <th>ED %</th><th>IP %</th><th>AS %</th>
+            <th>2016</th><th>2017</th><th>2018</th><th>2019</th><th>2020</th><th>2021</th><th>2022</th><th>2023</th><th>2024</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card" id="codeDetailCard" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 id="codeDetailTitle" style="margin-bottom:0">Code Detail</h3>
+        <div class="filter-group">
+          <label for="codeDetailSelect">Select Code</label>
+          <select id="codeDetailSelect"></select>
+        </div>
+      </div>
+      <div class="chart-row" style="margin-bottom:0">
+        <div><div class="chart-container"><canvas id="detailTrendChart"></canvas></div></div>
+        <div><div class="chart-container"><canvas id="detailSettingChart"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div style="margin-bottom: 8px;">© 2026 | Data: California HCAI Hospital Discharge Data 2016–2024 | Mortality: CDC NVSS 2018–2021</div>
+    <div style="font-size: 10px; color: var(--text-muted);">Dashboard rendered with Chart.js 4.4.0 | Design by Claude Code</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ============================================================================
+// CONSTANTS & DATA
+// ============================================================================
+
+const CAT_COLORS = {
+  'ANIMAL_ENCOUNTERS': '#0077B6',
+  'BIZARRE_MECHANISMS': '#E76F51',
+  'TRANSPORT_ABSURDITY': '#E63946',
+  'PLACES_ACTIVITIES': '#2A9D8F',
+  'SOCIAL_LIFESTYLE': '#D4A843'
+};
+
+const COLORS8 = [
+  '#0077B6',
+  '#D4A843',
+  '#2A9D8F',
+  '#E63946',
+  '#E76F51',
+  '#0E7370',
+  '#C1666B',
+  '#94B447'
+];
+
+Chart.defaults.color = '#4A5060';
+Chart.defaults.borderColor = '#E2DED6';
+Chart.defaults.font.family = "Commissioner, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.padding = 14;
+Chart.defaults.animation = false;
+
+const D = {"kpi":{"totalEncounters":4228137,"totalCodes":37,"nYears":9,"totalED":3578305,"totalIP":594642,"totalAS":55190,"edPct":84.6,"ipPct":14.1,"asPct":1.3},"years":[2016,2017,2018,2019,2020,2021,2022,2023,2024],"categories":["ANIMAL_ENCOUNTERS","BIZARRE_MECHANISMS","PLACES_ACTIVITIES","SOCIAL_LIFESTYLE","TRANSPORT_ABSURDITY"],"table1":[{"code":"W01","desc":"Fall on same level from slipping/tripping","cat":"BIZARRE_MECHANISMS","total":2879810,"ed":2504790,"ip":375020,"as_":0,"edPct":87.0,"ipPct":13.0,"asPct":0.0},{"code":"Z72.0","desc":"Tobacco use","cat":"SOCIAL_LIFESTYLE","total":1302495,"ed":1031109,"ip":216213,"as_":55173,"edPct":79.2,"ipPct":16.6,"asPct":4.2},{"code":"Y93.84","desc":"Activity, sleeping","cat":"PLACES_ACTIVITIES","total":25168,"ed":23514,"ip":1654,"as_":0,"edPct":93.4,"ipPct":6.6,"asPct":0.0},{"code":"W53.11","desc":"Bitten by rat","cat":"ANIMAL_ENCOUNTERS","total":5459,"ed":5279,"ip":180,"as_":0,"edPct":96.7,"ipPct":3.3,"asPct":0.0},{"code":"W53.21","desc":"Bitten by squirrel","cat":"ANIMAL_ENCOUNTERS","total":3877,"ed":3857,"ip":20,"as_":0,"edPct":99.5,"ipPct":0.5,"asPct":0.0},{"code":"R46.1","desc":"Bizarre personal appearance","cat":"SOCIAL_LIFESTYLE","total":2616,"ed":2471,"ip":143,"as_":2,"edPct":94.5,"ipPct":5.5,"asPct":0.1},{"code":"W22.02","desc":"Walked into lamppost","cat":"BIZARRE_MECHANISMS","total":1891,"ed":1861,"ip":30,"as_":0,"edPct":98.4,"ipPct":1.6,"asPct":0.0},{"code":"W53.01","desc":"Bitten by mouse","cat":"ANIMAL_ENCOUNTERS","total":1787,"ed":1774,"ip":13,"as_":0,"edPct":99.3,"ipPct":0.7,"asPct":0.0},{"code":"Z62.891","desc":"Sibling rivalry","cat":"SOCIAL_LIFESTYLE","total":997,"ed":130,"ip":867,"as_":0,"edPct":13.0,"ipPct":87.0,"asPct":0.0},{"code":"W55.29","desc":"Other contact with cow","cat":"ANIMAL_ENCOUNTERS","total":748,"ed":672,"ip":76,"as_":0,"edPct":89.8,"ipPct":10.2,"asPct":0.0},{"code":"W55.41","desc":"Bitten by pig","cat":"ANIMAL_ENCOUNTERS","total":609,"ed":585,"ip":24,"as_":0,"edPct":96.1,"ipPct":3.9,"asPct":0.0},{"code":"W61.01","desc":"Bitten by parrot","cat":"ANIMAL_ENCOUNTERS","total":559,"ed":538,"ip":21,"as_":0,"edPct":96.2,"ipPct":3.8,"asPct":0.0},{"code":"Z63.1","desc":"Problems with in-laws","cat":"SOCIAL_LIFESTYLE","total":406,"ed":149,"ip":242,"as_":15,"edPct":36.7,"ipPct":59.6,"asPct":3.7},{"code":"W61.33","desc":"Pecked by chicken","cat":"ANIMAL_ENCOUNTERS","total":306,"ed":295,"ip":11,"as_":0,"edPct":96.4,"ipPct":3.6,"asPct":0.0},{"code":"Y92.72","desc":"Chicken coop","cat":"PLACES_ACTIVITIES","total":306,"ed":279,"ip":27,"as_":0,"edPct":91.2,"ipPct":8.8,"asPct":0.0},{"code":"W61.32","desc":"Struck by chicken","cat":"ANIMAL_ENCOUNTERS","total":244,"ed":240,"ip":4,"as_":0,"edPct":98.4,"ipPct":1.6,"asPct":0.0},{"code":"Y93.85","desc":"Activity, exercise machines","cat":"PLACES_ACTIVITIES","total":160,"ed":150,"ip":10,"as_":0,"edPct":93.8,"ipPct":6.2,"asPct":0.0},{"code":"W59.21","desc":"Bitten by turtle","cat":"ANIMAL_ENCOUNTERS","total":156,"ed":153,"ip":3,"as_":0,"edPct":98.1,"ipPct":1.9,"asPct":0.0},{"code":"Y93.D1","desc":"Knitting and crocheting","cat":"PLACES_ACTIVITIES","total":128,"ed":126,"ip":2,"as_":0,"edPct":98.4,"ipPct":1.6,"asPct":0.0},{"code":"W56.41","desc":"Bitten by shark","cat":"ANIMAL_ENCOUNTERS","total":77,"ed":56,"ip":21,"as_":0,"edPct":72.7,"ipPct":27.3,"asPct":0.0},{"code":"W56.11","desc":"Bitten by sea lion","cat":"ANIMAL_ENCOUNTERS","total":71,"ed":66,"ip":5,"as_":0,"edPct":93.0,"ipPct":7.0,"asPct":0.0},{"code":"Y92.253","desc":"Opera house","cat":"PLACES_ACTIVITIES","total":52,"ed":32,"ip":20,"as_":0,"edPct":61.5,"ipPct":38.5,"asPct":0.0},{"code":"W55.21","desc":"Bitten by cow","cat":"ANIMAL_ENCOUNTERS","total":51,"ed":50,"ip":1,"as_":0,"edPct":98.0,"ipPct":2.0,"asPct":0.0},{"code":"W61.42","desc":"Struck by turkey","cat":"ANIMAL_ENCOUNTERS","total":32,"ed":29,"ip":3,"as_":0,"edPct":90.6,"ipPct":9.4,"asPct":0.0},{"code":"V97.33","desc":"Sucked into jet engine","cat":"BIZARRE_MECHANISMS","total":31,"ed":7,"ip":24,"as_":0,"edPct":22.6,"ipPct":77.4,"asPct":0.0},{"code":"W61.61","desc":"Bitten by duck","cat":"ANIMAL_ENCOUNTERS","total":23,"ed":22,"ip":1,"as_":0,"edPct":95.7,"ipPct":4.3,"asPct":0.0},{"code":"W61.43","desc":"Pecked by turkey","cat":"ANIMAL_ENCOUNTERS","total":15,"ed":15,"ip":0,"as_":0,"edPct":100.0,"ipPct":0.0,"asPct":0.0},{"code":"W16.221","desc":"Fall into bucket of water","cat":"BIZARRE_MECHANISMS","total":13,"ed":7,"ip":6,"as_":0,"edPct":53.8,"ipPct":46.2,"asPct":0.0},{"code":"W61.62","desc":"Struck by duck","cat":"ANIMAL_ENCOUNTERS","total":13,"ed":13,"ip":0,"as_":0,"edPct":100.0,"ipPct":0.0,"asPct":0.0},{"code":"V00.01","desc":"Pedestrian on foot injured in collision with roller-skater","cat":"BIZARRE_MECHANISMS","total":12,"ed":12,"ip":0,"as_":0,"edPct":100.0,"ipPct":0.0,"asPct":0.0},{"code":"Y92.146","desc":"Swimming pool of prison","cat":"PLACES_ACTIVITIES","total":10,"ed":10,"ip":0,"as_":0,"edPct":100.0,"ipPct":0.0,"asPct":0.0},{"code":"V95.4","desc":"Spacecraft accident","cat":"BIZARRE_MECHANISMS","total":5,"ed":5,"ip":0,"as_":0,"edPct":100.0,"ipPct":0.0,"asPct":0.0},{"code":"V91.07","desc":"Burn due to water-skis on fire","cat":"BIZARRE_MECHANISMS","total":3,"ed":3,"ip":0,"as_":0,"edPct":100.0,"ipPct":0.0,"asPct":0.0},{"code":"W59.22","desc":"Struck by turtle","cat":"ANIMAL_ENCOUNTERS","total":2,"ed":2,"ip":0,"as_":0,"edPct":100.0,"ipPct":0.0,"asPct":0.0},{"code":"W56.02","desc":"Struck by dolphin","cat":"ANIMAL_ENCOUNTERS","total":2,"ed":2,"ip":0,"as_":0,"edPct":100.0,"ipPct":0.0,"asPct":0.0},{"code":"W61.12","desc":"Struck by macaw","cat":"ANIMAL_ENCOUNTERS","total":2,"ed":2,"ip":0,"as_":0,"edPct":100.0,"ipPct":0.0,"asPct":0.0},{"code":"W56.22","desc":"Struck by orca","cat":"ANIMAL_ENCOUNTERS","total":1,"ed":0,"ip":1,"as_":0,"edPct":0.0,"ipPct":100.0,"asPct":0.0}],"annualSetting":[{"year":2016,"ED":522305,"IP":74615,"AS":12355},{"year":2017,"ED":504320,"IP":72365,"AS":8565},{"year":2018,"ED":461271,"IP":72583,"AS":7763},{"year":2019,"ED":398333,"IP":72176,"AS":6864},{"year":2020,"ED":304436,"IP":59680,"AS":4444},{"year":2021,"ED":333102,"IP":58413,"AS":4009},{"year":2022,"ED":346427,"IP":58089,"AS":3825},{"year":2023,"ED":350224,"IP":61133,"AS":3724},{"year":2024,"ED":357887,"IP":65588,"AS":3641}],"annualByCat":[{"year":2016,"ANIMAL_ENCOUNTERS":1383,"BIZARRE_MECHANISMS":294704,"PLACES_ACTIVITIES":3161,"SOCIAL_LIFESTYLE":310027,"TRANSPORT_ABSURDITY":0},{"year":2017,"ANIMAL_ENCOUNTERS":1492,"BIZARRE_MECHANISMS":321088,"PLACES_ACTIVITIES":3209,"SOCIAL_LIFESTYLE":259461,"TRANSPORT_ABSURDITY":0},{"year":2018,"ANIMAL_ENCOUNTERS":1615,"BIZARRE_MECHANISMS":334105,"PLACES_ACTIVITIES":3315,"SOCIAL_LIFESTYLE":202582,"TRANSPORT_ABSURDITY":0},{"year":2019,"ANIMAL_ENCOUNTERS":1597,"BIZARRE_MECHANISMS":340529,"PLACES_ACTIVITIES":3093,"SOCIAL_LIFESTYLE":132154,"TRANSPORT_ABSURDITY":0},{"year":2020,"ANIMAL_ENCOUNTERS":1232,"BIZARRE_MECHANISMS":257559,"PLACES_ACTIVITIES":2448,"SOCIAL_LIFESTYLE":107321,"TRANSPORT_ABSURDITY":0},{"year":2021,"ANIMAL_ENCOUNTERS":1399,"BIZARRE_MECHANISMS":296826,"PLACES_ACTIVITIES":2584,"SOCIAL_LIFESTYLE":94715,"TRANSPORT_ABSURDITY":0},{"year":2022,"ANIMAL_ENCOUNTERS":1554,"BIZARRE_MECHANISMS":330942,"PLACES_ACTIVITIES":2817,"SOCIAL_LIFESTYLE":73028,"TRANSPORT_ABSURDITY":0},{"year":2023,"ANIMAL_ENCOUNTERS":1784,"BIZARRE_MECHANISMS":349857,"PLACES_ACTIVITIES":2776,"SOCIAL_LIFESTYLE":60661,"TRANSPORT_ABSURDITY":3},{"year":2024,"ANIMAL_ENCOUNTERS":1978,"BIZARRE_MECHANISMS":356164,"PLACES_ACTIVITIES":2421,"SOCIAL_LIFESTYLE":66534,"TRANSPORT_ABSURDITY":19}],"codeTrends":{"W53.21":{"desc":"Bitten by squirrel","cat":"ANIMAL_ENCOUNTERS","values":[322,283,371,389,299,429,480,654,650],"dominant":false},"W55.41":{"desc":"Bitten by pig","cat":"ANIMAL_ENCOUNTERS","values":[52,53,74,75,67,68,80,77,63],"dominant":false},"W55.21":{"desc":"Bitten by cow","cat":"ANIMAL_ENCOUNTERS","values":[7,2,3,10,7,5,6,5,6],"dominant":false},"W55.29":{"desc":"Other contact with cow","cat":"ANIMAL_ENCOUNTERS","values":[109,103,121,101,60,84,90,32,48],"dominant":false},"W61.01":{"desc":"Bitten by parrot","cat":"ANIMAL_ENCOUNTERS","values":[82,83,71,71,43,50,57,57,45],"dominant":false},"W61.12":{"desc":"Struck by macaw","cat":"ANIMAL_ENCOUNTERS","values":[0,0,0,0,1,0,0,0,1],"dominant":false},"W61.33":{"desc":"Pecked by chicken","cat":"ANIMAL_ENCOUNTERS","values":[18,26,28,40,37,29,45,42,41],"dominant":false},"W61.32":{"desc":"Struck by chicken","cat":"ANIMAL_ENCOUNTERS","values":[23,20,19,24,25,25,22,43,43],"dominant":false},"W61.42":{"desc":"Struck by turkey","cat":"ANIMAL_ENCOUNTERS","values":[6,2,2,1,6,4,3,3,5],"dominant":false},"W61.43":{"desc":"Pecked by turkey","cat":"ANIMAL_ENCOUNTERS","values":[0,1,3,0,5,2,0,3,1],"dominant":false},"W61.61":{"desc":"Bitten by duck","cat":"ANIMAL_ENCOUNTERS","values":[1,2,5,4,0,2,2,3,4],"dominant":false},"W61.62":{"desc":"Struck by duck","cat":"ANIMAL_ENCOUNTERS","values":[0,2,1,1,2,2,1,3,1],"dominant":false},"W56.02":{"desc":"Struck by dolphin","cat":"ANIMAL_ENCOUNTERS","values":[1,0,0,0,0,0,0,0,1],"dominant":false},"W56.11":{"desc":"Bitten by sea lion","cat":"ANIMAL_ENCOUNTERS","values":[4,15,10,12,6,2,7,8,7],"dominant":false},"W56.22":{"desc":"Struck by orca","cat":"ANIMAL_ENCOUNTERS","values":[0,0,0,1,0,0,0,0,0],"dominant":false},"W56.41":{"desc":"Bitten by shark","cat":"ANIMAL_ENCOUNTERS","values":[9,13,8,8,6,10,11,6,6],"dominant":false},"W59.21":{"desc":"Bitten by turtle","cat":"ANIMAL_ENCOUNTERS","values":[13,16,21,18,12,23,12,24,17],"dominant":false},"W59.22":{"desc":"Struck by turtle","cat":"ANIMAL_ENCOUNTERS","values":[0,0,0,0,1,0,0,1,0],"dominant":false},"W53.01":{"desc":"Bitten by mouse","cat":"ANIMAL_ENCOUNTERS","values":[208,267,195,191,156,132,161,178,299],"dominant":false},"W53.11":{"desc":"Bitten by rat","cat":"ANIMAL_ENCOUNTERS","values":[528,604,683,651,499,532,577,645,740],"dominant":false},"V97.33":{"desc":"Sucked into jet engine","cat":"BIZARRE_MECHANISMS","values":[0,1,0,2,0,0,2,4,22],"dominant":false},"V91.07":{"desc":"Burn due to water-skis on fire","cat":"BIZARRE_MECHANISMS","values":[1,0,0,0,0,0,0,1,1],"dominant":false},"W22.02":{"desc":"Walked into lamppost","cat":"BIZARRE_MECHANISMS","values":[326,310,227,230,118,143,182,181,174],"dominant":false},"W01":{"desc":"Fall on same level from slipping/tripping","cat":"BIZARRE_MECHANISMS","values":[294373,320774,333872,340296,257437,296679,330754,349659,355966],"dominant":true},"W16.221":{"desc":"Fall into bucket of water","cat":"BIZARRE_MECHANISMS","values":[1,2,2,1,3,2,0,0,2],"dominant":false},"V95.4":{"desc":"Spacecraft accident","cat":"BIZARRE_MECHANISMS","values":[0,0,1,0,1,0,2,0,1],"dominant":false},"V00.01":{"desc":"Pedestrian on foot injured in collision with roller-skater","cat":"BIZARRE_MECHANISMS","values":[3,1,3,0,0,2,2,0,1],"dominant":false},"Y92.253":{"desc":"Opera house","cat":"PLACES_ACTIVITIES","values":[4,5,7,8,4,1,6,7,10],"dominant":false},"Y92.72":{"desc":"Chicken coop","cat":"PLACES_ACTIVITIES","values":[32,38,49,21,32,28,33,34,39],"dominant":false},"Y92.146":{"desc":"Swimming pool of prison","cat":"PLACES_ACTIVITIES","values":[1,1,2,1,5,0,0,0,0],"dominant":false},"Y93.D1":{"desc":"Knitting and crocheting","cat":"PLACES_ACTIVITIES","values":[25,25,15,12,8,6,16,8,13],"dominant":false},"Y93.84":{"desc":"Activity, sleeping","cat":"PLACES_ACTIVITIES","values":[3093,3119,3223,3033,2382,2530,2743,2713,2332],"dominant":false},"Y93.85":{"desc":"Activity, exercise machines","cat":"PLACES_ACTIVITIES","values":[6,21,19,18,17,19,19,14,27],"dominant":false},"Z63.1":{"desc":"Problems with in-laws","cat":"SOCIAL_LIFESTYLE","values":[35,28,27,36,48,48,54,60,70],"dominant":false},"Z62.891":{"desc":"Sibling rivalry","cat":"SOCIAL_LIFESTYLE","values":[117,80,75,126,118,144,87,115,135],"dominant":false},"R46.1":{"desc":"Bizarre personal appearance","cat":"SOCIAL_LIFESTYLE","values":[215,277,292,360,344,288,300,312,228],"dominant":false},"Z72.0":{"desc":"Tobacco use","cat":"SOCIAL_LIFESTYLE","values":[309660,259076,202188,131632,106811,94235,72587,60189,66117],"dominant":true}},"trendStats":[{"code":"W53.01","desc":"Bitten by mouse","first":208,"last":297,"pctChange":42.8,"slope":-0.7,"r2":0.001,"pval":0.9273,"sig":false},{"code":"W53.11","desc":"Bitten by rat","first":513,"last":714,"pctChange":39.2,"slope":9.07,"r2":0.104,"pval":0.3968,"sig":false},{"code":"W53.21","desc":"Bitten by squirrel","first":322,"last":646,"pctChange":100.6,"slope":44.45,"r2":0.764,"pval":0.002,"sig":true},{"code":"W55.21","desc":"Bitten by cow","first":7,"last":6,"pctChange":-14.3,"slope":0.13,"r2":0.021,"pval":0.7083,"sig":false},{"code":"W55.29","desc":"Other contact with cow","first":100,"last":42,"pctChange":-58.0,"slope":-8.37,"r2":0.695,"pval":0.0053,"sig":true},{"code":"W55.41","desc":"Bitten by pig","first":49,"last":61,"pctChange":24.5,"slope":2.15,"r2":0.317,"pval":0.1142,"sig":false},{"code":"W56.11","desc":"Bitten by sea lion","first":4,"last":7,"pctChange":75.0,"slope":-0.25,"r2":0.037,"pval":0.6176,"sig":false},{"code":"W56.41","desc":"Bitten by shark","first":6,"last":5,"pctChange":-16.7,"slope":-0.23,"r2":0.139,"pval":0.3237,"sig":false},{"code":"W59.21","desc":"Bitten by turtle","first":13,"last":17,"pctChange":30.8,"slope":0.48,"r2":0.075,"pval":0.4747,"sig":false},{"code":"W61.01","desc":"Bitten by parrot","first":80,"last":45,"pctChange":-43.8,"slope":-4.45,"r2":0.654,"pval":0.0083,"sig":true},{"code":"W61.32","desc":"Struck by chicken","first":22,"last":43,"pctChange":95.5,"slope":2.68,"r2":0.595,"pval":0.0149,"sig":true},{"code":"W61.33","desc":"Pecked by chicken","first":18,"last":41,"pctChange":127.8,"slope":2.72,"r2":0.722,"pval":0.0037,"sig":true},{"code":"W61.42","desc":"Struck by turkey","first":6,"last":5,"pctChange":-16.7,"slope":0.12,"r2":0.023,"pval":0.6971,"sig":false},{"code":"W61.43","desc":"Pecked by turkey","first":0,"last":1,"pctChange":0.0,"slope":-0.04,"r2":0.005,"pval":0.8918,"sig":false},{"code":"W61.61","desc":"Bitten by duck","first":1,"last":4,"pctChange":300.0,"slope":0.17,"r2":0.108,"pval":0.4278,"sig":false},{"code":"W61.62","desc":"Struck by duck","first":0,"last":1,"pctChange":0.0,"slope":0.04,"r2":0.014,"pval":0.7816,"sig":false}],"covidData":[{"code":"W01","desc":"Fall on same level from slipping/tripping","preCovid":8534.0,"covid2020":257437,"postCovid":8502.0,"impactPct":2916.7,"recoveryPct":-0.4},{"code":"W61.42","desc":"Struck by turkey","preCovid":1.0,"covid2020":6,"postCovid":4.0,"impactPct":500.0,"recoveryPct":300.0},{"code":"W61.33","desc":"Pecked by chicken","preCovid":10.0,"covid2020":37,"postCovid":28.0,"impactPct":280.9,"recoveryPct":184.8},{"code":"W61.32","desc":"Struck by chicken","preCovid":7.0,"covid2020":25,"postCovid":22.0,"impactPct":248.8,"recoveryPct":200.0},{"code":"W53.11","desc":"Bitten by rat","preCovid":148.0,"covid2020":499,"postCovid":198.0,"impactPct":236.7,"recoveryPct":33.5},{"code":"Y92.146","desc":"Swimming pool of prison","preCovid":2.0,"covid2020":5,"postCovid":0.0,"impactPct":233.3,"recoveryPct":-100.0},{"code":"Z63.1","desc":"Problems with in-laws","preCovid":16.0,"covid2020":48,"postCovid":22.0,"impactPct":204.8,"recoveryPct":37.6},{"code":"W55.41","desc":"Bitten by pig","preCovid":25.0,"covid2020":67,"postCovid":23.0,"impactPct":169.8,"recoveryPct":-6.0},{"code":"W53.01","desc":"Bitten by mouse","preCovid":64.0,"covid2020":156,"postCovid":80.0,"impactPct":142.5,"recoveryPct":23.6},{"code":"W53.21","desc":"Bitten by squirrel","preCovid":127.0,"covid2020":299,"postCovid":186.0,"impactPct":136.1,"recoveryPct":47.1},{"code":"Z62.891","desc":"Sibling rivalry","preCovid":50.0,"covid2020":118,"postCovid":62.0,"impactPct":134.8,"recoveryPct":24.4},{"code":"R46.1","desc":"Bizarre personal appearance","preCovid":163.0,"covid2020":344,"postCovid":135.0,"impactPct":111.0,"recoveryPct":-17.2},{"code":"W16.221","desc":"Fall into bucket of water","preCovid":2.0,"covid2020":3,"postCovid":2.0,"impactPct":100.0,"recoveryPct":33.3},{"code":"W61.62","desc":"Struck by duck","preCovid":1.0,"covid2020":2,"postCovid":2.0,"impactPct":100.0,"recoveryPct":100.0},{"code":"Z72.0","desc":"Tobacco use","preCovid":55637.0,"covid2020":106811,"postCovid":21051.0,"impactPct":92.0,"recoveryPct":-62.2},{"code":"W56.41","desc":"Bitten by shark","preCovid":3.0,"covid2020":6,"postCovid":2.0,"impactPct":87.5,"recoveryPct":-25.0},{"code":"Y93.85","desc":"Activity, exercise machines","preCovid":9.0,"covid2020":17,"postCovid":10.0,"impactPct":83.8,"recoveryPct":10.8},{"code":"W61.01","desc":"Bitten by parrot","preCovid":24.0,"covid2020":43,"postCovid":34.0,"impactPct":81.7,"recoveryPct":43.7},{"code":"W61.43","desc":"Pecked by turkey","preCovid":3.0,"covid2020":5,"postCovid":2.0,"impactPct":66.7,"recoveryPct":-33.3},{"code":"W55.29","desc":"Other contact with cow","preCovid":37.0,"covid2020":60,"postCovid":13.0,"impactPct":62.2,"recoveryPct":-64.0},{"code":"W55.21","desc":"Bitten by cow","preCovid":4.0,"covid2020":7,"postCovid":4.0,"impactPct":61.5,"recoveryPct":-15.4},{"code":"W22.02","desc":"Walked into lamppost","preCovid":76.0,"covid2020":118,"postCovid":59.0,"impactPct":54.9,"recoveryPct":-22.3},{"code":"Y93.84","desc":"Activity, sleeping","preCovid":1564.0,"covid2020":2382,"postCovid":1261.0,"impactPct":52.3,"recoveryPct":-19.4},{"code":"Y92.72","desc":"Chicken coop","preCovid":23.0,"covid2020":32,"postCovid":18.0,"impactPct":37.1,"recoveryPct":-21.8},{"code":"W56.11","desc":"Bitten by sea lion","preCovid":4.0,"covid2020":6,"postCovid":5.0,"impactPct":36.4,"recoveryPct":13.6},{"code":"Y92.253","desc":"Opera house","preCovid":4.0,"covid2020":4,"postCovid":4.0,"impactPct":6.7,"recoveryPct":13.3},{"code":"V95.4","desc":"Spacecraft accident","preCovid":1.0,"covid2020":1,"postCovid":1.0,"impactPct":0.0,"recoveryPct":0.0},{"code":"W59.21","desc":"Bitten by turtle","preCovid":13.0,"covid2020":12,"postCovid":20.0,"impactPct":-7.7,"recoveryPct":57.7},{"code":"Y93.D1","desc":"Knitting and crocheting","preCovid":14.0,"covid2020":8,"postCovid":7.0,"impactPct":-40.7,"recoveryPct":-48.1}],"settingByCode":[{"code":"W56.22","desc":"Struck by orca","edPct":0.0,"ipPct":100.0,"asPct":0.0,"total":1},{"code":"Z62.891","desc":"Sibling rivalry","edPct":13.0,"ipPct":87.0,"asPct":0.0,"total":997},{"code":"V97.33","desc":"Sucked into jet engine","edPct":22.6,"ipPct":77.4,"asPct":0.0,"total":31},{"code":"Z63.1","desc":"Problems with in-laws","edPct":36.7,"ipPct":59.6,"asPct":3.7,"total":406},{"code":"W16.221","desc":"Fall into bucket of water","edPct":53.8,"ipPct":46.2,"asPct":0.0,"total":13},{"code":"Y92.253","desc":"Opera house","edPct":61.5,"ipPct":38.5,"asPct":0.0,"total":52},{"code":"W56.41","desc":"Bitten by shark","edPct":72.7,"ipPct":27.3,"asPct":0.0,"total":77},{"code":"W55.29","desc":"Other contact with cow","edPct":89.8,"ipPct":10.2,"asPct":0.0,"total":748},{"code":"W61.42","desc":"Struck by turkey","edPct":90.6,"ipPct":9.4,"asPct":0.0,"total":32},{"code":"Y92.72","desc":"Chicken coop","edPct":91.2,"ipPct":8.8,"asPct":0.0,"total":306},{"code":"W56.11","desc":"Bitten by sea lion","edPct":93.0,"ipPct":7.0,"asPct":0.0,"total":71},{"code":"Y93.84","desc":"Activity, sleeping","edPct":93.4,"ipPct":6.6,"asPct":0.0,"total":25168},{"code":"Y93.85","desc":"Activity, exercise machines","edPct":93.8,"ipPct":6.2,"asPct":0.0,"total":160},{"code":"R46.1","desc":"Bizarre personal appearance","edPct":94.5,"ipPct":5.5,"asPct":0.1,"total":2616},{"code":"W61.61","desc":"Bitten by duck","edPct":95.7,"ipPct":4.3,"asPct":0.0,"total":23},{"code":"W55.41","desc":"Bitten by pig","edPct":96.1,"ipPct":3.9,"asPct":0.0,"total":609},{"code":"W61.01","desc":"Bitten by parrot","edPct":96.2,"ipPct":3.8,"asPct":0.0,"total":559},{"code":"W61.33","desc":"Pecked by chicken","edPct":96.4,"ipPct":3.6,"asPct":0.0,"total":306},{"code":"W53.11","desc":"Bitten by rat","edPct":96.7,"ipPct":3.3,"asPct":0.0,"total":5459},{"code":"W55.21","desc":"Bitten by cow","edPct":98.0,"ipPct":2.0,"asPct":0.0,"total":51},{"code":"W59.21","desc":"Bitten by turtle","edPct":98.1,"ipPct":1.9,"asPct":0.0,"total":156},{"code":"W22.02","desc":"Walked into lamppost","edPct":98.4,"ipPct":1.6,"asPct":0.0,"total":1891},{"code":"W61.32","desc":"Struck by chicken","edPct":98.4,"ipPct":1.6,"asPct":0.0,"total":244},{"code":"Y93.D1","desc":"Knitting and crocheting","edPct":98.4,"ipPct":1.6,"asPct":0.0,"total":128},{"code":"W53.01","desc":"Bitten by mouse","edPct":99.3,"ipPct":0.7,"asPct":0.0,"total":1787},{"code":"W53.21","desc":"Bitten by squirrel","edPct":99.5,"ipPct":0.5,"asPct":0.0,"total":3877},{"code":"W61.43","desc":"Pecked by turkey","edPct":100.0,"ipPct":0.0,"asPct":0.0,"total":15},{"code":"W61.62","desc":"Struck by duck","edPct":100.0,"ipPct":0.0,"asPct":0.0,"total":13},{"code":"V00.01","desc":"Pedestrian on foot injured in colli","edPct":100.0,"ipPct":0.0,"asPct":0.0,"total":12},{"code":"Y92.146","desc":"Swimming pool of prison","edPct":100.0,"ipPct":0.0,"asPct":0.0,"total":10},{"code":"V95.4","desc":"Spacecraft accident","edPct":100.0,"ipPct":0.0,"asPct":0.0,"total":5},{"code":"V91.07","desc":"Burn due to water-skis on fire","edPct":100.0,"ipPct":0.0,"asPct":0.0,"total":3},{"code":"W59.22","desc":"Struck by turtle","edPct":100.0,"ipPct":0.0,"asPct":0.0,"total":2},{"code":"W56.02","desc":"Struck by dolphin","edPct":100.0,"ipPct":0.0,"asPct":0.0,"total":2},{"code":"W61.12","desc":"Struck by macaw","edPct":100.0,"ipPct":0.0,"asPct":0.0,"total":2}],"mortality":[{"range":"W53 (rodents)","caEnc":11123,"usDeath":0},{"range":"W55 (mammals)","caEnc":1408,"usDeath":348},{"range":"W56 (marine)","caEnc":151,"usDeath":9},{"range":"W59 (reptiles)","caEnc":158,"usDeath":0},{"range":"W61 (birds)","caEnc":1194,"usDeath":0},{"range":"V95-V97 (aviation)","caEnc":48,"usDeath":1512}],"codeSettingAnnual":{"W53.21":{"2016":{"ED":322,"IP":0,"AS":0},"2017":{"ED":281,"IP":2,"AS":0},"2018":{"ED":369,"IP":2,"AS":0},"2019":{"ED":385,"IP":4,"AS":0},"2020":{"ED":297,"IP":2,"AS":0},"2021":{"ED":428,"IP":1,"AS":0},"2022":{"ED":478,"IP":2,"AS":0},"2023":{"ED":651,"IP":3,"AS":0},"2024":{"ED":646,"IP":4,"AS":0}},"W55.41":{"2016":{"ED":49,"IP":3,"AS":0},"2017":{"ED":48,"IP":5,"AS":0},"2018":{"ED":71,"IP":3,"AS":0},"2019":{"ED":73,"IP":2,"AS":0},"2020":{"ED":66,"IP":1,"AS":0},"2021":{"ED":67,"IP":1,"AS":0},"2022":{"ED":77,"IP":3,"AS":0},"2023":{"ED":73,"IP":4,"AS":0},"2024":{"ED":61,"IP":2,"AS":0}},"W55.21":{"2016":{"ED":7,"IP":0,"AS":0},"2017":{"ED":2,"IP":0,"AS":0},"2018":{"ED":2,"IP":1,"AS":0},"2019":{"ED":10,"IP":0,"AS":0},"2020":{"ED":7,"IP":0,"AS":0},"2021":{"ED":5,"IP":0,"AS":0},"2022":{"ED":6,"IP":0,"AS":0},"2023":{"ED":5,"IP":0,"AS":0},"2024":{"ED":6,"IP":0,"AS":0}},"W55.29":{"2016":{"ED":100,"IP":9,"AS":0},"2017":{"ED":95,"IP":8,"AS":0},"2018":{"ED":109,"IP":12,"AS":0},"2019":{"ED":89,"IP":12,"AS":0},"2020":{"ED":55,"IP":5,"AS":0},"2021":{"ED":71,"IP":13,"AS":0},"2022":{"ED":82,"IP":8,"AS":0},"2023":{"ED":29,"IP":3,"AS":0},"2024":{"ED":42,"IP":6,"AS":0}},"W61.01":{"2016":{"ED":80,"IP":2,"AS":0},"2017":{"ED":82,"IP":1,"AS":0},"2018":{"ED":66,"IP":5,"AS":0},"2019":{"ED":68,"IP":3,"AS":0},"2020":{"ED":40,"IP":3,"AS":0},"2021":{"ED":48,"IP":2,"AS":0},"2022":{"ED":56,"IP":1,"AS":0},"2023":{"ED":53,"IP":4,"AS":0},"2024":{"ED":45,"IP":0,"AS":0}},"W61.12":{"2016":{"ED":0,"IP":0,"AS":0},"2017":{"ED":0,"IP":0,"AS":0},"2018":{"ED":0,"IP":0,"AS":0},"2019":{"ED":0,"IP":0,"AS":0},"2020":{"ED":1,"IP":0,"AS":0},"2021":{"ED":0,"IP":0,"AS":0},"2022":{"ED":0,"IP":0,"AS":0},"2023":{"ED":0,"IP":0,"AS":0},"2024":{"ED":1,"IP":0,"AS":0}},"W61.33":{"2016":{"ED":18,"IP":0,"AS":0},"2017":{"ED":26,"IP":0,"AS":0},"2018":{"ED":25,"IP":3,"AS":0},"2019":{"ED":38,"IP":2,"AS":0},"2020":{"ED":34,"IP":3,"AS":0},"2021":{"ED":29,"IP":0,"AS":0},"2022":{"ED":44,"IP":1,"AS":0},"2023":{"ED":40,"IP":2,"AS":0},"2024":{"ED":41,"IP":0,"AS":0}},"W61.32":{"2016":{"ED":22,"IP":1,"AS":0},"2017":{"ED":20,"IP":0,"AS":0},"2018":{"ED":18,"IP":1,"AS":0},"2019":{"ED":23,"IP":1,"AS":0},"2020":{"ED":25,"IP":0,"AS":0},"2021":{"ED":25,"IP":0,"AS":0},"2022":{"ED":21,"IP":1,"AS":0},"2023":{"ED":43,"IP":0,"AS":0},"2024":{"ED":43,"IP":0,"AS":0}},"W61.42":{"2016":{"ED":6,"IP":0,"AS":0},"2017":{"ED":1,"IP":1,"AS":0},"2018":{"ED":1,"IP":1,"AS":0},"2019":{"ED":1,"IP":0,"AS":0},"2020":{"ED":6,"IP":0,"AS":0},"2021":{"ED":4,"IP":0,"AS":0},"2022":{"ED":2,"IP":1,"AS":0},"2023":{"ED":3,"IP":0,"AS":0},"2024":{"ED":5,"IP":0,"AS":0}},"W61.43":{"2016":{"ED":0,"IP":0,"AS":0},"2017":{"ED":1,"IP":0,"AS":0},"2018":{"ED":3,"IP":0,"AS":0},"2019":{"ED":0,"IP":0,"AS":0},"2020":{"ED":5,"IP":0,"AS":0},"2021":{"ED":2,"IP":0,"AS":0},"2022":{"ED":0,"IP":0,"AS":0},"2023":{"ED":3,"IP":0,"AS":0},"2024":{"ED":1,"IP":0,"AS":0}},"W61.61":{"2016":{"ED":1,"IP":0,"AS":0},"2017":{"ED":1,"IP":1,"AS":0},"2018":{"ED":5,"IP":0,"AS":0},"2019":{"ED":4,"IP":0,"AS":0},"2020":{"ED":0,"IP":0,"AS":0},"2021":{"ED":2,"IP":0,"AS":0},"2022":{"ED":2,"IP":0,"AS":0},"2023":{"ED":3,"IP":0,"AS":0},"2024":{"ED":4,"IP":0,"AS":0}},"W61.62":{"2016":{"ED":0,"IP":0,"AS":0},"2017":{"ED":2,"IP":0,"AS":0},"2018":{"ED":1,"IP":0,"AS":0},"2019":{"ED":1,"IP":0,"AS":0},"2020":{"ED":2,"IP":0,"AS":0},"2021":{"ED":2,"IP":0,"AS":0},"2022":{"ED":1,"IP":0,"AS":0},"2023":{"ED":3,"IP":0,"AS":0},"2024":{"ED":1,"IP":0,"AS":0}},"W56.02":{"2016":{"ED":1,"IP":0,"AS":0},"2017":{"ED":0,"IP":0,"AS":0},"2018":{"ED":0,"IP":0,"AS":0},"2019":{"ED":0,"IP":0,"AS":0},"2020":{"ED":0,"IP":0,"AS":0},"2021":{"ED":0,"IP":0,"AS":0},"2022":{"ED":0,"IP":0,"AS":0},"2023":{"ED":0,"IP":0,"AS":0},"2024":{"ED":1,"IP":0,"AS":0}},"W56.11":{"2016":{"ED":4,"IP":0,"AS":0},"2017":{"ED":12,"IP":3,"AS":0},"2018":{"ED":9,"IP":1,"AS":0},"2019":{"ED":12,"IP":0,"AS":0},"2020":{"ED":6,"IP":0,"AS":0},"2021":{"ED":1,"IP":1,"AS":0},"2022":{"ED":7,"IP":0,"AS":0},"2023":{"ED":8,"IP":0,"AS":0},"2024":{"ED":7,"IP":0,"AS":0}},"W56.22":{"2016":{"ED":0,"IP":0,"AS":0},"2017":{"ED":0,"IP":0,"AS":0},"2018":{"ED":0,"IP":0,"AS":0},"2019":{"ED":0,"IP":1,"AS":0},"2020":{"ED":0,"IP":0,"AS":0},"2021":{"ED":0,"IP":0,"AS":0},"2022":{"ED":0,"IP":0,"AS":0},"2023":{"ED":0,"IP":0,"AS":0},"2024":{"ED":0,"IP":0,"AS":0}},"W56.41":{"2016":{"ED":6,"IP":3,"AS":0},"2017":{"ED":9,"IP":4,"AS":0},"2018":{"ED":4,"IP":4,"AS":0},"2019":{"ED":8,"IP":0,"AS":0},"2020":{"ED":6,"IP":0,"AS":0},"2021":{"ED":7,"IP":3,"AS":0},"2022":{"ED":7,"IP":4,"AS":0},"2023":{"ED":4,"IP":2,"AS":0},"2024":{"ED":5,"IP":1,"AS":0}},"W59.21":{"2016":{"ED":13,"IP":0,"AS":0},"2017":{"ED":16,"IP":0,"AS":0},"2018":{"ED":20,"IP":1,"AS":0},"2019":{"ED":18,"IP":0,"AS":0},"2020":{"ED":10,"IP":2,"AS":0},"2021":{"ED":23,"IP":0,"AS":0},"2022":{"ED":12,"IP":0,"AS":0},"2023":{"ED":24,"IP":0,"AS":0},"2024":{"ED":17,"IP":0,"AS":0}},"W59.22":{"2016":{"ED":0,"IP":0,"AS":0},"2017":{"ED":0,"IP":0,"AS":0},"2018":{"ED":0,"IP":0,"AS":0},"2019":{"ED":0,"IP":0,"AS":0},"2020":{"ED":1,"IP":0,"AS":0},"2021":{"ED":0,"IP":0,"AS":0},"2022":{"ED":0,"IP":0,"AS":0},"2023":{"ED":1,"IP":0,"AS":0},"2024":{"ED":0,"IP":0,"AS":0}},"W53.01":{"2016":{"ED":208,"IP":0,"AS":0},"2017":{"ED":266,"IP":1,"AS":0},"2018":{"ED":194,"IP":1,"AS":0},"2019":{"ED":189,"IP":2,"AS":0},"2020":{"ED":154,"IP":2,"AS":0},"2021":{"ED":132,"IP":0,"AS":0},"2022":{"ED":157,"IP":4,"AS":0},"2023":{"ED":177,"IP":1,"AS":0},"2024":{"ED":297,"IP":2,"AS":0}},"W53.11":{"2016":{"ED":513,"IP":15,"AS":0},"2017":{"ED":588,"IP":16,"AS":0},"2018":{"ED":666,"IP":17,"AS":0},"2019":{"ED":630,"IP":21,"AS":0},"2020":{"ED":487,"IP":12,"AS":0},"2021":{"ED":512,"IP":20,"AS":0},"2022":{"ED":553,"IP":24,"AS":0},"2023":{"ED":616,"IP":29,"AS":0},"2024":{"ED":714,"IP":26,"AS":0}},"V97.33":{"2016":{"ED":0,"IP":0,"AS":0},"2017":{"ED":1,"IP":0,"AS":0},"2018":{"ED":0,"IP":0,"AS":0},"2019":{"ED":2,"IP":0,"AS":0},"2020":{"ED":0,"IP":0,"AS":0},"2021":{"ED":0,"IP":0,"AS":0},"2022":{"ED":0,"IP":2,"AS":0},"2023":{"ED":1,"IP":3,"AS":0},"2024":{"ED":3,"IP":19,"AS":0}},"V91.07":{"2016":{"ED":1,"IP":0,"AS":0},"2017":{"ED":0,"IP":0,"AS":0},"2018":{"ED":0,"IP":0,"AS":0},"2019":{"ED":0,"IP":0,"AS":0},"2020":{"ED":0,"IP":0,"AS":0},"2021":{"ED":0,"IP":0,"AS":0},"2022":{"ED":0,"IP":0,"AS":0},"2023":{"ED":1,"IP":0,"AS":0},"2024":{"ED":1,"IP":0,"AS":0}},"W22.02":{"2016":{"ED":322,"IP":4,"AS":0},"2017":{"ED":305,"IP":5,"AS":0},"2018":{"ED":223,"IP":4,"AS":0},"2019":{"ED":227,"IP":3,"AS":0},"2020":{"ED":115,"IP":3,"AS":0},"2021":{"ED":139,"IP":4,"AS":0},"2022":{"ED":181,"IP":1,"AS":0},"2023":{"ED":178,"IP":3,"AS":0},"2024":{"ED":171,"IP":3,"AS":0}},"W01":{"2016":{"ED":261374,"IP":32999,"AS":0},"2017":{"ED":281038,"IP":39736,"AS":0},"2018":{"ED":291595,"IP":42277,"AS":0},"2019":{"ED":296849,"IP":43447,"AS":0},"2020":{"ED":217890,"IP":39547,"AS":0},"2021":{"ED":255959,"IP":40720,"AS":0},"2022":{"ED":288104,"IP":42650,"AS":0},"2023":{"ED":304333,"IP":45326,"AS":0},"2024":{"ED":307648,"IP":48318,"AS":0}},"W16.221":{"2016":{"ED":0,"IP":1,"AS":0},"2017":{"ED":1,"IP":1,"AS":0},"2018":{"ED":2,"IP":0,"AS":0},"2019":{"ED":0,"IP":1,"AS":0},"2020":{"ED":2,"IP":1,"AS":0},"2021":{"ED":2,"IP":0,"AS":0},"2022":{"ED":0,"IP":0,"AS":0},"2023":{"ED":0,"IP":0,"AS":0},"2024":{"ED":0,"IP":2,"AS":0}},"V95.4":{"2016":{"ED":0,"IP":0,"AS":0},"2017":{"ED":0,"IP":0,"AS":0},"2018":{"ED":1,"IP":0,"AS":0},"2019":{"ED":0,"IP":0,"AS":0},"2020":{"ED":1,"IP":0,"AS":0},"2021":{"ED":0,"IP":0,"AS":0},"2022":{"ED":2,"IP":0,"AS":0},"2023":{"ED":0,"IP":0,"AS":0},"2024":{"ED":1,"IP":0,"AS":0}},"V00.01":{"2016":{"ED":3,"IP":0,"AS":0},"2017":{"ED":1,"IP":0,"AS":0},"2018":{"ED":3,"IP":0,"AS":0},"2019":{"ED":0,"IP":0,"AS":0},"2020":{"ED":0,"IP":0,"AS":0},"2021":{"ED":2,"IP":0,"AS":0},"2022":{"ED":2,"IP":0,"AS":0},"2023":{"ED":0,"IP":0,"AS":0},"2024":{"ED":1,"IP":0,"AS":0}},"Y92.253":{"2016":{"ED":4,"IP":0,"AS":0},"2017":{"ED":3,"IP":2,"AS":0},"2018":{"ED":5,"IP":2,"AS":0},"2019":{"ED":7,"IP":1,"AS":0},"2020":{"ED":4,"IP":0,"AS":0},"2021":{"ED":0,"IP":1,"AS":0},"2022":{"ED":3,"IP":3,"AS":0},"2023":{"ED":1,"IP":6,"AS":0},"2024":{"ED":5,"IP":5,"AS":0}},"Y92.72":{"2016":{"ED":32,"IP":0,"AS":0},"2017":{"ED":36,"IP":2,"AS":0},"2018":{"ED":41,"IP":8,"AS":0},"2019":{"ED":21,"IP":0,"AS":0},"2020":{"ED":31,"IP":1,"AS":0},"2021":{"ED":25,"IP":3,"AS":0},"2022":{"ED":28,"IP":5,"AS":0},"2023":{"ED":32,"IP":2,"AS":0},"2024":{"ED":33,"IP":6,"AS":0}},"Y92.146":{"2016":{"ED":1,"IP":0,"AS":0},"2017":{"ED":1,"IP":0,"AS":0},"2018":{"ED":2,"IP":0,"AS":0},"2019":{"ED":1,"IP":0,"AS":0},"2020":{"ED":5,"IP":0,"AS":0},"2021":{"ED":0,"IP":0,"AS":0},"2022":{"ED":0,"IP":0,"AS":0},"2023":{"ED":0,"IP":0,"AS":0},"2024":{"ED":0,"IP":0,"AS":0}},"Y93.D1":{"2016":{"ED":25,"IP":0,"AS":0},"2017":{"ED":24,"IP":1,"AS":0},"2018":{"ED":15,"IP":0,"AS":0},"2019":{"ED":12,"IP":0,"AS":0},"2020":{"ED":8,"IP":0,"AS":0},"2021":{"ED":6,"IP":0,"AS":0},"2022":{"ED":16,"IP":0,"AS":0},"2023":{"ED":7,"IP":1,"AS":0},"2024":{"ED":13,"IP":0,"AS":0}},"Y93.84":{"2016":{"ED":3081,"IP":12,"AS":0},"2017":{"ED":2846,"IP":273,"AS":0},"2018":{"ED":2952,"IP":271,"AS":0},"2019":{"ED":2790,"IP":243,"AS":0},"2020":{"ED":2185,"IP":197,"AS":0},"2021":{"ED":2362,"IP":168,"AS":0},"2022":{"ED":2606,"IP":137,"AS":0},"2023":{"ED":2516,"IP":197,"AS":0},"2024":{"ED":2176,"IP":156,"AS":0}},"Y93.85":{"2016":{"ED":6,"IP":0,"AS":0},"2017":{"ED":19,"IP":2,"AS":0},"2018":{"ED":15,"IP":4,"AS":0},"2019":{"ED":17,"IP":1,"AS":0},"2020":{"ED":17,"IP":0,"AS":0},"2021":{"ED":18,"IP":1,"AS":0},"2022":{"ED":19,"IP":0,"AS":0},"2023":{"ED":13,"IP":1,"AS":0},"2024":{"ED":26,"IP":1,"AS":0}},"Z63.1":{"2016":{"ED":14,"IP":19,"AS":2},"2017":{"ED":11,"IP":16,"AS":1},"2018":{"ED":12,"IP":15,"AS":0},"2019":{"ED":9,"IP":27,"AS":0},"2020":{"ED":8,"IP":37,"AS":3},"2021":{"ED":16,"IP":32,"AS":0},"2022":{"ED":21,"IP":29,"AS":4},"2023":{"ED":23,"IP":35,"AS":2},"2024":{"ED":35,"IP":32,"AS":3}},"Z62.891":{"2016":{"ED":10,"IP":107,"AS":0},"2017":{"ED":11,"IP":69,"AS":0},"2018":{"ED":10,"IP":65,"AS":0},"2019":{"ED":13,"IP":113,"AS":0},"2020":{"ED":10,"IP":108,"AS":0},"2021":{"ED":27,"IP":117,"AS":0},"2022":{"ED":10,"IP":77,"AS":0},"2023":{"ED":20,"IP":95,"AS":0},"2024":{"ED":19,"IP":116,"AS":0}},"R46.1":{"2016":{"ED":207,"IP":7,"AS":1},"2017":{"ED":266,"IP":11,"AS":0},"2018":{"ED":263,"IP":29,"AS":0},"2019":{"ED":342,"IP":18,"AS":0},"2020":{"ED":324,"IP":20,"AS":0},"2021":{"ED":278,"IP":9,"AS":1},"2022":{"ED":282,"IP":18,"AS":0},"2023":{"ED":297,"IP":15,"AS":0},"2024":{"ED":212,"IP":16,"AS":0}},"Z72.0":{"2016":{"ED":255875,"IP":41433,"AS":12352},"2017":{"ED":218307,"IP":32205,"AS":8564},"2018":{"ED":164569,"IP":29856,"AS":7763},"2019":{"ED":96494,"IP":28274,"AS":6864},"2020":{"ED":82634,"IP":19736,"AS":4441},"2021":{"ED":72910,"IP":17317,"AS":4008},"2022":{"ED":53648,"IP":15118,"AS":3821},"2023":{"ED":41066,"IP":15401,"AS":3722},"2024":{"ED":45606,"IP":16873,"AS":3638}}}};
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+let charts = {};
+
+function fmt(n) {
+  return n.toLocaleString();
+}
+
+function destroyChart(key) {
+  if (charts[key]) {
+    charts[key].destroy();
+    delete charts[key];
+  }
+}
+
+function catLabel(cat) {
+  return cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+// ============================================================================
+// TAB 1: OVERVIEW
+// ============================================================================
+
+function renderOverview() {
+  document.getElementById('kpi-total').textContent = fmt(D.kpi.totalEncounters);
+  document.getElementById('kpi-ed').textContent = fmt(D.kpi.totalED);
+  document.getElementById('kpi-ip').textContent = fmt(D.kpi.totalIP);
+  document.getElementById('kpi-as').textContent = fmt(D.kpi.totalAS);
+  document.getElementById('kpi-ed-pct').textContent = D.kpi.edPct + '% of total';
+  document.getElementById('kpi-ip-pct').textContent = D.kpi.ipPct + '% of total';
+  document.getElementById('kpi-as-pct').textContent = D.kpi.asPct + '% of total';
+
+  // Annual Setting Chart (Stacked Bar)
+  destroyChart('annualSetting');
+  const ctx1 = document.getElementById('annualSettingChart').getContext('2d');
+  charts.annualSetting = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: D.years.map(String),
+      datasets: [
+        {
+          label: 'ED',
+          data: D.annualSetting.map(y => y.ED),
+          backgroundColor: '#0077B6'
+        },
+        {
+          label: 'IP',
+          data: D.annualSetting.map(y => y.IP),
+          backgroundColor: '#D4A843'
+        },
+        {
+          label: 'AS',
+          data: D.annualSetting.map(y => y.AS),
+          backgroundColor: '#2A9D8F'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { stacked: true },
+        y: { stacked: true }
+      }
+    }
+  });
+
+  // Category Doughnut (Excl. Dominant)
+  destroyChart('categoryDoughnut');
+  const excl = D.table1.filter(r => r.code !== 'W01' && r.code !== 'Z72.0');
+  const catTotals = {};
+  D.categories.forEach(cat => {
+    catTotals[cat] = excl.filter(r => r.cat === cat).reduce((s, r) => s + r.total, 0);
+  });
+  const ctx2 = document.getElementById('categoryDoughnut').getContext('2d');
+  charts.categoryDoughnut = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: D.categories.map(catLabel),
+      datasets: [{
+        data: D.categories.map(cat => catTotals[cat]),
+        backgroundColor: D.categories.map(cat => CAT_COLORS[cat])
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // Category Area Chart (with toggle)
+  renderCategoryAreaChart('all');
+
+  // Top 15 Chart
+  destroyChart('top15');
+  const top15 = D.table1.slice(0, 15);
+  const ctx4 = document.getElementById('top15Chart').getContext('2d');
+  charts.top15 = new Chart(ctx4, {
+    type: 'bar',
+    data: {
+      labels: top15.map(r => r.code + ' - ' + r.desc.substring(0, 30)),
+      datasets: [{
+        label: 'Total Encounters',
+        data: top15.map(r => r.total),
+        backgroundColor: top15.map(r => CAT_COLORS[r.cat])
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { x: { beginAtZero: true } }
+    }
+  });
+}
+
+function renderCategoryAreaChart(scale) {
+  destroyChart('catArea');
+  let data;
+
+  if (scale === 'all') {
+    data = D.annualByCat.map(year => ({
+      ANIMAL_ENCOUNTERS: year.ANIMAL_ENCOUNTERS,
+      BIZARRE_MECHANISMS: year.BIZARRE_MECHANISMS,
+      PLACES_ACTIVITIES: year.PLACES_ACTIVITIES,
+      SOCIAL_LIFESTYLE: year.SOCIAL_LIFESTYLE,
+      TRANSPORT_ABSURDITY: year.TRANSPORT_ABSURDITY
+    }));
+  } else {
+    // Exclude dominant codes
+    const w01vals = D.codeTrends.W01.values;
+    const z720vals = D.codeTrends['Z72.0'].values;
+    data = D.annualByCat.map((year, idx) => ({
+      ANIMAL_ENCOUNTERS: year.ANIMAL_ENCOUNTERS,
+      BIZARRE_MECHANISMS: year.BIZARRE_MECHANISMS - w01vals[idx],
+      PLACES_ACTIVITIES: year.PLACES_ACTIVITIES,
+      SOCIAL_LIFESTYLE: year.SOCIAL_LIFESTYLE - z720vals[idx],
+      TRANSPORT_ABSURDITY: year.TRANSPORT_ABSURDITY
+    }));
+  }
+
+  const ctx = document.getElementById('catAreaChart').getContext('2d');
+  charts.catArea = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: D.years.map(String),
+      datasets: [
+        {
+          label: 'Animal Encounters',
+          data: data.map(d => d.ANIMAL_ENCOUNTERS),
+          borderColor: CAT_COLORS.ANIMAL_ENCOUNTERS,
+          backgroundColor: CAT_COLORS.ANIMAL_ENCOUNTERS + 'B3',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Bizarre Mechanisms',
+          data: data.map(d => d.BIZARRE_MECHANISMS),
+          borderColor: CAT_COLORS.BIZARRE_MECHANISMS,
+          backgroundColor: CAT_COLORS.BIZARRE_MECHANISMS + 'B3',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Places & Activities',
+          data: data.map(d => d.PLACES_ACTIVITIES),
+          borderColor: CAT_COLORS.PLACES_ACTIVITIES,
+          backgroundColor: CAT_COLORS.PLACES_ACTIVITIES + 'B3',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Social & Lifestyle',
+          data: data.map(d => d.SOCIAL_LIFESTYLE),
+          borderColor: CAT_COLORS.SOCIAL_LIFESTYLE,
+          backgroundColor: CAT_COLORS.SOCIAL_LIFESTYLE + 'B3',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Transport Absurdity',
+          data: data.map(d => d.TRANSPORT_ABSURDITY),
+          borderColor: CAT_COLORS.TRANSPORT_ABSURDITY,
+          backgroundColor: CAT_COLORS.TRANSPORT_ABSURDITY + 'B3',
+          tension: 0.3,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, stacked: true } }
+    }
+  });
+}
+
+// ============================================================================
+// TAB 2: TRENDS
+// ============================================================================
+
+function renderTrends() {
+  // Populate animal select
+  const animalCodes = D.table1.filter(r => r.cat === 'ANIMAL_ENCOUNTERS').map(r => r.code);
+  const animalSelect = document.getElementById('animalSelect');
+  animalSelect.innerHTML = animalCodes.map(code =>
+    `<option value="${code}" ${['W53.21', 'W53.11', 'W53.01', 'W61.33', 'W61.32', 'W55.41'].includes(code) ? 'selected' : ''}>${code}</option>`
+  ).join('');
+
+  animalSelect.addEventListener('change', updateAnimalTrends);
+  updateAnimalTrends();
+
+  // Squirrel chart
+  destroyChart('squirrel');
+  const ctx = document.getElementById('squirrelChart').getContext('2d');
+  const w5321 = D.codeTrends['W53.21'];
+  charts.squirrel = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: D.years.map(String),
+      datasets: [{
+        label: 'W53.21 (Bitten by squirrel)',
+        data: w5321.values,
+        borderColor: '#0077B6',
+        backgroundColor: '#0077B620',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // Trends table
+  const sigTrends = D.trendStats.filter(t => t.sig).sort((a, b) => Math.abs(b.pctChange) - Math.abs(a.pctChange));
+  const tbody = document.getElementById('trendsTable').querySelector('tbody');
+  tbody.innerHTML = sigTrends.map(t => {
+    const dir = t.pctChange > 0 ? '↑' : '↓';
+    const dirColor = t.pctChange > 0 ? '#2A9D8F' : '#E63946';
+    return `<tr>
+      <td class="code-col">${t.code}</td>
+      <td>${t.desc}</td>
+      <td style="color: ${dirColor}; font-weight: 600;">${dir}</td>
+      <td>${Math.abs(t.pctChange).toFixed(1)}%</td>
+      <td>${t.slope > 0 ? '+' : ''}${t.slope.toFixed(2)}</td>
+      <td>${t.r2.toFixed(3)}</td>
+      <td>${t.pval.toFixed(4)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function updateAnimalTrends() {
+  destroyChart('animalTrends');
+  const selected = Array.from(document.getElementById('animalSelect').selectedOptions).map(o => o.value);
+  const datasets = selected.map((code, idx) => {
+    const trend = D.codeTrends[code];
+    return {
+      label: code + ' - ' + trend.desc.substring(0, 20),
+      data: trend.values,
+      borderColor: COLORS8[idx % COLORS8.length],
+      backgroundColor: COLORS8[idx % COLORS8.length] + '20',
+      tension: 0.3,
+      fill: false
+    };
+  });
+  const ctx = document.getElementById('animalTrendsChart').getContext('2d');
+  charts.animalTrends = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: D.years.map(String),
+      datasets
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+// ============================================================================
+// TAB 3: CARE SETTINGS
+// ============================================================================
+
+function renderSettings() {
+  // Setting Bar Chart (All codes, stacked 100%)
+  destroyChart('settingBar');
+  const ctx1 = document.getElementById('settingBarChart').getContext('2d');
+  charts.settingBar = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: D.settingByCode.map(s => s.code + ' - ' + s.desc.substring(0, 25)),
+      datasets: [
+        {
+          label: 'ED %',
+          data: D.settingByCode.map(s => s.edPct),
+          backgroundColor: '#0077B6'
+        },
+        {
+          label: 'IP %',
+          data: D.settingByCode.map(s => s.ipPct),
+          backgroundColor: '#D4A843'
+        },
+        {
+          label: 'AS %',
+          data: D.settingByCode.map(s => s.asPct),
+          backgroundColor: '#2A9D8F'
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { stacked: true, max: 100 },
+        y: { stacked: true }
+      }
+    }
+  });
+
+  // Sibling Rivalry Chart
+  destroyChart('sibling');
+  const z62891 = D.codeSettingAnnual['Z62.891'];
+  const siblingData = D.years.map(y => ({
+    ED: z62891[y].ED,
+    IP: z62891[y].IP,
+    AS: z62891[y].AS
+  }));
+  const ctx2 = document.getElementById('siblingChart').getContext('2d');
+  charts.sibling = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: D.years.map(String),
+      datasets: [
+        {
+          label: 'ED',
+          data: siblingData.map(d => d.ED),
+          backgroundColor: '#0077B6'
+        },
+        {
+          label: 'IP',
+          data: siblingData.map(d => d.IP),
+          backgroundColor: '#D4A843'
+        },
+        {
+          label: 'AS',
+          data: siblingData.map(d => d.AS),
+          backgroundColor: '#2A9D8F'
+        }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // IP-Predominant Codes (IP% > 20%)
+  destroyChart('inversions');
+  const inversions = D.settingByCode.filter(s => s.ipPct > 20).sort((a, b) => b.ipPct - a.ipPct);
+  const ctx3 = document.getElementById('inversionsChart').getContext('2d');
+  charts.inversions = new Chart(ctx3, {
+    type: 'bar',
+    data: {
+      labels: inversions.map(s => s.code + ' - ' + s.desc.substring(0, 20)),
+      datasets: [{
+        label: 'IP %',
+        data: inversions.map(s => s.ipPct),
+        backgroundColor: inversions.map(s => {
+          const row = D.table1.find(r => r.code === s.code);
+          return CAT_COLORS[row.cat];
+        })
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { x: { beginAtZero: true, max: 100 } }
+    }
+  });
+}
+
+// ============================================================================
+// TAB 4: COVID-19 IMPACT
+// ============================================================================
+
+function renderCovid() {
+  // COVID KPIs
+  const preCovid = D.covidData.reduce((s, c) => s + c.preCovid, 0);
+  const covid2020 = D.covidData.reduce((s, c) => s + c.covid2020, 0);
+  document.getElementById('covid-pre').textContent = fmt(Math.round(preCovid));
+  document.getElementById('covid-2020').textContent = fmt(covid2020);
+
+  const surge = D.covidData.filter(c => c.code !== 'W01').sort((a, b) => b.impactPct - a.impactPct)[0];
+  document.getElementById('covid-surge').textContent = surge.code + ': +' + surge.impactPct.toFixed(0) + '%';
+
+  const declines = D.covidData.filter(c => c.impactPct < 0);
+  const decline = declines.length > 0 ? declines[0] : null;
+  document.getElementById('covid-decline').textContent = decline ? decline.code + ': ' + decline.impactPct.toFixed(0) + '%' : 'None';
+
+  // COVID Impact Chart
+  destroyChart('covidImpact');
+  const impactData = D.covidData.filter(c => c.code !== 'W01').sort((a, b) => b.impactPct - a.impactPct);
+  const ctx1 = document.getElementById('covidImpactChart').getContext('2d');
+  charts.covidImpact = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: impactData.map(c => c.code + ' - ' + c.desc.substring(0, 20)),
+      datasets: [{
+        label: 'Impact %',
+        data: impactData.map(c => c.impactPct),
+        backgroundColor: impactData.map(c => c.impactPct > 0 ? '#2A9D8F' : '#E63946')
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+
+  // Recovery Chart
+  destroyChart('recovery');
+  const recoveryData = D.covidData.filter(c => c.code !== 'W01').sort((a, b) => b.recoveryPct - a.recoveryPct);
+  const ctx2 = document.getElementById('recoveryChart').getContext('2d');
+  charts.recovery = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: recoveryData.map(c => c.code + ' - ' + c.desc.substring(0, 20)),
+      datasets: [{
+        label: 'Recovery %',
+        data: recoveryData.map(c => c.recoveryPct),
+        backgroundColor: recoveryData.map(c => c.recoveryPct > 0 ? '#0077B6' : '#E63946')
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+
+  // COVID Table
+  const tbody = document.getElementById('covidTable').querySelector('tbody');
+  tbody.innerHTML = D.covidData.map(c => {
+    const impactColor = c.impactPct > 0 ? '#2A9D8F' : '#E63946';
+    const recoveryColor = c.recoveryPct > 0 ? '#2A9D8F' : '#E63946';
+    return `<tr>
+      <td class="code-col">${c.code}</td>
+      <td>${c.desc}</td>
+      <td>${fmt(Math.round(c.preCovid))}</td>
+      <td>${fmt(c.covid2020)}</td>
+      <td>${fmt(Math.round(c.postCovid))}</td>
+      <td><span style="color: ${impactColor}; font-weight: 600;">${c.impactPct > 0 ? '+' : ''}${c.impactPct.toFixed(1)}%</span></td>
+      <td><span style="color: ${recoveryColor}; font-weight: 600;">${c.recoveryPct > 0 ? '+' : ''}${c.recoveryPct.toFixed(1)}%</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================================
+// TAB 5: MORTALITY
+// ============================================================================
+
+function renderMortality() {
+  // Mortality Table
+  const tbody = document.getElementById('mortalityTable').querySelector('tbody');
+  tbody.innerHTML = D.mortality.map(m => {
+    const rate = m.usDeath > 0 ? (m.usDeath / m.caEnc * 1000).toFixed(2) : '0';
+    return `<tr>
+      <td><strong>${m.range}</strong></td>
+      <td>${fmt(m.caEnc)}</td>
+      <td>${fmt(m.usDeath)}</td>
+      <td>${rate}</td>
+    </tr>`;
+  }).join('');
+
+  // Mortality Chart
+  destroyChart('mortality');
+  const ctx = document.getElementById('mortalityChart').getContext('2d');
+  charts.mortality = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: D.mortality.map(m => m.range),
+      datasets: [
+        {
+          label: 'CA Encounters',
+          data: D.mortality.map(m => m.caEnc),
+          backgroundColor: '#0077B6',
+          yAxisID: 'y'
+        },
+        {
+          label: 'US Deaths',
+          data: D.mortality.map(m => m.usDeath),
+          backgroundColor: '#E63946',
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { type: 'linear', position: 'left', beginAtZero: true },
+        y1: { type: 'linear', position: 'right', beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ============================================================================
+// TAB 6: CODE EXPLORER
+// ============================================================================
+
+function renderExplorer() {
+  const allCodes = D.table1.map(r => r.code);
+
+  // Populate code detail select
+  const detailSelect = document.getElementById('codeDetailSelect');
+  detailSelect.innerHTML = allCodes.map(code =>
+    `<option value="${code}">${code}</option>`
+  ).join('');
+  detailSelect.addEventListener('change', (e) => {
+    renderCodeDetail(e.target.value);
+  });
+
+  // Update explorer table
+  updateExplorerTable();
+
+  // Event listeners
+  document.getElementById('explorerCat').addEventListener('change', updateExplorerTable);
+  document.getElementById('explorerSort').addEventListener('change', updateExplorerTable);
+  document.getElementById('codeSearch').addEventListener('keyup', updateExplorerTable);
+}
+
+function updateExplorerTable() {
+  const cat = document.getElementById('explorerCat').value;
+  const sort = document.getElementById('explorerSort').value;
+  const search = document.getElementById('codeSearch').value.toLowerCase();
+
+  let filtered = D.table1.slice();
+
+  if (cat) {
+    filtered = filtered.filter(r => r.cat === cat);
+  }
+
+  if (search) {
+    filtered = filtered.filter(r =>
+      r.code.toLowerCase().includes(search) ||
+      r.desc.toLowerCase().includes(search)
+    );
+  }
+
+  switch (sort) {
+    case 'totalAsc':
+      filtered.sort((a, b) => a.total - b.total);
+      break;
+    case 'code':
+      filtered.sort((a, b) => a.code.localeCompare(b.code));
+      break;
+    case 'ed':
+      filtered.sort((a, b) => b.edPct - a.edPct);
+      break;
+    case 'ip':
+      filtered.sort((a, b) => b.ipPct - a.ipPct);
+      break;
+    default: // 'total'
+      filtered.sort((a, b) => b.total - a.total);
+  }
+
+  const tbody = document.getElementById('explorerTable').querySelector('tbody');
+  tbody.innerHTML = filtered.map(row => {
+    const annual = D.codeSettingAnnual[row.code];
+    const yearTds = D.years.map(y => {
+      const total = (annual[y].ED + annual[y].IP + annual[y].AS) || 0;
+      return `<td>${total}</td>`;
+    }).join('');
+
+    return `<tr class="clickable-row" onclick="handleRowClick('${row.code}')">
+      <td class="code-col">${row.code}</td>
+      <td>${row.desc}</td>
+      <td><span class="cat-badge cat-${row.cat}">${catLabel(row.cat)}</span></td>
+      <td class="pct-bar" style="background: linear-gradient(90deg, #0077B620 ${row.edPct}%, transparent ${row.edPct}%)">${row.edPct.toFixed(1)}%</td>
+      <td class="pct-bar" style="background: linear-gradient(90deg, #D4A84320 ${row.ipPct}%, transparent ${row.ipPct}%)">${row.ipPct.toFixed(1)}%</td>
+      <td class="pct-bar" style="background: linear-gradient(90deg, #2A9D8F20 ${row.asPct}%, transparent ${row.asPct}%)">${row.asPct.toFixed(1)}%</td>
+      ${yearTds}
+      <td><strong>${fmt(row.total)}</strong></td>
+    </tr>`;
+  }).join('');
+}
+
+function handleRowClick(code) {
+  document.getElementById('codeDetailCard').style.display = 'block';
+  document.getElementById('codeDetailSelect').value = code;
+  renderCodeDetail(code);
+  document.getElementById('codeDetailCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderCodeDetail(code) {
+  const row = D.table1.find(r => r.code === code);
+  const trend = D.codeTrends[code];
+  const annual = D.codeSettingAnnual[code];
+
+  document.getElementById('codeDetailTitle').textContent = `${code}: ${row.desc}`;
+
+  // Trend chart
+  destroyChart('detailTrend');
+  const ctx1 = document.getElementById('detailTrendChart').getContext('2d');
+  const color = CAT_COLORS[row.cat];
+  charts.detailTrend = new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: D.years.map(String),
+      datasets: [{
+        label: code,
+        data: trend.values,
+        borderColor: color,
+        backgroundColor: color + '20',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // Setting chart
+  destroyChart('detailSetting');
+  const settingData = D.years.map(y => ({
+    ED: annual[y].ED,
+    IP: annual[y].IP,
+    AS: annual[y].AS
+  }));
+  const ctx2 = document.getElementById('detailSettingChart').getContext('2d');
+  charts.detailSetting = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: D.years.map(String),
+      datasets: [
+        {
+          label: 'ED',
+          data: settingData.map(d => d.ED),
+          backgroundColor: '#0077B6'
+        },
+        {
+          label: 'IP',
+          data: settingData.map(d => d.IP),
+          backgroundColor: '#D4A843'
+        },
+        {
+          label: 'AS',
+          data: settingData.map(d => d.AS),
+          backgroundColor: '#2A9D8F'
+        }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+function init() {
+  // Tab navigation
+  document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      btn.classList.add('active');
+      const tabId = btn.getAttribute('data-tab');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'overview') renderOverview();
+      if (tabId === 'trends') renderTrends();
+      if (tabId === 'settings') renderSettings();
+      if (tabId === 'covid') renderCovid();
+      if (tabId === 'mortality') renderMortality();
+      if (tabId === 'explorer') renderExplorer();
+    });
+  });
+
+  // Scale toggle
+  document.getElementById('scaleToggle').addEventListener('change', (e) => {
+    renderCategoryAreaChart(e.target.value);
+  });
+
+  // Initial render
+  renderOverview();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
