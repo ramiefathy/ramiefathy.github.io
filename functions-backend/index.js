@@ -281,10 +281,11 @@ exports.bulkInviteMembers = functions.https.onCall(async (data, context) => {
         })();
 
         const html = [
-          `<h2>Clinic Scheduler Invitation</h2>`,
+          '<h2>Clinic Scheduler Invitation</h2>',
           `<p>Hi ${safeName},</p>`,
-          `<p>${institution.name || 'Your program'} has invited you to join Clinic Scheduler as a <strong>${roleLabel}</strong>.</p>`,
-          `<p>To accept this invitation:</p>`,
+          `<p>${institution.name || 'Your program'} has invited you ` +
+          `to join Clinic Scheduler as a <strong>${roleLabel}</strong>.</p>`,
+          '<p>To accept this invitation:</p>',
           '<ol>',
           `<li>Go to <a href="${loginUrl}">${loginUrl}</a>.</li>`,
           '<li>Create an account or sign in.</li>',
@@ -296,15 +297,15 @@ exports.bulkInviteMembers = functions.https.onCall(async (data, context) => {
         ].join('\n');
 
         const textLines = [
-          `Clinic Scheduler Invitation`,
-          ``,
+          'Clinic Scheduler Invitation',
+          '',
           `Hi ${safeName},`,
           `${institution.name || 'Your program'} has invited you to join Clinic Scheduler as a ${roleLabel}.`,
-          ``,
+          '',
           `To accept, go to ${loginUrl}, create an account or sign in,`,
           `and enter invite code: ${code}`,
-          ``,
-          `This code is single-use and will expire in 7 days.`
+          '',
+          'This code is single-use and will expire in 7 days.'
         ];
 
         const text = textLines.join('\n');
@@ -957,7 +958,7 @@ exports.calculateAnalytics = functions.https.onCall(async (data, context) => {
       // Calculate average residents per session
       const uniqueSessions = new Set(attendingAssignments.map(a => `${a.date}_${a.timeSlot}`));
       if (uniqueSessions.size > 0) {
-        analytics.byAttending[attending.id].averageResidents = 
+        analytics.byAttending[attending.id].averageResidents =
           (attendingAssignments.length / uniqueSessions.size).toFixed(2);
       }
     });
@@ -1012,7 +1013,7 @@ exports.calculateAnalytics = functions.https.onCall(async (data, context) => {
 
     for (let date = startDateObj; date <= endDateObj; date = addDays(date, 1)) {
       const dayOfWeek = date.getDay();
-      
+
       // Skip weekends
       if (dayOfWeek === 0 || dayOfWeek === 6) continue;
 

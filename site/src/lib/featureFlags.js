@@ -25,10 +25,8 @@ export const flags = {
   publicationMetrics: true,   // h-index, citations chart
 
   // Apps catalog features
-  appAnalytics: false,       // View counts, engagement metrics
   demoModal: true,           // Quick demo iframe modal
   appCollections: true,      // Learning Tools Bundle, etc.
-  privateReviews: false,     // Admin-only reviews panel
 
   // Research page features
   citationExport: true,      // BibTeX, RIS, EndNote export
@@ -130,24 +128,6 @@ export function getAllFlags() {
     result[flagName] = isEnabled(flagName);
   });
   return result;
-}
-
-/**
- * Check if user has admin access (for private features)
- * Set via: localStorage.setItem('isAdmin', 'true')
- * Or via URL: ?admin=true
- */
-export function isAdmin() {
-  if (typeof window === 'undefined') return false;
-
-  // Check URL parameter
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('admin') === 'true') {
-    return true;
-  }
-
-  // Check localStorage
-  return localStorage.getItem('isAdmin') === 'true';
 }
 
 // Export a helper for React components

@@ -3,11 +3,9 @@ import MainLayout from '../layouts/MainLayout.astro';
 import Header from '../components/Header.jsx';
 import Timeline from '../components/Timeline.jsx';
 import SkillsVisualization from '../components/SkillsVisualization.jsx';
-import PublicationMetrics from '../components/PublicationMetrics.jsx';
 import profile from '../data/profile.json';
 import timeline from '../data/timeline.json';
 import skills from '../data/skills.json';
-import scholarMetrics from '../data/scholarMetrics.json';
 ---
 <MainLayout title="About – Ramie Fathy, MD" description="Biography, training, leadership, and interests for Dr. Ramie Fathy.">
   <Header client:load />
@@ -21,7 +19,7 @@ import scholarMetrics from '../data/scholarMetrics.json';
         <article class="about-card">
           <h2>Clinical Training</h2>
           <ul>
-            <li>PGY-4 Dermatology Resident Physician, Johns Hopkins University School of Medicine.</li>
+            <li>PGY-4 Dermatology Resident, Johns Hopkins University School of Medicine.</li>
             <li>Incoming Rheumatology-Dermatology Fellow, Mass General Brigham.</li>
             <li>MD, Perelman School of Medicine at the University of Pennsylvania (Alpha Omega Alpha).</li>
             <li>AB in Molecular Biology, Princeton University (Summa Cum Laude, Phi Beta Kappa).</li>
@@ -37,12 +35,12 @@ import scholarMetrics from '../data/scholarMetrics.json';
 
           <h2>Research & Interests</h2>
           <p>
-            My work spans inflammatory dermatoses, cutaneous oncology, patient-centered teledermatology, and responsible AI. I build clinical decision tools, study the equity implications of new technologies, and enjoy translating complex science into empathetic narratives for trainees, clinicians, and patients.
+            My work spans inflammatory dermatoses, cutaneous oncology, teledermatology, and clinical AI. I build decision-support tools and study the equity implications of new technologies in dermatology.
           </p>
 
           <h2>Outside the Clinic</h2>
           <p>
-            I love mentoring future physician-innovators, producing radio and podcast stories, and exploring Baltimore's culinary community. When traveling, you'll find me sketching architectural textures and searching for the best espresso shot in town.
+            Outside the clinic I mentor medical students, work on audio storytelling projects, and explore Baltimore.
           </p>
         </article>
       </div>
@@ -53,7 +51,7 @@ import scholarMetrics from '../data/scholarMetrics.json';
       <div class="section__inner" style="max-width:900px">
         <div class="section__intro scroll-fade" data-scroll-fade>
           <h2 class="section__title">Career Timeline</h2>
-          <p class="section__subtitle">From Princeton to Johns Hopkins to Mass General Brigham—milestones in education, training, and leadership.</p>
+          <p class="section__subtitle">Princeton, Penn, Johns Hopkins, Mass General Brigham.</p>
         </div>
         <Timeline client:visible data={timeline} />
       </div>
@@ -64,30 +62,9 @@ import scholarMetrics from '../data/scholarMetrics.json';
       <div class="section__inner" style="max-width:1000px">
         <div class="section__intro scroll-fade" data-scroll-fade>
           <h2 class="section__title">Skills & Expertise</h2>
-          <p class="section__subtitle">Clinical, technical, and research competencies developed over a decade of training and practice.</p>
+          <p class="section__subtitle">Clinical, technical, and research areas I work in.</p>
         </div>
         <SkillsVisualization client:visible data={skills} />
-      </div>
-    </section>
-
-    <!-- Publication Metrics Section -->
-    <section class="section" style="background:linear-gradient(180deg, rgba(248,250,252,0.9), rgba(255,255,255,1))">
-      <div class="section__inner" style="max-width:900px">
-        <div class="section__intro scroll-fade" data-scroll-fade>
-          <h2 class="section__title">Scholarly Impact</h2>
-          <p class="section__subtitle">Metrics and visualizations of peer-reviewed publications and citations.</p>
-        </div>
-        <PublicationMetrics client:visible data={scholarMetrics} />
-      </div>
-    </section>
-
-    <!-- Personal Philosophy (Hidden for now) -->
-    <section class="section is-hidden" aria-hidden="true">
-      <div class="section__inner" style="max-width:760px">
-        <div class="section__intro">
-          <h2 class="section__title">Personal Philosophy</h2>
-          <p class="section__subtitle">A forthcoming essay reflecting on empathy-driven dermatology, equitable AI design, and mentored translational science.</p>
-        </div>
       </div>
     </section>
   </main>

@@ -488,44 +488,6 @@ main {
   gap: 1.75rem;
 }
 
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
-
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.form-row label {
-  flex: 1;
-}
-
-.contact-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  color: var(--muted-text);
-  font-weight: 500;
-}
-
-.contact-form input,
-.contact-form textarea {
-  padding: 0.7rem 0.9rem;
-  border-radius: 0.9rem;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--text-color);
-}
-
-.contact-form input:focus-visible,
-.contact-form textarea:focus-visible {
-  outline: 2px solid rgba(14, 116, 144, 0.35);
-}
-
 .post-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -818,18 +780,6 @@ main {
   color: rgba(96, 165, 250, 0.9);
 }
 
-.ad-slot {
-  display: flex;
-  justify-content: center;
-  margin: 2rem 0;
-}
-
-.ad-slot ins {
-  display: block;
-  min-width: 320px;
-  min-height: 100px;
-}
-
 @media (max-width: 900px) {
   .header-inner {
     gap: 1rem;
@@ -959,8 +909,6 @@ html[data-theme='dark'] .button--secondary {
   color: rgba(186, 230, 253, 0.95);
 }
 
-html[data-theme='dark'] .contact-form input,
-html[data-theme='dark'] .contact-form textarea,
 html[data-theme='dark'] .scholar-controls input {
   background: rgba(8, 18, 30, 0.85);
   border-color: rgba(59, 130, 246, 0.2);

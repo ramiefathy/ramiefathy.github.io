@@ -51,19 +51,6 @@ export default function AppDemoModal({ app, isOpen, onClose }) {
     }
   }, [app?.slug, isOpen]);
 
-  // Track demo opens in localStorage
-  useEffect(() => {
-    if (isOpen && app?.slug) {
-      try {
-        const key = `demo_views_${app.slug}`;
-        const currentViews = parseInt(localStorage.getItem(key) || '0', 10);
-        localStorage.setItem(key, String(currentViews + 1));
-      } catch {
-        // Ignore localStorage errors
-      }
-    }
-  }, [isOpen, app?.slug]);
-
   if (!app) return null;
 
   const previewUrl = app.preview || app.href;

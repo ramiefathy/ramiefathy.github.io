@@ -14,10 +14,6 @@ const featuredApps = apps
   <main id="main-content">
   <Hero client:visible profile={profile} />
 
-  <div class="ad-slot" aria-label="Sponsored banner">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2958059905874922" data-ad-slot="1498241199" data-ad-format="auto" data-full-width-responsive="true"></ins>
-  </div>
-
   <section id="about" class="section">
     <div class="section__inner scroll-fade" data-scroll-fade>
       <div class="section__intro">
@@ -38,30 +34,39 @@ const featuredApps = apps
     <div class="section__inner scroll-fade" data-scroll-fade>
       <div class="section__intro">
         <h2 class="section__title">Featured Applications</h2>
-        <p class="section__subtitle">A sampling of browser-based tools currently supporting dermatology trainees and clinical workflows. Explore the full catalog for interactive demos and documentation.</p>
+        <p class="section__subtitle">A few of the tools I've built. <a href="/apps">Full catalog →</a></p>
       </div>
       <div class="app-showcase">
-        {featuredApps.map((app, index) => (
-          <div class={`app-showcase-row scroll-fade ${index % 2 === 1 ? 'app-showcase-row--reverse' : ''}`} data-scroll-fade>
-            <div class="app-showcase-media">
-              <div class="app-showcase-frame">
-                <iframe src={app.preview ?? app.href} title={`${app.name} preview`} loading="lazy" sandbox="allow-same-origin allow-scripts"></iframe>
+        {featuredApps.map((app, index) => {
+          const accent = app.accent ?? ['#3b82f6', '#8b5cf6'];
+          const gradient = `linear-gradient(135deg, ${accent[0]}, ${accent[1] ?? accent[0]})`;
+          const isExternal = app.href?.startsWith('http');
+          return (
+            <div class={`app-showcase-row scroll-fade ${index % 2 === 1 ? 'app-showcase-row--reverse' : ''}`} data-scroll-fade>
+              <div class="app-showcase-media">
+                {app.previewImage ? (
+                  <img src={app.previewImage} alt={`${app.name} preview`} class="app-preview-image" loading="lazy" />
+                ) : (
+                  <div class="app-preview-placeholder" style={`background:${gradient}`}>
+                    <span class="app-preview-icon">{app.name.charAt(0)}</span>
+                  </div>
+                )}
+              </div>
+              <div class="app-showcase-body">
+                <h3 class="app-showcase-title">{app.name}</h3>
+                <p class="app-showcase-description">{app.description}</p>
+                <div class="app-showcase-tags">
+                  {app.stack.map((tag) => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </div>
+                <a class="button button--primary" href={app.href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noreferrer' : undefined}>
+                  Open
+                </a>
               </div>
             </div>
-            <div class="app-showcase-body">
-              <h3 class="app-showcase-title">{app.name}</h3>
-              <p class="app-showcase-description">{app.description}</p>
-              <div class="app-showcase-tags">
-                {app.stack.map((tag) => (
-                  <span class="tag">{tag}</span>
-                ))}
-              </div>
-              <a class="button button--primary" href={app.href} target={app.href.startsWith('http') ? '_blank' : undefined} rel={app.href.startsWith('http') ? 'noreferrer' : undefined}>
-                Visit the App
-              </a>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <div style="margin-top:2.5rem;text-align:center">
         <a class="button button--secondary" href="/apps">View Full Applications Directory</a>
@@ -69,54 +74,16 @@ const featuredApps = apps
     </div>
   </section>
 
-  <div class="ad-slot" aria-label="Sponsored content">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2958059905874922" data-ad-slot="1442400877" data-ad-format="rectangle" data-full-width-responsive="true"></ins>
-  </div>
-
-  <section class="section is-hidden">
-    <div class="section__inner">
-      <div class="section__intro">
-        <h2 class="section__title">Trusted Collaborators</h2>
-        <p class="section__subtitle">Logos, testimonials, and media kit forthcoming.</p>
-      </div>
-    </div>
-  </section>
-
   <section id="contact" class="section" style="background:linear-gradient(180deg, rgba(248,250,252,0.95), rgba(255,255,255,1))">
-    <div class="section__inner scroll-fade" data-scroll-fade style="max-width:780px">
+    <div class="section__inner scroll-fade" data-scroll-fade style="max-width:680px;text-align:center">
       <div class="section__intro">
         <h2 class="section__title">Get in Touch</h2>
-        <p class="section__subtitle">Collaborations, speaking invitations, and media inquiries are welcome. Leave a note and I’ll respond as soon as possible.</p>
+        <p class="section__subtitle">Collaborations, speaking, and press — drop a note.</p>
       </div>
-      <div class="card">
-        <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="contact-form">
-          <input type="hidden" name="form-name" value="contact" />
-          <p class="is-hidden">
-            <label>
-              Don’t fill this out if you’re human:
-              <input name="bot-field" />
-            </label>
-          </p>
-          <div class="form-row">
-            <label>
-              Name
-              <input type="text" name="name" required />
-            </label>
-            <label>
-              Email
-              <input type="email" name="email" required />
-            </label>
-          </div>
-          <label>
-            Subject
-            <input type="text" name="subject" />
-          </label>
-          <label>
-            Message
-            <textarea name="message" rows="5" required></textarea>
-          </label>
-          <button class="button button--primary" type="submit">Send Message</button>
-        </form>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0.75rem;margin-top:1.5rem">
+        <a class="button button--primary" href={profile.contact.email}>Email</a>
+        <a class="button button--secondary" href={profile.contact.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+        <a class="button button--secondary" href={profile.contact.scholar} target="_blank" rel="noreferrer">Google Scholar</a>
       </div>
     </div>
   </section>

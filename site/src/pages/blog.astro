@@ -4,14 +4,14 @@ import Header from '../components/Header.jsx';
 import posts from '../data/blog.json';
 const sorted = posts.sort((a, b) => new Date(b.date) - new Date(a.date));
 ---
-<MainLayout title="Blog – Ramie Fathy, MD" description="Insights on dermatology, medical education, and human-centered AI.">
+<MainLayout title="Blog – Ramie Fathy, MD" description="Essays and media features by Dr. Ramie Fathy.">
   <Header client:load />
   <main id="main-content">
     <section class="section">
       <div class="section__inner scroll-fade" data-scroll-fade>
         <div class="section__intro">
-          <h1 class="section__title">Insights & Updates</h1>
-          <p class="section__subtitle">Periodic essays and media features covering clinical dermatology, translational AI, and the design of digital tools for resident workflows.</p>
+          <h1 class="section__title">Writing</h1>
+          <p class="section__subtitle">Essays and media features.</p>
         </div>
         <div class="post-grid">
           {sorted.map((post) => (

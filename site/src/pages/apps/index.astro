@@ -15,8 +15,8 @@ const archived = apps.filter((app) => app.status === 'legacy');
     <section class="section" style="padding-top:4rem">
       <div class="section__inner">
         <div class="section__intro" style="margin-bottom:2.5rem">
-          <h1 class="section__title">Modern Dermatology Workflows</h1>
-          <p class="section__subtitle">Each application below is built for resident clinics, dermatology education, or translational research—and runs directly in the browser with no account required.</p>
+          <h1 class="section__title">Applications</h1>
+          <p class="section__subtitle">Browser-based tools for clinic, education, and research. No accounts needed.</p>
         </div>
 
         <AppsShowcase
@@ -31,8 +31,8 @@ const archived = apps.filter((app) => app.status === 'legacy');
       <section class="section" style="background:linear-gradient(180deg, rgba(236,253,245,0.6), rgba(255,255,255,0.94))">
         <div class="section__inner">
           <div class="section__intro">
-            <h2 class="section__title">Archived Experiments</h2>
-            <p class="section__subtitle">Legacy prototypes and documentation retained for historical context and reproducibility.</p>
+            <h2 class="section__title">Archived</h2>
+            <p class="section__subtitle">Older prototypes kept for reference.</p>
           </div>
           <div class="card-grid">
             {archived.map((app) => (

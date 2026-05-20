@@ -1,84 +1,18 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import AppDemoModal from './AppDemoModal.jsx';
-import { isEnabled, isAdmin } from '../lib/featureFlags.js';
-
-// App analytics helper functions
-function getAppAnalytics(slug) {
-  try {
-    const analytics = JSON.parse(localStorage.getItem('app_analytics') || '{}');
-    return analytics[slug] || { views: 0, demoOpens: 0, lastViewed: null };
-  } catch {
-    return { views: 0, demoOpens: 0, lastViewed: null };
-  }
-}
-
-function trackAppView(slug) {
-  try {
-    const analytics = JSON.parse(localStorage.getItem('app_analytics') || '{}');
-    if (!analytics[slug]) analytics[slug] = { views: 0, demoOpens: 0, lastViewed: null };
-    analytics[slug].views++;
-    analytics[slug].lastViewed = new Date().toISOString();
-    localStorage.setItem('app_analytics', JSON.stringify(analytics));
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-function trackDemoOpen(slug) {
-  try {
-    const analytics = JSON.parse(localStorage.getItem('app_analytics') || '{}');
-    if (!analytics[slug]) analytics[slug] = { views: 0, demoOpens: 0, lastViewed: null };
-    analytics[slug].demoOpens++;
-    localStorage.setItem('app_analytics', JSON.stringify(analytics));
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-function getAllAnalytics() {
-  try {
-    return JSON.parse(localStorage.getItem('app_analytics') || '{}');
-  } catch {
-    return {};
-  }
-}
-
-function formatRelativeTime(dateString) {
-  if (!dateString) return 'Never';
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString();
-}
+import { isEnabled } from '../lib/featureFlags.js';
 
 /**
  * Apps Showcase Component
  *
- * Enhanced app catalog with collection filtering, quick demo modal,
- * analytics tracking, and private admin reviews.
+ * App catalog with collection filtering and a quick-demo modal.
  */
 export default function AppsShowcase({ apps, collections }) {
   const [activeCollection, setActiveCollection] = useState('all');
   const [demoApp, setDemoApp] = useState(null);
-  const [showReviews, setShowReviews] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [analyticsData, setAnalyticsData] = useState({});
   const [visibleCount, setVisibleCount] = useState(8);
   const loadMoreRef = useRef(null);
-
-  // Load analytics on mount
-  useEffect(() => {
-    setAnalyticsData(getAllAnalytics());
-  }, []);
 
   // Filter active/beta apps
   const activeApps = useMemo(() =>
@@ -122,8 +56,6 @@ export default function AppsShowcase({ apps, collections }) {
   }, [collections]);
 
   const handleDemoOpen = useCallback((app) => {
-    trackDemoOpen(app.slug);
-    setAnalyticsData(getAllAnalytics());
     setDemoApp(app);
   }, []);
 
@@ -131,28 +63,10 @@ export default function AppsShowcase({ apps, collections }) {
     setDemoApp(null);
   }, []);
 
-  const handleAppVisit = useCallback((slug) => {
-    trackAppView(slug);
-    setAnalyticsData(getAllAnalytics());
-  }, []);
-
   // Check if collections feature is enabled
   const collectionsEnabled = isEnabled('appCollections');
   const demoModalEnabled = isEnabled('demoModal');
-  const analyticsEnabled = isEnabled('appAnalytics');
-  const adminReviewsEnabled = isEnabled('privateReviews') && isAdmin();
-  const adminAnalyticsEnabled = analyticsEnabled && isAdmin();
   const prefersReducedMotion = useReducedMotion();
-
-  // Calculate total stats
-  const totalStats = useMemo(() => {
-    const stats = { totalViews: 0, totalDemos: 0 };
-    Object.values(analyticsData).forEach(data => {
-      stats.totalViews += data.views || 0;
-      stats.totalDemos += data.demoOpens || 0;
-    });
-    return stats;
-  }, [analyticsData]);
 
   return (
     <div className="apps-showcase-wrapper">
@@ -209,7 +123,6 @@ export default function AppsShowcase({ apps, collections }) {
           {filteredApps.slice(0, visibleCount).map((app, index) => {
             const isExternal = app.href?.startsWith('http');
             const appCollections = getAppCollections(app.slug);
-            const appStats = analyticsData[app.slug] || { views: 0, demoOpens: 0 };
 
             return (
               <motion.div
@@ -262,13 +175,6 @@ export default function AppsShowcase({ apps, collections }) {
                       <span className={`app-showcase-badge app-showcase-badge--${app.status}`}>
                         {app.status === 'beta' ? 'In Beta' : 'Active'}
                       </span>
-
-                      {/* Analytics display (admin only) */}
-                      {adminAnalyticsEnabled && appStats.views > 0 && (
-                        <span className="app-analytics-badge" title="Views / Demo opens">
-                          👁 {appStats.views} {appStats.demoOpens > 0 && `• 🎮 ${appStats.demoOpens}`}
-                        </span>
-                      )}
                     </div>
 
                     <h2 className="app-showcase-title">{app.name}</h2>
@@ -286,9 +192,8 @@ export default function AppsShowcase({ apps, collections }) {
                         href={app.href}
                         target={isExternal ? '_blank' : undefined}
                         rel={isExternal ? 'noreferrer' : undefined}
-                        onClick={() => handleAppVisit(app.slug)}
                       >
-                        Visit the App
+                        Open
                       </a>
 
                       {demoModalEnabled && app.preview && (
@@ -313,105 +218,6 @@ export default function AppsShowcase({ apps, collections }) {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Admin Analytics Panel */}
-      {adminAnalyticsEnabled && (
-        <div className="admin-analytics-panel">
-          <button
-            className="admin-analytics-toggle"
-            onClick={() => setShowAnalytics(!showAnalytics)}
-          >
-            📊 Admin: App Analytics (Total: {totalStats.totalViews} views, {totalStats.totalDemos} demos)
-            <span className="toggle-arrow">{showAnalytics ? '▼' : '▶'}</span>
-          </button>
-
-          <AnimatePresence>
-            {showAnalytics && (
-              <motion.div
-                className="admin-analytics-content"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-              >
-                <div className="analytics-grid">
-                  {activeApps.map(app => {
-                    const stats = analyticsData[app.slug] || { views: 0, demoOpens: 0, lastViewed: null };
-                    return (
-                      <div key={app.slug} className="analytics-card">
-                        <h5>{app.name}</h5>
-                        <div className="analytics-stats">
-                          <div className="stat">
-                            <span className="stat-value">{stats.views}</span>
-                            <span className="stat-label">Views</span>
-                          </div>
-                          <div className="stat">
-                            <span className="stat-value">{stats.demoOpens}</span>
-                            <span className="stat-label">Demos</span>
-                          </div>
-                        </div>
-                        <p className="analytics-last-viewed">
-                          Last: {formatRelativeTime(stats.lastViewed)}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
-
-      {/* Admin Reviews Panel */}
-      {adminReviewsEnabled && (
-        <div className="admin-reviews-panel">
-          <button
-            className="admin-reviews-toggle"
-            onClick={() => setShowReviews(!showReviews)}
-          >
-            🔒 Admin: Private Reviews ({filteredApps.length} apps)
-            <span className="toggle-arrow">{showReviews ? '▼' : '▶'}</span>
-          </button>
-
-          <AnimatePresence>
-            {showReviews && (
-              <motion.div
-                className="admin-reviews-content"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-              >
-                {filteredApps.map(app => (
-                  <div key={app.slug} className="admin-review-item">
-                    <h4>{app.name}</h4>
-                    <div className="review-fields">
-                      <label>
-                        Status Notes:
-                        <textarea
-                          placeholder="Internal notes about app status..."
-                          defaultValue={getLocalReview(app.slug, 'notes')}
-                          onChange={(e) => saveLocalReview(app.slug, 'notes', e.target.value)}
-                        />
-                      </label>
-                      <label>
-                        Priority:
-                        <select
-                          defaultValue={getLocalReview(app.slug, 'priority') || 'medium'}
-                          onChange={(e) => saveLocalReview(app.slug, 'priority', e.target.value)}
-                        >
-                          <option value="high">High Priority</option>
-                          <option value="medium">Medium</option>
-                          <option value="low">Low Priority</option>
-                        </select>
-                      </label>
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
 
       {/* Demo Modal */}
       {demoModalEnabled && (
@@ -657,20 +463,6 @@ export default function AppsShowcase({ apps, collections }) {
           color: #fbbf24;
         }
 
-        .app-analytics-badge {
-          font-size: 0.7rem;
-          padding: 0.2rem 0.5rem;
-          background: rgba(59, 130, 246, 0.1);
-          color: var(--primary-600, #2563eb);
-          border-radius: 4px;
-          font-weight: 500;
-        }
-
-        [data-theme='dark'] .app-analytics-badge {
-          background: rgba(59, 130, 246, 0.2);
-          color: var(--primary-300, #93c5fd);
-        }
-
         .app-showcase-title {
           font-size: 1.35rem;
           font-weight: 700;
@@ -763,179 +555,6 @@ export default function AppsShowcase({ apps, collections }) {
           color: var(--primary-600, #2563eb);
         }
 
-        /* Admin Analytics Panel */
-        .admin-analytics-panel {
-          margin-top: 3rem;
-          padding: 1rem;
-          background: rgba(59, 130, 246, 0.05);
-          border: 1px dashed rgba(59, 130, 246, 0.3);
-          border-radius: 12px;
-        }
-
-        .admin-analytics-toggle {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0.75rem;
-          background: none;
-          border: none;
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: #2563eb;
-          cursor: pointer;
-        }
-
-        .admin-analytics-content {
-          overflow: hidden;
-        }
-
-        .analytics-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-          gap: 1rem;
-          padding-top: 1rem;
-        }
-
-        .analytics-card {
-          background: white;
-          border-radius: 8px;
-          padding: 1rem;
-          border: 1px solid rgba(148, 163, 184, 0.15);
-        }
-
-        [data-theme='dark'] .analytics-card {
-          background: var(--secondary-800, #1e293b);
-        }
-
-        .analytics-card h5 {
-          margin: 0 0 0.75rem 0;
-          font-size: 0.85rem;
-          color: var(--secondary-700, #334155);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        [data-theme='dark'] .analytics-card h5 {
-          color: var(--secondary-200, #e2e8f0);
-        }
-
-        .analytics-stats {
-          display: flex;
-          gap: 1rem;
-        }
-
-        .stat {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .stat-value {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: var(--primary-600, #2563eb);
-        }
-
-        .stat-label {
-          font-size: 0.7rem;
-          color: var(--secondary-500, #64748b);
-          text-transform: uppercase;
-        }
-
-        .analytics-last-viewed {
-          margin: 0.5rem 0 0 0;
-          font-size: 0.7rem;
-          color: var(--secondary-500, #64748b);
-        }
-
-        /* Admin Reviews Panel */
-        .admin-reviews-panel {
-          margin-top: 1.5rem;
-          padding: 1rem;
-          background: rgba(239, 68, 68, 0.05);
-          border: 1px dashed rgba(239, 68, 68, 0.3);
-          border-radius: 12px;
-        }
-
-        .admin-reviews-toggle {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0.75rem;
-          background: none;
-          border: none;
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: #dc2626;
-          cursor: pointer;
-        }
-
-        .toggle-arrow {
-          font-size: 0.75rem;
-        }
-
-        .admin-reviews-content {
-          overflow: hidden;
-        }
-
-        .admin-review-item {
-          padding: 1rem;
-          margin-top: 0.75rem;
-          background: white;
-          border-radius: 8px;
-          border: 1px solid rgba(148, 163, 184, 0.15);
-        }
-
-        [data-theme='dark'] .admin-review-item {
-          background: var(--secondary-800, #1e293b);
-        }
-
-        .admin-review-item h4 {
-          margin: 0 0 0.75rem 0;
-          font-size: 0.9rem;
-          color: var(--secondary-800, #1e293b);
-        }
-
-        [data-theme='dark'] .admin-review-item h4 {
-          color: var(--secondary-200, #e2e8f0);
-        }
-
-        .review-fields {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        .review-fields label {
-          font-size: 0.8rem;
-          color: var(--secondary-600, #475569);
-        }
-
-        .review-fields textarea,
-        .review-fields select {
-          width: 100%;
-          margin-top: 0.25rem;
-          padding: 0.5rem;
-          border: 1px solid rgba(148, 163, 184, 0.25);
-          border-radius: 6px;
-          font-size: 0.85rem;
-          background: var(--secondary-50, #f8fafc);
-        }
-
-        [data-theme='dark'] .review-fields textarea,
-        [data-theme='dark'] .review-fields select {
-          background: var(--secondary-900, #0f172a);
-          border-color: rgba(148, 163, 184, 0.2);
-          color: var(--secondary-200, #e2e8f0);
-        }
-
-        .review-fields textarea {
-          min-height: 60px;
-          resize: vertical;
-        }
-
         @media (max-width: 640px) {
           .collection-tabs {
             flex-wrap: nowrap;
@@ -960,10 +579,6 @@ export default function AppsShowcase({ apps, collections }) {
             width: 100%;
             justify-content: center;
           }
-
-          .analytics-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -975,25 +590,4 @@ export default function AppsShowcase({ apps, collections }) {
       `}</style>
     </div>
   );
-}
-
-// Helper functions for local storage reviews
-function getLocalReview(slug, field) {
-  try {
-    const reviews = JSON.parse(localStorage.getItem('app_reviews') || '{}');
-    return reviews[slug]?.[field] || '';
-  } catch {
-    return '';
-  }
-}
-
-function saveLocalReview(slug, field, value) {
-  try {
-    const reviews = JSON.parse(localStorage.getItem('app_reviews') || '{}');
-    if (!reviews[slug]) reviews[slug] = {};
-    reviews[slug][field] = value;
-    localStorage.setItem('app_reviews', JSON.stringify(reviews));
-  } catch {
-    // Ignore localStorage errors
-  }
 }

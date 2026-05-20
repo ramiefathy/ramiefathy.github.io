@@ -345,7 +345,7 @@ const ScholarFeedEnhanced = () => {
                 className="export-btn"
                 onClick={() => setShowExport(showExport === 'all' ? null : 'all')}
               >
-                Export All ({filtered.length})
+                Export
               </button>
               <AnimatePresence>
                 {showExport === 'all' && (
@@ -398,10 +398,12 @@ const ScholarFeedEnhanced = () => {
         )}
       </AnimatePresence>
 
-      {/* Results count */}
-      <p className="scholar-count">
-        Showing {filtered.length} of {allPublications.length} publications
-      </p>
+      {/* Results count — only shown when a filter is active */}
+      {(query || yearFilter || typeFilter) && (
+        <p className="scholar-count">
+          {filtered.length} {filtered.length === 1 ? 'match' : 'matches'}
+        </p>
+      )}
 
       {/* Publications list */}
       {filtered.length ? (

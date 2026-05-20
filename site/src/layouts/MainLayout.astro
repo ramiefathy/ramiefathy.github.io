@@ -2,7 +2,7 @@
 import '../styles/global.css';
 const {
   title = 'Ramie Fathy, MD',
-  description = 'Dermatology resident physician, researcher, and writer with a focus on human-centered AI and complex medical dermatology.',
+  description = 'Dermatology resident and AI researcher. Clinical tools, evaluation work, and writing.',
   canonical = 'https://ramiefathy.github.io'
 } = Astro.props;
 ---
@@ -31,7 +31,6 @@ const {
     </script>
     <title>{title}</title>
     <link rel="canonical" href={canonical} />
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2958059905874922" crossorigin="anonymous"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -40,18 +39,9 @@ const {
     <footer class="layout-footer">
       <p>© {new Date().getFullYear()} Ramie Fathy, MD. All rights reserved.</p>
       <p>
-        Built with Astro. Questions? <a href="mailto:hello@ramiefathy.com">Email Dr. Fathy</a>.
+        Questions? <a href="mailto:hello@ramiefathy.com">Email Dr. Fathy</a>.
       </p>
     </footer>
-    <script>
-      const adSlots = document.querySelectorAll('.adsbygoogle');
-      adSlots.forEach((slot) => {
-        if (!slot.dataset.slotInitialized && slot.dataset.adSlot) {
-          slot.dataset.slotInitialized = 'true';
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-        }
-      });
-    </script>
     <script>
       (function(){
         const elements = document.querySelectorAll('[data-scroll-fade]');

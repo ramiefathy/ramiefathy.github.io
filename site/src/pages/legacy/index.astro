@@ -18,7 +18,7 @@ import legacy from '../../data/legacy.json';
               {section.items.map((item) => (
                 <a class="card" href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined}>
                   <h3 class="card__title">{item.name}</h3>
-                  <p>{item.note ?? 'Archived resource available for historical context.'}</p>
+                  <p>{item.note ?? 'Archived.'}</p>
                   <div class="card__meta">
                     <span class="tag">{item.year}</span>
                   </div>
