@@ -13,7 +13,7 @@ test.describe('Clinisched', () => {
 
     expect(clinisched).toBeDefined();
     expect(clinisched?.href).toBe('https://clinisched.ramiefathy.com/');
-    expect(clinisched?.preview).toBe('https://clinisched.ramiefathy.com/');
+    expect(clinisched?.preview).toBeUndefined();
     expect(legacyScheduler).toBeUndefined();
   });
 });

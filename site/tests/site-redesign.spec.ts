@@ -70,13 +70,13 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/A clinician,\s*a writer,\s*a builder\./);
 
     await page.goto('/apps', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/\d+\s+browser-first\s*tools, indexed\./);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Browser-first\s*clinical tools\./);
 
     await page.goto('/research', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/\d+\s+papers,\s*\d+\s+years\./);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Selected\s*scholarship\./);
 
     await page.goto('/blog', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Field\s*notes\s*and dispatches\./);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Essays\s*and media\./);
 
     await page.goto('/contact', { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Let'?s build\s*clinician-grade tools\./);
