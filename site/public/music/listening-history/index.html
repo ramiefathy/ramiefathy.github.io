@@ -484,7 +484,13 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
       <div class="section-num">§ V · 05</div>
       <h2 class="display2">Album obsessions.<br><em>Records played end-to-end.</em></h2>
     </div>
-    <p class="body-copy wide">The streaming log doesn't carry album names, so albums are reconstructed by joining each play to the saved library — meaning this ranking covers the ~17% of plays that come from saved tracks and undercounts un-saved records like the <em>Expedition 33</em> score. Within that lens, one album dominates without contest: <em>OK Computer</em>, at 325 minutes, more than the next two combined. Mac DeMarco appears three times over (<em>This Old Dog, Salad Days, Another One</em>), and the back half is a tour of the saved canon — Pink Floyd, Tame Impala, Connan Mockasin, Khruangbin.</p>
+    <p class="body-copy wide">The streaming log doesn't carry album names. Albums are reconstructed by joining each play to two metadata sources — the saved-track library and the playlist track list — which still only covers <em>~30%</em> of music minutes (831 events out of 3,126). The remaining 70% is unattributable at album level from this export: notably, almost all of the <em>Expedition 33</em> score is missing because that record isn't in saved tracks. Within that lens, one album dominates: <em>OK Computer</em>, at 325 minutes, more than the next two combined. Mac DeMarco appears three times over (<em>This Old Dog, Salad Days, Another One</em>), and the back half is a tour of the saved canon — Pink Floyd, Tame Impala, Connan Mockasin, Khruangbin.</p>
+
+    <div class="curiosity" style="margin-top:16px;max-width:540px">
+      <div class="ct">Album coverage</div>
+      <h3>~30%</h3>
+      <p>Spotify's export gives artist, track, and milliseconds — but no album URI. Joining to saved-track and playlist metadata recovers roughly a third of music minutes. The table below is a reconstructed view, not a complete truth.</p>
+    </div>
 
     <table class="atlas" style="margin-top:8px">
       <thead><tr><th>#</th><th>Album</th><th>Minutes</th><th class="ct">Plays</th></tr></thead>
@@ -562,14 +568,120 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
         </div>
       </div>
     </div>
+
+    <p class="body-copy wide" style="margin-top:32px">The same split shows up sharply in the data. On the left, the top-saved artists ordered by saved-track count — many sit on the saved shelf without earning much actual play. On the right, the artists who dominate the play log without crossing into the library at all. The two columns barely talk to each other.</p>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">Saved canon · how it actually plays</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Saved artist</th><th>Played min</th><th class="ct">Min</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="name"><b>Radiohead</b><span class="sub">58 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span></td><td class="ct">1,101</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>Pink Floyd</b><span class="sub">54 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.097"></span></span></td><td class="ct">107</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>alt-J</b><span class="sub">47 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.047"></span></span></td><td class="ct">52</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>Connan Mockasin</b><span class="sub">45 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.107"></span></span></td><td class="ct">118</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Nirvana</b><span class="sub">43 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.016"></span></span></td><td class="ct">18</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Mac DeMarco</b><span class="sub">41 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.315"></span></span></td><td class="ct">347</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>deadmau5</b><span class="sub">39 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.025"></span></span></td><td class="ct">27</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>The Beatles</b><span class="sub">32 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.247"></span></span></td><td class="ct">272</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>Tame Impala</b><span class="sub">31 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.370"></span></span></td><td class="ct">407</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>Fleet Foxes</b><span class="sub">24 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.000"></span></span></td><td class="ct">0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">Played heavily · absent from saved tracks</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Played artist</th><th>Played min</th><th class="ct">Min</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="name"><b>Lorien Testard</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:1.0"></span></span></td><td class="ct">1,100</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>Justice</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.246"></span></span></td><td class="ct">271</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>BALTHVS</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.107"></span></span></td><td class="ct">118</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>John Smith</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.090"></span></span></td><td class="ct">99</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>The Smiths</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.062"></span></span></td><td class="ct">68</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Glass Beams</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.061"></span></span></td><td class="ct">67</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Mazzy Star</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.054"></span></span></td><td class="ct">59</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>Cocteau Twins</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.051"></span></span></td><td class="ct">56</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>Parcels</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.043"></span></span></td><td class="ct">47</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>Hermanos Gutiérrez</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.042"></span></span></td><td class="ct">46</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <!-- ============================================================== -->
-  <!-- SECTION VII — Spoken word -->
+  <!-- SECTION VII — Playlist curation -->
   <!-- ============================================================== -->
   <section class="section">
     <div class="section-head">
       <div class="section-num">§ VII · 07</div>
+      <h2 class="display2">Playlist curation.<br><em>A third storage layer.</em></h2>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="body-copy">There is a third storage layer beyond saving and playing. The export carries <em>144 playlists</em> with <em>5,910 item placements</em> across 4,616 unique tracks and 1,498 artists — a long-running curation archive that predates the rolling listening window by years. The median playlist holds 18 items; the largest, simply named "New Playlist" and opened in October 2018, holds 1,999. Playlists are not plays — many of these tracks have not been touched in the window — but they show what the listener has organized over time, which is a different signal from what they've saved or what they've reached for this year.</p>
+        <p class="body-copy">The Beatles top the artist-by-placement ranking with <em>164 entries</em>; Radiohead earns 99 placements but contributes 1,101 listening minutes, while <em>Ramin Djawadi</em> appears 75 times in playlists and <em>zero</em> times in the play log — a perfect example of curation memory that outlives current behavior. Saving, playlisting, and playing are three different statements about the same artist.</p>
+      </div>
+      <div>
+        <div class="curiosity">
+          <div class="ct">Curation footprint</div>
+          <h3>5,910</h3>
+          <p>Item placements across 144 playlists. Not plays — placements — which is its own kind of statement.</p>
+        </div>
+        <div class="curiosity" style="margin-top:16px">
+          <div class="ct">Long-memory archive</div>
+          <h3>1,999</h3>
+          <p>Largest playlist, opened October 2018 and still growing. "New Playlist" is older than half the rolling listening window itself.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">Top playlist-artist placements</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th>Placements</th><th class="ct">Played min</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="name"><b>The Beatles</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span><span class="num">164</span></td><td class="ct">272</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>deadmau5</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.640"></span></span><span class="num">105</span></td><td class="ct">27</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>Radiohead</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.604"></span></span><span class="num">99</span></td><td class="ct">1,101</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>Tame Impala</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.579"></span></span><span class="num">95</span></td><td class="ct">407</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Mac DeMarco</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.457"></span></span><span class="num">75</span></td><td class="ct">347</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Ramin Djawadi</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.457"></span></span><span class="num">75</span></td><td class="ct">0</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Khruangbin</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.445"></span></span><span class="num">73</span></td><td class="ct">188</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>Pink Floyd</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.445"></span></span><span class="num">73</span></td><td class="ct">107</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>alt-J</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.427"></span></span><span class="num">70</span></td><td class="ct">52</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>London Grammar</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.415"></span></span><span class="num">68</span></td><td class="ct">3</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">Largest playlists by item count</p>
+        <table class="atlas">
+          <thead><tr><th>Playlist</th><th class="ct">Items</th><th class="ct">Opened</th></tr></thead>
+          <tbody>
+            <tr><td class="name"><b>New Playlist</b><span class="sub">untitled bucket</span></td><td class="ct">1,999</td><td class="ct">2018-10</td></tr>
+            <tr><td class="name"><b>Starred</b><span class="sub">legacy Spotify favorites</span></td><td class="ct">305</td><td class="ct">2018-10</td></tr>
+            <tr><td class="name"><b>Road Trip 2022</b><span class="sub">2 followers</span></td><td class="ct">269</td><td class="ct">2022-11</td></tr>
+            <tr><td class="name"><b>to have</b></td><td class="ct">220</td><td class="ct">2018-10</td></tr>
+            <tr><td class="name"><b>august 2019</b></td><td class="ct">112</td><td class="ct">2019-09</td></tr>
+            <tr><td class="name"><b>may 2019</b></td><td class="ct">106</td><td class="ct">2019-05</td></tr>
+            <tr><td class="name"><b>February 2020</b></td><td class="ct">94</td><td class="ct">2020-03</td></tr>
+            <tr><td class="name"><b>outside</b><span class="sub">2 followers</span></td><td class="ct">71</td><td class="ct">2019-10</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION VIII — Spoken word -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ VIII · 08</div>
       <h2 class="display2">The spoken word.<br><em>Audiobooks and podcasts, a second listening life.</em></h2>
     </div>
     <p class="body-copy wide">Beyond music there are <em>31.5 hours</em> of audiobooks across 197 sessions and <em>16.9 hours</em> of podcasts. The audiobook shelf is unusually committed — a handful of titles consumed in long stretches — while the broader shelf is a graveyard of good intentions: more than thirty books opened for under a minute apiece, spanning clinical-trial methodology, software engineering, Japanese lessons, and parenting. The podcast time is concentrated almost entirely in one show.</p>
@@ -584,10 +696,11 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
             <tr><td class="rk">02</td><td class="track"><b>A Giant Leap</b><span class="sub">Robert Wachter</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.945"></span></span></td><td class="ct">582</td></tr>
             <tr><td class="rk">03</td><td class="track"><b>Society of Lies</b><span class="sub">Lauren Ling Brown</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.602"></span></span></td><td class="ct">371</td></tr>
             <tr><td class="rk">04</td><td class="track"><b>The Hundred Years' War on Palestine</b><span class="sub">Rashid Khalidi</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.286"></span></span></td><td class="ct">176</td></tr>
-            <tr><td class="rk">05</td><td class="track"><b>Napoleon</b><span class="sub">Andrew Roberts</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.032"></span></span></td><td class="ct">20</td></tr>
+            <tr><td class="rk">05</td><td class="track"><b>Unknown Book</b><span class="sub">title not in export metadata</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.203"></span></span></td><td class="ct">125</td></tr>
+            <tr><td class="rk">06</td><td class="track"><b>Napoleon</b><span class="sub">Andrew Roberts</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.032"></span></span></td><td class="ct">20</td></tr>
           </tbody>
         </table>
-        <p class="strip-caption" style="margin-top:10px">+ 38 more titles sampled for under 2 min each</p>
+        <p class="strip-caption" style="margin-top:10px">+ 39 more titles sampled for under 2 min each · 45 audiobook titles total</p>
       </div>
       <div>
         <p class="col-head">Podcasts · by minutes</p>
@@ -608,17 +721,17 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
   </section>
 
   <!-- ============================================================== -->
-  <!-- SECTION VIII — Discovery & context -->
+  <!-- SECTION IX — Discovery & context -->
   <!-- ============================================================== -->
   <section class="section">
     <div class="section-head">
-      <div class="section-num">§ VIII · 08</div>
+      <div class="section-num">§ IX · 09</div>
       <h2 class="display2">Discovery &amp; context.<br><em>How new things get in.</em></h2>
     </div>
     <div class="two-col">
       <div>
-        <p class="body-copy">The export logs <em>52 in-app searches</em>, and they're almost all hyper-specific track-and-artist queries rather than vibe or genre hunts — "Show Me How – Men I Trust," "Bobby – Alex G," "French Disko – Stereolab," "Feel It All Around – Washed Out." This is targeted retrieval: arriving with a name already in mind, usually a slacker / chillwave / psych-adjacent indie cut, rather than asking the algorithm to surprise you. Discovery happens elsewhere and gets <em>retrieved</em> here.</p>
-        <p class="body-copy">Spotify's own festival matcher slots this taste into <em>Governors Ball 2026</em>, returning a 52nd-percentile lineup match and the persona label <em>"The Crowd Favorite"</em> — top artist matches Geese, Dominic Fike, Thee Sacred Souls, Kali Uchis, and Japanese Breakfast. A mainstream-indie center of gravity, which squares with the saved canon more than with the month's obsessions.</p>
+        <p class="body-copy">The export logs <em>52 in-app searches</em> between March 15 and May 15, 2026. Of those, <em>21 use the explicit "track – artist" pattern</em> — "Show Me How – Men I Trust," "Bobby – Alex G," "French Disko – Stereolab," "Feel It All Around – Washed Out" — and another three use the "by artist" form ("Paranoid Android by Radiohead," "Lumière by Lorien Testard"). This is targeted retrieval: arriving with a name already in mind, usually a slacker / chillwave / psych-adjacent indie cut, rather than asking the algorithm to surprise you. Discovery happens elsewhere and gets <em>retrieved</em> here.</p>
+        <p class="body-copy">Spotify's own festival matcher slots this taste squarely into the middle of the lineup. <em>Governors Ball 2026</em> returns a 52nd-percentile match and the persona label <em>"The Crowd Favorite"</em> — top artist matches Geese, Dominic Fike, Thee Sacred Souls, Kali Uchis, Japanese Breakfast. <em>ACL 2026</em> returns the same persona at 50th percentile with 12 matched artists (The xx, Parcels, Night Tapes, Natasha Bedingfield, Kings of Leon). A mainstream-indie center of gravity that squares with the saved canon more than with the month's obsessions.</p>
       </div>
       <div>
         <div class="curiosity">
@@ -629,18 +742,18 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
         <div class="curiosity" style="margin-top:16px">
           <div class="ct">Festival persona</div>
           <h3>The Crowd Favorite</h3>
-          <p>Gov Ball 2026 · 52nd-pct lineup match · 9 artists matched · indie-mainstream lean.</p>
+          <p>Same label across both matchers: Gov Ball 2026 at 52nd-pct (9 matches) and ACL 2026 at 50th-pct (12 matches). Mainstream-indie lean, not niche.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ============================================================== -->
-  <!-- SECTION IX — Curiosities -->
+  <!-- SECTION X — Curiosities -->
   <!-- ============================================================== -->
   <section class="section">
     <div class="section-head">
-      <div class="section-num">§ IX · 09</div>
+      <div class="section-num">§ X · 10</div>
       <h2 class="display2">Statistical curiosities.<br><em>Things that fall out of the data.</em></h2>
     </div>
     <div class="curiosity-grid">
@@ -654,16 +767,18 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
   </section>
 
   <!-- ============================================================== -->
-  <!-- SECTION X — Diagnosis -->
+  <!-- SECTION XI — Diagnosis -->
   <!-- ============================================================== -->
   <section class="section">
     <div class="section-head">
-      <div class="section-num">§ X · 10</div>
-      <h2 class="display2">A diagnosis.<br><em>Three listeners in one account.</em></h2>
+      <div class="section-num">§ XI · 11</div>
+      <h2 class="display2">A diagnosis.<br><em>Four listeners in one account.</em></h2>
     </div>
-    <p class="body-copy wide">Put the behavioral data beside the curated essay and three distinct listeners emerge from the same account. The first is the <em>constant</em>: Radiohead, present at the top of every ranking — most minutes played, most tracks saved, the album (<em>OK Computer</em>) that outscores all others combined. This is the load-bearing taste, stable across decades and unchanged by mood.</p>
+    <p class="body-copy wide">Put the behavioral data beside the curated essay and four distinct listeners emerge from the same account. The first is the <em>constant</em>: Radiohead, present at the top of every ranking — most minutes played, most tracks saved, the album (<em>OK Computer</em>) that outscores all others combined. This is the load-bearing taste, stable across decades and unchanged by mood.</p>
     <p class="body-copy wide">The second is the <em>obsessive</em>. For a few months the entire chart bends around one new thing — here, the <em>Expedition 33</em> score — played so intensely it ties a twenty-year favorite. The curated top-100 never captured this because curation happens after the obsession cools; the behavioral log catches it mid-fever. Recency doesn't just bias the data, it <em>is</em> the data.</p>
-    <p class="body-copy wide">The third is the <em>archivist</em> — the one who saves 2,060 tracks and follows almost no one, who hoards Pink Floyd and Nirvana and deadmau5 and then plays almost none of them. The library is a self-image; the play log is a self. The first essay was a portrait of the image. This one is the portrait that develops when you let the receipts speak: a morning-and-midday listener, low on skips, prone to month-long fixations, anchored by a canon they keep but don't always reach for.</p>
+    <p class="body-copy wide">The third is the <em>archivist</em> — the one who saves 2,060 tracks and follows almost no one, who hoards Pink Floyd and Nirvana and deadmau5 and then plays almost none of them. The library is a self-image; the play log is a self.</p>
+    <p class="body-copy wide">The fourth is the <em>professional-curiosity listener</em>. The 31.5 hours of audiobooks and 16.9 hours of podcasts are not background filler — they're another self entirely. <em>Acquired</em> and <em>NEJM AI Grand Rounds</em> sit at the top of the podcast stack alongside <em>Hidden Brain</em> and <em>Ground Truths</em>; the audiobook shelf is anchored by <em>The Sirens' Call</em> on attention and Robert Wachter's <em>A Giant Leap</em> on healthcare AI. Music supplies affect and identity; spoken word supplies intellectual continuity. They live in the same account and almost never run at the same time.</p>
+    <p class="body-copy wide">The truer reading is not "three listeners" or even "four listeners" but <em>separate storage systems</em>: saved-library, playlists, search log, play log, Wrapped aggregates, audiobook and podcast shelves — each one describes a different behavioral layer, and a faithful portrait can't collapse them. The first essay was a portrait of the image. This one is the portrait that develops when you let the receipts speak: a morning-and-midday listener, low on skips, prone to month-long fixations, anchored by a canon they keep but don't always reach for.</p>
   </section>
 
   <!-- ============================================================== -->
