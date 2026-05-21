@@ -28,28 +28,23 @@ This repository powers [ramiefathy.com](https://ramiefathy.com) (deployed via Cl
 
 ## Prerequisites
 
-- Node.js **20.x** (Astro build) – download a local copy if your global installation is newer/older.
+- Node.js **22.12.0** (pinned in `.nvmrc` for CI parity) – download a local copy if your global installation differs.
 - Python **3.11+** (for the AI Scribe backend) if you intend to run the websocket service locally.
-- Google AdSense publisher ID `ca-pub-2958059905874922` (already configured). Individual ad slots are intentionally left blank—see [Ads Setup](#ads-setup) for instructions on obtaining IDs.
 
 ## Getting Started
 
 ### Install Dependencies
 
 ```bash
-# (Optional) Fetch portable Node 20 and esbuild binary into /tmp if not already present
-curl -L https://nodejs.org/dist/v20.17.0/node-v20.17.0-darwin-arm64.tar.gz -o /tmp/node20.tar.gz
-mkdir -p /tmp/node20 && tar -xzf /tmp/node20.tar.gz -C /tmp/node20 --strip-components=1
-mkdir -p /tmp/esbuild-0259 && curl -L https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.25.9.tgz | tar -xz -C /tmp/esbuild-0259
+# Use the pinned Node version (matches CI)
+nvm use   # reads .nvmrc → 22.12.0
 
-# Install static site dependencies (uses the portable binaries above)
-PATH=/tmp/node20/bin:$PATH ESBUILD_BINARY_PATH=/tmp/esbuild-0259/package/bin/esbuild npm --prefix site install
+# Install static site dependencies
+npm --prefix site install
 
 # Install AI Scribe backend dependencies
 pip install -r services/ai-scribe/requirements.txt
 ```
-
-> **Note:** If `/tmp/node20` or `/tmp/esbuild-0259` are cleared, download them again following the commands in this README or switch to a native Node 20 environment before running `npm --prefix site install`.
 
 ### Local Development
 
@@ -89,20 +84,6 @@ Skinoculars is intentionally hosted as a **standalone** application and deployed
 
 The main site keeps a catalog entry in `site/src/data/apps.json` pointing to the canonical URL. Legacy in-site paths under `/apps/Skinoculars/*` are redirected to the subdomain via Cloudflare redirect rules (so the app is not duplicated in this repository).
 
-## Ads Setup
-
-1. Sign in to [Google AdSense](https://adsense.google.com).
-2. Navigate to **Ads > Overview > By ad unit** and create two ad units:
-   - Responsive banner for the homepage hero (recommended size 970×90 / 728×90 fallback).
-   - Rectangle/inline unit for the Applications section (recommended size 336×280 or responsive).
-3. Copy each ad unit’s **Ad unit code** – the numeric value listed as `data-ad-slot`.
-4. Update the placeholders in `site/src/pages/index.astro`:
-   - Replace `REPLACE_WITH_TOP_BANNER_SLOT` with the banner slot ID.
-   - Replace `REPLACE_WITH_INLINE_APPS_SLOT` with the inline rectangle slot ID.
-5. Deploy the updated site. Once AdSense approves the new placements, ads will render automatically.
-
-To temporarily disable ads without editing code, comment out or remove the `<ins class="adsbygoogle">` elements.
-
 ## Legacy Content
 
 The `/legacy` route lists archived HTML reports and application prototypes. These files remain untouched to preserve historical context; please add disclaimers when sharing them externally.
@@ -117,8 +98,7 @@ The `/legacy` route lists archived HTML reports and application prototypes. Thes
 ## Roadmap Snippets
 
 - Expand structured data sources (publications, leadership timeline) and render them via Astro components.
-- Add automated lint/test/CI workflows for the Astro site and AI Scribe backend.
-- Harden the AI Scribe client with authentication and rate limiting as the deployment plan evolves.
+- Harden the AI Scribe client with additional authentication hardening and per-tenant rate limiting as the deployment plan evolves.
 
 For any questions, contact **ramiefathy@gmail.com**.
 
@@ -140,7 +120,7 @@ Libraries introduced:
 How to run:
 
 ```bash
-PATH=/tmp/node20/bin:$PATH npm --prefix site install
+npm --prefix site install
 npm run site:dev
 ```
 

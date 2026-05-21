@@ -162,8 +162,10 @@ apps/clinic-scheduler-pro/functions-backend/service-account-test.json
 # === Audit and Analysis Files (Development artifacts) ===
 audit/
 
-# Exception: Keep security audit in root
-!SECURITY-AUDIT.md
-
 # Exception: Keep committed audit reports if needed
 !docs/audit/
+
+# === Multi-model deliberation artifacts ===
+# Working notes from external-model consultations (Gemini, Codex, etc.)
+# Local-only by design — outputs are the spec doc in docs/, not the raw transcripts.
+consult/
