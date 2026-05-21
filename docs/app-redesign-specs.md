@@ -71,7 +71,7 @@ The Biologic Monitoring page also has a date bug: the hero hardcodes "September 
 
 **Files.**
 - `site/public/apps/shared/legacy-shell.js:75–110,198` — restructure status API (`markDirty` / `markSaving` / `markSaved` / `setDatasetCurrency`), drop the on-boot `setSaved(true)`, render the second chip slot when `setDatasetCurrency` is called
-- `site/public/apps/biologic-monitoring-dashboard/app.js` — after data loads, call `LegacyShell.setDatasetCurrency(\`Data as of ${formatVersionDate(dataVersion)}\`)`. Existing `dataVersion` export (`data.js:932`, value `'2025-09-23'`) is already in use; no rename needed.
+- `site/public/apps/biologic-monitoring-dashboard/app.js` — after data loads, call ``LegacyShell.setDatasetCurrency(`Data as of ${formatVersionDate(dataVersion)}`)``. Existing `dataVersion` export (`data.js:932`, value `'2025-09-23'`) is already in use; no rename needed.
 - `site/public/apps/biologic-monitoring-dashboard/index.html:26` — remove the hardcoded "September 23, 2025" hero text (the chip now carries currency)
 - Other shared-shell apps — no `setDatasetCurrency` call, just the save-state chip
 
@@ -127,7 +127,7 @@ The Biologic Monitoring page also has a date bug: the hero hardcodes "September 
 
 Subhead update:
 
-```
+```text
 Apps & projects · 2026.
 Local-first by default.
 Clinical, reference, learning, and workflow tools.

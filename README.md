@@ -120,7 +120,7 @@ Libraries introduced:
 How to run:
 
 ```bash
-PATH=/tmp/node20/bin:$PATH npm --prefix site install
+npm --prefix site install
 npm run site:dev
 ```
 
