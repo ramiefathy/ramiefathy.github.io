@@ -160,6 +160,16 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
 .long-tail table { width: 100%; }
 @media (max-width: 720px) { .long-tail { grid-template-columns: 1fr; } .long-tail .col { border-right: 0; padding-right: 0; padding-left: 0; margin-left: 0; } }
 
+/* ===== Obsession map heatmap (artist × month) ===== */
+.heatmap-wrap { margin-top: 24px; overflow-x: auto; }
+.heatmap { display: grid; gap: 4px; min-width: 640px; }
+.heat-row { display: grid; grid-template-columns: 140px repeat(13, 1fr); gap: 3px; align-items: center; }
+.heat-row.is-header > * { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate); text-align: center; padding-bottom: 6px; }
+.heat-row.is-header > :first-child { text-align: right; padding-right: 10px; }
+.heat-label { font-family: var(--font-mono); font-size: 11px; color: var(--ink); text-transform: uppercase; letter-spacing: 0.05em; padding-right: 10px; text-align: right; }
+.heat-cell { display: block; aspect-ratio: 1; background: rgba(194, 103, 74, var(--a, 0)); border: 1px solid var(--rule-soft); border-radius: 2px; min-height: 20px; }
+.heat-cell:hover { outline: 1px solid var(--terracotta-2); }
+
 /* ===== Methods / colophon ===== */
 .methods { margin-top: 64px; background: var(--plate-bg); border: 1px solid var(--rule); padding: 26px 28px; }
 .methods h3 { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--terracotta); margin-bottom: 14px; }
@@ -270,6 +280,13 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
       </div>
     </div>
 
+    <div class="tagstrip" style="margin-top:8px">
+      <span class="tag">Gini coefficient <b>0.75</b></span>
+      <span class="tag">HHI effective artists <b>29.4</b></span>
+      <span class="tag">80% core <b>145 of 705</b></span>
+      <span class="tag">Top-5 share <b>33.5%</b></span>
+    </div>
+
     <div class="tables-side-by-side">
       <div>
         <p class="col-head accent">By minutes played</p>
@@ -362,6 +379,12 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
         </table>
       </div>
     </div>
+    <div class="tagstrip" style="margin-top:18px">
+      <span class="tag">Single-event tracks <b>1,446 of 1,898</b></span>
+      <span class="tag">≥ 5-event tracks <b>93</b></span>
+      <span class="tag">≥ 10-event tracks <b>24</b></span>
+    </div>
+    <p class="strip-caption" style="margin-top:8px">The track-level tail is even longer than the artist-level tail: most things played were played exactly once.</p>
   </section>
 
   <!-- ============================================================== -->
@@ -390,6 +413,198 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
       <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:60%" data-v="16.6"></div></div><div class="bar-label"><b>May</b></div></div>
     </div>
     <p class="strip-caption">Hours of music per month · play-by-play export · partial months at each end</p>
+
+    <table class="atlas" style="margin-top:24px">
+      <thead><tr><th>Month</th><th class="ct">Hours</th><th>Top artist</th><th>Top track</th></tr></thead>
+      <tbody>
+        <tr><td>May 2025</td><td class="ct">22.8</td><td class="name"><b>Radiohead</b><span class="sub">2.9h · 12%</span></td><td class="track"><b>Lying Has To Stop</b><span class="sub">Soft Hair</span></td></tr>
+        <tr><td>Jun 2025</td><td class="ct">14.4</td><td class="name"><b>Soft Hair</b><span class="sub">1.6h · 11%</span></td><td class="track"><b>Lying Has To Stop</b><span class="sub">Soft Hair</span></td></tr>
+        <tr><td>Jul 2025</td><td class="ct">16.8</td><td class="name"><b>Justice</b><span class="sub">2.7h · 16%</span></td><td class="track"><b>Season of the Witch</b><span class="sub">Al Kooper</span></td></tr>
+        <tr class="hl"><td>Aug 2025</td><td class="ct">19.3</td><td class="name"><b>Lorien Testard</b><span class="sub">8.2h · 42%</span></td><td class="track"><b>Alicia</b><span class="sub">Lorien Testard</span></td></tr>
+        <tr><td>Sep 2025</td><td class="ct">10.0</td><td class="name"><b>Mac DeMarco</b><span class="sub">4.7h · 47%</span></td><td class="track"><b lang="tr">Deniz Üstü Köpürür</b><span class="sub"><span lang="tr">Ünol Büyükgönenç</span></span></td></tr>
+        <tr><td>Oct 2025</td><td class="ct">6.8</td><td class="name"><b>Tame Impala</b><span class="sub">2.5h · 36%</span></td><td class="track"><b>It Is Not Meant To Be</b><span class="sub">Tame Impala</span></td></tr>
+        <tr><td>Nov 2025</td><td class="ct">10.2</td><td class="name"><b>Lorien Testard</b><span class="sub">3.8h · 37%</span></td><td class="track"><b lang="fr">Lumière à l'Aube</b><span class="sub">Lorien Testard</span></td></tr>
+        <tr><td>Dec 2025</td><td class="ct">5.6</td><td class="name"><b>Miles Davis</b><span class="sub">3.7h · 67%</span></td><td class="track"><b>All Blues</b><span class="sub">Miles Davis</span></td></tr>
+        <tr><td>Jan 2026</td><td class="ct">5.1</td><td class="name"><b>Radiohead</b><span class="sub">1.5h · 30%</span></td><td class="track"><b>How to Disappear Completely</b><span class="sub">Radiohead</span></td></tr>
+        <tr><td>Feb 2026</td><td class="ct">2.3</td><td class="name"><b>Ludovico Einaudi</b><span class="sub">1.9h · 86%</span></td><td class="track"><b>Primavera</b><span class="sub">Ludovico Einaudi</span></td></tr>
+        <tr><td>Mar 2026</td><td class="ct">5.0</td><td class="name"><b>Lorien Testard</b><span class="sub">2.4h · 48%</span></td><td class="track"><b lang="fr">Gustave</b><span class="sub">Lorien Testard</span></td></tr>
+        <tr class="hl"><td>Apr 2026</td><td class="ct">27.8</td><td class="name"><b>Radiohead</b><span class="sub">6.4h · 23%</span></td><td class="track"><b>Let Down</b><span class="sub">Radiohead</span></td></tr>
+        <tr><td>May 2026</td><td class="ct">16.6</td><td class="name"><b>Tame Impala</b><span class="sub">2.3h · 14%</span></td><td class="track"><b>Charlotte's Thong</b><span class="sub">Connan Mockasin</span></td></tr>
+      </tbody>
+    </table>
+    <p class="strip-caption" style="margin-top:8px">Each month belongs to a different artist — and a different track. Aug '25 and Apr '26 are the obsession peaks.</p>
+
+    <p class="body-copy wide" style="margin-top:32px">A heatmap of the top ten artists by month makes the regime-cycling literal. Each row is an artist; each cell is one month's listening hours, scaled to the maximum artist-month cell in the grid (Lorien Testard, Aug 2025, 8.2h). The dark vertical streaks at Aug '25 (Lorien Testard) and Sep '25 (Mac DeMarco) and Dec '25 (Miles Davis) and Feb '26 (Ludovico Einaudi, not shown) are the obsession layer in pure visual form: each artist takes a month and then disappears.</p>
+
+    <div class="heatmap-wrap" aria-label="Top-10 artists by hours per month, heatmap">
+      <div class="heatmap">
+        <div class="heat-row is-header">
+          <span>Artist</span>
+          <span>May'25</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan'26</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May'26</span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Radiohead</div>
+          <span class="heat-cell" style="--a:0.350" title="May 2025 · 2.9h"></span>
+          <span class="heat-cell" style="--a:0.156" title="Jun 2025 · 1.3h"></span>
+          <span class="heat-cell" style="--a:0.053" title="Jul 2025 · 0.4h"></span>
+          <span class="heat-cell" style="--a:0.366" title="Aug 2025 · 3.0h"></span>
+          <span class="heat-cell" style="--a:0.079" title="Sep 2025 · 0.6h"></span>
+          <span class="heat-cell" style="--a:0.008" title="Oct 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.058" title="Dec 2025 · 0.5h"></span>
+          <span class="heat-cell" style="--a:0.189" title="Jan 2026 · 1.5h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.033" title="Mar 2026 · 0.3h"></span>
+          <span class="heat-cell" style="--a:0.780" title="Apr 2026 · 6.4h"></span>
+          <span class="heat-cell" style="--a:0.177" title="May 2026 · 1.4h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Lorien Testard</div>
+          <span class="heat-cell" style="--a:0.000" title="May 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jun 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.007" title="Jul 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:1.000" title="Aug 2025 · 8.2h (peak)"></span>
+          <span class="heat-cell" style="--a:0.000" title="Sep 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.143" title="Oct 2025 · 1.2h"></span>
+          <span class="heat-cell" style="--a:0.461" title="Nov 2025 · 3.8h"></span>
+          <span class="heat-cell" style="--a:0.026" title="Dec 2025 · 0.2h"></span>
+          <span class="heat-cell" style="--a:0.050" title="Jan 2026 · 0.4h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.292" title="Mar 2026 · 2.4h"></span>
+          <span class="heat-cell" style="--a:0.268" title="Apr 2026 · 2.2h"></span>
+          <span class="heat-cell" style="--a:0.000" title="May 2026 · 0.0h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Tame Impala</div>
+          <span class="heat-cell" style="--a:0.025" title="May 2025 · 0.2h"></span>
+          <span class="heat-cell" style="--a:0.005" title="Jun 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.009" title="Jul 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.007" title="Sep 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.306" title="Oct 2025 · 2.5h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.165" title="Jan 2026 · 1.3h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.030" title="Apr 2026 · 0.2h"></span>
+          <span class="heat-cell" style="--a:0.284" title="May 2026 · 2.3h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Mac DeMarco</div>
+          <span class="heat-cell" style="--a:0.011" title="May 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.005" title="Jun 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jul 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.574" title="Sep 2025 · 4.7h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Oct 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jan 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.007" title="Mar 2026 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.036" title="Apr 2026 · 0.3h"></span>
+          <span class="heat-cell" style="--a:0.077" title="May 2026 · 0.6h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Soft Hair</div>
+          <span class="heat-cell" style="--a:0.185" title="May 2025 · 1.5h"></span>
+          <span class="heat-cell" style="--a:0.197" title="Jun 2025 · 1.6h"></span>
+          <span class="heat-cell" style="--a:0.064" title="Jul 2025 · 0.5h"></span>
+          <span class="heat-cell" style="--a:0.056" title="Aug 2025 · 0.5h"></span>
+          <span class="heat-cell" style="--a:0.051" title="Sep 2025 · 0.4h"></span>
+          <span class="heat-cell" style="--a:0.009" title="Oct 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.009" title="Nov 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.016" title="Dec 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jan 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.047" title="Mar 2026 · 0.4h"></span>
+          <span class="heat-cell" style="--a:0.003" title="Apr 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.016" title="May 2026 · 0.1h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">The Beatles</div>
+          <span class="heat-cell" style="--a:0.000" title="May 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.011" title="Jun 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jul 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.272" title="Aug 2025 · 2.2h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Sep 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Oct 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jan 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.215" title="Apr 2026 · 1.8h"></span>
+          <span class="heat-cell" style="--a:0.058" title="May 2026 · 0.5h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Justice</div>
+          <span class="heat-cell" style="--a:0.015" title="May 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.020" title="Jun 2025 · 0.2h"></span>
+          <span class="heat-cell" style="--a:0.333" title="Jul 2025 · 2.7h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Sep 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.161" title="Oct 2025 · 1.3h"></span>
+          <span class="heat-cell" style="--a:0.013" title="Nov 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.013" title="Jan 2026 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Apr 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="May 2026 · 0.0h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Miles Davis</div>
+          <span class="heat-cell" style="--a:0.000" title="May 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jun 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jul 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Sep 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Oct 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.459" title="Dec 2025 · 3.7h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jan 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Apr 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="May 2026 · 0.0h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Khruangbin</div>
+          <span class="heat-cell" style="--a:0.000" title="May 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.024" title="Jun 2025 · 0.2h"></span>
+          <span class="heat-cell" style="--a:0.091" title="Jul 2025 · 0.7h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.007" title="Sep 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Oct 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.010" title="Jan 2026 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.007" title="Apr 2026 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.245" title="May 2026 · 2.0h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label" lang="tr">Altın Gün</div>
+          <span class="heat-cell" style="--a:0.000" title="May 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jun 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.179" title="Jul 2025 · 1.5h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.013" title="Sep 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Oct 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jan 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.090" title="Apr 2026 · 0.7h"></span>
+          <span class="heat-cell" style="--a:0.043" title="May 2026 · 0.4h"></span>
+        </div>
+      </div>
+    </div>
+    <p class="strip-caption" style="margin-top:8px">Heatmap opacity scaled to the maximum artist-month cell (Lorien Testard, Aug 2025, 8.2h). Hover any cell for hours.</p>
   </section>
 
   <!-- ============================================================== -->
@@ -764,14 +979,90 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
       <div class="curiosity"><div class="ct">Wednesday blackout</div><h3>4.6h</h3><p>Wednesday is the dead day — one-seventh of Monday's volume in local time. Something recurring owns Wednesdays.</p></div>
       <div class="curiosity"><div class="ct">Average attention span</div><h3>3.1 min</h3><p>The mean play event is 3.1 minutes — almost exactly one pop song. Few half-listens, few epic sittings.</p></div>
     </div>
+
+    <p class="body-copy wide" style="margin-top:32px">Going one level deeper: grouping events into <em>sessions</em> (a new session begins after a 30-minute silence) yields <em>300 inferred sessions</em>, median 4.7 minutes, with 16 sessions over two hours. Same-artist <em>streaks</em> — consecutive events from one artist with no other artist between them — surface the obsession layer in its rawest form. Both views agree: <em>Lorien Testard</em> in August 2025 is the most acute event in the entire window.</p>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">Largest inferred sessions</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Started</th><th>Hours</th><th class="ct">Events · Artists</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="name"><b>May 14, 2026</b><span class="sub">22:54 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span><span class="num">15.0</span></td><td class="ct">226 · 63</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>May 20, 2025</b><span class="sub">03:38 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.747"></span></span><span class="num">11.2</span></td><td class="ct">161 · 37</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>Apr 20, 2026</b><span class="sub">18:24 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.673"></span></span><span class="num">10.1</span></td><td class="ct">251 · 153</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>Jun 2, 2025</b><span class="sub">06:50 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.373"></span></span><span class="num">5.6</span></td><td class="ct">123 · 57</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Sep 5, 2025</b><span class="sub">17:58 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.340"></span></span><span class="num">5.1</span></td><td class="ct">92 · 25</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Nov 27, 2025</b><span class="sub">08:22 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.320"></span></span><span class="num">4.8</span></td><td class="ct">109 · 45</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Dec 13, 2025</b><span class="sub">10:03 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.287"></span></span><span class="num">4.3</span></td><td class="ct">57 · 10</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>May 26, 2025</b><span class="sub">16:43 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.267"></span></span><span class="num">4.0</span></td><td class="ct">92 · 48</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>Aug 24, 2025</b><span class="sub">10:36 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.233"></span></span><span class="num">3.5</span></td><td class="ct">77 · 48</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>Jul 8, 2025</b><span class="sub">02:14 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.207"></span></span><span class="num">3.1</span></td><td class="ct">82 · 20</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">Longest same-artist streaks</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th>Events</th><th class="ct">Hours</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td class="rk">01</td><td class="name"><b>Lorien Testard</b><span class="sub">Aug 3–10, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:1.0"></span></span><span class="num">168</span></td><td class="ct">7.6</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>Lorien Testard</b><span class="sub">Nov 10–11, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.321"></span></span><span class="num">54</span></td><td class="ct">2.5</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>Lorien Testard</b><span class="sub">Mar 21–24, 2026</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.304"></span></span><span class="num">51</span></td><td class="ct">2.4</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>The Beatles</b><span class="sub">Aug 25–28, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.268"></span></span><span class="num">45</span></td><td class="ct">2.2</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Miles Davis</b><span class="sub">Dec 13, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.250"></span></span><span class="num">42</span></td><td class="ct">3.4</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Mac DeMarco</b><span class="sub">Sep 5, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.244"></span></span><span class="num">41</span></td><td class="ct">2.2</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Radiohead</b><span class="sub">Aug 31 – Sep 2, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.196"></span></span><span class="num">33</span></td><td class="ct">2.4</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>Radiohead</b><span class="sub">Apr 24, 2026</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.190"></span></span><span class="num">32</span></td><td class="ct">2.1</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>The Beatles</b><span class="sub">Apr 2–3, 2026</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.190"></span></span><span class="num">32</span></td><td class="ct">1.5</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>Lorien Testard</b><span class="sub">Apr 10, 2026</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.167"></span></span><span class="num">28</span></td><td class="ct">1.1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="strip-caption" style="margin-top:8px">Half of the top-ten streaks are Lorien Testard. Obsession isn't even — it's lopsided.</p>
   </section>
 
   <!-- ============================================================== -->
-  <!-- SECTION XI — Diagnosis -->
+  <!-- SECTION XI — Wrapped and Sound Capsule -->
   <!-- ============================================================== -->
   <section class="section">
     <div class="section-head">
       <div class="section-num">§ XI · 11</div>
+      <h2 class="display2">Wrapped &amp; Sound Capsule.<br><em>Aggregate context, not raw replacement.</em></h2>
+    </div>
+    <p class="body-copy wide">Spotify also ships two further aggregate views in the export. They cover different windows than the rolling play-by-play file and use Spotify-defined counting rules, so they should not be forced to reconcile with the figures earlier in this essay. They <em>do</em> triangulate behavior from another angle: Spotify's own view of itself.</p>
+
+    <div class="curiosity-grid">
+      <div class="curiosity"><div class="ct">Wrapped 2025</div><h3>265.4h</h3><p>Calendar-year aggregate: 1,470 artists, 2,466 tracks, 319 genre concepts, 180 listening days, 715 artists labelled as discovered. Broader than the rolling window because the rolling window is rolling.</p></div>
+      <div class="curiosity"><div class="ct">Top-artist percentile</div><h3>Top 1.9%</h3><p>Wrapped places the account in the top-1.9% fan percentile for its top artist (Radiohead, 930 minutes). Worth noting the percentile is generous — many casual listeners also clear that bar.</p></div>
+      <div class="curiosity"><div class="ct">"Night listening" (Wrapped's definition)</div><h3>34.7%</h3><p>Spotify reports 34.7% of listening as "night." Wrapped uses its own clock convention; cross-check against § IV's local-time chart, where 8 am–noon is the actual peak in America/Los_Angeles.</p></div>
+    </div>
+
+    <p class="body-copy wide" style="margin-top:24px">The Sound Capsule files add weekly Spotify-generated highlights — streak markers, milestone notifications, "you stand out" comparisons against a market average. A small sample of what gets flagged:</p>
+
+    <table class="atlas" style="margin-top:8px">
+      <thead><tr><th>Week</th><th>Type</th><th>Highlight</th></tr></thead>
+      <tbody>
+        <tr><td>2026-05-17</td><td>Streak</td><td><b>Charlotte's Thong</b> · Connan Mockasin · 4-day streak</td></tr>
+        <tr><td>2026-04-26</td><td>Milestone</td><td><b>Radiohead, The Strokes, Tame Impala, "Let Down"</b> · 15.2h listening milestone</td></tr>
+        <tr><td>2026-04-19</td><td>Top entity</td><td><b>Radiohead</b> · 56.4% of week's listening</td></tr>
+        <tr><td>2026-04-12</td><td>Top entity</td><td><b>Lorien Testard</b> · 27.2% of week's listening</td></tr>
+        <tr><td>2026-04-05</td><td>You stand out</td><td><b>The Beatles</b> · 95.5 min vs market average 12.1 min</td></tr>
+        <tr><td>2026-03-22</td><td>Top entity</td><td><b>Lorien Testard</b> · 100% of week's listening</td></tr>
+        <tr><td>2026-02-01</td><td>Top entity</td><td><b>Ludovico Einaudi</b> · 97% of week's listening</td></tr>
+        <tr><td>2026-01-04</td><td>You stand out</td><td><b>Tame Impala</b> · 80.5 min vs market average 13.3 min</td></tr>
+      </tbody>
+    </table>
+    <p class="strip-caption" style="margin-top:8px">"Top entity" weeks reveal monomaniacal stretches with surgical precision — these are exactly the streaks the § X tables surfaced from a different angle.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION XII — Diagnosis -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ XII · 12</div>
       <h2 class="display2">A diagnosis.<br><em>Four listeners in one account.</em></h2>
     </div>
     <p class="body-copy wide">Put the behavioral data beside the curated essay and four distinct listeners emerge from the same account. The first is the <em>constant</em>: Radiohead, present at the top of every ranking — most minutes played, most tracks saved, the album (<em>OK Computer</em>) that outscores all others combined. This is the load-bearing taste, stable across decades and unchanged by mood.</p>
