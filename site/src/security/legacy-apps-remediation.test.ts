@@ -53,7 +53,7 @@ describe('legacy apps remediation backlog', () => {
 
     expect(clinisched).toBeDefined()
     expect(clinisched?.href).toBe('https://clinisched.ramiefathy.com/')
-    expect(clinisched?.preview).toBe('https://clinisched.ramiefathy.com/')
+    expect(clinisched?.preview).toBeUndefined()
     expect(rootAppsShowcase).toContain('https://clinisched.ramiefathy.com/')
     expect(rootAppsShowcase).not.toContain('/apps/clinic-scheduler-pro/index.html')
     expect(schedulerLanding).toContain('https://clinisched.ramiefathy.com/')
@@ -212,7 +212,7 @@ describe('legacy apps remediation backlog', () => {
 
     expect(clinisched).toBeDefined()
     expect(clinisched?.href).toBe('https://clinisched.ramiefathy.com/')
-    expect(clinisched?.preview).toBe('https://clinisched.ramiefathy.com/')
+    expect(clinisched?.preview).toBeUndefined()
     expect(legacyScheduler).toBeUndefined()
   })
 

@@ -2,40 +2,26 @@
 import MainLayout from '../layouts/MainLayout.astro';
 import Header from '../components/Header.jsx';
 import ScholarFeedEnhanced from '../components/ScholarFeedEnhanced.jsx';
-import { publications } from '../data/publications.js';
-
-const totalPubs = publications.length;
-const firstAuthor = publications.filter((entry) => /^Fathy/i.test(entry.authors || '')).length;
-const yearSpan = publications.reduce(
-  (acc, entry) => {
-    if (typeof entry.year === 'number') {
-      acc.min = Math.min(acc.min, entry.year);
-      acc.max = Math.max(acc.max, entry.year);
-    }
-    return acc;
-  },
-  { min: 2099, max: 0 }
-);
 ---
-<MainLayout title="Research – Ramie Fathy, MD" description="Recent publications, presentations, and scholarly projects.">
+<MainLayout title="Publications – Ramie Fathy, MD" description="Publications, presentations, and scholarly projects.">
   <Header client:load />
   <main id="main-content">
     <section class="section">
-      <div class="plate-stamp"><b>Research</b><span class="barcode"></span><span>Index of works · {totalPubs} entries</span></div>
+      <div class="plate-stamp"><b>Research</b><span class="barcode"></span><span>Index of works</span></div>
 
       <div class="plate-head">
         <div>
-          <span class="kicker">Publications & scholarship</span>
-          <h1 class="display1" style="margin-top:14px">{totalPubs} <em>papers</em>,<br>{yearSpan.max - yearSpan.min} years.</h1>
+          <span class="kicker">Publications</span>
+          <h1 class="display1" style="margin-top:14px">Selected <em>scholarship</em>.</h1>
         </div>
         <div class="right">
-          Aggregate index, sortable.<br>
-          {firstAuthor} first-author works.<br>
-          <span style="color:var(--terracotta)">{yearSpan.min}—{yearSpan.max}</span>
+          Aggregate index,<br>
+          sortable by topic,<br>
+          venue, and year.
         </div>
       </div>
 
-      <p class="lede">Selected research spanning inflammatory dermatoses, autoimmune disease, dermatopathology, and the responsible application of generative AI in clinical workflows.</p>
+      <p class="lede">Selected research spanning inflammatory dermatoses, autoimmune disease, dermatopathology, and clinical AI evaluation.</p>
 
       <!-- Featured callout: dermoscopy LLM dashboard -->
       <div style="margin-top:48px;border:2px solid var(--ink);background:var(--plate-bg);display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;padding:24px 28px">

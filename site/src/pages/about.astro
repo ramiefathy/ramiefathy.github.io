@@ -46,8 +46,8 @@ const domains = [
         <div class="portrait" role="img" aria-label="Portrait of Ramie Fathy"></div>
         <div class="text">
           <p class="lede" style="font-size:22px">{profile.about.intro}</p>
-          <p class="body-copy">My work spans inflammatory dermatoses, cutaneous oncology, patient-centered teledermatology, and responsible AI. I build clinical decision tools, study the equity implications of new technologies, and translate complex science into <em style="font-style:italic;color:var(--terracotta)">empathetic narratives</em> for trainees, clinicians, and patients.</p>
-          <p class="body-copy">Outside the clinic I love mentoring future physician-innovators, producing radio and podcast stories, and exploring Baltimore's culinary community. When traveling, you'll find me sketching architectural textures and searching for the best espresso shot in town.</p>
+          <p class="body-copy">My work spans inflammatory dermatoses, cutaneous oncology, teledermatology, and clinical AI. I build decision-support tools, study technology in clinical settings, and write for trainees, clinicians, and patients.</p>
+          <p class="body-copy">Outside the clinic I mentor medical students, work on audio storytelling projects, and explore Baltimore.</p>
           <div style="display:flex;gap:24px;align-items:center;margin-top:auto">
             <a class="button button--primary" href="/contact">Get in touch →</a>
             <a class="button button--secondary" href="/apps">Browse the catalog →</a>
@@ -98,14 +98,14 @@ const domains = [
           <h2 class="display2" style="margin-top:8px">Three <em>overlapping</em> domains.</h2>
         </div>
       </div>
-      <p class="lede">Replaces the older bar-chart of skill percentages. The interesting projects sit in the intersections — RAMIE in clinical × technical, the JAAD '22 essay in scholarly × clinical, the dermoscopy dashboard in technical × scholarly.</p>
+      <p class="lede">The interesting projects sit in the intersections: RAMIE in clinical and technical work, the JAAD essay in scholarly and clinical work, and the dermoscopy dashboard in technical and scholarly work.</p>
 
       <div class="domains-plates" style="margin-top:32px">
         {domains.map((domain, idx) => (
           <div class={`domain-plate ${domain.cls}`}>
             <div class="head">
               <h4>{domain.label}</h4>
-              <span class="ct">{['A', 'B', 'C'][idx]} · 0{domain.items.length}</span>
+              <span class="ct">{['A', 'B', 'C'][idx]}</span>
             </div>
             <ul>
               {domain.items.map((skill) => (

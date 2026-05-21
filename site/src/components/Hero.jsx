@@ -349,18 +349,20 @@ const Hero = ({ profile }) => {
               <a className="button button--primary" href={primaryCta?.href ?? '/apps'} target={primaryCta?.external ? '_blank' : undefined} rel={primaryCta?.external ? 'noreferrer' : undefined}>
                 {primaryCta?.label ?? 'Open the catalog'} →
               </a>
-              <a className="button button--secondary" href={secondaryCta?.href ?? '/about'} target={secondaryCta?.external ? '_blank' : undefined} rel={secondaryCta?.external ? 'noreferrer' : undefined}>
-                {secondaryCta?.label ?? 'Read the bio'} →
-              </a>
+              {secondaryCta ? (
+                <a className="button button--secondary" href={secondaryCta.href} target={secondaryCta.external ? '_blank' : undefined} rel={secondaryCta.external ? 'noreferrer' : undefined}>
+                  {secondaryCta.label} →
+                </a>
+              ) : null}
             </div>
           </div>
           <aside className="atlas-hero-plate-side">
             <span className="kicker" style={{ display: 'block', marginBottom: '10px' }}>In this volume</span>
             <a href="/apps" className="atlas-hero-side-row">
-              <span className="l">Apps catalog · 9 instruments</span>
+              <span className="l">Apps catalog</span>
             </a>
             <a href="/research" className="atlas-hero-side-row">
-              <span className="l">Research · 12 papers</span>
+              <span className="l">Research</span>
             </a>
             <a href="/blog" className="atlas-hero-side-row">
               <span className="l">Field notes & dispatches</span>

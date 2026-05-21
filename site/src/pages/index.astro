@@ -29,7 +29,7 @@ const highlightLabels = ['Active', 'Incoming', 'Council', 'Education'];
       <div class="plate-stamp"><b>Home</b><span class="barcode"></span><span>Featured Catalog</span></div>
       <div class="plate-head">
         <div>
-          <span class="kicker">Featured · 03 of 12</span>
+          <span class="kicker">Featured applications</span>
           <h2 class="display2" style="margin-top:8px">A working <em>laboratory</em>.</h2>
         </div>
         <a class="button button--primary" href="/apps">Open the catalog →</a>
@@ -48,7 +48,7 @@ const highlightLabels = ['Active', 'Incoming', 'Council', 'Education'];
             <p>{app.description}</p>
             <div class="footer">
               <span>{(app.stack || []).slice(0, 3).join(' · ')}</span>
-              <span>Visit →</span>
+              <span>Open →</span>
             </div>
           </a>
         ))}
@@ -83,8 +83,8 @@ const highlightLabels = ['Active', 'Incoming', 'Council', 'Education'];
       <div class="pub-register">
         <div class="ph">
           <div>
-            <span class="kicker">Selected Scholarship · Index</span>
-            <h2 class="display2" style="margin-top:8px">{publications.length} <em>papers</em>, eight years.</h2>
+            <span class="kicker">Selected scholarship</span>
+            <h2 class="display2" style="margin-top:8px">Selected <em>publications</em>.</h2>
           </div>
           <a class="button button--primary" href="/research">Full register →</a>
         </div>
