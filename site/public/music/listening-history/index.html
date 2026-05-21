@@ -398,50 +398,82 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
   <section class="section">
     <div class="section-head">
       <div class="section-num">§ IV · 04</div>
-      <h2 class="display2">Circadian rhythm.<br><em>An afternoon-and-evening listener.</em></h2>
+      <h2 class="display2">Circadian rhythm.<br><em>A morning-and-midday listener.</em></h2>
     </div>
-    <p class="body-copy wide">Aggregating every play by clock hour produces a clean diurnal curve. Listening is quietest in the small hours, climbs gently through the morning, dips at lunch, and then ramps steeply from mid-afternoon to a hard peak at <em>7&nbsp;pm</em> before tapering. The 3-to-9&nbsp;pm block — commute, evening, wind-down — carries the bulk of the day. This is not background-at-work listening; it's after-hours listening.</p>
+    <p class="body-copy wide">Spotify exports <span style="font-family:var(--font-mono);font-size:13px">endTime</span> in UTC, not the listener's clock. Converted to America/Los_Angeles the diurnal curve inverts the obvious reading of the raw file: listening climbs steadily through the early morning, jumps into the workday at 8&nbsp;am, and hits a hard peak at <em>9&nbsp;am</em> (13.6 hours) with a near-tie at noon (13.5 hours). The afternoon dips, briefly rises around 4&nbsp;pm, then tapers through the evening. This is not after-hours listening; it is clinic-hours and lunch-hours listening — a frontloaded day. The raw 7&nbsp;pm peak you would see in the export is a UTC artifact, preserved below as a diagnostic comparison.</p>
 
-    <div class="hours" role="img" aria-label="Minutes of listening by hour of day, peak at 19:00">
-      <div class="hour-col"><div class="hour-bar" style="--h:45%"></div><div class="hour-tick">0</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:36%"></div><div class="hour-tick">1</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:35%"></div><div class="hour-tick">2</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:29%"></div><div class="hour-tick">3</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:18%"></div><div class="hour-tick">4</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:24%"></div><div class="hour-tick">5</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:20%"></div><div class="hour-tick">6</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:20%"></div><div class="hour-tick">7</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:25%"></div><div class="hour-tick">8</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:34%"></div><div class="hour-tick">9</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:40%"></div><div class="hour-tick">10</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:44%"></div><div class="hour-tick">11</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:34%"></div><div class="hour-tick">12</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:56%"></div><div class="hour-tick">13</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:51%"></div><div class="hour-tick">14</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:76%"></div><div class="hour-tick">15</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:86%"></div><div class="hour-tick">16</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:90%"></div><div class="hour-tick">17</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:93%"></div><div class="hour-tick">18</div></div>
-      <div class="hour-col"><div class="hour-bar peak" style="--h:100%"></div><div class="hour-tick">19</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:64%"></div><div class="hour-tick">20</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:54%"></div><div class="hour-tick">21</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:35%"></div><div class="hour-tick">22</div></div>
-      <div class="hour-col"><div class="hour-bar" style="--h:39%"></div><div class="hour-tick">23</div></div>
+    <div class="hours" role="img" aria-label="Minutes of listening by local hour (America/Los_Angeles), peak at 9 am">
+      <div class="hour-col"><div class="hour-bar" style="--h:21%" title="0:00 · 2.9h"></div><div class="hour-tick">0</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:26%" title="1:00 · 3.6h"></div><div class="hour-tick">1</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:35%" title="2:00 · 4.7h"></div><div class="hour-tick">2</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:45%" title="3:00 · 6.1h"></div><div class="hour-tick">3</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:46%" title="4:00 · 6.3h"></div><div class="hour-tick">4</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:38%" title="5:00 · 5.1h"></div><div class="hour-tick">5</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:54%" title="6:00 · 7.3h"></div><div class="hour-tick">6</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:62%" title="7:00 · 8.4h"></div><div class="hour-tick">7</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:90%" title="8:00 · 12.2h"></div><div class="hour-tick">8</div></div>
+      <div class="hour-col"><div class="hour-bar peak" style="--h:100%" title="9:00 · 13.6h"></div><div class="hour-tick">9</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:85%" title="10:00 · 11.6h"></div><div class="hour-tick">10</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:96%" title="11:00 · 13.0h"></div><div class="hour-tick">11</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:99%" title="12:00 · 13.5h"></div><div class="hour-tick">12</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:65%" title="13:00 · 8.9h"></div><div class="hour-tick">13</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:47%" title="14:00 · 6.4h"></div><div class="hour-tick">14</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:32%" title="15:00 · 4.4h"></div><div class="hour-tick">15</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:52%" title="16:00 · 7.0h"></div><div class="hour-tick">16</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:39%" title="17:00 · 5.3h"></div><div class="hour-tick">17</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:34%" title="18:00 · 4.6h"></div><div class="hour-tick">18</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:36%" title="19:00 · 5.0h"></div><div class="hour-tick">19</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:30%" title="20:00 · 4.1h"></div><div class="hour-tick">20</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:19%" title="21:00 · 2.5h"></div><div class="hour-tick">21</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:25%" title="22:00 · 3.4h"></div><div class="hour-tick">22</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:21%" title="23:00 · 2.8h"></div><div class="hour-tick">23</div></div>
     </div>
-    <div class="hours-axis"><span>Midnight</span><span>Noon</span><span>7 pm peak</span><span>Late</span></div>
+    <div class="hours-axis"><span>Midnight</span><span>9 am peak</span><span>Noon</span><span>Late</span></div>
 
-    <p class="body-copy wide" style="margin-top:32px">The weekday picture is stranger. By day of week the listening is decidedly <em>not</em> uniform: <em>Tuesday</em> towers over everything at roughly 40 hours, the weekend stays high, and <em>Wednesday</em> collapses to a sixth of Tuesday's volume. The mid-week trough is sharp enough to suggest a recurring Wednesday commitment that crowds music out entirely.</p>
+    <p class="body-copy wide" style="margin-top:32px">The weekday picture is stranger. By local day of week the listening is decidedly <em>not</em> uniform: <em>Monday</em> leads at 34.3 hours, <em>Friday</em> nearly matches it at 33.2 hours, Sunday and Tuesday round out the heavy days, and <em>Wednesday</em> collapses to one-seventh of Monday's volume (4.6 hours). The mid-week trough is sharp enough to suggest a recurring Wednesday commitment that crowds music out entirely.</p>
 
-    <div class="bar-strip" role="img" aria-label="Music hours by day of week, Tuesday highest, Wednesday lowest">
-      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:53%" data-v="21.2h"></div></div><div class="bar-label"><b>Mon</b></div></div>
-      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:100%" data-v="40.3h"></div></div><div class="bar-label"><b>Tue</b></div></div>
-      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:15%" data-v="6.1h"></div></div><div class="bar-label"><b>Wed</b></div></div>
-      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:29%" data-v="11.7h"></div></div><div class="bar-label"><b>Thu</b></div></div>
-      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:70%" data-v="28.4h"></div></div><div class="bar-label"><b>Fri</b></div></div>
-      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:60%" data-v="24.0h"></div></div><div class="bar-label"><b>Sat</b></div></div>
-      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:77%" data-v="30.9h"></div></div><div class="bar-label"><b>Sun</b></div></div>
+    <div class="bar-strip" role="img" aria-label="Music hours by local weekday, Monday highest, Wednesday lowest">
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:100%" data-v="34.3h"></div></div><div class="bar-label"><b>Mon</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:87%" data-v="29.8h"></div></div><div class="bar-label"><b>Tue</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:14%" data-v="4.6h"></div></div><div class="bar-label"><b>Wed</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:38%" data-v="13.1h"></div></div><div class="bar-label"><b>Thu</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:97%" data-v="33.2h"></div></div><div class="bar-label"><b>Fri</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:55%" data-v="19.0h"></div></div><div class="bar-label"><b>Sat</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:83%" data-v="28.6h"></div></div><div class="bar-label"><b>Sun</b></div></div>
     </div>
-    <p class="strip-caption">Total hours by weekday across the window</p>
+    <p class="strip-caption">Total hours by local weekday across the window · America/Los_Angeles</p>
+
+    <details style="margin-top:24px">
+      <summary style="font-family:var(--font-mono); font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:0.16em; cursor:pointer">Raw UTC comparison (diagnostic)</summary>
+      <p class="body-copy" style="margin-top:14px">In the raw export, before timezone conversion, the hour peak sits at <em>19:00 UTC</em> with 14.2 hours and the weekday peak is <em>Tuesday</em> at 40.3 hours. Those values are the export-clock view; the charts above are the listener-clock view. Both are real, but only the listener-clock view supports claims about workday vs. evening listening.</p>
+      <div class="hours" role="img" aria-label="Raw UTC minutes of listening by hour, peak at 19:00">
+        <div class="hour-col"><div class="hour-bar" style="--h:45%" title="0:00 UTC · 6.4h"></div><div class="hour-tick">0</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:36%" title="1:00 UTC · 5.1h"></div><div class="hour-tick">1</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:35%" title="2:00 UTC · 5.0h"></div><div class="hour-tick">2</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:29%" title="3:00 UTC · 4.1h"></div><div class="hour-tick">3</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:18%" title="4:00 UTC · 2.6h"></div><div class="hour-tick">4</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:24%" title="5:00 UTC · 3.4h"></div><div class="hour-tick">5</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:20%" title="6:00 UTC · 2.8h"></div><div class="hour-tick">6</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:20%" title="7:00 UTC · 2.9h"></div><div class="hour-tick">7</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:25%" title="8:00 UTC · 3.6h"></div><div class="hour-tick">8</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:34%" title="9:00 UTC · 4.7h"></div><div class="hour-tick">9</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:40%" title="10:00 UTC · 5.6h"></div><div class="hour-tick">10</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:44%" title="11:00 UTC · 6.3h"></div><div class="hour-tick">11</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:34%" title="12:00 UTC · 4.8h"></div><div class="hour-tick">12</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:56%" title="13:00 UTC · 7.9h"></div><div class="hour-tick">13</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:51%" title="14:00 UTC · 7.2h"></div><div class="hour-tick">14</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:76%" title="15:00 UTC · 10.8h"></div><div class="hour-tick">15</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:86%" title="16:00 UTC · 12.2h"></div><div class="hour-tick">16</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:90%" title="17:00 UTC · 12.8h"></div><div class="hour-tick">17</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:93%" title="18:00 UTC · 13.2h"></div><div class="hour-tick">18</div></div>
+        <div class="hour-col"><div class="hour-bar peak" style="--h:100%" title="19:00 UTC · 14.2h"></div><div class="hour-tick">19</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:64%" title="20:00 UTC · 9.0h"></div><div class="hour-tick">20</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:54%" title="21:00 UTC · 7.7h"></div><div class="hour-tick">21</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:35%" title="22:00 UTC · 5.0h"></div><div class="hour-tick">22</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:39%" title="23:00 UTC · 5.5h"></div><div class="hour-tick">23</div></div>
+      </div>
+      <div class="hours-axis"><span>Midnight UTC</span><span>Noon UTC</span><span>7 pm UTC peak</span><span>Late</span></div>
+    </details>
   </section>
 
   <!-- ============================================================== -->
@@ -616,7 +648,7 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
       <div class="curiosity"><div class="ct">Low skip discipline</div><h3>6.9%</h3><p>Only 216 of 3,126 plays were abandoned under 30 seconds. Most things that start, finish — a committed, low-churn listener.</p></div>
       <div class="curiosity"><div class="ct">Two #1s, two metrics</div><h3>1,101 vs 390</h3><p>Radiohead wins on minutes (1,101); Lorien Testard wins on plays (390). Track length, not affection, decides which.</p></div>
       <div class="curiosity"><div class="ct">The long shallow tail</div><h3>~560 artists</h3><p>Roughly 560 of 705 artists fall outside the 80%-of-minutes core — most played only once or twice across the whole window.</p></div>
-      <div class="curiosity"><div class="ct">Wednesday blackout</div><h3>6.1h</h3><p>Wednesday is the dead day — one-sixth of Tuesday's volume. Something recurring owns Wednesdays.</p></div>
+      <div class="curiosity"><div class="ct">Wednesday blackout</div><h3>4.6h</h3><p>Wednesday is the dead day — one-seventh of Monday's volume in local time. Something recurring owns Wednesdays.</p></div>
       <div class="curiosity"><div class="ct">Average attention span</div><h3>3.1 min</h3><p>The mean play event is 3.1 minutes — almost exactly one pop song. Few half-listens, few epic sittings.</p></div>
     </div>
   </section>
@@ -631,7 +663,7 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
     </div>
     <p class="body-copy wide">Put the behavioral data beside the curated essay and three distinct listeners emerge from the same account. The first is the <em>constant</em>: Radiohead, present at the top of every ranking — most minutes played, most tracks saved, the album (<em>OK Computer</em>) that outscores all others combined. This is the load-bearing taste, stable across decades and unchanged by mood.</p>
     <p class="body-copy wide">The second is the <em>obsessive</em>. For a few months the entire chart bends around one new thing — here, the <em>Expedition 33</em> score — played so intensely it ties a twenty-year favorite. The curated top-100 never captured this because curation happens after the obsession cools; the behavioral log catches it mid-fever. Recency doesn't just bias the data, it <em>is</em> the data.</p>
-    <p class="body-copy wide">The third is the <em>archivist</em> — the one who saves 2,060 tracks and follows almost no one, who hoards Pink Floyd and Nirvana and deadmau5 and then plays almost none of them. The library is a self-image; the play log is a self. The first essay was a portrait of the image. This one is the portrait that develops when you let the receipts speak: an afternoon-and-evening listener, low on skips, prone to month-long fixations, anchored by a canon they keep but don't always reach for.</p>
+    <p class="body-copy wide">The third is the <em>archivist</em> — the one who saves 2,060 tracks and follows almost no one, who hoards Pink Floyd and Nirvana and deadmau5 and then plays almost none of them. The library is a self-image; the play log is a self. The first essay was a portrait of the image. This one is the portrait that develops when you let the receipts speak: a morning-and-midday listener, low on skips, prone to month-long fixations, anchored by a canon they keep but don't always reach for.</p>
   </section>
 
   <!-- ============================================================== -->
