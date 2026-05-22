@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A behavioral self-portrait built from Ramie Fathy's full Spotify streaming export — what gets played, when, how often, and the gap between the library you build and the music you actually listen to.">
+<meta name="theme-color" content="#f4f0e8">
+<meta property="og:site_name" content="Ramie Fathy, MD">
+<meta property="og:title" content="Revealed Preference — Ramie Fathy">
+<meta property="og:description" content="A reading of my full Spotify streaming history — 162 logged hours, 705 artists, the music I actually play vs. the library I curate.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ramiefathy.com/music/listening-history/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://ramiefathy.com/music/listening-history/">
+<title>Revealed Preference · A Listening-History Self-Portrait · Ramie Fathy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+:root {
+  --bone:        #f4f0e8;
+  --bone-2:      #e8e2d4;
+  --plate-bg:    #fbf8f1;
+  --ink:         #0a0a0a;
+  --ink-soft:    #1f1f1f;
+  --slate:       #475569;
+  --slate-soft:  #94a3b8;
+  --terracotta:  #c2674a;
+  --terracotta-2:#9f4d36;
+  --moss:        #5b7058;
+  --gold:        #a37b2a;
+  --rule:        #0a0a0a;
+  --rule-soft:   rgba(10,10,10,0.12);
+  --font-display:'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:   'Newsreader', Georgia, serif;
+  --font-mono:   'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bone); color: var(--ink);
+  font-family: var(--font-body); line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01","onum","liga";
+}
+::selection { background: var(--terracotta); color: var(--bone); }
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--terracotta); }
+:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.015em; color: var(--ink); margin: 0; }
+em { font-style: italic; color: var(--terracotta); }
+.shell { max-width: 1100px; margin: 0 auto; padding: 24px 32px 96px; }
+@media (max-width: 720px) { .shell { padding: 16px 18px 64px; } }
+
+/* ===== Plate stamp + masthead ===== */
+.plate-stamp { display:flex; align-items:center; gap:14px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--slate); padding: 10px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin-bottom: 28px; }
+.plate-stamp b { color: var(--ink); font-weight: 700; }
+.barcode { flex: 1; height: 14px; background: repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 4px, var(--ink) 4px 5px, transparent 5px 9px, var(--ink) 9px 11px, transparent 11px 13px); opacity: 0.55; }
+.kicker { font-family: var(--font-mono); font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.18em; }
+.display1 { font-size: clamp(40px, 6vw, 80px); line-height: 0.98; letter-spacing: -0.025em; font-weight: 600; }
+.display2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; }
+.display3 { font-size: clamp(22px, 2.6vw, 30px); line-height: 1.1; font-weight: 500; }
+.lede { font-size: 21px; line-height: 1.55; color: var(--ink-soft); max-width: 70ch; }
+.body-copy { font-size: 17.5px; line-height: 1.62; color: var(--ink-soft); margin: 0 0 14px; }
+.body-copy + .body-copy { margin-top: 0; }
+.body-copy.wide { max-width: 74ch; }
+.masthead-head { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end; margin-bottom: 32px; }
+.masthead-head .right { font-family: var(--font-mono); font-size: 12px; color: var(--slate); text-align: right; line-height: 1.5; }
+@media (max-width: 720px) { .masthead-head { grid-template-columns: 1fr; } .masthead-head .right { text-align: left; } }
+
+/* ===== Big stats row ===== */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 32px 0 8px; }
+@media (max-width: 720px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+.stat-cell { background: var(--plate-bg); border: 1px solid var(--rule); padding: 18px 16px 16px; position: relative; }
+.stat-cell .stat-num { font-family: var(--font-display); font-size: clamp(34px, 4.4vw, 52px); font-weight: 600; line-height: 1; letter-spacing: -0.02em; color: var(--ink); }
+.stat-cell .stat-num.small { font-size: clamp(22px, 2.4vw, 30px); }
+.stat-cell .stat-label { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--slate); margin-top: 8px; }
+.stat-cell .stat-sub { color: var(--slate); font-size: 13px; margin-top: 4px; }
+.stats-caption { font-family: var(--font-mono); font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.14em; margin: 14px 0 0; }
+
+/* ===== Weighted artist marquee ===== */
+.carousel { margin: 56px -32px 12px; padding: 18px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--plate-bg); overflow: hidden; position: relative; }
+.carousel::before, .carousel::after { content: ""; position: absolute; top: 0; bottom: 0; width: 80px; pointer-events: none; z-index: 2; }
+.carousel::before { left: 0; background: linear-gradient(90deg, var(--plate-bg), transparent); }
+.carousel::after  { right: 0; background: linear-gradient(-90deg, var(--plate-bg), transparent); }
+.carousel-track { display: flex; align-items: flex-end; gap: 14px; width: max-content; animation: marquee 120s linear infinite; padding: 0 16px; }
+.carousel:hover .carousel-track { animation-play-state: paused; }
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .carousel-track { animation: none; overflow-x: auto; } }
+.artist-tile { flex: 0 0 auto; width: var(--tw, 140px); border: 1px solid var(--rule); background: var(--bone); padding: 12px 12px 10px; display: flex; flex-direction: column; justify-content: flex-end; min-height: 96px; transition: transform .25s ease; }
+.artist-tile:hover { transform: translateY(-3px); }
+.artist-tile .at-min { font-family: var(--font-display); font-weight: 600; font-size: 20px; line-height: 1; color: var(--terracotta); }
+.artist-tile .at-name { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--ink); margin-top: 8px; line-height: 1.1; }
+.artist-tile .at-sub { font-family: var(--font-mono); font-size: 10px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 3px; }
+.carousel-caption { font-family: var(--font-mono); font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.16em; margin: 14px 0 0; }
+
+/* ===== Section plate ===== */
+.section { margin: 72px 0 0; }
+.section-head { display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: end; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+.section-num { font-family: var(--font-mono); font-size: 12px; color: var(--terracotta); letter-spacing: 0.18em; padding-bottom: 6px; }
+.section-head h2 { font-size: clamp(26px, 3.4vw, 38px); line-height: 1.05; }
+.two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; }
+@media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } }
+.tables-side-by-side { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--rule-soft); }
+.tables-side-by-side .col-head { font-family: var(--font-mono); font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.16em; margin: 0 0 12px; }
+.tables-side-by-side .col-head.accent { color: var(--terracotta); }
+@media (max-width: 1080px) { .tables-side-by-side { grid-template-columns: 1fr; gap: 28px; } }
+
+/* ===== Tables ===== */
+table.atlas { width: 100%; border-collapse: collapse; font-family: var(--font-body); font-size: 15.5px; }
+table.atlas th { text-align: left; font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--slate); border-bottom: 1px solid var(--rule); padding: 8px 8px 6px; font-weight: 400; }
+table.atlas td { padding: 8px 8px; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+table.atlas td.rank, table.atlas td.rk { font-family: var(--font-mono); color: var(--slate); font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; width: 44px; }
+table.atlas td.name b { font-weight: 600; }
+table.atlas td.name .sub, table.atlas td.track .sub, table.atlas td.album .sub { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 400; }
+table.atlas td.track b, table.atlas td.album b { font-weight: 600; }
+table.atlas td.count { width: 200px; padding: 8px 8px; }
+table.atlas td.count .bar-track { display: inline-block; vertical-align: middle; width: calc(100% - 44px); height: 8px; background: rgba(10,10,10,0.07); margin-right: 8px; }
+table.atlas td.count .bar { display: block; height: 100%; width: calc(100% * var(--w-frac, 0)); background: var(--terracotta); }
+table.atlas td.count .bar.moss { background: var(--moss); }
+table.atlas td.count .num { display: inline-block; vertical-align: middle; font-family: var(--font-mono); font-size: 13px; color: var(--ink); font-weight: 700; min-width: 32px; text-align: right; }
+table.atlas td.pct { width: 54px; font-family: var(--font-mono); font-size: 12px; color: var(--slate); text-align: right; }
+table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 44px; color: var(--ink); font-weight: 700; }
+table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
+
+/* ===== Vertical bar strip (months) ===== */
+.bar-strip { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--rule); background: var(--plate-bg); margin-top: 8px; }
+.bar-col { padding: 28px 4px 8px; border-right: 1px solid var(--rule-soft); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.bar-col:last-child { border-right: 0; }
+.bar-wrap { width: 100%; height: 150px; display: flex; align-items: flex-end; justify-content: center; border-bottom: 1px solid var(--rule); }
+.bar { width: 62%; background: var(--terracotta); height: var(--h, 0%); min-height: 2px; position: relative; }
+.bar.moss { background: var(--moss); }
+.bar::after { content: attr(data-v); position: absolute; top: -19px; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 10px; color: var(--ink); font-weight: 700; white-space: nowrap; }
+.bar-label { font-family: var(--font-mono); font-size: 10px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.06em; text-align: center; line-height: 1.3; }
+.bar-label b { display:block; color: var(--ink); font-weight: 700; }
+.strip-caption { font-family: var(--font-mono); font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.14em; margin: 14px 0 0; }
+@media (max-width: 720px) { .bar-wrap { height: 110px; } .bar-col { padding: 24px 2px 6px; } }
+
+/* ===== Hour-of-day 24-column strip ===== */
+.hours { display: grid; grid-template-columns: repeat(24, 1fr); align-items: end; gap: 2px; border: 1px solid var(--rule); background: var(--plate-bg); padding: 24px 12px 10px; margin-top: 8px; height: 200px; }
+.hour-col { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+.hour-bar { width: 100%; background: var(--terracotta); height: var(--h, 0%); min-height: 2px; }
+.hour-bar.peak { background: var(--terracotta-2); }
+.hour-tick { font-family: var(--font-mono); font-size: 8.5px; color: var(--slate); margin-top: 5px; }
+.hours-axis { display:flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 8px; }
+@media (max-width: 720px) { .hours { height: 150px; } .hour-tick { display:none; } }
+
+/* ===== Curiosity callouts ===== */
+.curiosity-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 24px; }
+@media (max-width: 720px) { .curiosity-grid { grid-template-columns: 1fr; } }
+.curiosity { background: var(--plate-bg); border: 1px solid var(--rule); padding: 20px 22px; position: relative; }
+.curiosity .ct { font-family: var(--font-mono); font-size: 11px; color: var(--terracotta); letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 10px; }
+.curiosity h3 { font-size: 22px; line-height: 1.1; margin-bottom: 6px; }
+.curiosity p { margin: 0; color: var(--ink-soft); font-size: 16px; line-height: 1.5; }
+
+/* ===== Long tail ===== */
+.long-tail { margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+.long-tail .col { border-right: 1px solid var(--rule-soft); padding-right: 32px; }
+.long-tail .col:last-child { border-right: 0; padding-right: 0; padding-left: 32px; margin-left: -32px; }
+.long-tail table { width: 100%; }
+@media (max-width: 720px) { .long-tail { grid-template-columns: 1fr; } .long-tail .col { border-right: 0; padding-right: 0; padding-left: 0; margin-left: 0; } }
+
+/* ===== Obsession map heatmap (artist × month) ===== */
+.heatmap-wrap { margin-top: 24px; overflow-x: auto; }
+.heatmap { display: grid; gap: 4px; min-width: 640px; }
+.heat-row { display: grid; grid-template-columns: 140px repeat(13, 1fr); gap: 3px; align-items: center; }
+.heat-row.is-header > * { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate); text-align: center; padding-bottom: 6px; }
+.heat-row.is-header > :first-child { text-align: right; padding-right: 10px; }
+.heat-label { font-family: var(--font-mono); font-size: 11px; color: var(--ink); text-transform: uppercase; letter-spacing: 0.05em; padding-right: 10px; text-align: right; }
+.heat-cell { display: block; aspect-ratio: 1; background: rgba(194, 103, 74, var(--a, 0)); border: 1px solid var(--rule-soft); border-radius: 2px; min-height: 20px; }
+.heat-cell:hover { outline: 1px solid var(--terracotta-2); }
+
+/* ===== Methods / colophon ===== */
+.methods { margin-top: 64px; background: var(--plate-bg); border: 1px solid var(--rule); padding: 26px 28px; }
+.methods h3 { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--terracotta); margin-bottom: 14px; }
+.methods p { font-size: 14.5px; line-height: 1.6; color: var(--ink-soft); margin: 0 0 10px; max-width: 88ch; }
+.colophon { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 1fr; gap: 32px; font-family: var(--font-mono); font-size: 12px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.12em; line-height: 1.6; }
+.colophon a { color: var(--ink); border-bottom: 1px solid var(--rule-soft); }
+.colophon a:hover { color: var(--terracotta); border-color: var(--terracotta); }
+@media (max-width: 720px) { .colophon { grid-template-columns: 1fr; } }
+.tagstrip { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+.tag { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate); border: 1px solid var(--rule-soft); padding: 5px 10px; }
+.tag b { color: var(--terracotta); font-weight: 700; }
+</style>
+</head>
+<body>
+<main class="shell">
+
+  <div class="plate-stamp">
+    <span><b>Ramie Fathy</b> · Listening Atlas</span>
+    <span class="barcode"></span>
+    <span>Plate II · Behavioral</span>
+  </div>
+
+  <header class="masthead-head">
+    <div>
+      <span class="kicker">Personal essay · v.2 · companion to "Sonic Self-Portrait" · 2026</span>
+      <h1 class="display1" style="margin-top:14px">What I <em>actually</em> played.</h1>
+    </div>
+    <div class="right">
+      SOURCE · SPOTIFY DATA EXPORT<br>
+      LOGGED WINDOW · MAY 2025 – MAY 2026<br>
+      162.7 HRS · 3,126 PLAYS · 705 ARTISTS
+    </div>
+  </header>
+
+  <p class="lede">The first essay read my curated <em>all-time top 100</em> — a stated preference, hand-polished. This one reads the receipts: every track my account logged, with timestamps. Stated taste is what you'd put on a mixtape. <em>Revealed</em> preference is what the play counter records when no one is curating. They are not the same list.</p>
+
+  <!-- Big stats row -->
+  <section class="stats-row">
+    <div class="stat-cell"><div class="stat-num">162.7</div><div class="stat-label">Hours logged (window)</div><div class="stat-sub">585.7M ms listened</div></div>
+    <div class="stat-cell"><div class="stat-num">705</div><div class="stat-label">Distinct artists</div><div class="stat-sub">across 1,898 unique tracks</div></div>
+    <div class="stat-cell"><div class="stat-num small">Radiohead<br>+ Lorien Testard</div><div class="stat-label">The two #1s, tied</div><div class="stat-sub">11.3% of minutes each</div></div>
+    <div class="stat-cell"><div class="stat-num">6.9<span style="font-size:0.5em">%</span></div><div class="stat-label">Skip rate (&lt;30s)</div><div class="stat-sub">216 of 3,126 plays</div></div>
+  </section>
+  <p class="stats-caption">Window figures from the play-by-play export. Calendar-year context from Spotify Wrapped 2025 below.</p>
+
+  <section class="stats-row" style="margin-top:18px">
+    <div class="stat-cell" style="background:var(--bone)"><div class="stat-num">265</div><div class="stat-label">Hours in 2025 (Wrapped)</div><div class="stat-sub">955.3M ms listened</div></div>
+    <div class="stat-cell" style="background:var(--bone)"><div class="stat-num">Top 2%</div><div class="stat-label">Listener percentile</div><div class="stat-sub">98.1st pct of fans</div></div>
+    <div class="stat-cell" style="background:var(--bone)"><div class="stat-num">1,470</div><div class="stat-label">Artists in 2025</div><div class="stat-sub">2,466 unique tracks</div></div>
+    <div class="stat-cell" style="background:var(--bone)"><div class="stat-num">175</div><div class="stat-label">Active listening days</div><div class="stat-sub">avg 3.1 min / play event</div></div>
+  </section>
+
+  <!-- Weighted artist marquee -->
+  <div class="carousel" aria-label="Top artists weighted by minutes played">
+    <div class="carousel-track">
+      <!-- pass 1 -->
+      <div class="artist-tile" style="--tw:288px"><div class="at-min">1,101′</div><div class="at-name">Radiohead</div><div class="at-sub">257 plays · 11.3%</div></div>
+      <div class="artist-tile" style="--tw:288px"><div class="at-min">1,100′</div><div class="at-name">Lorien Testard</div><div class="at-sub">390 plays · 11.3%</div></div>
+      <div class="artist-tile" style="--tw:165px"><div class="at-min">407′</div><div class="at-name">Tame Impala</div><div class="at-sub">90 plays · 4.2%</div></div>
+      <div class="artist-tile" style="--tw:152px"><div class="at-min">347′</div><div class="at-name">Mac DeMarco</div><div class="at-sub">113 plays · 3.6%</div></div>
+      <div class="artist-tile" style="--tw:148px"><div class="at-min">320′</div><div class="at-name">Soft Hair</div><div class="at-sub">80 plays · 3.3%</div></div>
+      <div class="artist-tile" style="--tw:138px"><div class="at-min">272′</div><div class="at-name">The Beatles</div><div class="at-sub">94 plays · 2.8%</div></div>
+      <div class="artist-tile" style="--tw:138px"><div class="at-min">271′</div><div class="at-name">Justice</div><div class="at-sub">70 plays · 2.8%</div></div>
+      <div class="artist-tile" style="--tw:128px"><div class="at-min">225′</div><div class="at-name">Miles Davis</div><div class="at-sub">48 plays · 2.3%</div></div>
+      <div class="artist-tile" style="--tw:120px"><div class="at-min">188′</div><div class="at-name">Khruangbin</div><div class="at-sub">51 plays · 1.9%</div></div>
+      <div class="artist-tile" style="--tw:116px"><div class="at-min">159′</div><div class="at-name" lang="tr">Altın Gün</div><div class="at-sub">45 plays · 1.6%</div></div>
+      <div class="artist-tile" style="--tw:112px"><div class="at-min">120′</div><div class="at-name">Ludovico Einaudi</div><div class="at-sub">25 plays · 1.2%</div></div>
+      <div class="artist-tile" style="--tw:110px"><div class="at-min">118′</div><div class="at-name">Connan Mockasin</div><div class="at-sub">31 plays · 1.2%</div></div>
+      <!-- pass 2 (duplicate for seamless marquee) — hidden from assistive tech to avoid duplicate announcement -->
+      <div aria-hidden="true" style="display: contents;">
+      <div class="artist-tile" style="--tw:288px"><div class="at-min">1,101′</div><div class="at-name">Radiohead</div><div class="at-sub">257 plays · 11.3%</div></div>
+      <div class="artist-tile" style="--tw:288px"><div class="at-min">1,100′</div><div class="at-name">Lorien Testard</div><div class="at-sub">390 plays · 11.3%</div></div>
+      <div class="artist-tile" style="--tw:165px"><div class="at-min">407′</div><div class="at-name">Tame Impala</div><div class="at-sub">90 plays · 4.2%</div></div>
+      <div class="artist-tile" style="--tw:152px"><div class="at-min">347′</div><div class="at-name">Mac DeMarco</div><div class="at-sub">113 plays · 3.6%</div></div>
+      <div class="artist-tile" style="--tw:148px"><div class="at-min">320′</div><div class="at-name">Soft Hair</div><div class="at-sub">80 plays · 3.3%</div></div>
+      <div class="artist-tile" style="--tw:138px"><div class="at-min">272′</div><div class="at-name">The Beatles</div><div class="at-sub">94 plays · 2.8%</div></div>
+      <div class="artist-tile" style="--tw:138px"><div class="at-min">271′</div><div class="at-name">Justice</div><div class="at-sub">70 plays · 2.8%</div></div>
+      <div class="artist-tile" style="--tw:128px"><div class="at-min">225′</div><div class="at-name">Miles Davis</div><div class="at-sub">48 plays · 2.3%</div></div>
+      <div class="artist-tile" style="--tw:120px"><div class="at-min">188′</div><div class="at-name">Khruangbin</div><div class="at-sub">51 plays · 1.9%</div></div>
+      <div class="artist-tile" style="--tw:116px"><div class="at-min">159′</div><div class="at-name" lang="tr">Altın Gün</div><div class="at-sub">45 plays · 1.6%</div></div>
+      <div class="artist-tile" style="--tw:112px"><div class="at-min">120′</div><div class="at-name">Ludovico Einaudi</div><div class="at-sub">25 plays · 1.2%</div></div>
+      <div class="artist-tile" style="--tw:110px"><div class="at-min">118′</div><div class="at-name">Connan Mockasin</div><div class="at-sub">31 plays · 1.2%</div></div>
+      </div>
+    </div>
+  </div>
+  <p class="carousel-caption">Tiles sized by minutes played · top 12 of 705 artists · pause on hover</p>
+
+  <!-- ============================================================== -->
+  <!-- SECTION I — Concentration -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ I · 01</div>
+      <h2 class="display2">Concentration.<br><em>Fifteen artists, half the listening.</em></h2>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="body-copy">The curated list obeyed a Pareto law, and so does the behavior — but harder. Two artists alone take <em>22.5%</em> of all minutes; the top five take a third; the top twenty-five take 57.7%. Of 705 artists, just <em>15</em> account for half of everything played, and 145 cover 80%. The long tail is enormous and shallow: hundreds of artists touched once or twice and never returned.</p>
+        <p class="body-copy">The dead heat at the top is the story. <em>Radiohead</em> — the canonical favorite, the spine of the saved library — is matched almost to the minute by <em>Lorien Testard</em>, composer of the 2025 score for the video game <em>Clair Obscur: Expedition 33</em>. One is a twenty-year habit; the other is a single album played to exhaustion in a few months. Revealed preference flattens that distinction entirely.</p>
+      </div>
+      <div>
+        <p class="body-copy">Ranking by <em>plays</em> instead of minutes reorders the head sharply: Lorien Testard leaps to a clear #1 with <em>390</em> finished plays to Radiohead's 257, because soundtrack cues are short and Radiohead tracks are long. The two metrics disagree about who you listen to <em>most</em> — and both are true.</p>
+        <div class="curiosity" style="margin-top:18px">
+          <div class="ct">Inequality</div>
+          <h3>15 / 705</h3>
+          <p>Fifteen artists — about 2% of the roster — supply 50% of the minutes. The other 690 split the rest.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tagstrip" style="margin-top:8px">
+      <span class="tag">Gini coefficient <b>0.75</b></span>
+      <span class="tag">HHI effective artists <b>29.4</b></span>
+      <span class="tag">80% core <b>145 of 705</b></span>
+      <span class="tag">Top-5 share <b>33.5%</b></span>
+    </div>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">By minutes played</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th>Share</th><th class="ct">Min</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td class="rk">01</td><td class="name"><b>Radiohead</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span></td><td class="ct">1101</td></tr>
+            <tr class="hl"><td class="rk">02</td><td class="name"><b>Lorien Testard</b><span class="sub">Expedition 33 OST</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.999"></span></span></td><td class="ct">1100</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>Tame Impala</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.37"></span></span></td><td class="ct">407</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>Mac DeMarco</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.315"></span></span></td><td class="ct">347</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Soft Hair</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.29"></span></span></td><td class="ct">320</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>The Beatles</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.247"></span></span></td><td class="ct">272</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Justice</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.246"></span></span></td><td class="ct">271</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>Miles Davis</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.204"></span></span></td><td class="ct">225</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>Khruangbin</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.171"></span></span></td><td class="ct">188</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b lang="tr">Altın Gün</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.144"></span></span></td><td class="ct">159</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">By finished plays (≥30s)</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th>Plays</th><th class="ct">N</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td class="rk">01</td><td class="name"><b>Lorien Testard</b></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:1.0"></span></span></td><td class="ct">390</td></tr>
+            <tr class="hl"><td class="rk">02</td><td class="name"><b>Radiohead</b></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.659"></span></span></td><td class="ct">257</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>Mac DeMarco</b></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.29"></span></span></td><td class="ct">113</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>The Beatles</b></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.241"></span></span></td><td class="ct">94</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Tame Impala</b></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.231"></span></span></td><td class="ct">90</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Soft Hair</b></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.205"></span></span></td><td class="ct">80</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Justice</b></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.179"></span></span></td><td class="ct">70</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>Khruangbin</b></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.131"></span></span></td><td class="ct">51</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>Miles Davis</b></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.123"></span></span></td><td class="ct">48</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b lang="tr">Altın Gün</b></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.115"></span></span></td><td class="ct">45</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION II — Tracks -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ II · 02</div>
+      <h2 class="display2">The most-played tracks.<br><em>The head of the curve is a soundtrack.</em></h2>
+    </div>
+    <p class="body-copy wide">By raw play count the top of the chart is almost entirely <em>Expedition 33</em> — "Alicia," "<span lang="fr">Lumière</span>," "<span lang="fr">Gustave</span>," each spun fifteen-to-twenty-plus times — interleaved with Soft Hair's "Lying Has To Stop" and the Radiohead deep cuts that anchor every list I've ever produced ("All I Need," "Let Down"). Reranking by minutes promotes the longer Radiohead and Soft Hair tracks, and surfaces "Paranoid Android" — six plays, but six minutes each.</p>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">By finished plays</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Track</th><th>Plays</th><th class="ct">Min</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="track"><b>Alicia</b><span class="sub">Lorien Testard</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span></td><td class="ct">62</td></tr>
+            <tr><td class="rk">02</td><td class="track"><b lang="fr">Lumière</b><span class="sub">Lorien Testard</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.87"></span></span></td><td class="ct">67</td></tr>
+            <tr><td class="rk">03</td><td class="track"><b lang="fr">Gustave</b><span class="sub">Lorien Testard</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.826"></span></span></td><td class="ct">67</td></tr>
+            <tr><td class="rk">04</td><td class="track"><b>Lying Has To Stop</b><span class="sub">Soft Hair · single ver.</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.696"></span></span></td><td class="ct">70</td></tr>
+            <tr><td class="rk">05</td><td class="track"><b lang="fr">Lumière à l'Aube</b><span class="sub">Lorien Testard</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.652"></span></span></td><td class="ct">51</td></tr>
+            <tr><td class="rk">06</td><td class="track"><b>All I Need</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.609"></span></span></td><td class="ct">50</td></tr>
+            <tr><td class="rk">07</td><td class="track"><b>Let Down</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.609"></span></span></td><td class="ct">68</td></tr>
+            <tr><td class="rk">08</td><td class="track"><b>Relaxed Lizard</b><span class="sub">Soft Hair</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.565"></span></span></td><td class="ct">44</td></tr>
+            <tr><td class="rk">09</td><td class="track"><b lang="fr">Promenade dans Lumière</b><span class="sub">Lorien Testard</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.565"></span></span></td><td class="ct">43</td></tr>
+            <tr><td class="rk">10</td><td class="track"><b>Neverender</b><span class="sub">Justice</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.478"></span></span></td><td class="ct">45</td></tr>
+            <tr><td class="rk">11</td><td class="track"><b>Nude</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.435"></span></span></td><td class="ct">41</td></tr>
+            <tr><td class="rk">12</td><td class="track"><b>Exit Music (For A Film)</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.435"></span></span></td><td class="ct">41</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">By minutes played</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Track</th><th>Min</th><th class="ct">×</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="track"><b>Lying Has To Stop</b><span class="sub">Soft Hair · single ver.</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:1.0"></span></span></td><td class="ct">16</td></tr>
+            <tr><td class="rk">02</td><td class="track"><b>Let Down</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.971"></span></span></td><td class="ct">14</td></tr>
+            <tr><td class="rk">03</td><td class="track"><b lang="fr">Gustave</b><span class="sub">Lorien Testard</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.957"></span></span></td><td class="ct">19</td></tr>
+            <tr><td class="rk">04</td><td class="track"><b lang="fr">Lumière</b><span class="sub">Lorien Testard</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.957"></span></span></td><td class="ct">20</td></tr>
+            <tr><td class="rk">05</td><td class="track"><b>Alicia</b><span class="sub">Lorien Testard</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.886"></span></span></td><td class="ct">23</td></tr>
+            <tr><td class="rk">06</td><td class="track"><b>Paranoid Android</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.829"></span></span></td><td class="ct">9</td></tr>
+            <tr><td class="rk">07</td><td class="track"><b lang="fr">Lumière à l'Aube</b><span class="sub">Lorien Testard</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.729"></span></span></td><td class="ct">15</td></tr>
+            <tr><td class="rk">08</td><td class="track"><b>All I Need</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.714"></span></span></td><td class="ct">14</td></tr>
+            <tr><td class="rk">09</td><td class="track"><b>Neverender</b><span class="sub">Justice</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.643"></span></span></td><td class="ct">11</td></tr>
+            <tr><td class="rk">10</td><td class="track"><b>Relaxed Lizard</b><span class="sub">Soft Hair</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.629"></span></span></td><td class="ct">13</td></tr>
+            <tr><td class="rk">11</td><td class="track"><b>Weird Fishes / Arpeggi</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.6"></span></span></td><td class="ct">8</td></tr>
+            <tr><td class="rk">12</td><td class="track"><b>Jealous Lies</b><span class="sub">Soft Hair</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.6"></span></span></td><td class="ct">9</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="tagstrip" style="margin-top:18px">
+      <span class="tag">Single-event tracks <b>1,446 of 1,898</b></span>
+      <span class="tag">≥ 5-event tracks <b>93</b></span>
+      <span class="tag">≥ 10-event tracks <b>24</b></span>
+    </div>
+    <p class="strip-caption" style="margin-top:8px">The track-level tail is even longer than the artist-level tail: most things played were played exactly once.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION III — The listening calendar -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ III · 03</div>
+      <h2 class="display2">The listening calendar.<br><em>Listening comes in waves, not a stream.</em></h2>
+    </div>
+    <p class="body-copy wide">The original essay mapped <em>release</em> decades. The export carries no release years, so this version maps something the curated list never could: <em>when the listening happened</em>. Monthly hours swing by an order of magnitude — a 27.8-hour April against a 2.3-hour February — and the rhythm is plainly seasonal and circumstantial rather than steady. The two tallest months (May 2025, April 2026) bracket the window and coincide with the two largest single-artist obsessions.</p>
+
+    <div class="bar-strip" role="img" aria-label="Music hours per month, May 2025 to May 2026">
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:82%" data-v="22.8"></div></div><div class="bar-label"><b>May</b>'25</div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:52%" data-v="14.4"></div></div><div class="bar-label"><b>Jun</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:60%" data-v="16.8"></div></div><div class="bar-label"><b>Jul</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:69%" data-v="19.3"></div></div><div class="bar-label"><b>Aug</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:36%" data-v="10.0"></div></div><div class="bar-label"><b>Sep</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:24%" data-v="6.8"></div></div><div class="bar-label"><b>Oct</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:37%" data-v="10.2"></div></div><div class="bar-label"><b>Nov</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:20%" data-v="5.6"></div></div><div class="bar-label"><b>Dec</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:18%" data-v="5.1"></div></div><div class="bar-label"><b>Jan</b>'26</div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:8%" data-v="2.3"></div></div><div class="bar-label"><b>Feb</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:18%" data-v="5.0"></div></div><div class="bar-label"><b>Mar</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:100%" data-v="27.8"></div></div><div class="bar-label"><b>Apr</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar" style="--h:60%" data-v="16.6"></div></div><div class="bar-label"><b>May</b></div></div>
+    </div>
+    <p class="strip-caption">Hours of music per month · play-by-play export · partial months at each end</p>
+
+    <table class="atlas" style="margin-top:24px">
+      <thead><tr><th>Month</th><th class="ct">Hours</th><th>Top artist</th><th>Top track</th></tr></thead>
+      <tbody>
+        <tr><td>May 2025</td><td class="ct">22.8</td><td class="name"><b>Radiohead</b><span class="sub">2.9h · 12%</span></td><td class="track"><b>Lying Has To Stop</b><span class="sub">Soft Hair</span></td></tr>
+        <tr><td>Jun 2025</td><td class="ct">14.4</td><td class="name"><b>Soft Hair</b><span class="sub">1.6h · 11%</span></td><td class="track"><b>Lying Has To Stop</b><span class="sub">Soft Hair</span></td></tr>
+        <tr><td>Jul 2025</td><td class="ct">16.8</td><td class="name"><b>Justice</b><span class="sub">2.7h · 16%</span></td><td class="track"><b>Season of the Witch</b><span class="sub">Al Kooper</span></td></tr>
+        <tr class="hl"><td>Aug 2025</td><td class="ct">19.3</td><td class="name"><b>Lorien Testard</b><span class="sub">8.2h · 42%</span></td><td class="track"><b>Alicia</b><span class="sub">Lorien Testard</span></td></tr>
+        <tr><td>Sep 2025</td><td class="ct">10.0</td><td class="name"><b>Mac DeMarco</b><span class="sub">4.7h · 47%</span></td><td class="track"><b lang="tr">Deniz Üstü Köpürür</b><span class="sub"><span lang="tr">Ünol Büyükgönenç</span></span></td></tr>
+        <tr><td>Oct 2025</td><td class="ct">6.8</td><td class="name"><b>Tame Impala</b><span class="sub">2.5h · 36%</span></td><td class="track"><b>It Is Not Meant To Be</b><span class="sub">Tame Impala</span></td></tr>
+        <tr><td>Nov 2025</td><td class="ct">10.2</td><td class="name"><b>Lorien Testard</b><span class="sub">3.8h · 37%</span></td><td class="track"><b lang="fr">Lumière à l'Aube</b><span class="sub">Lorien Testard</span></td></tr>
+        <tr><td>Dec 2025</td><td class="ct">5.6</td><td class="name"><b>Miles Davis</b><span class="sub">3.7h · 67%</span></td><td class="track"><b>All Blues</b><span class="sub">Miles Davis</span></td></tr>
+        <tr><td>Jan 2026</td><td class="ct">5.1</td><td class="name"><b>Radiohead</b><span class="sub">1.5h · 30%</span></td><td class="track"><b>How to Disappear Completely</b><span class="sub">Radiohead</span></td></tr>
+        <tr><td>Feb 2026</td><td class="ct">2.3</td><td class="name"><b>Ludovico Einaudi</b><span class="sub">1.9h · 86%</span></td><td class="track"><b>Primavera</b><span class="sub">Ludovico Einaudi</span></td></tr>
+        <tr><td>Mar 2026</td><td class="ct">5.0</td><td class="name"><b>Lorien Testard</b><span class="sub">2.4h · 48%</span></td><td class="track"><b lang="fr">Gustave</b><span class="sub">Lorien Testard</span></td></tr>
+        <tr class="hl"><td>Apr 2026</td><td class="ct">27.8</td><td class="name"><b>Radiohead</b><span class="sub">6.4h · 23%</span></td><td class="track"><b>Let Down</b><span class="sub">Radiohead</span></td></tr>
+        <tr><td>May 2026</td><td class="ct">16.6</td><td class="name"><b>Tame Impala</b><span class="sub">2.3h · 14%</span></td><td class="track"><b>Charlotte's Thong</b><span class="sub">Connan Mockasin</span></td></tr>
+      </tbody>
+    </table>
+    <p class="strip-caption" style="margin-top:8px">Each month belongs to a different artist — and a different track. Aug '25 and Apr '26 are the obsession peaks.</p>
+
+    <p class="body-copy wide" style="margin-top:32px">A heatmap of the top ten artists by month makes the regime-cycling literal. Each row is an artist; each cell is one month's listening hours, scaled to the maximum artist-month cell in the grid (Lorien Testard, Aug 2025, 8.2h). The dark vertical streaks at Aug '25 (Lorien Testard) and Sep '25 (Mac DeMarco) and Dec '25 (Miles Davis) and Feb '26 (Ludovico Einaudi, not shown) are the obsession layer in pure visual form: each artist takes a month and then disappears.</p>
+
+    <div class="heatmap-wrap" aria-label="Top-10 artists by hours per month, heatmap">
+      <div class="heatmap">
+        <div class="heat-row is-header">
+          <span>Artist</span>
+          <span>May'25</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan'26</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May'26</span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Radiohead</div>
+          <span class="heat-cell" style="--a:0.350" title="May 2025 · 2.9h"></span>
+          <span class="heat-cell" style="--a:0.156" title="Jun 2025 · 1.3h"></span>
+          <span class="heat-cell" style="--a:0.053" title="Jul 2025 · 0.4h"></span>
+          <span class="heat-cell" style="--a:0.366" title="Aug 2025 · 3.0h"></span>
+          <span class="heat-cell" style="--a:0.079" title="Sep 2025 · 0.6h"></span>
+          <span class="heat-cell" style="--a:0.008" title="Oct 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.058" title="Dec 2025 · 0.5h"></span>
+          <span class="heat-cell" style="--a:0.189" title="Jan 2026 · 1.5h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.033" title="Mar 2026 · 0.3h"></span>
+          <span class="heat-cell" style="--a:0.780" title="Apr 2026 · 6.4h"></span>
+          <span class="heat-cell" style="--a:0.177" title="May 2026 · 1.4h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Lorien Testard</div>
+          <span class="heat-cell" style="--a:0.000" title="May 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jun 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.007" title="Jul 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:1.000" title="Aug 2025 · 8.2h (peak)"></span>
+          <span class="heat-cell" style="--a:0.000" title="Sep 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.143" title="Oct 2025 · 1.2h"></span>
+          <span class="heat-cell" style="--a:0.461" title="Nov 2025 · 3.8h"></span>
+          <span class="heat-cell" style="--a:0.026" title="Dec 2025 · 0.2h"></span>
+          <span class="heat-cell" style="--a:0.050" title="Jan 2026 · 0.4h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.292" title="Mar 2026 · 2.4h"></span>
+          <span class="heat-cell" style="--a:0.268" title="Apr 2026 · 2.2h"></span>
+          <span class="heat-cell" style="--a:0.000" title="May 2026 · 0.0h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Tame Impala</div>
+          <span class="heat-cell" style="--a:0.025" title="May 2025 · 0.2h"></span>
+          <span class="heat-cell" style="--a:0.005" title="Jun 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.009" title="Jul 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.007" title="Sep 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.306" title="Oct 2025 · 2.5h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.165" title="Jan 2026 · 1.3h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.030" title="Apr 2026 · 0.2h"></span>
+          <span class="heat-cell" style="--a:0.284" title="May 2026 · 2.3h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Mac DeMarco</div>
+          <span class="heat-cell" style="--a:0.011" title="May 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.005" title="Jun 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jul 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.574" title="Sep 2025 · 4.7h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Oct 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jan 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.007" title="Mar 2026 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.036" title="Apr 2026 · 0.3h"></span>
+          <span class="heat-cell" style="--a:0.077" title="May 2026 · 0.6h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Soft Hair</div>
+          <span class="heat-cell" style="--a:0.185" title="May 2025 · 1.5h"></span>
+          <span class="heat-cell" style="--a:0.197" title="Jun 2025 · 1.6h"></span>
+          <span class="heat-cell" style="--a:0.064" title="Jul 2025 · 0.5h"></span>
+          <span class="heat-cell" style="--a:0.056" title="Aug 2025 · 0.5h"></span>
+          <span class="heat-cell" style="--a:0.051" title="Sep 2025 · 0.4h"></span>
+          <span class="heat-cell" style="--a:0.009" title="Oct 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.009" title="Nov 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.016" title="Dec 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jan 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.047" title="Mar 2026 · 0.4h"></span>
+          <span class="heat-cell" style="--a:0.003" title="Apr 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.016" title="May 2026 · 0.1h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">The Beatles</div>
+          <span class="heat-cell" style="--a:0.000" title="May 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.011" title="Jun 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jul 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.272" title="Aug 2025 · 2.2h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Sep 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Oct 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jan 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.215" title="Apr 2026 · 1.8h"></span>
+          <span class="heat-cell" style="--a:0.058" title="May 2026 · 0.5h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Justice</div>
+          <span class="heat-cell" style="--a:0.015" title="May 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.020" title="Jun 2025 · 0.2h"></span>
+          <span class="heat-cell" style="--a:0.333" title="Jul 2025 · 2.7h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Sep 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.161" title="Oct 2025 · 1.3h"></span>
+          <span class="heat-cell" style="--a:0.013" title="Nov 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.013" title="Jan 2026 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Apr 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="May 2026 · 0.0h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Miles Davis</div>
+          <span class="heat-cell" style="--a:0.000" title="May 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jun 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jul 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Sep 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Oct 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.459" title="Dec 2025 · 3.7h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jan 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Apr 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="May 2026 · 0.0h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label">Khruangbin</div>
+          <span class="heat-cell" style="--a:0.000" title="May 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.024" title="Jun 2025 · 0.2h"></span>
+          <span class="heat-cell" style="--a:0.091" title="Jul 2025 · 0.7h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.007" title="Sep 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Oct 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.010" title="Jan 2026 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.007" title="Apr 2026 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.245" title="May 2026 · 2.0h"></span>
+        </div>
+        <div class="heat-row">
+          <div class="heat-label" lang="tr">Altın Gün</div>
+          <span class="heat-cell" style="--a:0.000" title="May 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jun 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.179" title="Jul 2025 · 1.5h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Aug 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.013" title="Sep 2025 · 0.1h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Oct 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Nov 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Dec 2025 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Jan 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Feb 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.000" title="Mar 2026 · 0.0h"></span>
+          <span class="heat-cell" style="--a:0.090" title="Apr 2026 · 0.7h"></span>
+          <span class="heat-cell" style="--a:0.043" title="May 2026 · 0.4h"></span>
+        </div>
+      </div>
+    </div>
+    <p class="strip-caption" style="margin-top:8px">Heatmap opacity scaled to the maximum artist-month cell (Lorien Testard, Aug 2025, 8.2h). Hover any cell for hours.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION IV — Circadian rhythm -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ IV · 04</div>
+      <h2 class="display2">Circadian rhythm.<br><em>A morning-and-midday listener.</em></h2>
+    </div>
+    <p class="body-copy wide">Spotify exports <span style="font-family:var(--font-mono);font-size:13px">endTime</span> in UTC, not the listener's clock. Converted to America/Los_Angeles the diurnal curve inverts the obvious reading of the raw file: listening climbs steadily through the early morning, jumps into the workday at 8&nbsp;am, and hits a hard peak at <em>9&nbsp;am</em> (13.6 hours) with a near-tie at noon (13.5 hours). The afternoon dips, briefly rises around 4&nbsp;pm, then tapers through the evening. This is not after-hours listening; it is clinic-hours and lunch-hours listening — a frontloaded day. The raw 7&nbsp;pm peak you would see in the export is a UTC artifact, preserved below as a diagnostic comparison.</p>
+
+    <div class="hours" role="img" aria-label="Minutes of listening by local hour (America/Los_Angeles), peak at 9 am">
+      <div class="hour-col"><div class="hour-bar" style="--h:21%" title="0:00 · 2.9h"></div><div class="hour-tick">0</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:26%" title="1:00 · 3.6h"></div><div class="hour-tick">1</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:35%" title="2:00 · 4.7h"></div><div class="hour-tick">2</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:45%" title="3:00 · 6.1h"></div><div class="hour-tick">3</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:46%" title="4:00 · 6.3h"></div><div class="hour-tick">4</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:38%" title="5:00 · 5.1h"></div><div class="hour-tick">5</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:54%" title="6:00 · 7.3h"></div><div class="hour-tick">6</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:62%" title="7:00 · 8.4h"></div><div class="hour-tick">7</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:90%" title="8:00 · 12.2h"></div><div class="hour-tick">8</div></div>
+      <div class="hour-col"><div class="hour-bar peak" style="--h:100%" title="9:00 · 13.6h"></div><div class="hour-tick">9</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:85%" title="10:00 · 11.6h"></div><div class="hour-tick">10</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:96%" title="11:00 · 13.0h"></div><div class="hour-tick">11</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:99%" title="12:00 · 13.5h"></div><div class="hour-tick">12</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:65%" title="13:00 · 8.9h"></div><div class="hour-tick">13</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:47%" title="14:00 · 6.4h"></div><div class="hour-tick">14</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:32%" title="15:00 · 4.4h"></div><div class="hour-tick">15</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:52%" title="16:00 · 7.0h"></div><div class="hour-tick">16</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:39%" title="17:00 · 5.3h"></div><div class="hour-tick">17</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:34%" title="18:00 · 4.6h"></div><div class="hour-tick">18</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:36%" title="19:00 · 5.0h"></div><div class="hour-tick">19</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:30%" title="20:00 · 4.1h"></div><div class="hour-tick">20</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:19%" title="21:00 · 2.5h"></div><div class="hour-tick">21</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:25%" title="22:00 · 3.4h"></div><div class="hour-tick">22</div></div>
+      <div class="hour-col"><div class="hour-bar" style="--h:21%" title="23:00 · 2.8h"></div><div class="hour-tick">23</div></div>
+    </div>
+    <div class="hours-axis"><span>Midnight</span><span>9 am peak</span><span>Noon</span><span>Late</span></div>
+
+    <p class="body-copy wide" style="margin-top:32px">The weekday picture is stranger. By local day of week the listening is decidedly <em>not</em> uniform: <em>Monday</em> leads at 34.3 hours, <em>Friday</em> nearly matches it at 33.2 hours, Sunday and Tuesday round out the heavy days, and <em>Wednesday</em> collapses to one-seventh of Monday's volume (4.6 hours). The mid-week trough is sharp enough to suggest a recurring Wednesday commitment that crowds music out entirely.</p>
+
+    <div class="bar-strip" role="img" aria-label="Music hours by local weekday, Monday highest, Wednesday lowest">
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:100%" data-v="34.3h"></div></div><div class="bar-label"><b>Mon</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:87%" data-v="29.8h"></div></div><div class="bar-label"><b>Tue</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:14%" data-v="4.6h"></div></div><div class="bar-label"><b>Wed</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:38%" data-v="13.1h"></div></div><div class="bar-label"><b>Thu</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:97%" data-v="33.2h"></div></div><div class="bar-label"><b>Fri</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:55%" data-v="19.0h"></div></div><div class="bar-label"><b>Sat</b></div></div>
+      <div class="bar-col"><div class="bar-wrap"><div class="bar moss" style="--h:83%" data-v="28.6h"></div></div><div class="bar-label"><b>Sun</b></div></div>
+    </div>
+    <p class="strip-caption">Total hours by local weekday across the window · America/Los_Angeles</p>
+
+    <details style="margin-top:24px">
+      <summary style="font-family:var(--font-mono); font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:0.16em; cursor:pointer">Raw UTC comparison (diagnostic)</summary>
+      <p class="body-copy" style="margin-top:14px">In the raw export, before timezone conversion, the hour peak sits at <em>19:00 UTC</em> with 14.2 hours and the weekday peak is <em>Tuesday</em> at 40.3 hours. Those values are the export-clock view; the charts above are the listener-clock view. Both are real, but only the listener-clock view supports claims about workday vs. evening listening.</p>
+      <div class="hours" role="img" aria-label="Raw UTC minutes of listening by hour, peak at 19:00">
+        <div class="hour-col"><div class="hour-bar" style="--h:45%" title="0:00 UTC · 6.4h"></div><div class="hour-tick">0</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:36%" title="1:00 UTC · 5.1h"></div><div class="hour-tick">1</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:35%" title="2:00 UTC · 5.0h"></div><div class="hour-tick">2</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:29%" title="3:00 UTC · 4.1h"></div><div class="hour-tick">3</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:18%" title="4:00 UTC · 2.6h"></div><div class="hour-tick">4</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:24%" title="5:00 UTC · 3.4h"></div><div class="hour-tick">5</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:20%" title="6:00 UTC · 2.8h"></div><div class="hour-tick">6</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:20%" title="7:00 UTC · 2.9h"></div><div class="hour-tick">7</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:25%" title="8:00 UTC · 3.6h"></div><div class="hour-tick">8</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:34%" title="9:00 UTC · 4.7h"></div><div class="hour-tick">9</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:40%" title="10:00 UTC · 5.6h"></div><div class="hour-tick">10</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:44%" title="11:00 UTC · 6.3h"></div><div class="hour-tick">11</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:34%" title="12:00 UTC · 4.8h"></div><div class="hour-tick">12</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:56%" title="13:00 UTC · 7.9h"></div><div class="hour-tick">13</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:51%" title="14:00 UTC · 7.2h"></div><div class="hour-tick">14</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:76%" title="15:00 UTC · 10.8h"></div><div class="hour-tick">15</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:86%" title="16:00 UTC · 12.2h"></div><div class="hour-tick">16</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:90%" title="17:00 UTC · 12.8h"></div><div class="hour-tick">17</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:93%" title="18:00 UTC · 13.2h"></div><div class="hour-tick">18</div></div>
+        <div class="hour-col"><div class="hour-bar peak" style="--h:100%" title="19:00 UTC · 14.2h"></div><div class="hour-tick">19</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:64%" title="20:00 UTC · 9.0h"></div><div class="hour-tick">20</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:54%" title="21:00 UTC · 7.7h"></div><div class="hour-tick">21</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:35%" title="22:00 UTC · 5.0h"></div><div class="hour-tick">22</div></div>
+        <div class="hour-col"><div class="hour-bar" style="--h:39%" title="23:00 UTC · 5.5h"></div><div class="hour-tick">23</div></div>
+      </div>
+      <div class="hours-axis"><span>Midnight UTC</span><span>Noon UTC</span><span>7 pm UTC peak</span><span>Late</span></div>
+    </details>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION V — Albums -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ V · 05</div>
+      <h2 class="display2">Album obsessions.<br><em>Records played end-to-end.</em></h2>
+    </div>
+    <p class="body-copy wide">The streaming log doesn't carry album names. Albums are reconstructed by joining each play to two metadata sources — the saved-track library and the playlist track list — which still only covers <em>~30%</em> of music minutes (831 events out of 3,126). The remaining 70% is unattributable at album level from this export: notably, almost all of the <em>Expedition 33</em> score is missing because that record isn't in saved tracks. Within that lens, one album dominates: <em>OK Computer</em>, at 325 minutes, more than the next two combined. Mac DeMarco appears three times over (<em>This Old Dog, Salad Days, Another One</em>), and the back half is a tour of the saved canon — Pink Floyd, Tame Impala, Connan Mockasin, Khruangbin.</p>
+
+    <div class="curiosity" style="margin-top:16px;max-width:540px">
+      <div class="ct">Album coverage</div>
+      <h3>~30%</h3>
+      <p>Spotify's export gives artist, track, and milliseconds — but no album URI. Joining to saved-track and playlist metadata recovers roughly a third of music minutes. The table below is a reconstructed view, not a complete truth.</p>
+    </div>
+
+    <table class="atlas" style="margin-top:8px">
+      <thead><tr><th>#</th><th>Album</th><th>Minutes</th><th class="ct">Plays</th></tr></thead>
+      <tbody>
+        <tr class="hl"><td class="rk">01</td><td class="album"><b>OK Computer</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span><span class="num">325</span></td><td class="ct">71</td></tr>
+        <tr><td class="rk">02</td><td class="album"><b>Soft Hair</b><span class="sub">Soft Hair</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.378"></span></span><span class="num">123</span></td><td class="ct">32</td></tr>
+        <tr><td class="rk">03</td><td class="album"><b>The Beatles (White Album)</b><span class="sub">The Beatles</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.369"></span></span><span class="num">120</span></td><td class="ct">41</td></tr>
+        <tr><td class="rk">04</td><td class="album"><b>InnerSpeaker</b><span class="sub">Tame Impala</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.277"></span></span><span class="num">90</span></td><td class="ct">19</td></tr>
+        <tr><td class="rk">05</td><td class="album"><b>This Old Dog</b><span class="sub">Mac DeMarco</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.277"></span></span><span class="num">90</span></td><td class="ct">31</td></tr>
+        <tr><td class="rk">06</td><td class="album"><b>Salad Days</b><span class="sub">Mac DeMarco</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.258"></span></span><span class="num">84</span></td><td class="ct">28</td></tr>
+        <tr><td class="rk">07</td><td class="album"><b>Lying Has To Stop</b><span class="sub">Soft Hair</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.215"></span></span><span class="num">70</span></td><td class="ct">16</td></tr>
+        <tr><td class="rk">08</td><td class="album"><b>The Dark Side of the Moon</b><span class="sub">Pink Floyd</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.188"></span></span><span class="num">61</span></td><td class="ct">14</td></tr>
+        <tr><td class="rk">09</td><td class="album"><b>Another One</b><span class="sub">Mac DeMarco</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.16"></span></span><span class="num">52</span></td><td class="ct">17</td></tr>
+        <tr><td class="rk">10</td><td class="album"><b>Kid A</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.16"></span></span><span class="num">52</span></td><td class="ct">13</td></tr>
+        <tr><td class="rk">11</td><td class="album"><b>Jassbusters</b><span class="sub">Connan Mockasin</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.129"></span></span><span class="num">42</span></td><td class="ct">11</td></tr>
+        <tr><td class="rk">12</td><td class="album"><b>The King Of Limbs</b><span class="sub">Radiohead</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.12"></span></span><span class="num">39</span></td><td class="ct">10</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION VI — Library vs behavior -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ VI · 06</div>
+      <h2 class="display2">The library is not the playlist.<br><em>What you save vs. what you play.</em></h2>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="body-copy">Here is the central finding of the whole exercise. The saved library holds <em>2,060 tracks</em> across 701 artists. The play log touches 705 artists. And yet the two sets barely overlap: only <em>121 artists</em> — about one in six of those actually played — are also in the saved library. The library is an archive of intention; the play log is a record of behavior, and they describe two different people.</p>
+        <p class="body-copy">The saved-artist ranking is the <em>canonical</em> taste the first essay described — Radiohead, Pink Floyd, alt-J, Nirvana, the classic-rock-into-indie spine. The play ranking is dominated by things that are barely saved at all: a game soundtrack, Soft Hair, Justice, <span lang="tr">Altın Gün</span>. You save the canon and then play the obsession of the month.</p>
+      </div>
+      <div>
+        <div class="curiosity">
+          <div class="ct">Archive vs. behavior</div>
+          <h3>121 / 705</h3>
+          <p>Of every artist actually played, only ~17% live in the saved library. Saving and playing are nearly independent acts.</p>
+        </div>
+        <div class="curiosity" style="margin-top:16px">
+          <div class="ct">Curation restraint</div>
+          <h3>9 follows</h3>
+          <p>2,060 saved tracks, 83 saved albums — but only nine artists formally followed. Among them: Khruangbin, The Strokes, and Lorien Testard.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">Top saved artists (library)</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th>Saved tracks</th><th class="ct">N</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="name"><b>Radiohead</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span></td><td class="ct">58</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>Pink Floyd</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.931"></span></span></td><td class="ct">54</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>alt-J</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.81"></span></span></td><td class="ct">47</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>Connan Mockasin</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.776"></span></span></td><td class="ct">45</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Nirvana</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.741"></span></span></td><td class="ct">43</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Mac DeMarco</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.707"></span></span></td><td class="ct">41</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>deadmau5</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.672"></span></span></td><td class="ct">39</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>The Beatles</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.552"></span></span></td><td class="ct">32</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>Tame Impala</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.534"></span></span></td><td class="ct">31</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>Arcade Fire</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.5"></span></span></td><td class="ct">29</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">…and how that stacks against plays</p>
+        <p class="body-copy" style="font-size:15.5px">Five of the ten most-saved artists — Pink Floyd, alt-J, Nirvana, deadmau5, Arcade Fire — never crack the top ten by minutes played. Pink Floyd, the #2 saved artist with 54 tracks, sits 15th in actual listening (107 minutes). deadmau5 (39 saved) and Nirvana (43 saved) barely register in the play log at all.</p>
+        <p class="body-copy" style="font-size:15.5px">The reverse holds too: <em>Lorien Testard</em>, tied for the most-played artist of the window, has essentially no library footprint beyond a single saved soundtrack album. The thing played most is the thing collected least.</p>
+        <div class="tagstrip">
+          <span class="tag">Saved &amp; played heavily: <b>Radiohead, Mac DeMarco, Tame Impala</b></span>
+          <span class="tag">Saved, rarely played: <b>Pink Floyd, Nirvana, deadmau5</b></span>
+          <span class="tag">Played, barely saved: <b>Lorien Testard, Soft Hair, Justice</b></span>
+        </div>
+      </div>
+    </div>
+
+    <p class="body-copy wide" style="margin-top:32px">The same split shows up sharply in the data. On the left, the top-saved artists ordered by saved-track count — many sit on the saved shelf without earning much actual play. On the right, the artists who dominate the play log without crossing into the library at all. The two columns barely talk to each other.</p>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">Saved canon · how it actually plays</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Saved artist</th><th>Played min</th><th class="ct">Min</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="name"><b>Radiohead</b><span class="sub">58 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span></td><td class="ct">1,101</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>Pink Floyd</b><span class="sub">54 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.097"></span></span></td><td class="ct">107</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>alt-J</b><span class="sub">47 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.047"></span></span></td><td class="ct">52</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>Connan Mockasin</b><span class="sub">45 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.107"></span></span></td><td class="ct">118</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Nirvana</b><span class="sub">43 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.016"></span></span></td><td class="ct">18</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Mac DeMarco</b><span class="sub">41 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.315"></span></span></td><td class="ct">347</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>deadmau5</b><span class="sub">39 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.025"></span></span></td><td class="ct">27</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>The Beatles</b><span class="sub">32 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.247"></span></span></td><td class="ct">272</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>Tame Impala</b><span class="sub">31 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.370"></span></span></td><td class="ct">407</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>Fleet Foxes</b><span class="sub">24 saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.000"></span></span></td><td class="ct">0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">Played heavily · absent from saved tracks</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Played artist</th><th>Played min</th><th class="ct">Min</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="name"><b>Lorien Testard</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:1.0"></span></span></td><td class="ct">1,100</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>Justice</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.246"></span></span></td><td class="ct">271</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>BALTHVS</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.107"></span></span></td><td class="ct">118</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>John Smith</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.090"></span></span></td><td class="ct">99</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>The Smiths</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.062"></span></span></td><td class="ct">68</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Glass Beams</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.061"></span></span></td><td class="ct">67</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Mazzy Star</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.054"></span></span></td><td class="ct">59</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>Cocteau Twins</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.051"></span></span></td><td class="ct">56</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>Parcels</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.043"></span></span></td><td class="ct">47</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>Hermanos Gutiérrez</b><span class="sub">not in saved tracks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.042"></span></span></td><td class="ct">46</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION VII — Playlist curation -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ VII · 07</div>
+      <h2 class="display2">Playlist curation.<br><em>A third storage layer.</em></h2>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="body-copy">There is a third storage layer beyond saving and playing. The export carries <em>144 playlists</em> with <em>5,910 item placements</em> across 4,616 unique tracks and 1,498 artists — a long-running curation archive that predates the rolling listening window by years. The median playlist holds 18 items; the largest, simply named "New Playlist" and opened in October 2018, holds 1,999. Playlists are not plays — many of these tracks have not been touched in the window — but they show what the listener has organized over time, which is a different signal from what they've saved or what they've reached for this year.</p>
+        <p class="body-copy">The Beatles top the artist-by-placement ranking with <em>164 entries</em>; Radiohead earns 99 placements but contributes 1,101 listening minutes, while <em>Ramin Djawadi</em> appears 75 times in playlists and <em>zero</em> times in the play log — a perfect example of curation memory that outlives current behavior. Saving, playlisting, and playing are three different statements about the same artist.</p>
+      </div>
+      <div>
+        <div class="curiosity">
+          <div class="ct">Curation footprint</div>
+          <h3>5,910</h3>
+          <p>Item placements across 144 playlists. Not plays — placements — which is its own kind of statement.</p>
+        </div>
+        <div class="curiosity" style="margin-top:16px">
+          <div class="ct">Long-memory archive</div>
+          <h3>1,999</h3>
+          <p>Largest playlist, opened October 2018 and still growing. "New Playlist" is older than half the rolling listening window itself.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">Top playlist-artist placements</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th>Placements</th><th class="ct">Played min</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="name"><b>The Beatles</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span><span class="num">164</span></td><td class="ct">272</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>deadmau5</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.640"></span></span><span class="num">105</span></td><td class="ct">27</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>Radiohead</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.604"></span></span><span class="num">99</span></td><td class="ct">1,101</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>Tame Impala</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.579"></span></span><span class="num">95</span></td><td class="ct">407</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Mac DeMarco</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.457"></span></span><span class="num">75</span></td><td class="ct">347</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Ramin Djawadi</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.457"></span></span><span class="num">75</span></td><td class="ct">0</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Khruangbin</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.445"></span></span><span class="num">73</span></td><td class="ct">188</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>Pink Floyd</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.445"></span></span><span class="num">73</span></td><td class="ct">107</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>alt-J</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.427"></span></span><span class="num">70</span></td><td class="ct">52</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>London Grammar</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.415"></span></span><span class="num">68</span></td><td class="ct">3</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">Largest playlists by item count</p>
+        <table class="atlas">
+          <thead><tr><th>Playlist</th><th class="ct">Items</th><th class="ct">Opened</th></tr></thead>
+          <tbody>
+            <tr><td class="name"><b>New Playlist</b><span class="sub">untitled bucket</span></td><td class="ct">1,999</td><td class="ct">2018-10</td></tr>
+            <tr><td class="name"><b>Starred</b><span class="sub">legacy Spotify favorites</span></td><td class="ct">305</td><td class="ct">2018-10</td></tr>
+            <tr><td class="name"><b>Road Trip 2022</b><span class="sub">2 followers</span></td><td class="ct">269</td><td class="ct">2022-11</td></tr>
+            <tr><td class="name"><b>to have</b></td><td class="ct">220</td><td class="ct">2018-10</td></tr>
+            <tr><td class="name"><b>august 2019</b></td><td class="ct">112</td><td class="ct">2019-09</td></tr>
+            <tr><td class="name"><b>may 2019</b></td><td class="ct">106</td><td class="ct">2019-05</td></tr>
+            <tr><td class="name"><b>February 2020</b></td><td class="ct">94</td><td class="ct">2020-03</td></tr>
+            <tr><td class="name"><b>outside</b><span class="sub">2 followers</span></td><td class="ct">71</td><td class="ct">2019-10</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION VIII — Spoken word -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ VIII · 08</div>
+      <h2 class="display2">The spoken word.<br><em>Audiobooks and podcasts, a second listening life.</em></h2>
+    </div>
+    <p class="body-copy wide">Beyond music there are <em>31.5 hours</em> of audiobooks across 197 sessions and <em>16.9 hours</em> of podcasts. The audiobook shelf is unusually committed — a handful of titles consumed in long stretches — while the broader shelf is a graveyard of good intentions: more than thirty books opened for under a minute apiece, spanning clinical-trial methodology, software engineering, Japanese lessons, and parenting. The podcast time is concentrated almost entirely in one show.</p>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">Audiobooks · by minutes</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Title</th><th>Share</th><th class="ct">Min</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="track"><b>The Sirens' Call</b><span class="sub">Chris Hayes</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span></td><td class="ct">616</td></tr>
+            <tr><td class="rk">02</td><td class="track"><b>A Giant Leap</b><span class="sub">Robert Wachter</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.945"></span></span></td><td class="ct">582</td></tr>
+            <tr><td class="rk">03</td><td class="track"><b>Society of Lies</b><span class="sub">Lauren Ling Brown</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.602"></span></span></td><td class="ct">371</td></tr>
+            <tr><td class="rk">04</td><td class="track"><b>The Hundred Years' War on Palestine</b><span class="sub">Rashid Khalidi</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.286"></span></span></td><td class="ct">176</td></tr>
+            <tr><td class="rk">05</td><td class="track"><b>Unknown Book</b><span class="sub">title not in export metadata</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.203"></span></span></td><td class="ct">125</td></tr>
+            <tr><td class="rk">06</td><td class="track"><b>Napoleon</b><span class="sub">Andrew Roberts</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.032"></span></span></td><td class="ct">20</td></tr>
+          </tbody>
+        </table>
+        <p class="strip-caption" style="margin-top:10px">+ 39 more titles sampled for under 2 min each · 45 audiobook titles total</p>
+      </div>
+      <div>
+        <p class="col-head">Podcasts · by minutes</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Show</th><th>Share</th><th class="ct">Min</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="track"><b>Acquired</b><span class="sub">business / tech histories</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:1.0"></span></span></td><td class="ct">699</td></tr>
+            <tr><td class="rk">02</td><td class="track"><b>NEJM AI Grand Rounds</b><span class="sub">medical AI</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.202"></span></span></td><td class="ct">141</td></tr>
+            <tr><td class="rk">03</td><td class="track"><b>Get Sleepy</b><span class="sub">sleep stories</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.087"></span></span></td><td class="ct">61</td></tr>
+            <tr><td class="rk">04</td><td class="track"><b>Hidden Brain</b><span class="sub">social science</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.079"></span></span></td><td class="ct">55</td></tr>
+            <tr><td class="rk">05</td><td class="track"><b>Science Vs</b><span class="sub">evidence checks</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.04"></span></span></td><td class="ct">28</td></tr>
+          </tbody>
+        </table>
+        <p class="strip-caption" style="margin-top:10px">Acquired alone = 69% of all podcast minutes</p>
+      </div>
+    </div>
+    <p class="body-copy wide" style="margin-top:28px">The spoken-word shelf reads like a self-portrait of its own: a media-and-attention book (<em>The Sirens' Call</em>), a healthcare-AI book (<em>A Giant Leap</em>), a thriller, and a history — bracketed by podcasts about company-building and medical AI. Work and curiosity bleed straight into leisure listening.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION IX — Discovery & context -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ IX · 09</div>
+      <h2 class="display2">Discovery &amp; context.<br><em>How new things get in.</em></h2>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="body-copy">The export logs <em>52 in-app searches</em> between March 15 and May 15, 2026. Of those, <em>21 use the explicit "track – artist" pattern</em> — "Show Me How – Men I Trust," "Bobby – Alex G," "French Disko – Stereolab," "Feel It All Around – Washed Out" — and another three use the "by artist" form ("Paranoid Android by Radiohead," "Lumière by Lorien Testard"). This is targeted retrieval: arriving with a name already in mind, usually a slacker / chillwave / psych-adjacent indie cut, rather than asking the algorithm to surprise you. Discovery happens elsewhere and gets <em>retrieved</em> here.</p>
+        <p class="body-copy">Spotify's own festival matcher slots this taste squarely into the middle of the lineup. <em>Governors Ball 2026</em> returns a 52nd-percentile match and the persona label <em>"The Crowd Favorite"</em> — top artist matches Geese, Dominic Fike, Thee Sacred Souls, Kali Uchis, Japanese Breakfast. <em>ACL 2026</em> returns the same persona at 50th percentile with 12 matched artists (The xx, Parcels, Night Tapes, Natasha Bedingfield, Kings of Leon). A mainstream-indie center of gravity that squares with the saved canon more than with the month's obsessions.</p>
+      </div>
+      <div>
+        <div class="curiosity">
+          <div class="ct">Search behavior</div>
+          <h3>Retrieval, not roulette</h3>
+          <p>Searches are named track-by-artist requests — Allah-Las, HOMESHAKE, TOPS, Cass McCombs, Drugdealer — not genre browsing.</p>
+        </div>
+        <div class="curiosity" style="margin-top:16px">
+          <div class="ct">Festival persona</div>
+          <h3>The Crowd Favorite</h3>
+          <p>Same label across both matchers: Gov Ball 2026 at 52nd-pct (9 matches) and ACL 2026 at 50th-pct (12 matches). Mainstream-indie lean, not niche.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION X — Curiosities -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ X · 10</div>
+      <h2 class="display2">Statistical curiosities.<br><em>Things that fall out of the data.</em></h2>
+    </div>
+    <div class="curiosity-grid">
+      <div class="curiosity"><div class="ct">The fifteen-hour day</div><h3>15h 01m</h3><p>On 15 May 2026, the account logged 901 minutes of music — and not from one artist. The biggest binge days are eclectic, not monomaniacal.</p></div>
+      <div class="curiosity"><div class="ct">Low skip discipline</div><h3>6.9%</h3><p>Only 216 of 3,126 plays were abandoned under 30 seconds. Most things that start, finish — a committed, low-churn listener.</p></div>
+      <div class="curiosity"><div class="ct">Two #1s, two metrics</div><h3>1,101 vs 390</h3><p>Radiohead wins on minutes (1,101); Lorien Testard wins on plays (390). Track length, not affection, decides which.</p></div>
+      <div class="curiosity"><div class="ct">The long shallow tail</div><h3>~560 artists</h3><p>Roughly 560 of 705 artists fall outside the 80%-of-minutes core — most played only once or twice across the whole window.</p></div>
+      <div class="curiosity"><div class="ct">Wednesday blackout</div><h3>4.6h</h3><p>Wednesday is the dead day — one-seventh of Monday's volume in local time. Something recurring owns Wednesdays.</p></div>
+      <div class="curiosity"><div class="ct">Average attention span</div><h3>3.1 min</h3><p>The mean play event is 3.1 minutes — almost exactly one pop song. Few half-listens, few epic sittings.</p></div>
+    </div>
+
+    <p class="body-copy wide" style="margin-top:32px">Going one level deeper: grouping events into <em>sessions</em> (a new session begins after a 30-minute silence) yields <em>300 inferred sessions</em>, median 4.7 minutes, with 16 sessions over two hours. Same-artist <em>streaks</em> — consecutive events from one artist with no other artist between them — surface the obsession layer in its rawest form. Both views agree: <em>Lorien Testard</em> in August 2025 is the most acute event in the entire window.</p>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">Largest inferred sessions</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Started</th><th>Hours</th><th class="ct">Events · Artists</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="name"><b>May 14, 2026</b><span class="sub">22:54 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span><span class="num">15.0</span></td><td class="ct">226 · 63</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>May 20, 2025</b><span class="sub">03:38 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.747"></span></span><span class="num">11.2</span></td><td class="ct">161 · 37</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>Apr 20, 2026</b><span class="sub">18:24 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.673"></span></span><span class="num">10.1</span></td><td class="ct">251 · 153</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>Jun 2, 2025</b><span class="sub">06:50 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.373"></span></span><span class="num">5.6</span></td><td class="ct">123 · 57</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Sep 5, 2025</b><span class="sub">17:58 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.340"></span></span><span class="num">5.1</span></td><td class="ct">92 · 25</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Nov 27, 2025</b><span class="sub">08:22 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.320"></span></span><span class="num">4.8</span></td><td class="ct">109 · 45</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Dec 13, 2025</b><span class="sub">10:03 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.287"></span></span><span class="num">4.3</span></td><td class="ct">57 · 10</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>May 26, 2025</b><span class="sub">16:43 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.267"></span></span><span class="num">4.0</span></td><td class="ct">92 · 48</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>Aug 24, 2025</b><span class="sub">10:36 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.233"></span></span><span class="num">3.5</span></td><td class="ct">77 · 48</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>Jul 8, 2025</b><span class="sub">02:14 local</span></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.207"></span></span><span class="num">3.1</span></td><td class="ct">82 · 20</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">Longest same-artist streaks</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th>Events</th><th class="ct">Hours</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td class="rk">01</td><td class="name"><b>Lorien Testard</b><span class="sub">Aug 3–10, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:1.0"></span></span><span class="num">168</span></td><td class="ct">7.6</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>Lorien Testard</b><span class="sub">Nov 10–11, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.321"></span></span><span class="num">54</span></td><td class="ct">2.5</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>Lorien Testard</b><span class="sub">Mar 21–24, 2026</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.304"></span></span><span class="num">51</span></td><td class="ct">2.4</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>The Beatles</b><span class="sub">Aug 25–28, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.268"></span></span><span class="num">45</span></td><td class="ct">2.2</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Miles Davis</b><span class="sub">Dec 13, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.250"></span></span><span class="num">42</span></td><td class="ct">3.4</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>Mac DeMarco</b><span class="sub">Sep 5, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.244"></span></span><span class="num">41</span></td><td class="ct">2.2</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Radiohead</b><span class="sub">Aug 31 – Sep 2, 2025</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.196"></span></span><span class="num">33</span></td><td class="ct">2.4</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>Radiohead</b><span class="sub">Apr 24, 2026</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.190"></span></span><span class="num">32</span></td><td class="ct">2.1</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>The Beatles</b><span class="sub">Apr 2–3, 2026</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.190"></span></span><span class="num">32</span></td><td class="ct">1.5</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b>Lorien Testard</b><span class="sub">Apr 10, 2026</span></td><td class="count"><span class="bar-track"><span class="bar moss" style="--w-frac:0.167"></span></span><span class="num">28</span></td><td class="ct">1.1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="strip-caption" style="margin-top:8px">Half of the top-ten streaks are Lorien Testard. Obsession isn't even — it's lopsided.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION XI — Wrapped and Sound Capsule -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ XI · 11</div>
+      <h2 class="display2">Wrapped &amp; Sound Capsule.<br><em>Aggregate context, not raw replacement.</em></h2>
+    </div>
+    <p class="body-copy wide">Spotify also ships two further aggregate views in the export. They cover different windows than the rolling play-by-play file and use Spotify-defined counting rules, so they should not be forced to reconcile with the figures earlier in this essay. They <em>do</em> triangulate behavior from another angle: Spotify's own view of itself.</p>
+
+    <div class="curiosity-grid">
+      <div class="curiosity"><div class="ct">Wrapped 2025</div><h3>265.4h</h3><p>Calendar-year aggregate: 1,470 artists, 2,466 tracks, 319 genre concepts, 180 listening days, 715 artists labelled as discovered. Broader than the rolling window because the rolling window is rolling.</p></div>
+      <div class="curiosity"><div class="ct">Top-artist percentile</div><h3>Top 1.9%</h3><p>Wrapped places the account in the top-1.9% fan percentile for its top artist (Radiohead, 930 minutes). Worth noting the percentile is generous — many casual listeners also clear that bar.</p></div>
+      <div class="curiosity"><div class="ct">"Night listening" (Wrapped's definition)</div><h3>34.7%</h3><p>Spotify reports 34.7% of listening as "night." Wrapped uses its own clock convention; cross-check against § IV's local-time chart, where 8 am–noon is the actual peak in America/Los_Angeles.</p></div>
+    </div>
+
+    <p class="body-copy wide" style="margin-top:24px">The Sound Capsule files add weekly Spotify-generated highlights — streak markers, milestone notifications, "you stand out" comparisons against a market average. A small sample of what gets flagged:</p>
+
+    <table class="atlas" style="margin-top:8px">
+      <thead><tr><th>Week</th><th>Type</th><th>Highlight</th></tr></thead>
+      <tbody>
+        <tr><td>2026-05-17</td><td>Streak</td><td><b>Charlotte's Thong</b> · Connan Mockasin · 4-day streak</td></tr>
+        <tr><td>2026-04-26</td><td>Milestone</td><td><b>Radiohead, The Strokes, Tame Impala, "Let Down"</b> · 15.2h listening milestone</td></tr>
+        <tr><td>2026-04-19</td><td>Top entity</td><td><b>Radiohead</b> · 56.4% of week's listening</td></tr>
+        <tr><td>2026-04-12</td><td>Top entity</td><td><b>Lorien Testard</b> · 27.2% of week's listening</td></tr>
+        <tr><td>2026-04-05</td><td>You stand out</td><td><b>The Beatles</b> · 95.5 min vs market average 12.1 min</td></tr>
+        <tr><td>2026-03-22</td><td>Top entity</td><td><b>Lorien Testard</b> · 100% of week's listening</td></tr>
+        <tr><td>2026-02-01</td><td>Top entity</td><td><b>Ludovico Einaudi</b> · 97% of week's listening</td></tr>
+        <tr><td>2026-01-04</td><td>You stand out</td><td><b>Tame Impala</b> · 80.5 min vs market average 13.3 min</td></tr>
+      </tbody>
+    </table>
+    <p class="strip-caption" style="margin-top:8px">"Top entity" weeks reveal monomaniacal stretches with surgical precision — these are exactly the streaks the § X tables surfaced from a different angle.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION XII — Diagnosis -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ XII · 12</div>
+      <h2 class="display2">A diagnosis.<br><em>Four listeners in one account.</em></h2>
+    </div>
+    <p class="body-copy wide">Put the behavioral data beside the curated essay and four distinct listeners emerge from the same account. The first is the <em>constant</em>: Radiohead, present at the top of every ranking — most minutes played, most tracks saved, the album (<em>OK Computer</em>) that outscores all others combined. This is the load-bearing taste, stable across decades and unchanged by mood.</p>
+    <p class="body-copy wide">The second is the <em>obsessive</em>. For a few months the entire chart bends around one new thing — here, the <em>Expedition 33</em> score — played so intensely it ties a twenty-year favorite. The curated top-100 never captured this because curation happens after the obsession cools; the behavioral log catches it mid-fever. Recency doesn't just bias the data, it <em>is</em> the data.</p>
+    <p class="body-copy wide">The third is the <em>archivist</em> — the one who saves 2,060 tracks and follows almost no one, who hoards Pink Floyd and Nirvana and deadmau5 and then plays almost none of them. The library is a self-image; the play log is a self.</p>
+    <p class="body-copy wide">The fourth is the <em>professional-curiosity listener</em>. The 31.5 hours of audiobooks and 16.9 hours of podcasts are not background filler — they're another self entirely. <em>Acquired</em> and <em>NEJM AI Grand Rounds</em> sit at the top of the podcast stack alongside <em>Hidden Brain</em> and <em>Ground Truths</em>; the audiobook shelf is anchored by <em>The Sirens' Call</em> on attention and Robert Wachter's <em>A Giant Leap</em> on healthcare AI. Music supplies affect and identity; spoken word supplies intellectual continuity. They live in the same account and almost never run at the same time.</p>
+    <p class="body-copy wide">The truer reading is not "three listeners" or even "four listeners" but <em>separate storage systems</em>: saved-library, playlists, search log, play log, Wrapped aggregates, audiobook and podcast shelves — each one describes a different behavioral layer, and a faithful portrait can't collapse them. The first essay was a portrait of the image. This one is the portrait that develops when you let the receipts speak: a morning-and-midday listener, low on skips, prone to month-long fixations, anchored by a canon they keep but don't always reach for.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- APPENDIX -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ APPENDIX</div>
+      <h2 class="display2">The full head of the curve.</h2>
+    </div>
+    <p class="body-copy">Artists 1–30 by minutes played, with cumulative share. By artist #30 (Hermanos Gutiérrez) the running total crosses 60% — the remaining 675 artists divide the final 40% between them.</p>
+    <div class="long-tail">
+      <div class="col">
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th class="ct">Min</th><th class="pct">Cum%</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td class="name"><b>Radiohead</b></td><td class="ct">1101</td><td class="pct">11.3</td></tr>
+            <tr><td class="rk">02</td><td class="name"><b>Lorien Testard</b></td><td class="ct">1100</td><td class="pct">22.5</td></tr>
+            <tr><td class="rk">03</td><td class="name"><b>Tame Impala</b></td><td class="ct">407</td><td class="pct">26.7</td></tr>
+            <tr><td class="rk">04</td><td class="name"><b>Mac DeMarco</b></td><td class="ct">347</td><td class="pct">30.3</td></tr>
+            <tr><td class="rk">05</td><td class="name"><b>Soft Hair</b></td><td class="ct">320</td><td class="pct">33.5</td></tr>
+            <tr><td class="rk">06</td><td class="name"><b>The Beatles</b></td><td class="ct">272</td><td class="pct">36.3</td></tr>
+            <tr><td class="rk">07</td><td class="name"><b>Justice</b></td><td class="ct">271</td><td class="pct">39.1</td></tr>
+            <tr><td class="rk">08</td><td class="name"><b>Miles Davis</b></td><td class="ct">225</td><td class="pct">41.4</td></tr>
+            <tr><td class="rk">09</td><td class="name"><b>Khruangbin</b></td><td class="ct">188</td><td class="pct">43.3</td></tr>
+            <tr><td class="rk">10</td><td class="name"><b lang="tr">Altın Gün</b></td><td class="ct">159</td><td class="pct">45.0</td></tr>
+            <tr><td class="rk">11</td><td class="name"><b>Ludovico Einaudi</b></td><td class="ct">120</td><td class="pct">46.2</td></tr>
+            <tr><td class="rk">12</td><td class="name"><b>Connan Mockasin</b></td><td class="ct">118</td><td class="pct">47.4</td></tr>
+            <tr><td class="rk">13</td><td class="name"><b>BALTHVS</b></td><td class="ct">118</td><td class="pct">48.6</td></tr>
+            <tr><td class="rk">14</td><td class="name"><b>The Strokes</b></td><td class="ct">111</td><td class="pct">49.7</td></tr>
+            <tr><td class="rk">15</td><td class="name"><b>Pink Floyd</b></td><td class="ct">107</td><td class="pct">50.8</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col">
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Artist</th><th class="ct">Min</th><th class="pct">Cum%</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">16</td><td class="name"><b>John Smith</b></td><td class="ct">99</td><td class="pct">51.9</td></tr>
+            <tr><td class="rk">17</td><td class="name"><b>Gorillaz</b></td><td class="ct">80</td><td class="pct">52.7</td></tr>
+            <tr><td class="rk">18</td><td class="name"><b>Led Zeppelin</b></td><td class="ct">71</td><td class="pct">53.4</td></tr>
+            <tr><td class="rk">19</td><td class="name"><b>The Smiths</b></td><td class="ct">68</td><td class="pct">54.1</td></tr>
+            <tr><td class="rk">20</td><td class="name"><b>Glass Beams</b></td><td class="ct">67</td><td class="pct">54.8</td></tr>
+            <tr><td class="rk">21</td><td class="name"><b>Men I Trust</b></td><td class="ct">63</td><td class="pct">55.4</td></tr>
+            <tr><td class="rk">22</td><td class="name"><b>Mazzy Star</b></td><td class="ct">59</td><td class="pct">56.0</td></tr>
+            <tr><td class="rk">23</td><td class="name"><b>Lepone</b></td><td class="ct">58</td><td class="pct">56.6</td></tr>
+            <tr><td class="rk">24</td><td class="name"><b>Cocteau Twins</b></td><td class="ct">56</td><td class="pct">57.2</td></tr>
+            <tr><td class="rk">25</td><td class="name"><b>Thanksgiving Music</b></td><td class="ct">54</td><td class="pct">57.7</td></tr>
+            <tr><td class="rk">26</td><td class="name"><b>alt-J</b></td><td class="ct">52</td><td class="pct">58.3</td></tr>
+            <tr><td class="rk">27</td><td class="name"><b>Elliott Smith</b></td><td class="ct">51</td><td class="pct">58.8</td></tr>
+            <tr><td class="rk">28</td><td class="name"><b>Portishead</b></td><td class="ct">50</td><td class="pct">59.3</td></tr>
+            <tr><td class="rk">29</td><td class="name"><b>Parcels</b></td><td class="ct">47</td><td class="pct">59.8</td></tr>
+            <tr><td class="rk">30</td><td class="name"><b>Hermanos Gutiérrez</b></td><td class="ct">46</td><td class="pct">60.3</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Methods -->
+  <div class="methods">
+    <h3>Methods &amp; honest caveats</h3>
+    <p><b>Sources.</b> All figures are computed directly from a personal Spotify "Account Data" export: <span style="font-family:var(--font-mono);font-size:13px">StreamingHistory_music_0.json</span> (3,126 play events), the audiobook and podcast streaming histories, <span style="font-family:var(--font-mono);font-size:13px">YourLibrary.json</span> (saved tracks/albums/follows), and aggregate counters from <span style="font-family:var(--font-mono);font-size:13px">Wrapped2025.json</span> and the festival matcher.</p>
+    <p><b>The window.</b> The play-by-play file is not a complete lifetime history. After a single stray July-2023 event it runs continuously from May 2025 to May 2026 — a rolling year. "Window" figures (162.7 hrs, 705 artists, 3,126 plays) describe that span; the separately-labeled "2025" figures (265 hrs, top-2% percentile, 1,470 artists) come from Spotify's own Wrapped aggregate for the calendar year and will not reconcile exactly with the window.</p>
+    <p><b>What this export cannot say.</b> Unlike the curated essay, the raw export carries <em>no genre and no release-year metadata</em>. There is therefore no genre map and no era cartography here — inventing them would mean fabricating data. The temporal sections (calendar, circadian rhythm) replace them with measures the timestamps genuinely support.</p>
+    <p><b>Album attribution.</b> The streaming log records track and artist but not album. Album minutes in §V are reconstructed by joining plays to the saved library, which matches ~529 of 3,126 events (≈17%); albums you played but never saved — most notably the <em>Expedition 33</em> soundtrack — are undercounted. "Finished plays" throughout count events of ≥30 seconds, Spotify's conventional threshold for a counted stream. Minutes are rounded; cumulative shares use unrounded values.</p>
+  </div>
+
+  <!-- Colophon -->
+  <div class="colophon">
+    <div>
+      Revealed Preference — A Listening-History Self-Portrait<br>
+      Companion to "Sonic Self-Portrait" (top-100 essay)<br>
+      Built from the full Spotify streaming export
+    </div>
+    <div>
+      Data · Spotify Account Data export, 2026<br>
+      Type · Bricolage Grotesque / Newsreader / Space Mono<br>
+      Ramie Fathy, MD · <a href="/music/">← the curated essay</a>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>
