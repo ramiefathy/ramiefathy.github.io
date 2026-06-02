@@ -221,14 +221,15 @@
   .modgrid{display:grid;grid-template-columns:repeat(4,1fr);border:2px solid var(--ink);background:var(--ink);gap:1px}
   .mod{background:var(--plate-bg);padding:18px}
   .mod .mi{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--slate);font-weight:700}
-  .mod h4{margin:8px 0 6px;font-family:var(--font-mono);font-size:13px;color:var(--terracotta);letter-spacing:-.01em}
+  .mod h4{margin:8px 0 6px;font-family:var(--font-mono);font-size:13px;color:var(--terracotta);letter-spacing:-.01em;overflow-wrap:anywhere}
   .mod p{margin:0;font-family:var(--font-emphasis);font-size:13px;line-height:1.5;color:var(--ink-soft)}
 
   /* ---------- DELIVERABLES ---------- */
   .files{display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--ink);background:var(--ink);gap:1px}
   .file{display:flex;gap:14px;align-items:flex-start;background:var(--plate-bg);padding:16px 20px}
   .file .ic{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--terracotta);border:1px solid rgba(194,103,74,.4);padding:3px 6px;margin-top:2px;white-space:nowrap}
-  .file .fn{font-family:var(--font-mono);font-size:13px;color:var(--ink);font-weight:700}
+  .file>div{min-width:0}
+  .file .fn{font-family:var(--font-mono);font-size:13px;color:var(--ink);font-weight:700;overflow-wrap:anywhere}
   .file .fd{font-family:var(--font-emphasis);font-size:13.5px;color:var(--ink-soft);margin-top:4px;line-height:1.45}
 
   /* ---------- TERMINAL ---------- */
