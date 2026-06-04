@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Learning Machines — Generative AI for Dermatology</title>
+
+<!-- Fonts: editorial display (Fraunces) + technical body/mono (IBM Plex). Not Inter, by design. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380..620&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- QR generator (graceful fallback if it fails to load) -->
+
+<style>
+/* ============================================================
+   THEME TOKENS  — warm editorial palette, single clay accent
+   Tune the deck globally from here.
+   ============================================================ */
+:root{
+  --paper:#F4EFE4;        /* warm paper background           */
+  --paper-2:#FBF7EE;      /* lighter card                    */
+  --band:#EAE2D1;         /* tint band / fills               */
+  --ink:#1D1813;          /* warm near-black text            */
+  --ink-2:#534B40;        /* secondary text                  */
+  --ink-3:#938A79;        /* muted labels / captions         */
+  --accent:#C0492A;       /* clay — the one confident accent */
+  --accent-2:#9A3A20;     /* deeper clay (active/hover)      */
+  --line:#D6CDB9;         /* hairline on light               */
+
+  /* dark-slide overrides (applied under .slide--dark) */
+  --d-bg:#1B1712;
+  --d-panel:#241F18;
+  --d-text:#F0E9DB;
+  --d-muted:#A89E8C;
+  --d-line:#3A3329;
+  --d-accent:#E16B45;     /* clay, brightened for dark bg    */
+
+  /* fluid type + spacing (all clamp() — viewport safe) */
+  --pad:    clamp(1.4rem, 4.4vw, 5rem);
+  --display:clamp(2.35rem, 6.3vw, 5.4rem);
+  --h1:     clamp(1.85rem, 4.9vw, 3.8rem);
+  --h2:     clamp(1.35rem, 3.3vw, 2.35rem);
+  --body:   clamp(1rem, 1.42vw, 1.2rem);
+  --small:  clamp(.82rem, 1.04vw, .95rem);
+  --mono:   clamp(.64rem, .82vw, .78rem);
+  --gap:    clamp(.7rem, 2vh, 1.6rem);
+
+  font-optical-sizing:auto;
+}
+
+/* ============================================================
+   VIEWPORT-FITTING BASE  (per skill: one slide = one viewport)
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow-x:hidden}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif;
+  font-size:var(--body);line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+.slide{
+  width:100vw;height:100vh;height:100dvh;overflow:hidden;
+  scroll-snap-align:start;position:relative;
+  display:flex;flex-direction:column;
+  background:var(--paper);color:var(--ink);
+}
+.slide-content{
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  max-height:100%;overflow:hidden;padding:var(--pad);
+}
+.s{width:min(1200px,94vw);margin-inline:auto;width:100%}
+.s.narrow{max-width:980px}
+
+/* dark slides */
+.slide--dark{background:var(--d-bg);color:var(--d-text)}
+.slide--dark .eyebrow{color:var(--d-muted)}
+.slide--dark .eyebrow::before{background:var(--d-accent)}
+.slide--dark .muted,.slide--dark figcaption{color:var(--d-muted)}
+.slide--dark .rule{background:var(--d-accent)}
+.slide--dark .accent{color:var(--d-accent)}
+.slide--dark .chip{border-color:var(--d-line);color:var(--d-text)}
+.slide--dark .frame{border-color:var(--d-line);background:var(--d-panel)}
+.slide--dark .row{border-color:var(--d-line)}
+.slide--dark .num-lg{color:var(--d-line)}
+
+/* ============================================================
+   TYPOGRAPHY COMPONENTS
+   ============================================================ */
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;text-transform:uppercase;
+  letter-spacing:.22em;font-size:var(--mono);color:var(--ink-3);
+  display:flex;align-items:center;gap:.75em;margin-bottom:clamp(.9rem,2.4vh,1.8rem)
+}
+.eyebrow::before{content:"";width:1.7em;height:2px;background:var(--accent);flex:none}
+
+.display{font-family:"Fraunces",serif;font-weight:480;line-height:1.0;
+  letter-spacing:-.022em;font-size:var(--display)}
+.title{font-family:"Fraunces",serif;font-weight:500;line-height:1.05;
+  letter-spacing:-.018em;font-size:var(--h1)}
+.title--sm{font-size:var(--h2);font-weight:520}
+.lede{font-size:clamp(1.05rem,1.7vw,1.4rem);color:var(--ink-2);max-width:54ch;line-height:1.45}
+.muted{color:var(--ink-3)}
+.accent{color:var(--accent)}
+em.q{font-style:italic}
+.serif{font-family:"Fraunces",serif}
+.mono{font-family:"IBM Plex Mono",monospace}
+
+.rule{height:3px;width:clamp(48px,7vw,96px);background:var(--accent);
+  border:0;margin:clamp(.8rem,2vh,1.5rem) 0;transform-origin:left}
+
+/* ============================================================
+   LAYOUT HELPERS
+   ============================================================ */
+.split{display:grid;grid-template-columns:1.08fr .92fr;gap:clamp(1.4rem,4vw,4rem);align-items:center}
+.split.even{grid-template-columns:1fr 1fr}
+.stack{display:flex;flex-direction:column;gap:var(--gap)}
+.spread{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap}
+@media(max-width:880px){.split{grid-template-columns:1fr;gap:clamp(1rem,4vh,1.8rem)}}
+
+/* chips / tags */
+.chip{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:var(--mono);
+  letter-spacing:.06em;border:1px solid var(--line);border-radius:999px;
+  padding:.45em 1em;color:var(--ink-2)}
+.chip--solid{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* numbered editorial list (NOT cards) */
+.list{list-style:none;display:flex;flex-direction:column}
+.list li{display:grid;grid-template-columns:clamp(2.2rem,3.4vw,3.4rem) 1fr;gap:clamp(.8rem,1.6vw,1.4rem);
+  align-items:baseline;padding:clamp(.5rem,1.35vh,1rem) 0;border-top:1px solid var(--line)}
+.list li:first-child{border-top:0}
+.list .n{font-family:"IBM Plex Mono",monospace;color:var(--accent);font-size:clamp(.9rem,1.3vw,1.1rem)}
+.list .t{font-size:var(--body)}
+.list .t b{font-weight:600}
+.slide--dark .list li{border-color:var(--d-line)}
+.slide--dark .list .n{color:var(--d-accent)}
+
+/* roadmap big numbered sections */
+.sections{list-style:none;display:flex;flex-direction:column}
+.sections li{display:grid;grid-template-columns:auto 1fr;gap:clamp(1rem,2.4vw,2rem);
+  align-items:center;padding:clamp(.7rem,1.8vh,1.4rem) 0;border-top:1px solid var(--line)}
+.sections .idx{font-family:"Fraunces",serif;font-size:clamp(1.6rem,4vw,3rem);color:var(--accent);line-height:1}
+.sections .h{font-family:"Fraunces",serif;font-size:clamp(1.2rem,2.6vw,2rem);font-weight:520;letter-spacing:-.01em}
+
+/* tables — editorial */
+table{border-collapse:collapse;width:100%;font-size:var(--small)}
+caption{caption-side:bottom;color:var(--ink-3);font-size:var(--small);text-align:left;padding-top:.9rem;line-height:1.4}
+thead th{font-family:"IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.1em;
+  font-size:var(--mono);color:var(--ink-3);text-align:left;font-weight:500;
+  padding:.5rem .9rem .7rem;border-bottom:2px solid var(--ink)}
+tbody td{padding:.7rem .9rem;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+td .lead{font-weight:600}
+.compare td{width:50%;vertical-align:top;padding:1.1rem 1.3rem;line-height:1.5}
+.compare .bad{background:var(--band);border-radius:10px}
+.compare .good{background:var(--paper-2);border:1px solid var(--line);border-radius:10px}
+.tag-bad,.tag-good{font-family:"IBM Plex Mono",monospace;font-size:var(--mono);
+  letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:.6rem}
+.tag-bad{color:var(--ink-3)}
+.tag-good{color:var(--accent)}
+
+/* frames for image placeholders */
+.frames{display:grid;gap:clamp(.8rem,2vw,1.6rem)}
+.frames.two{grid-template-columns:1fr 1fr}
+.frames.three{grid-template-columns:repeat(3,1fr)}
+.frame{position:relative;aspect-ratio:4/3;border:1px solid var(--line);border-radius:12px;
+  background:var(--paper-2);overflow:hidden;display:flex;align-items:flex-end;padding:.9rem}
+.frame .ph{font-family:"IBM Plex Mono",monospace;font-size:var(--mono);color:var(--ink-3);
+  letter-spacing:.04em;line-height:1.4;position:relative;z-index:2}
+.frame .badge{position:absolute;top:.7rem;left:.7rem;z-index:2;
+  font-family:"Fraunces",serif;font-size:clamp(1.1rem,2vw,1.7rem);color:var(--accent)}
+/* real photo dropped into a frame — covers the abstract texture fallback */
+.frame-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+/* abstract derm-ish texture (allowed: abstract only, no illustration) */
+.tex-skin{position:absolute;inset:0;z-index:1;opacity:.9;
+  background:
+    radial-gradient(120% 90% at 30% 20%, #e9c7b4 0%, transparent 55%),
+    radial-gradient(90% 80% at 75% 70%, #d9a98f 0%, transparent 50%),
+    radial-gradient(60% 60% at 60% 40%, #c98e74 0%, transparent 45%),
+    linear-gradient(160deg,#e7cdba,#caa389)}
+.tex-derm{position:absolute;inset:0;z-index:1;opacity:.92;
+  background:
+    radial-gradient(closest-side at 50% 50%, #6f4636 0 22%, #8a5a45 30%, #b98a72 55%, #ddc3ad 78%, transparent 80%),
+    repeating-conic-gradient(from 0deg at 50% 50%, rgba(60,30,20,.10) 0deg 6deg, transparent 6deg 12deg),
+    linear-gradient(0deg,#e7d4c2,#e7d4c2)}
+.frame.skscore .tex-skin{background:linear-gradient(135deg,#dfe6e3,#c9d6d1 60%,#b7c8c2)}
+
+/* timeline / process (NOT a card grid) */
+.process{position:relative;margin-top:clamp(1rem,3vh,2.2rem);padding-top:clamp(1.4rem,3vh,2rem)}
+.track{position:relative;display:grid}
+.track::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--line)}
+.slide--dark .track::before{background:var(--d-line)}
+.nodes{display:grid;gap:clamp(.6rem,2vw,1.4rem)}
+.nodes.n3{grid-template-columns:repeat(3,1fr)}
+.nodes.n4{grid-template-columns:repeat(4,1fr)}
+.node{position:relative;padding-top:clamp(1rem,2.4vh,1.6rem)}
+.node::before{content:"";position:absolute;top:calc(-1 * clamp(1.4rem,3vh,2rem) - 1px);left:0;
+  width:13px;height:13px;border-radius:50%;background:var(--accent);transform:translateY(50%)}
+.node .yr{font-family:"IBM Plex Mono",monospace;font-size:var(--mono);letter-spacing:.08em;color:var(--ink-3)}
+.node .nh{font-family:"Fraunces",serif;font-size:clamp(1.05rem,1.9vw,1.45rem);font-weight:520;margin:.2rem 0 .35rem;letter-spacing:-.01em}
+.node .nb{font-size:var(--small);color:var(--ink-2);line-height:1.45}
+.slide--dark .node .nb{color:var(--d-muted)}
+
+/* nested-set diagram (AI ⊃ ML ⊃ DL ⊃ GenAI) */
+.nest{display:grid;place-items:center;aspect-ratio:1;width:min(40vh,360px);margin-inline:auto}
+.ring{position:absolute;border:1.5px solid var(--line);border-radius:50%;display:flex;
+  align-items:flex-start;justify-content:center}
+.ring span{font-family:"IBM Plex Mono",monospace;font-size:var(--mono);letter-spacing:.06em;
+  color:var(--ink-3);margin-top:.5rem;background:var(--paper);padding:0 .4rem}
+.ring.r1{inset:0}
+.ring.r2{inset:14%}
+.ring.r3{inset:30%}
+.ring.r4{inset:48%;border-color:var(--accent);border-width:2px;background:var(--accent);color:#fff;
+  align-items:center}
+.ring.r4 span{color:#fff;background:transparent;margin:0;font-weight:500;text-align:center}
+
+/* probability bars (next-word) */
+.bars{display:flex;flex-direction:column;gap:clamp(.45rem,1.3vh,.9rem);margin-top:clamp(.8rem,2vh,1.4rem)}
+.bar{display:grid;grid-template-columns:7.5rem 1fr auto;align-items:center;gap:.8rem}
+.bar .w{font-family:"IBM Plex Mono",monospace;font-size:var(--small)}
+.bar .track2{height:clamp(14px,2.2vh,22px);background:var(--band);border-radius:4px;overflow:hidden}
+.slide--dark .bar .track2{background:var(--d-panel)}
+.bar .track2 i{display:block;height:100%;width:0;background:var(--accent);border-radius:4px;
+  transition:width 1.05s cubic-bezier(.2,.7,.2,1) var(--d,0s)}
+.bar.lead .track2 i{background:var(--accent)}
+.bar:not(.lead) .track2 i{background:#caa68f}
+.slide.in .bar .track2 i{width:var(--bw)}
+.bar .p{font-family:"IBM Plex Mono",monospace;font-size:var(--small);color:var(--ink-3)}
+.prompt-line{font-family:"Fraunces",serif;font-size:clamp(1.2rem,2.6vw,2rem);font-weight:460;letter-spacing:-.01em}
+.prompt-line u{text-decoration:none;border-bottom:3px solid var(--accent);padding-bottom:.05em}
+
+/* spine ledger (centerpiece) */
+.colhead{display:grid;grid-template-columns:clamp(6rem,9vw,9.5rem) 1fr 1fr;gap:clamp(.9rem,2.6vw,2.4rem);
+  font-family:"IBM Plex Mono",monospace;font-size:var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);padding-bottom:.4rem}
+.slide--dark .colhead{color:var(--d-muted)}
+.ledger{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:clamp(6rem,9vw,9.5rem) 1fr 1fr;gap:clamp(.9rem,2.6vw,2.4rem);
+  align-items:center;padding:clamp(.55rem,1.7vh,1.15rem) 0;border-top:1px solid var(--line)}
+.row .lab{font-family:"Fraunces",serif;font-size:clamp(1.15rem,2.5vw,2rem);font-weight:520;letter-spacing:-.01em}
+.row .h-cell{font-size:var(--small);color:var(--ink-2)}
+.slide--dark .row .h-cell{color:var(--d-muted)}
+.row .m-cell{font-size:var(--small);padding-left:clamp(.7rem,1.4vw,1.1rem);
+  border-left:2px solid var(--accent)}
+.slide--dark .row .m-cell{border-color:var(--d-accent)}
+.row .m-cell b{font-weight:600}
+
+/* spine "climb" — Language → Tools → Plans as a left-to-right flow */
+.climb{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;
+  gap:0;margin-top:clamp(.9rem,2.6vh,1.8rem)}
+.climb .arrow{color:var(--accent);font-family:"Fraunces",serif;font-size:clamp(1.5rem,3.4vw,2.8rem);
+  line-height:1;padding:0 clamp(.4rem,1.4vw,1.1rem);align-self:center;transform:translateY(-.5em)}
+.slide--dark .climb .arrow{color:var(--d-accent)}
+.step{display:flex;flex-direction:column;gap:.55rem}
+.step .sname{font-family:"Fraunces",serif;font-weight:520;letter-spacing:-.01em;
+  font-size:clamp(1.2rem,2.7vw,2.05rem);line-height:1}
+.step .ln{display:grid;grid-template-columns:2.4em 1fr;gap:.55rem;align-items:baseline;
+  font-size:var(--small);line-height:1.4;color:var(--ink-2)}
+.step .ln .tag{font-family:"IBM Plex Mono",monospace;font-size:var(--mono);text-transform:uppercase;
+  letter-spacing:.08em;color:var(--ink-3)}
+.step .ln.it{color:var(--ink)}
+.step .ln.it .tag{color:var(--accent)}
+.slide--dark .step .ln{color:var(--d-muted)}
+.slide--dark .step .ln.it{color:var(--d-text)}
+.slide--dark .step .ln.it .tag{color:var(--d-accent)}
+@media(max-width:760px){.climb{grid-template-columns:1fr;gap:.9rem}.climb .arrow{display:none}}
+
+/* multimodal hub — many inputs converge into one model, one answer */
+.mmv{display:flex;flex-direction:column;align-items:center;gap:clamp(.45rem,1.5vh,1rem);text-align:center}
+.mm-inputs{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.mm-arrow{color:var(--accent);font-size:clamp(1.2rem,2.4vw,1.8rem);line-height:1}
+.slide--dark .mm-arrow{color:var(--d-accent)}
+.mm-model{font-family:"Fraunces",serif;font-weight:520;letter-spacing:-.01em;
+  font-size:clamp(1.3rem,2.8vw,2rem);background:var(--accent);color:#fff;border-radius:14px;padding:.45em 1.1em}
+.mm-out{font-family:"IBM Plex Mono",monospace;font-size:var(--small);color:var(--ink-2);
+  border:1px solid var(--line);border-radius:999px;padding:.5em 1.1em}
+.slide--dark .mm-out{color:var(--d-text);border-color:var(--d-line)}
+
+/* full-bleed project slide — the gallery flip (one project per slide) */
+.slide--bleed{background:var(--d-bg);color:var(--d-text)}
+.bleed-ph{position:absolute;inset:0;z-index:0;display:grid;place-items:center;text-align:center;
+  font-family:"IBM Plex Mono",monospace;font-size:var(--mono);color:var(--d-muted);letter-spacing:.08em;padding:2rem}
+.bleed-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.bleed-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(to top,rgba(20,16,12,.86) 0%,rgba(20,16,12,.34) 36%,transparent 60%)}
+.slide--bleed .slide-content{justify-content:flex-end;z-index:2}
+.bleed-cap .eyebrow{color:var(--d-muted)}
+.bleed-cap .bleed-title{font-family:"Fraunces",serif;font-weight:480;color:#fff;
+  font-size:var(--display);line-height:1;letter-spacing:-.02em}
+.bleed-cap .bleed-sub{color:#F0E9DB;font-size:clamp(1rem,1.7vw,1.35rem);margin-top:.45rem;max-width:46ch;line-height:1.4}
+
+/* abstract node-graph (knowledge graph slice) */
+.kg{width:100%;height:auto;max-height:46vh}
+.kg line{stroke:var(--line);stroke-width:1.4}
+.kg circle{fill:var(--paper-2);stroke:var(--ink-3);stroke-width:1.4}
+.kg circle.hot{fill:var(--accent);stroke:var(--accent)}
+.kg circle.mid{fill:var(--band);stroke:var(--ink-3)}
+
+/* big ghost numerals */
+.num-lg{font-family:"Fraunces",serif;font-size:clamp(3rem,9vw,7rem);line-height:.9;color:var(--line);font-weight:560}
+
+/* QR card */
+.qrwrap{display:flex;align-items:center;gap:clamp(1.4rem,4vw,3rem);flex-wrap:wrap}
+.qrcard{background:var(--paper);border-radius:16px;padding:clamp(1rem,2vw,1.4rem);
+  width:clamp(170px,26vw,250px);aspect-ratio:1;display:grid;place-items:center}
+.qrcard img,.qrcard canvas{width:100%!important;height:100%!important;display:block}
+.qr-fallback{width:100%;height:100%;border-radius:8px;display:grid;place-items:center;text-align:center;
+  font-family:"IBM Plex Mono",monospace;font-size:var(--mono);color:#444;padding:1rem;
+  background:repeating-conic-gradient(#1d1813 0 25%, #fff 0 50%) 0 0/22px 22px}
+
+/* ============================================================
+   FIXED CHROME  (progress, counter, hint, notes) — adapts to dark
+   ============================================================ */
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:60;
+  transition:width .4s cubic-bezier(.2,.7,.2,1)}
+.counter{position:fixed;right:clamp(1rem,3vw,2.2rem);bottom:clamp(1rem,3vh,2rem);z-index:55;
+  font-family:"IBM Plex Mono",monospace;font-size:var(--mono);letter-spacing:.12em;color:var(--ink-3);
+  mix-blend-mode:normal}
+.hint{position:fixed;left:clamp(1rem,3vw,2.2rem);bottom:clamp(1rem,3vh,2rem);z-index:55;
+  font-family:"IBM Plex Mono",monospace;font-size:var(--mono);letter-spacing:.04em;color:var(--ink-3);
+  transition:opacity .5s;pointer-events:none}
+.hint kbd{border:1px solid currentColor;border-radius:4px;padding:.05em .4em;margin:0 .15em}
+body.on-dark .counter,body.on-dark .hint{color:var(--d-muted)}
+body.moved .hint{opacity:0}
+
+.notes{position:fixed;left:0;right:0;bottom:0;z-index:70;transform:translateY(101%);
+  transition:transform .35s cubic-bezier(.3,.8,.3,1);background:var(--d-bg);color:var(--d-text);
+  border-top:2px solid var(--accent);max-height:42vh;overflow:auto;
+  padding:clamp(1rem,2.4vw,1.8rem) clamp(1.2rem,4vw,3rem)}
+.notes.open{transform:translateY(0)}
+.notes h4{font-family:"IBM Plex Mono",monospace;font-size:var(--mono);letter-spacing:.16em;
+  text-transform:uppercase;color:var(--d-accent);margin-bottom:.6rem}
+.notes p{font-size:var(--small);line-height:1.55;max-width:90ch;color:var(--d-text)}
+.notes .close{position:absolute;top:.7rem;right:1rem;font-family:"IBM Plex Mono",monospace;
+  font-size:var(--mono);color:var(--d-muted);cursor:pointer;background:none;border:0}
+
+/* ============================================================
+   REVEAL ANIMATIONS  (varied + restrained, not uniform fade-ups)
+   ============================================================ */
+.reveal{opacity:0;transform:translateY(16px);
+  transition:opacity .6s ease var(--d,0s),transform .7s cubic-bezier(.2,.7,.2,1) var(--d,0s)}
+.slide.in .reveal{opacity:1;transform:none}
+.reveal.clip{opacity:1;transform:none;clip-path:inset(0 100% 0 0);
+  transition:clip-path .8s cubic-bezier(.2,.75,.15,1) var(--d,0s)}
+.slide.in .reveal.clip{clip-path:inset(0 0 0 0)}
+.reveal.draw{opacity:1;transform:scaleX(0)}
+.slide.in .reveal.draw{transform:scaleX(1);transition:transform .7s cubic-bezier(.2,.7,.2,1) var(--d,0s)}
+
+/* click-to-reveal fragments (staged builds within a slide, e.g. the spine's machine row) */
+.frag{opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s ease}
+.frag.shown{opacity:1;transform:none}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .reveal,.reveal.clip,.reveal.draw,.bar .track2 i{transition-duration:.001ms!important;transform:none!important;clip-path:none!important;opacity:1!important}
+  .slide.in .bar .track2 i{width:var(--bw)}
+}
+
+/* ============================================================
+   SHORT-HEIGHT & SMALL-SCREEN GUARDS  (prevent overflow)
+   ============================================================ */
+@media (max-height:760px){
+  :root{--display:clamp(2rem,5.4vw,3.6rem);--h1:clamp(1.6rem,4.4vw,2.9rem);
+    --h2:clamp(1.2rem,3vw,1.95rem);--body:clamp(.92rem,1.3vw,1.05rem);
+    --small:clamp(.78rem,1vw,.9rem);--pad:clamp(1.1rem,3.6vw,3rem);--gap:clamp(.55rem,1.6vh,1.1rem)}
+}
+@media (max-height:600px){
+  :root{--display:clamp(1.7rem,4.6vw,2.6rem);--h1:clamp(1.4rem,3.8vw,2.2rem);
+    --h2:clamp(1.05rem,2.6vw,1.5rem);--body:clamp(.82rem,1.1vw,.95rem);--gap:clamp(.4rem,1.1vh,.8rem)}
+  .hint,.counter{display:none}
+}
+@media (max-width:600px){
+  :root{--display:clamp(2rem,8.5vw,3rem)}
+  .frames.three{grid-template-columns:1fr}
+  .nodes.n3,.nodes.n4{grid-template-columns:1fr}
+  .track::before{display:none}
+  .node::before{display:none}
+  .colhead,.row{grid-template-columns:5rem 1fr}
+  .colhead span:last-child,.row .m-cell{grid-column:1 / -1}
+  .bar{grid-template-columns:5.5rem 1fr auto}
+  .compare td{display:block;width:100%}
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<nav class="counter" id="counter" aria-hidden="true">01 / 35</nav>
+<div class="hint" id="hint"><kbd>↓</kbd><kbd>→</kbd> navigate · <kbd>S</kbd> speaker notes</div>
+
+<aside class="notes" id="notes" aria-live="polite">
+  <button class="close" id="notesClose" aria-label="Close notes">CLOSE ✕</button>
+  <h4 id="notesLabel">Speaker note</h4>
+  <p id="notesBody"></p>
+</aside>
+
+<main id="deck">
+<style>
+/* ── toolbox tier grid (rebuild) ───────────────────────────── */
+.toolgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:clamp(.7rem,1.8vw,1.3rem);margin-top:clamp(.8rem,2.4vh,1.6rem)}
+.tool{display:flex;flex-direction:column;gap:.5rem}
+.tool .shot{position:relative;aspect-ratio:16/10;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper-2)}
+.tool .shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.tool .shot .ph{position:absolute;inset:0;z-index:0;display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:var(--mono);color:var(--ink-3);text-align:center;padding:.5rem;line-height:1.4}
+.tool .nm{font-family:"Fraunces",serif;font-weight:520;font-size:clamp(1rem,1.55vw,1.25rem);letter-spacing:-.01em}
+.tool .ds{font-size:var(--small);color:var(--ink-2);line-height:1.35}
+.slide--dark .tool .shot{background:var(--d-panel);border-color:var(--d-line)}
+.slide--dark .tool .shot .ph{color:var(--d-muted)}
+.slide--dark .tool .ds{color:var(--d-muted)}
+</style>
+
+<!-- 01 — TITLE -->
+<section class="slide slide--dark" aria-label="Title">
+  <div class="slide-content"><div class="s">
+    <h1 class="display reveal clip" style="--d:.05s">Learning<br>Machines</h1>
+    <hr class="rule reveal draw" style="--d:.18s">
+    <p class="lede reveal serif" style="--d:.24s;font-style:italic;color:var(--d-text)">Generative AI for dermatology — not science fiction, not a threat, a tool you can start using this week.</p>
+    <p class="reveal mono" style="--d:.36s;margin-top:clamp(1rem,3vh,1.8rem);font-size:var(--mono);color:var(--d-muted);letter-spacing:.08em">Ramie Fathy, MD &nbsp;·&nbsp; Johns Hopkins Department of Dermatology &nbsp;·&nbsp; June 3, 2026</p>
+  </div></div>
+</section>
+
+<!-- 04 — LADDER: how we got capable (human) -->
+<section class="slide" aria-label="How we got capable — the human ladder">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">The ladder we climbed</p>
+    <h2 class="title reveal clip" style="--d:.05s">To understand it,<br>start with <em class="q">us</em>.</h2>
+    <hr class="rule reveal draw" style="--d:.15s">
+    <div class="process reveal" style="--d:.2s">
+      <div class="track"><div class="nodes n3">
+        <div class="node"><span class="yr">~100,000 yrs</span><div class="nh">Language</div><p class="nb">Knowledge jumps between minds and across generations. Culture starts to compound.</p></div>
+        <div class="node"><span class="yr">deep time</span><div class="nh">Tools</div><p class="nb">We act beyond our biology — the hand axe, writing, the abacus, the computer.</p></div>
+        <div class="node"><span class="yr">~12,000 yrs</span><div class="nh">Plan &amp; execute</div><p class="nb">We sequence steps and carry them out toward distant goals — agriculture, institutions, science.</p></div>
+      </div></div>
+    </div>
+    <p class="lede reveal" style="--d:.4s;margin-top:clamp(1rem,3vh,2rem)">Language, tools, plans. Hold those three — we're about to watch a machine climb the <span class="accent">very same ladder</span>.</p>
+  </div></div>
+</section>
+
+<!-- 05 — LADDER: compressed history -->
+<section class="slide" aria-label="A brief history, compressed">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">The ladder we climbed</p>
+    <h2 class="title reveal clip" style="--d:.05s">AI is older than you think.</h2>
+    <hr class="rule reveal draw" style="--d:.15s">
+    <div class="process reveal" style="--d:.2s">
+      <div class="track"><div class="nodes n3">
+        <div class="node"><span class="yr">1970s</span><div class="nh">Hand-written rules</div><p class="nb">MYCIN beat some clinicians on antibiotics — but every rule was hand-coded. Brilliant, brittle, never deployed.</p></div>
+        <div class="node"><span class="yr">2012–17</span><div class="nh">Learn from data</div><p class="nb">Stop writing rules; show examples. Dermatology was first — Esteva 2017 matched dermatologists on skin cancer.</p></div>
+        <div class="node"><span class="yr">2017 → now</span><div class="nh">The Transformer</div><p class="nb">One 2017 architecture made giant language models possible. ChatGPT (2022) handed it to everyone.</p></div>
+      </div></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 05b — The Transformer's trick (attention, own slide) -->
+<section class="slide" aria-label="The Transformer's trick — attention">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">The ladder we climbed</p>
+    <h2 class="title reveal clip" style="--d:.05s">The Transformer's trick.</h2>
+    <hr class="rule reveal draw" style="--d:.15s">
+    <p class="lede reveal" style="--d:.2s">Weigh <span class="accent">every word against every other — all at once</span>, not one at a time. Suddenly the machine had context.</p>
+    <div class="reveal" style="--d:.38s;margin-top:clamp(1.4rem,5vh,3rem);text-align:center">
+      <svg viewBox="0 0 600 82" style="width:100%;max-width:820px;height:auto;display:inline-block" role="img" aria-label="attention weighs every word against every other at once">
+        <g fill="none" stroke="#C0492A" stroke-linecap="round">
+          <path d="M530 58 Q 300 4 70 58" stroke-width="1.2" opacity=".4"/>
+          <path d="M530 58 Q 370 10 210 58" stroke-width="2.6" opacity=".85"/>
+          <path d="M530 58 Q 430 24 330 58" stroke-width="1.8" opacity=".6"/>
+          <path d="M530 58 Q 470 36 410 58" stroke-width="1" opacity=".35"/>
+        </g>
+        <g font-family="'IBM Plex Mono',monospace" font-size="15" fill="#1D1813" text-anchor="middle">
+          <text x="70" y="74">The</text><text x="210" y="74">dermatologist</text><text x="330" y="74">examined</text><text x="410" y="74">the</text><text x="530" y="74">lesion</text>
+        </g>
+      </svg>
+      <p class="reveal" style="--d:.5s;margin-top:1rem;font-size:var(--small);color:var(--ink-3)">Attention weighs which earlier words matter most for predicting the next one.</p>
+    </div>
+  </div></div>
+</section>
+
+<!-- 06 — INSIDE: next token (+tokens) -->
+<section class="slide" aria-label="It predicts the next token">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">Inside the learning machine</p>
+    <h2 class="title reveal clip" style="--d:.05s">Rung 1 · It predicts the next word.</h2>
+    <div class="split reveal" style="--d:.18s;margin-top:clamp(.7rem,2vh,1.2rem);align-items:center">
+      <div>
+        <p class="prompt-line">"The dermatologist examined the <u>&nbsp;____&nbsp;</u>"</p>
+        <div class="bars">
+          <div class="bar lead" style="--bw:78%"><span class="w">lesion</span><span class="track2"><i style="--d:.4s"></i></span><span class="p">0.31</span></div>
+          <div class="bar" style="--bw:46%"><span class="w">rash</span><span class="track2"><i style="--d:.5s"></i></span><span class="p">0.18</span></div>
+          <div class="bar" style="--bw:30%"><span class="w">patient</span><span class="track2"><i style="--d:.6s"></i></span><span class="p">0.14</span></div>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <svg viewBox="0 0 300 210" style="width:100%;height:auto;max-height:33vh" role="img" aria-label="a neural network of weighted connections">
+          <g fill="none" stroke="#938A79" stroke-linecap="round">
+            <line x1="46" y1="65" x2="150" y2="42" stroke-width="1.5" opacity=".35"/>
+            <line x1="46" y1="65" x2="150" y2="92" stroke-width="2.6" opacity=".6"/>
+            <line x1="46" y1="105" x2="150" y2="42" stroke-width="1" opacity=".25"/>
+            <line x1="46" y1="105" x2="150" y2="92" stroke-width="3" stroke="#C0492A" opacity=".9"/>
+            <line x1="46" y1="105" x2="150" y2="142" stroke-width="1.8" opacity=".45"/>
+            <line x1="46" y1="145" x2="150" y2="142" stroke-width="2.2" opacity=".5"/>
+            <line x1="46" y1="145" x2="150" y2="192" stroke-width="1.3" opacity=".3"/>
+            <line x1="150" y1="42" x2="254" y2="110" stroke-width="1.6" opacity=".4"/>
+            <line x1="150" y1="92" x2="254" y2="70" stroke-width="1.4" opacity=".35"/>
+            <line x1="150" y1="92" x2="254" y2="110" stroke-width="2.8" stroke="#C0492A" opacity=".9"/>
+            <line x1="150" y1="142" x2="254" y2="110" stroke-width="2.3" opacity=".55"/>
+            <line x1="150" y1="142" x2="254" y2="150" stroke-width="1.2" opacity=".3"/>
+            <line x1="150" y1="192" x2="254" y2="150" stroke-width="2" opacity=".5"/>
+          </g>
+          <g fill="#FBF7EE" stroke="#938A79" stroke-width="1.5">
+            <circle cx="46" cy="65" r="9"/><circle cx="46" cy="105" r="9"/><circle cx="46" cy="145" r="9"/>
+            <circle cx="150" cy="42" r="9"/><circle cx="150" cy="92" r="9"/><circle cx="150" cy="142" r="9"/><circle cx="150" cy="192" r="9"/>
+            <circle cx="254" cy="70" r="9"/><circle cx="254" cy="110" r="10" fill="#C0492A" stroke="#C0492A"/><circle cx="254" cy="150" r="9"/>
+          </g>
+        </svg>
+        <p class="mono" style="font-size:var(--mono);color:var(--ink-3);margin-top:.4rem">millions of <b style="color:var(--accent)">weights</b> — what training tunes</p>
+      </div>
+    </div>
+    <p class="lede reveal" style="--d:.6s;margin-top:clamp(.7rem,2vh,1.2rem)">Do that over <span class="accent">all of human text</span> and understanding falls out as a side effect. <span class="muted" style="font-size:var(--small)">(It reads <b>tokens</b>, not letters — why it miscounts and can misdose. Trust the language; verify every number.)</span></p>
+  </div></div>
+</section>
+
+<!-- 07 — INSIDE: how it learns + scale -->
+<section class="slide" aria-label="How it learns and why scale matters">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">Inside the learning machine</p>
+    <h2 class="title reveal clip" style="--d:.05s">Read everything, then get aligned.</h2>
+    <hr class="rule reveal draw" style="--d:.15s">
+    <div class="process reveal" style="--d:.2s">
+      <div class="track"><div class="nodes n3">
+        <div class="node"><span class="yr">Step 1 · pre-train</span><div class="nh">The sponge</div><p class="nb">Read the internet — a vast knowledge sponge that only autocompletes.</p></div>
+        <div class="node"><span class="yr">Step 2 · instruct</span><div class="nh">Follow directions</div><p class="nb">Learn to answer the question you actually asked.</p></div>
+        <div class="node"><span class="yr">Step 3 · align</span><div class="nh">Helpful &amp; honest</div><p class="nb">Tuned to human preference — what made ChatGPT usable.</p></div>
+      </div></div>
+    </div>
+    <p class="lede reveal" style="--d:.4s;margin-top:clamp(1rem,3vh,1.6rem)">The unlock was <span class="accent">scale</span>: make it bigger, feed it more — and abilities nobody programmed simply <span class="accent">emerge</span>, none of them taught directly:</p>
+    <div class="reveal" style="--d:.5s;display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem">
+      <span class="chip">translation</span><span class="chip">writing code</span><span class="chip">arithmetic</span><span class="chip">clinical reasoning</span>
+    </div>
+  </div></div>
+</section>
+
+<!-- 08 — INSIDE: hallucination + cousins -->
+<section class="slide slide--dark" aria-label="It is confident and often wrong">
+  <div class="slide-content"><div class="s split">
+    <div>
+      <p class="eyebrow reveal">Inside the learning machine</p>
+      <h2 class="title reveal clip" style="--d:.05s">Confident.<br>Often <span class="accent">wrong</span>.</h2>
+      <hr class="rule reveal draw" style="--d:.15s">
+      <p class="lede reveal" style="--d:.2s;color:var(--d-text)">It optimizes for <em class="q">plausible</em>, not <em class="q">true</em> — fluent, formatted, sometimes invented, with no built-in "I don't know." <b style="color:var(--d-text)">You sign the note.</b></p>
+    </div>
+    <ol class="list reveal" style="--d:.24s">
+      <li><span class="n">1</span><span class="t"><b>Sycophancy.</b> It leans toward agreeing with you.</span></li>
+      <li><span class="n">2</span><span class="t"><b>Automation bias.</b> You stop checking because it sounds sure.</span></li>
+      <li><span class="n">3</span><span class="t"><b>Worst on the long tail.</b> Most confidently wrong on rare presentations and skin of color — your hardest cases.</span></li>
+    </ol>
+  </div></div>
+</section>
+
+<!-- 09 — INSIDE: ground it (RAG/KG) or retrain it (fine-tune) -->
+<section class="slide" aria-label="Ground it or retrain it">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">Inside the learning machine</p>
+    <h2 class="title reveal clip" style="--d:.05s">So how do you make it<br>trustworthy?</h2>
+    <hr class="rule reveal draw" style="--d:.15s">
+    <table class="compare reveal" style="--d:.2s">
+      <tr>
+        <td class="good"><span class="tag-good">— ground it (RAG)</span>Don't trust its memory — hand it the evidence at answer time. A <b>knowledge graph</b> or document store retrieves the right source and the model reasons over <em>that</em>. The hallucination antidote.</td>
+        <td class="good"><span class="tag-good">— retrain it (fine-tune)</span>Show it thousands of domain examples so the skill is <b>baked in</b> — fine-tuning for dermoscopy, or training a derm-specific model. More effort, deeper specialization.</td>
+      </tr>
+      <caption>The two levers every serious medical-AI effort pulls — and exactly what I'm building in dermatology (more in a moment).</caption>
+    </table>
+  </div></div>
+</section>
+
+<!-- 10 — INSIDE: multimodal + tools -->
+<section class="slide" aria-label="It can see and use tools">
+  <div class="slide-content"><div class="s split">
+    <div>
+      <p class="eyebrow reveal">Inside the learning machine</p>
+      <h2 class="title reveal clip" style="--d:.05s">Rung 2 · It can see —<br>and use tools.</h2>
+      <hr class="rule reveal draw" style="--d:.15s">
+      <p class="lede reveal" style="--d:.2s">A word-piece — or an image — becomes <span class="accent">tokens</span>, then an <span class="accent">embedding</span>: a list of numbers capturing its <em class="q">meaning in context</em> — what it is, what it's part of, even its tone. So photos, dermoscopy, and PDFs all enter in the model's native "language," and it can <span class="accent">call tools</span> (calculator, web, code) to act beyond its memory.</p>
+      <p class="mono reveal" style="--d:.3s;margin-top:.6rem;font-size:var(--small);color:var(--ink-3)">lesion&nbsp;→&nbsp;[ 0.18 · −0.62 · 0.91 · 0.04 · … ]</p>
+      <p class="reveal" style="--d:.4s;margin-top:.8rem;font-size:var(--small);color:var(--ink-3)">But seeing isn't expert reading — <b>lab ≠ bedside.</b></p>
+    </div>
+    <div class="reveal mmv" style="--d:.28s">
+      <div class="mm-inputs">
+        <span class="chip">clinical photo</span><span class="chip">dermoscopy</span><span class="chip">path slide</span><span class="chip">PDF</span><span class="chip">calculator</span><span class="chip">the web</span>
+      </div>
+      <div class="mm-arrow" aria-hidden="true">↓</div>
+      <div class="mm-model">one model</div>
+      <div class="mm-arrow" aria-hidden="true">↓</div>
+      <div class="mm-out">one answer</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 11 — INSIDE: reasoning -> agents -->
+<section class="slide" aria-label="It thinks then acts — agents">
+  <div class="slide-content"><div class="s split">
+    <div>
+      <p class="eyebrow reveal">Inside the learning machine</p>
+      <h2 class="title reveal clip" style="--d:.05s">Rung 3 · It thinks,<br>then acts.</h2>
+      <hr class="rule reveal draw" style="--d:.15s">
+      <p class="lede reveal" style="--d:.2s">Newer models <span class="accent">reason</span> — spend compute working a problem before answering. Wrap that in a loop with tools and a goal and you get an <span class="accent">agent</span>: it plans, acts, checks, and repeats.</p>
+    </div>
+    <div class="reveal" style="--d:.28s">
+      <div class="frame" style="aspect-ratio:auto;display:block;padding:clamp(1rem,2vw,1.6rem)">
+        <p class="mono" style="font-size:var(--small);color:var(--ink-3);line-height:1.9">
+          <span style="color:var(--accent)">agent loop</span><br>
+          › plan the steps<br>
+          › act — use a tool<br>
+          › observe the result<br>
+          › fix &amp; repeat<br>
+          <span style="color:var(--ink)">────────────</span><br>
+          <b>toward a goal</b>
+        </p>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 12 — THE SPINE -->
+<section class="slide slide--dark" aria-label="The spine — Language Tools Plans">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">The big idea</p>
+    <h2 class="title reveal clip" style="--d:.05s">Language&nbsp;→&nbsp;Tools&nbsp;→&nbsp;Plans</h2>
+    <div class="climb reveal" style="--d:.18s">
+      <div class="step">
+        <div class="sname">Language</div>
+        <p class="ln you"><span class="tag">you</span><span>knowledge crosses minds &amp; generations</span></p>
+        <p class="ln it frag"><span class="tag">it</span><span>it learned language from nearly everything we've written</span></p>
+      </div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="step">
+        <div class="sname">Tools</div>
+        <p class="ln you"><span class="tag">you</span><span>act beyond your biology — the abacus, writing</span></p>
+        <p class="ln it frag"><span class="tag">it</span><span><b>function calling</b> — calculator, web, code, the EHR</span></p>
+      </div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="step">
+        <div class="sname">Plan &amp; execute</div>
+        <p class="ln you"><span class="tag">you</span><span>sequence steps toward a distant goal</span></p>
+        <p class="ln it frag"><span class="tag">it</span><span><b>agents</b> — they plan, act &amp; loop toward a goal</span></p>
+      </div>
+    </div>
+    <div style="margin-top:clamp(1rem,2.6vh,1.8rem)">
+      <p class="serif frag" style="font-style:italic;font-size:clamp(1.05rem,1.9vw,1.4rem)">We needed ~100,000 years to climb that ladder.</p>
+      <div class="frag spread" style="margin-top:.5rem">
+        <p class="serif" style="font-style:italic;font-size:clamp(1.1rem,2.1vw,1.5rem)">The machine did it in <span class="accent">about three.</span></p>
+        <span class="chip">agent = brain + hands + persistence + goal</span>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+
+<!-- ACT: Learning to think -->
+
+<!-- A1 — residency: learning to think (classification, rebuilt) -->
+<section class="slide" aria-label="Residency teaches you to think">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">Learning to think</p>
+    <h2 class="title reveal clip" style="--d:.05s">Residency teaches us to think.</h2>
+    <hr class="rule reveal draw" style="--d:.15s">
+    <div class="process reveal" style="--d:.2s">
+      <div class="track"><div class="nodes n3">
+        <div class="node"><span class="yr">box 1</span><div class="nh">Inflammatory</div><p class="nb">infectious vs non-infectious — papulosquamous, eczematous, urticarial, autoimmune…</p></div>
+        <div class="node"><span class="yr">box 2</span><div class="nh">Neoplastic</div><p class="nb">benign vs malignant growths.</p></div>
+        <div class="node"><span class="yr">box 3</span><div class="nh">Other</div><p class="nb">genodermatoses, metabolic and toxic insults, trauma.</p></div>
+      </div></div>
+    </div>
+    <p class="lede reveal" style="--d:.4s;margin-top:clamp(1rem,3vh,2rem)">We learn the classic "big boxes" that sort every disease into a mechanism. <span class="accent">And in parallel, the machines have been learning to do the same.</span></p>
+  </div></div>
+</section>
+
+<!-- A2 — we reason through algorithms (mindmaps + SkinSketches) -->
+<section class="slide" aria-label="We reason through algorithms">
+  <div class="slide-content"><div class="s split">
+    <div>
+      <p class="eyebrow reveal">Learning to think</p>
+      <h2 class="title reveal clip" style="--d:.05s">We work through<br>algorithms.</h2>
+      <hr class="rule reveal draw" style="--d:.15s">
+      <p class="lede reveal" style="--d:.2s">Find the patterns that, together, point to an answer. In first year I began building <span class="accent">mind maps</span> of the diagnostic process I saw in clinic — trying to fine-tune my own algorithm to run it faster and more accurately next time.</p>
+      <p class="reveal" style="--d:.32s;margin-top:1rem;font-size:var(--small);color:var(--ink-3)">(SkinSketches grew from the same instinct — turning dry facts into visual stories.) And AI is unmatched at helping collect, organize, and make sense of all of it.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(.5rem,1.8vh,1.1rem)">
+      <figure class="frame reveal" style="--d:.28s;aspect-ratio:1586/1512;height:38vh;max-height:420px">
+        <span class="badge serif" style="font-size:var(--small);font-family:'IBM Plex Mono'">my mind maps</span>
+        <img class="frame-img" style="object-fit:contain" src="images/mindmap.png" alt="" onerror="this.style.display='none'">
+      </figure>
+      <figure class="frame reveal" style="--d:.38s;aspect-ratio:1440/900;height:26vh;max-height:300px">
+        <span class="badge serif" style="font-size:var(--small);font-family:'IBM Plex Mono'">SkinSketches</span>
+        <img class="frame-img" style="object-fit:contain" src="work/skinsketches.png" alt="" onerror="this.style.display='none'">
+      </figure>
+    </div>
+  </div></div>
+</section>
+
+<!-- A3 — OpenEvidence: infinite knowledge, questionable retention -->
+<section class="slide" aria-label="Infinite knowledge, questionable retention">
+  <div class="slide-content"><div class="s split">
+    <div>
+      <p class="eyebrow reveal">Learning to think</p>
+      <h2 class="title reveal clip" style="--d:.05s">Infinite knowledge,<br>questionable retention.</h2>
+      <hr class="rule reveal draw" style="--d:.15s">
+      <p class="lede reveal" style="--d:.2s">Tools like <span class="accent">OpenEvidence</span> fill our knowledge gaps in seconds, grounded in the literature.</p>
+      <p class="lede frag" style="margin-top:.6rem">The catch: lean on them and we offload the very reasoning that builds <em class="q">retention</em>.</p>
+    </div>
+    <figure class="frame reveal" style="--d:.28s;aspect-ratio:4/3">
+      <span class="badge serif" style="font-size:var(--small);font-family:'IBM Plex Mono'">OpenEvidence</span>
+      <div class="tex-skin"></div>
+      <img class="frame-img" src="tools/openevidence.png" alt="" onerror="this.style.display='none'">
+    </figure>
+  </div></div>
+</section>
+
+<!-- A4 — but it falters (hallucination callback + NOHARM) -->
+<section class="slide slide--dark" aria-label="But it falters — clinical harm">
+  <div class="slide-content"><div class="s split">
+    <div>
+      <p class="eyebrow reveal">Learning to think</p>
+      <h2 class="title reveal clip" style="--d:.05s">But it falters —<br>and sounds sure anyway.</h2>
+      <hr class="rule reveal draw" style="--d:.15s">
+      <p class="lede reveal" style="--d:.2s;color:var(--d-text)">It hallucinates, loses the thread when overloaded, and still reads as <em class="q">confident</em> — and, to the unfamiliar eye, correct. In medicine, that's not a typo. It's a <span class="accent">harm</span>.</p>
+      <div class="reveal" style="--d:.34s;margin-top:clamp(1rem,3vh,1.6rem);max-width:30rem">
+        <p class="mono" style="font-size:var(--mono);color:var(--d-muted);letter-spacing:.14em;margin-bottom:.55rem">A FAMILIAR FAILURE</p>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:.5rem">
+          <span style="background:var(--d-accent);color:#fff;border-radius:14px 14px 4px 14px;padding:.5em .95em;font-size:var(--small)">How many r's in "strawberry"?</span>
+        </div>
+        <div style="background:var(--d-panel);border:1px solid var(--d-line);border-radius:14px 14px 14px 4px;padding:.6em .95em;font-size:var(--small);color:var(--d-text)">"There are <b style="color:var(--d-accent)">two</b> r's in strawberry."&nbsp;&nbsp;<span style="color:var(--d-muted)">✗ it's three</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.7rem;align-items:center">
+      <figure class="frame reveal" style="--d:.28s;aspect-ratio:760/722;background:#fff;border:1px solid var(--d-line);max-height:52vh">
+        <img class="frame-img" style="object-fit:contain;background:#fff" src="work/noharm.png" alt="" onerror="this.style.display='none'">
+      </figure>
+      <p class="reveal" style="--d:.42s;font-size:var(--small);color:var(--d-muted);text-align:center;max-width:34ch;line-height:1.4">Rodman et al., NOHARM (2025): up to <span class="accent">~22%</span> of cases risked severe harm — <span class="accent">76.6%</span> from omissions.</p>
+    </div>
+  </div></div>
+</section>
+
+<!-- A5 — dermoscopy study (my eval, kept) -->
+<section class="slide slide--bleed" aria-label="Dermoscopy LLM study">
+  <div class="bleed-ph" aria-hidden="true">work/dermoscopy.png</div>
+  <img class="bleed-img" src="work/dermoscopy.png" alt="" onerror="this.style.display='none'">
+  <div class="bleed-scrim"></div>
+  <div class="slide-content"><div class="s bleed-cap">
+    <p class="eyebrow reveal">Learning to think · can it reason on derm?</p>
+    <h2 class="bleed-title reveal clip" style="--d:.05s">Can it read dermoscopy?</h2>
+    <p class="bleed-sub reveal" style="--d:.15s">My own eval — 17 models, 10,200 trials, 8 diagnoses. The honest answer: not yet — but the gap is closing. (JAAD 2025)</p>
+  </div></div>
+</section>
+
+<!-- A6 — teaching it to reason (Rodman) -->
+<section class="slide" aria-label="Teaching it to reason like a clinician">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">Learning to think</p>
+    <p class="lede reveal" style="--d:.1s"><span class="accent">Adam Rodman</span> studied the clinical-reasoning process long before LLMs — so he was positioned to turn it into rigorous evaluations of how these models actually reason. The trail:</p>
+    <div class="reveal" style="--d:.3s;display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(.9rem,2.4vw,1.8rem);margin-top:clamp(1rem,3vh,1.8rem)">
+      <figure style="margin:0;display:flex;flex-direction:column;gap:.55rem">
+        <img src="work/rodman-1.png" alt="" style="width:100%;aspect-ratio:760/722;object-fit:cover;object-position:top;border:1px solid var(--line);border-radius:8px;background:#fff" onerror="this.style.display='none'">
+        <span class="mono" style="font-size:var(--mono);letter-spacing:.06em;color:var(--accent);text-align:center">2024 · reasoning tasks</span>
+      </figure>
+      <figure style="margin:0;display:flex;flex-direction:column;gap:.55rem">
+        <img src="work/rodman-2.png" alt="" style="width:100%;aspect-ratio:760/722;object-fit:cover;object-position:top;border:1px solid var(--line);border-radius:8px;background:#fff" onerror="this.style.display='none'">
+        <span class="mono" style="font-size:var(--mono);letter-spacing:.06em;color:var(--accent);text-align:center">2025 · expert-level (Dr. CaBot)</span>
+      </figure>
+      <figure style="margin:0;display:flex;flex-direction:column;gap:.55rem">
+        <img src="work/rodman-3.png" alt="" style="width:100%;aspect-ratio:760/722;object-fit:cover;object-position:top;border:1px solid var(--line);border-radius:8px;background:#fff" onerror="this.style.display='none'">
+        <span class="mono" style="font-size:var(--mono);letter-spacing:.06em;color:var(--accent);text-align:center">→ into the clinic · DeepMind</span>
+      </figure>
+    </div>
+  </div></div>
+</section>
+
+<!-- A7 — clinical practice: AMIE + triadic clinic + fellowship -->
+<section class="slide slide--dark" aria-label="The triadic clinic">
+  <div class="slide-content"><div class="s split">
+    <div>
+      <p class="eyebrow reveal">Learning to think</p>
+      <h2 class="title reveal clip" style="--d:.05s">Into the clinic —<br>a <em class="q">triadic</em> encounter.</h2>
+      <hr class="rule reveal draw" style="--d:.15s">
+      <p class="lede reveal" style="--d:.2s;color:var(--d-text)">The AMIE ambulatory study (2026): real patients, accuracy comparable to clinicians, <span class="accent">more</span> patient trust, <span class="accent">zero</span> safety stops. Now Rodman is building a clinic that is triadic from the ground up — patient, physician, and a real-time AI assistant, supervised by a second physician each encounter.</p>
+      <p class="reveal" style="--d:.36s;margin-top:1rem;font-size:var(--small);color:var(--d-muted)">To me this is the first real step toward a better kind of care — and what I'll help develop and validate in fellowship next year. Human + machine, each catching what the other misses.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.7rem;align-items:center">
+      <figure class="frame reveal" style="--d:.28s;aspect-ratio:760/722;background:#fff;border:1px solid var(--d-line);max-height:54vh">
+        <img class="frame-img" style="object-fit:contain;background:#fff" src="work/rodman-3.png" alt="" onerror="this.style.display='none'">
+      </figure>
+      <p class="reveal" style="--d:.42s;font-size:var(--small);color:var(--d-muted);text-align:center;max-width:34ch;line-height:1.4">The AMIE feasibility study — with Google DeepMind.</p>
+    </div>
+  </div></div>
+</section>
+
+<!-- A8 — the hidden risk (deskilling) -->
+<section class="slide" aria-label="The hidden risk — deskilling">
+  <div class="slide-content"><div class="s">
+    <div class="split">
+      <div>
+        <p class="eyebrow reveal">The hidden risk</p>
+        <h2 class="title reveal clip" style="--d:.05s">Lean on it, and<br>the skill fades.</h2>
+        <hr class="rule reveal draw" style="--d:.15s">
+        <p class="lede reveal" style="--d:.2s">GPS weakened our sense of direction. Offload the reasoning to an assistant and our clinical skills can <span class="accent">atrophy</span> the same way. Give expert endoscopists an AI polyp-finder, then take it away — their <span class="accent">own</span> detection rate drops.</p>
+        <p class="reveal" style="--d:.32s;margin-top:.9rem;font-size:var(--small);color:var(--ink-3)">Budzyń et&nbsp;al., <em class="q">Lancet Gastroenterol Hepatol</em> 2025. If seasoned experts erode, what about trainees still building the gestalt?</p>
+      </div>
+      <div class="reveal" style="--d:.28s">
+        <div class="bars" style="margin-top:0">
+          <div class="bar lead" style="--bw:80%"><span class="w mono" style="font-size:var(--small)">unaided · before AI</span><span class="track2"><i style="--d:.4s"></i></span><span class="p">28.4%</span></div>
+          <div class="bar" style="--bw:63%"><span class="w mono" style="font-size:var(--small)">unaided · after AI</span><span class="track2"><i style="--d:.55s"></i></span><span class="p">22.4%</span></div>
+        </div>
+        <p class="reveal" style="--d:.62s;margin-top:clamp(.9rem,2.6vh,1.5rem);font-size:var(--body)">So the real question isn't <em class="q">"can AI do dermatology?"</em><br>It's <span class="accent">"how do we use it to deepen judgment, not erode it?"</span></p>
+      </div>
+    </div>
+    <div class="reveal" style="--d:.72s;display:grid;grid-template-columns:1fr 1fr;gap:clamp(.8rem,2vw,1.4rem);margin-top:clamp(1rem,3vh,1.6rem)">
+      <div style="background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:.7rem .95rem">
+        <span class="mono" style="font-size:var(--mono);letter-spacing:.06em;color:var(--accent)">STAT · AUG 2025</span>
+        <p class="serif" style="font-size:var(--small);margin-top:.25rem;line-height:1.25">"AI use may be deskilling doctors, new Lancet study warns."</p>
+      </div>
+      <div style="background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:.7rem .95rem">
+        <span class="mono" style="font-size:var(--mono);letter-spacing:.06em;color:var(--accent)">TIME · 2025</span>
+        <p class="serif" style="font-size:var(--small);margin-top:.25rem;line-height:1.25">"Using AI made doctors worse at spotting cancer without assistance."</p>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- A9 — dermaknowledgy (the answer: ground it) -->
+<section class="slide slide--bleed" aria-label="dermaknowledgy knowledge graph">
+  <div class="bleed-ph" aria-hidden="true">work/dermaknowledgy.png</div>
+  <img class="bleed-img" src="work/dermaknowledgy.png" alt="" onerror="this.style.display='none'">
+  <div class="bleed-scrim"></div>
+  <div class="slide-content"><div class="s bleed-cap">
+    <p class="eyebrow reveal">My answer · ground it</p>
+    <h2 class="bleed-title reveal clip" style="--d:.05s">dermaknowledgy</h2>
+    <p class="bleed-sub reveal" style="--d:.15s">A literature-grounded knowledge graph — 615 conditions, 6,400+ components. It grounds the model against hallucination and structures the reasoning, so the tool reinforces how we think instead of bypassing it.</p>
+  </div></div>
+</section>
+
+<!-- A10 — dermie (the finale) -->
+<section class="slide slide--dark" aria-label="dermie — the finale">
+  <div class="slide-content"><div class="s narrow" style="align-items:center;text-align:center">
+    <p class="eyebrow reveal" style="justify-content:center">What I'm building</p>
+    <h2 class="display reveal clip" style="--d:.05s">dermie</h2>
+    <hr class="rule reveal draw" style="--d:.15s;margin-inline:auto">
+    <p class="lede reveal" style="--d:.2s;color:var(--d-text);max-width:52ch;margin-inline:auto">Everything we've learned about reasoning — and about circumventing hallucination — turned into AI-first dermatology learning that <span class="accent">instills and reinforces</span> clinical judgment rather than replacing it. The knowledge graph, the models, and pedagogy, in one place.</p>
+    <p class="reveal mono" style="--d:.4s;margin-top:1.2rem;font-size:var(--mono);color:var(--d-muted);letter-spacing:.1em">dermie.io</p>
+  </div></div>
+</section>
+<!-- 13 — TOOLBOX: intro + reframe -->
+<section class="slide slide--dark" aria-label="The toolbox — stop Googling, start delegating">
+  <div class="slide-content"><div class="s narrow" style="text-align:center;align-items:center">
+    <p class="eyebrow reveal" style="justify-content:center">The toolbox today</p>
+    <h2 class="display reveal clip" style="--d:.05s">Stop Googling it.</h2>
+    <p class="lede reveal serif" style="--d:.2s;font-size:clamp(1.4rem,3.4vw,2.6rem);color:var(--d-text);max-width:none;margin:.4rem auto 0">Start <span class="accent">delegating</span> to it.</p>
+    <p class="reveal" style="--d:.34s;margin-top:clamp(1rem,3vh,1.8rem);font-size:var(--body);color:var(--d-muted);max-width:62ch;margin-inline:auto">
+      We default to using this like the tools we already know — a smarter Google. But the products climb the same ladder: <b style="color:var(--d-text)">Ask → Create → Browse → Build → Delegate.</b> Here's the everyday toolbox, simplest to most powerful.</p>
+    <p class="reveal mono" style="--d:.46s;margin-top:1.1rem;font-size:var(--mono);color:var(--d-muted);letter-spacing:.06em">the one rule: never paste patient data into a consumer tool.*</p>
+  </div></div>
+</section>
+
+<!-- 14 — TOOLBOX: Ask -->
+<section class="slide" aria-label="Toolbox — Ask (chatbots)">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">The toolbox · 1 of 5</p>
+    <h2 class="title reveal clip" style="--d:.05s">Ask <span class="muted" style="font-family:'IBM Plex Sans';font-size:.5em;font-weight:400">— just talk to it</span></h2>
+    <div class="toolgrid reveal" style="--d:.2s">
+      <div class="tool"><div class="shot"><span class="ph">tools/chatgpt.png</span><img src="tools/chatgpt.png" alt="" onerror="this.style.display='none'"></div><div class="nm">ChatGPT</div><p class="ds">OpenAI's chatbot — the broadest ecosystem; free tier is good, ~$20/mo unlocks the frontier.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">tools/claude.png</span><img src="tools/claude.png" alt="" onerror="this.style.display='none'"></div><div class="nm">Claude</div><p class="ds">Anthropic's chatbot — strong writing and reasoning; what this deck was built with.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">tools/openevidence.png</span><img src="tools/openevidence.png" alt="" onerror="this.style.display='none'"></div><div class="nm">OpenEvidence</div><p class="ds">Medical Q&amp;A grounded in the literature — built for clinicians.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">tools/abridge.png</span><img src="tools/abridge.png" alt="" onerror="this.style.display='none'"></div><div class="nm">Abridge</div><p class="ds">Ambient documentation — listens to the visit, drafts the note.</p></div>
+    </div>
+    <p class="lede reveal" style="--d:.4s;margin-top:clamp(.8rem,2vh,1.4rem)">The simplest rung: you type, it answers. Most people never leave here.</p>
+  </div></div>
+</section>
+
+<!-- 15 — TOOLBOX: Create -->
+<section class="slide" aria-label="Toolbox — Create (content generation)">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">The toolbox · 2 of 5</p>
+    <h2 class="title reveal clip" style="--d:.05s">Create <span class="muted" style="font-family:'IBM Plex Sans';font-size:.5em;font-weight:400">— make images, audio, video</span></h2>
+    <div class="toolgrid reveal" style="--d:.2s">
+      <div class="tool"><div class="shot"><span class="ph">tools/gpt-image-2.png</span><img src="tools/gpt-image-2.png" alt="" onerror="this.style.display='none'"></div><div class="nm">GPT Image 2</div><p class="ds">OpenAI's image model — photoreal images from a prompt. It generated this one.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">tools/nano-banana.png</span><img src="tools/nano-banana.png" alt="" onerror="this.style.display='none'"></div><div class="nm">Nano Banana</div><p class="ds">Google's image model — fast, photoreal editing from a prompt.</p></div>
+    </div>
+    <p class="lede reveal" style="--d:.4s;margin-top:clamp(.8rem,2vh,1.4rem)">Same chat box — now it produces media, not just words. Figures, patient handouts, slides.</p>
+  </div></div>
+</section>
+
+<!-- 16 — TOOLBOX: Browse -->
+<section class="slide" aria-label="Toolbox — Browse (AI browsers)">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">The toolbox · 3 of 5</p>
+    <h2 class="title reveal clip" style="--d:.05s">Browse <span class="muted" style="font-family:'IBM Plex Sans';font-size:.5em;font-weight:400">— it acts on the web for you</span></h2>
+    <div class="toolgrid reveal" style="--d:.2s">
+      <div class="tool"><div class="shot"><span class="ph">tools/comet.png</span><img src="tools/comet.png" alt="" onerror="this.style.display='none'"></div><div class="nm">Comet</div><p class="ds">Perplexity's AI browser — researches and clicks for you.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">tools/chatgpt-atlas.png</span><img src="tools/chatgpt-atlas.png" alt="" onerror="this.style.display='none'"></div><div class="nm">ChatGPT Atlas</div><p class="ds">OpenAI's browser — the chat sits over every page.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">tools/claude-chrome.png</span><img src="tools/claude-chrome.png" alt="" onerror="this.style.display='none'"></div><div class="nm">Claude in Chrome</div><p class="ds">An extension that fills forms and runs web tasks on command.</p></div>
+    </div>
+    <p class="lede reveal" style="--d:.4s;margin-top:clamp(.8rem,2vh,1.4rem)">Now it leaves the chat box — reading and clicking through the web on your behalf.</p>
+  </div></div>
+</section>
+
+<!-- 17 — TOOLBOX: Build -->
+<section class="slide" aria-label="Toolbox — Build (desktop, coding, research)">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">The toolbox · 4 of 5</p>
+    <h2 class="title reveal clip" style="--d:.05s">Build <span class="muted" style="font-family:'IBM Plex Sans';font-size:.5em;font-weight:400">— on your files, your machine</span></h2>
+    <div class="toolgrid reveal" style="--d:.2s">
+      <div class="tool"><div class="shot"><span class="ph">tools/claude-desktop.png</span><img src="tools/claude-desktop.png" alt="" onerror="this.style.display='none'"></div><div class="nm">Claude Desktop</div><p class="ds">Connect it to your documents and apps; it works across them.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">tools/claude-code.png</span><img src="tools/claude-code.png" alt="" onerror="this.style.display='none'"></div><div class="nm">Claude Code</div><p class="ds">A coding &amp; research assistant that reads and writes whole projects.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">tools/codex.png</span><img src="tools/codex.png" alt="" onerror="this.style.display='none'"></div><div class="nm">Codex</div><p class="ds">OpenAI's agentic coder — and a desktop app that works across your files and apps, like Claude Desktop.</p></div>
+    </div>
+    <p class="lede reveal" style="--d:.4s;margin-top:clamp(.8rem,2vh,1.4rem)">No coding background required — you describe the goal in plain English; it builds.</p>
+  </div></div>
+</section>
+
+<!-- 18 — TOOLBOX: Delegate -->
+<section class="slide slide--dark" aria-label="Toolbox — Delegate (agents)">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">The toolbox · 5 of 5</p>
+    <h2 class="title reveal clip" style="--d:.05s">Delegate <span class="muted" style="font-family:'IBM Plex Sans';font-size:.5em;font-weight:400">— hand off the whole goal</span></h2>
+    <div class="toolgrid reveal" style="--d:.2s">
+      <div class="tool"><div class="shot"><span class="ph">tools/openclaw.png</span><img src="tools/openclaw.png" alt="" onerror="this.style.display='none'"></div><div class="nm">OpenClaw</div><p class="ds">An autonomous agent that pursues a goal across tools and time.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">tools/codex-agent.png</span><img src="tools/codex-agent.png" alt="" onerror="this.style.display='none'"></div><div class="nm">Coding agents</div><p class="ds">Set a task; it plans, runs, fixes, and reports back.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">tools/gemini-spark.png</span><img src="tools/gemini-spark.png" alt="" onerror="this.style.display='none'"></div><div class="nm">Gemini Spark</div><p class="ds">Describe an app or workflow; it builds and runs it for you.</p></div>
+      <div class="tool"><div class="shot"><span class="ph">the top rung</span></div><div class="nm">You supervise</div><p class="ds">Most autonomy, most leverage — and you still sign off.</p></div>
+    </div>
+    <p class="lede reveal" style="--d:.4s;margin-top:clamp(.8rem,2vh,1.4rem);color:var(--d-text)">The top rung — <span class="accent">Plans</span> from the spine, as a product. Ask me about any of these afterward.</p>
+  </div></div>
+</section>
+
+<!-- 28 — TAKEAWAYS -->
+<section class="slide slide--dark" aria-label="Takeaways">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">If you remember three things</p>
+    <h2 class="title reveal clip" style="--d:.05s">Learning machines.</h2>
+    <ol class="list reveal" style="--d:.2s;margin-top:clamp(.8rem,2vh,1.4rem)">
+      <li><span class="n">1</span><span class="t"><b>It's a tool, not an oracle.</b> Context in, verify out — you're the attending, you sign the note.</span></li>
+      <li><span class="n">2</span><span class="t"><b>Language → Tools → Plans.</b> It climbed our ladder in three years; once you see the rungs, it isn't magic.</span></li>
+      <li><span class="n">3</span><span class="t"><b>Keep learning.</b> The machines won't stop — leverage goes to those who direct them. Derm should lead, on our terms.</span></li>
+    </ol>
+    <p class="reveal" style="--d:.4s;margin-top:clamp(1rem,2.6vh,1.8rem);font-size:var(--small);color:var(--d-muted)">
+      Happy to help anyone get started — and to take questions on any tool I showed. &nbsp;—&nbsp; <span style="color:var(--d-text)">Ramie Fathy, MD</span></p>
+  </div></div>
+</section>
+
+<!-- CLOSING 1 — department / clinic -->
+<section class="slide" aria-label="Thank you — the department" style="padding:0;background:#F4EFE4">
+  <div class="bleed-ph" aria-hidden="true" style="color:#938A79">work/closing-team.png</div>
+  <img src="work/closing-team.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1" onerror="this.style.display='none'">
+</section>
+
+<!-- CLOSING 2 — family -->
+<section class="slide" aria-label="Thank you — family" style="padding:0;background:#8A7D5B">
+  <div class="bleed-ph" aria-hidden="true">work/closing-family.png</div>
+  <img src="work/closing-family.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1" onerror="this.style.display='none'">
+</section>
+
+<!-- CLOSING 3 — people / headshots -->
+<section class="slide slide--dark" aria-label="Thank you — collaborators" style="padding:0">
+  <div class="bleed-ph" aria-hidden="true">work/closing-people.png</div>
+  <img src="work/closing-people.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1" onerror="this.style.display='none'">
+</section>
+
+<!-- 29 — APPENDIX: job anxiety -->
+<section class="slide slide--dark" aria-label="Appendix — is it coming for my job">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">Appendix · for Q&amp;A</p>
+    <h2 class="display reveal clip" style="--d:.05s">Is it coming for my job?</h2>
+    <div class="ledger reveal" style="--d:.2s;margin-top:clamp(.8rem,2vh,1.4rem)">
+      <div class="row"><div class="lab" style="font-size:clamp(1rem,2vw,1.5rem);color:var(--d-accent)">Good at</div><div class="h-cell" style="grid-column:2 / -1">pattern recognition · synthesis · drafting · triage · answering at scale</div></div>
+      <div class="row"><div class="lab" style="font-size:clamp(1rem,2vw,1.5rem);color:var(--d-accent)">Doesn't do</div><div class="h-cell" style="grid-column:2 / -1">the exam <em class="q">(yet!)</em> · procedures · the path-and-clinic gestalt · the relationship · <b style="color:var(--d-text)">accountability</b></div></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 30 — APPENDIX: radiology cautionary tale -->
+<section class="slide" aria-label="Appendix — we've heard this before">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">Appendix · for Q&amp;A</p>
+    <h2 class="title reveal clip" style="--d:.05s">We've heard this before.</h2>
+    <hr class="rule reveal draw" style="--d:.15s">
+    <table class="compare reveal" style="--d:.2s">
+      <tr>
+        <td class="bad"><span class="tag-bad">— 2016, a famous prediction</span>"We should stop training radiologists now. They'll be obsolete in five years." <span class="muted">— a leading AI pioneer</span></td>
+        <td class="good"><span class="tag-good">— 2026, the reality</span>Radiology is busier and short-staffed. AI reads <b>alongside</b> them — and the specialty grew. The job changed; it didn't vanish.</td>
+      </tr>
+      <caption>The diagnostic, visual specialty everyone said AI would eat is thriving. It's the closest precedent we have.</caption>
+    </table>
+  </div></div>
+</section>
+
+<!-- 31 — APPENDIX: equity -->
+<section class="slide" aria-label="Appendix — skin of color">
+  <div class="slide-content"><div class="s split">
+    <div>
+      <p class="eyebrow reveal">Appendix · our debt</p>
+      <h2 class="title reveal clip" style="--d:.05s">Skin of color<br>is our blind spot.</h2>
+      <hr class="rule reveal draw" style="--d:.15s">
+      <p class="lede reveal" style="--d:.2s">Models learn from the images we gave them — and our archives badly underrepresent dark skin. SOTA AI (and dermatologists) underperform on darker skin and rare disease. And AI-generated derm images are realistic but <span class="accent">biased and often wrong</span> (JEADV 2025).</p>
+      <p class="reveal" style="--d:.32s;margin-top:1rem;font-size:var(--small);color:var(--ink-3)">Daneshjou's DDI dataset proved it — and showed diverse data <span class="accent">closes the gap.</span> The fix is ours.</p>
+    </div>
+    <div class="reveal" style="--d:.28s">
+      <div class="frame" style="aspect-ratio:auto;display:block;padding:clamp(1rem,2vw,1.6rem)">
+        <p class="mono" style="font-size:var(--small);color:var(--ink-3);line-height:1.9">
+          <span style="color:var(--accent)">the data debt</span><br>
+          public derm datasets:<br>
+          Fitzpatrick V–VI barely present<br>
+          → models worse on dark skin<br>
+          → dermatologists, too<br>
+          → fix: diverse data + fine-tuning
+        </p>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 32 — APPENDIX: regulation -->
+<section class="slide" aria-label="Appendix — who is accountable">
+  <div class="slide-content"><div class="s">
+    <p class="eyebrow reveal">Appendix · for Q&amp;A</p>
+    <h2 class="title reveal clip" style="--d:.05s">Who's accountable<br>when it's wrong?</h2>
+    <hr class="rule reveal draw" style="--d:.15s">
+    <ol class="list reveal" style="--d:.2s">
+      <li><span class="n">1</span><span class="t"><b>FDA.</b> Regulates clinical AI as a device (SaMD) — hundreds cleared. The hard problem: "locked" vs "adaptive" models that keep learning.</span></li>
+      <li><span class="n">2</span><span class="t"><b>EU AI Act.</b> Medical AI is "high-risk" — strict documentation and human oversight.</span></li>
+      <li><span class="n">3</span><span class="t"><b>Liability today.</b> The clinician who signs the note. The model is not a defendant.</span></li>
+      <li><span class="n">4</span><span class="t"><b>Still catching up.</b> Validation standards, reimbursement, post-market monitoring.</span></li>
+    </ol>
+  </div></div>
+</section>
+
+</main>
+<script>
+/* ============================================================
+   PRESENTATION CONTROLLER — keyboard · scroll-snap · notes · fragments
+   ============================================================ */
+(function(){
+  "use strict";
+  const deck     = document.getElementById('deck');
+  const slides   = Array.from(deck.querySelectorAll('.slide'));
+  const progress = document.getElementById('progress');
+  const counter  = document.getElementById('counter');
+  const hint     = document.getElementById('hint');
+  const notes    = document.getElementById('notes');
+  const notesBody= document.getElementById('notesBody');
+  const notesLbl = document.getElementById('notesLabel');
+  const notesX   = document.getElementById('notesClose');
+  const total    = slides.length;
+  const pad = n => String(n).padStart(2,'0');
+
+  const fragsOf = s => Array.from(s.querySelectorAll('.frag'));
+  const nextHiddenFrag = s => fragsOf(s).find(f => !f.classList.contains('shown'));
+  const showFrags = s => fragsOf(s).forEach(f => f.classList.add('shown'));
+  const hideFrags = s => fragsOf(s).forEach(f => f.classList.remove('shown'));
+
+  /* speaker notes — index-aligned with the slides (front 12 · act 10 · toolbox 6 · takeaways · appendix 4) */
+  const NOTES = [
+    `Thanks for having me. I'm Ramie Fathy — a PGY-4 here in the Hopkins dermatology department. I'm finishing residency this month, and in July I head to a dermatology-AI research fellowship at Harvard. Over the next thirty minutes or so, I want to walk you through what generative AI actually is, how it works under the hood, and — most importantly — how you can start using it in your own work this week. Not as science fiction, and not as a threat: as a tool. I'm not here to tell you the machines are coming for your job. They're not. But I do think the people who learn to direct these tools are going to have an enormous advantage — and I think dermatology should be at the front of that line, not reacting to it from behind.`,
+    `Before we talk about the machine, I want to talk about us — because the fastest way to understand what AI is doing is to realize it's climbing the very same ladder we climbed. Think of it as three rungs. The first is language. Roughly a hundred thousand years ago, we developed the ability to pass knowledge between minds and across generations — and that's when culture started to compound; you didn't have to rediscover fire every generation. The second is tools. We learned to act beyond our biology: the hand axe, writing, the abacus, eventually the computer. And the third is planning and execution: we learned to sequence steps toward a distant goal — agriculture, institutions, the scientific method. Language, tools, plans. Hold onto those three, because in a moment we're going to watch a machine climb that same ladder — just incomprehensibly faster.`,
+    `AI didn't start with ChatGPT. The field is decades old, and it's gone through three phases — and the thread running through all of them is one move: we stopped writing rules and started letting the machine learn. In the 1970s, a system called MYCIN could actually recommend antibiotics better than some clinicians — but every single rule was hand-coded by experts. It was brilliant, it was brittle, and it was never actually deployed. Then, in the 2010s, the paradigm flipped. Instead of writing the rules ourselves, you show the machine thousands of examples and let it find the patterns. And dermatology was the first medical specialty where this really worked — Esteva's 2017 Nature paper showed a neural network matching board-certified dermatologists on skin-cancer classification. That was a landmark moment.`,
+    `And then, also in 2017, a team at Google published a paper called "Attention Is All You Need." It introduced a new architecture called the Transformer — and that one paper is the reason we have ChatGPT, Claude, Gemini, all of it. The trick is what you can see here. Instead of reading words one at a time, in order, the Transformer weighs every word against every other word, all at once. And suddenly the machine had context — it could understand that the word "lesion" at the end of this sentence is connected to "dermatologist" at the beginning. That single idea is what made large language models possible.`,
+    `So let's go inside. What is the machine actually doing? At its core, it does just one thing: it predicts the next word. You give it "the dermatologist examined the —" and it assigns probabilities: lesion, about thirty percent; rash, eighteen; patient, fourteen — and it picks one. Then it predicts the next word, and the next. On the right is a simplified picture of the network that does this: the circles are neurons, the lines between them are connections, and every connection has a weight — a number that gets adjusted during training. When you hear that a model has billions of parameters, those parameters are these weights. Now here's the remarkable part: do that next-word task over essentially all of human text, and understanding falls out as a side effect. Nobody programmed it in — it emerged from the task. But remember, the model reads tokens, little word-fragments, not individual letters. That's why it can write you a beautiful differential and still get the number of letters in "strawberry" wrong. So in medicine: trust the language, but verify every number, every dose, every measurement.`,
+    `So how does a raw next-word predictor become something you can actually have a conversation with? Three steps. The first is pre-training — the sponge phase. You feed it the internet, trillions of words, and it becomes this vast knowledge sponge — but at this point all it can really do is autocomplete. The second is instruction tuning: you show it thousands of examples of a question and a good answer, and it learns to actually respond to what you asked. And the third is alignment — reinforcement learning from human feedback — where human raters score its answers and nudge it toward being helpful, honest, and harmless. That last step is what turned an impressive research model into a product people could use. And here's what surprised everyone, including the people building these systems: the real unlock was scale. Make the model bigger, feed it more data, and abilities nobody programmed simply emerge — translation, writing code, arithmetic, clinical reasoning. None of those were the goal. They just appeared once the model got large enough. That's why this field moves so fast.`,
+    `Now this is the single most important thing I'll say all talk, so if you remember one slide, make it this one. These models optimize for what's plausible, not what's true. The whole training objective is to produce text that sounds like a knowledgeable person wrote it. There's no internal fact-checker, and there's no "I don't know." If the model doesn't have the answer, it will generate something that sounds like the answer — fluent, well-formatted, confidently stated, and sometimes completely invented. That's hallucination. And it has three dangerous cousins. The first is sycophancy — it leans toward agreeing with you; push back on a correct answer and it'll often cave. The second is automation bias, on our side — we stop checking, because the output reads so professionally; it looks like it came from UpToDate, so we trust it like UpToDate. And the third is the one that should worry us most: it is worst on the long tail. The rarer the presentation, the less data it saw, the more likely it is to confabulate — and it will be most confident exactly when it is most wrong. Rare presentations, atypical morphology, skin of color — our hardest cases are precisely where it fails. So the bottom line is simple: you sign the note. Not the model. You.`,
+    `So if the core problem is that it makes things up, how do we fix that? There are really two levers. The first is grounding — you'll hear it called RAG, retrieval-augmented generation. Instead of trusting the model's memory, you hand it the evidence at the moment it answers: a knowledge graph or a document store pulls up the right source, and the model reasons over that, with a citation trail you can check. This is the antidote to hallucination, and it's the principle behind a tool like OpenEvidence. The second lever is retraining — fine-tuning. You take the base model and show it thousands of domain-specific examples, so the expertise is baked into the weights: fine-tuning on dermoscopy, say, or training a dermatology-specific model. It's more work and it needs carefully curated data, but it buys you deeper specialization. These are the two levers every serious medical-AI effort pulls — and they're exactly the two I'm building in dermatology, which I'll come back to in a few minutes.`,
+    `Rung two on our ladder. The first generation of these models were text-only — you typed, and they typed back. But modern models are multimodal: they can see. Here's how that works. An image — whether it's a clinical photo, a dermoscopy image, a path slide, or a PDF — gets converted into the same kind of numerical representation the model uses for text. That representation is called an embedding: a list of numbers that captures the meaning of the input in context. So the phrase "psoriatic plaque on the elbow" and an actual photograph of one get mapped to nearby points in the same space. To the model, it's all one language. And on top of seeing, the model can now call tools — a calculator, a web search, a code interpreter — so it can reach out and act, not just answer from memory. But I want to be careful here: seeing is not the same as expert reading. A model that can describe the features in a dermoscopy image is not the same as a model that can reliably diagnose from one. Lab performance is not bedside performance — and I'll show you the data on that in a moment.`,
+    `Rung three. The newest models — the reasoning models — do something genuinely different. They don't just blurt out the first plausible answer; they reason first, spending real computation working through the problem step by step before they respond. And when you wrap that reasoning ability in a loop — you give it a goal, let it plan a sequence of steps, carry them out with tools, look at the results, correct course, and repeat — you get an agent. An agent isn't a chatbot. It's a system that pursues a goal over time, using whatever tools it has. This is the "plan and execute" rung from our ladder — and the machine just climbed it.`,
+    `So let's put the whole thing together, because this is the heart of the talk. The top row is us. Language: knowledge crosses minds and generations. Tools: we act beyond our biology. Plan and execute: we sequence steps toward a distant goal. Now look at the bottom row — the machine. Language: it learned language from nearly everything we've ever written. Tools: function calling — a calculator, web search, code, the EHR. Plan and execute: agents, that plan, act, and loop toward a goal. We needed roughly a hundred thousand years to climb that ladder. The machine did it in about three. And that's the point I want to land: this isn't magic, and it isn't science fiction. It's engineering that followed the same path we did — just at a pace we have never seen before. Once you can see the rungs, the hype falls away, and you're left with a clear sense of what it can do, what it can't, and where the ceiling is right now.`,
+    `Now I want to shift from how the machine learns to how we learn — because the parallel is really the whole point. We're training at a moment when the rapid rise of AI has led some people to question the uniqueness, and even the value, of human intelligence — and that brings real challenges, but also real opportunities. Here's the parallel. Residency teaches us to think in categories. Every disease drops into one of a few big boxes: inflammatory — infectious versus non-infectious, papulosquamous, eczematous, autoimmune; neoplastic — benign versus malignant; and then everything else — the genodermatoses, the metabolic, the toxic, the traumatic. You learn the boxes, and then you learn the algorithms that sort a patient into the right one. And just as we do, the machines have been learning that very same move. So the real question becomes: as we work alongside them, do we get better at this — or worse?`,
+    `In practice, what we're doing in clinic is running algorithms — finding the constellation of features that, together, point to an answer. And with its ability to process enormous amounts of information, AI can genuinely help us collect, organize, and make sense of all of it. Here's one example of how I started doing that in my first year of residency. I began building mind maps of the diagnostic process I was seeing in clinic, or pulling from a textbook — basically trying to fine-tune my own algorithm so I could run it faster and more accurately the next time. The project on the right, SkinSketches, grew from the same instinct — turning dense, dry material into visual stories that actually stick. And that's the lesson: the best use of these tools isn't as an oracle that hands you answers. It's as a thinking partner.`,
+    `For one, we now have access to genuinely incredible tools — like OpenEvidence — that can fill in our knowledge gaps in seconds, grounded in the literature and built for clinicians. But that convenience comes with a cost, and I want to name it honestly: the more we lean on looking things up, the less we exercise the reasoning that actually builds retention. If I always reach for the tool instead of working through the differential myself, I'm training my reflexes to reach for the tool — not training my brain to hold the pattern. Infinite knowledge, questionable retention. We have to be thoughtful about when these tools are augmenting our thinking, and when they've quietly become a crutch.`,
+    `At the same time, we've all seen where these tools falter. They hallucinate, they lose the thread when you hand them too much, and they do it while sounding completely confident — and, to someone who isn't an expert, completely correct. Here's a small, familiar example: ask a model how many r's are in the word "strawberry," and very often it will tell you, with total confidence, that there are two. There are three. That's funny in a word game. In medicine, that same confident error isn't a typo — it's a harm. A 2025 study called "First, do NOHARM" evaluated thirty-one different models on real clinical cases. Up to about twenty-two percent of cases carried the potential for severe harm. And the most common failure mode wasn't saying the wrong thing — it was leaving the right thing out. Omissions. The model hands you a reasonable-sounding plan, and you simply don't notice what it didn't mention. That's the dangerous one.`,
+    `So I wanted to test exactly this in our own domain: can a multimodal model actually read dermoscopy? I ran a study — seventeen different models, ten thousand two hundred total trials, across eight diagnoses — and it's now published in JAAD. The honest answer is: not yet. The best models are getting meaningfully better with each generation, and the gap is closing — but we are not at the point where you should trust a language model's dermoscopy read in the clinic. What they're good at is describing features. What they're not yet reliable at is putting those features together into the right diagnosis, especially for the rarer entities. And this is exactly the kind of verification work that has to happen before we deploy these tools — and the kind of work I'll be continuing in fellowship.`,
+    `All of this has pushed a lot of people — in our field and well beyond it — to ask how we might teach these models to reason like a clinician: how to keep them from falling into those traps, so that one day they could be a genuinely reliable clinical copilot. My soon-to-be PI, Adam Rodman, is unusual here, because he was studying the clinical reasoning process — how expert clinicians actually think — long before anyone was applying that to AI. So when language models arrived, he was perfectly positioned to build rigorous evaluations of how they reason, not just whether they land the right answer. You can see the trail in these three papers. In 2024, his group showed frontier models reaching what they called superhuman performance on a physician's reasoning tasks. In 2025, with a system they called Doctor CaBot, blinded clinician reviewers couldn't tell the model's reasoning apart from an expert's in seventy-four percent of cases. And most recently, in collaboration with Google DeepMind, they took it out of the test set and into actual clinical practice — which is the next slide.`,
+    `That most recent step is the AMIE study, published earlier this year — and it's the paper on the right. They tested an AI diagnostic system on real patients, in a real clinical setting. The results: accuracy comparable to clinicians, patients reporting more trust in the AI-assisted encounters, and zero safety stops — not one case where the system had to be overridden for safety. And now Adam is building something I find genuinely exciting: a clinic that is triadic from the ground up. Not a doctor with a tool running in the background, but three participants in the encounter — the patient, the physician, and a real-time AI assistant — with a second physician supervising every visit to catch anything the system or the primary physician misses. To me, this is the first real step toward a better kind of care, and it's exactly what I'll be helping to develop and validate starting next month. Human and machine, each one catching what the other misses.`,
+    `But there's a risk hiding in all of this, and I think it's the one we talk about least. Think about GPS. Before smartphones, most of us carried a real mental map of our cities — we navigated by landmarks, we built spatial intuition. GPS made that effortless, and our sense of direction quietly atrophied. The same thing can happen with clinical AI. There's a striking study from Budzyn and colleagues, in the Lancet Gastroenterology and Hepatology last year. They gave expert endoscopists an AI polyp-detection system, and detection went up. Then they took it away — and the doctors' own, unaided detection rate dropped, from twenty-eight point four percent down to twenty-two point four. These are seasoned specialists whose own skills eroded after working alongside the AI. The press picked this up — you can see the headlines here. And if it happens to experts, what about trainees who are still building the gestalt in the first place? So the real question isn't "can AI do dermatology?" It's "how do we use it to deepen our judgment, instead of eroding it?" And that's the question that drives everything I'm building.`,
+    `And this is my answer to that question — or at least the foundation of it. Dermaknowledgy is a literature-grounded knowledge graph: six hundred and fifteen dermatologic conditions, and over six thousand four hundred components — clinical features, histopathology, dermoscopic patterns, treatments, associations — all connected in a structured graph, with citations back to the primary literature. It does two things at once. First, it's a grounding layer for AI: when a model reasons over dermatology, it can pull from this graph instead of hallucinating — that's the grounding lever we talked about earlier. And second, just as importantly, the structure of the graph mirrors how we actually think about dermatology — the relationships between diseases, the overlapping features, the discriminating patterns. So the tool doesn't just prevent hallucination — it reinforces clinical reasoning.`,
+    `And dermie is where all of it comes together. Everything we've talked about — the reasoning research, the techniques for fighting hallucination, the knowledge graph — turned into an AI-first learning platform for dermatology, one designed to instill and reinforce clinical judgment rather than replace it. The knowledge graph is the factual backbone. The models provide adaptive tutoring, case generation, and assessment. And the pedagogy is built so that every interaction exercises your reasoning instead of outsourcing it. It's at dermie.io. I'll have more to share soon — but that's the vision: AI that makes you a better clinician, not a more dependent one.`,
+    `Okay — let me shift gears completely. We've talked about how the technology works and what I'm building with it. Now I want to hand you the practical toolbox — the things you can actually download and start using today. Most of us default to using AI the way we already use Google: type a question, read the answer. But the products available right now climb the same ladder we've been talking about — from "Ask," where you just type a question, up through "Create," "Browse," "Build," and all the way to "Delegate," where you hand off an entire goal and let the system run with it. I'll show you a couple of tools at each level so you can find the right starting point for you. One rule first, and I'll say it now so I don't have to repeat it on every slide: never paste patient data into a consumer AI tool. If you need AI on patient data, use HopGPT — it's HIPAA-compliant and available through Hopkins. OpenEvidence is reportedly working on an agreement for this. And more and more, these models can run entirely on your own machine, offline, with nothing leaving the building. But the consumer chatbots — ChatGPT, Claude — are not the place for patient data. Okay. Let's go.`,
+    `The simplest rung: you type, and it answers. Most people never leave this level — and honestly, even if this is all you ever use, it's transformative. ChatGPT, from OpenAI, has the broadest ecosystem and the most integrations — it's the one your students are absolutely already using; the free tier is surprisingly good, and about twenty dollars a month gets you the frontier models. Claude, from Anthropic, is what I use most — in fact this entire presentation was built with it; it's particularly strong at writing, at reasoning, and at following complicated instructions across long documents. OpenEvidence is purpose-built for clinicians: you ask a medical question, and it pulls from the peer-reviewed literature and gives you a cited, evidence-grounded answer — that's the "ground it" lever, as a product. And Abridge is ambient documentation: it listens to your visit and drafts the note for you. If you haven't tried an ambient scribe yet, this is probably the single highest-impact AI tool for clinical workflow right now.`,
+    `Same chat box you're already using — but now, instead of just text, it can produce media. GPT Image 2 is OpenAI's image model: you describe what you want, and it generates a photoreal image from a text prompt. You can use this for patient-education handouts, figures for a talk, illustrative images for teaching — with appropriate caveats about synthetic images, which I'll touch on in the appendix. Nano Banana is Google's version — it's fast, and it's especially good at editing and modifying images you already have. The point is just this: the same interface you use to ask a question can now make visual media — figures, handouts, slides, patient-facing materials — all from a conversation.`,
+    `Now it leaves the chat box entirely. These are AI browsers — they don't just answer your question, they go out onto the web and do things for you. Comet, from Perplexity, takes a research task and actually navigates sites, reads them, clicks through pages, and synthesizes what it finds. ChatGPT Atlas is OpenAI's take — the chat sits as a layer on top of every page, so you browse normally and ask the AI about whatever you're looking at. And Claude in Chrome is an extension that can fill out forms, pull data off pages, and run multi-step web tasks on your command. These are early, and they're still a little rough around the edges — but the direction is clear: the AI isn't just answering inside a sandbox anymore, it's acting on the real web on your behalf.`,
+    `This is where it gets powerful even if you're not at all technical. These tools connect to your own files, your documents, your applications, and they work across them. Claude Desktop connects to whatever you give it access to — your documents, your calendar, your email — and works across all of it: summarize a folder of papers, draft an email based on a document, that sort of thing. Claude Code is what I use for actual development — it's a coding and research assistant that can read and write entire projects — but you do not need to be a programmer to use it; you describe what you want in plain English, and it builds it. Codex is OpenAI's version of the same idea, with coding plus desktop integration. The key message here is just that: no coding background required. You describe the goal, and it builds. This is the rung where AI stops being a question-and-answer box and becomes a real productivity multiplier.`,
+    `And this is the top rung — agents. You give them a goal, and they plan it out, carry it out, monitor themselves, fix their own mistakes, and report back. You supervise; they do the work. OpenClaw is an open-source autonomous agent that can pursue a goal across many tools and over time, running on your own machine. Coding agents — from Claude, from Codex, and others — will take a software task, break it into steps, write the code, run the tests, debug the failures, and come back with a finished product. And Gemini Spark: you describe an app or a workflow you want, and it builds and runs it for you. This is the "plan and execute" rung from our spine, turned into a product. It's the most autonomy and the most leverage — and you still sign off on everything that comes out. I'm happy to go deeper on any of these in the questions.`,
+    `So if you remember nothing else, remember three things. One: it's a tool, not an oracle. Context in, verify out. You are the attending — you sign the note. Think of the model as a resident who reads unbelievably fast and never sleeps, but who will also, occasionally, make something up with a completely straight face. Treat it accordingly. Two: language, tools, plans. It climbed the same ladder we did, in about three years. Once you can see the rungs, the mystique falls away — it's not magic, it's engineering — and understanding the engineering tells you exactly where to trust it and where not to. And three: keep learning. These models are not going to stop improving. The leverage is going to go to the people who learn to direct them — and I genuinely believe dermatology should be leading that effort, on our own terms: building the guardrails, the evaluations, and the tools ourselves, instead of waiting for someone else to do it for us. I'm glad to help anyone in this room get started, and I'll take questions on anything I covered.`,
+    `Before I take questions, I want to say thank you. To the Hopkins dermatology department — my co-residents, our attendings, and our patients. These last four years, and the people in them, are the reason I get to stand up here and talk about any of this. Thank you, truly.`,
+    `And to my family — who made all of this possible, and who put up with more than a few late nights and lost weekends to get me here. Thank you.`,
+    `And finally, to the mentors and collaborators who shaped this work, and who are shaping where I'm headed next. I would not be doing any of this without them. Thank you — and with that, I'm happy to take your questions.`,
+    `The short answer is no — but the job will change. Here's the honest breakdown. AI is genuinely good at pattern recognition, at synthesis, at drafting text, at triaging, and at answering questions across a big body of knowledge — and those capabilities will reshape how we work. But it does not do the physical exam — at least not yet. It doesn't do procedures. It doesn't have the gestalt that comes from putting together what you see in clinic, what you see on path, and the patient's story over time. It doesn't build the therapeutic relationship. And, critically, it doesn't carry accountability. When something goes wrong, the responsible party is the clinician who signed the note, not the model that made the suggestion. So the tools that take over the pattern-recognition piece should actually free us up for the things only a human clinician can do — and there are a lot of those.`,
+    `This one comes up every single time, so let me address it head-on. Back in 2016, Geoffrey Hinton — one of the founders of deep learning — said we should stop training radiologists, because they'd be obsolete within five years. It was a dramatic quote, and it got a lot of attention. Here we are in 2026. Radiology is one of the busiest, most short-staffed specialties in medicine. AI reads alongside radiologists — it flags findings, it prioritizes the worklist, it does the measurements — and the specialty grew; demand went up, not down. The job changed, but it didn't vanish. And radiology is the closest precedent we have for dermatology — it's a diagnostic, visual, pattern-heavy specialty, just like ours. The lesson is pretty clear: the AI augmented the work; it didn't replace the worker.`,
+    `This one is important, and it's squarely our responsibility. These models learn from the images we gave them — and our public dermatology archives badly underrepresent dark skin. Fitzpatrick five and six are barely present in most public datasets. So state-of-the-art models underperform on darker skin — and, to be fair, so do dermatologists; this is a field-wide problem, not just an AI one. On top of that, work published in JEADV this year showed that AI-generated dermatology images — the kind you might be tempted to use for teaching or to pad a dataset — look realistic but are biased and often clinically wrong when they depict skin of color. So synthetic data doesn't automatically fix it either. But Roxana Daneshjou's DDI dataset showed something hopeful: when you train on diverse, representative data, the performance gap closes. So the problem is solvable — but it requires us, dermatologists, to build and curate those datasets, to demand representation in the training data, and to evaluate these tools on the populations they'll actually be used on. The fix is ours to make.`,
+    `Four quick points on the legal and regulatory landscape, since this also comes up a lot. First, the FDA. They regulate clinical AI as a medical device — software as a medical device — and hundreds have been cleared. The hard problem right now is the difference between locked algorithms, which are fixed after approval, and adaptive ones that keep learning from new data; the framework for those adaptive models is still being worked out. Second, the EU AI Act, which recently came into force, classifies medical AI as high-risk — meaning strict requirements around documentation, transparency, and mandatory human oversight. Third, liability, as it stands today, is simple and a little uncomfortable: the clinician who signs the note is the accountable party. The model is not a defendant. If an AI suggests the wrong thing and you act on it, that's on you — not on OpenAI or Google. Which is, honestly, the strongest argument for treating these tools exactly the way I've described all talk: as a resource you verify, not an authority you follow. And fourth, the infrastructure is still catching up — validation standards are inconsistent, reimbursement pathways are largely undefined, and post-market monitoring is in its infancy. We are, in a real sense, building the plane while we fly it — which is all the more reason for clinicians to be in the room setting the standards.`,
+  ];
+
+  let current = 0;
+  function setActive(i){
+    current = i;
+    progress.style.width = ((i+1)/total*100) + '%';
+    counter.textContent = pad(i+1) + ' / ' + pad(total);
+    document.body.classList.toggle('on-dark', slides[i].classList.contains('slide--dark'));
+    notesBody.textContent = NOTES[i] || '';
+    notesLbl.textContent = 'Note · slide ' + pad(i+1);
+    slides.forEach((s,idx)=>{ if(idx < i) showFrags(s); });
+  }
+
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); }
+      if(e.intersectionRatio >= 0.55){ setActive(slides.indexOf(e.target)); }
+    });
+  }, {threshold:[0,0.55,1]});
+  slides.forEach(s=>io.observe(s));
+
+  slides[0].classList.add('in');
+  setActive(0);
+
+  function go(i){
+    i = Math.max(0, Math.min(total-1, i));
+    slides[i].scrollIntoView({behavior:'smooth', block:'start'});
+    document.body.classList.add('moved');
+  }
+
+  document.addEventListener('keydown', (ev)=>{
+    const k = ev.key;
+    if(['ArrowDown','ArrowRight','PageDown',' '].includes(k)){
+      ev.preventDefault();
+      const f = nextHiddenFrag(slides[current]);
+      if(f){ f.classList.add('shown'); }
+      else if(current < total-1){ hideFrags(slides[current+1]); go(current+1); }
+    }
+    else if(['ArrowUp','ArrowLeft','PageUp'].includes(k)){
+      ev.preventDefault();
+      if(current > 0){ showFrags(slides[current-1]); go(current-1); }
+    }
+    else if(k==='Home'){ ev.preventDefault(); go(0); }
+    else if(k==='End'){ ev.preventDefault(); go(total-1); }
+    else if(k==='s'||k==='S'){ notes.classList.toggle('open'); }
+    else if(k==='Escape'){ notes.classList.remove('open'); }
+  });
+
+  notesX.addEventListener('click', ()=> notes.classList.remove('open'));
+  ['wheel','touchstart','keydown'].forEach(ev=>window.addEventListener(ev, ()=>document.body.classList.add('moved'), {once:true, passive:true}));
+})();
+</script>
+</body>
+</html>
