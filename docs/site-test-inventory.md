@@ -226,6 +226,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "requiresDownloads": true
     },
     {
+      "label": "Learning Machines lecture (unlisted)",
+      "route": "/lectures/learning-machines-2026-06-03/",
+      "file": "site/public/lectures/learning-machines-2026-06-03/index.html",
+      "category": "lecture-unlisted",
+      "requiresDownloads": false
+    },
+    {
       "label": "dermie VC prep (unlisted)",
       "route": "/apps/dermie-vc-prep-rf-20260514-x7q9m2/",
       "file": "site/public/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html",
