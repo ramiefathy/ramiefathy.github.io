@@ -9,20 +9,20 @@ This dictionary is generated from normalized CSV outputs and report tables. Colu
 | disease_key | Stable configured disease identifier used across tables. |
 | disease_name | Human-readable disease name. |
 | nct_id | ClinicalTrials.gov identifier. |
-| trial_title | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| overall_status | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| phase | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| study_type | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| enrollment | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| start_date | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| completion_date | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| lead_sponsor | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| sponsor_class | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| conditions | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| intervention_names | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| intervention_types | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| mechanism_category | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| has_results | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
+| trial_title | Official ClinicalTrials.gov study title or brief title for the interventional or observational record. |
+| overall_status | ClinicalTrials.gov recruitment or completion status at the time of source retrieval. |
+| phase | Trial phase label reported by ClinicalTrials.gov, preserving source categories such as Phase 1, Phase 2, Phase 3, Phase 4, early phase, or not applicable. |
+| study_type | ClinicalTrials.gov study design class, typically interventional or observational. |
+| enrollment | Planned or actual enrollment count reported by the trial record. |
+| start_date | Trial start date reported by ClinicalTrials.gov when available. |
+| completion_date | Primary or study completion date reported by ClinicalTrials.gov when available. |
+| lead_sponsor | Lead sponsor organization named in the ClinicalTrials.gov record. |
+| sponsor_class | ClinicalTrials.gov sponsor class for the lead sponsor, such as industry, NIH, other U.S. federal agency, or other. |
+| conditions | Source-reported condition terms associated with the trial record. |
+| intervention_names | Source-reported intervention names concatenated for trial-level mechanism review. |
+| intervention_types | Source-reported intervention categories, such as drug, biologic, device, procedure, radiation, behavioral, or diagnostic. |
+| mechanism_category | Pipeline-assigned mechanism group inferred from intervention terms to support disease-mechanism landscape summaries. |
+| has_results | Boolean indicator that ClinicalTrials.gov results are available for the trial record. |
 | source_url | Public URL for the source record or source database. |
 
 ## `data/normalized/evidence_rows.csv`
@@ -232,8 +232,8 @@ This dictionary is generated from normalized CSV outputs and report tables. Colu
 | mechanistic_records | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
 | therapeutic_or_pharmacologic_records | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
 | recent_records_2020_or_later | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| literature_grade | A-D systematic shortlist literature grade. | Systematic evidence grade (A = strong multi-domain support with clinical evidence; B = moderate support across 2+ domains; C = limited or single-domain evidence; D = minimal or no direct literature support). Derived from automated PubMed/Entrez screening.
-| literature_interpretation | PubMed/Entrez literature-derived field. | Natural-language summary of the literature evidence basis, auto-generated from PubMed/Entrez systematic screening. Describes the strength, recency, and domain coverage of published evidence linking this gene to the disease.
+| literature_grade | Systematic evidence grade (A = strong multi-domain support with clinical evidence; B = moderate support across 2+ domains; C = limited or single-domain evidence; D = minimal or no direct literature support). Derived from automated PubMed/Entrez screening. |
+| literature_interpretation | Natural-language summary of the literature evidence basis, auto-generated from PubMed/Entrez systematic screening. Describes the strength, recency, and domain coverage of published evidence linking this gene to the disease. |
 
 ## `reports/tables/disease_module_summary.csv`
 
@@ -341,12 +341,12 @@ This dictionary is generated from normalized CSV outputs and report tables. Colu
 | target_name | Human-readable target name. |
 | rank | Within-disease rank ordered by descending composite score. |
 | composite_score | Primary weighted target-disease prioritization score after safety penalty. |
-| empirical_percentile_within_disease | Pipeline-derived or source-derived field; see table-specific methods and source manifest. | Percentile rank of observed score within disease-specific permutation null distribution.
-| empirical_p_upper | Upper-tail empirical p-value from within-disease permuted evidence-component null scores. | Upper-tail p-value from permutation null (proportion of null scores >= observed score).
+| empirical_percentile_within_disease | Percentile rank of the observed score within the disease-specific permutation null distribution. |
+| empirical_p_upper | Upper-tail p-value from the permutation null distribution, calculated as the proportion of null scores greater than or equal to the observed score. |
 | null_iterations | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| null_score_mean | Pipeline-derived or source-derived field; see table-specific methods and source manifest. | Mean of the null distribution generated from component permutations.
-| null_score_p95 | Pipeline-derived or source-derived field; see table-specific methods and source manifest. | 95th percentile of the null distribution (threshold for significance at p < 0.05).
-| passes_empirical_p05 | Pipeline-derived or source-derived field; see table-specific methods and source manifest. | Boolean: true if observed score exceeds the 95th percentile of the null distribution (empirical p < 0.05).
+| null_score_mean | Mean of the null distribution generated from component permutations. |
+| null_score_p95 | 95th percentile of the null distribution, used as the empirical p < 0.05 threshold. |
+| passes_empirical_p05 | Boolean indicator that the observed score exceeds the 95th percentile of the null distribution, corresponding to empirical p < 0.05. |
 
 ## `reports/tables/rank_robustness.csv`
 
