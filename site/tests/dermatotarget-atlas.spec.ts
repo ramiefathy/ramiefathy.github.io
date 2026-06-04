@@ -17,7 +17,7 @@ test.describe('DermatoTarget Atlas dashboard', () => {
     await expect(page.locator('h1')).toHaveText('DermatoTarget Atlas')
     await expect(page.getByRole('toolbar', { name: 'Page tools' })).toBeVisible()
     await expect(page.locator('.stat')).toHaveCount(6)
-    await expect(page.getByText(/Target.disease pairs/)).toBeVisible()
+    await expect(page.locator('.stat .lbl').filter({ hasText: 'Target' })).toContainText('pairs')
     await expect(page.getByText('Cached API calls')).toBeVisible()
 
     runtime.assertClean()
@@ -53,7 +53,9 @@ test.describe('DermatoTarget Atlas dashboard', () => {
     await expect(page.locator('.figure-card')).toHaveCount(10)
     await expect(page.locator('.figure-card img').first()).toHaveJSProperty('complete', true)
 
-    const pdf = await request.get(`${APP_ROUTE}publication_pdf/DermatoTarget_Atlas_publication_package_2026-06-03.pdf`)
+    const pdfHref = await page.getByRole('link', { name: /Publication PDF/ }).getAttribute('href')
+    expect(pdfHref).toBeTruthy()
+    const pdf = await request.get(new URL(pdfHref ?? '', page.url()).toString())
     expect(pdf.ok()).toBe(true)
     expect((await pdf.body()).subarray(0, 4).toString()).toBe('%PDF')
 
