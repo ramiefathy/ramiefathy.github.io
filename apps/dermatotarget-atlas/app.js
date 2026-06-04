@@ -471,7 +471,15 @@ function renderTargetDetail(t) {
 
 async function renderTargetExtras(t, host) {
   host.append(el("div", { class: "loading" }, el("div", { class: "spinner" }), "Loading evidence detail…"));
-  const [lit, modules] = await Promise.all([load("literature"), Promise.resolve(DB.modules)]);
+  let lit, modules;
+  try {
+    [lit, modules] = await Promise.all([load("literature"), Promise.resolve(DB.modules)]);
+  } catch (e) {
+    console.error("Failed to load evidence detail", e);
+    host.innerHTML = "";
+    host.append(el("div", { class: "callout" }, "Could not load evidence detail: " + esc(e.message)));
+    return;
+  }
   host.innerHTML = "";
 
   // module membership
@@ -663,7 +671,11 @@ views.drugs = () => {
     el("p", {}, "Target–drug / clinical candidate extracts from Open Targets — 54,468 rows, interned and virtualized. Filter by gene, drug, type, or stage; only visible rows are in the DOM.")));
   const host = el("div", { class: "loading" }, el("div", { class: "spinner" }), "Loading drug-candidate index (1.5 MB)…");
   v.append(host);
-  load("drug_candidates").then((col) => { host.replaceWith(drugExplorer(col)); });
+  load("drug_candidates").then((col) => { host.replaceWith(drugExplorer(col)); }).catch((e) => {
+    console.error("Failed to load drug candidates", e);
+    host.innerHTML = "";
+    host.append(el("div", { class: "callout" }, "Could not load drug-candidate data: " + esc(e.message)));
+  });
   return v;
 };
 
@@ -817,8 +829,10 @@ function exportCsv(rows, filename) {
     return /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v;
   }).join(",")));
   const blob = new Blob([lines.join("\n")], { type: "text/csv" });
-  const a = el("a", { href: URL.createObjectURL(blob), download: filename });
-  document.body.append(a); a.click(); a.remove();
+  const url = URL.createObjectURL(blob);
+  const a = el("a", { href: url, download: filename });
+  document.body.append(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
 }
 
 // ---------------------------------------------------------------------------
@@ -879,6 +893,7 @@ function route() {
   renderNav(view);
   $("#topbar-title").textContent = TITLES[view] || titleCase(view);
   $("#app").classList.remove("nav-open");
+  $("#menu-toggle").setAttribute("aria-expanded", "false");
   $("#app").setAttribute("aria-busy", "false");
   host.innerHTML = "";
   try {
@@ -937,7 +952,10 @@ function initSearch() {
 // Boot
 // ---------------------------------------------------------------------------
 async function boot() {
-  $("#menu-toggle").addEventListener("click", () => $("#app").classList.toggle("nav-open"));
+  $("#menu-toggle").addEventListener("click", () => {
+    $("#app").classList.toggle("nav-open");
+    $("#menu-toggle").setAttribute("aria-expanded", $("#app").classList.contains("nav-open") ? "true" : "false");
+  });
   try {
     const [meta, targets, diseases, validation, modules, shortlists] = await Promise.all([
       load("meta"), load("targets"), load("diseases"), load("validation"), load("modules"), load("shortlists"),

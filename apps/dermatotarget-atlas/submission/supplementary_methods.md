@@ -72,4 +72,11 @@ The composite score is a weighted component sum minus a capped safety penalty. C
 
 ## Validation Analyses
 
-Validation analyses include score ablation profiles, within-disease empirical null calibration by component permutation, known anchor recovery, negative-control checks, curated module summaries, and systematic PubMed screening for selected shortlisted targets.
+Validation analyses include:
+
+- **Score ablation profiles**: Each evidence component is individually removed and the change in composite score and rank is measured, detecting feature dominance and information leakage across data sources.
+- **Within-disease empirical null calibration**: Component scores are permuted within each disease to generate a null distribution; calibrated p-values and percentile ranks are computed against this null to assess whether observed scores exceed chance expectation.
+- **Known anchor recovery**: Pre-specified positive-control targets (genes with established therapeutic relevance for each disease) are tested for recovery in the top-ranked shortlist, measuring sensitivity.
+- **Negative-control checks**: Targets with no known biological relevance to a given disease are tested for specificity; high-ranking negatives indicate potential scoring artifacts.
+- **Curated module summaries**: Biological coherence of co-expression or pathway modules is summarized to verify that gene groupings reflect meaningful biology rather than technical noise.
+- **Systematic PubMed screening**: For selected shortlisted targets, automated PubMed/Entrez queries with structured inclusion/exclusion criteria grade the published evidence (A–D) across clinical, genetic, mechanistic, and therapeutic domains.

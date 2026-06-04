@@ -232,8 +232,8 @@ This dictionary is generated from normalized CSV outputs and report tables. Colu
 | mechanistic_records | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
 | therapeutic_or_pharmacologic_records | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
 | recent_records_2020_or_later | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| literature_grade | A-D systematic shortlist literature grade. |
-| literature_interpretation | PubMed/Entrez literature-derived field. |
+| literature_grade | A-D systematic shortlist literature grade. | Systematic evidence grade (A = strong multi-domain support with clinical evidence; B = moderate support across 2+ domains; C = limited or single-domain evidence; D = minimal or no direct literature support). Derived from automated PubMed/Entrez screening.
+| literature_interpretation | PubMed/Entrez literature-derived field. | Natural-language summary of the literature evidence basis, auto-generated from PubMed/Entrez systematic screening. Describes the strength, recency, and domain coverage of published evidence linking this gene to the disease.
 
 ## `reports/tables/disease_module_summary.csv`
 
@@ -341,12 +341,12 @@ This dictionary is generated from normalized CSV outputs and report tables. Colu
 | target_name | Human-readable target name. |
 | rank | Within-disease rank ordered by descending composite score. |
 | composite_score | Primary weighted target-disease prioritization score after safety penalty. |
-| empirical_percentile_within_disease | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| empirical_p_upper | Upper-tail empirical p-value from within-disease permuted evidence-component null scores. |
+| empirical_percentile_within_disease | Pipeline-derived or source-derived field; see table-specific methods and source manifest. | Percentile rank of observed score within disease-specific permutation null distribution.
+| empirical_p_upper | Upper-tail empirical p-value from within-disease permuted evidence-component null scores. | Upper-tail p-value from permutation null (proportion of null scores >= observed score).
 | null_iterations | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| null_score_mean | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| null_score_p95 | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
-| passes_empirical_p05 | Pipeline-derived or source-derived field; see table-specific methods and source manifest. |
+| null_score_mean | Pipeline-derived or source-derived field; see table-specific methods and source manifest. | Mean of the null distribution generated from component permutations.
+| null_score_p95 | Pipeline-derived or source-derived field; see table-specific methods and source manifest. | 95th percentile of the null distribution (threshold for significance at p < 0.05).
+| passes_empirical_p05 | Pipeline-derived or source-derived field; see table-specific methods and source manifest. | Boolean: true if observed score exceeds the 95th percentile of the null distribution (empirical p < 0.05).
 
 ## `reports/tables/rank_robustness.csv`
 

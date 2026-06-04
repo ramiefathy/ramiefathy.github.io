@@ -31,16 +31,16 @@
 | target_drug_candidates.parquet | data/normalized/target_drug_candidates.parquet | table | Target drug candidates |
 | target_scores.csv | data/normalized/target_scores.csv | table | Target scores |
 | target_scores.parquet | data/normalized/target_scores.parquet | table | Target scores |
-| ablation_rank_stability.png | reports/figures/ablation_rank_stability.png | figure | Ablation rank stability |
-| anchor_recovery_by_disease.png | reports/figures/anchor_recovery_by_disease.png | figure | Anchor recovery by disease |
-| clinical_trial_mechanism_landscape.png | reports/figures/clinical_trial_mechanism_landscape.png | figure | Clinical trial mechanism landscape |
-| composite_score_distribution.png | reports/figures/composite_score_distribution.png | figure | Composite score distribution |
-| cross_disease_target_heatmap.png | reports/figures/cross_disease_target_heatmap.png | figure | Cross disease target heatmap |
-| disease_module_heatmap.png | reports/figures/disease_module_heatmap.png | figure | Disease module heatmap |
-| null_score_calibration.png | reports/figures/null_score_calibration.png | figure | Null score calibration |
-| repurposing_opportunity_quadrant.png | reports/figures/repurposing_opportunity_quadrant.png | figure | Repurposing opportunity quadrant |
-| sensitivity_rank_robustness.png | reports/figures/sensitivity_rank_robustness.png | figure | Sensitivity rank robustness |
-| top_target_evidence_components.png | reports/figures/top_target_evidence_components.png | figure | Top target evidence components |
+| ablation_rank_stability.png | figures/ablation_rank_stability.png | figure | Ablation rank stability |
+| anchor_recovery_by_disease.png | figures/anchor_recovery_by_disease.png | figure | Anchor recovery by disease |
+| clinical_trial_mechanism_landscape.png | figures/clinical_trial_mechanism_landscape.png | figure | Clinical trial mechanism landscape |
+| composite_score_distribution.png | figures/composite_score_distribution.png | figure | Composite score distribution |
+| cross_disease_target_heatmap.png | figures/cross_disease_target_heatmap.png | figure | Cross disease target heatmap |
+| disease_module_heatmap.png | figures/disease_module_heatmap.png | figure | Disease module heatmap |
+| null_score_calibration.png | figures/null_score_calibration.png | figure | Null score calibration |
+| repurposing_opportunity_quadrant.png | figures/repurposing_opportunity_quadrant.png | figure | Repurposing opportunity quadrant |
+| sensitivity_rank_robustness.png | figures/sensitivity_rank_robustness.png | figure | Sensitivity rank robustness |
+| top_target_evidence_components.png | figures/top_target_evidence_components.png | figure | Top target evidence components |
 | systematic_literature_review | reports/literature/systematic_literature_review.md | generated_report_or_table | Generated publication support artifact |
 | source_manifest.json | reports/methods/source_manifest.json | manifest | Source manifest |
 | module_analysis_report | reports/modules/module_analysis_report.md | generated_report_or_table | Generated publication support artifact |
