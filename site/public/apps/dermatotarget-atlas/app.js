@@ -1,6 +1,6 @@
 // DermatoTarget Atlas — research workbench frontend.
-// Dependency-free ES module. Consumes the JSON bundles built by
-// dashboard/build_data.py. All language is hypothesis-generating.
+// Dependency-free ES module. Consumes static JSON bundles shipped with this
+// app. All language is hypothesis-generating.
 
 // ---------------------------------------------------------------------------
 // Tiny DOM + format helpers
@@ -67,6 +67,14 @@ function targetsForDisease(key) {
 }
 function targetsForGene(gene) {
   return DB.targets.filter((t) => t.gene === gene).sort((a, b) => b.composite - a.composite);
+}
+function diseaseKeyForName(name) {
+  return DB.diseases?.summaries?.find((d) => d.disease_name === name)?.disease_key ?? "";
+}
+function targetHref(row, geneField = "gene") {
+  const gene = encodeURIComponent(row[geneField]);
+  const diseaseKey = row.disease_key || diseaseKeyForName(row.disease_name || row.best_disease);
+  return diseaseKey ? `#/target/${gene}?d=${diseaseKey}` : `#/target/${gene}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -549,7 +557,7 @@ views.shortlists = () => {
   v.append(dataTable(rows, [
     { key: "disease_name", label: "Disease" },
     { key: "rank", label: "#", num: true },
-    { key: "gene", label: "Gene", render: (r) => el("a", { href: `#/target/${encodeURIComponent(r.gene)}`, class: "gene" }, r.gene) },
+    { key: "gene", label: "Gene", render: (r) => el("a", { href: targetHref(r), class: "gene" }, r.gene) },
     { key: "target_name", label: "Target", render: (r) => r.target_name.length > 34 ? r.target_name.slice(0, 33) + "…" : r.target_name },
     { key: "composite", label: "Composite", num: true, render: (r) => miniScore(r.composite) },
     { key: "genetics", label: "Genetics", num: true, render: (r) => fmt(r.genetics, 2) },
@@ -558,7 +566,7 @@ views.shortlists = () => {
     { key: "novelty_gap", label: "Novelty", num: true, render: (r) => fmt(r.novelty_gap, 2) },
     { key: "gwas_hits", label: "GWAS", num: true },
     { key: "pubmed_pairs", label: "PubMed", num: true },
-  ], { onRowClick: (r) => go(`#/target/${encodeURIComponent(r.gene)}`), initialSort: { key: "composite", dir: -1 } }));
+  ], { onRowClick: (r) => go(targetHref(r)), initialSort: { key: "composite", dir: -1 } }));
   v.append(el("p", { style: "margin-top:16px" },
     el("button", { class: "btn-sm", onclick: () => exportCsv(rows, `${which}_shortlist.csv`) }, "⤓ Export this shortlist (CSV)")));
   return v;
@@ -599,7 +607,7 @@ views.validation = () => {
     el("p", { class: "muted", style: "font-size:13px" }, "Candidates whose rank drops sharply when clinical/literature precedence is removed are evidence-source dependent and should be described as such."),
     dataTable(val.leakage.slice(0, 40), [
       { key: "disease_name", label: "Disease" },
-      { key: "gene", label: "Gene", render: (r) => el("a", { class: "gene", href: `#/target/${encodeURIComponent(r.gene)}` }, r.gene) },
+      { key: "gene", label: "Gene", render: (r) => el("a", { class: "gene", href: targetHref(r) }, r.gene) },
       { key: "baseline", label: "Baseline rank", num: true },
       { key: "no_clinical_precedence", label: "No-precedence rank", num: true },
       { key: "delta", label: "Δ rank", num: true },
@@ -625,7 +633,7 @@ views.modules = () => {
     { key: "disease_name", label: "Disease" },
     { key: "module_label", label: "Module" },
     { key: "members", label: "Genes", num: true },
-    { key: "top_gene", label: "Top gene", render: (r) => el("a", { class: "gene", href: `#/target/${encodeURIComponent(r.top_gene)}` }, r.top_gene) },
+    { key: "top_gene", label: "Top gene", render: (r) => el("a", { class: "gene", href: targetHref(r, "top_gene") }, r.top_gene) },
     { key: "max_composite", label: "Max score", num: true, render: (r) => miniScore(r.max_composite) },
     { key: "anchor_members", label: "Anchors", num: true },
   ], { initialSort: { key: "max_composite", dir: -1 } }));
@@ -650,7 +658,7 @@ views.literature = () => {
     host.innerHTML = "";
     host.append(dataTable(r, [
       { key: "disease_name", label: "Disease" },
-      { key: "gene", label: "Gene", render: (x) => el("a", { class: "gene", href: `#/target/${encodeURIComponent(x.gene)}` }, x.gene) },
+      { key: "gene", label: "Gene", render: (x) => el("a", { class: "gene", href: targetHref(x) }, x.gene) },
       { key: "opportunity", label: "Class", render: (x) => oppBadge(x.opportunity) },
       { key: "grade", label: "Grade", render: (x) => el("span", { class: "tier tier-" + ({ A: "robust", B: "supported", C: "tentative", D: "caution" }[x.grade] || "tentative") }, x.grade) },
       { key: "direct", label: "Direct", num: true },
@@ -968,7 +976,7 @@ async function boot() {
     route();
   } catch (e) {
     console.error(e);
-    $("#view").innerHTML = `<div class="callout">Failed to load dashboard data. Run <code>PYTHONPATH=src python3 -m dashboard.build_data</code> and serve from the repo root. (${esc(e.message)})</div>`;
+    $("#view").innerHTML = `<div class="callout">Failed to load dashboard data from the bundled JSON assets. (${esc(e.message)})</div>`;
     $("#app").setAttribute("aria-busy", "false");
   }
 }
