@@ -113,6 +113,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "requiresDownloads": true
     },
     {
+      "label": "DermatoTarget Atlas",
+      "route": "/apps/dermatotarget-atlas/",
+      "file": "site/public/apps/dermatotarget-atlas/index.html",
+      "category": "research-dashboard",
+      "requiresDownloads": true
+    },
+    {
       "label": "Dermatopathology Differentials (legacy)",
       "route": "/apps/dermatopathology-differentials.html",
       "file": "site/public/apps/dermatopathology-differentials.html",
