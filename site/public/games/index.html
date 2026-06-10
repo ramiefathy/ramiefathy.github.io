@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A systematic analysis of Ramie Fathy's all-time favorite video games — genre concentration, two-axis era cartography, ludic signature, and what the data quietly reveals.">
+<meta name="theme-color" content="#f4f0e8">
+<meta property="og:site_name" content="Ramie Fathy, MD">
+<meta property="og:title" content="Ludic Self-Portrait — Ramie Fathy">
+<meta property="og:description" content="A reading of my all-time favorite games — 19 canon titles, one genre, two selves.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ramiefathy.com/games/">
+<meta name="twitter:card" content="summary_large_image">
+<title>Ludic Self-Portrait · Ramie Fathy</title>
+<link rel="canonical" href="https://ramiefathy.com/games/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+
+:root {
+  --bone:        #f4f0e8;
+  --bone-2:      #e8e2d4;
+  --plate-bg:    #fbf8f1;
+  --ink:         #0a0a0a;
+  --ink-soft:    #1f1f1f;
+  --slate:       #475569;
+  --slate-soft:  #94a3b8;
+  --terracotta:  #c2674a;
+  --terracotta-2:#9f4d36;
+  --moss:        #5b7058;
+  --gold:        #a37b2a;
+  --rule:        #0a0a0a;
+  --rule-soft:   rgba(10,10,10,0.12);
+  --font-display:'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:   'Newsreader', Georgia, serif;
+  --font-mono:   'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bone); color: var(--ink);
+  font-family: var(--font-body); line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01","onum","liga";
+}
+::selection { background: var(--terracotta); color: var(--bone); }
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--terracotta); }
+:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+h1,h2,h3,h4 {
+  font-family: var(--font-display); font-weight: 500;
+  letter-spacing: -0.015em; color: var(--ink); margin: 0;
+}
+em { font-style: italic; color: var(--terracotta); }
+.shell { max-width: 1100px; margin: 0 auto; padding: 24px 32px 96px; }
+@media (max-width: 720px) { .shell { padding: 16px 18px 64px; } }
+
+/* ===== Plate stamp + masthead ===== */
+.plate-stamp {
+  display:flex; align-items:center; gap:14px;
+  font-family: var(--font-mono); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--slate); padding: 10px 0; border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule); margin-bottom: 28px;
+}
+.plate-stamp b { color: var(--ink); font-weight: 700; }
+.barcode { flex: 1; height: 14px; background:
+  repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 4px,
+                            var(--ink) 4px 5px, transparent 5px 9px,
+                            var(--ink) 9px 11px, transparent 11px 13px); opacity: 0.55; }
+.kicker {
+  font-family: var(--font-mono); font-size: 11px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.18em;
+}
+.display1 { font-size: clamp(40px, 6vw, 80px); line-height: 0.98; letter-spacing: -0.025em; font-weight: 600; }
+.display2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; }
+.display3 { font-size: clamp(22px, 2.6vw, 30px); line-height: 1.1; font-weight: 500; }
+/* Lede stays constrained for callout effect; body fills the section width to match figures. */
+.lede { font-size: 21px; line-height: 1.55; color: var(--ink-soft); max-width: 70ch; }
+.body-copy { font-size: 17.5px; line-height: 1.62; color: var(--ink-soft); margin: 0 0 14px; }
+.body-copy + .body-copy { margin-top: 0; }
+
+.masthead-head {
+  display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end;
+  margin-bottom: 32px;
+}
+.masthead-head .right {
+  font-family: var(--font-mono); font-size: 12px; color: var(--slate);
+  text-align: right; line-height: 1.5;
+}
+@media (max-width: 720px) {
+  .masthead-head { grid-template-columns: 1fr; }
+  .masthead-head .right { text-align: left; }
+}
+
+/* ===== Big stats row ===== */
+.stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  margin: 32px 0 8px;
+}
+@media (max-width: 720px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+.stat-cell {
+  background: var(--plate-bg); border: 1px solid var(--rule);
+  padding: 18px 16px 16px; position: relative;
+}
+.stat-cell .stat-num {
+  font-family: var(--font-display); font-size: clamp(34px, 4.4vw, 52px);
+  font-weight: 600; line-height: 1; letter-spacing: -0.02em; color: var(--ink);
+}
+.stat-cell .stat-num.small { font-size: clamp(22px, 2.4vw, 30px); }
+.stat-cell .stat-label {
+  font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: 0.16em; color: var(--slate); margin-top: 8px;
+}
+.stat-cell .stat-sub { color: var(--slate); font-size: 13px; margin-top: 4px; }
+
+/* ===== Carousel (weighted album marquee) ===== */
+.carousel {
+  margin: 56px -32px 12px; padding: 16px 0; border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule); background: var(--plate-bg); overflow: hidden;
+  position: relative;
+}
+.carousel::before, .carousel::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 80px; pointer-events: none; z-index: 2;
+}
+.carousel::before { left: 0; background: linear-gradient(90deg, var(--plate-bg), transparent); }
+.carousel::after  { right: 0; background: linear-gradient(-90deg, var(--plate-bg), transparent); }
+.carousel-track {
+  display: flex; align-items: flex-end; gap: 16px;
+  width: max-content; animation: marquee 180s linear infinite;
+}
+.carousel:hover .carousel-track { animation-play-state: paused; }
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carousel-track { animation: none; overflow-x: auto; }
+}
+.album-tile {
+  flex: 0 0 var(--tw); width: var(--tw); display: block;
+  border: 1px solid var(--rule); background: var(--bone);
+  transition: transform .25s var(--ease-out, ease);
+}
+.album-tile:hover { transform: translateY(-3px); }
+.album-tile img {
+  display: block; width: 100%; aspect-ratio: 1/1; object-fit: cover;
+  background: var(--bone-2);
+}
+.album-tile .album-meta { padding: 8px 10px 10px; line-height: 1.2; }
+.album-tile .album-title {
+  display: block; font-family: var(--font-display); font-weight: 600;
+  font-size: 13px; color: var(--ink); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.album-tile .album-artist {
+  display: block; font-family: var(--font-mono); font-size: 10px;
+  color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+}
+.album-tile .album-artist em { color: var(--terracotta); font-style: normal; font-weight: 700; }
+.carousel-caption {
+  font-family: var(--font-mono); font-size: 11px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.16em; margin: 14px 0 0;
+}
+
+/* ===== Section plate ===== */
+.section { margin: 72px 0 0; }
+.section-head {
+  display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: end;
+  margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--rule);
+}
+.section-num {
+  font-family: var(--font-mono); font-size: 12px; color: var(--terracotta);
+  letter-spacing: 0.18em; padding-bottom: 6px;
+}
+.section-head h2 { font-size: clamp(26px, 3.4vw, 38px); line-height: 1.05; }
+.two-col {
+  display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px;
+}
+@media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } }
+
+/* Equal-width side-by-side tables for §I (artist concentration view). */
+.tables-side-by-side {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+  margin-top: 36px; padding-top: 28px;
+  border-top: 1px solid var(--rule-soft);
+}
+.tables-side-by-side .col-head {
+  font-family: var(--font-mono); font-size: 11px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.16em; margin: 0 0 12px;
+}
+.tables-side-by-side .col-head.accent { color: var(--terracotta); }
+@media (max-width: 1080px) {
+  .tables-side-by-side { grid-template-columns: 1fr; gap: 28px; }
+}
+
+/* ===== Tables ===== */
+table.atlas {
+  width: 100%; border-collapse: collapse; font-family: var(--font-body);
+  font-size: 15.5px;
+}
+table.atlas th {
+  text-align: left; font-family: var(--font-mono); font-size: 10.5px;
+  text-transform: uppercase; letter-spacing: 0.16em; color: var(--slate);
+  border-bottom: 1px solid var(--rule); padding: 8px 8px 6px; font-weight: 400;
+}
+table.atlas td { padding: 8px 8px; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+table.atlas td.rank, table.atlas td.rk {
+  font-family: var(--font-mono); color: var(--slate); font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.12em; width: 56px;
+}
+table.atlas td.name b { font-weight: 600; }
+table.atlas td.album, table.atlas td.track, table.atlas td.name { display: block; }
+table.atlas td.album .sub, table.atlas td.track .sub, table.atlas td.name .sub {
+  display: block; font-family: var(--font-mono); font-size: 11px;
+  color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em;
+  margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-weight: 400;
+}
+table.atlas td.track b { font-weight: 600; }
+/* Bar cell: explicit flex layout so the bar lives in its own track and
+   the count number is on its own column — they cannot visually collide. */
+table.atlas td.count {
+  width: 220px; padding: 8px 8px;
+}
+table.atlas td.count .bar-track {
+  display: inline-block; vertical-align: middle;
+  width: calc(100% - 36px); height: 8px;
+  background: rgba(10,10,10,0.07); margin-right: 8px;
+}
+table.atlas td.count .bar {
+  display: block; height: 100%;
+  width: calc(100% * var(--w-frac, 0)); background: var(--terracotta);
+}
+table.atlas td.count .num {
+  display: inline-block; vertical-align: middle;
+  font-family: var(--font-mono); font-size: 13px; color: var(--ink);
+  font-weight: 700; min-width: 24px; text-align: right;
+}
+table.atlas td.pct { width: 50px; font-family: var(--font-mono); font-size: 12px; color: var(--slate); text-align: right; }
+table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40px; color: var(--ink); font-weight: 700; }
+
+/* ===== Decade strip ===== */
+.decade-strip {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 0;
+  border: 1px solid var(--rule); background: var(--plate-bg);
+  margin-top: 8px;
+}
+.decade-col {
+  padding: 32px 6px 10px; border-right: 1px solid var(--rule-soft);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.decade-col:last-child { border-right: 0; }
+.decade-bar-wrap {
+  width: 100%; height: 130px; display: flex; align-items: flex-end; justify-content: center;
+  border-bottom: 1px solid var(--rule);
+}
+.decade-bar {
+  width: 60%; background: var(--terracotta); height: var(--h, 0%); min-height: 2px;
+  position: relative;
+}
+.decade-bar::after {
+  content: attr(data-count); position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink); font-weight: 700;
+  white-space: nowrap;
+}
+.decade-count { display: none; }
+.decade-label { font-family: var(--font-mono); font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* ===== Pull-quote / curiosity callouts ===== */
+.curiosity-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  margin-top: 24px;
+}
+@media (max-width: 720px) { .curiosity-grid { grid-template-columns: 1fr; } }
+.curiosity {
+  background: var(--plate-bg); border: 1px solid var(--rule); padding: 20px 22px;
+  position: relative;
+}
+.curiosity .ct {
+  font-family: var(--font-mono); font-size: 11px; color: var(--terracotta);
+  letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 10px;
+}
+.curiosity h3 { font-size: 22px; line-height: 1.1; margin-bottom: 6px; }
+.curiosity p { margin: 0; color: var(--ink-soft); font-size: 16px; line-height: 1.5; }
+
+/* ===== Long-tail appendix: explicit two-column grid (no CSS columns) ===== */
+.long-tail {
+  margin-top: 24px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px;
+}
+.long-tail .col {
+  border-right: 1px solid var(--rule-soft); padding-right: 32px;
+}
+.long-tail .col:last-child { border-right: 0; padding-right: 0; padding-left: 32px; margin-left: -32px; }
+.long-tail table { width: 100%; }
+@media (max-width: 720px) {
+  .long-tail { grid-template-columns: 1fr; }
+  .long-tail .col { border-right: 0; padding-right: 0; padding-left: 0; margin-left: 0; }
+}
+
+/* ===== Footer/colophon ===== */
+.colophon {
+  margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+  font-family: var(--font-mono); font-size: 12px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.12em; line-height: 1.6;
+}
+.colophon a { color: var(--ink); border-bottom: 1px solid var(--rule-soft); }
+.colophon a:hover { color: var(--terracotta); border-color: var(--terracotta); }
+@media (max-width: 720px) { .colophon { grid-template-columns: 1fr; } }
+
+/* ===== Charts: donut + legend ===== */
+.chart-row {
+  display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 40px;
+  align-items: center; margin-top: 8px;
+}
+.chart-row.compact {
+  grid-template-columns: minmax(200px, 240px) 1fr; gap: 28px;
+}
+@media (max-width: 720px) {
+  .chart-row, .chart-row.compact { grid-template-columns: 1fr; gap: 20px; }
+}
+.chart-row svg {
+  width: 100%; height: auto; max-width: 360px; display: block; margin: 0 auto;
+}
+.chart-legend {
+  list-style: none; margin: 0; padding: 0;
+}
+.chart-legend li {
+  display: grid; grid-template-columns: 14px 1fr auto;
+  align-items: center; gap: 10px; padding: 8px 0;
+  border-bottom: 1px solid var(--rule-soft); font-size: 14.5px;
+}
+.chart-legend li:last-child { border-bottom: 0; }
+.chart-legend .swatch {
+  width: 12px; height: 12px; display: inline-block; border: 1px solid rgba(10,10,10,0.2);
+}
+.chart-legend .lbl { font-family: var(--font-body); color: var(--ink); }
+.chart-legend .ct {
+  font-family: var(--font-mono); font-size: 12px; color: var(--ink);
+  font-weight: 700; letter-spacing: 0.04em;
+}
+.chart-legend .ct em { color: var(--slate); font-weight: 400; font-style: normal; }
+
+.dual-donut {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 32px;
+  border-top: 1px solid var(--rule-soft); padding-top: 28px;
+}
+.dual-donut .donut-block { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.dual-donut .donut-block svg { width: 100%; max-width: 220px; height: auto; margin: 0 auto; display: block; }
+.donut-block .donut-caption {
+  font-family: var(--font-mono); font-size: 11px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.14em; text-align: center;
+}
+@media (max-width: 720px) {
+  .dual-donut { grid-template-columns: 1fr; }
+}
+
+/* ===== Spotify link-out card ===== */
+.spotify-card {
+  margin: 32px 0 0; border: 1px solid var(--rule); background: var(--plate-bg);
+  padding: 22px 24px; display: grid;
+  grid-template-columns: 64px 1fr auto; gap: 20px; align-items: center;
+}
+.spotify-card .sp-icon {
+  width: 64px; height: 64px; background: var(--ink); color: var(--bone);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: -0.02em;
+}
+.spotify-card .sp-body p { margin: 0; line-height: 1.4; }
+.spotify-card .sp-eyebrow {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.18em;
+}
+.spotify-card .sp-title {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  color: var(--ink); letter-spacing: -0.012em; margin-top: 6px;
+}
+.spotify-card .sp-meta {
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-soft);
+  margin-top: 4px; letter-spacing: 0.04em;
+}
+.spotify-card .sp-cta {
+  font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--bone); background: var(--terracotta);
+  padding: 12px 16px; border: 1px solid var(--terracotta-2); white-space: nowrap;
+  transition: background .15s ease;
+}
+.spotify-card .sp-cta:hover { background: var(--terracotta-2); color: var(--bone); }
+@media (max-width: 720px) {
+  .spotify-card { grid-template-columns: 48px 1fr; }
+  .spotify-card .sp-icon { width: 48px; height: 48px; font-size: 22px; }
+  .spotify-card .sp-cta { grid-column: 1 / -1; text-align: center; }
+}
+.spotify-caption {
+  font-family: var(--font-mono); font-size: 11px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.16em; margin: 10px 0 0;
+}
+
+/* ===== Back link ===== */
+.back-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.16em; padding: 8px 0;
+  margin-bottom: 8px; border-bottom: 1px dashed var(--rule-soft);
+}
+.back-link:hover { color: var(--terracotta); }
+
+
+/* ===== Games-specific additions (extend the Atlas system) ===== */
+
+/* Source card (non-link variant of the music link-out card) */
+.source-card {
+  margin: 32px 0 0; border: 1px solid var(--rule); background: var(--plate-bg);
+  padding: 22px 24px; display: grid;
+  grid-template-columns: 64px 1fr; gap: 20px; align-items: center;
+}
+.source-card .sc-icon {
+  width: 64px; height: 64px; background: var(--ink); color: var(--bone);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 30px; font-weight: 600;
+}
+.source-card .sc-body p { margin: 0; line-height: 1.4; }
+.source-card .sc-eyebrow {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.18em;
+}
+.source-card .sc-title {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  color: var(--ink); letter-spacing: -0.012em; margin-top: 6px;
+}
+.source-card .sc-meta {
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-soft);
+  margin-top: 4px; letter-spacing: 0.04em;
+}
+@media (max-width: 720px) {
+  .source-card { grid-template-columns: 48px 1fr; }
+  .source-card .sc-icon { width: 48px; height: 48px; font-size: 24px; }
+}
+
+/* Weighted text-tile marquee (no cover art; tiles sized by rank weight) */
+.tile {
+  flex: 0 0 var(--tw); width: var(--tw); display: flex; flex-direction: column;
+  justify-content: flex-end; min-height: 96px; padding: 14px 14px 12px;
+  border: 1px solid var(--rule); background: var(--bone);
+  transition: transform .25s ease;
+}
+.tile:hover { transform: translateY(-3px); }
+.tile.accent { background: var(--ink); }
+.tile.accent .tile-title { color: var(--bone); }
+.tile.accent .tile-meta { color: var(--slate-soft); }
+.tile.warm { background: var(--terracotta); border-color: var(--terracotta-2); }
+.tile.warm .tile-title, .tile.warm .tile-meta { color: var(--bone); }
+.tile-title {
+  font-family: var(--font-display); font-weight: 600; color: var(--ink);
+  line-height: 1.04; letter-spacing: -0.015em;
+}
+.tile-meta {
+  font-family: var(--font-mono); font-size: 10px; color: var(--slate);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px;
+}
+
+/* Two era strips stacked (release vs played) */
+.cartography { display: grid; grid-template-columns: 1fr; gap: 36px; margin-top: 8px; }
+.strip-label {
+  font-family: var(--font-mono); font-size: 11px; color: var(--terracotta);
+  text-transform: uppercase; letter-spacing: 0.16em; margin: 0 0 10px;
+}
+.strip-4 { grid-template-columns: repeat(4, 1fr) !important; }
+.strip-6 { grid-template-columns: repeat(6, 1fr) !important; }
+
+/* Adjacency panel */
+.adjacency { margin-top: 24px; display: grid; grid-template-columns: 1fr; gap: 0; }
+.adj-group { border-top: 1px solid var(--rule); padding: 18px 0 6px; }
+.adj-group:first-child { border-top: 0; }
+.adj-head {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--slate); margin: 0 0 12px;
+}
+.adj-head .pill {
+  display: inline-block; margin-left: 8px; padding: 2px 8px;
+  border: 1px solid var(--rule-soft); color: var(--ink); font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.adj-head .pill.want { background: var(--terracotta); color: var(--bone); border-color: var(--terracotta-2); }
+.adj-head .pill.pred { background: var(--moss); color: var(--bone); border-color: var(--moss); }
+.adj-head .pill.decl { background: var(--bone-2); color: var(--ink-soft); }
+.adj-row {
+  display: grid; grid-template-columns: minmax(160px, 220px) 1fr; gap: 18px;
+  padding: 10px 0; border-bottom: 1px solid var(--rule-soft); align-items: baseline;
+}
+.adj-row:last-child { border-bottom: 0; }
+.adj-title { font-family: var(--font-display); font-weight: 600; font-size: 17px; color: var(--ink); }
+.adj-why { color: var(--ink-soft); font-size: 15.5px; line-height: 1.5; }
+@media (max-width: 640px) { .adj-row { grid-template-columns: 1fr; gap: 4px; } }
+
+</style>
+</head>
+<body>
+<main class="shell">
+
+  <a class="back-link" href="/about/">← Back to About</a>
+
+  <div class="plate-stamp"><b>Atlas Vol. V · Ludic Map</b><span class="barcode"></span><span>Issued 2026 · 05 · 21</span></div>
+
+  <header class="masthead-head">
+    <div>
+      <span class="kicker">Personal essay · v.1 · 2026</span>
+      <h1 class="display1" style="margin-top:14px">Twenty-three favorites,<br>one genre, <em>two selves</em>.</h1>
+    </div>
+    <div class="right">
+      Source · self-reported<br>
+      All-time favorite games<br>
+      Method · structured interview
+    </div>
+  </header>
+
+  <p class="lede">A close reading of my all-time favorite games. Like the music list before it, the data is narrow in the way honest taste tends to be: a collection that is two-thirds role-playing game, built up in waves across two and a half decades, and quietly organized around stories that end in grief. Underneath the variety is a single recurring want — a world large enough to disappear into.</p>
+
+  <div class="source-card">
+    <span class="sc-icon" aria-hidden="true">▶</span>
+    <div class="sc-body">
+      <p class="sc-eyebrow">Compiled for ramiefathy</p>
+      <p class="sc-title">All-Time Favorite Games</p>
+      <p class="sc-meta">23 canon · 3 second-tier · 7 honorable mentions · drawn out over a structured interview, May 2026</p>
+    </div>
+  </div>
+  <p class="spotify-caption">No playtime telemetry exists for a 25-year span of consoles, so weight here is rank- and tier-based, not hours-based.</p>
+
+  <!-- Big stats row -->
+  <section class="stats-row" aria-label="Headline statistics">
+    <div class="stat-cell">
+      <div class="stat-num">23</div>
+      <div class="stat-label">Canon titles</div>
+      <div class="stat-sub">+ 3 second-tier, 7 mentions</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">⅔</div>
+      <div class="stat-label">Are role-playing games</div>
+      <div class="stat-sub">16 of 23 carry an RPG tag</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num small">1998–2025</div>
+      <div class="stat-label">Release span</div>
+      <div class="stat-sub">27 years; modal decade 2000s</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num small">Yoko Taro</div>
+      <div class="stat-label">Only repeat auteur</div>
+      <div class="stat-sub">Automata, then back for Replicant</div>
+    </div>
+  </section>
+
+  <!-- Weighted franchise/title marquee -->
+  <div class="carousel" role="region" aria-label="Titles sized by rank">
+    <div class="carousel-track">
+      <span class="tile warm" style="--tw:240px"><span class="tile-title" style="font-size:24px">Kingdom Hearts</span><span class="tile-meta">Square Enix · #1</span></span>
+      <span class="tile accent" style="--tw:220px"><span class="tile-title" style="font-size:22px">Clair Obscur</span><span class="tile-meta">Sandfall · #2</span></span>
+      <span class="tile accent" style="--tw:220px"><span class="tile-title" style="font-size:22px">NieR: Automata</span><span class="tile-meta">PlatinumGames · #3</span></span>
+      <span class="tile" style="--tw:200px"><span class="tile-title" style="font-size:20px">Skyrim</span><span class="tile-meta">Bethesda · #4</span></span>
+      <span class="tile" style="--tw:200px"><span class="tile-title" style="font-size:20px">Baldur's Gate III</span><span class="tile-meta">Larian · #5</span></span>
+      <span class="tile" style="--tw:180px"><span class="tile-title" style="font-size:18px">Skies of Arcadia</span><span class="tile-meta">Sega · #6</span></span>
+      <span class="tile" style="--tw:180px"><span class="tile-title" style="font-size:18px">Sonic Adventure 1/2</span><span class="tile-meta">Sega · #7</span></span>
+      <span class="tile" style="--tw:170px"><span class="tile-title" style="font-size:17px">Pokémon Blue</span><span class="tile-meta">Game Freak · #8</span></span>
+      <span class="tile" style="--tw:170px"><span class="tile-title" style="font-size:17px">GTA: San Andreas</span><span class="tile-meta">Rockstar · #9</span></span>
+      <span class="tile" style="--tw:170px"><span class="tile-title" style="font-size:17px">Super Smash Bros.</span><span class="tile-meta">Nintendo · #10</span></span>
+      <span class="tile" style="--tw:160px"><span class="tile-title" style="font-size:16px">God of War</span><span class="tile-meta">Santa Monica · #11</span></span>
+      <span class="tile" style="--tw:160px"><span class="tile-title" style="font-size:16px">Call of Duty</span><span class="tile-meta">Activision · #12</span></span>
+      <span class="tile" style="--tw:150px"><span class="tile-title" style="font-size:15px">Jak and Daxter</span><span class="tile-meta">Naughty Dog · #13</span></span>
+      <span class="tile" style="--tw:150px"><span class="tile-title" style="font-size:15px">Zelda (×4)</span><span class="tile-meta">Nintendo · #14</span></span>
+      <span class="tile" style="--tw:150px"><span class="tile-title" style="font-size:15px">Xenoblade</span><span class="tile-meta">Monolith · #15</span></span>
+      <span class="tile" style="--tw:150px"><span class="tile-title" style="font-size:15px">FF VII Remake</span><span class="tile-meta">Square Enix · #16</span></span>
+      <span class="tile" style="--tw:140px"><span class="tile-title" style="font-size:14px">Golden Sun</span><span class="tile-meta">Camelot · #17</span></span>
+      <span class="tile" style="--tw:140px"><span class="tile-title" style="font-size:14px">Tales of Symphonia</span><span class="tile-meta">Bandai Namco · #18</span></span>
+      <span class="tile" style="--tw:140px"><span class="tile-title" style="font-size:14px">Portal</span><span class="tile-meta">Valve · #19</span></span>
+      <span class="tile warm" style="--tw:150px"><span class="tile-title" style="font-size:15px">Elden Ring</span><span class="tile-meta">FromSoftware · canon</span></span>
+      <span class="tile" style="--tw:140px"><span class="tile-title" style="font-size:14px">The Witcher 3</span><span class="tile-meta">CD Projekt · canon</span></span>
+      <span class="tile" style="--tw:140px"><span class="tile-title" style="font-size:14px">Cyberpunk 2077</span><span class="tile-meta">CD Projekt · canon</span></span>
+      <span class="tile" style="--tw:140px"><span class="tile-title" style="font-size:14px">NieR Replicant</span><span class="tile-meta">Yoko Taro · canon</span></span>
+      <!-- duplicate set for seamless marquee -->
+      <span class="tile warm" style="--tw:240px"><span class="tile-title" style="font-size:24px">Kingdom Hearts</span><span class="tile-meta">Square Enix · #1</span></span>
+      <span class="tile accent" style="--tw:220px"><span class="tile-title" style="font-size:22px">Clair Obscur</span><span class="tile-meta">Sandfall · #2</span></span>
+      <span class="tile accent" style="--tw:220px"><span class="tile-title" style="font-size:22px">NieR: Automata</span><span class="tile-meta">PlatinumGames · #3</span></span>
+      <span class="tile" style="--tw:200px"><span class="tile-title" style="font-size:20px">Skyrim</span><span class="tile-meta">Bethesda · #4</span></span>
+      <span class="tile" style="--tw:200px"><span class="tile-title" style="font-size:20px">Baldur's Gate III</span><span class="tile-meta">Larian · #5</span></span>
+      <span class="tile" style="--tw:180px"><span class="tile-title" style="font-size:18px">Skies of Arcadia</span><span class="tile-meta">Sega · #6</span></span>
+      <span class="tile" style="--tw:180px"><span class="tile-title" style="font-size:18px">Sonic Adventure 1/2</span><span class="tile-meta">Sega · #7</span></span>
+      <span class="tile" style="--tw:170px"><span class="tile-title" style="font-size:17px">Pokémon Blue</span><span class="tile-meta">Game Freak · #8</span></span>
+      <span class="tile" style="--tw:170px"><span class="tile-title" style="font-size:17px">GTA: San Andreas</span><span class="tile-meta">Rockstar · #9</span></span>
+      <span class="tile" style="--tw:170px"><span class="tile-title" style="font-size:17px">Super Smash Bros.</span><span class="tile-meta">Nintendo · #10</span></span>
+      <span class="tile" style="--tw:160px"><span class="tile-title" style="font-size:16px">God of War</span><span class="tile-meta">Santa Monica · #11</span></span>
+      <span class="tile" style="--tw:160px"><span class="tile-title" style="font-size:16px">Call of Duty</span><span class="tile-meta">Activision · #12</span></span>
+      <span class="tile" style="--tw:150px"><span class="tile-title" style="font-size:15px">Jak and Daxter</span><span class="tile-meta">Naughty Dog · #13</span></span>
+      <span class="tile" style="--tw:150px"><span class="tile-title" style="font-size:15px">Zelda (×4)</span><span class="tile-meta">Nintendo · #14</span></span>
+      <span class="tile" style="--tw:150px"><span class="tile-title" style="font-size:15px">Xenoblade</span><span class="tile-meta">Monolith · #15</span></span>
+      <span class="tile" style="--tw:150px"><span class="tile-title" style="font-size:15px">FF VII Remake</span><span class="tile-meta">Square Enix · #16</span></span>
+      <span class="tile" style="--tw:140px"><span class="tile-title" style="font-size:14px">Golden Sun</span><span class="tile-meta">Camelot · #17</span></span>
+      <span class="tile" style="--tw:140px"><span class="tile-title" style="font-size:14px">Tales of Symphonia</span><span class="tile-meta">Bandai Namco · #18</span></span>
+      <span class="tile" style="--tw:140px"><span class="tile-title" style="font-size:14px">Portal</span><span class="tile-meta">Valve · #19</span></span>
+    </div>
+  </div>
+  <p class="carousel-caption">Titles sized by rank · canon + the head of the second tier · list order treated as a rough ranking · pause on hover</p>
+
+  <!-- ============================================================== -->
+  <!-- SECTION I — Concentration                                       -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ I · 01</div>
+      <h2 class="display2">One genre, a few houses.<br><em>Two-thirds of the list is a role-playing game.</em></h2>
+    </div>
+
+    <p class="body-copy">Sort the canon by what kind of game each one is and the breadth collapses immediately. Sixteen of the twenty-three titles carry a role-playing tag — JRPG, action-RPG, CRPG, open-world RPG — and the seven that don't are mostly childhood arcade-and-platforming (Sonic, Jak, Smash) or the two functional outliers, Portal and Call of Duty. This is not a person who likes "games." It is a person who likes one genre, deeply, and tolerates a small amount of everything else.</p>
+
+    <p class="body-copy">The studios concentrate just as hard. Nintendo and Square Enix together are nine of the twenty-three, and the top four publishers more than half. Square Enix anchors the highest tier (Kingdom Hearts, both NieRs, the Final Fantasy VII reimagining), and one creator, Yoko Taro, is the only name to appear twice — now with both his games, Automata and Replicant, in the canon, the only auteur I deliberately went backwards for, chasing Replicant after Automata had already broken my heart.</p>
+
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">By genre tag — canon</p>
+        <table class="atlas">
+          <thead><tr><th>Tag</th><th>n</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="name"><b>JRPG</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span><span class="num">9</span></td><td></td></tr>
+            <tr><td class="name"><b>Action-RPG</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.889"></span></span><span class="num">8</span></td><td></td></tr>
+            <tr><td class="name"><b>Open-world RPG</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.556"></span></span><span class="num">5</span></td><td></td></tr>
+            <tr><td class="name"><b>Western-RPG</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.444"></span></span><span class="num">4</span></td><td></td></tr>
+            <tr><td class="name"><b>Turn-based RPG</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.444"></span></span><span class="num">4</span></td><td></td></tr>
+            <tr><td class="name"><b>Action-adventure</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.333"></span></span><span class="num">3</span></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">By publisher — canon</p>
+        <table class="atlas">
+          <thead><tr><th>Publisher</th><th>n</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="name"><b>Nintendo</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span><span class="num">5</span></td><td></td></tr>
+            <tr><td class="name"><b>Square Enix</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.8"></span></span><span class="num">4</span></td><td></td></tr>
+            <tr><td class="name"><b>Sega · Sony</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.4"></span></span><span class="num">2</span></td><td></td></tr>
+            <tr><td class="name"><b>Bandai · CD Projekt</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.4"></span></span><span class="num">2</span></td><td></td></tr>
+            <tr><td class="name"><b>Others (6 ×1)</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.2"></span></span><span class="num">6</span></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION II — Head of the curve                                  -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ II · 02</div>
+      <h2 class="display2">The top of the ranking.<br><em>Where the obsession actually sits.</em></h2>
+    </div>
+
+    <p class="body-copy">There is no play-count to expose the head of the curve the way the music data could, so the ranking has to stand in. Read the top five and the pattern is unmistakable: Kingdom Hearts, Clair Obscur, NieR: Automata, Skyrim, Baldur's Gate III — five role-playing games, four of them story-first, three of them about loss. The single most-loved game on the list is a Disney–Final Fantasy crossover I first played as a child; the second is a 2025 release I finished as a resident. Twenty-three years separate the top two slots, and they rhyme. Four more — Elden Ring, The Witcher 3, Cyberpunk 2077, and NieR Replicant — were elevated into this top tier after the list was first written; they belong here as much as anything beneath them.</p>
+
+    <table class="atlas" style="margin-top:24px">
+      <thead><tr><th>#</th><th>Title</th><th>Released</th><th>Played</th><th>For</th></tr></thead>
+      <tbody>
+        <tr><td class="rk">01</td><td class="name"><b>Kingdom Hearts</b><span class="sub">Action-RPG · Square Enix</span></td><td class="pct">2002</td><td class="pct">childhood</td><td class="pct">story</td></tr>
+        <tr><td class="rk">02</td><td class="name"><b>Clair Obscur: Expedition 33</b><span class="sub">Turn-based RPG · Sandfall</span></td><td class="pct">2025</td><td class="pct">residency</td><td class="pct">story</td></tr>
+        <tr><td class="rk">03</td><td class="name"><b>NieR: Automata</b><span class="sub">Action-RPG · PlatinumGames</span></td><td class="pct">2017</td><td class="pct">med sch.</td><td class="pct">story</td></tr>
+        <tr><td class="rk">04</td><td class="name"><b>Skyrim</b><span class="sub">Open-world RPG · Bethesda</span></td><td class="pct">2011</td><td class="pct">college</td><td class="pct">world</td></tr>
+        <tr><td class="rk">05</td><td class="name"><b>Baldur's Gate III</b><span class="sub">CRPG · Larian</span></td><td class="pct">2023</td><td class="pct">residency</td><td class="pct">story</td></tr>
+        <tr><td class="rk">06</td><td class="name"><b>Skies of Arcadia</b><span class="sub">JRPG · Sega · Dreamcast</span></td><td class="pct">2000</td><td class="pct">childhood</td><td class="pct">world</td></tr>
+        <tr><td class="rk">07</td><td class="name"><b>Sonic Adventure 1 / 2</b><span class="sub">Platformer · Sega</span></td><td class="pct">1998</td><td class="pct">childhood</td><td class="pct">systems</td></tr>
+        <tr><td class="rk">08</td><td class="name"><b>Pokémon Blue</b><span class="sub">JRPG · Game Freak</span></td><td class="pct">1998</td><td class="pct">childhood</td><td class="pct">systems</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION III — Two-axis era cartography                          -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ III · 03</div>
+      <h2 class="display2">Two clocks.<br><em>When the games were made vs. when I played them.</em></h2>
+    </div>
+
+    <p class="body-copy">Games carry two timestamps, and the gap between them is the most revealing thing in the dataset. By release year the collection peaks hard in the 2000s — nine of twenty-three canon titles — because that is when the formative library was published: Dreamcast and Game Boy and PlayStation 2, the hardware of a specific childhood. But by <em>when I actually played them</em>, the shape changes: not one peak but three, with thin valleys between.</p>
+
+    <div class="cartography">
+      <div>
+        <p class="strip-label">Axis A — by release decade (canon)</p>
+        <div class="decade-strip" style="grid-template-columns:repeat(4,1fr)">
+          <div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" data-count="3" style="--h:33%"></div></div><div class="decade-label">1990s</div></div>
+          <div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" data-count="9" style="--h:100%"></div></div><div class="decade-label">2000s</div></div>
+          <div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" data-count="6" style="--h:67%"></div></div><div class="decade-label">2010s</div></div>
+          <div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" data-count="5" style="--h:56%"></div></div><div class="decade-label">2020s</div></div>
+        </div>
+      </div>
+      <div>
+        <p class="strip-label">Axis B — by era I played it (canon)</p>
+        <div class="decade-strip" style="grid-template-columns:repeat(5,1fr)">
+          <div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" data-count="6" style="--h:100%"></div></div><div class="decade-label">Childhood</div></div>
+          <div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" data-count="3" style="--h:50%"></div></div><div class="decade-label">Teen</div></div>
+          <div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" data-count="2" style="--h:33%"></div></div><div class="decade-label">College</div></div>
+          <div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" data-count="5" style="--h:83%"></div></div><div class="decade-label">Med school</div></div>
+          <div class="decade-col"><div class="decade-bar-wrap"><div class="decade-bar" data-count="6" style="--h:100%"></div></div><div class="decade-label">Residency</div></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="body-copy" style="margin-top:28px">The first wave is a childhood, played on the hardware of its time. The second is the pandemic — the med-school years, when a confined and frightening stretch of life turned into the densest gaming of my adult life: God of War, Breath of the Wild, Xenoblade, and Pokémon Legends: Arceus, all long single-player worlds entered while the real one had narrowed to a few rooms. The third wave is now, in residency — and it is no longer a footnote. What first looked like a small bump (Clair Obscur, Baldur's Gate III) resolved into a full third peak once the recently discovered loves — Elden Ring, The Witcher 3, Cyberpunk 2077, NieR Replicant — earned their way into the canon. The renaissance is as tall as the childhood that started it: the appetite didn't just survive the least free years of my life, it came back at full height.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION IV — Ludic signature                                    -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ IV · 04</div>
+      <h2 class="display2">Ludic signature.<br><em>Story first, a world to inhabit second, mastery as seasoning.</em></h2>
+    </div>
+
+    <p class="body-copy">Ask what each game is fundamentally <em>for</em> — the thing that makes me load it again — and four answers cover the whole canon. Story is the largest; a world to get lost in is a close second; systems and mastery are real but secondary, appreciated as challenge rather than chased; and the social pole is small and, as we'll see, lives a separate life. This is not my guess at my own taste — it is what I told the interviewer, and the games agree with me.</p>
+
+    <div class="chart-row" style="margin-top:28px">
+      <svg viewBox="0 0 160 160" role="img" aria-label="Donut: what the games are for — narrative 10, world 7, systems 4, social 2">
+        <g transform="rotate(-90 80 80)" fill="none" stroke-width="28">
+          <circle cx="80" cy="80" r="56" pathLength="100" stroke="var(--terracotta)" stroke-dasharray="43.5 56.5" stroke-dashoffset="0"></circle>
+          <circle cx="80" cy="80" r="56" pathLength="100" stroke="var(--moss)" stroke-dasharray="30.4 69.6" stroke-dashoffset="-43.5"></circle>
+          <circle cx="80" cy="80" r="56" pathLength="100" stroke="var(--gold)" stroke-dasharray="17.4 82.6" stroke-dashoffset="-73.9"></circle>
+          <circle cx="80" cy="80" r="56" pathLength="100" stroke="var(--slate)" stroke-dasharray="8.7 91.3" stroke-dashoffset="-91.3"></circle>
+        </g>
+      </svg>
+      <ul class="chart-legend">
+        <li><span class="swatch" style="background:var(--terracotta)"></span><span class="lbl">Story &amp; emotional payoff</span><span class="ct">10 <em>· 43%</em></span></li>
+        <li><span class="swatch" style="background:var(--moss)"></span><span class="lbl">A world to get lost in</span><span class="ct">7 <em>· 30%</em></span></li>
+        <li><span class="swatch" style="background:var(--gold)"></span><span class="lbl">Systems &amp; mastery</span><span class="ct">4 <em>· 17%</em></span></li>
+        <li><span class="swatch" style="background:var(--slate)"></span><span class="lbl">Doing it with people</span><span class="ct">2 <em>· 9%</em></span></li>
+      </ul>
+    </div>
+
+    <h3 class="display3" style="margin-top:40px;margin-bottom:14px">How it plays, and from where.</h3>
+    <div class="tables-side-by-side">
+      <div>
+        <p class="col-head accent">Core loop — canon</p>
+        <table class="atlas">
+          <tbody>
+            <tr><td class="name"><b>Action-RPG</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span><span class="num">6</span></td></tr>
+            <tr><td class="name"><b>Open-world</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.833"></span></span><span class="num">5</span></td></tr>
+            <tr><td class="name"><b>Turn-based</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.5"></span></span><span class="num">3</span></td></tr>
+            <tr><td class="name"><b>Action / platformer</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.667"></span></span><span class="num">4</span></td></tr>
+            <tr><td class="name"><b>Competitive versus</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.333"></span></span><span class="num">2</span></td></tr>
+            <tr><td class="name"><b>Puzzle</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.167"></span></span><span class="num">1</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="col-head">Perspective — canon</p>
+        <table class="atlas">
+          <tbody>
+            <tr><td class="name"><b>Third-person</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:1.0"></span></span><span class="num">15</span></td></tr>
+            <tr><td class="name"><b>First-person</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.267"></span></span><span class="num">4</span></td></tr>
+            <tr><td class="name"><b>Top-down</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.133"></span></span><span class="num">2</span></td></tr>
+            <tr><td class="name"><b>Isometric</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.067"></span></span><span class="num">1</span></td></tr>
+            <tr><td class="name"><b>2D side</b></td><td class="count"><span class="bar-track"><span class="bar" style="--w-frac:0.067"></span></span><span class="num">1</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="body-copy" style="margin-top:24px">The camera tells its own story: nearly two-thirds of the canon is third-person, the over-the-shoulder framing of a protagonist you follow through a place. First-person is rare and belongs to the immersive open worlds (Skyrim, Cyberpunk), the multiplayer shooter (Call of Duty), and the lone puzzle box (Portal). I do not, on this evidence, like to <em>be</em> the character so much as to <em>accompany</em> one.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION V — Franchise obsessions                                -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ V · 05</div>
+      <h2 class="display2">Series, not singles.<br><em>I commit to worlds and keep returning to them.</em></h2>
+    </div>
+
+    <p class="body-copy">Twenty of the twenty-three canon entries belong to a franchise; only three — Clair Obscur, Skies of Arcadia, and Cyberpunk 2077 — stand entirely alone, bookending a quarter-century from Skies of Arcadia (2000) to Clair Obscur (2025). Everything else is a series I bought into and kept returning to. The clearest case is The Legend of Zelda, which appears as four separate games spanning a quarter-century: Ocarina and Majora's Mask in childhood, Breath of the Wild in med school, Tears of the Kingdom in residency. One franchise, three life-eras, a single unbroken thread.</p>
+
+    <p class="body-copy">This is the same shape the music data showed — a loyalty to whole records over scattered singles, here expressed as loyalty to whole worlds over individual games. When something earns my trust, I don't sample the next thing; I go deeper into the thing that already worked. The replay behavior confirms it: I revisit a chosen few rather than constantly chasing the new, and when a long role-playing game truly grabs me, I see it through to the end even in the time-poverty of residency.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION VI — Statistical curiosities                            -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ VI · 06</div>
+      <h2 class="display2">Curiosities.<br><em>Things that fall out of the data.</em></h2>
+    </div>
+
+    <div class="curiosity-grid">
+      <div class="curiosity">
+        <div class="ct">The auteur</div>
+        <h3>Only one name, played twice.</h3>
+        <p>Yoko Taro is the sole creator to appear more than once — and I found him backwards, going from Automata (2017) to the older, sadder Replicant. A director, not a studio, is what I followed.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">The decade gap</div>
+        <h3>God of War, twice, ten years apart.</h3>
+        <p>It is the only entry I played in two distinct eras: the Greek character-action as a teenager, and the Norse narrative reboot during the pandemic. The franchise grew up at roughly the rate I did.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">The outlier</div>
+        <h3>Portal owes nothing to the others.</h3>
+        <p>No RPG systems, no open world, no story-as-engine — pure puzzle and wit. It is the single game on the list that shares almost none of the canon's DNA, and I love it anyway.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">The bookends</div>
+        <h3>Three games need no franchise.</h3>
+        <p>Only Skies of Arcadia (2000), Cyberpunk 2077 (2020), and Clair Obscur (2025) stand outside any series — three one-of-a-kind worlds spanning a quarter-century that needed no sequel to earn the list.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">The throughline</div>
+        <h3>Zelda spans three life-eras.</h3>
+        <p>Childhood, med school, and residency each have their Zelda. No other series touches more than two eras; this one quietly scores the entire timeline.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">The adult tilt</div>
+        <h3>Everything recent is open-world.</h3>
+        <p>The loves discovered in residency — Elden Ring, Witcher 3, Cyberpunk — are all sprawling open worlds. My adult taste drifted from turns toward territory: places, not menus.</p>
+      </div>
+      <div class="curiosity">
+        <div class="ct">The soundtrack test</div>
+        <h3>One score escaped the console.</h3>
+        <p>Cross-checked against thirteen years of Spotify receipts, the composers of these 34 games register barely twenty <em>minutes</em> apiece — except one. Lorien Testard's <em>Clair Obscur</em> score logged 19 hours and became a top artist of 2025. The games stay in their worlds; exactly one soundtrack ever followed me out.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION VII — Conspicuous absence                               -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ VII · 07</div>
+      <h2 class="display2">What is conspicuously <em>absent</em>.</h2>
+    </div>
+
+    <p class="body-copy">The negative space is as sharp as the music list's was. Whole genres are quarantined to the honorable mentions and never once crack the canon: strategy (only Age of Empires), life-sim (only The Sims), the MMO (only RuneScape), sports (only Rocket League). These are games I have played, sometimes for hundreds of hours — but never games I would call a favorite. The pattern is exact: the things that survive into the canon are single-player worlds with a story; the things that stay in the mentions are systems I socialized or decompressed inside.</p>
+
+    <p class="body-copy">Beyond that, there are categories I simply don't live with at all — horror, racing, rhythm, fighting beyond the party-game exception of Smash. And most tellingly, the canonical pillars of my own favorite genre are missing: I have never played Chrono Trigger, Persona, or Final Fantasy X. My JRPG identity was built from Skies of Arcadia, Golden Sun, Tales of Symphonia and Xenoblade — a personal canon, not the received one. The same is true of the existential games the rest of my taste predicts I'd adore: Outer Wilds, Disco Elysium, and the profile-perfect Red Dead Redemption 2 and Death Stranding are all unplayed.</p>
+
+    <p class="body-copy">The takeaway is the same one the music gave me. "Favorite," operationalized as "what I commit to and finish," is a much narrower category than "games I would enjoy." The first is governed by depth, habit, and the search for a world to disappear into; the second by curiosity. This list is reporting the first.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION VIII — Diagnosis                                        -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ VIII · 08</div>
+      <h2 class="display2">A diagnosis.<br><em>What this collection is for.</em></h2>
+    </div>
+
+    <p class="lede" style="margin-bottom:14px">Read as a single object, my favorite games are a way of disappearing into somewhere else — not to win, not to compete, but to inhabit a large, coherent world long enough that the real one recedes, and to be told a story that usually ends in loss.</p>
+
+    <p class="body-copy">The genre is almost beside the point; the function is the constant. A role-playing game is simply the most reliable machine for the thing I actually want — a place to be a person who is not me, accompanied through a long arc by characters whose ending matters. That the highest tier keeps landing on grief — Automata, Clair Obscur, Majora's Mask, The Last of Us — is not something I set out to seek. I told the interviewer as much: I don't chase sad stories, but those are the ones that lodge and stay. The melancholy is emergent, a gravity rather than a goal.</p>
+
+    <p class="body-copy">There are, in truth, two collections here doing two different jobs. The single-player canon is for disappearing — solitary, immersive, narrative, finished only when it earns the ending. The multiplayer streak — Call of Duty, Counter-Strike, Rocket League, Smash, RuneScape — is for company and for comfort: a way to be with friends and a low-stakes place to put my hands while my mind unwinds. It is not a competitive self; it never was. Like the music that turned out to be a tool for thinking, these are tools for two distinct needs, and the tool fits the hand.</p>
+
+    <p class="body-copy">The two waves explain the rest. A childhood imprinted on Dreamcast and Game Boy set the palette; a pandemic spent in long single-player worlds proved the palette still held under pressure; and a residency-era renaissance — Baldur's Gate, Elden Ring, Clair Obscur — proved the appetite survives even the least free years of a life. If there is a self-criticism to extract, it is the negative space again: the map clearly points toward Outer Wilds and Disco Elysium and the FromSoftware games I keep saying I'll get to, and I keep not going. The data, helpfully, draws the arrow for me.</p>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- ADJACENT TERRITORY — the requested recommendation panel         -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ MAP</div>
+      <h2 class="display2">Adjacent territory.<br><em>Where the profile says to go next.</em></h2>
+    </div>
+
+    <p class="body-copy">The point of building a taste fingerprint is to test it, so we did — and the honest result is that the model predicts a cluster of games my list does not yet contain. Grouped by how confidently the profile points at them, and flagged by what I said when each was offered:</p>
+
+    <div class="adjacency">
+      <div class="adj-group">
+        <p class="adj-head">Self-named gap <span class="pill want">wants to, hasn't</span></p>
+        <div class="adj-row"><div class="adj-title">Dark Souls · Sekiro · Bloodborne</div><div class="adj-why">Elden Ring is the only FromSoftware game I've played, and it landed hard enough that I chased its lore on YouTube. I've explicitly said I want to play more and keep not doing it. The clearest, most actionable recommendation on the board.</div></div>
+      </div>
+      <div class="adj-group">
+        <p class="adj-head">High-confidence, unplayed <span class="pill pred">profile-perfect</span></p>
+        <div class="adj-row"><div class="adj-title">Outer Wilds</div><div class="adj-why">The definitive game about mortality and curiosity. Everything my highest tier rewards, in a form I've never touched.</div></div>
+        <div class="adj-row"><div class="adj-title">Disco Elysium</div><div class="adj-why">A literary, sad, combat-free RPG of the self — the narrative-first instinct taken to its limit.</div></div>
+        <div class="adj-row"><div class="adj-title">Final Fantasy X</div><div class="adj-why">A pilgrimage-toward-death JRPG that sits squarely in both the grief thread and the Square lineage I already love.</div></div>
+      </div>
+      <div class="adj-group">
+        <p class="adj-head">Predicted, but declined when offered <span class="pill decl">passed</span></p>
+        <div class="adj-row"><div class="adj-title">Red Dead Redemption 2</div><div class="adj-why">Slow, melancholic, character-driven open-world — almost suspiciously on-profile. I passed on it anyway, which is itself a data point about the limits of the model.</div></div>
+        <div class="adj-row"><div class="adj-title">Death Stranding</div><div class="adj-why">A lonely, meditative game about connection and isolation. Predicted to fit; not taken.</div></div>
+        <div class="adj-row"><div class="adj-title">Ghost of Tsushima</div><div class="adj-why">Atmospheric open-world with strong art direction — adjacent to the worlds I love, but it hasn't pulled me in.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- APPENDIX — full list                                            -->
+  <!-- ============================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-num">§ APPENDIX</div>
+      <h2 class="display2">The full ledger.</h2>
+    </div>
+
+    <div class="long-tail">
+      <div class="col">
+        <p class="col-head accent" style="font-family:var(--font-mono);font-size:11px;color:var(--terracotta);text-transform:uppercase;letter-spacing:.16em;margin:0 0 12px">Canon</p>
+        <table class="atlas">
+          <thead><tr><th>#</th><th>Title</th><th>Yr</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">01</td><td>Kingdom Hearts</td><td class="ct">'02</td></tr>
+            <tr><td class="rk">02</td><td>Clair Obscur: Expedition 33</td><td class="ct">'25</td></tr>
+            <tr><td class="rk">03</td><td>NieR: Automata</td><td class="ct">'17</td></tr>
+            <tr><td class="rk">04</td><td>Skyrim</td><td class="ct">'11</td></tr>
+            <tr><td class="rk">05</td><td>Baldur's Gate III</td><td class="ct">'23</td></tr>
+            <tr><td class="rk">06</td><td>Skies of Arcadia</td><td class="ct">'00</td></tr>
+            <tr><td class="rk">07</td><td>Sonic Adventure 1/2</td><td class="ct">'98</td></tr>
+            <tr><td class="rk">08</td><td>Pokémon Blue</td><td class="ct">'98</td></tr>
+            <tr><td class="rk">09</td><td>GTA: San Andreas</td><td class="ct">'04</td></tr>
+            <tr><td class="rk">10</td><td>Super Smash Bros.</td><td class="ct">'01</td></tr>
+            <tr><td class="rk">11</td><td>God of War</td><td class="ct">'05</td></tr>
+            <tr><td class="rk">12</td><td>Call of Duty</td><td class="ct">'12</td></tr>
+            <tr><td class="rk">13</td><td>Jak and Daxter (trilogy)</td><td class="ct">'01</td></tr>
+            <tr><td class="rk">14</td><td>The Legend of Zelda (×4)</td><td class="ct">'98</td></tr>
+            <tr><td class="rk">15</td><td>Xenoblade Chronicles</td><td class="ct">'10</td></tr>
+            <tr><td class="rk">16</td><td>FF VII Remake / Rebirth</td><td class="ct">'20</td></tr>
+            <tr><td class="rk">17</td><td>Golden Sun (1 &amp; 2)</td><td class="ct">'01</td></tr>
+            <tr><td class="rk">18</td><td>Tales of Symphonia</td><td class="ct">'04</td></tr>
+            <tr><td class="rk">19</td><td>Portal</td><td class="ct">'07</td></tr>
+            <tr><td class="rk">—</td><td>Pokémon Legends: Arceus</td><td class="ct">'22</td></tr>
+            <tr><td class="rk">↑</td><td>Elden Ring</td><td class="ct">'22</td></tr>
+            <tr><td class="rk">↑</td><td>The Witcher 3</td><td class="ct">'15</td></tr>
+            <tr><td class="rk">↑</td><td>Cyberpunk 2077</td><td class="ct">'20</td></tr>
+            <tr><td class="rk">↑</td><td>NieR Replicant</td><td class="ct">'10</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col">
+        <p class="col-head" style="font-family:var(--font-mono);font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.16em;margin:0 0 12px">Second tier &amp; mentions</p>
+        <table class="atlas">
+          <thead><tr><th>Tier</th><th>Title</th><th>Yr</th></tr></thead>
+          <tbody>
+            <tr><td class="rk">2nd</td><td>Mass Effect</td><td class="ct">'07</td></tr>
+            <tr><td class="rk">2nd</td><td>Horizon</td><td class="ct">'17</td></tr>
+            <tr><td class="rk">2nd</td><td>Assassin's Creed Origins</td><td class="ct">'17</td></tr>
+            <tr><td class="rk">hm</td><td>Age of Empires</td><td class="ct">'97</td></tr>
+            <tr><td class="rk">hm</td><td>Counter-Strike</td><td class="ct">'00</td></tr>
+            <tr><td class="rk">hm</td><td>The Sims</td><td class="ct">'00</td></tr>
+            <tr><td class="rk">hm</td><td>RuneScape</td><td class="ct">'01</td></tr>
+            <tr><td class="rk">hm</td><td>The Last of Us</td><td class="ct">'13</td></tr>
+            <tr><td class="rk">hm</td><td>Rocket League</td><td class="ct">'15</td></tr>
+            <tr><td class="rk">hm</td><td>Marvel's Spider-Man</td><td class="ct">'18</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Colophon -->
+  <footer class="colophon">
+    <div>
+      <p style="margin:0 0 6px"><b style="color:var(--ink)">Method</b></p>
+      <p style="margin:0">Self-reported all-time list, refined through a structured interview in May 2026. List order treated as a rough ranking, honored loosely. Release years and developers verified against public record; "era played" is self-reported and tagged by life-stage. No playtime telemetry exists across a 25-year span of hardware, so weight is rank- and tier-based, not hours-based. God of War and the Zelda and Call of Duty entries span multiple eras and are tallied by their primary era for the histograms.</p>
+    </div>
+    <div>
+      <p style="margin:0 0 6px"><b style="color:var(--ink)">Source</b></p>
+      <p style="margin:0">A conversation, not a database · compiled for ramiefathy · 2026</p>
+      <p style="margin:14px 0 0">Bricolage · Newsreader · Space Mono · © 2026 Ramie Fathy, MD · Atlas Vol. V</p>
+    </div>
+  </footer>
+
+</main>
+</body>
+</html>
