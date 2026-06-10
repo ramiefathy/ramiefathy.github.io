@@ -26,7 +26,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   productivity: 'Productivity'
 };
 
-const active = apps.filter((app) => app.status === 'active');
+// Filter to active apps that are also publicly listed.
+// Set `"listed": false` on an apps.json entry to keep the data record but hide it
+// from the catalog (e.g., private dashboards still hosted at a subdomain but not
+// advertised on the public site).
+const active = apps.filter((app) => app.status === 'active' && app.listed !== false);
 const enriched = active.map((app, idx) => ({
   ...app,
   plateNumber: `III.${String(idx + 1).padStart(2, '0')}`,

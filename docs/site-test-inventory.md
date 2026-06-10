@@ -113,6 +113,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "requiresDownloads": true
     },
     {
+      "label": "DermatoTarget Atlas",
+      "route": "/apps/dermatotarget-atlas/",
+      "file": "site/public/apps/dermatotarget-atlas/index.html",
+      "category": "research-dashboard",
+      "requiresDownloads": true
+    },
+    {
       "label": "Dermatopathology Differentials (legacy)",
       "route": "/apps/dermatopathology-differentials.html",
       "file": "site/public/apps/dermatopathology-differentials.html",
@@ -224,6 +231,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "file": "site/public/lectures/neutrophilic-dermatoses-2026-05-07/index.html",
       "category": "lecture-unlisted",
       "requiresDownloads": true
+    },
+    {
+      "label": "Learning Machines lecture (unlisted)",
+      "route": "/lectures/learning-machines-2026-06-03/",
+      "file": "site/public/lectures/learning-machines-2026-06-03/index.html",
+      "category": "lecture-unlisted",
+      "requiresDownloads": false
     },
     {
       "label": "dermie VC prep (unlisted)",
