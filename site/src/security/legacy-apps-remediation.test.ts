@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const appsRoot = resolve(__dirname, '../../public/apps')
 const appsCatalogPath = resolve(__dirname, '../data/apps.json')
+const sitePackagePath = resolve(__dirname, '../../package.json')
 const pagesWithShell = [
   'legacy/index.html',
   'MindMaps/CTCL/CTCLMindMaps.html',
@@ -216,7 +217,7 @@ describe('legacy apps remediation backlog', () => {
     expect(legacyScheduler).toBeUndefined()
   })
 
-  it('P2: dependency hardening removes remote jsdelivr imports and legacy data URI bundles', () => {
+  it('P2: dependency hardening removes remote jsdelivr imports, SheetJS, and legacy data URI bundles', () => {
     const differentialsHtml = loadApp('dermatopathology-differentials.html')
     const modernDermpath = loadApp('dermatopathology-modern/index-fixed.html')
     const modernDermpathFixed = loadApp('dermatopathology-modern/index-fixed.html')
@@ -224,11 +225,16 @@ describe('legacy apps remediation backlog', () => {
     const pdfStudio = loadApp('pdf-studio.html')
     const woundCare = loadApp('WoundCareWebpages.html')
     const scribeJsPdf = loadApp('dermatology-scribe/vendor/jspdf.umd.min.js')
+    const sitePackage = JSON.parse(readFileSync(sitePackagePath, 'utf8'))
 
     expect(differentialsHtml).not.toContain('https://cdn.jsdelivr.net/npm/')
     expect(differentialsHtml).toContain("./vendor/jspdf.umd.min.js")
     expect(differentialsHtml).toContain("./vendor/jspdf.plugin.autotable.min.js")
-    expect(differentialsHtml).toContain("./vendor/xlsx")
+    expect(differentialsHtml).not.toContain("./vendor/xlsx")
+    expect(differentialsHtml).not.toContain("XLSX")
+    expect(differentialsHtml).toContain('id="export-csv-btn"')
+    expect(differentialsHtml).toContain('function handleExportCsv()')
+    expect(sitePackage.dependencies).not.toHaveProperty('xlsx')
 
     for (const html of [modernDermpath, modernDermpathFixed, dedupVisualization, pdfStudio]) {
       expect(html).not.toContain('https://cdn.jsdelivr.net/npm/')

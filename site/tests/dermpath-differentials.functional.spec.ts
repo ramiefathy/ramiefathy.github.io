@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { captureDownload } from './helpers/downloads.js'
 import { blockExternalRequests, watchRuntime } from './helpers/network.js'
 import { setDeterministicUi } from './helpers/nav.js'
 
@@ -96,6 +97,35 @@ test.describe('Dermatopathology Differentials (functional)', () => {
     const download = await downloadPromise
 
     expect(download.suggestedFilename()).toMatch(/_DDx\.pdf$/)
+    runtime.assertClean()
+  })
+
+  test('exports selected finding to CSV without SheetJS', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.goto('/apps/dermatopathology-differentials.html', { waitUntil: 'networkidle' })
+    await expect(page.locator('.legacy-shell')).toBeVisible()
+
+    await waitForSelectOptions('#finding-selector', page)
+    const select = page.locator('#finding-selector')
+    const firstFinding = await select.locator('option').evaluateAll((options) =>
+      options.map((opt) => (opt as HTMLOptionElement).value).filter(Boolean)[0]
+    )
+    expect(firstFinding).toBeTruthy()
+    await select.selectOption(firstFinding)
+    await expect(page.locator('.diagnosis-card').first()).toBeVisible()
+
+    const download = await captureDownload(
+      page,
+      () => page.locator('#export-csv-btn').click(),
+      {
+        expectedFilename: /_DDx\.csv$/,
+        minBytes: 100,
+        textMustContain: '"Diagnosis","Key Features","Source(s)"'
+      }
+    )
+
+    expect(download.text).toContain('"Finding"')
+    expect(download.text).toContain(firstFinding)
     runtime.assertClean()
   })
 })

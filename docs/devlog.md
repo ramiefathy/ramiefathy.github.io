@@ -1,5 +1,22 @@
 # Devlog — ramiefathy.github.io
 
+## [2026-06-18] Security remediation: remove SheetJS and refresh vulnerable dependency graph
+
+**What changed.** Replaced Dermatopathology Differentials workbook export with local CSV export, removed the unpatched `xlsx` npm dependency, deleted the vendored SheetJS browser bundle, and refreshed the site lockfile. Added static and browser-level regressions so the app cannot reintroduce SheetJS/XLSX export without failing tests.
+
+**Why.** `xlsx@0.18.5` still has no patched npm release and carries prototype-pollution and ReDoS advisories. The app only generated an export from trusted in-bundle differential diagnosis data, so CSV preserves the practical user workflow while removing the vulnerable spreadsheet parser/writer from the dependency graph and public assets. The lockfile also carried stale advisories in Astro/Vite/esbuild, DOMPurify/jsdom/ws, Babel, and js-yaml; npm-compatible updates and narrow overrides bring the installed graph to a clean audit without a breaking Astro downgrade.
+
+**Verification.**
+- `npm --prefix site audit --omit=optional` — passed with 0 vulnerabilities after lockfile regeneration.
+- `npm --prefix site exec vitest run src/security/legacy-apps-remediation.test.ts` — passed: 20/20 tests.
+- `npm --prefix site test` — passed: 33 files, 212 tests.
+- `npm --prefix site run build` — passed: 27 static pages built; Vite chunk-size warning unchanged.
+- `npm --prefix site run test:e2e -- dermpath-differentials.functional.spec.ts` — passed: 4 Chromium tests, including PDF and CSV download paths.
+
+**Residual risk.** CSV replaces XLSX rather than preserving a multi-sheet workbook. This intentionally removes richer spreadsheet formatting to retire an unpatched dependency. The app still exports the same finding and differential rows as plain text CSV.
+
+---
+
 ## [2026-05-04] Production browser smoke: dermatopathology PDF export fix
 
 **What changed.** Direct production browser testing found that Dermatopathology Differentials could select findings and export XLSX files, but PDF export failed at runtime because the static app loaded vendored ESM builds with bare package specifiers. Switched the PDF export path to browser-safe UMD assets for jsPDF and jsPDF-AutoTable, loaded through a small script loader, and added a Playwright regression that selects a finding and asserts a PDF download. The same production sweep also found `/apps/` mobile horizontal overflow from the closed off-canvas navigation drawer and apps toolbar search row; the drawer is now removed from layout until open, and the apps toolbar/search row has mobile width constraints.
