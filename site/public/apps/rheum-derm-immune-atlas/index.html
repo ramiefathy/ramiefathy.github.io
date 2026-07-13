@@ -159,7 +159,7 @@ button,.btn,.icon-btn,.tab-btn,.answer,.condition-card,.network-relation{touch-a
         <div class="eyebrow">Interactive translational immunology reference</div>
         <h2>From immune circuit to clinical manifestation to treatment effect.</h2>
         <p>Explore the dominant cytokines, cells, signaling pathways, drug mechanisms and manifestation-specific therapeutic effects across major rheumatology–dermatology overlap diseases. Every tabular row carries an explicit evidence grade and source trail.</p>
-        <div class="hero-actions"><button class="btn primary" data-goto="conditions">Explore conditions</button><button class="btn" data-goto="network">Open structured 3D network</button><button id="downloadDataBtn" class="btn">Export full dataset</button><button id="narrateIntro" class="btn">▶ Narrate overview</button></div>
+        <div class="hero-actions"><button class="btn primary" data-goto="conditions">Explore conditions</button><button class="btn" data-goto="network">Open structured 3D network</button><button id="downloadDataBtn" class="btn">Export full dataset</button><button class="btn" data-export="relations">Export relation rows</button><button id="narrateIntro" class="btn">▶ Narrate overview</button></div>
       </div>
       <aside class="hero-side"><div class="snapshot">
         <div class="metric"><strong id="nConditions">–</strong><span>condition modules</span></div>
@@ -332,7 +332,7 @@ const byId=(arr,id)=>arr.find(x=>x.id===id);
 const COND=Object.fromEntries(DATA.conditions.map(x=>[x.id,x]));
 const MED=Object.fromEntries(DATA.medications.map(x=>[x.id,x]));
 const REF=Object.fromEntries(DATA.references.map(x=>[x.id,x]));
-Object.assign(DATA.meta,{version:'4.0',evidenceCutoff:'2026-07-13'});
+Object.assign(DATA.meta,{version:'4.1',evidenceCutoff:'2026-07-13'});
 let currentCondition='psa';
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 const norm=s=>String(s??'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -613,6 +613,74 @@ function explicitDomainPhrase(domain,text){const t=plainText(text),rules={cutane
 function effectManifestationsForCondition(e,c){const et=meaningfulTokens(e.manifestations),ed=new Set(manifestDomains(e.manifestations)),all=/\ball\b.*\b(manifestations|major|domains)\b/.test(plainText(e.manifestations));if(all)return [...c.manifestations];let matches=c.manifestations.filter(m=>{const mt=meaningfulTokens(m);for(const x of mt)if(et.has(x))return true;const common=manifestDomains(m).filter(x=>ed.has(x)&&explicitDomainPhrase(x,e.manifestations));return common.length>0});return matches}
 function targetPathwaysForMed(m,paths){const direct=medDirectTargetKeys(m);if(direct.includes('broad'))return [];return paths.map(p=>({p,score:(direct.includes(primaryPathwayKey(p))?14:0)+scoreTokenOverlap(`${m.primary} ${m.direct}`,`${p.axis} ${p.family}`)+p.importance*.15})).filter(x=>x.score>=10).sort((a,b)=>b.score-a.score).slice(0,2).map(x=>x.p)}
 function secondaryPathwaysForMed(m,paths){const secondary=medSecondaryKeys(m);return paths.map(p=>({p,score:(secondary.includes(primaryPathwayKey(p))?8:0)+scoreTokenOverlap(m.secondary,`${p.axis} ${p.family} ${p.role}`)})).filter(x=>x.score>=8).sort((a,b)=>b.score-a.score).slice(0,2).map(x=>x.p)}
+
+// Version 5 relational contract. Source rows remain intact; these normalized projections
+// give every comparison a stable denominator and make direct/derived provenance explicit.
+const ATLAS_SCHEMA_VERSION='5.0';
+const RELATION_BASE_STATES=new Set(['present','explicit-zero','unknown']);
+const RELATION_ORIGINS=new Set(['direct','derived']);
+const relationFeatureId=label=>`feature:${plainText(label).replace(/\s+/g,'-')||'other'}`;
+const relationPathwayId=key=>`pathway:${key}`;
+const relationRefs=(refs=[])=>uniq(refs).filter(id=>REF[id]);
+const relationRow=(id,sourceType,sourceId,targetType,targetId,relationType,baseState,origin,strength,grade,refs,sourceRowIds,contextConditionId=null,derivation=null)=>({id,sourceType,sourceId,targetType,targetId,contextConditionId,relationType,baseState,origin,strength,grade,refs:relationRefs(refs),sourceRowIds:uniq(sourceRowIds),derivation});
+
+async function sha256Hex(text){const bytes=new TextEncoder().encode(text),digest=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+
+function resolveRelationalCell(rows,threshold='B'){
+ const valid=(rows||[]).filter(Boolean),zeros=valid.filter(r=>r.baseState==='explicit-zero'),present=valid.filter(r=>r.baseState==='present'),conflict=zeros.length>0&&present.length>0;
+ if(!present.length&&zeros.length)return{state:'explicit-zero',value:0,rows:zeros,conflict:false};
+ if(!present.length)return{state:'unknown',value:0,rows:[],conflict:false};
+ const visible=present.filter(r=>(GRADE_RANK[r.grade]||0)>=(GRADE_RANK[threshold]||0));
+ if(!visible.length)return{state:'filtered',value:Math.max(0,...present.map(r=>Math.abs(r.strength||0))),rows:present,conflict};
+ const ordered=[...visible].sort((a,b)=>(GRADE_RANK[b.grade]-GRADE_RANK[a.grade])||((a.origin==='direct'?1:0)-(b.origin==='direct'?1:0))*-1||(Math.abs(b.strength||0)-Math.abs(a.strength||0))||a.id.localeCompare(b.id)),best=ordered[0];
+ return{state:best.origin==='derived'?'derived':'direct',value:Math.abs(best.strength||0),rows:ordered,conflict};
+}
+
+function buildFeatureEntities(){
+ const labels=uniq(DATA.conditions.flatMap(c=>c.manifestations)).sort((a,b)=>a.localeCompare(b));
+ return labels.map(label=>{const domainKey=manifestDomains(label)[0]||'other',domain=MANIFEST_BY_KEY[domainKey]||MANIFEST_BY_KEY.other;return{id:relationFeatureId(label),label,domainKey,domainLabel:domain.label}});
+}
+
+function buildRelationalRows(featureEntities){
+ const rows=[];
+ DATA.pathways.forEach((p,i)=>{const key=primaryPathwayKey(p);rows.push(relationRow(`rel:condition-pathway:${p.condition}:${key}:${i}`,'condition',p.condition,'pathway',relationPathwayId(key),'implicated-pathway','present','direct',p.importance,p.grade,p.refs,[`pathway:${i}`],p.condition))});
+ DATA.conditions.forEach(c=>c.manifestations.forEach((label,i)=>rows.push(relationRow(`rel:condition-feature:${c.id}:${i}`,'condition',c.id,'feature',relationFeatureId(label),'declared-feature','present','direct',3,bestGrade(c.refs.map(id=>REF[id]?.grade).filter(Boolean))||'B',c.refs,[`condition:${c.id}`],c.id))));
+ DATA.effects.forEach((e,i)=>{
+   const state=e.benefit===0?'explicit-zero':'present';
+   rows.push(relationRow(`rel:condition-treatment:${e.condition}:${e.med}:${i}`,'condition',e.condition,'medication',e.med,e.benefit<0?'worsens':'benefit',state,'direct',e.benefit,e.grade,e.refs,[`effect:${i}`],e.condition));
+   effectManifestationsForCondition(e,COND[e.condition]).forEach((label,j)=>rows.push(relationRow(`rel:treatment-feature:${e.condition}:${e.med}:${i}:${j}`,'medication',e.med,'feature',relationFeatureId(label),e.benefit<0?'worsens-feature':'benefits-feature',state,'direct',e.benefit,e.grade,e.refs,[`effect:${i}`],e.condition)));
+ });
+ DATA.medications.forEach(m=>{
+   const direct=medDirectTargetKeys(m),secondary=medSecondaryKeys(m),refs=relationRefs(m.refs);
+   direct.forEach((key,i)=>rows.push(relationRow(`rel:medication-pathway:${m.id}:${key}:direct`,'medication',m.id,'pathway',relationPathwayId(key),'primary-target','present','direct',5,m.grade,refs,[`medication:${m.id}`])));
+   secondary.filter(key=>!direct.includes(key)).forEach((key,i)=>{const via=relationPathwayId(direct[0]||'broad');rows.push(relationRow(`rel:medication-pathway:${m.id}:${key}:derived`,'medication',m.id,'pathway',relationPathwayId(key),'secondary-signal','present','derived',2,worstGrade([m.grade,'C']),refs,[`medication:${m.id}`],null,{ruleId:'secondary-signal-via-primary-target',via:[{type:'pathway',id:via}],sourceRowIds:[`medication:${m.id}`]}))});
+ });
+ return rows.filter(r=>r.refs.length>0);
+}
+
+function validateRelationalContract(entities,relations,manifest){
+ const errors=[],seen=new Set(),entitySets={condition:new Set(entities.conditions.map(x=>x.id)),medication:new Set(entities.medications.map(x=>x.id)),pathway:new Set(entities.pathways.map(x=>x.id)),feature:new Set(entities.features.map(x=>x.id))};
+ Object.values(entitySets).forEach(set=>set.forEach(id=>{const scoped=[...Object.entries(entitySets)].find(([,s])=>s===set)[0]+':'+id;if(seen.has(scoped))errors.push(`Duplicate entity ${scoped}`);seen.add(scoped)}));
+ const relIds=new Set();relations.forEach(r=>{if(relIds.has(r.id))errors.push(`Duplicate relation ${r.id}`);relIds.add(r.id);if(!RELATION_BASE_STATES.has(r.baseState))errors.push(`Invalid base state ${r.id}`);if(!RELATION_ORIGINS.has(r.origin))errors.push(`Invalid origin ${r.id}`);if(!entitySets[r.sourceType]?.has(r.sourceId))errors.push(`Missing source ${r.id}`);if(!entitySets[r.targetType]?.has(r.targetId))errors.push(`Missing target ${r.id}`);if(!r.refs.length||r.refs.some(id=>!REF[id]))errors.push(`Invalid references ${r.id}`);if(r.origin==='derived'){if(!r.derivation?.ruleId||!r.derivation.via?.length)errors.push(`Incomplete derivation ${r.id}`);r.derivation?.via?.forEach(v=>{if(!entitySets[v.type]?.has(v.id))errors.push(`Missing derivation waypoint ${r.id}`)})}});
+ if(manifest.conditionIds.length!==entities.conditions.length)errors.push('Condition denominator mismatch');
+ if(manifest.medicationIds.length!==entities.medications.length)errors.push('Medication denominator mismatch');
+ if(manifest.pathwayIds.length!==entities.pathways.length)errors.push('Pathway denominator mismatch');
+ if(manifest.featureIds.length!==entities.features.length)errors.push('Feature denominator mismatch');
+ return{ok:errors.length===0,errors};
+}
+
+async function initRelationalContract(){
+ const pathwayEntities=PATHWAY_ONTOLOGY.map(p=>({id:relationPathwayId(p.key),key:p.key,label:p.label,family:`stage-${p.stage}`})),featureEntities=buildFeatureEntities();
+ const conditionIds=CONDITION_CLUSTERS.flatMap(g=>g.conditions).filter(id=>COND[id]),missingConditions=DATA.conditions.map(c=>c.id).filter(id=>!conditionIds.includes(id));conditionIds.push(...missingConditions);
+ const pathwayIds=pathwayEntities.sort((a,b)=>a.family.localeCompare(b.family)||a.label.localeCompare(b.label)).map(x=>x.id),medicationIds=[...DATA.medications].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>x.id),featureIds=[...featureEntities].sort((a,b)=>DOMAIN_ORDER.indexOf(a.domainKey)-DOMAIN_ORDER.indexOf(b.domainKey)||a.label.localeCompare(b.label)).map(x=>x.id);
+ const familyBlocks={pathways:Object.fromEntries(uniq(pathwayEntities.map(x=>x.family)).map(f=>[f,pathwayIds.filter(id=>pathwayEntities.find(x=>x.id===id)?.family===f)])),features:Object.fromEntries(DOMAIN_ORDER.map(d=>[d,featureIds.filter(id=>featureEntities.find(x=>x.id===id)?.domainKey===d)]))};
+ const manifest={version:'v1',conditionIds,pathwayIds,medicationIds,featureIds,familyBlocks,orderingSha256:await sha256Hex(JSON.stringify({conditionIds,pathwayIds,medicationIds,featureIds}))};
+ const relations=buildRelationalRows(featureEntities),entities={conditions:DATA.conditions,medications:DATA.medications,pathways:pathwayEntities,features:featureEntities},validation=validateRelationalContract(entities,relations,manifest);
+ Object.assign(DATA,{schemaVersion:ATLAS_SCHEMA_VERSION,pathwayEntities,featureEntities,conditionFeatureLinks:relations.filter(r=>r.sourceType==='condition'&&r.targetType==='feature'),medicationPathwayLinks:relations.filter(r=>r.sourceType==='medication'&&r.targetType==='pathway'),effectFeatureLinks:relations.filter(r=>r.sourceType==='medication'&&r.targetType==='feature'),derivedRelations:relations.filter(r=>r.origin==='derived'),layoutManifest:manifest,relations});
+ window.__ATLAS_V5__=Object.freeze({schemaVersion:ATLAS_SCHEMA_VERSION,manifest,relations,validation,resolveCell:resolveRelationalCell});
+ if(!validation.ok)throw new Error(`Atlas relational contract invalid: ${validation.errors.join('; ')}`);
+}
+
 function ontologyLaneY(key){const lanes=PATHWAY_ONTOLOGY.filter(x=>!['broad','other'].includes(x.key)).map(x=>x.lane),min=Math.min(...lanes),max=Math.max(...lanes),lane=(PONT[key]||PONT.other).lane||0;return -325+(lane-min)/(max-min)*650}
 function activeDomainLayout(items){const grouped={};items.forEach(m=>{const d=manifestDomains(m)[0]||'other';(grouped[d]||(grouped[d]=[])).push(m)});const active=Object.keys(grouped).sort((a,b)=>DOMAIN_ORDER.indexOf(a)-DOMAIN_ORDER.indexOf(b)),span=Math.min(660,Math.max(110,(active.length-1)*105)),step=active.length>1?span/(active.length-1):0,map={};active.forEach((d,i)=>{const cy=-span/2+i*step,arr=grouped[d];arr.forEach((m,j)=>map[m]=cy+(j-(arr.length-1)/2)*27)});return map}
 function separateLayerY(nodes,minGap=42,minY=-320,maxY=320){const arr=[...nodes].sort((a,b)=>a.y-b.y);if(arr.length<2)return;for(let i=1;i<arr.length;i++)arr[i].y=Math.max(arr[i].y,arr[i-1].y+minGap);let over=arr.at(-1).y-maxY;if(over>0)arr.forEach(n=>n.y-=over);for(let i=arr.length-2;i>=0;i--)arr[i].y=Math.min(arr[i].y,arr[i+1].y-minGap);let under=minY-arr[0].y;if(under>0)arr.forEach(n=>n.y+=under)}
@@ -779,7 +847,7 @@ $('#startQuiz').onclick=makeQuiz;$('#quizNext').onclick=()=>{qi++;showQuestion()
 // Export controls
 $('#downloadDataBtn').onclick=()=>saveBlob(JSON.stringify(DATA,null,2),'rheum_derm_atlas_dataset.json','application/json');$$('[data-export]').forEach(b=>b.onclick=()=>{const k=b.dataset.export,rows=DATA[k];saveBlob(csv(rows),`rheum_derm_${k}.csv`,'text/csv')});
 
-function init(){initMetrics();renderConditionCards();renderConditionMenu();renderConditionDetail(currentCondition);drawEvidenceDonut();renderPathTable();renderMedTable();renderEffectTable();renderManifestLinkTable();renderBenefitChart();renderBenefitScale();renderMethods();initAdvancedViews();buildNetwork(currentCondition);resize3D();animate3D();requestAnimationFrame(()=>{drawHeatmap();drawRadar();renderManifestMatrix();drawComparison()});const hash=location.hash.slice(1);if(hash&&document.getElementById(hash)?.classList.contains('view'))gotoTab(hash)}
+async function init(){await initRelationalContract();initMetrics();renderConditionCards();renderConditionMenu();renderConditionDetail(currentCondition);drawEvidenceDonut();renderPathTable();renderMedTable();renderEffectTable();renderManifestLinkTable();renderBenefitChart();renderBenefitScale();renderMethods();initAdvancedViews();buildNetwork(currentCondition);resize3D();animate3D();requestAnimationFrame(()=>{drawHeatmap();drawRadar();renderManifestMatrix();drawComparison()});const hash=location.hash.slice(1);if(hash&&document.getElementById(hash)?.classList.contains('view'))gotoTab(hash)}
 init();
 </script>
 </body></html>
