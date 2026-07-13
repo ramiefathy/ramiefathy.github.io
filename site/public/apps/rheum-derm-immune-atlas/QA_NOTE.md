@@ -11,7 +11,7 @@ Approved for the repository's stacked review workflow as version 5.0 after the p
 
 - Focused Playwright tests: 11 passed, including the ten-route JAK–STAT wiring contract, two-inhibitor route model, 27-pathway treatment lanes, categorical overlap boundary, five-preset comparator, complete cohort ledger, fixed provenance triptych, four-step supported storyboard, cross-view context synchronization, two narrow-screen local-overflow contracts, antibody matrix, 18-condition subtype inventory, theme contract, and relational-contract closure.
 - Full site unit/policy suite: 212 passed.
-- Full Playwright suite: 141 passed and 21 opt-in screenshot tests skipped by configuration; no failures across 162 collected tests.
+- Full Playwright suite: 147 passed and 21 opt-in screenshot tests skipped by configuration; no failures across 168 collected tests.
 - Production Astro build: passed; 27 routes generated.
 - JavaScript syntax check: passed.
 - Heading/landmark check: passed.
