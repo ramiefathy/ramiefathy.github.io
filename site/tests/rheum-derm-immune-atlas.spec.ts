@@ -24,7 +24,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Rheum–Derm Immune Atlas')
     await expect(page.getByRole('toolbar', { name: 'Page tools' })).toBeVisible()
-    await expect(page.locator('.tab-btn')).toHaveCount(9)
+    await expect(page.locator('.tab-btn')).toHaveCount(11)
 
     await page.getByRole('button', { name: 'Conditions', exact: true }).click()
     await expect(page.locator('#conditions')).toHaveClass(/active/)
@@ -33,6 +33,51 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     await page.getByRole('button', { name: 'Teaching lab', exact: true }).click()
     await page.getByRole('button', { name: 'Start 10-question quiz' }).click()
     await expect(page.locator('#quizQuestion')).not.toBeEmpty()
+
+    runtime.assertClean()
+  })
+
+  test('maps JAK-STAT wiring and makes combination coverage boundaries explicit', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+
+    await page.getByRole('button', { name: 'Signal coverage', exact: true }).click()
+    await expect(page.locator('#signalCoverage')).toHaveClass(/active/)
+    await expect(page.locator('#signalRows .signal-route')).toHaveCount(10)
+    await expect(page.locator('#signalRows')).toContainText('IFN-α / IFN-β')
+    await expect(page.locator('#signalRows')).toContainText('IFNAR1 / IFNAR2')
+    await expect(page.locator('#signalRows')).toContainText('JAK1 + TYK2')
+    await expect(page.locator('#signalRows')).toContainText('STAT1 + STAT2 + IRF9')
+
+    await page.locator('#coverageDrugA').selectOption('upadacitinib')
+    await page.locator('#coverageDrugB').selectOption('deucravacitinib')
+    await expect(page.locator('#coverageSummary')).toContainText('combined molecular target model')
+    await expect(page.locator('#coverageMatrix')).toContainText('Outside declared target model')
+    await expect(page.locator('#coverageMatrix')).toContainText('Unknown / context-dependent')
+    await expect(page.locator('#coverageMatrix')).toContainText('IL-23')
+    await expect(page.locator('#coverageMatrix')).toContainText('Type I interferon')
+
+    runtime.assertClean()
+  })
+
+  test('compares conditions with an explicit denominator and exposes phenotype endotypes', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+
+    await page.getByRole('button', { name: 'Phenotype maps', exact: true }).click()
+    await expect(page.locator('#phenotypeMaps')).toHaveClass(/active/)
+    await expect(page.locator('#antibodyMatrix')).toContainText('Anti-MDA5')
+    await expect(page.locator('#antibodyMatrix')).toContainText('Rapidly progressive ILD')
+    await expect(page.locator('#antibodyMatrix')).toContainText('Anti-TIF1γ')
+    await expect(page.locator('#antibodyCaveat')).toContainText('assay')
+    await expect(page.locator('#subtypeCondition option')).toHaveCount(18)
+
+    await page.locator('#compareConditionA').selectOption('dm')
+    await page.locator('#compareConditionB').selectOption('sle')
+    await expect(page.locator('#comparisonDenominator')).toContainText('present')
+    await expect(page.locator('#comparisonDenominator')).toContainText('unmapped')
+    await expect(page.locator('#comparisonStateLegend [data-state]')).toHaveCount(4)
+    await expect(page.locator('#comparisonMatrix')).toHaveAttribute('aria-label', /orthographic comparison matrix/i)
 
     runtime.assertClean()
   })
