@@ -171,6 +171,54 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     runtime.assertClean()
   })
 
+  test('offers a provenance triptych, four-step supported story, and synchronized context', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+    await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()
+
+    await expect(page.locator('#networkRotate')).toHaveCount(0)
+    await page.getByRole('tab', { name: 'Provenance triptych' }).click()
+    await expect(page.locator('#triptychPanel')).toBeVisible()
+    await expect(page.locator('#triptychPanel .triptych-facet')).toHaveCount(3)
+    await expect(page.locator('#triptychPanel')).toContainText('Pathways')
+    await expect(page.locator('#triptychPanel')).toContainText('Condition')
+    await expect(page.locator('#triptychPanel')).toContainText('Treatments')
+    expect(await page.locator('#triptychSvg [data-origin="direct"]').count()).toBeGreaterThan(0)
+    expect(await page.locator('#triptychSvg [data-waypoint]').count()).toBeGreaterThan(0)
+
+    await expect(page.locator('#storySteps .story-step')).toHaveCount(4)
+    await page.getByRole('button', { name: 'Start guided story' }).click()
+    await expect(page.locator('#storyStatus')).toContainText('Step 1 of 4')
+    await page.getByRole('button', { name: 'Next story step' }).click()
+    await expect(page.locator('#storyStatus')).toContainText('Step 2 of 4')
+
+    await page.locator('#triptychConditionSelect').selectOption('sle')
+    await expect(page.locator('#triptychCondition')).toContainText('CLE/SLE')
+    await page.getByRole('button', { name: 'Phenotype maps', exact: true }).click()
+    await expect(page.locator('#compareConditionA')).toHaveValue('sle')
+
+    runtime.assertClean()
+  })
+
+  test('contains the provenance triptych inside a narrow viewport', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+    await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()
+    await page.getByRole('tab', { name: 'Provenance triptych' }).click()
+
+    const layout = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      body: document.documentElement.scrollWidth,
+      localClient: document.querySelector('.triptych-svg-shell')?.clientWidth ?? 0,
+      localScroll: document.querySelector('.triptych-svg-shell')?.scrollWidth ?? 0
+    }))
+    expect(layout.body).toBeLessThanOrEqual(layout.viewport)
+    expect(layout.localScroll).toBeGreaterThan(layout.localClient)
+
+    runtime.assertClean()
+  })
+
   test('publishes a closed relational contract with deterministic denominators and five states', async ({ page }) => {
     const runtime = watchRuntime(page)
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
