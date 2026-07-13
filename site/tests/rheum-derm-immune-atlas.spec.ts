@@ -60,6 +60,27 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     runtime.assertClean()
   })
 
+  test('compares two agents across all canonical pathways without combining magnitudes', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+    await page.getByRole('button', { name: 'Signal coverage', exact: true }).click()
+    await page.locator('#coverageDrugA').selectOption('upadacitinib')
+    await page.locator('#coverageDrugB').selectOption('deucravacitinib')
+    await page.getByRole('tab', { name: 'Coverage lanes' }).click()
+
+    await expect(page.locator('#coverageLanePanel')).toBeVisible()
+    await expect(page.locator('#coverageLaneGrid .coverage-column-head')).toHaveCount(27)
+    await expect(page.locator('#coverageLaneGrid .coverage-agent-lane')).toHaveCount(2)
+    await expect(page.locator('#coverageLaneDenominator')).toContainText('27 canonical pathways')
+    await expect(page.locator('#coverageOverlapRow')).toBeVisible()
+    expect(await page.locator('#coverageLaneGrid .coverage-lane-mark.direct').count()).toBeGreaterThan(0)
+    expect(await page.locator('#coverageOverlapRow .coverage-overlap-mark.both').count()).toBeGreaterThan(0)
+    await expect(page.locator('#coverageLaneBoundary')).toContainText('No combined magnitude')
+    await expect(page.locator('#coverageLaneBoundary')).toContainText('no synergy')
+
+    runtime.assertClean()
+  })
+
   test('compares conditions with an explicit denominator and exposes phenotype endotypes', async ({ page }) => {
     const runtime = watchRuntime(page)
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })

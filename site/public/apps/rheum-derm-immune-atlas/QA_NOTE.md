@@ -5,11 +5,11 @@ Route: `/apps/rheum-derm-immune-atlas/`
 
 ## Disposition
 
-Approved for the repository's stacked review workflow after the version 4.2 comparator and cohort-ledger layer. The relational contract now drives five pairwise presets and a complete 18-condition ledger while preserving explicit denominators, direct/derived provenance and the closed five-state resolver.
+Approved for the repository's stacked review workflow after the version 4.3 pathway-coverage layer. The relational contract now drives five pairwise presets, a complete 18-condition ledger and separate treatment lanes across the frozen canonical pathway inventory.
 
 ## Evidence
 
-- Focused Playwright tests: 8 passed, including the ten-route JAK–STAT wiring contract, two-inhibitor target model, five-preset orthographic comparator, complete cohort ledger, narrow-screen local-overflow contract, antibody matrix, 18-condition subtype inventory, theme contract, and version 5 relational-contract closure.
+- Focused Playwright tests: 9 passed, including the ten-route JAK–STAT wiring contract, two-inhibitor route model, 27-pathway treatment lanes, categorical overlap boundary, five-preset comparator, complete cohort ledger, narrow-screen local-overflow contract, antibody matrix, 18-condition subtype inventory, theme contract, and version 5 relational-contract closure.
 - Full site unit/policy suite: 212 passed.
 - Full Playwright suite: 141 passed and 21 opt-in screenshot tests skipped by configuration; no failures across 162 collected tests.
 - Production Astro build: passed; 27 routes generated.
@@ -24,13 +24,14 @@ Approved for the repository's stacked review workflow after the version 4.2 comp
 - Reduced-motion behavior collapses animation and transition durations while preserving interaction state.
 - Contrast-engine unit tests: 10 passed.
 - Canonical inventory already covered the route; the inventory-driven route test passed.
-- The preceding version 4 built artifact was byte-identical to its tested `site/public` source (`630ac6acaf2872ba44eb418e21a7f27b28c7b006a6a39b304b7f265202daa881`). The version 4.1 production build is byte-identical to source at SHA-256 `03726743ee8de86249ff7411f330a1ab750e23d31edd6feb102fa326447a7703`; version 4.2 is byte-identical at `550fdaafe3e4cfb1150296b6353968f9ecacb683d0b47be6b6c714b1f62830b5`.
+- The preceding version 4 built artifact was byte-identical to its tested `site/public` source (`630ac6acaf2872ba44eb418e21a7f27b28c7b006a6a39b304b7f265202daa881`). The version 4.1 production build is byte-identical to source at SHA-256 `03726743ee8de86249ff7411f330a1ab750e23d31edd6feb102fa326447a7703`; version 4.2 at `550fdaafe3e4cfb1150296b6353968f9ecacb683d0b47be6b6c714b1f62830b5`; and version 4.3 at `98d97f0a7fd29844baadc49305f154f7bc47812f5e7443d91a5fb858365a25c3`.
 - Version 4 golden baseline before the relational changes: production/source SHA-256 `630ac6acaf2872ba44eb418e21a7f27b28c7b006a6a39b304b7f265202daa881`; 5 focused Playwright tests passed.
 - Version 4.1 relational raw-row audit: 18 condition, 27 canonical pathway, 49 medication and 124 normalized feature entities; 736 normalized relationship rows across condition–pathway, condition–feature, condition–medication, medication–feature and medication–pathway strata. Contract validation reports zero errors.
 - The five resolver outcomes were exercised directly: direct, explicit zero, filtered, unknown and derived. Missing rows remain unknown; explicit zero requires a source row; derived rows retain an intermediate-path record.
 - Version 4.2 exposes five pairwise presets: condition × pathway, condition × treatment, condition × feature, treatment × pathway and treatment × feature. Treatment × feature requires an explicit condition context.
 - The cohort ledger renders the frozen 18-condition order against all 27 pathways, 49 treatments or 124 normalized features. Browser assertions verify 486, 882 and 2,232 visible coordinates respectively; none are silently dropped.
 - At 390 × 844, inactive slabs collapse to face-on tabs, the document width remains within the viewport and the active ledger scrolls locally.
+- Version 4.3 renders one or two agents in separate lanes against all 27 canonical pathways. The optional overlap row emits set categories only (both, A-only, B-only, neither), and its permanent boundary explicitly prohibits combined-magnitude or synergy interpretation.
 
 ## Residual risk
 
@@ -40,5 +41,6 @@ Approved for the repository's stacked review workflow after the version 4.2 comp
 - Antibody marks summarize cohort-level enrichment and can vary by assay platform, population and ascertainment. The assay caveat and source links remain visible beside the matrix.
 - Subtype labels are overlapping organizational phenotypes, not a validated classification instrument.
 - The cohort ledger is intentionally dense and uses local horizontal scrolling. It is an inventory/overlap surface, not a ranking model; cell magnitude reflects the embedded relation strength only.
+- Named JAK1/2/3 inhibitors project to the atlas's existing JAK-inhibitor class relation; deucravacitinib projects to the TYK2 entry. The lane therefore supports class-level pathway coverage, while the adjacent receptor-routing panel retains agent-specific JAK selectivity.
 - Feature-level links reuse already embedded condition/effect source trails and do not add new efficacy claims. The relation export is a normalized projection of the existing evidence payload, not an independent systematic review.
 - Canonical `origin/master` currently installs with eight dependency audit findings. This change does not modify dependencies.
