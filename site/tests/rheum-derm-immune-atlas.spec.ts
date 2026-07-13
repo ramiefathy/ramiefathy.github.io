@@ -102,4 +102,66 @@ test.describe('Rheum–Derm Immune Atlas', () => {
 
     runtime.assertClean()
   })
+
+  test('publishes a closed relational contract with deterministic denominators and five states', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+
+    const contract = await page.evaluate(() => {
+      const atlas = (window as typeof window & {
+        __ATLAS_V5__?: {
+          schemaVersion: string
+          manifest: {
+            conditionIds: string[]
+            medicationIds: string[]
+            pathwayIds: string[]
+            featureIds: string[]
+            orderingSha256: string
+          }
+          validation: { ok: boolean; errors: string[] }
+          relations: Array<{ origin: string; refs: string[] }>
+          resolveCell: (rows: unknown[], threshold: string) => { state: string }
+        }
+      }).__ATLAS_V5__
+
+      if (!atlas) return null
+      const direct = { id: 'd', baseState: 'present', origin: 'direct', grade: 'B', strength: 2 }
+      const derived = { id: 'r', baseState: 'present', origin: 'derived', grade: 'B', strength: 2 }
+      const zero = { id: 'z', baseState: 'explicit-zero', origin: 'direct', grade: 'B', strength: 0 }
+      return {
+        schemaVersion: atlas.schemaVersion,
+        counts: {
+          conditions: atlas.manifest.conditionIds.length,
+          medications: atlas.manifest.medicationIds.length,
+          pathways: atlas.manifest.pathwayIds.length,
+          features: atlas.manifest.featureIds.length,
+          relations: atlas.relations.length,
+        },
+        hash: atlas.manifest.orderingSha256,
+        validation: atlas.validation,
+        states: [
+          atlas.resolveCell([direct], 'B').state,
+          atlas.resolveCell([zero], 'B').state,
+          atlas.resolveCell([direct], 'A').state,
+          atlas.resolveCell([], 'B').state,
+          atlas.resolveCell([derived], 'B').state,
+        ],
+        everyRelationHasRefs: atlas.relations.every(row => row.refs.length > 0),
+      }
+    })
+
+    expect(contract).not.toBeNull()
+    expect(contract?.schemaVersion).toBe('5.0')
+    expect(contract?.counts.conditions).toBe(18)
+    expect(contract?.counts.medications).toBe(49)
+    expect(contract?.counts.pathways).toBeGreaterThan(20)
+    expect(contract?.counts.features).toBeGreaterThan(100)
+    expect(contract?.counts.relations).toBeGreaterThan(300)
+    expect(contract?.hash).toMatch(/^[a-f0-9]{64}$/)
+    expect(contract?.validation).toEqual({ ok: true, errors: [] })
+    expect(contract?.states).toEqual(['direct', 'explicit-zero', 'filtered', 'unknown', 'derived'])
+    expect(contract?.everyRelationHasRefs).toBe(true)
+
+    runtime.assertClean()
+  })
 })
