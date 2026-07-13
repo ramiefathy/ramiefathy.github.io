@@ -76,8 +76,55 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     await page.locator('#compareConditionB').selectOption('sle')
     await expect(page.locator('#comparisonDenominator')).toContainText('present')
     await expect(page.locator('#comparisonDenominator')).toContainText('unmapped')
-    await expect(page.locator('#comparisonStateLegend [data-state]')).toHaveCount(4)
+    await expect(page.locator('#comparisonStateLegend [data-state]')).toHaveCount(5)
     await expect(page.locator('#comparisonMatrix')).toHaveAttribute('aria-label', /orthographic comparison matrix/i)
+
+    runtime.assertClean()
+  })
+
+  test('switches between five pairwise presets and a complete cohort ledger', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+    await page.getByRole('button', { name: 'Phenotype maps', exact: true }).click()
+
+    await expect(page.getByRole('tab', { name: 'Pairwise' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.locator('#comparePreset option')).toHaveCount(5)
+    await page.locator('#comparePreset').selectOption('treatment-pathway')
+    await expect(page.locator('#compareMedicationA')).toBeVisible()
+    await expect(page.locator('#comparisonDenominator')).toContainText('possible treatment–pathway cells')
+
+    await page.getByRole('tab', { name: 'Cohort ledger' }).click()
+    await expect(page.getByRole('tab', { name: 'Cohort ledger' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.locator('#cohortLedgerPanel')).toBeVisible()
+    await expect(page.locator('#cohortStack .cohort-slab')).toHaveCount(3)
+    await expect(page.locator('#cohortDenominator')).toContainText('18 conditions')
+    await expect(page.locator('#cohortDenominator')).toContainText('27 pathways')
+    await expect(page.locator('#cohortInspector')).toContainText('Select a cell')
+
+    await page.getByRole('tab', { name: 'Treatments', exact: true }).click()
+    await expect(page.locator('.cohort-slab[data-cohort-facet="medications"]')).toHaveClass(/active/)
+    await expect(page.locator('#cohortDenominator')).toContainText('49 treatments')
+
+    runtime.assertClean()
+  })
+
+  test('keeps the cohort ledger face-on and locally scrollable on a narrow screen', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+    await page.getByRole('button', { name: 'Phenotype maps', exact: true }).click()
+    await page.getByRole('tab', { name: 'Cohort ledger' }).click()
+
+    await expect(page.locator('.cohort-slab.active')).toBeVisible()
+    await expect(page.locator('.cohort-slab:not(.active)').first()).toBeHidden()
+    const layout = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      body: document.documentElement.scrollWidth,
+      localClient: document.querySelector('.cohort-canvas-shell')?.clientWidth ?? 0,
+      localScroll: document.querySelector('.cohort-canvas-shell')?.scrollWidth ?? 0
+    }))
+    expect(layout.body).toBeLessThanOrEqual(layout.viewport)
+    expect(layout.localScroll).toBeGreaterThan(layout.localClient)
 
     runtime.assertClean()
   })
