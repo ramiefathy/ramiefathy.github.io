@@ -36,4 +36,25 @@ test.describe('Rheum–Derm Immune Atlas', () => {
 
     runtime.assertClean()
   })
+
+  test('uses the restrained clinical-editorial dark theme', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(page.locator('body')).toHaveCSS('background-image', 'none')
+    await expect(page.locator('.hero-main')).toHaveCSS('background-image', 'none')
+    await expect(page.locator('.hero-main')).toHaveCSS('box-shadow', 'none')
+    await expect(page.locator('.panel').first()).toHaveCSS('border-radius', '6px')
+    await expect(page.locator('.tab-btn.active')).toHaveCSS('border-bottom-color', 'rgb(230, 159, 0)')
+
+    await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()
+    await expect(page.locator('#network3d')).toBeVisible()
+
+    await page.getByRole('button', { name: 'Toggle theme' }).click()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+    await expect(page.locator('body')).toHaveCSS('background-image', 'none')
+
+    runtime.assertClean()
+  })
 })
