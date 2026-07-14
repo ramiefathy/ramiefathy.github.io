@@ -39,27 +39,35 @@ test.describe('Rheum–Derm Immune Atlas', () => {
 
   test('loads the systems explorer from its own deployable asset boundary', async ({ page, request }) => {
     const runtime = watchRuntime(page)
-    const [documentResponse, shellResponse, scriptResponse, styleResponse] = await Promise.all([
+    const [documentResponse, shellResponse, scriptResponse, styleResponse, alternativeScriptResponse, alternativeStyleResponse] = await Promise.all([
       request.get(APP_ROUTE),
       request.get(`${APP_ROUTE}explorer/systems-explorer-shell.js`),
       request.get(`${APP_ROUTE}explorer/systems-explorer.js`),
-      request.get(`${APP_ROUTE}explorer/systems-explorer.css`)
+      request.get(`${APP_ROUTE}explorer/systems-explorer.css`),
+      request.get(`${APP_ROUTE}explorer/alternative-views.js`),
+      request.get(`${APP_ROUTE}explorer/alternative-views.css`)
     ])
 
     expect(documentResponse.ok()).toBe(true)
     expect(shellResponse.ok()).toBe(true)
     expect(scriptResponse.ok()).toBe(true)
     expect(styleResponse.ok()).toBe(true)
+    expect(alternativeScriptResponse.ok()).toBe(true)
+    expect(alternativeStyleResponse.ok()).toBe(true)
 
     const document = await documentResponse.text()
     expect(document).toContain('href="./explorer/systems-explorer.css"')
+    expect(document).toContain('href="./explorer/alternative-views.css"')
     expect(document).toContain('src="./explorer/systems-explorer-shell.js"')
     expect(document).toContain('src="./explorer/systems-explorer.js"')
+    expect(document).toContain('src="./explorer/alternative-views.js"')
     expect(document).not.toContain('Structured 3D mechanistic knowledge graph')
     expect(document).not.toContain('<canvas id="network3d"')
     await expect(shellResponse.text()).resolves.toContain('id="network3d"')
     await expect(scriptResponse.text()).resolves.toContain('function buildNetwork')
     await expect(styleResponse.text()).resolves.toContain('.network-workspace')
+    await expect(alternativeScriptResponse.text()).resolves.toContain('function renderCoverageVolume')
+    await expect(alternativeStyleResponse.text()).resolves.toContain('.alternative-panel')
 
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
     await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()

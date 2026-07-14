@@ -67,6 +67,7 @@ a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
 .manifestation-layout{align-items:start}.matrix-controls{margin-bottom:10px}.matrix-shell{position:relative;overflow:auto;border:1px solid var(--line);border-radius:var(--r-2);background:var(--bg2);min-height:560px}.matrix-shell canvas{display:block;min-width:980px;width:100%;height:560px}.matrix-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:11px;color:var(--muted)}.matrix-legend span{display:inline-flex;align-items:center;gap:5px}.matrix-swatch{width:24px;height:14px;border-radius:var(--r-1);border:1px solid var(--line)}.matrix-inspector{position:sticky;top:118px}.matrix-info{border:1px solid var(--line);border-radius:var(--r-2);background:var(--panel2);padding:15px;margin-bottom:13px;min-height:260px}.matrix-info h4{margin:0 0 8px;font-size:17px}.matrix-info p{color:var(--muted);font-size:12px}.relation-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}.relation-meta div{border:1px solid var(--line);border-radius:var(--r-2);padding:9px;background:var(--bg2)}.relation-meta small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em}.relation-meta b{font-size:12px}.relation-mode{display:inline-flex;padding:3px 7px;border:1px solid var(--line);border-radius:var(--r-2);font-size:10px;color:var(--muted)}
 </style>
 <link rel="stylesheet" href="./explorer/systems-explorer.css">
+<link rel="stylesheet" href="./explorer/alternative-views.css">
 <style>
 
 
@@ -553,6 +554,7 @@ $('#narrateIntro').onclick=()=>speak(`Rheum Derm Immune Pathways and Therapeutic
 
 </script>
 <script src="./explorer/systems-explorer.js"></script>
+<script src="./explorer/alternative-views.js"></script>
 <script>
 // Quiz generator
 let quiz=[],qi=0,qscore=0,answered=false;
@@ -565,7 +567,7 @@ $('#startQuiz').onclick=makeQuiz;$('#quizNext').onclick=()=>{qi++;showQuestion()
 // Export controls
 $('#downloadDataBtn').onclick=()=>saveBlob(JSON.stringify(DATA,null,2),'rheum_derm_atlas_dataset.json','application/json');$$('[data-export]').forEach(b=>b.onclick=()=>{const k=b.dataset.export,rows=DATA[k];saveBlob(csv(rows),`rheum_derm_${k}.csv`,'text/csv')});
 
-async function init(){await initRelationalContract();initMetrics();renderConditionCards();renderConditionMenu();renderConditionDetail(currentCondition);drawEvidenceDonut();renderPathTable();renderMedTable();renderEffectTable();renderManifestLinkTable();renderBenefitChart();renderBenefitScale();renderMethods();initAdvancedViews();buildNetwork(currentCondition);resize3D();requestAnimationFrame(()=>{drawHeatmap();drawRadar();renderManifestMatrix();drawComparison()});const hash=location.hash.slice(1);if(hash&&document.getElementById(hash)?.classList.contains('view'))gotoTab(hash)}
+async function init(){await initRelationalContract();initMetrics();renderConditionCards();renderConditionMenu();renderConditionDetail(currentCondition);drawEvidenceDonut();renderPathTable();renderMedTable();renderEffectTable();renderManifestLinkTable();renderBenefitChart();renderBenefitScale();renderMethods();initAdvancedViews();initAlternativeViews();buildNetwork(currentCondition);resize3D();requestAnimationFrame(()=>{drawHeatmap();drawRadar();renderManifestMatrix();drawComparison()});const hash=location.hash.slice(1);if(hash&&document.getElementById(hash)?.classList.contains('view'))gotoTab(hash)}
 init();
 </script>
 </body></html>
