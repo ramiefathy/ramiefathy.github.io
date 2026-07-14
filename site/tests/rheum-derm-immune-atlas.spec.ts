@@ -37,6 +37,39 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     runtime.assertClean()
   })
 
+  test('loads the systems explorer from its own deployable asset boundary', async ({ page, request }) => {
+    const runtime = watchRuntime(page)
+    const [documentResponse, shellResponse, scriptResponse, styleResponse] = await Promise.all([
+      request.get(APP_ROUTE),
+      request.get(`${APP_ROUTE}explorer/systems-explorer-shell.js`),
+      request.get(`${APP_ROUTE}explorer/systems-explorer.js`),
+      request.get(`${APP_ROUTE}explorer/systems-explorer.css`)
+    ])
+
+    expect(documentResponse.ok()).toBe(true)
+    expect(shellResponse.ok()).toBe(true)
+    expect(scriptResponse.ok()).toBe(true)
+    expect(styleResponse.ok()).toBe(true)
+
+    const document = await documentResponse.text()
+    expect(document).toContain('href="./explorer/systems-explorer.css"')
+    expect(document).toContain('src="./explorer/systems-explorer-shell.js"')
+    expect(document).toContain('src="./explorer/systems-explorer.js"')
+    expect(document).not.toContain('Structured 3D mechanistic knowledge graph')
+    expect(document).not.toContain('<canvas id="network3d"')
+    await expect(shellResponse.text()).resolves.toContain('id="network3d"')
+    await expect(scriptResponse.text()).resolves.toContain('function buildNetwork')
+    await expect(styleResponse.text()).resolves.toContain('.network-workspace')
+
+    await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+    await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()
+    await expect(page.locator('#network3d')).toBeVisible()
+    await page.getByRole('tab', { name: 'Provenance triptych' }).click()
+    await expect(page.locator('#triptychPanel')).toBeVisible()
+
+    runtime.assertClean()
+  })
+
   test('maps JAK-STAT wiring and makes combination coverage boundaries explicit', async ({ page }) => {
     const runtime = watchRuntime(page)
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
