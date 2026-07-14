@@ -19,9 +19,10 @@ All five proposed alternative representations are **shipped as first-class Syste
 ## Semantic evidence
 
 - Every view consumes the existing v5 relation rows, evidence resolver, source registry, and versioned canonical ordering; it does not duplicate the atlas data.
-- Direct, derived, explicit-zero, threshold-filtered, and unknown states retain separate labels and redundant visual forms.
+- Direct, derived, explicit-zero, threshold-filtered, unknown/unmapped, and structurally-unavailable states retain separate labels and redundant visual forms.
 - Coverage-volume state closure is deterministic across all `18 × 27 × 49 = 23,814` coordinates.
-- At the default A–B evidence floor, the volume contains 61 derived chains, 67 threshold-filtered complete chains, and 23,686 incomplete/unknown coordinates. At A–D, two explicit-zero coordinates remain explicitly labeled rather than becoming unknown or weak.
+- At the default A–B evidence floor, the volume contains 61 derived chains, 67 threshold-filtered complete chains, and 23,686 incomplete/unknown coordinates. At A–D, two explicit-zero coordinates remain explicitly labeled rather than becoming unknown/unmapped or structurally unavailable.
+- A structurally-unavailable component propagates to a structurally-unavailable composite coordinate; it is never converted to unknown/unmapped, threshold-filtered, or explicit zero.
 - A threshold-filtered volume coordinate requires all three component relations to be positive or filtered and at least one to be filtered. A lone filtered component cannot convert an otherwise incomplete coordinate into a filtered chain.
 - Coverage-volume inspectors expose all three component states, the composition rule, the worst evidence grade for a supported composition, and source IDs.
 - Parallel-set routes expose component evidence and state that they do not encode synergy, combined efficacy, or quantitative downstream suppression.
@@ -55,9 +56,9 @@ The browser error/warning log was empty after the interaction pass. The anti-slo
 
 | Gate | Result |
 | --- | --- |
-| Focused atlas browser suites | 20/20 passed |
+| Focused atlas browser suites | 21/21 passed |
 | Unit/policy suite | 33 files; 212/212 tests passed |
-| Full browser suite | 156 passed; 21 opt-in screenshot tests skipped |
+| Full browser suite | 157 passed; 21 opt-in screenshot tests skipped |
 | Production build | Passed; existing >600 kB chunk advisory remains |
 | `git diff --check` | Passed |
 

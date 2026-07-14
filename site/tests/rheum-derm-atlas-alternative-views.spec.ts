@@ -32,6 +32,14 @@ test.describe('Rheum–Derm Atlas alternative representations', () => {
     ]) {
       await expect(representations.getByRole('tab', { name, exact: true })).toBeVisible()
     }
+    const tabPanelNames = await representations.getByRole('tab').evaluateAll(tabs => tabs.map(tab => {
+      const panel = document.getElementById(tab.getAttribute('aria-controls') || '')
+      return {
+        tabId: tab.id,
+        panelLabel: panel?.getAttribute('aria-labelledby'),
+      }
+    }))
+    expect(tabPanelNames.every(pair => pair.tabId && pair.panelLabel === pair.tabId)).toBe(true)
 
     runtime.assertClean()
   })
@@ -46,6 +54,7 @@ test.describe('Rheum–Derm Atlas alternative representations', () => {
     await expect(page.locator('#mechanismLanesSvg [data-alt-mark]')).toHaveCount(108)
     await expect(page.locator('#mechanismLanesSvg [data-alt-mark]').first()).toHaveAttribute('role', 'button')
     await expect(page.locator('#mechanismLanesDenominator')).toContainText('54 source coordinates')
+    await expect(page.locator('#mechanismLanesLegend')).toContainText('Structurally unavailable')
     await expect(page.locator('#mechanismLanesTable')).toBeVisible()
     await page.locator('#mechanismLanesSvg [data-alt-mark][tabindex="0"]').press('Enter')
     await expect(page.locator('#mechanismLanesInspector')).toContainText(/Direct|Derived|Explicit zero|Unknown|Filtered/)
@@ -88,11 +97,16 @@ test.describe('Rheum–Derm Atlas alternative representations', () => {
     await expect(page.locator('#differenceLensSvg [data-difference-cell]')).toHaveCount(27)
     await expect(page.locator('#differenceLensLegend')).toContainText('Shared')
     await expect(page.locator('#differenceLensLegend')).toContainText('only')
+    await expect(page.locator('#differenceLensLegend')).toContainText('Structurally unavailable')
     await expect(page.locator('#differenceLensTable')).toBeVisible()
     const states = await page.locator('#differenceLensSvg [data-difference-cell]').evaluateAll(nodes =>
       [...new Set(nodes.map(node => node.getAttribute('data-comparison-state')))]
     )
     expect(states.length).toBeGreaterThan(1)
+    const unsupportedUniqueClaims = await page.locator('#differenceLensSvg [data-comparison-state="a-only"], #differenceLensSvg [data-comparison-state="b-only"]').evaluateAll(nodes =>
+      nodes.filter(node => !node.getAttribute('aria-label')?.includes('Explicit zero')).length
+    )
+    expect(unsupportedUniqueClaims).toBe(0)
 
     runtime.assertClean()
   })
@@ -161,13 +175,34 @@ test.describe('Rheum–Derm Atlas alternative representations', () => {
     await page.getByRole('tab', { name: 'Coverage volume', exact: true }).click()
     const stateCounts = await page.locator('#coverageSliceGrid [data-volume-cell]').evaluateAll(nodes =>
       nodes.reduce<Record<string, number>>((counts, node) => {
-        const state = [...node.classList].find(name => ['derived', 'explicit-zero', 'filtered', 'unknown'].includes(name)) || 'missing'
+        const state = [...node.classList].find(name => ['derived', 'explicit-zero', 'filtered', 'unknown', 'structurally-unavailable'].includes(name)) || 'missing'
         counts[state] = (counts[state] || 0) + 1
         return counts
       }, {})
     )
     expect(Object.values(stateCounts).reduce((sum, count) => sum + count, 0)).toBe(1323)
     expect(stateCounts.missing || 0).toBe(0)
+
+    runtime.assertClean()
+  })
+
+  test('synchronizes condition-scoped alternative controls before rerender', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openExplorer(page)
+    await page.getByRole('tab', { name: 'Bipartite projection', exact: true }).click()
+
+    const target = await page.locator('#networkCondition option').nth(1).getAttribute('value')
+    expect(target).toBeTruthy()
+    await page.locator('#networkCondition').evaluate((select, value) => {
+      const conditionSelect = select as HTMLSelectElement
+      conditionSelect.value = value
+      conditionSelect.dispatchEvent(new Event('change', { bubbles: true }))
+    }, target!)
+    await expect(page.locator('#bipartiteEntity')).toHaveValue(target!)
+
+    await page.getByRole('tab', { name: 'Coverage volume', exact: true }).click()
+    await expect(page.locator('#coverageSliceAxis')).toHaveValue('condition')
+    await expect(page.locator('#coverageSliceEntity')).toHaveValue(target!)
 
     runtime.assertClean()
   })
