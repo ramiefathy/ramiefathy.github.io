@@ -4,13 +4,17 @@ Date: 2026-07-14
 
 Base commit: `3584cf56cab9fa0310a4d3d79b02c569e0bb0a24`
 
+Reviewed implementation commit: `1ed66e15b55f27473dcd939f0486f63532b806af`
+
+Merged production commit: `5fde6d59b3e78cbdfb6e0d2bba792a9039df124a` ([PR #157](https://github.com/ramiefathy/ramiefathy.github.io/pull/157))
+
 Runtime: Node `22.12.0`; npm `10.9.0`
 
 Asset identifier: `atlas-contrast-graph-20260714`
 
 ## Disposition
 
-The bounded contrast and 3D graph-interaction tranche is **release-candidate complete pending merge and production hash verification**. All local release gates are closed.
+The bounded contrast and 3D graph-interaction tranche is **shipped and production verified**. All local, pull-request, deployment, custom-domain hash, and live-browser gates are closed.
 
 The implementation changes presentation and interaction only. It does not add or delete biological entities or relationships; change coordinates, evidence grades, provenance, direction, magnitude, denominators, or graph filters; or reinterpret unknown, explicit-zero, threshold-filtered, derived, direct, or structurally-unavailable states.
 
@@ -83,6 +87,10 @@ Additional reviewed simulations:
 | Full Playwright suite | 195 passed; 21 opt-in visual tests skipped |
 | Production build | Passed; existing >600 kB chunk advisory remains |
 | Local production-server smoke | Passed; source and built Atlas assets are byte-identical |
+| Pull-request required checks | Cloudflare preview, GitGuardian, AI-scribe lint, build, and Playwright passed |
+| Production deployment | GitHub Pages deploy for `5fde6d59` passed |
+| Custom-domain artifact verification | Live `index.html` and all five Explorer CSS/JS assets are byte-identical to the reviewed build |
+| Live custom-domain browser review | Passed at 390 and 1440 px in both themes; zero console errors |
 | `git diff --check` | Passed during implementation review |
 
 The first nine-worker full-browser run had one unrelated Egypt portfolio hydration timeout after 194 passes; the exact failure passed in isolation, and the complete suite then passed with four workers. This is recorded as a concurrency flake, not silently pooled into the clean run.
@@ -97,6 +105,22 @@ Local reviewed-build SHA-256 manifest:
 | `systems-explorer-shell.js` | `d655e6d8a8526d805b4dd52afe5669ed98661c0079fa10220042258cb25c383e` |
 | `systems-explorer.js` | `3774575538670f52ce42e9fcbfadcd0944accc3de81cf69dda74a1a7ba739d96` |
 | `alternative-views.js` | `b84ee92b4d2c5f57cce04f5e1b261655977a92b73de5a8a1d403e0b6d4b7c3af` |
+
+## Production verification
+
+The merged artifact was verified on 2026-07-15 UTC at [the live Atlas](https://ramiefathy.com/apps/rheum-derm-immune-atlas/). The custom-domain `index.html` contained asset identifier `atlas-contrast-graph-20260714`, and its SHA-256 plus the five Explorer asset hashes exactly matched the manifest above.
+
+The live interactive pass verified:
+
+- real mapped and unknown intensity-map tooltips in light mode at 390 px, with opaque `rgb(23, 27, 23)` surfaces, complete text, and viewport-contained geometry;
+- the corresponding dark-mode mapped tooltip at 390 px;
+- all 36 connected endpoint labels for unified node `um:cutaneous`;
+- exact projected-label selection and exact Shift+click neighbor selection;
+- 36 mobile connected-node tray buttons at 44 px minimum height, exact tray selection, and `390 px` page width in a `390 px` viewport;
+- all seven Explorer representations visible, enabled, individually selectable, and confined to one visible tab panel at 390 px with no page-level overflow; and
+- zero console errors during the production interaction sequence.
+
+CodeRabbit remained in its non-required “review in progress” state through merge and had posted no findings or inline comments. Required CI and the independently executed local/full-browser gates were complete and green.
 
 ## Residual risk
 
