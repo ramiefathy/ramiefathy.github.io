@@ -4,6 +4,10 @@ import { setDeterministicUi } from './helpers/nav.js'
 
 const APP_ROUTE = '/apps/rheum-derm-immune-atlas/'
 
+async function gotoAtlasSection(page: import('@playwright/test').Page, section: string) {
+  await page.locator('#mobileSectionSelect').selectOption(section)
+}
+
 test.describe('Rheum–Derm Immune Atlas', () => {
   test.beforeEach(async ({ page }) => {
     await setDeterministicUi(page, { width: 390, height: 844 })
@@ -26,11 +30,11 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     await expect(page.getByRole('toolbar', { name: 'Page tools' })).toBeVisible()
     await expect(page.locator('.tab-btn')).toHaveCount(11)
 
-    await page.getByRole('button', { name: 'Conditions', exact: true }).click()
+    await gotoAtlasSection(page, 'conditions')
     await expect(page.locator('#conditions')).toHaveClass(/active/)
     await expect(page.locator('#conditionArticle h2')).toBeVisible()
 
-    await page.getByRole('button', { name: 'Teaching lab', exact: true }).click()
+    await gotoAtlasSection(page, 'teaching')
     await page.getByRole('button', { name: 'Start 10-question quiz' }).click()
     await expect(page.locator('#quizQuestion')).not.toBeEmpty()
 
@@ -56,11 +60,11 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     expect(alternativeStyleResponse.ok()).toBe(true)
 
     const document = await documentResponse.text()
-    expect(document).toContain('href="./explorer/systems-explorer.css"')
-    expect(document).toContain('href="./explorer/alternative-views.css"')
-    expect(document).toContain('src="./explorer/systems-explorer-shell.js"')
-    expect(document).toContain('src="./explorer/systems-explorer.js"')
-    expect(document).toContain('src="./explorer/alternative-views.js"')
+    expect(document).toContain('href="./explorer/systems-explorer.css?v=atlas-mobile-20260714"')
+    expect(document).toContain('href="./explorer/alternative-views.css?v=atlas-mobile-20260714"')
+    expect(document).toContain('src="./explorer/systems-explorer-shell.js?v=atlas-mobile-20260714"')
+    expect(document).toContain('src="./explorer/systems-explorer.js?v=atlas-mobile-20260714"')
+    expect(document).toContain('src="./explorer/alternative-views.js?v=atlas-mobile-20260714"')
     expect(document).not.toContain('Structured 3D mechanistic knowledge graph')
     expect(document).not.toContain('<canvas id="network3d"')
     await expect(shellResponse.text()).resolves.toContain('id="network3d"')
@@ -70,7 +74,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     await expect(alternativeStyleResponse.text()).resolves.toContain('.alternative-panel')
 
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
-    await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()
+    await gotoAtlasSection(page, 'network')
     await expect(page.locator('#network3d')).toBeVisible()
     await page.getByRole('tab', { name: 'Provenance triptych' }).click()
     await expect(page.locator('#triptychPanel')).toBeVisible()
@@ -82,7 +86,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     const runtime = watchRuntime(page)
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
 
-    await page.getByRole('button', { name: 'Signal coverage', exact: true }).click()
+    await gotoAtlasSection(page, 'signalCoverage')
     await expect(page.locator('#signalCoverage')).toHaveClass(/active/)
     await expect(page.locator('#signalRows .signal-route')).toHaveCount(10)
     await expect(page.locator('#signalRows')).toContainText('IFN-α / IFN-β')
@@ -104,7 +108,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
   test('compares two agents across all canonical pathways without combining magnitudes', async ({ page }) => {
     const runtime = watchRuntime(page)
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
-    await page.getByRole('button', { name: 'Signal coverage', exact: true }).click()
+    await gotoAtlasSection(page, 'signalCoverage')
     await page.locator('#coverageDrugA').selectOption('upadacitinib')
     await page.locator('#coverageDrugB').selectOption('deucravacitinib')
     await page.getByRole('tab', { name: 'Coverage lanes' }).click()
@@ -113,7 +117,9 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     await expect(page.locator('#coverageLaneGrid .coverage-column-head')).toHaveCount(27)
     await expect(page.locator('#coverageLaneGrid .coverage-agent-lane')).toHaveCount(2)
     await expect(page.locator('#coverageLaneDenominator')).toContainText('27 canonical pathways')
-    await expect(page.locator('#coverageOverlapRow')).toBeVisible()
+    await expect(page.locator('#coverageOverlapRow')).toHaveCount(1)
+    await expect(page.locator('#coverageLaneMobileList')).toBeVisible()
+    await expect(page.locator('#coverageLaneMobileList [data-state="both"]').first()).toContainText('A + B')
     expect(await page.locator('#coverageLaneGrid .coverage-lane-mark.direct').count()).toBeGreaterThan(0)
     expect(await page.locator('#coverageOverlapRow .coverage-overlap-mark.both').count()).toBeGreaterThan(0)
     await expect(page.locator('#coverageLaneBoundary')).toContainText('No combined magnitude')
@@ -126,7 +132,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     const runtime = watchRuntime(page)
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
 
-    await page.getByRole('button', { name: 'Phenotype maps', exact: true }).click()
+    await gotoAtlasSection(page, 'phenotypeMaps')
     await expect(page.locator('#phenotypeMaps')).toHaveClass(/active/)
     await expect(page.locator('#antibodyMatrix')).toContainText('Anti-MDA5')
     await expect(page.locator('#antibodyMatrix')).toContainText('Rapidly progressive ILD')
@@ -147,7 +153,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
   test('switches between five pairwise presets and a complete cohort ledger', async ({ page }) => {
     const runtime = watchRuntime(page)
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
-    await page.getByRole('button', { name: 'Phenotype maps', exact: true }).click()
+    await gotoAtlasSection(page, 'phenotypeMaps')
 
     await expect(page.getByRole('tab', { name: 'Pairwise' })).toHaveAttribute('aria-selected', 'true')
     await expect(page.locator('#comparePreset option')).toHaveCount(5)
@@ -174,7 +180,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     const runtime = watchRuntime(page)
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
-    await page.getByRole('button', { name: 'Phenotype maps', exact: true }).click()
+    await gotoAtlasSection(page, 'phenotypeMaps')
     await page.getByRole('tab', { name: 'Cohort ledger' }).click()
 
     await expect(page.locator('.cohort-slab.active')).toBeVisible()
@@ -202,7 +208,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     await expect(page.locator('.panel').first()).toHaveCSS('border-radius', '6px')
     await expect(page.locator('.tab-btn.active')).toHaveCSS('border-bottom-color', 'rgb(230, 159, 0)')
 
-    await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()
+    await gotoAtlasSection(page, 'network')
     await expect(page.locator('#network3d')).toBeVisible()
 
     await page.getByRole('button', { name: 'Toggle theme' }).click()
@@ -215,7 +221,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
   test('offers a provenance triptych, four-step supported story, and synchronized context', async ({ page }) => {
     const runtime = watchRuntime(page)
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
-    await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()
+    await gotoAtlasSection(page, 'network')
 
     await expect(page.locator('#networkRotate')).toHaveCount(0)
     await page.getByRole('tab', { name: 'Provenance triptych' }).click()
@@ -235,7 +241,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
 
     await page.locator('#triptychConditionSelect').selectOption('sle')
     await expect(page.locator('#triptychCondition')).toContainText('CLE/SLE')
-    await page.getByRole('button', { name: 'Phenotype maps', exact: true }).click()
+    await gotoAtlasSection(page, 'phenotypeMaps')
     await expect(page.locator('#compareConditionA')).toHaveValue('sle')
 
     runtime.assertClean()
@@ -245,7 +251,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     const runtime = watchRuntime(page)
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
-    await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()
+    await gotoAtlasSection(page, 'network')
     await page.getByRole('tab', { name: 'Provenance triptych' }).click()
 
     const layout = await page.evaluate(() => ({
