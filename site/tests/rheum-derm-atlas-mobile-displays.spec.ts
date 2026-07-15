@@ -45,6 +45,7 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
     const destinations = ['dashboard', 'conditions', 'pathways', 'medications', 'effects', 'manifestationMap', 'signalCoverage', 'phenotypeMaps', 'network', 'teaching', 'sources']
     for (const destination of destinations) {
       await page.locator('#mobileSectionSelect').selectOption(destination)
+      await page.waitForFunction(section => document.documentElement.dataset.atlasSectionReady === section, destination)
       const geometry = await page.evaluate(() => ({ page: document.documentElement.scrollWidth, viewport: innerWidth }))
       expect(geometry.page, destination).toBeLessThanOrEqual(geometry.viewport)
     }
@@ -166,8 +167,9 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
       await page.getByRole('tab', { name: tab, exact: true }).click()
       const table = page.getByRole('tabpanel').filter({ visible: true }).locator('table[data-mobile-table="cards"]')
       await expect(table).toHaveCount(1)
-      const firstDataCell = table.locator('tbody td').first()
-      await expect(firstDataCell).toHaveAttribute('data-label', /.+/)
+      const cellLabels = await table.locator('tbody td').evaluateAll(cells => cells.map(cell => cell.getAttribute('data-label')?.trim() || ''))
+      expect(cellLabels.length).toBeGreaterThan(0)
+      expect(cellLabels.every(Boolean)).toBe(true)
       const width = await table.evaluate(element => ({ table: element.scrollWidth, shell: element.parentElement!.clientWidth }))
       expect(width.table).toBeLessThanOrEqual(width.shell + 1)
     }
@@ -272,7 +274,11 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
     await expect(page.locator('#evidenceConstructLabel')).toHaveText('Pathway rows')
     await construct.selectOption('benefits')
     await expect(page.locator('#evidenceConstructLabel')).toHaveText('Condition–benefit rows')
+    await expect(page.locator('#evidenceN')).toHaveText('143')
     await expect(page.locator('#evidenceLegend')).toContainText('Grade A')
+    await construct.selectOption('mechanisms')
+    await expect(page.locator('#evidenceConstructLabel')).toHaveText('Medication-mechanism rows')
+    await expect(page.locator('#evidenceN')).toHaveText('49')
   })
 
   test('keeps the shared tooltip readable and inside the viewport in light theme', async ({ page }) => {
@@ -321,8 +327,9 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
     for (const tableId of ['#pathTable', '#medTable', '#effectTable', '#manifestLinkTable', '#antibodyMatrix']) {
       const table = page.locator(tableId)
       await expect(table).toHaveAttribute('data-mobile-table', 'cards')
-      const cell = table.locator('tbody td').first()
-      await expect(cell).toHaveAttribute('data-label', /.+/)
+      const cellLabels = await table.locator('tbody td').evaluateAll(cells => cells.map(cell => cell.getAttribute('data-label')?.trim() || ''))
+      expect(cellLabels.length).toBeGreaterThan(0)
+      expect(cellLabels.every(Boolean)).toBe(true)
       const geometry = await table.evaluate(element => ({ table: element.scrollWidth, shell: element.parentElement!.clientWidth }))
       expect(geometry.table).toBeLessThanOrEqual(geometry.shell + 1)
     }
