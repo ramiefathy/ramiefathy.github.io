@@ -25,7 +25,6 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
     await setDeterministicUi(page, { width: 320, height: 720 })
     await blockExternalRequests(page)
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
-
     const switcher = page.locator('#mobileSectionSelect')
     await expect(switcher).toBeVisible()
     await expect(switcher.locator('option')).toHaveCount(11)
@@ -57,6 +56,11 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
     await setDeterministicUi(page, { width: 320, height: 720 })
     await blockExternalRequests(page)
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
+    await page.evaluate(() => {
+      const readyEvents: string[] = []
+      ;(window as typeof window & { __atlasReadyEvents?: string[] }).__atlasReadyEvents = readyEvents
+      window.addEventListener('atlas:section-ready', event => readyEvents.push((event as CustomEvent<{ id: string }>).detail.id))
+    })
 
     const switcher = page.locator('#mobileSectionSelect')
     await switcher.selectOption('network')
@@ -67,6 +71,9 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
     await expect(page.locator('#conditions')).toHaveClass(/active/)
     await expect(switcher).toHaveValue('conditions')
     await expect(page.locator('html')).toHaveAttribute('data-atlas-section-ready', 'conditions')
+    const readyEvents = await page.evaluate(() => (window as typeof window & { __atlasReadyEvents?: string[] }).__atlasReadyEvents ?? [])
+    expect(readyEvents).not.toContain('network')
+    expect(readyEvents.at(-1)).toBe('conditions')
   })
 
   test('keeps all seven display choices visible in a compact touch-safe index', async ({ page }) => {
@@ -192,9 +199,17 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
       })
       expect(labelContract.length).toBeGreaterThan(0)
       expect(labelContract.every(({ actual, expected }) => actual !== '' && actual === expected)).toBe(true)
+      await expect(table.locator('tbody td[colspan][data-label]')).toHaveCount(0)
       const width = await table.evaluate(element => ({ table: element.scrollWidth, shell: element.parentElement!.clientWidth }))
       expect(width.table).toBeLessThanOrEqual(width.shell + 1)
     }
+
+    await page.getByRole('tab', { name: 'Parallel sets', exact: true }).click()
+    await page.locator('#parallelCondition').selectOption('dm')
+    await page.locator('#parallelEvidence').selectOption('A')
+    const emptyState = page.locator('#parallelSetsTable tbody td[colspan]')
+    await expect(emptyState).toHaveCount(1)
+    await expect(emptyState).not.toHaveAttribute('data-label')
 
     runtime.assertClean()
   })
@@ -358,6 +373,7 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
       })
       expect(labelContract.length).toBeGreaterThan(0)
       expect(labelContract.every(({ actual, expected }) => actual !== '' && actual === expected)).toBe(true)
+      await expect(table.locator('tbody td[colspan][data-label]')).toHaveCount(0)
       const geometry = await table.evaluate(element => ({ table: element.scrollWidth, shell: element.parentElement!.clientWidth }))
       expect(geometry.table).toBeLessThanOrEqual(geometry.shell + 1)
     }
