@@ -24,13 +24,16 @@
         <button id="networkTour" class="btn sm primary">Trace supported chain</button><button id="networkIsolate" class="btn sm">Isolate 1-hop</button><button id="networkReset" class="btn sm">Reset</button>
       </div>
       <div id="networkAxisNote" class="network-axis-note"></div>
+      <p id="networkSelectionStatus" class="network-selection-status" aria-live="polite">No graph selection. Choose a node, relationship, or precision-navigator entry.</p>
       <section id="networkMobileNavigator" class="network-mobile-navigator" aria-label="Mobile graph navigator"><div><span class="eyebrow">Precision navigator</span><strong>Inspect the graph without manipulating the canvas</strong></div><label>Visible entity<select id="networkMobileEntity" class="control"></select></label><button id="networkMobileInspect" class="btn sm primary">Inspect selected entity</button></section>
+      <section id="networkConnectedTray" class="network-connected-tray" aria-label="Connected nodes" hidden><div class="network-connected-tray-head"><span class="eyebrow">Connected nodes</span><span id="networkConnectedTrayCount"></span></div><div id="networkConnectedTrayList" class="network-connected-tray-list"></div></section>
       <div class="network-workspace">
         <div class="network-shell">
-          <canvas id="network3d" aria-label="Interactive three-dimensional rheumatology dermatology knowledge graph"></canvas>
+          <canvas id="network3d" tabindex="0" role="application" aria-describedby="networkSelectionStatus networkGraphHelp" aria-label="Interactive three-dimensional rheumatology dermatology knowledge graph"></canvas>
+          <div id="networkFocusLabels" class="network-focus-labels" role="group" aria-label="Selected node and visible connected nodes"></div>
           <div class="network-view-controls"><button class="btn sm" data-view-preset="iso">Isometric</button><button class="btn sm" data-view-preset="front">Causal front</button><button class="btn sm" data-view-preset="therapy">Intervention plane</button><button class="btn sm" data-view-preset="side">Layer side</button></div>
           <div id="networkStats" class="network-stats"></div>
-          <div class="network-help">Drag: rotate · Shift-drag: pan · Wheel/pinch: zoom · Hover: preview · Click: lock node/edge · Isolate: one-hop subgraph · Double-click: recenter</div>
+          <div id="networkGraphHelp" class="network-help">Click: lock node or edge · Shift+click: choose a highlighted neighbor · Drag: rotate · Shift-drag: pan · Wheel or pinch: zoom · Label, touch tray, and inspector buttons select exact nodes · Escape: clear</div>
         </div>
         <aside class="network-sidebar">
           <section id="nodeInfo" class="node-info"><h4>Network ready</h4><p>Select a node or edge to inspect its mechanistic meaning and evidence.</p></section>

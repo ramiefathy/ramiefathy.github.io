@@ -3,6 +3,7 @@ import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const port = Number(process.env.PLAYWRIGHT_PORT || 4321);
 
 export default defineConfig({
   testDir: './tests',
@@ -15,7 +16,7 @@ export default defineConfig({
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
   use: {
-    baseURL: 'http://127.0.0.1:4321',
+    baseURL: `http://127.0.0.1:${port}`,
     viewport: { width: 1280, height: 900 },
     trace: 'on-first-retry',
     video: 'retain-on-failure',
@@ -33,9 +34,9 @@ export default defineConfig({
     // The Astro dev server can hit Vite module-runner timeouts under parallel Playwright workers
     // (e.g., `transport invoke timed out after 60000ms`), which leaves islands unhydrated and makes
     // unrelated tests fail/flap. Preview runs the built output and avoids on-demand module fetches.
-    command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4321',
+    command: `npm run build && npm run preview -- --host 127.0.0.1 --port ${port}`,
     cwd: __dirname,
-    port: 4321,
+    port,
     reuseExistingServer: false
   }
 });
