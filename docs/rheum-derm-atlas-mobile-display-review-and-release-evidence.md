@@ -4,6 +4,12 @@ Date: 2026-07-14
 
 Base commit: `e5fe6549764393e397c9d1c906a882c0235bae60`
 
+Tested head: `ffa086887505f954e465d770eb1d422764aaaf28`
+
+Deployed merge: `089dc6229cf6b1f5cf8cf6d5e806198f2c203c31`
+
+Artifact identifier: `atlas-mobile-20260714` (Cloudflare production assets verified byte-identical)
+
 Runtime: Node `22.12.0`
 
 ## Disposition
