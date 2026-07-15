@@ -6,7 +6,9 @@ const APP_ROUTE = '/apps/rheum-derm-immune-atlas/'
 
 async function openExplorer(page: import('@playwright/test').Page) {
   await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
-  await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()
+  const mobileSection = page.locator('#mobileSectionSelect')
+  if (await mobileSection.isVisible()) await mobileSection.selectOption('network')
+  else await page.getByRole('button', { name: '3D systems explorer', exact: true }).click()
 }
 
 test.describe('Rheum–Derm Atlas alternative representations', () => {
