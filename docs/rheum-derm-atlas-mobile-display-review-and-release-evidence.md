@@ -61,10 +61,10 @@ Interactive browser review covered all seven Explorer representations, every atl
 
 | Gate | Result |
 | --- | --- |
-| Mobile display browser suite | 15/15 passed |
-| Focused atlas and mobile browser suites | 27/27 passed |
+| Mobile display browser suite | 16/16 passed |
+| Focused atlas, alternative-view, and mobile browser suites | 37/37 passed |
 | Unit/policy suite | 33 files; 212/212 tests passed |
-| Full browser suite | 172 passed; 21 opt-in visual/screenshot tests skipped |
+| Full browser suite | 173 passed; 21 opt-in visual/screenshot tests skipped |
 | Production build | Passed; existing large-chunk advisory remains |
 | `git diff --check` | Passed |
 
