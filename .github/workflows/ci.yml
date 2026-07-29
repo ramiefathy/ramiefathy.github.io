@@ -28,11 +28,19 @@ jobs:
       - name: Guard against simulated RAMIE scribe
         run: |
           echo "Checking that the deployed RAMIE AI Scribe is not simulated..."
-          if grep -R -n -E "AI Generation Functions \\(Placeholders\\)|Simulated response" site/dist/apps/dermatology-scribe/index.html; then
+          if grep -R -n -E "AI Generation Functions \(Placeholders\)|Simulated response" site/dist/apps/dermatology-scribe/index.html; then
             echo "❌ Simulation markers detected in deployed scribe entrypoint"
             exit 1
           fi
           echo "✅ No simulation markers found"
+      - name: Upload rheum-derm dashboard payload audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rheum-derm-dashboard-payload
+          path: site/public/apps/rheum-derm-clinical-trials
+          if-no-files-found: error
+          retention-days: 1
       # Removed Playwright console regression checks; they are run locally as needed
 
   e2e-playwright:
