@@ -1,0 +1,28 @@
+name: Rheum-Derm Dashboard Payload Audit
+
+on:
+  push:
+    branches:
+      - add-rheum-derm-trials-dashboard
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-payload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inventory payload
+        run: |
+          set -euo pipefail
+          find site/public/apps/rheum-derm-clinical-trials -maxdepth 1 -type f -printf '%f %s bytes\n' | sort -V
+          sha256sum site/public/apps/rheum-derm-clinical-trials/* | sort -k2
+      - name: Upload payload directory
+        uses: actions/upload-artifact@v4
+        with:
+          name: rheum-derm-dashboard-payload
+          path: site/public/apps/rheum-derm-clinical-trials
+          if-no-files-found: error
+          retention-days: 1
