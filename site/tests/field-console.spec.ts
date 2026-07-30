@@ -1,47 +1,99 @@
 import { expect, test } from '@playwright/test'
 
 /**
- * Atlas plate-stamp coverage check.
+ * Field Console structure coverage.
  *
- * Every Astro route in the redesigned site must render at least one `.plate-stamp`
- * element. This is the simplest sanity check that "every page got the Atlas wrapper"
- * after Phase 3 of the migration.
+ * Replaces the retired `atlas-plates.spec.ts`. That spec asserted every route
+ * rendered the old `.plate-stamp` ornament; the redesign removed the stamp and
+ * its decorative barcode, so the equivalent structural guarantee is now:
  *
- * Catches regressions where a future page rewrite forgets the plate stamp + plate
- * head + display headline pattern.
+ *   every route renders a section head, a display headline, and a machine-voice
+ *   marker (`.section-marker` or `.cmd-preface`)
+ *
+ * plus the pieces that make the Field Console what it is: the live status bar,
+ * the ⌘K palette, and the particle-field hero.
  */
 
-const ATLAS_ROUTES = [
-  { path: '/', name: 'Home (Plate I)' },
-  { path: '/about', name: 'About (Plate II)' },
-  { path: '/apps', name: 'Apps catalog (Plate III)' },
-  { path: '/research', name: 'Research index (Plate IV)' },
-  { path: '/research/dermoscopy-llm-dashboard', name: 'Dashboard (Plate IV.A)' },
-  { path: '/blog', name: 'Blog (Plate V)' },
-  { path: '/contact', name: 'Contact (Plate VI)' },
-  { path: '/legacy', name: 'Legacy archive (Plate L)' },
+const ROUTES = [
+  { path: '/', name: 'Home' },
+  { path: '/about', name: 'About' },
+  { path: '/apps', name: 'Apps' },
+  { path: '/research', name: 'Research index' },
+  { path: '/research/dermoscopy-llm-dashboard', name: 'Dermoscopy dashboard' },
+  { path: '/blog', name: 'Blog' },
+  { path: '/contact', name: 'Contact' },
+  { path: '/legacy', name: 'Legacy archive' },
 ]
 
-for (const route of ATLAS_ROUTES) {
-  test(`${route.name}: renders plate stamp + plate head + display`, async ({ page }) => {
+for (const route of ROUTES) {
+  test(`${route.name}: renders section head + display + machine-voice marker`, async ({ page }) => {
     const response = await page.goto(route.path)
     expect(response?.status(), `${route.path} should respond 200`).toBeLessThan(400)
 
-    // Atlas plate-stamp marker
-    const stamp = page.locator('.plate-stamp').first()
-    await expect(stamp, `${route.path} should render a .plate-stamp`).toBeVisible()
+    const head = page.locator('.section-head').first()
+    await expect(head, `${route.path} should render a .section-head`).toBeVisible()
 
-    // Plate head with display headline
-    const head = page.locator('.plate-head').first()
-    await expect(head, `${route.path} should render a .plate-head`).toBeVisible()
-
-    // At least one display1 / display2 / section__title
     const display = page.locator('.display1, .display2, .section__title').first()
-    await expect(display, `${route.path} should render an Atlas display headline`).toBeVisible()
+    await expect(display, `${route.path} should render a display headline`).toBeVisible()
+
+    const marker = page.locator('.section-marker, .cmd-preface').first()
+    await expect(marker, `${route.path} should render a $-prompt marker`).toBeVisible()
+  })
+
+  test(`${route.name}: retired theme ornament is gone`, async ({ page }) => {
+    await page.goto(route.path)
+    await expect(page.locator('.barcode')).toHaveCount(0)
+    await expect(page.locator('.plate-stamp')).toHaveCount(0)
+    await expect(page.getByText(/working atlas|frontispiece|Vol\. IV/i)).toHaveCount(0)
   })
 }
 
-test('Atlas footer renders dark plate with PAGES / CONNECT / COLOPHON groups', async ({ page }) => {
+test('status bar shows the live dot, identity, and palette trigger', async ({ page }) => {
+  await page.goto('/')
+  const bar = page.locator('.status-bar')
+  await expect(bar).toBeVisible()
+  await expect(bar.locator('.status-bar__dot')).toBeVisible()
+  await expect(bar.getByText('Ramie Fathy, MD')).toBeVisible()
+  await expect(bar.getByRole('button', { name: /navigate/i })).toBeVisible()
+})
+
+test('command palette opens, filters, and navigates', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: /navigate/i }).click()
+
+  const dialog = page.getByRole('dialog', { name: /navigate this site/i })
+  await expect(dialog).toBeVisible()
+
+  // Filtering narrows the option list.
+  await dialog.getByRole('textbox').fill('research')
+  const options = dialog.getByRole('option')
+  await expect(options).toHaveCount(1)
+  await expect(options.first()).toContainText('Research')
+
+  // Enter follows the highlighted destination.
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/\/research\/?$/)
+})
+
+test('command palette closes on Escape', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: /navigate/i }).click()
+  await expect(page.getByRole('dialog', { name: /navigate this site/i })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: /navigate this site/i })).toHaveCount(0)
+})
+
+test('hero renders the particle canvas over SSR-visible copy', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('canvas.field-hero__canvas')).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Ramie')
+  // The credential rides alongside the display name.
+  await expect(page.locator('.field-hero__degree')).toHaveText(/,\s*MD/)
+  // The activity console is present and prefixed by the machine prompt.
+  await expect(page.locator('.f-console__prompt').first()).toBeVisible()
+})
+
+test('footer renders PAGES / CONNECT / COLOPHON groups', async ({ page }) => {
   await page.goto('/')
   const footer = page.locator('.layout-footer')
   await expect(footer).toBeVisible()
@@ -50,7 +102,7 @@ test('Atlas footer renders dark plate with PAGES / CONNECT / COLOPHON groups', a
   await expect(footer.locator('.layout-footer__group-title', { hasText: /COLOPHON/i })).toBeVisible()
 })
 
-test('Header has no theme toggle button (Atlas is light-only)', async ({ page }) => {
+test('single-theme site ships no theme toggle', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('.theme-toggle')).toHaveCount(0)
   await expect(page.locator('button[aria-label*="dark mode" i]')).toHaveCount(0)
@@ -101,8 +153,8 @@ test.describe('Mindmap mobile breakpoints', () => {
     await page.locator('.mindmap-app').waitFor({ state: 'visible' })
     // Mobile menu toggle (lives in AtlasView) must be visible at 375px
     await expect(page.locator('.mobile-menu-toggle').first()).toBeVisible()
-    // Plate stamp + plate head still render
-    await expect(page.locator('.plate-stamp').first()).toBeVisible()
+    // Section marker + section head still render
+    await expect(page.locator('.section-marker').first()).toBeVisible()
   })
 
   test('Legacy CTCL mindmap renders without horizontal page overflow', async ({ page }) => {

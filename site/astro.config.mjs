@@ -21,7 +21,6 @@ export default defineConfig({
             if (!id.includes('/node_modules/')) return;
             if (id.includes('/react/') || id.includes('/react-dom/')) return 'react';
             if (id.includes('/d3')) return 'd3';
-            if (id.includes('/@paper-design/shaders')) return 'shaders';
             if (id.includes('/framer-motion/')) return 'framer';
             if (id.includes('/html-to-image/') || id.includes('/jspdf/')) return 'mindmap';
           }

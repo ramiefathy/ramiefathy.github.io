@@ -11,9 +11,9 @@ import DermoscopyLLMEvaluationDashboard from '../../components/DermoscopyLLMEval
   <Header client:load />
   <main id="main-content">
     <section class="section">
-      <div class="plate-stamp"><b>Dashboard</b><span class="barcode"></span><span>Dermoscopy LLM · 2025</span></div>
+      <div class="section-marker"><b>$</b><span>open dermoscopy-llm-eval</span></div>
 
-      <div class="plate-head">
+      <div class="section-head">
         <div>
           <span class="kicker">/research/dermoscopy-llm-dashboard</span>
           <h1 class="display1" style="margin-top:14px">17 models. <em>10,200</em><br>trials. One question.</h1>
@@ -51,7 +51,7 @@ import DermoscopyLLMEvaluationDashboard from '../../components/DermoscopyLLMEval
         </div>
       </div>
 
-      <!-- React dashboard mounted inside Atlas chrome.
+      <!-- React dashboard mounted inside the site chrome.
            Internal styling sweep happens in Phase 4. -->
       <div style="margin-top:48px">
         <DermoscopyLLMEvaluationDashboard client:load />

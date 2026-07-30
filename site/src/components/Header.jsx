@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import CommandPalette from './CommandPalette.jsx';
 
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
@@ -15,10 +16,31 @@ function isActiveLink(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** Local wall-clock for the status bar. Rendered empty on the server so SSR
+ *  markup and the first client paint agree. */
+const useClock = () => {
+  const [stamp, setStamp] = useState('');
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      const hhmmss = [now.getHours(), now.getMinutes(), now.getSeconds()]
+        .map((part) => String(part).padStart(2, '0'))
+        .join(':');
+      setStamp(hhmmss);
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  return stamp;
+};
+
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activePath, setActivePath] = useState('');
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const previousOverflow = useRef('');
+  const clock = useClock();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -26,6 +48,26 @@ const Header = () => {
     updatePath();
     window.addEventListener('popstate', updatePath);
     return () => window.removeEventListener('popstate', updatePath);
+  }, []);
+
+  // ⌘K / Ctrl-K anywhere; bare `k` only when nothing is focused, so typing in
+  // a form field never opens the palette.
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      const key = event.key?.toLowerCase();
+      if (key !== 'k') return;
+      const bareKeyIsSafe =
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        document.activeElement === document.body;
+      if (event.metaKey || event.ctrlKey || bareKeyIsSafe) {
+        event.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
 
   useEffect(() => {
@@ -54,6 +96,26 @@ const Header = () => {
 
   return (
     <header className="header-shell">
+      <div className="status-bar">
+        <span className="status-bar__who">
+          <span className="status-bar__dot" aria-hidden="true"></span>
+          <span className="status-bar__name">Ramie Fathy, MD</span>
+          <span className="status-bar__where">· Johns Hopkins Dermatology</span>
+        </span>
+        <span className="status-bar__right">
+          <span className="status-clock">
+            {clock ? `${clock} · Baltimore` : 'Baltimore'}
+          </span>
+          <button
+            type="button"
+            className="palette-key"
+            onClick={() => setPaletteOpen(true)}
+            aria-haspopup="dialog"
+          >
+            navigate <kbd>⌘K</kbd>
+          </button>
+        </span>
+      </div>
       <div className="header-inner">
         <a href="/" aria-label="Ramie Fathy home" className="header-logo">
           <img src="/favicon.ico" width="32" height="32" alt="Ramie Fathy logo" />
@@ -107,6 +169,7 @@ const Header = () => {
         </nav>
       </div>
       {menuOpen && <button type="button" className="header-drawer__backdrop" aria-label="Close navigation" onClick={closeMenu}></button>}
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </header>
   );
 };

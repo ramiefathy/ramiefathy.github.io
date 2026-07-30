@@ -53,9 +53,8 @@ em { font-style: italic; color: var(--terracotta); }
 @media (max-width: 720px) { .shell { padding: 16px 18px 64px; } }
 
 /* ===== Plate stamp + masthead ===== */
-.plate-stamp { display:flex; align-items:center; gap:14px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--slate); padding: 10px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin-bottom: 28px; }
-.plate-stamp b { color: var(--ink); font-weight: 700; }
-.barcode { flex: 1; height: 14px; background: repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 4px, var(--ink) 4px 5px, transparent 5px 9px, var(--ink) 9px 11px, transparent 11px 13px); opacity: 0.55; }
+.essay-stamp { display:flex; align-items:center; gap:14px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--slate); padding: 10px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin-bottom: 28px; }
+.essay-stamp b { color: var(--ink); font-weight: 700; }
 .kicker { font-family: var(--font-mono); font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.18em; }
 .display1 { font-size: clamp(40px, 6vw, 80px); line-height: 0.98; letter-spacing: -0.025em; font-weight: 600; }
 .display2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; }
@@ -282,10 +281,9 @@ table.atlas tr.hl td { background: rgba(194,103,74,0.07); }
 <body>
 <main class="shell">
 
-  <div class="plate-stamp">
-    <span><b>Ramie Fathy</b> · Listening Atlas</span>
-    <span class="barcode"></span>
-    <span>Plate II · Behavioral · Extended</span>
+  <div class="essay-stamp">
+    <span><b>Ramie Fathy</b> · Listening History</span>
+    <span>Behavioral · Extended</span>
   </div>
 
   <header class="masthead-head">
