@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="A systematic analysis of Ramie Fathy's all-time favorite video games — genre concentration, two-axis era cartography, ludic signature, and what the data quietly reveals.">
-<meta name="theme-color" content="#f4f0e8">
+<meta name="theme-color" content="#0b0e13">
+  <meta name="color-scheme" content="dark">
 <meta property="og:site_name" content="Ramie Fathy, MD">
 <meta property="og:title" content="Ludic Self-Portrait — Ramie Fathy">
 <meta property="og:description" content="A reading of my all-time favorite games — 19 canon titles, one genre, two selves.">
@@ -13,27 +14,31 @@
 <meta name="twitter:card" content="summary_large_image">
 <title>Ludic Self-Portrait · Ramie Fathy</title>
 <link rel="canonical" href="https://ramiefathy.com/games/">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Space+Mono:wght@400;700&display=swap">
+<link rel="preload" href="/apps/shared/fonts/Fraunces-VariableFont_opsz,wght.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/apps/shared/fonts/BricolageGrotesque-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/apps/shared/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/apps/shared/legacy-fonts.css">
 <style>
 
 :root {
-  --bone:        #f4f0e8;
-  --bone-2:      #e8e2d4;
-  --plate-bg:    #fbf8f1;
-  --ink:         #0a0a0a;
-  --ink-soft:    #1f1f1f;
-  --slate:       #475569;
-  --slate-soft:  #94a3b8;
-  --terracotta:  #c2674a;
-  --terracotta-2:#9f4d36;
-  --moss:        #5b7058;
-  --gold:        #a37b2a;
-  --rule:        #0a0a0a;
-  --rule-soft:   rgba(10,10,10,0.12);
-  --font-display:'Bricolage Grotesque', system-ui, sans-serif;
-  --font-body:   'Newsreader', Georgia, serif;
+    /* Field Console additions: roles that diverge on a dark ground. */
+    --ground:#0b0e13; --invert-bg:#1b222c; --invert-text:#f2f4f6;
+    --line-strong:#39414d; --accent:#ff6b4a;
+  --bone:        #0b0e13;
+  --bone-2:      #151b23;
+  --plate-bg:    #151b23;
+  --ink:         #f2f4f6;
+  --ink-soft:    #c8cfd6;
+  --slate:       #8a94a0;
+  --slate-soft:  #6d7783;
+  --terracotta:  #ff6b4a;
+  --terracotta-2:#ff8666;
+  --moss:        #4fc9a3;
+  --gold:        #f0b83f;
+  --rule:        #232b36;
+  --rule-soft:   rgba(242,244,246,0.10);
+  --font-display:'Fraunces', Georgia, serif;
+  --font-body:   'Bricolage Grotesque', system-ui, sans-serif;
   --font-mono:   'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 * { box-sizing: border-box; }
@@ -44,7 +49,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "ss01","onum","liga";
 }
-::selection { background: var(--terracotta); color: var(--bone); }
+::selection { background: var(--terracotta); color: var(--ground); }
 a { color: inherit; text-decoration: none; }
 a:hover { color: var(--terracotta); }
 :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
@@ -225,7 +230,7 @@ table.atlas td.count {
 table.atlas td.count .bar-track {
   display: inline-block; vertical-align: middle;
   width: calc(100% - 36px); height: 8px;
-  background: rgba(10,10,10,0.07); margin-right: 8px;
+  background: rgba(242,244,246,0.07); margin-right: 8px;
 }
 table.atlas td.count .bar {
   display: block; height: 100%;
@@ -333,7 +338,7 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
 }
 .chart-legend li:last-child { border-bottom: 0; }
 .chart-legend .swatch {
-  width: 12px; height: 12px; display: inline-block; border: 1px solid rgba(10,10,10,0.2);
+  width: 12px; height: 12px; display: inline-block; border: 1px solid rgba(242,244,246,0.2);
 }
 .chart-legend .lbl { font-family: var(--font-body); color: var(--ink); }
 .chart-legend .ct {
@@ -363,7 +368,7 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
   grid-template-columns: 64px 1fr auto; gap: 20px; align-items: center;
 }
 .spotify-card .sp-icon {
-  width: 64px; height: 64px; background: var(--ink); color: var(--bone);
+  width: 64px; height: 64px; background: var(--invert-bg); color: var(--invert-text);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: -0.02em;
 }
@@ -382,11 +387,11 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
 }
 .spotify-card .sp-cta {
   font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--bone); background: var(--terracotta);
+  text-transform: uppercase; color: var(--ground); background: var(--terracotta);
   padding: 12px 16px; border: 1px solid var(--terracotta-2); white-space: nowrap;
   transition: background .15s ease;
 }
-.spotify-card .sp-cta:hover { background: var(--terracotta-2); color: var(--bone); }
+.spotify-card .sp-cta:hover { background: var(--terracotta-2); color: var(--ground); }
 @media (max-width: 720px) {
   .spotify-card { grid-template-columns: 48px 1fr; }
   .spotify-card .sp-icon { width: 48px; height: 48px; font-size: 22px; }
@@ -416,7 +421,7 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
   grid-template-columns: 64px 1fr; gap: 20px; align-items: center;
 }
 .source-card .sc-icon {
-  width: 64px; height: 64px; background: var(--ink); color: var(--bone);
+  width: 64px; height: 64px; background: var(--invert-bg); color: var(--invert-text);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: 30px; font-weight: 600;
 }
@@ -446,11 +451,11 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
   transition: transform .25s ease;
 }
 .tile:hover { transform: translateY(-3px); }
-.tile.accent { background: var(--ink); }
-.tile.accent .tile-title { color: var(--bone); }
+.tile.accent { background: var(--invert-bg); }
+.tile.accent .tile-title { color: var(--invert-text); }
 .tile.accent .tile-meta { color: var(--slate-soft); }
 .tile.warm { background: var(--terracotta); border-color: var(--terracotta-2); }
-.tile.warm .tile-title, .tile.warm .tile-meta { color: var(--bone); }
+.tile.warm .tile-title, .tile.warm .tile-meta { color: var(--ground); }
 .tile-title {
   font-family: var(--font-display); font-weight: 600; color: var(--ink);
   line-height: 1.04; letter-spacing: -0.015em;
@@ -482,8 +487,8 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
   border: 1px solid var(--rule-soft); color: var(--ink); font-weight: 700;
   letter-spacing: 0.08em;
 }
-.adj-head .pill.want { background: var(--terracotta); color: var(--bone); border-color: var(--terracotta-2); }
-.adj-head .pill.pred { background: var(--moss); color: var(--bone); border-color: var(--moss); }
+.adj-head .pill.want { background: var(--terracotta); color: var(--ground); border-color: var(--terracotta-2); }
+.adj-head .pill.pred { background: var(--moss); color: var(--ground); border-color: var(--moss); }
 .adj-head .pill.decl { background: var(--bone-2); color: var(--ink-soft); }
 .adj-row {
   display: grid; grid-template-columns: minmax(160px, 220px) 1fr; gap: 18px;

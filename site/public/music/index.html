@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="A systematic analysis of Ramie Fathy's all-time top 100 Spotify songs — artist concentration, era cartography, sonic signature, and what the data quietly reveals.">
-<meta name="theme-color" content="#f4f0e8">
+<meta name="theme-color" content="#0b0e13">
+  <meta name="color-scheme" content="dark">
 <meta property="og:site_name" content="Ramie Fathy, MD">
 <meta property="og:title" content="Sonic Self-Portrait — Ramie Fathy">
 <meta property="og:description" content="A reading of my Spotify all-time top 100 — 100 songs, 25 artists, four obsessions, one mood.">
@@ -13,26 +14,30 @@
 <meta name="twitter:card" content="summary_large_image">
 <title>Sonic Self-Portrait · Ramie Fathy</title>
 <link rel="canonical" href="https://ramiefathy.com/music/">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Space+Mono:wght@400;700&display=swap">
+<link rel="preload" href="/apps/shared/fonts/Fraunces-VariableFont_opsz,wght.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/apps/shared/fonts/BricolageGrotesque-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/apps/shared/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/apps/shared/legacy-fonts.css">
 <style>
 :root {
-  --bone:        #f4f0e8;
-  --bone-2:      #e8e2d4;
-  --plate-bg:    #fbf8f1;
-  --ink:         #0a0a0a;
-  --ink-soft:    #1f1f1f;
-  --slate:       #475569;
-  --slate-soft:  #94a3b8;
-  --terracotta:  #c2674a;
-  --terracotta-2:#9f4d36;
-  --moss:        #5b7058;
-  --gold:        #a37b2a;
-  --rule:        #0a0a0a;
-  --rule-soft:   rgba(10,10,10,0.12);
-  --font-display:'Bricolage Grotesque', system-ui, sans-serif;
-  --font-body:   'Newsreader', Georgia, serif;
+    /* Field Console additions: roles that diverge on a dark ground. */
+    --ground:#0b0e13; --invert-bg:#1b222c; --invert-text:#f2f4f6;
+    --line-strong:#39414d; --accent:#ff6b4a;
+  --bone:        #0b0e13;
+  --bone-2:      #151b23;
+  --plate-bg:    #151b23;
+  --ink:         #f2f4f6;
+  --ink-soft:    #c8cfd6;
+  --slate:       #8a94a0;
+  --slate-soft:  #6d7783;
+  --terracotta:  #ff6b4a;
+  --terracotta-2:#ff8666;
+  --moss:        #4fc9a3;
+  --gold:        #f0b83f;
+  --rule:        #232b36;
+  --rule-soft:   rgba(242,244,246,0.10);
+  --font-display:'Fraunces', Georgia, serif;
+  --font-body:   'Bricolage Grotesque', system-ui, sans-serif;
   --font-mono:   'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 * { box-sizing: border-box; }
@@ -43,7 +48,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "ss01","onum","liga";
 }
-::selection { background: var(--terracotta); color: var(--bone); }
+::selection { background: var(--terracotta); color: var(--ground); }
 a { color: inherit; text-decoration: none; }
 a:hover { color: var(--terracotta); }
 :focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
@@ -223,7 +228,7 @@ table.atlas td.count {
 table.atlas td.count .bar-track {
   display: inline-block; vertical-align: middle;
   width: calc(100% - 36px); height: 8px;
-  background: rgba(10,10,10,0.07); margin-right: 8px;
+  background: rgba(242,244,246,0.07); margin-right: 8px;
 }
 table.atlas td.count .bar {
   display: block; height: 100%;
@@ -331,7 +336,7 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
 }
 .chart-legend li:last-child { border-bottom: 0; }
 .chart-legend .swatch {
-  width: 12px; height: 12px; display: inline-block; border: 1px solid rgba(10,10,10,0.2);
+  width: 12px; height: 12px; display: inline-block; border: 1px solid rgba(242,244,246,0.2);
 }
 .chart-legend .lbl { font-family: var(--font-body); color: var(--ink); }
 .chart-legend .ct {
@@ -361,7 +366,7 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
   grid-template-columns: 64px 1fr auto; gap: 20px; align-items: center;
 }
 .spotify-card .sp-icon {
-  width: 64px; height: 64px; background: var(--ink); color: var(--bone);
+  width: 64px; height: 64px; background: var(--invert-bg); color: var(--invert-text);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: -0.02em;
 }
@@ -380,11 +385,11 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
 }
 .spotify-card .sp-cta {
   font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--bone); background: var(--terracotta);
+  text-transform: uppercase; color: var(--ground); background: var(--terracotta);
   padding: 12px 16px; border: 1px solid var(--terracotta-2); white-space: nowrap;
   transition: background .15s ease;
 }
-.spotify-card .sp-cta:hover { background: var(--terracotta-2); color: var(--bone); }
+.spotify-card .sp-cta:hover { background: var(--terracotta-2); color: var(--ground); }
 @media (max-width: 720px) {
   .spotify-card { grid-template-columns: 48px 1fr; }
   .spotify-card .sp-icon { width: 48px; height: 48px; font-size: 22px; }
@@ -659,8 +664,8 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
     <h3 class="display3" style="margin-top:36px;margin-bottom:14px">The genre map.</h3>
     <p class="body-copy" style="margin-bottom:18px">Each song bucketed to one primary genre (per-artist consistency rule), so the chart sums cleanly to 100. The collection is more than half psychedelic — Khruangbin's funk-instrumental tradition plus the Tame Impala / Connan / Foxygen / UMO revival school account for 46 of the 100 slots — with art-rock as the second pillar.</p>
     <div class="chart-row">
-      <div class="chart-svg"><svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Donut chart"><path d="M 160.00 14.00 A 146.00 146.00 0 0 1 304.85 178.30 L 247.31 171.03 A 88.00 88.00 0 0 0 160.00 72.00 Z" fill="#9f4d36" stroke="#fbf8f1" stroke-width="2"><title>Psychedelic Rock &amp; Pop: 27 songs (27%)</title></path><text x="247.8" y="82.6" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#fbf8f1">27</text><path d="M 304.85 178.30 A 146.00 146.00 0 0 1 141.70 304.85 L 148.97 247.31 A 88.00 88.00 0 0 0 247.31 171.03 Z" fill="#475569" stroke="#fbf8f1" stroke-width="2"><title>Art Rock · Alternative: 25 songs (25%)</title></path><text x="231.7" y="252.4" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#fbf8f1">25</text><path d="M 141.70 304.85 A 146.00 146.00 0 0 1 18.59 196.31 L 74.76 181.88 A 88.00 88.00 0 0 0 148.97 247.31 Z" fill="#c2674a" stroke="#fbf8f1" stroke-width="2"><title>Psychedelic Funk · Global Instrumental: 19 songs (19%)</title></path><text x="82.6" y="247.8" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#fbf8f1">19</text><path d="M 18.59 196.31 A 146.00 146.00 0 0 1 32.06 89.66 L 82.89 117.61 A 88.00 88.00 0 0 0 74.76 181.88 Z" fill="#a37b2a" stroke="#fbf8f1" stroke-width="2"><title>Classic Rock Canon (60s–70s): 12 songs (12%)</title></path><text x="43.9" y="145.3" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#fbf8f1">12</text><path d="M 32.06 89.66 A 146.00 146.00 0 0 1 89.66 32.06 L 117.61 82.89 A 88.00 88.00 0 0 0 82.89 117.61 Z" fill="#7d3927" stroke="#fbf8f1" stroke-width="2"><title>Indie · Jangle · Bedroom Pop: 9 songs (9%)</title></path><text x="77.3" y="77.3" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#fbf8f1">9</text><path d="M 89.66 32.06 A 146.00 146.00 0 0 1 132.64 16.59 L 143.51 73.56 A 88.00 88.00 0 0 0 117.61 82.89 Z" fill="#5b7058" stroke="#fbf8f1" stroke-width="2"><title>Funk Rock: 5 songs (5%)</title></path><path d="M 132.64 16.59 A 146.00 146.00 0 0 1 160.00 14.00 L 160.00 72.00 A 88.00 88.00 0 0 0 143.51 73.56 Z" fill="#94a3b8" stroke="#fbf8f1" stroke-width="2"><title>Chillwave · Electronic: 3 songs (3%)</title></path><text x="160.0" y="156.0" text-anchor="middle" dominant-baseline="middle" font-family="Bricolage Grotesque, sans-serif" font-size="28" font-weight="600" fill="#0a0a0a">7</text><text x="160.0" y="178.0" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="10" fill="#475569" letter-spacing="0.12em">GENRE BUCKETS</text></svg></div>
-      <div><ul class="chart-legend"><li><span class="swatch" style="background:#9f4d36"></span><span class="lbl">Psychedelic Rock &amp; Pop</span><span class="ct">27 <em>· 27%</em></span></li><li><span class="swatch" style="background:#475569"></span><span class="lbl">Art Rock · Alternative</span><span class="ct">25 <em>· 25%</em></span></li><li><span class="swatch" style="background:#c2674a"></span><span class="lbl">Psychedelic Funk · Global Instrumental</span><span class="ct">19 <em>· 19%</em></span></li><li><span class="swatch" style="background:#a37b2a"></span><span class="lbl">Classic Rock Canon (60s–70s)</span><span class="ct">12 <em>· 12%</em></span></li><li><span class="swatch" style="background:#7d3927"></span><span class="lbl">Indie · Jangle · Bedroom Pop</span><span class="ct">9 <em>· 9%</em></span></li><li><span class="swatch" style="background:#5b7058"></span><span class="lbl">Funk Rock</span><span class="ct">5 <em>· 5%</em></span></li><li><span class="swatch" style="background:#94a3b8"></span><span class="lbl">Chillwave · Electronic</span><span class="ct">3 <em>· 3%</em></span></li></ul></div>
+      <div class="chart-svg"><svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Donut chart"><path d="M 160.00 14.00 A 146.00 146.00 0 0 1 304.85 178.30 L 247.31 171.03 A 88.00 88.00 0 0 0 160.00 72.00 Z" fill="#e0603f" stroke="#0b0e13" stroke-width="2"><title>Psychedelic Rock &amp; Pop: 27 songs (27%)</title></path><text x="247.8" y="82.6" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#0b0e13">27</text><path d="M 304.85 178.30 A 146.00 146.00 0 0 1 141.70 304.85 L 148.97 247.31 A 88.00 88.00 0 0 0 247.31 171.03 Z" fill="#8a94a0" stroke="#0b0e13" stroke-width="2"><title>Art Rock · Alternative: 25 songs (25%)</title></path><text x="231.7" y="252.4" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#0b0e13">25</text><path d="M 141.70 304.85 A 146.00 146.00 0 0 1 18.59 196.31 L 74.76 181.88 A 88.00 88.00 0 0 0 148.97 247.31 Z" fill="#ff6b4a" stroke="#0b0e13" stroke-width="2"><title>Psychedelic Funk · Global Instrumental: 19 songs (19%)</title></path><text x="82.6" y="247.8" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#0b0e13">19</text><path d="M 18.59 196.31 A 146.00 146.00 0 0 1 32.06 89.66 L 82.89 117.61 A 88.00 88.00 0 0 0 74.76 181.88 Z" fill="#f0b83f" stroke="#0b0e13" stroke-width="2"><title>Classic Rock Canon (60s–70s): 12 songs (12%)</title></path><text x="43.9" y="145.3" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#0b0e13">12</text><path d="M 32.06 89.66 A 146.00 146.00 0 0 1 89.66 32.06 L 117.61 82.89 A 88.00 88.00 0 0 0 82.89 117.61 Z" fill="#c9563a" stroke="#0b0e13" stroke-width="2"><title>Indie · Jangle · Bedroom Pop: 9 songs (9%)</title></path><text x="77.3" y="77.3" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="13" font-weight="700" fill="#0b0e13">9</text><path d="M 89.66 32.06 A 146.00 146.00 0 0 1 132.64 16.59 L 143.51 73.56 A 88.00 88.00 0 0 0 117.61 82.89 Z" fill="#4fc9a3" stroke="#0b0e13" stroke-width="2"><title>Funk Rock: 5 songs (5%)</title></path><path d="M 132.64 16.59 A 146.00 146.00 0 0 1 160.00 14.00 L 160.00 72.00 A 88.00 88.00 0 0 0 143.51 73.56 Z" fill="#6d7783" stroke="#0b0e13" stroke-width="2"><title>Chillwave · Electronic: 3 songs (3%)</title></path><text x="160.0" y="156.0" text-anchor="middle" dominant-baseline="middle" font-family="Bricolage Grotesque, sans-serif" font-size="28" font-weight="600" fill="#f2f4f6">7</text><text x="160.0" y="178.0" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="10" fill="#8a94a0" letter-spacing="0.12em">GENRE BUCKETS</text></svg></div>
+      <div><ul class="chart-legend"><li><span class="swatch" style="background:#e0603f"></span><span class="lbl">Psychedelic Rock &amp; Pop</span><span class="ct">27 <em>· 27%</em></span></li><li><span class="swatch" style="background:#8a94a0"></span><span class="lbl">Art Rock · Alternative</span><span class="ct">25 <em>· 25%</em></span></li><li><span class="swatch" style="background:#ff6b4a"></span><span class="lbl">Psychedelic Funk · Global Instrumental</span><span class="ct">19 <em>· 19%</em></span></li><li><span class="swatch" style="background:#f0b83f"></span><span class="lbl">Classic Rock Canon (60s–70s)</span><span class="ct">12 <em>· 12%</em></span></li><li><span class="swatch" style="background:#c9563a"></span><span class="lbl">Indie · Jangle · Bedroom Pop</span><span class="ct">9 <em>· 9%</em></span></li><li><span class="swatch" style="background:#4fc9a3"></span><span class="lbl">Funk Rock</span><span class="ct">5 <em>· 5%</em></span></li><li><span class="swatch" style="background:#6d7783"></span><span class="lbl">Chillwave · Electronic</span><span class="ct">3 <em>· 3%</em></span></li></ul></div>
     </div>
 
     <p class="body-copy" style="margin-top:36px">Khruangbin functions as the connective tissue. Their instrumental grammar — mid-tempo grooves drawing on Thai funk, Persian classical, dub reggae, and Stax-era soul — happens to share a great deal of vocabulary with Tame Impala's bedroom-psychedelic phase, with Connan Mockasin's mannered surrealism, with Mac DeMarco's jangly slacker-pop, and even with the In Rainbows-era Radiohead aesthetic. One could almost program a "Ramie's brain" playlist that none of these artists ever recorded, just by interpolating between them.</p>
@@ -670,14 +675,14 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
     <!-- Two supporting mini-donuts -->
     <div class="dual-donut">
       <div class="donut-block">
-        <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Donut chart"><path d="M 110.00 14.00 A 96.00 96.00 0 1 1 53.57 32.33 L 79.44 67.93 A 52.00 52.00 0 1 0 110.00 58.00 Z" fill="#475569" stroke="#fbf8f1" stroke-width="2"><title>Vocal Track: 90 songs (90%)</title></path><path d="M 53.57 32.33 A 96.00 96.00 0 0 1 110.00 14.00 L 110.00 58.00 A 52.00 52.00 0 0 0 79.44 67.93 Z" fill="#c2674a" stroke="#fbf8f1" stroke-width="2"><title>Instrumental / Interlude: 10 songs (10%)</title></path><text x="110.0" y="106.0" text-anchor="middle" dominant-baseline="middle" font-family="Bricolage Grotesque, sans-serif" font-size="22" font-weight="600" fill="#0a0a0a">10/100</text><text x="110.0" y="128.0" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="9" fill="#475569" letter-spacing="0.12em">INSTRUMENTAL</text></svg>
+        <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Donut chart"><path d="M 110.00 14.00 A 96.00 96.00 0 1 1 53.57 32.33 L 79.44 67.93 A 52.00 52.00 0 1 0 110.00 58.00 Z" fill="#8a94a0" stroke="#0b0e13" stroke-width="2"><title>Vocal Track: 90 songs (90%)</title></path><path d="M 53.57 32.33 A 96.00 96.00 0 0 1 110.00 14.00 L 110.00 58.00 A 52.00 52.00 0 0 0 79.44 67.93 Z" fill="#ff6b4a" stroke="#0b0e13" stroke-width="2"><title>Instrumental / Interlude: 10 songs (10%)</title></path><text x="110.0" y="106.0" text-anchor="middle" dominant-baseline="middle" font-family="Bricolage Grotesque, sans-serif" font-size="22" font-weight="600" fill="#f2f4f6">10/100</text><text x="110.0" y="128.0" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="9" fill="#8a94a0" letter-spacing="0.12em">INSTRUMENTAL</text></svg>
         <div class="donut-caption">Instrumental share</div>
-        <ul class="chart-legend"><li><span class="swatch" style="background:#475569"></span><span class="lbl">Vocal Track</span><span class="ct">90 <em>· 90%</em></span></li><li><span class="swatch" style="background:#c2674a"></span><span class="lbl">Instrumental / Interlude</span><span class="ct">10 <em>· 10%</em></span></li></ul>
+        <ul class="chart-legend"><li><span class="swatch" style="background:#8a94a0"></span><span class="lbl">Vocal Track</span><span class="ct">90 <em>· 90%</em></span></li><li><span class="swatch" style="background:#ff6b4a"></span><span class="lbl">Instrumental / Interlude</span><span class="ct">10 <em>· 10%</em></span></li></ul>
       </div>
       <div class="donut-block">
-        <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Donut chart"><path d="M 110.00 14.00 A 96.00 96.00 0 0 1 156.25 25.87 L 135.05 64.43 A 52.00 52.00 0 0 0 110.00 58.00 Z" fill="#a37b2a" stroke="#fbf8f1" stroke-width="2"><title>1960s: 8 songs (8%)</title></path><path d="M 156.25 25.87 A 96.00 96.00 0 0 1 175.72 40.02 L 145.60 72.09 A 52.00 52.00 0 0 0 135.05 64.43 Z" fill="#7d3927" stroke="#fbf8f1" stroke-width="2"><title>1970s: 4 songs (4%)</title></path><path d="M 175.72 40.02 A 96.00 96.00 0 0 1 179.98 44.28 L 147.91 74.40 A 52.00 52.00 0 0 0 145.60 72.09 Z" fill="#94a3b8" stroke="#fbf8f1" stroke-width="2"><title>1980s: 1 song (1%)</title></path><path d="M 179.98 44.28 A 96.00 96.00 0 0 1 205.81 103.97 L 161.90 106.73 A 52.00 52.00 0 0 0 147.91 74.40 Z" fill="#475569" stroke="#fbf8f1" stroke-width="2"><title>1990s: 11 songs (11%)</title></path><path d="M 205.81 103.97 A 96.00 96.00 0 0 1 187.67 166.43 L 152.07 140.56 A 52.00 52.00 0 0 0 161.90 106.73 Z" fill="#5b7058" stroke="#fbf8f1" stroke-width="2"><title>2000s: 11 songs (11%)</title></path><path d="M 187.67 166.43 A 96.00 96.00 0 1 1 44.28 40.02 L 74.40 72.09 A 52.00 52.00 0 1 0 152.07 140.56 Z" fill="#c2674a" stroke="#fbf8f1" stroke-width="2"><title>2010s: 53 songs (53%)</title></path><path d="M 44.28 40.02 A 96.00 96.00 0 0 1 110.00 14.00 L 110.00 58.00 A 52.00 52.00 0 0 0 74.40 72.09 Z" fill="#9f4d36" stroke="#fbf8f1" stroke-width="2"><title>2020s: 12 songs (12%)</title></path><text x="110.0" y="106.0" text-anchor="middle" dominant-baseline="middle" font-family="Bricolage Grotesque, sans-serif" font-size="22" font-weight="600" fill="#0a0a0a">53%</text><text x="110.0" y="128.0" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="9" fill="#475569" letter-spacing="0.12em">FROM THE 2010S</text></svg>
+        <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Donut chart"><path d="M 110.00 14.00 A 96.00 96.00 0 0 1 156.25 25.87 L 135.05 64.43 A 52.00 52.00 0 0 0 110.00 58.00 Z" fill="#f0b83f" stroke="#0b0e13" stroke-width="2"><title>1960s: 8 songs (8%)</title></path><path d="M 156.25 25.87 A 96.00 96.00 0 0 1 175.72 40.02 L 145.60 72.09 A 52.00 52.00 0 0 0 135.05 64.43 Z" fill="#c9563a" stroke="#0b0e13" stroke-width="2"><title>1970s: 4 songs (4%)</title></path><path d="M 175.72 40.02 A 96.00 96.00 0 0 1 179.98 44.28 L 147.91 74.40 A 52.00 52.00 0 0 0 145.60 72.09 Z" fill="#6d7783" stroke="#0b0e13" stroke-width="2"><title>1980s: 1 song (1%)</title></path><path d="M 179.98 44.28 A 96.00 96.00 0 0 1 205.81 103.97 L 161.90 106.73 A 52.00 52.00 0 0 0 147.91 74.40 Z" fill="#8a94a0" stroke="#0b0e13" stroke-width="2"><title>1990s: 11 songs (11%)</title></path><path d="M 205.81 103.97 A 96.00 96.00 0 0 1 187.67 166.43 L 152.07 140.56 A 52.00 52.00 0 0 0 161.90 106.73 Z" fill="#4fc9a3" stroke="#0b0e13" stroke-width="2"><title>2000s: 11 songs (11%)</title></path><path d="M 187.67 166.43 A 96.00 96.00 0 1 1 44.28 40.02 L 74.40 72.09 A 52.00 52.00 0 1 0 152.07 140.56 Z" fill="#ff6b4a" stroke="#0b0e13" stroke-width="2"><title>2010s: 53 songs (53%)</title></path><path d="M 44.28 40.02 A 96.00 96.00 0 0 1 110.00 14.00 L 110.00 58.00 A 52.00 52.00 0 0 0 74.40 72.09 Z" fill="#e0603f" stroke="#0b0e13" stroke-width="2"><title>2020s: 12 songs (12%)</title></path><text x="110.0" y="106.0" text-anchor="middle" dominant-baseline="middle" font-family="Bricolage Grotesque, sans-serif" font-size="22" font-weight="600" fill="#f2f4f6">53%</text><text x="110.0" y="128.0" text-anchor="middle" dominant-baseline="middle" font-family="Space Mono, monospace" font-size="9" fill="#8a94a0" letter-spacing="0.12em">FROM THE 2010S</text></svg>
         <div class="donut-caption">Decade share</div>
-        <ul class="chart-legend"><li><span class="swatch" style="background:#a37b2a"></span><span class="lbl">1960s</span><span class="ct">8 <em>· 8%</em></span></li><li><span class="swatch" style="background:#7d3927"></span><span class="lbl">1970s</span><span class="ct">4 <em>· 4%</em></span></li><li><span class="swatch" style="background:#94a3b8"></span><span class="lbl">1980s</span><span class="ct">1 <em>· 1%</em></span></li><li><span class="swatch" style="background:#475569"></span><span class="lbl">1990s</span><span class="ct">11 <em>· 11%</em></span></li><li><span class="swatch" style="background:#5b7058"></span><span class="lbl">2000s</span><span class="ct">11 <em>· 11%</em></span></li><li><span class="swatch" style="background:#c2674a"></span><span class="lbl">2010s</span><span class="ct">53 <em>· 53%</em></span></li><li><span class="swatch" style="background:#9f4d36"></span><span class="lbl">2020s</span><span class="ct">12 <em>· 12%</em></span></li></ul>
+        <ul class="chart-legend"><li><span class="swatch" style="background:#f0b83f"></span><span class="lbl">1960s</span><span class="ct">8 <em>· 8%</em></span></li><li><span class="swatch" style="background:#c9563a"></span><span class="lbl">1970s</span><span class="ct">4 <em>· 4%</em></span></li><li><span class="swatch" style="background:#6d7783"></span><span class="lbl">1980s</span><span class="ct">1 <em>· 1%</em></span></li><li><span class="swatch" style="background:#8a94a0"></span><span class="lbl">1990s</span><span class="ct">11 <em>· 11%</em></span></li><li><span class="swatch" style="background:#4fc9a3"></span><span class="lbl">2000s</span><span class="ct">11 <em>· 11%</em></span></li><li><span class="swatch" style="background:#ff6b4a"></span><span class="lbl">2010s</span><span class="ct">53 <em>· 53%</em></span></li><li><span class="swatch" style="background:#e0603f"></span><span class="lbl">2020s</span><span class="ct">12 <em>· 12%</em></span></li></ul>
       </div>
     </div>
   </section>
