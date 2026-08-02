@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+  <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />
+  <title>Level 20 Character Console — Lisa Blesslie & Steph Scurry</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">d20</div>
+        <div>
+          <h1>Level 20 Character Console</h1>
+          <p>Offline play dashboard for Lisa Blesslie and Steph Scurry</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="btn" id="shortRestBtn" type="button">Short Rest</button>
+        <button class="btn" id="longRestBtn" type="button">Long Rest</button>
+        <button class="btn" id="exportBtn" type="button">Export Save</button>
+        <button class="btn" id="importBtn" type="button">Import Save</button>
+        <button class="btn danger" id="resetBtn" type="button">Reset Character</button>
+        <input id="importFile" type="file" accept="application/json" class="hidden" />
+      </div>
+    </header>
+
+    <section class="character-switcher" aria-label="Choose character">
+      <button class="character-card active" data-character="paladin" type="button">
+        <div class="portrait">LB</div>
+        <div>
+          <h2>Lisa Blesslie</h2>
+          <p>Bugbear · Oath of Glory Paladin 20 · Hermit</p>
+        </div>
+        <span class="role-chip">Frontline · Support · Nova</span>
+      </button>
+      <button class="character-card" data-character="rogue" type="button">
+        <div class="portrait">SS</div>
+        <div>
+          <h2>Steph Scurry</h2>
+          <p>Halfling · Thief Rogue 20 · Wayfarer</p>
+        </div>
+        <span class="role-chip">Skirmisher · Scout · Utility</span>
+      </button>
+    </section>
+
+    <nav class="tabbar" aria-label="Character sections">
+      <button class="tab-btn active" data-tab="combat" type="button">Combat</button>
+      <button class="tab-btn" data-tab="sheet" type="button">Sheet</button>
+      <button class="tab-btn" data-tab="features" type="button">Features</button>
+      <button class="tab-btn" data-tab="magic" type="button">Spells & Items</button>
+      <button class="tab-btn" data-tab="compare" type="button">Compare</button>
+      <button class="tab-btn" data-tab="notes" type="button">Notes</button>
+    </nav>
+
+    <main>
+      <section id="tab-combat" class="tab-panel active"></section>
+      <section id="tab-sheet" class="tab-panel"></section>
+      <section id="tab-features" class="tab-panel"></section>
+      <section id="tab-magic" class="tab-panel"></section>
+      <section id="tab-compare" class="tab-panel"></section>
+      <section id="tab-notes" class="tab-panel"></section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app-1.js"></script>
+  <script src="app-2.js"></script>
+  <script src="app-3.js"></script>
+  <script src="app-4.js"></script>
+</body>
+</html>
