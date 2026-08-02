@@ -23,9 +23,12 @@ test.describe('Dermoscopy LLM evaluation dashboard', () => {
   test('renders and supports tab switching + model selection', async ({ page }) => {
     await page.goto('/research/dermoscopy-llm-dashboard', { waitUntil: 'domcontentloaded' });
 
-    // Atlas plate h1 ("17 models. 10,200 trials. One question.") replaces the old Phase-6 h1
-    // ("Dermoscopy LLM Evaluation"). Assert the page surface via the plate stamp + dashboard h2.
-    await expect(page.locator('.plate-stamp').filter({ hasText: 'Dermoscopy LLM' })).toBeVisible();
+    // The page h1 ("17 models. 10,200 trials. One question.") differs from the dashboard's own
+    // h2, so assert the page surface via the Field Console section marker + dashboard h2. The
+    // retired `.plate-stamp` ornament is asserted absent sitewide in field-console.spec.ts.
+    await expect(
+      page.locator('.section-marker').filter({ hasText: 'open dermoscopy-llm-eval' })
+    ).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Dermoscopy LLM Evaluation Dashboard' })).toBeVisible();
 
     await waitForDashboardData(page);

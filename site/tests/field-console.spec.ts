@@ -100,8 +100,17 @@ test('command palette closes on Escape', async ({ page }) => {
 test('command palette opens with the Ctrl/Cmd-K shortcut', async ({ page }) => {
   await page.goto('/')
   await waitForHeaderHydration(page)
-  await page.keyboard.press('ControlOrMeta+k')
-  await expect(page.getByRole('dialog', { name: /navigate this site/i })).toBeVisible()
+  // Dropping the island's `ssr` attribute means Astro *called* React's hydrate, not that
+  // React finished committing — the hydrate is concurrent, so the `document` keydown
+  // listener can still be unattached for a frame or two. A keystroke sent into that gap is
+  // dropped with nothing to retry against, which is what made this test flaky. Retrying the
+  // shortcut itself is the only signal that the listener is genuinely live.
+  await expect(async () => {
+    await page.keyboard.press('ControlOrMeta+k')
+    await expect(page.getByRole('dialog', { name: /navigate this site/i })).toBeVisible({
+      timeout: 1_000,
+    })
+  }).toPass()
 })
 
 test('command palette closes on Escape after Tab moves focus to a result', async ({ page }) => {
