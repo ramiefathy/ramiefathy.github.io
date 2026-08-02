@@ -45,6 +45,14 @@ jobs:
           path: site/public/apps/rheum-derm-clinical-trials
           if-no-files-found: error
           retention-days: 1
+      - name: Upload built D&D console for audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnd-console-built-route
+          path: site/dist/tools/dnd-l20-console-f2c7a9
+          if-no-files-found: error
+          retention-days: 3
 
   e2e-playwright:
     runs-on: ubuntu-latest
@@ -65,6 +73,16 @@ jobs:
       - name: Run Playwright e2e
         working-directory: site
         run: npx playwright test --reporter=line
+      - name: Upload D&D Playwright audit output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnd-console-playwright-audit
+          path: |
+            site/test-results/dnd-console-audit
+            site/playwright-report
+          if-no-files-found: ignore
+          retention-days: 3
 
   ai-scribe-lint:
     runs-on: ubuntu-latest
