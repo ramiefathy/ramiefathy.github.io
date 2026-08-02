@@ -8,6 +8,10 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+  statuses: write
+
 jobs:
   build-site:
     runs-on: ubuntu-latest
@@ -41,7 +45,6 @@ jobs:
           path: site/public/apps/rheum-derm-clinical-trials
           if-no-files-found: error
           retention-days: 1
-      # Removed Playwright console regression checks; they are run locally as needed
 
   e2e-playwright:
     runs-on: ubuntu-latest
@@ -79,3 +82,42 @@ jobs:
         run: python -m compileall services/ai-scribe
       - name: Run backend tests
         run: python -m pytest services/ai-scribe/tests -q
+
+  report-master-ci-status:
+    if: ${{ always() && github.event_name == 'push' }}
+    needs:
+      - build-site
+      - e2e-playwright
+      - ai-scribe-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish combined master CI status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_RESULT: ${{ needs.build-site.result }}
+          E2E_RESULT: ${{ needs.e2e-playwright.result }}
+          SCRIBE_RESULT: ${{ needs.ai-scribe-lint.result }}
+        run: |
+          set -euo pipefail
+
+          state=failure
+          description="Master CI failed"
+          if [[ "$BUILD_RESULT" == "success" && "$E2E_RESULT" == "success" && "$SCRIBE_RESULT" == "success" ]]; then
+            state=success
+            description="Build, Playwright, and scribe checks passed"
+          fi
+
+          payload=$(jq -n \
+            --arg state "$state" \
+            --arg target_url "https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}" \
+            --arg description "$description" \
+            --arg context "ci/master" \
+            '{state: $state, target_url: $target_url, description: $description, context: $context}')
+
+          curl --fail-with-body --silent --show-error --location \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            --data "$payload"
