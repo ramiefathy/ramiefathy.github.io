@@ -1699,7 +1699,9 @@ h1, h2, h3, h4, h5, h6 {
   padding: 6px 12px;
   border-bottom: 1px solid var(--rule);
   outline: none;
-  min-width: 200px;
+  /* 200px clipped the placeholder mid-word ("…stack, o"). Sized to the
+     placeholder it actually ships so the hint reads in full. */
+  min-width: 264px;
 }
 
 .apps-plates {
@@ -1765,6 +1767,10 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.08;
   letter-spacing: -0.012em;
   color: var(--ink);
+  /* Titles run one to three lines, which pushed each card's body copy to a
+     different height and left the row's descriptions unaligned. Reserving three
+     lines gives them a shared baseline; longer titles still grow past it. */
+  min-height: calc(3em * 1.08);
 }
 
 .app-plate h4 em {
@@ -2660,6 +2666,29 @@ h1, h2, h3, h4, h5, h6 {
 
 .field-hero__body a { pointer-events: auto; }
 
+/* The canvas paints bright coral strokes that pass directly behind the hero
+   copy. Token-based contrast checks compare text against --ground and so read
+   this as safe, but measured against the pixels actually drawn there the 12px
+   coral kicker fell to 1.76:1 and the muted lede to 2.59:1. Damping the field
+   under the text column restores >=4.5:1 in the worst case while leaving the
+   dense right-hand side of the field — the part that carries the effect —
+   untouched. Sits above the canvas (z-index 0) but behind the copy, inside the
+   stacking context .field-hero__body already establishes. */
+.field-hero__body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(11, 14, 19, 0.85) 0%,
+    rgba(11, 14, 19, 0.85) 46%,
+    rgba(11, 14, 19, 0.5) 64%,
+    rgba(11, 14, 19, 0) 80%
+  );
+}
+
 .field-hero__kicker {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -2766,7 +2795,10 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 7px 14px;
-  background: rgba(11, 14, 19, 0.6);
+  /* Sits bottom-right, past the body scrim and over the densest part of the
+     field, so it carries its own plate. 0.6 let peak strokes through at 1.18:1;
+     0.92 matches the activity console and holds the label above 4.5:1. */
+  background: rgba(11, 14, 19, 0.92);
 }
 
 /* --- Section command preface ($ ls apps --featured) --------------------- */
@@ -2950,6 +2982,17 @@ h1, h2, h3, h4, h5, h6 {
   .status-bar { padding: 10px 20px; font-size: 11px; }
   .status-bar__where, .status-clock { display: none; }
   .field-hero__body { padding: 44px 22px 20px; }
+  /* Narrow screens run the copy nearly edge to edge, so the scrim has to reach
+     further right than the desktop gradient does. */
+  .field-hero__body::before {
+    background: linear-gradient(
+      to right,
+      rgba(11, 14, 19, 0.85) 0%,
+      rgba(11, 14, 19, 0.85) 80%,
+      rgba(11, 14, 19, 0.6) 93%,
+      rgba(11, 14, 19, 0) 100%
+    );
+  }
   .field-hero__console { grid-template-columns: 1fr; padding: 0 22px 26px; }
   .field-hero__hint { display: none; }
   .f-about { grid-template-columns: 1fr; gap: 28px; }

@@ -234,6 +234,31 @@ describe('Field Console Site Design Contract (Astro src)', () => {
     expect(css).toMatch(/--font-mono:\s*['"]Space Mono['"]/i)
   })
 
+  it('hero copy keeps a scrim between it and the particle canvas', () => {
+    // The rest of this file checks text against --ground, which is the wrong
+    // backdrop for the hero: the canvas paints coral strokes directly behind
+    // the copy, and the cursor vortex drives them to full intensity. Measured
+    // against real pixels the 12px kicker hit 1.76:1 before this scrim existed.
+    // Nothing else here can catch that, so guard the scrim itself.
+    const css = fs.readFileSync(GLOBAL_CSS, 'utf-8')
+    const scrim = css.match(/\.field-hero__body::before\s*\{[^}]*\}/)
+    expect(scrim, '.field-hero__body::before scrim must exist').toBeTruthy()
+    const alphas = [...scrim![0].matchAll(/rgba\(\s*11,\s*14,\s*19,\s*([\d.]+)\s*\)/g)].map((m) =>
+      parseFloat(m[1])
+    )
+    expect(alphas.length, 'scrim must be a --ground gradient').toBeGreaterThan(1)
+    // 0.85 is what holds the worst observed stroke above 4.5:1; see the rule's comment.
+    expect(Math.max(...alphas), 'scrim must stay opaque enough under the copy').toBeGreaterThanOrEqual(0.85)
+
+    // The cursor hint sits outside that scrim, over the densest part of the
+    // field, so it carries its own plate.
+    const hint = css.match(/\.field-hero__hint\s*\{[^}]*\}/)
+    expect(hint, '.field-hero__hint rule must exist').toBeTruthy()
+    const hintAlpha = hint![0].match(/background:\s*rgba\(\s*11,\s*14,\s*19,\s*([\d.]+)\s*\)/)
+    expect(hintAlpha, 'hint must keep an opaque --ground plate').toBeTruthy()
+    expect(parseFloat(hintAlpha![1])).toBeGreaterThanOrEqual(0.9)
+  })
+
   it('is a single-theme dark site — no light-mode override blocks', () => {
     const css = fs.readFileSync(GLOBAL_CSS, 'utf-8')
     expect(css).not.toMatch(/\[data-theme=['"]light['"]\]/)
