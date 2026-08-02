@@ -84,7 +84,7 @@ async function tryCommittedOutput() {
 
 async function tryCanonicalShards(allFiles) {
   const shardFiles = allFiles
-    .filter((name) => /^dashboard\.\d+\.b64$/i.test(name))
+    .filter((name) => /^dashboard\.\d+[a-z]?\.b64$/i.test(name))
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   if (!shardFiles.length) return false;
