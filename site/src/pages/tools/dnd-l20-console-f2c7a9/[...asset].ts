@@ -1,8 +1,8 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 const assets = [
-  'index.html',
   'payload-01.js',
   'payload-02a.js',
   'payload-02b.js',
@@ -15,30 +15,29 @@ const assets = [
   'boot.js',
 ] as const;
 
-const sourceRoot = new URL('../../../../../tools/dnd-l20-console-f2c7a9/', import.meta.url);
+const cwd = process.cwd();
+const repositoryRoot = path.basename(cwd) === 'site' ? path.dirname(cwd) : cwd;
+const sourceRoot = path.join(repositoryRoot, 'tools', 'dnd-l20-console-f2c7a9');
 
 export const prerender = true;
 
-export const getStaticPaths: GetStaticPaths = () => [
-  { params: { asset: undefined }, props: { filename: 'index.html' } },
-  ...assets.slice(1).map((filename) => ({ params: { asset: filename }, props: { filename } })),
-];
+// The directory index is rendered by index.ts. This optional catch-all route
+// receives only concrete asset paths, preventing Astro from generating an
+// undefined path that collides with the index route during prerendering.
+export const getStaticPaths: GetStaticPaths = () =>
+  assets.map((filename) => ({ params: { asset: filename }, props: { filename } }));
 
 export const GET: APIRoute = async ({ props }) => {
-  const filename = String(props.filename ?? 'index.html');
+  const filename = String(props.filename ?? '');
   if (!assets.includes(filename as (typeof assets)[number])) {
     return new Response('Not found', { status: 404 });
   }
 
-  const body = await readFile(new URL(filename, sourceRoot));
-  const contentType = filename.endsWith('.js')
-    ? 'text/javascript; charset=utf-8'
-    : 'text/html; charset=utf-8';
-
+  const body = await readFile(path.join(sourceRoot, filename));
   return new Response(body, {
     headers: {
-      'Content-Type': contentType,
-      'Cache-Control': filename === 'index.html' ? 'no-cache' : 'public, max-age=31536000, immutable',
+      'Content-Type': 'text/javascript; charset=utf-8',
+      'Cache-Control': 'public, max-age=31536000, immutable',
       'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet',
     },
   });
