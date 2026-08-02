@@ -32,7 +32,7 @@
   --accent-deep: #e04e2d;
   --hairline: #1b222c;      /* section dividers */
   --line: #232b36;          /* component borders */
-  --line-strong: #39414d;   /* secondary button / input borders (3:1) */
+  --line-strong: #5a6472;   /* secondary button / input borders (3.2:1 on --ground) */
 
   /* --- Legacy aliases (role-preserving) ------------------------------- */
   --bone: var(--ground);
@@ -311,7 +311,7 @@ h1, h2, h3, h4, h5, h6 {
 .header-menu__icon span {
   display: block;
   height: 1.5px;
-  background: var(--invert-bg);
+  background: var(--text);
   transition: transform 200ms ease;
 }
 
@@ -405,16 +405,9 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--accent-hover);
 }
 
-.button--secondary {
-  color: var(--text);
-  background: transparent;
-  border-color: var(--line-strong);
-}
-
-.button--secondary:hover {
-  color: var(--text);
-  border-color: var(--text-muted);
-}
+/* .button--secondary carries no rules of its own: it's identical to the base
+   .button/.button:hover, so a plain .button already covers it. The class
+   stays on secondary CTAs in markup for readability at the call site. */
 
 /* =============================================================================
    SECTION primitives · plate frame

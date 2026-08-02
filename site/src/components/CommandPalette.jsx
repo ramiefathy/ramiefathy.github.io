@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lockScroll, unlockScroll } from '../lib/scrollLock.js';
 
 /**
  * ⌘K / Ctrl-K navigation palette.
@@ -6,10 +7,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
  * Rendered by `Header` so every route gets it. Keyboard contract:
  *   ⌘K / Ctrl-K  open        Esc      close
  *   ↑ / ↓        move        Enter    navigate to the highlighted row
+ *   Tab / Shift-Tab           cycle focus within the dialog (does not escape it)
  *
  * The bare `k` shortcut only fires when focus is on the document body, so it
  * never steals a keystroke from the contact form or the apps search box.
+ *
+ * Keyboard handling lives on the dialog element, not the input: once a
+ * result button has focus (via Tab or click), the input no longer sees
+ * keydown events, so binding only there left Escape and the arrow keys dead
+ * as soon as focus moved.
  */
+
+const FOCUSABLE_SELECTOR = 'input, button, [href], [tabindex]:not([tabindex="-1"])';
 
 const DESTINATIONS = [
   { label: 'Home', href: '/', keywords: 'home start index' },
@@ -45,12 +54,11 @@ const CommandPalette = ({ open, onClose }) => {
     setCursor(0);
     const raf = window.requestAnimationFrame(() => inputRef.current?.focus());
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll();
 
     return () => {
       window.cancelAnimationFrame(raf);
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       const target = previouslyFocused.current;
       if (target && typeof target.focus === 'function') target.focus();
     };
@@ -81,6 +89,22 @@ const CommandPalette = ({ open, onClose }) => {
       if (event.key === 'Enter') {
         event.preventDefault();
         go(results[cursor]);
+        return;
+      }
+      if (event.key === 'Tab') {
+        // Trap focus inside the dialog — Tab must not leak into the page
+        // the overlay sits on top of.
+        const focusable = event.currentTarget.querySelectorAll(FOCUSABLE_SELECTOR);
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     },
     [results, cursor, go, onClose]
@@ -95,24 +119,34 @@ const CommandPalette = ({ open, onClose }) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="palette-dialog" role="dialog" aria-modal="true" aria-label="Navigate this site">
+      <div
+        className="palette-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigate this site"
+        onKeyDown={handleKeyDown}
+      >
         <input
           ref={inputRef}
           className="palette-input"
           type="text"
+          role="combobox"
+          aria-expanded="true"
+          aria-controls="palette-listbox"
+          aria-activedescendant={results[cursor] ? `palette-option-${cursor}` : undefined}
           value={query}
           placeholder="Type a destination…"
           aria-label="Filter destinations"
           autoComplete="off"
           onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={handleKeyDown}
         />
         {results.length ? (
-          <ul className="palette-list" role="listbox" aria-label="Destinations">
+          <ul className="palette-list" id="palette-listbox" role="listbox" aria-label="Destinations">
             {results.map((item, index) => (
               <li key={item.href} role="presentation">
                 <button
                   type="button"
+                  id={`palette-option-${index}`}
                   className="palette-item"
                   role="option"
                   aria-selected={index === cursor}

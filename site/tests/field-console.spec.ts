@@ -1,4 +1,15 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
+
+// The Ctrl/Cmd-K shortcut is wired up inside Header, a `client:load` island.
+// `page.goto` resolves on the 'load' event, which can fire before hydration
+// finishes attaching the keydown listener — waiting for the island to drop
+// its `ssr` attribute avoids racing the keyboard-only test ahead of it.
+async function waitForHeaderHydration(page: Page) {
+  await page.waitForFunction(() => {
+    const island = document.querySelector('astro-island[component-url*="Header"]')
+    return island && !island.hasAttribute('ssr')
+  })
+}
 
 /**
  * Field Console structure coverage.
@@ -64,8 +75,9 @@ test('command palette opens, filters, and navigates', async ({ page }) => {
   const dialog = page.getByRole('dialog', { name: /navigate this site/i })
   await expect(dialog).toBeVisible()
 
-  // Filtering narrows the option list.
-  await dialog.getByRole('textbox').fill('research')
+  // Filtering narrows the option list. The input carries role="combobox" (not
+  // "textbox") so aria-activedescendant can announce the highlighted result.
+  await dialog.getByRole('combobox').fill('research')
   const options = dialog.getByRole('option')
   await expect(options).toHaveCount(1)
   await expect(options.first()).toContainText('Research')
@@ -81,6 +93,24 @@ test('command palette closes on Escape', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: /navigate this site/i })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog', { name: /navigate this site/i })).toHaveCount(0)
+})
+
+test('command palette opens with the Ctrl/Cmd-K shortcut', async ({ page }) => {
+  await page.goto('/')
+  await waitForHeaderHydration(page)
+  await page.keyboard.press('ControlOrMeta+k')
+  await expect(page.getByRole('dialog', { name: /navigate this site/i })).toBeVisible()
+})
+
+test('command palette closes on Escape after Tab moves focus to a result', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: /navigate/i }).click()
+  const dialog = page.getByRole('dialog', { name: /navigate this site/i })
+  await expect(dialog).toBeVisible()
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('option').first()).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
 })
 
 test('hero renders the particle canvas over SSR-visible copy', async ({ page }) => {

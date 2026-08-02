@@ -88,8 +88,8 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
   //   - The AppsGallery React island (replaced by a static `.app-plate` grid with filters).
   //     Coverage now lives in `field-console.spec.ts` (apps catalog filter test) and
   //     `skinoculars.spec.ts` (canonical URL regression).
-  //   - The homepage `article.pub-card` + `.pub-timeline` widget (replaced by a `.pub-table`
-  //     register that `field-console.spec.ts` smoke-tests).
+  //   - The homepage `article.pub-card` + `.pub-timeline` widget (replaced by the homepage's
+  //     `.f-pubs` publication list; no spec currently asserts on its content directly).
   //   - The homepage `#contact` section (the footer + /contact route carry the Gmail-mailto
   //     regression goal; those assertions remain below and in the footer test).
 
@@ -210,8 +210,8 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
     await expect(main.getByRole('link', { name: /Get in touch/i })).toHaveAttribute('href', '/contact');
   });
 
-  // Phase 7 Atlas redesign: theme toggle removed — Atlas is light-only by design
-  // (see field-console.spec.ts "single-theme site ships no theme toggle").
+  // Field Console redesign: theme toggle removed — the site is single-theme dark
+  // by design (see field-console.spec.ts "single-theme site ships no theme toggle").
 
   test('mobile drawer navigation works and Escape closes it', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });

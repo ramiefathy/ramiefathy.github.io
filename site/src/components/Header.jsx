@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import CommandPalette from './CommandPalette.jsx';
+import { lockScroll, unlockScroll } from '../lib/scrollLock.js';
 
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
@@ -16,18 +17,22 @@ function isActiveLink(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/** Local wall-clock for the status bar. Rendered empty on the server so SSR
- *  markup and the first client paint agree. */
+const CLOCK_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false
+});
+
+/** Baltimore wall-clock for the status bar — always America/New_York,
+ *  regardless of the visitor's own timezone, since the label reads
+ *  "· Baltimore". Rendered empty on the server so SSR markup and the first
+ *  client paint agree. */
 const useClock = () => {
   const [stamp, setStamp] = useState('');
   useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      const hhmmss = [now.getHours(), now.getMinutes(), now.getSeconds()]
-        .map((part) => String(part).padStart(2, '0'))
-        .join(':');
-      setStamp(hhmmss);
-    };
+    const tick = () => setStamp(CLOCK_FORMATTER.format(new Date()));
     tick();
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
@@ -39,7 +44,6 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activePath, setActivePath] = useState('');
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const previousOverflow = useRef('');
   const clock = useClock();
 
   useEffect(() => {
@@ -79,15 +83,11 @@ const Header = () => {
     };
     document.addEventListener('keydown', handleKeyDown);
 
-    if (menuOpen) {
-      previousOverflow.current = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = previousOverflow.current || '';
-    }
+    if (menuOpen) lockScroll();
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = previousOverflow.current || '';
+      if (menuOpen) unlockScroll();
     };
   }, [menuOpen]);
 

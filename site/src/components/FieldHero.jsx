@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 /**
  * Field Console hero.
@@ -35,13 +35,18 @@ const FieldHero = ({ profile }) => {
   const pointerRef = useRef({ x: -1e4, y: -1e4 });
   const [primaryCta, secondaryCta] = (profile.callToActions || []).slice(0, 2);
 
-  const phrases = profile.activity && profile.activity.length
-    ? profile.activity
-    : [profile.summary];
+  // Memoized so the fallback branch doesn't allocate a new array (and thus
+  // restart the typewriter effect below) on every render when `activity` is
+  // absent; filtered so a missing/blank entry can't hand the typewriter an
+  // undefined phrase to slice.
+  const phrases = useMemo(() => {
+    const list = profile.activity && profile.activity.length ? profile.activity : [profile.summary];
+    return list.filter((entry) => typeof entry === 'string' && entry.length > 0);
+  }, [profile.activity, profile.summary]);
 
   // Server render (and the reduced-motion path) shows the first phrase in full
   // so the console is never an empty box.
-  const [typed, setTyped] = useState(phrases[0]);
+  const [typed, setTyped] = useState(phrases[0] || '');
 
   /* ---------------------------------------------------------------- canvas */
   useEffect(() => {
@@ -233,6 +238,15 @@ const FieldHero = ({ profile }) => {
   const [firstName, ...restName] = (profile.name || '').replace(/,\s*MD$/, '').split(' ');
   const lastName = restName.join(' ');
 
+  // Kicker and sub-copy read from profile.json rather than being hard-coded,
+  // so editing the source data is enough to update the hero.
+  const kicker = (profile.title || '').split(',').map((part) => part.trim()).filter(Boolean).join(' · ');
+  const summary = profile.summary || '';
+  const sentenceBreak = summary.indexOf('. ');
+  const [leadSentence, restOfSummary] = sentenceBreak === -1
+    ? [summary, '']
+    : [summary.slice(0, sentenceBreak + 1), summary.slice(sentenceBreak + 1)];
+
   return (
     <section
       className="field-hero"
@@ -244,14 +258,13 @@ const FieldHero = ({ profile }) => {
       <canvas className="field-hero__canvas" ref={canvasRef} aria-hidden="true" />
 
       <div className="field-hero__body">
-        <p className="field-hero__kicker">Dermatology · Clinical AI · Research</p>
+        <p className="field-hero__kicker">{kicker}</p>
         <h1 className="field-hero__name" id="hero-title">
           {firstName} <em>{lastName}</em>
           <span className="field-hero__degree">, MD</span>
         </h1>
         <p className="field-hero__sub">
-          <strong>Dermatology resident at Johns Hopkins.</strong> I build clinical AI tools and
-          study how they should — and should not — be used at the bedside.
+          <strong>{leadSentence}</strong>{restOfSummary}
         </p>
         <div className="field-hero__cta">
           {primaryCta ? (

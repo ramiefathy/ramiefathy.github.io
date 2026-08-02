@@ -159,9 +159,16 @@ describe('Field Console Site Design Contract (Astro src)', () => {
       path.resolve(SITE_ROOT, 'public', 'apps', 'shared', 'legacy-fonts.css'),
       'utf-8'
     )
+    // @font-face blocks only, so a family name mentioned elsewhere in the file
+    // (e.g. a fallback stack in a comment) can't satisfy "actually self-hosted".
+    const faceBlocks = faceCss.match(/@font-face\s*\{[^}]*\}/g) ?? []
     for (const family of ['Fraunces', 'Bricolage Grotesque', 'Space Mono']) {
-      expect(css, `${family} should be referenced by a token`).toContain(`'${family}'`)
-      expect(faceCss, `${family} needs an @font-face declaration`).toContain(`"${family}"`)
+      const referencedByToken = new RegExp(`['"]${family}['"]`).test(css)
+      expect(referencedByToken, `${family} should be referenced by a token`).toBe(true)
+      const declaredInFontFace = faceBlocks.some((block) =>
+        new RegExp(`font-family:\\s*['"]${family}['"]`).test(block)
+      )
+      expect(declaredInFontFace, `${family} needs an @font-face declaration`).toBe(true)
     }
   })
 
@@ -237,8 +244,8 @@ describe('Field Console Site Design Contract (Astro src)', () => {
     // The decorative barcode rule, plate numbering, and volume/coordinate
     // language were the specific things the redesign removed.
     const bannedMarkup: Array<{ label: string; re: RegExp }> = [
-      { label: 'decorative barcode element', re: /class=["'][^"']*\bbarcode\b/ },
-      { label: 'plate-number variable', re: /plateNumber/ },
+      { label: 'decorative barcode element', re: /(class|className)=["'][^"']*\bbarcode\b/ },
+      { label: 'plate-number variable', re: /plateNumber|\bplate-number\b/ },
       { label: 'volume reference', re: /\bVol\.\s*(I|II|III|IV|V)\b/ },
       { label: 'frontispiece', re: /frontispiece/i },
       { label: '"working atlas" tagline', re: /working\s+atlas/i },
