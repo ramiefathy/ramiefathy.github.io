@@ -35,8 +35,89 @@ function hash(buffer) {
   return createHash('sha256').update(buffer).digest('hex');
 }
 
+function validateDashboard(dashboard, sourceLabel) {
+  const actualHash = hash(dashboard);
+  if (actualHash !== EXPECTED_SHA256) {
+    throw new Error(
+      `${sourceLabel} decoded to sha256 ${actualHash}; expected ${EXPECTED_SHA256}`
+    );
+  }
+
+  const text = dashboard.toString('utf8');
+  if (!text.includes('214') || !text.includes('Rheum') || !text.includes('<!doctype html')) {
+    throw new Error(`${sourceLabel} failed dashboard content sanity checks`);
+  }
+
+  return actualHash;
+}
+
+function decodeGzipBase64(encoded, sourceLabel) {
+  const compressed = Buffer.from(encoded.replace(/\s+/g, ''), 'base64');
+  if (compressed.length < 2 || compressed[0] !== 0x1f || compressed[1] !== 0x8b) {
+    throw new Error(`${sourceLabel} is not a gzip payload`);
+  }
+  return gunzipSync(compressed);
+}
+
+async function acceptDashboard(dashboard, sourceLabel) {
+  const actualHash = validateDashboard(dashboard, sourceLabel);
+  await fs.writeFile(OUTPUT, dashboard);
+  console.log(`Assembled verified dashboard: ${dashboard.length} bytes, sha256 ${actualHash}`);
+  console.log(`Payload source: ${sourceLabel}`);
+}
+
+async function tryCommittedOutput() {
+  try {
+    const dashboard = await fs.readFile(OUTPUT);
+    validateDashboard(dashboard, 'committed index.html');
+    console.log(
+      `Verified committed dashboard: ${dashboard.length} bytes, sha256 ${EXPECTED_SHA256}`
+    );
+    return true;
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      console.warn(`Committed dashboard was not accepted: ${error.message}`);
+    }
+    return false;
+  }
+}
+
+async function tryCanonicalShards(allFiles) {
+  const shardFiles = allFiles
+    .filter((name) => /^dashboard\.\d+[a-z]?\.b64$/i.test(name))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+  if (!shardFiles.length) return false;
+
+  try {
+    const encoded = (
+      await Promise.all(
+        shardFiles.map((name) => fs.readFile(path.join(DASHBOARD_DIR, name), 'utf8'))
+      )
+    ).join('');
+    const dashboard = decodeGzipBase64(encoded, shardFiles.join(', '));
+    await acceptDashboard(dashboard, shardFiles.join(', '));
+    return true;
+  } catch (error) {
+    console.warn(`Canonical dashboard shards were not accepted: ${error.message}`);
+    return false;
+  }
+}
+
 async function main() {
   const allFiles = await fs.readdir(DASHBOARD_DIR);
+
+  // The checked-in HTML is itself an immutable, hash-pinned artifact. Accept it
+  // first when it matches the verified release denominator. This prevents an
+  // unrelated legacy-fragment defect from blocking every site build.
+  if (await tryCommittedOutput()) return;
+
+  // Prefer the canonical numbered base64 shards. They are deterministic and do
+  // not require guessing among historical fragment variants.
+  if (await tryCanonicalShards(allFiles)) return;
+
+  // Retain the historical fragment-recovery path as a final compatibility
+  // fallback, but continue to fail closed on the pinned SHA-256.
   const partFiles = allFiles.filter((name) => /^part-[0-9]+[a-z]?\.txt$/i.test(name));
   if (!partFiles.length) throw new Error(`No dashboard payload parts found in ${DASHBOARD_DIR}`);
 
@@ -78,19 +159,11 @@ async function main() {
     seen.add(key);
     try {
       const encoded = candidate.map((name) => contents.get(name)).join('');
-      const compressed = Buffer.from(encoded, 'base64');
-      if (compressed.length < 2 || compressed[0] !== 0x1f || compressed[1] !== 0x8b) continue;
-      const dashboard = gunzipSync(compressed);
+      const dashboard = decodeGzipBase64(encoded, candidate.join(', '));
       const actualHash = hash(dashboard);
       diagnostics.push(`${actualHash} <= ${candidate.join(', ')}`);
       if (actualHash !== EXPECTED_SHA256) continue;
-      const text = dashboard.toString('utf8');
-      if (!text.includes('214') || !text.includes('Rheum') || !text.includes('<!doctype html')) {
-        throw new Error('Decoded payload failed dashboard content sanity checks');
-      }
-      await fs.writeFile(OUTPUT, dashboard);
-      console.log(`Assembled verified dashboard: ${dashboard.length} bytes, sha256 ${actualHash}`);
-      console.log(`Payload order: ${candidate.join(', ')}`);
+      await acceptDashboard(dashboard, candidate.join(', '));
       return;
     } catch (error) {
       if (diagnostics.length < 20) diagnostics.push(`FAILED <= ${candidate.join(', ')}: ${error.message}`);
