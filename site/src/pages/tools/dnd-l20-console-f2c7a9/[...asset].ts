@@ -1,5 +1,6 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 const assets = [
   'payload-01.js',
@@ -14,7 +15,9 @@ const assets = [
   'boot.js',
 ] as const;
 
-const sourceRoot = new URL('../../../../../tools/dnd-l20-console-f2c7a9/', import.meta.url);
+const cwd = process.cwd();
+const repositoryRoot = path.basename(cwd) === 'site' ? path.dirname(cwd) : cwd;
+const sourceRoot = path.join(repositoryRoot, 'tools', 'dnd-l20-console-f2c7a9');
 
 export const prerender = true;
 
@@ -30,7 +33,7 @@ export const GET: APIRoute = async ({ props }) => {
     return new Response('Not found', { status: 404 });
   }
 
-  const body = await readFile(new URL(filename, sourceRoot));
+  const body = await readFile(path.join(sourceRoot, filename));
   return new Response(body, {
     headers: {
       'Content-Type': 'text/javascript; charset=utf-8',
