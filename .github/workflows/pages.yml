@@ -14,6 +14,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  statuses: write
 
 jobs:
   build:
@@ -45,3 +46,90 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deploy
         uses: actions/deploy-pages@v4
+
+      - name: Verify the production D&D console
+        id: smoke
+        env:
+          DND_URL: https://ramiefathy.com/tools/dnd-l20-console-f2c7a9/
+        run: |
+          set -u
+
+          index_file="${RUNNER_TEMP}/dnd-index.html"
+          boot_file="${RUNNER_TEMP}/dnd-boot.js"
+          payload_file="${RUNNER_TEMP}/dnd-payload.js"
+
+          for attempt in $(seq 1 30); do
+            cache_key="${GITHUB_SHA}-${attempt}"
+
+            if index_code=$(curl --silent --show-error --location \
+              --connect-timeout 15 --max-time 30 \
+              --output "$index_file" --write-out '%{http_code}' \
+              "${DND_URL}?deploy=${cache_key}"); then :; else index_code=000; fi
+
+            if boot_code=$(curl --silent --show-error --location \
+              --connect-timeout 15 --max-time 30 \
+              --output "$boot_file" --write-out '%{http_code}' \
+              "${DND_URL}boot.js?deploy=${cache_key}"); then :; else boot_code=000; fi
+
+            if payload_code=$(curl --silent --show-error --location \
+              --connect-timeout 15 --max-time 30 \
+              --output "$payload_file" --write-out '%{http_code}' \
+              "${DND_URL}payload-01.js?deploy=${cache_key}"); then :; else payload_code=000; fi
+
+            if [[ "$index_code" == "200" && "$boot_code" == "200" && "$payload_code" == "200" ]] \
+              && grep --fixed-strings --quiet '<title>Level 20 Character Console</title>' "$index_file" \
+              && grep --fixed-strings --quiet 'payload-01.js' "$index_file" \
+              && grep --fixed-strings --quiet 'boot.js' "$index_file" \
+              && grep --fixed-strings --quiet 'DecompressionStream' "$boot_file" \
+              && grep --fixed-strings --quiet 'window.__DND_PAYLOAD' "$payload_file"; then
+              echo "Production smoke test passed on attempt ${attempt}."
+              echo "Index, boot loader, and payload all returned HTTP 200 with expected content."
+              exit 0
+            fi
+
+            echo "Attempt ${attempt}/30 not ready: index=${index_code}, boot=${boot_code}, payload=${payload_code}"
+            sleep 10
+          done
+
+          echo "Production D&D console did not pass the smoke test after 5 minutes."
+          echo "Index response preview:"
+          head -c 500 "$index_file" 2>/dev/null || true
+          exit 1
+
+  report-production-status:
+    if: ${{ always() }}
+    needs:
+      - build
+      - deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Pages deployment status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+          DND_URL: https://ramiefathy.com/tools/dnd-l20-console-f2c7a9/
+        run: |
+          set -euo pipefail
+
+          state=failure
+          description="Pages build, deploy, or live smoke test failed"
+          if [[ "$BUILD_RESULT" == "success" && "$DEPLOY_RESULT" == "success" ]]; then
+            state=success
+            description="Pages deploy and live D&D smoke test passed"
+          fi
+
+          payload=$(jq -n \
+            --arg state "$state" \
+            --arg target_url "$DND_URL" \
+            --arg description "$description" \
+            --arg context "deploy/pages-production" \
+            '{state: $state, target_url: $target_url, description: $description, context: $context}')
+
+          curl --fail-with-body --silent --show-error --location \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            --data "$payload"
