@@ -70,6 +70,7 @@ test('status bar shows the live dot, identity, and palette trigger', async ({ pa
 
 test('command palette opens, filters, and navigates', async ({ page }) => {
   await page.goto('/')
+  await waitForHeaderHydration(page)
   await page.getByRole('button', { name: /navigate/i }).click()
 
   const dialog = page.getByRole('dialog', { name: /navigate this site/i })
@@ -89,6 +90,7 @@ test('command palette opens, filters, and navigates', async ({ page }) => {
 
 test('command palette closes on Escape', async ({ page }) => {
   await page.goto('/')
+  await waitForHeaderHydration(page)
   await page.getByRole('button', { name: /navigate/i }).click()
   await expect(page.getByRole('dialog', { name: /navigate this site/i })).toBeVisible()
   await page.keyboard.press('Escape')
@@ -104,6 +106,7 @@ test('command palette opens with the Ctrl/Cmd-K shortcut', async ({ page }) => {
 
 test('command palette closes on Escape after Tab moves focus to a result', async ({ page }) => {
   await page.goto('/')
+  await waitForHeaderHydration(page)
   await page.getByRole('button', { name: /navigate/i }).click()
   const dialog = page.getByRole('dialog', { name: /navigate this site/i })
   await expect(dialog).toBeVisible()
