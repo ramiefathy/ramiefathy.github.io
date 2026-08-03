@@ -13,6 +13,47 @@ permissions:
   statuses: write
 
 jobs:
+  vendor-srd-spells:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch and compact SRD 5.2.1 spell catalog
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error --location \
+            https://raw.githubusercontent.com/howard-branch/ai-dm/a7dcb41743c046e9ab7ceb031c45962f946951ff/assets/srd5_2/spells.json \
+            --output /tmp/spells.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const source = JSON.parse(fs.readFileSync('/tmp/spells.json', 'utf8'));
+          const compact = Object.values(source.spells).map((spell) => ({
+            id: spell.id,
+            name: spell.name,
+            level: spell.level,
+            school: spell.school,
+            classes: spell.classes || [],
+            time: spell.casting_time?.raw || 'Action',
+            ritual: Boolean(spell.casting_time?.ritual),
+            range: spell.range,
+            concentration: Boolean(spell.duration?.concentration),
+            duration: spell.duration?.raw || '',
+            components: [spell.components?.v && 'V', spell.components?.s && 'S', spell.components?.m && 'M'].filter(Boolean).join(', '),
+            material: spell.components?.material || '',
+            damage: spell.damage?.dice || '',
+            damageType: spell.damage?.type || '',
+            description: spell.description || ''
+          })).sort((a,b) => a.level - b.level || a.name.localeCompare(b.name));
+          fs.writeFileSync('srd-521-spells-compact.json', JSON.stringify({version:'SRD-5.2.1', count:compact.length, spells:compact}));
+          if (compact.length !== 337) throw new Error(`Expected 337 spells, received ${compact.length}`);
+          NODE
+      - name: Upload compact SRD spell catalog
+        uses: actions/upload-artifact@v4
+        with:
+          name: srd-521-spell-catalog
+          path: srd-521-spells-compact.json
+          if-no-files-found: error
+          retention-days: 1
+
   build-site:
     runs-on: ubuntu-latest
     steps:
@@ -117,21 +158,18 @@ jobs:
           SCRIBE_RESULT: ${{ needs.ai-scribe-lint.result }}
         run: |
           set -euo pipefail
-
           state=failure
           description="Master CI failed"
           if [[ "$BUILD_RESULT" == "success" && "$E2E_RESULT" == "success" && "$SCRIBE_RESULT" == "success" ]]; then
             state=success
             description="Build, Playwright, and scribe checks passed"
           fi
-
           payload=$(jq -n \
             --arg state "$state" \
             --arg target_url "https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}" \
             --arg description "$description" \
             --arg context "ci/master" \
             '{state: $state, target_url: $target_url, description: $description, context: $context}')
-
           curl --fail-with-body --silent --show-error --location \
             --request POST \
             --header "Accept: application/vnd.github+json" \
