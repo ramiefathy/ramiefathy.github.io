@@ -42,7 +42,7 @@ const sectionsWithIds = legacy.sections.map((section) => {
             </div>
             <p style="font-family:var(--font-mono);font-size:11px;color:var(--slate);letter-spacing:0.06em">{section.items.length} entries</p>
           </div>
-          <div style="background:var(--plate-bg);border:1px solid var(--line);border-top:0;display:grid;grid-template-columns:80px 80px 1fr 80px">
+          <div class="archive-rows">
             {section.items.map((item) => (
               <a class="br" href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined} style="text-decoration:none;color:inherit">
                 <div class="c year" style="font-family:var(--font-mono);font-size:11px;color:var(--terracotta);font-weight:700">{item.indexNumber}</div>

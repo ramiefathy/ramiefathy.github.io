@@ -59,6 +59,12 @@ h1,h2,h3,h4 {
 em { font-style: italic; color: var(--terracotta); }
 .shell { max-width: 1100px; margin: 0 auto; padding: 24px 32px 96px; }
 @media (max-width: 720px) { .shell { padding: 16px 18px 64px; } }
+/* Mobile: the carousel's -32px bleed must match the 18px shell padding, and
+   the fixed-width atlas tables scroll locally instead of widening the page. */
+@media (max-width: 720px) {
+  .shell .carousel { margin-left: -18px; margin-right: -18px; }
+  table.atlas { display: block; overflow-x: auto; }
+}
 
 /* ===== Plate stamp + masthead ===== */
 .essay-stamp {
@@ -244,7 +250,7 @@ table.atlas td.ct { font-family: var(--font-mono); text-align: right; width: 40p
 
 /* ===== Decade strip ===== */
 .decade-strip {
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 0;
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0;
   border: 1px solid var(--rule); background: var(--plate-bg);
   margin-top: 8px;
 }

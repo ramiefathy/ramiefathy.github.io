@@ -56,6 +56,12 @@ h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 500; letter-spacing
 em { font-style: italic; color: var(--terracotta); }
 .shell { max-width: 1100px; margin: 0 auto; padding: 24px 32px 96px; }
 @media (max-width: 720px) { .shell { padding: 16px 18px 64px; } }
+/* Mobile: the carousel's -32px bleed must match the 18px shell padding, and
+   the fixed-width atlas tables scroll locally instead of widening the page. */
+@media (max-width: 720px) {
+  .shell .carousel { margin-left: -18px; margin-right: -18px; }
+  table.atlas { display: block; overflow-x: auto; }
+}
 
 /* ===== Plate stamp + masthead ===== */
 .essay-stamp { display:flex; align-items:center; gap:14px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--slate); padding: 10px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin-bottom: 28px; }

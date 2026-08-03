@@ -60,6 +60,12 @@ h1,h2,h3,h4 {
 em { font-style: italic; color: var(--terracotta); }
 .shell { max-width: 1100px; margin: 0 auto; padding: 24px 32px 96px; }
 @media (max-width: 720px) { .shell { padding: 16px 18px 64px; } }
+/* Mobile: the carousel's -32px bleed must match the 18px shell padding, and
+   the fixed-width atlas tables scroll locally instead of widening the page. */
+@media (max-width: 720px) {
+  .shell .carousel { margin-left: -18px; margin-right: -18px; }
+  table.atlas { display: block; overflow-x: auto; }
+}
 
 /* ===== Plate stamp + masthead ===== */
 .essay-stamp {
