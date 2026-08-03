@@ -1,0 +1,240 @@
+{
+ "version": 1,
+ "kind": "diagrams",
+ "topic": "neutrophilic-dermatoses",
+ "order": 1,
+ "diagrams": [
+  {
+   "id": "neutrophilic-morphology-classification-cl",
+   "topic": "neutrophilic-dermatoses",
+   "title": "Neutrophilic Dermatoses by Morphology",
+   "subtitle": "A practical taxonomy for choosing the biopsy, workup, and first safety decision",
+   "type": "classification",
+   "data": {
+    "root": {
+     "id": "nd-root",
+     "children": [
+      {
+       "id": "nd-dermal",
+       "children": [
+        {
+         "id": "sweet",
+         "name": "Sweet syndrome",
+         "detail": "Tender pseudovesicular plaques; dense upper-dermal neutrophils and edema."
+        },
+        {
+         "id": "nddh",
+         "name": "Neutrophilic dermatosis of dorsal hands",
+         "detail": "Sweet-spectrum localized to dorsal hands; pustulation/ulceration and secondary vasculitic change may occur."
+        },
+        {
+         "id": "rnd",
+         "name": "Rheumatoid neutrophilic dermatitis",
+         "detail": "Symmetric papules, plaques, nodules, or bullae in RA; dense dermal neutrophils without primary vasculitis."
+        }
+       ],
+       "name": "Dermal plaque / nodule"
+      },
+      {
+       "id": "nd-ulcerative",
+       "children": [
+        {
+         "id": "pg",
+         "name": "Pyoderma gangrenosum",
+         "detail": "Classic, bullous, pustular, vegetative, peristomal, postoperative, and genital variants."
+        },
+        {
+         "id": "nnd",
+         "name": "Necrotizing neutrophilic dermatosis",
+         "detail": "Sweet/PG spectrum mimicking necrotizing infection; frequently postoperative or hematologic."
+        }
+       ],
+       "name": "Ulcerative / necrotizing"
+      },
+      {
+       "id": "nd-urt",
+       "children": [
+        {
+         "id": "nud",
+         "name": "Neutrophilic urticarial dermatosis",
+         "detail": "Short-lived macules/thin plaques; neutrophils and leukocytoclasia without vasculitis."
+        },
+        {
+         "id": "still",
+         "name": "Still/autoinflammatory urticarial eruptions",
+         "detail": "Systemic phenotype may dictate IL-1–directed treatment."
+        }
+       ],
+       "name": "Urticarial / evanescent"
+      },
+      {
+       "id": "nd-pust",
+       "children": [
+        {
+         "id": "apf",
+         "name": "Amicrobial pustulosis of folds",
+         "detail": "Autoimmune-associated sterile pustules favoring folds, scalp, and periorificial sites."
+        },
+        {
+         "id": "spd",
+         "name": "Subcorneal pustular dermatosis",
+         "detail": "Flaccid half-half pustules; subcorneal neutrophils; screen for IgA gammopathy."
+        },
+        {
+         "id": "gpp",
+         "name": "Generalized pustular psoriasis",
+         "detail": "Sterile pustules with systemic inflammation; distinguish from AGEP and infection."
+        }
+       ],
+       "name": "Pustular / epidermal"
+      },
+      {
+       "id": "nd-gran",
+       "children": [
+        {
+         "id": "pngd",
+         "name": "Palisaded neutrophilic granulomatous dermatitis",
+         "detail": "Early neutrophilic/vasculitic lesions evolve to palisaded granulomas."
+        },
+        {
+         "id": "igd",
+         "name": "Interstitial granulomatous dermatitis",
+         "detail": "Interstitial histiocytes around altered collagen; rope-like cords or plaques."
+        }
+       ],
+       "name": "Neutrophilic–granulomatous spectrum"
+      }
+     ],
+     "name": "Neutrophilic dermatoses",
+     "detail": "Classify by dominant clinical morphology and histologic compartment; overlap is common."
+    }
+   },
+   "citations": [
+    {
+     "pmid": "35870984",
+     "doi": "10.1016/j.revmed.2022.06.007",
+     "quote": "Review classifies neutrophilic dermatoses by clinical and histopathologic pattern and emphasizes exclusion of infection and systemic associations."
+    },
+    {
+     "pmid": "38423683",
+     "doi": "10.1016/j.det.2023.08.009",
+     "quote": "Review defines neutrophilic urticarial dermatosis as transient, usually nonpruritic lesions with dermal neutrophilia, leukocytoclasia, and no vasculitis."
+    },
+    {
+     "pmid": "35535506",
+     "doi": "10.1111/jdv.18203",
+     "quote": "A 65-patient series supports reactive granulomatous dermatitis as an umbrella for IGD, PNGD, and related patterns with frequent systemic associations."
+    }
+   ]
+  },
+  {
+   "id": "necrotizing-infection-vs-neutrophilic-dt",
+   "topic": "neutrophilic-dermatoses",
+   "title": "Necrotizing Infection vs Neutrophilic Mimic",
+   "subtitle": "A dual-track emergency algorithm that avoids both delayed surgery and pathergy-driven harm",
+   "type": "decision-tree",
+   "data": {
+    "start": "start",
+    "steps": [
+     {
+      "id": "start",
+      "type": "decision",
+      "prompt": "Rapidly progressive painful erythema, bullae, purpura, ulceration, crepitus, shock, or systemic toxicity?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "stabilize"
+       },
+       {
+        "label": "No",
+        "nextStepId": "nonemergent"
+       }
+      ]
+     },
+     {
+      "id": "stabilize",
+      "type": "action",
+      "prompt": "Treat as a possible necrotizing infection while evaluating in parallel",
+      "detail": "Immediate surgical/infectious-disease assessment, blood cultures, broad antimicrobials when indicated, laboratory resuscitation, and imaging only if it will not delay source control.",
+      "branches": [
+       {
+        "label": "Proceed",
+        "nextStepId": "clues"
+       }
+      ]
+     },
+     {
+      "id": "clues",
+      "type": "decision",
+      "prompt": "Are there strong neutrophilic-disease clues: prior PG/Sweet, pathergy at procedure sites, multifocal symmetric lesions, sterile prior cultures, hematologic disease, G-CSF exposure, or worsening after debridement?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "dual"
+       },
+       {
+        "label": "No / weak",
+        "nextStepId": "infection"
+       }
+      ]
+     },
+     {
+      "id": "dual",
+      "type": "action",
+      "prompt": "Obtain deep edge biopsy and tissue cultures; involve dermatology/dermatopathology urgently",
+      "detail": "Both infection and neutrophilic disease can coexist. Histology should be interpreted with cultures, imaging, operative findings, and serial trajectory.",
+      "branches": [
+       {
+        "label": "Cultures/operative evidence support infection",
+        "nextStepId": "infection"
+       },
+       {
+        "label": "No infection evidence + compatible neutrophilic pathology",
+        "nextStepId": "nd"
+       },
+       {
+        "label": "Indeterminate",
+        "nextStepId": "indeterminate"
+       }
+      ]
+     },
+     {
+      "id": "infection",
+      "type": "terminal",
+      "prompt": "Manage as necrotizing infection",
+      "detail": "Prompt source control and antimicrobial therapy take priority. Reassess for a superimposed inflammatory reaction if lesions progress despite adequate source control."
+     },
+     {
+      "id": "nd",
+      "type": "terminal",
+      "prompt": "Necrotizing neutrophilic dermatosis is favored",
+      "detail": "Stop nonessential trauma/debridement, initiate specialist-directed immunosuppression while maintaining infection surveillance, and investigate associated hematologic/inflammatory disease."
+     },
+     {
+      "id": "indeterminate",
+      "type": "terminal",
+      "prompt": "Continue dual-track management",
+      "detail": "Repeat/deeper sampling, broaden microbiology, and use multidisciplinary review. Do not let a single negative culture or nonspecific neutrophilic biopsy close the case."
+     },
+     {
+      "id": "nonemergent",
+      "type": "terminal",
+      "prompt": "Use phenotype-specific diagnostic pathway",
+      "detail": "Sweet, PG, NUD, pustular, and reactive granulomatous disorders still require infection exclusion proportional to risk."
+     }
+    ]
+   },
+   "citations": [
+    {
+     "pmid": "35870984",
+     "doi": "10.1016/j.revmed.2022.06.007",
+     "quote": "Review classifies neutrophilic dermatoses by clinical and histopathologic pattern and emphasizes exclusion of infection and systemic associations."
+    },
+    {
+     "pmid": "29450466",
+     "quote": "International Delphi criteria for ulcerative pyoderma gangrenosum combine an ulcer-edge neutrophilic biopsy with validated clinical minor criteria."
+    }
+   ]
+  }
+ ]
+}

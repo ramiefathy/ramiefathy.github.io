@@ -1,0 +1,238 @@
+{
+ "version": 1,
+ "kind": "dataset-core",
+ "topic": "neutrophilic-dermatoses",
+ "manifest": {
+  "id": "neutrophilic-dermatoses",
+  "title": "Neutrophilic Dermatoses Mind Map",
+  "defaultTab": "overview",
+  "theme": "atlas",
+  "tabs": [
+   {
+    "id": "overview",
+    "name": "Overview"
+   },
+   {
+    "id": "diagnosis",
+    "name": "Diagnostic Differential"
+   },
+   {
+    "id": "associations",
+    "name": "Systemic Associations"
+   },
+   {
+    "id": "treatment",
+    "name": "Treatment"
+   }
+  ]
+ },
+ "tabs": {
+  "associations": {
+   "id": "nd-assoc-root",
+   "name": "Systemic Associations",
+   "tooltip": {
+    "title": "The skin may reveal the systemic diagnosis",
+    "markdown": "Use phenotype and history to target—not indiscriminately expand—the systemic evaluation."
+   },
+   "children": [
+    {
+     "id": "nd-heme",
+     "name": "Hematologic disease",
+     "tooltip": {
+      "title": "High-yield in Sweet/PG",
+      "markdown": "Myelodysplastic syndrome, acute myeloid leukemia, other myeloid neoplasms, plasma-cell dyscrasias, and monoclonal gammopathies. Bullous Sweet or dorsal-hand disease can be an important clue."
+     }
+    },
+    {
+     "id": "nd-ibd",
+     "name": "Inflammatory bowel disease",
+     "tooltip": {
+      "title": "PG and bowel-associated disease",
+      "markdown": "Ask about diarrhea, blood, abdominal pain, weight loss, perianal disease, and prior bowel surgery. PG can parallel or dissociate from intestinal activity."
+     }
+    },
+    {
+     "id": "nd-rheum",
+     "name": "Rheumatologic/autoinflammatory disease",
+     "tooltip": {
+      "title": "Broad overlap",
+      "markdown": "Rheumatoid arthritis, SLE, Behçet syndrome, adult-onset Still disease, Schnitzler syndrome, CAPS, SAPHO, and vasculitis can produce neutrophilic or reactive granulomatous eruptions."
+     }
+    },
+    {
+     "id": "nd-drugs",
+     "name": "Drug-induced disease",
+     "tooltip": {
+      "title": "Temporal causality matters",
+      "markdown": "G-CSF, all-trans retinoic acid, checkpoint inhibitors, targeted cancer therapy, antibiotics, and other medications can trigger Sweet-spectrum disease; avoid attributing causality without chronology and dechallenge context."
+     }
+    },
+    {
+     "id": "nd-organ",
+     "name": "Extracutaneous neutrophilic disease",
+     "tooltip": {
+      "title": "Escalate by organ",
+      "markdown": "Eye, lung, bone, joint, bowel, nervous system, and other organs may be involved. New organ symptoms require targeted specialty evaluation rather than assuming all inflammation is cutaneous."
+     }
+    }
+   ]
+  },
+  "diagnosis": {
+   "id": "nd-diagnosis-root",
+   "name": "Diagnostic Differential",
+   "tooltip": {
+    "title": "Diagnosis is clinicopathologic",
+    "markdown": "Biopsy supports a neutrophilic pattern but is rarely disease-specific. Sample active untreated lesions, send tissue for microbial studies when infection is plausible, and interpret vasculitic change in relation to lesion age and clinical context."
+   },
+   "children": [
+    {
+     "id": "nd-sweet-dx",
+     "name": "Sweet syndrome",
+     "tooltip": {
+      "title": "Plaque phenotype",
+      "markdown": "Abrupt tender plaques + dense upper-dermal neutrophils without primary leukocytoclastic vasculitis. Papillary dermal edema may create pseudovesiculation. Evaluate medication, malignancy, inflammatory disease, pregnancy, and infection triggers."
+     }
+    },
+    {
+     "id": "nd-pg-dx",
+     "name": "Pyoderma gangrenosum",
+     "tooltip": {
+      "title": "Ulcer phenotype",
+      "markdown": "Biopsy the active ulcer edge deeply enough to include subcutis; the purpose is to support neutrophilic inflammation and exclude infection, vasculitis, malignancy, calciphylaxis, and other ulcer causes. A response to immunosuppression is supportive but not diagnostic."
+     }
+    },
+    {
+     "id": "nd-nud-dx",
+     "name": "Neutrophilic urticarial dermatosis",
+     "tooltip": {
+      "title": "Urticarial phenotype",
+      "markdown": "Lesions are often less pruritic and more systemic than ordinary urticaria. Distinguish from urticarial vasculitis by duration, purpura/residual change, complement findings, and absence of fibrinoid vessel-wall necrosis."
+     }
+    },
+    {
+     "id": "nd-rgd-dx",
+     "name": "Reactive granulomatous dermatitis",
+     "tooltip": {
+      "title": "Papular/cord/plaque phenotype",
+      "markdown": "Early PNGD may show leukocytoclastic vasculitis and neutrophils around degenerated collagen; mature lesions show palisaded granulomas and fibrosis. IGD favors interstitial histiocytes around altered collagen, often without vasculitis."
+     }
+    },
+    {
+     "id": "nd-culture",
+     "name": "Microbiology strategy",
+     "tooltip": {
+      "title": "Do not skip",
+      "markdown": "Send bacterial, fungal, and mycobacterial tissue cultures and special stains when morphology, host status, or severity makes infection plausible. Superficial swabs are inadequate for a deep necrotizing process."
+     }
+    }
+   ]
+  },
+  "overview": {
+   "id": "nd-overview-root",
+   "name": "Neutrophilic Dermatoses",
+   "tooltip": {
+    "title": "Pattern-based framework",
+    "markdown": "Neutrophilic dermatoses are sterile inflammatory disorders defined by compatible morphology and a neutrophil-predominant tissue reaction after infection and primary vasculitis have been appropriately excluded. Their phenotypes overlap and may represent a spectrum."
+   },
+   "children": [
+    {
+     "id": "nd-plaque",
+     "name": "Tender plaques / pseudovesiculation",
+     "tooltip": {
+      "title": "Sweet-spectrum",
+      "markdown": "Abrupt tender erythematous-to-violaceous papules or plaques, often pseudovesicular because of papillary dermal edema; fever and neutrophilia may accompany classic Sweet syndrome."
+     }
+    },
+    {
+     "id": "nd-ulcer",
+     "name": "Painful ulcer / pathergy",
+     "tooltip": {
+      "title": "Pyoderma gangrenosum spectrum",
+      "markdown": "Rapidly progressive painful ulcer with a violaceous undermined border, pathergy, cribriform scarring, and associated IBD, inflammatory arthritis, hematologic disease, or monoclonal gammopathy."
+     }
+    },
+    {
+     "id": "nd-urticarial",
+     "name": "Transient urticarial lesions",
+     "tooltip": {
+      "title": "Neutrophilic urticarial dermatosis",
+      "markdown": "Nonpruritic or burning macules/thin plaques lasting <24–48 hours, often with fever or arthralgia; histology shows interstitial neutrophils and leukocytoclasia without true vasculitis or marked dermal edema."
+     }
+    },
+    {
+     "id": "nd-papular",
+     "name": "Papules / nodules / granulomatous patterns",
+     "tooltip": {
+      "title": "Reactive granulomatous dermatitis",
+      "markdown": "PNGD, IGD, and related reactive granulomatous patterns are associated with rheumatoid arthritis, lupus, vasculitis, malignancy, infection, and drugs; morphology and histology vary with lesion age."
+     }
+    },
+    {
+     "id": "nd-emergency",
+     "name": "Necrotizing mimic",
+     "tooltip": {
+      "title": "Safety-critical",
+      "markdown": "Sweet syndrome or pyoderma gangrenosum can mimic necrotizing infection, especially postoperatively or after G-CSF. Infection remains the default emergency until adequately evaluated; cultures, imaging, surgery, pathology, and clinical trajectory must be integrated."
+     }
+    }
+   ],
+   "tags": [
+    "Sweet-syndrome",
+    "pyoderma-gangrenosum",
+    "neutrophilic-urticarial-dermatosis",
+    "PNGD",
+    "histopathology"
+   ]
+  },
+  "treatment": {
+   "id": "nd-treatment-root",
+   "name": "Treatment Decision Making",
+   "tooltip": {
+    "title": "Control inflammation while protecting against missed infection",
+    "markdown": "Treatment depends on phenotype, severity, associated disease, and diagnostic certainty. Wound care and pain control are active treatments, not ancillary details."
+   },
+   "children": [
+    {
+     "id": "nd-sweet-tx",
+     "name": "Sweet syndrome",
+     "tooltip": {
+      "title": "Often glucocorticoid-responsive",
+      "markdown": "Systemic glucocorticoid is typical for widespread or symptomatic disease; potent topical or intralesional corticosteroid may suffice for limited disease. Colchicine, dapsone, or other steroid-sparing therapy can be used for recurrent disease."
+     }
+    },
+    {
+     "id": "nd-pg-tx",
+     "name": "Pyoderma gangrenosum",
+     "tooltip": {
+      "title": "Inflammation + wound strategy",
+      "markdown": "Gentle wound care, analgesia, avoidance of unnecessary trauma, and treatment of associated disease. Systemic glucocorticoid or ciclosporin are established initial choices; biologic or other immunosuppression is selected for refractory or associated-disease phenotypes."
+     }
+    },
+    {
+     "id": "nd-nud-tx",
+     "name": "NUD / autoinflammatory phenotype",
+     "tooltip": {
+      "title": "Target the driver",
+      "markdown": "Dapsone or colchicine may improve neutrophilic skin disease. IL-1 blockade can be highly effective when an IL-1–mediated systemic disorder is present."
+     }
+    },
+    {
+     "id": "nd-rgd-tx",
+     "name": "Reactive granulomatous disease",
+     "tooltip": {
+      "title": "Treat underlying disease",
+      "markdown": "Optimize control of RA, lupus, vasculitis, malignancy, infection, or drug trigger. Topical/intralesional corticosteroid, hydroxychloroquine, dapsone, and selected systemic agents are case-dependent."
+     }
+    },
+    {
+     "id": "nd-reassess",
+     "name": "Failure to improve",
+     "tooltip": {
+      "title": "Reopen the differential",
+      "markdown": "Progression despite appropriate immunosuppression should prompt renewed cultures, repeat/deeper biopsy, medication review, and reassessment for infection, vasculopathy, malignancy, or an alternative inflammatory ulcer."
+     }
+    }
+   ]
+  }
+ }
+}

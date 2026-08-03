@@ -1,0 +1,239 @@
+{
+ "version": 1,
+ "kind": "dataset-core",
+ "topic": "oral-ulcers",
+ "manifest": {
+  "id": "oral-ulcers",
+  "title": "Oral Ulcers / Erosions Mind Map",
+  "defaultTab": "overview",
+  "theme": "atlas",
+  "tabs": [
+   {
+    "id": "overview",
+    "name": "Overview"
+   },
+   {
+    "id": "diagnosis",
+    "name": "Diagnostic Differential"
+   },
+   {
+    "id": "systemic-clues",
+    "name": "Systemic Clues"
+   },
+   {
+    "id": "treatment",
+    "name": "Treatment"
+   }
+  ]
+ },
+ "tabs": {
+  "diagnosis": {
+   "id": "oral-diagnosis-root",
+   "name": "Diagnostic Differential",
+   "tooltip": {
+    "title": "Morphology + site + recurrence + systemic context",
+    "markdown": "Describe number, size, border, base, depth, keratinized versus nonkeratinized mucosa, gingival involvement, preceding vesicle, healing/scar, and extraoral findings before ordering tests."
+   },
+   "children": [
+    {
+     "id": "oral-minor",
+     "name": "Minor recurrent aphthous stomatitis",
+     "tooltip": {
+      "title": "Common phenotype",
+      "markdown": "Usually <1 cm, 1–5 ulcers, nonkeratinized mucosa, heals in 7–14 days without scar. Diagnosis is clinical after excluding secondary causes when the pattern is new or atypical."
+     }
+    },
+    {
+     "id": "oral-major",
+     "name": "Major / complex aphthosis",
+     "tooltip": {
+      "title": "Broaden workup",
+      "markdown": "Larger/deeper ulcers, prolonged healing, scarring, near-continuous disease, genital ulceration, or systemic symptoms. Evaluate Behçet syndrome, IBD, hematologic disease, immunodeficiency, nutritional deficiency, and drug causes."
+     }
+    },
+    {
+     "id": "oral-herpes",
+     "name": "HSV and infection",
+     "tooltip": {
+      "title": "Fresh lesion testing",
+      "markdown": "Grouped vesicles/erosions on keratinized mucosa or vermilion support recurrent intraoral HSV; PCR from a fresh lesion is preferred when confirmation is needed. Consider CMV, syphilis, deep fungal disease, and bacterial causes in the appropriate host."
+     }
+    },
+    {
+     "id": "oral-autoimmune",
+     "name": "Autoimmune erosive disease",
+     "tooltip": {
+      "title": "Biopsy with DIF",
+      "markdown": "Desquamative gingivitis, widespread fragile bullae/erosions, chronic mucosal disease, ocular/genital involvement, or skin blisters suggest pemphigus, MMP, erosive lichen planus, linear IgA disease, epidermolysis bullosa acquisita, or lupus."
+     }
+    },
+    {
+     "id": "oral-drug",
+     "name": "Drug/toxic disease",
+     "tooltip": {
+      "title": "Chronology",
+      "markdown": "NSAIDs, nicorandil, methotrexate toxicity, mycophenolate, cytotoxic therapy, mTOR inhibitors, checkpoint inhibitors, and other agents can cause ulceration or lichenoid/immune-mediated disease."
+     }
+    }
+   ]
+  },
+  "overview": {
+   "id": "oral-overview-root",
+   "name": "Oral Ulcers and Erosions",
+   "tooltip": {
+    "title": "First separate an ulcer from an erosion or blister",
+    "markdown": "Recurrent aphthous ulceration is common, but persistent, atypical, multisite, scarring, ocular, genital, systemic, or immunocompromised presentations require a broader rheum–derm, infectious, hematologic, and malignant differential."
+   },
+   "children": [
+    {
+     "id": "oral-aphthous",
+     "name": "Recurrent discrete ulcers",
+     "tooltip": {
+      "title": "Aphthous pattern",
+      "markdown": "Round/ovoid painful ulcers with a fibrinous base and erythematous halo on nonkeratinized mucosa. Classify minor, major, or herpetiform; ask about frequency, healing time, scarring, triggers, nutritional status, GI symptoms, genital ulcers, and eye disease."
+     }
+    },
+    {
+     "id": "oral-vesicle",
+     "name": "Vesicle/erosion or desquamative gingivitis",
+     "tooltip": {
+      "title": "Autoimmune/infectious pattern",
+      "markdown": "Pemphigus vulgaris, mucous membrane pemphigoid, erosive lichen planus, lupus, erythema multiforme, HSV, and other disorders may present as erosions rather than a primary aphthous ulcer. Two biopsies may be required for H&E and DIF."
+     }
+    },
+    {
+     "id": "oral-systemic",
+     "name": "Oral + systemic disease",
+     "tooltip": {
+      "title": "Pattern clusters",
+      "markdown": "Behçet syndrome, SLE, IBD, reactive arthritis, neutropenia, cyclic fever syndromes, celiac disease, nutritional deficiency, HIV, and medication toxicity are selected associations."
+     }
+    },
+    {
+     "id": "oral-cancer",
+     "name": "Persistent solitary lesion",
+     "tooltip": {
+      "title": "Biopsy threshold",
+      "markdown": "A solitary ulcer persisting beyond approximately 2–3 weeks, induration, fixation, unexplained bleeding, cervical adenopathy, high-risk exposure, or progressive pain requires prompt biopsy to exclude squamous cell carcinoma and other neoplasia."
+     }
+    },
+    {
+     "id": "oral-urgent",
+     "name": "Urgent complications",
+     "tooltip": {
+      "title": "Escalate",
+      "markdown": "Ocular inflammation, airway compromise, inability to hydrate, severe neutropenia/fever, widespread mucosal detachment, suspected malignancy, or genital/ocular scarring disease."
+     }
+    }
+   ],
+   "tags": [
+    "aphthous",
+    "Behçet",
+    "lupus",
+    "pemphigus",
+    "mucous-membrane-pemphigoid",
+    "DIF"
+   ]
+  },
+  "systemic-clues": {
+   "id": "oral-systemic-root",
+   "name": "Systemic Clues",
+   "tooltip": {
+    "title": "The accompanying organ system narrows the diagnosis",
+    "markdown": "Aphthous morphology alone is not enough to diagnose Behçet syndrome or lupus."
+   },
+   "children": [
+    {
+     "id": "oral-behcet",
+     "name": "Genital ulcers + eye/vascular/neurologic disease",
+     "tooltip": {
+      "title": "Behçet syndrome",
+      "markdown": "Recurrent oral ulcers are nearly universal, but diagnostic weight comes from genital ulceration/scarring, uveitis/retinal vasculitis, papulopustular or erythema-nodosum–like skin disease, pathergy, vascular thrombosis/aneurysm, neurologic or GI involvement."
+     }
+    },
+    {
+     "id": "oral-sle",
+     "name": "Photosensitivity + arthritis/renal/hematologic disease",
+     "tooltip": {
+      "title": "SLE/CLE",
+      "markdown": "Lupus ulcers may be painless and involve the hard/soft palate junction; oral discoid lesions and lichenoid plaques can occur. Interpret ANA/ENA/complement with the systemic phenotype."
+     }
+    },
+    {
+     "id": "oral-ibd",
+     "name": "GI symptoms + perianal disease",
+     "tooltip": {
+      "title": "IBD/celiac/nutritional",
+      "markdown": "Crohn disease can cause deep linear ulcers, cobblestoning, lip swelling, and mucosal tags. Aphthae may accompany either Crohn disease or ulcerative colitis. Check iron, B12, folate, and celiac testing when clinically indicated."
+     }
+    },
+    {
+     "id": "oral-hematologic",
+     "name": "Fever/infections/cytopenias",
+     "tooltip": {
+      "title": "Neutropenia and marrow disease",
+      "markdown": "CBC with differential is high-yield for abrupt severe aphthae, fever, recurrent infection, chemotherapy exposure, cyclic pattern, or systemic illness."
+     }
+    },
+    {
+     "id": "oral-reactive",
+     "name": "Arthritis + urethritis/conjunctivitis",
+     "tooltip": {
+      "title": "Reactive arthritis / spondyloarthritis",
+      "markdown": "Oral erosions are often shallow and painless; examine palms/soles, genital mucosa, nails, and joints."
+     }
+    }
+   ]
+  },
+  "treatment": {
+   "id": "oral-treatment-root",
+   "name": "Treatment Decision Making",
+   "tooltip": {
+    "title": "Treat cause, pain, and function",
+    "markdown": "Management begins with oral hygiene, avoidance of trauma/irritants, pain control, and correction of an identified trigger; systemic therapy should match the diagnosis and organ risk."
+   },
+   "children": [
+    {
+     "id": "oral-ras-tx",
+     "name": "Recurrent aphthous stomatitis",
+     "tooltip": {
+      "title": "Stepwise",
+      "markdown": "Topical corticosteroid is first-line; topical anesthetic and protective agents support intake. For frequent/severe disease, colchicine or another systemic steroid-sparing option may be considered after secondary causes and contraindications are addressed."
+     }
+    },
+    {
+     "id": "oral-behcet-tx",
+     "name": "Behçet mucocutaneous disease",
+     "tooltip": {
+      "title": "Domain-based",
+      "markdown": "Topical corticosteroids for individual ulcers; colchicine or apremilast are common systemic options for recurrent mucocutaneous disease. Eye, vascular, neurologic, or GI disease requires organ-specific immunosuppression."
+     }
+    },
+    {
+     "id": "oral-autoimmune-tx",
+     "name": "Pemphigus / MMP / erosive LP",
+     "tooltip": {
+      "title": "Specialist-directed",
+      "markdown": "Potent topical corticosteroids may control limited oral disease, but systemic glucocorticoid-sparing therapy is often required. MMP needs prompt ocular, laryngeal, esophageal, and genital review because scarring can be irreversible."
+     }
+    },
+    {
+     "id": "oral-infectious-tx",
+     "name": "Infectious ulcers",
+     "tooltip": {
+      "title": "Targeted therapy",
+      "markdown": "Use antivirals, antibiotics, or antifungals only when the organism and host context support the diagnosis; avoid escalating immunosuppression in an unrecognized infection."
+     }
+    },
+    {
+     "id": "oral-support",
+     "name": "Supportive care",
+     "tooltip": {
+      "title": "Maintain nutrition and oral health",
+      "markdown": "Salt/bicarbonate rinses, bland diet, soft toothbrush, dental care, treatment of candidiasis, and nutrition/hydration support. Avoid alcohol-containing rinses and traumatic products."
+     }
+    }
+   ]
+  }
+ }
+}

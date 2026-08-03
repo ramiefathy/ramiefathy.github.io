@@ -1,0 +1,36 @@
+{
+ "version": 1,
+ "kind": "comparisons",
+ "topic": "oral-ulcers",
+ "order": 1,
+ "comparisons": [
+  {
+   "id": "oral-erosion-histology-dif-cmp",
+   "topic": "oral-ulcers",
+   "title": "Oral Erosions: Histology and DIF Comparison",
+   "subtitle": "A two-specimen strategy distinguishes acantholytic, subepithelial, and interface disease",
+   "entities": [{"id":"pv","name":"Pemphigus vulgaris","shortName":"PV"},{"id":"mmp","name":"Mucous membrane pemphigoid","shortName":"MMP"},{"id":"elp","name":"Erosive lichen planus","shortName":"ELP"},{"id":"lupus","name":"Oral lupus","shortName":"Lupus"},{"id":"em","name":"Erythema multiforme / SJS-TEN","shortName":"EM/SJS"}],
+   "features": [
+    {"id":"clinical","name":"Clinical pattern","values":{"pv":"Chronic painful fragile bullae/erosions; widespread oral disease often precedes skin.","mmp":"Desquamative gingivitis and chronic erosions; ocular/genital/laryngeal/esophageal scarring risk.","elp":"Bilateral reticular white striae with erythema/erosion; desquamative gingivitis.","lupus":"Palatal ulcer, lichenoid/discoid plaque or nonspecific erosion in a lupus phenotype.","em":"Acute hemorrhagic crusted lips and widespread erosions; targetoid skin lesions or drug/infection context."},"isDistinguisher":true},
+    {"id":"histo","name":"H&E","values":{"pv":"Suprabasilar acantholysis with tombstone basal keratinocytes.","mmp":"Subepithelial cleft; inflammation varies and may be nonspecific.","elp":"Lichenoid interface mucositis, basal degeneration, Civatte bodies, sawtooth rete.","lupus":"Interface mucositis ± deep perivascular/periadnexal inflammation and mucin; overlap with lichenoid disease.","em":"Interface injury with keratinocyte necrosis; severe epidermal necrosis in SJS/TEN."},"isDistinguisher":true},
+    {"id":"dif","name":"Direct immunofluorescence","values":{"pv":"Intercellular IgG/C3 in fishnet pattern.","mmp":"Linear IgG, IgA and/or C3 along basement membrane; salt-split/serology refines antigen.","elp":"Shaggy fibrinogen at BMZ and cytoid bodies; less disease-specific.","lupus":"Granular IgG/IgM/C3 at BMZ and adnexa may occur; interpret with clinic/serology.","em":"Usually nonspecific/negative; DIF mainly excludes autoimmune blistering disease."},"isDistinguisher":true},
+    {"id":"biopsy","name":"Optimal biopsy","values":{"pv":"Edge for H&E + perilesional/normal buccal mucosa for DIF.","mmp":"Edge for H&E + perilesional or normal buccal mucosa for DIF; repeat if high suspicion and first DIF negative.","elp":"Active edge including white striae for H&E; DIF if autoimmune bullous/lupus differential.","lupus":"Active lesion for H&E ± separate DIF based on diagnostic question.","em":"Fresh active lesion for H&E; drug/infection workup and severity assessment."}}
+   ],
+   "citations": [{"pmid":"34309078","quote":"European MMP guideline recommends direct immunofluorescence with serology and interdisciplinary management for mucosa-predominant disease."},{"pmid":"37268547","doi":"10.1016/j.ijom.2023.05.005","quote":"Meta-analysis compares perilesional and normal-appearing oral mucosal biopsy sites for DIF in pemphigus vulgaris and mucous membrane pemphigoid."},{"doi":"10.1007/978-3-319-18446-3","quote":"Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."}]
+  },
+  {
+   "id": "oral-ulcer-clinical-cmp",
+   "topic": "oral-ulcers",
+   "title": "Oral Ulcer Clinical Differential",
+   "subtitle": "Site, recurrence, healing, and extraoral disease are the highest-yield discriminators",
+   "entities": [{"id":"ras","name":"Recurrent aphthous stomatitis","shortName":"RAS"},{"id":"behcet","name":"Behçet syndrome","shortName":"Behçet"},{"id":"sle","name":"SLE/CLE oral disease","shortName":"Lupus"},{"id":"ibd","name":"IBD-related ulcers","shortName":"IBD"},{"id":"hsv","name":"Recurrent intraoral HSV","shortName":"HSV"},{"id":"scc","name":"Oral squamous cell carcinoma","shortName":"SCC"}],
+   "features": [
+    {"id":"site","name":"Typical site","values":{"ras":"Nonkeratinized movable mucosa: labial/buccal mucosa, floor of mouth, ventral tongue, soft palate.","behcet":"Morphologically aphthous at multiple oral sites; genital ulcers/scars add specificity.","sle":"Hard/soft palate junction, buccal mucosa or oral discoid/lichenoid plaques; may be painless.","ibd":"Aphthae; Crohn can add deep linear ulcers, cobblestoning, mucosal tags and lip swelling.","hsv":"Recurrent disease favors keratinized mucosa/hard palate and attached gingiva; grouped vesicles precede erosions.","scc":"Any site, especially lateral/ventral tongue and floor of mouth; solitary persistent indurated lesion."},"isDistinguisher":true},
+    {"id":"course","name":"Course","values":{"ras":"Recurrent, complete healing; minor lesions 7–14 days, major longer and may scar.","behcet":"Recurrent oral ulcers plus episodic multisystem disease.","sle":"May track systemic/cutaneous activity or chronic discoid disease.","ibd":"May precede or accompany intestinal symptoms.","hsv":"Prodrome, clustered lesions, recurrent in similar location; usually 7–14 days.","scc":"Progressive/nonhealing >2–3 weeks, bleeding, pain or sensory change."},"isDistinguisher":true},
+    {"id":"clues","name":"Key accompanying clues","values":{"ras":"No systemic disease in primary RAS; stress/trauma and family history common.","behcet":"Genital scars, uveitis/retinal vasculitis, papulopustules, pathergy, thrombosis/aneurysm, neurologic/GI disease.","sle":"Photosensitivity, arthritis, cytopenias, nephritis, ANA/ENA/complement phenotype.","ibd":"Diarrhea, blood, abdominal pain, weight loss, perianal disease, anemia.","hsv":"Vesicles, contagious exposure, immunosuppression; PCR confirms atypical disease.","scc":"Induration/fixation, cervical nodes, tobacco/alcohol/HPV or chronic inflammatory risk."}},
+    {"id":"test","name":"Best test when needed","values":{"ras":"Clinical; CBC/nutrient/secondary-cause testing only if atypical.","behcet":"Clinical longitudinal diagnosis; no single diagnostic laboratory test.","sle":"Systemic clinical evaluation and targeted serology; biopsy if morphology uncertain.","ibd":"CBC/nutrients/inflammatory and GI evaluation; endoscopy based on symptoms.","hsv":"PCR from a fresh lesion.","scc":"Prompt incisional biopsy."}}
+   ],
+   "citations": [{"doi":"10.1111/prd.12262","quote":"Review presents an etiologic classification and diagnostic algorithm for recurrent oral ulceration."},{"pmid":"29625968","doi":"10.1136/annrheumdis-2018-213225","quote":"EULAR recommendations address mucocutaneous, ocular, vascular, neurologic, gastrointestinal, and joint involvement in Behçet syndrome."},{"doi":"10.1111/dth.15500","quote":"Review summarizes diagnosis and stepwise treatment of recurrent aphthous stomatitis."}]
+  }
+ ]
+}

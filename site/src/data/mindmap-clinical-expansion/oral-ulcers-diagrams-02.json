@@ -1,0 +1,98 @@
+{
+ "version": 1,
+ "kind": "diagrams",
+ "topic": "oral-ulcers",
+ "order": 2,
+ "diagrams": [
+  {
+   "id": "oral-systemic-associations-cl",
+   "topic": "oral-ulcers",
+   "title": "Systemic Associations of Oral Ulcers and Erosions",
+   "subtitle": "A mechanism-based differential for targeted history and testing",
+   "type": "classification",
+   "data": {
+    "root": {
+     "id": "oroot",
+     "children": [
+      {
+       "id": "aphthous",
+       "children": [
+        {"id":"ras-minor","name":"Minor RAS","detail":"Small, non-scarring, episodic."},
+        {"id":"ras-major","name":"Major RAS","detail":"Large/deep, prolonged, may scar."},
+        {"id":"complex","name":"Complex aphthosis","detail":"Near-continuous oral ± genital aphthae without sufficient Behçet features."}
+       ],
+       "name": "Aphthous spectrum"
+      },
+      {
+       "id": "systemic",
+       "children": [
+        {"id":"behcet","name":"Behçet syndrome","detail":"Genital ulcers/scars, ocular, vascular, neurologic, skin, GI disease."},
+        {"id":"ibd","name":"IBD / celiac","detail":"GI symptoms, perianal disease, malabsorption/nutrient deficiency."},
+        {"id":"sle","name":"SLE / connective tissue disease","detail":"Photosensitivity, arthritis, renal/hematologic disease; oral discoid or palatal lesions."},
+        {"id":"reactive","name":"Reactive arthritis","detail":"Arthritis, urethritis/cervicitis, conjunctivitis/uveitis, keratoderma."}
+       ],
+       "name": "Systemic inflammatory disease"
+      },
+      {
+       "id": "immune-erosive",
+       "children": [
+        {"id":"pv","name":"Pemphigus vulgaris","detail":"Fragile bullae/erosions; intercellular IgG/C3."},
+        {"id":"mmp","name":"Mucous membrane pemphigoid","detail":"Scarring mucosal disease; linear BMZ immunoreactants."},
+        {"id":"elp","name":"Erosive lichen planus","detail":"Reticular white striae with erosions/desquamative gingivitis."},
+        {"id":"em","name":"Erythema multiforme / SJS-TEN","detail":"Acute widespread erosions with skin/medication/infection context."}
+       ],
+       "name": "Autoimmune erosive / blistering disease"
+      },
+      {
+       "id": "infection",
+       "children": [
+        {"id":"hsv","name":"HSV","detail":"Grouped vesicles/erosions, often keratinized mucosa in recurrence."},
+        {"id":"cmv","name":"CMV / opportunistic","detail":"Large chronic ulcers in immunocompromised host."},
+        {"id":"otherinf","name":"Syphilis, deep fungal, mycobacterial, bacterial","detail":"Exposure and host determine testing."}
+       ],
+       "name": "Infectious"
+      },
+      {
+       "id": "hematologic-drug",
+       "children": [
+        {"id":"neutropenia","name":"Neutropenia / marrow disease","detail":"Fever, infection, cytopenias, cyclic pattern."},
+        {"id":"drug-ulcer","name":"Medication injury","detail":"Nicorandil, NSAIDs, chemotherapy, methotrexate toxicity, mTOR inhibitors and others."},
+        {"id":"deficiency","name":"Iron, B12, folate and other deficiency","detail":"Test when diet, anemia, malabsorption, or severe recurrent disease suggests."}
+       ],
+       "name": "Hematologic / drug / nutritional"
+      }
+     ],
+     "name": "Recurrent oral ulceration / erosion",
+     "detail": "Organize by mechanism and accompanying findings."
+    }
+   },
+   "citations": [
+    {"doi":"10.1111/prd.12262","quote":"Review presents an etiologic classification and diagnostic algorithm for recurrent oral ulceration."},
+    {"pmid":"29625968","doi":"10.1136/annrheumdis-2018-213225","quote":"EULAR recommendations address mucocutaneous, ocular, vascular, neurologic, gastrointestinal, and joint involvement in Behçet syndrome."},
+    {"pmid":"34309078","quote":"European MMP guideline recommends direct immunofluorescence with serology and interdisciplinary management for mucosa-predominant disease."}
+   ]
+  },
+  {
+   "id": "oral-treatment-by-cause-sw",
+   "topic": "oral-ulcers",
+   "title": "Oral Ulcer and Erosion Treatment by Cause",
+   "subtitle": "Do not escalate immunosuppression until infection, malignancy, and the mucosal diagnosis are sufficiently addressed",
+   "type": "swimlane",
+   "data": {
+    "lanes": [{"id":"local","name":"Local / supportive"},{"id":"systemic","name":"Systemic control"},{"id":"organ-risk","name":"Organ-risk / escalation"}],
+    "rows": [
+     {"id":"ras","name":"Recurrent aphthous stomatitis","cells":{"local":{"text":"Topical corticosteroid started early; topical anesthetic, protective paste, bland rinses, trauma avoidance and correction of deficiency.","emphasis":"primary"},"systemic":{"text":"Frequent/severe disease: colchicine is a common first systemic option; short systemic glucocorticoid or other steroid-sparing therapy for selected refractory cases.","emphasis":"primary"},"organ-risk":{"text":"Reopen the diagnosis for major, scarring, near-continuous, late-onset, or systemically symptomatic disease.","emphasis":"caution"}}},
+     {"id":"behcet","name":"Behçet mucocutaneous disease","cells":{"local":{"text":"Topical corticosteroid and analgesic care for individual ulcers.","emphasis":"primary"},"systemic":{"text":"Colchicine or apremilast are common options for recurrent oral/genital ulcers; azathioprine, TNF inhibitor, interferon or other therapy depends on full phenotype.","emphasis":"primary"},"organ-risk":{"text":"Uveitis/retinal vasculitis, vascular, neurologic or severe GI disease requires urgent organ-specific immunosuppression and specialty care.","emphasis":"caution"}}},
+     {"id":"pv","name":"Pemphigus vulgaris","cells":{"local":{"text":"Potent topical corticosteroid and meticulous oral care can supplement systemic therapy.","emphasis":"primary"},"systemic":{"text":"Rituximab-based glucocorticoid-sparing therapy is standard for many moderate–severe patients; regimen and infection prevention require specialist management.","emphasis":"primary"},"organ-risk":{"text":"Severe pain, weight loss, dehydration, widespread skin disease or infection may require hospital-level care.","emphasis":"caution"}}},
+     {"id":"mmp","name":"Mucous membrane pemphigoid","cells":{"local":{"text":"High-potency topical corticosteroid for limited oral disease; dental hygiene and candidiasis prevention.","emphasis":"primary"},"systemic":{"text":"Dapsone or systemic immunosuppression/biologic therapy according to severity and antigen/phenotype.","emphasis":"primary"},"organ-risk":{"text":"Ocular, laryngeal, esophageal or genital disease can scar irreversibly; urgent multidisciplinary treatment.","emphasis":"caution"}}},
+     {"id":"infectious","name":"Infectious ulcer","cells":{"local":{"text":"Support hydration, pain control and oral hygiene; manage secondary candidiasis when present.","emphasis":"primary"},"systemic":{"text":"Pathogen-directed antiviral, antibacterial or antifungal therapy based on clinical testing.","emphasis":"primary"},"organ-risk":{"text":"Fever/neutropenia, disseminated infection, inability to swallow or an immunocompromised host may require admission.","emphasis":"caution"}}}
+    ]
+   },
+   "citations": [
+    {"doi":"10.1111/dth.15500","quote":"Review summarizes diagnosis and stepwise treatment of recurrent aphthous stomatitis."},
+    {"pmid":"29625968","doi":"10.1136/annrheumdis-2018-213225","quote":"EULAR recommendations address mucocutaneous, ocular, vascular, neurologic, gastrointestinal, and joint involvement in Behçet syndrome."},
+    {"pmid":"34309078","quote":"European MMP guideline recommends direct immunofluorescence with serology and interdisciplinary management for mucosa-predominant disease."}
+   ]
+  }
+ ]
+}

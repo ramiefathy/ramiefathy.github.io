@@ -1,0 +1,150 @@
+{
+ "version": 1,
+ "kind": "diagrams",
+ "topic": "dermatomyositis",
+ "order": 3,
+ "diagrams": [
+  {
+   "id": "dm-treatment-by-domain-sw",
+   "topic": "dermatomyositis",
+   "title": "Dermatomyositis Treatment by Active Domain",
+   "subtitle": "A multidisciplinary framework—not a substitute for patient-specific prescribing",
+   "type": "swimlane",
+   "data": {
+    "lanes": [
+     {
+      "id": "foundation",
+      "name": "Foundation / first decisions"
+     },
+     {
+      "id": "steroid-sparing",
+      "name": "Steroid-sparing control"
+     },
+     {
+      "id": "escalation",
+      "name": "Escalation / organ threat"
+     }
+    ],
+    "rows": [
+     {
+      "id": "skin",
+      "name": "Skin / scalp / pruritus",
+      "cells": {
+       "foundation": {
+        "text": "Rigorous photoprotection; topical corticosteroid or calcineurin inhibitor; treat scalp scale/pruritus; document CDASI activity vs damage.",
+        "emphasis": "primary",
+        "detail": "Persistent erythema, scale, ulceration, or pruritus indicates activity; dyspigmentation, atrophy, and scarring may represent damage and will not respond like active inflammation."
+       },
+       "steroid-sparing": {
+        "text": "Methotrexate or mycophenolate are common systemic choices; select by extracutaneous domains, pregnancy plans, laboratory profile, and comorbidity.",
+        "emphasis": "primary"
+       },
+       "escalation": {
+        "text": "IVIG for refractory/severe disease. Brepocitinib 30 mg improved composite, skin, function, and glucocorticoid-taper outcomes in the phase 3 VALOR trial; as of 2026-08-03 its US NDA is under FDA Priority Review and it must not be represented as approved. Other targeted therapies remain specialist-directed and often off-label.",
+        "emphasis": "caution",
+        "detail": "<p>Regulatory status is time-sensitive. Verify the current FDA label before prescribing. VALOR also reported more serious infections with brepocitinib 30 mg than placebo, so trial efficacy does not replace individualized safety assessment.</p>"
+       }
+      }
+     },
+     {
+      "id": "muscle",
+      "name": "Muscle weakness / myositis",
+      "cells": {
+       "foundation": {
+        "text": "For clinically important weakness, systemic glucocorticoid is commonly used while rapidly excluding mimics and assessing swallowing/respiration.",
+        "emphasis": "primary"
+       },
+       "steroid-sparing": {
+        "text": "Start an early steroid-sparing agent such as methotrexate, azathioprine, or mycophenolate; integrate physical therapy after acute safety assessment.",
+        "emphasis": "primary"
+       },
+       "escalation": {
+        "text": "IVIG, rituximab, or other specialist-directed therapy for refractory or severe disease; use objective strength/function rather than CK alone.",
+        "emphasis": "caution"
+       }
+      }
+     },
+     {
+      "id": "dysphagia",
+      "name": "Dysphagia / aspiration",
+      "cells": {
+       "foundation": {
+        "text": "Urgent swallow and nutrition assessment; aspiration precautions; evaluate respiratory complications.",
+        "emphasis": "caution"
+       },
+       "steroid-sparing": {
+        "text": "Treat active myositis aggressively with systemic therapy; coordinate speech-language pathology and gastroenterology/ENT as needed.",
+        "emphasis": "primary"
+       },
+       "escalation": {
+        "text": "IVIG is often prioritized in severe dysphagia; hospital-level care if aspiration, dehydration, or inability to maintain nutrition.",
+        "emphasis": "caution"
+       }
+      }
+     },
+     {
+      "id": "ild",
+      "name": "Interstitial lung disease",
+      "cells": {
+       "foundation": {
+        "text": "Pulmonology/rheumatology co-management; HRCT/PFT baseline; exclude infection and alternative causes.",
+        "emphasis": "caution"
+       },
+       "steroid-sparing": {
+        "text": "Mycophenolate is commonly favored; rituximab, azathioprine, cyclophosphamide, calcineurin inhibitor, or other agents depend on phenotype and severity.",
+        "emphasis": "primary"
+       },
+       "escalation": {
+        "text": "Rapidly progressive ILD—especially MDA5—requires urgent combination therapy and respiratory support. Treatment choices should follow current SARD-ILD guidance and local expertise.",
+        "emphasis": "caution"
+       }
+      }
+     },
+     {
+      "id": "calcinosis",
+      "name": "Calcinosis / chronic damage",
+      "cells": {
+       "foundation": {
+        "text": "Control active inflammation early; minimize trauma; wound care and infection management; assess pain and function.",
+        "emphasis": "primary"
+       },
+       "steroid-sparing": {
+        "text": "No uniformly effective medical therapy. Optimize underlying disease control and consider selected agents case by case.",
+        "emphasis": "muted"
+       },
+       "escalation": {
+        "text": "Surgical removal may help discrete symptomatic lesions after inflammation is controlled; extensive disease needs multidisciplinary planning.",
+        "emphasis": "caution"
+       }
+      }
+     }
+    ]
+   },
+   "citations": [
+    {
+     "pmid": "36198179",
+     "doi": "10.1056/NEJMoa2117912",
+     "quote": "The ProDERM randomized trial demonstrated improvement with IVIG in active adult dermatomyositis and identified clinically important thromboembolic risk."
+    },
+    {
+     "pmid": "38973731",
+     "doi": "10.1002/acr.25348",
+     "quote": "ACR/CHEST guideline provides disease-specific initial, progressive, and rapidly progressive SARD-ILD treatment frameworks."
+    },
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "pmid": "41910335",
+     "doi": "10.1056/NEJMoa2503531",
+     "quote": "VALOR found that brepocitinib 30 mg, but not 15 mg, improved the week-52 Total Improvement Score and all nine key secondary endpoints; serious infections were more frequent than with placebo."
+    },
+    {
+     "url": "https://www.sec.gov/Archives/edgar/data/1635088/000114036126007447/ef20066998_8k.htm",
+     "quote": "Roivant reported on 2026-03-03 that FDA accepted the dermatomyositis NDA and granted Priority Review; the application remained under review at this audit date."
+    }
+   ]
+  }
+ ]
+}

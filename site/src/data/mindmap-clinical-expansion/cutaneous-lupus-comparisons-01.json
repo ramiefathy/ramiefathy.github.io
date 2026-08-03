@@ -1,0 +1,201 @@
+{
+ "version": 1,
+ "kind": "comparisons",
+ "topic": "cutaneous-lupus",
+ "order": 1,
+ "comparisons": [
+  {
+   "id": "cle-subtypes-cmp",
+   "topic": "cutaneous-lupus",
+   "title": "Cutaneous Lupus Subtype Comparison",
+   "subtitle": "Use morphology, distribution, scarring, and systemic context together",
+   "entities": [
+    {
+     "id": "acle",
+     "name": "Acute CLE",
+     "shortName": "ACLE"
+    },
+    {
+     "id": "scle",
+     "name": "Subacute CLE",
+     "shortName": "SCLE"
+    },
+    {
+     "id": "dle",
+     "name": "Discoid LE",
+     "shortName": "DLE"
+    },
+    {
+     "id": "tumid",
+     "name": "Tumid lupus",
+     "shortName": "TLE"
+    },
+    {
+     "id": "lep",
+     "name": "Lupus panniculitis",
+     "shortName": "LEP"
+    }
+   ],
+   "features": [
+    {
+     "id": "morph",
+     "name": "Core morphology",
+     "values": {
+      "acle": "Erythematous patches with fine scale/edema; localized malar or generalized photodistributed eruption.",
+      "scle": "Thin annular/polycyclic or papulosquamous plaques with peripheral scale.",
+      "dle": "Scaly indurated plaques with follicular plugging, dyspigmentation, atrophy, and scarring.",
+      "tumid": "Smooth succulent erythematous plaques without scale or follicular change.",
+      "lep": "Deep firm nodules/plaques; overlying skin may be normal or show DLE."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "distribution",
+     "name": "Typical distribution",
+     "values": {
+      "acle": "Malar face or generalized sun-exposed skin; malar eruption classically spares nasolabial folds.",
+      "scle": "Upper chest/back and extensor arms; central face, scalp, and below waist often spared.",
+      "dle": "Scalp, face, and conchal bowls; generalized disease extends below neck.",
+      "tumid": "Face, V-neck, upper back, and extensor arms.",
+      "lep": "Face, proximal arms, trunk, buttocks, and thighs."
+     }
+    },
+    {
+     "id": "damage",
+     "name": "Scarring / damage",
+     "values": {
+      "acle": "No scar; may leave transient dyspigmentation.",
+      "scle": "No scar; dyspigmentation/telangiectasia can persist.",
+      "dle": "High scarring risk, including permanent alopecia.",
+      "tumid": "No scar or epidermal atrophy.",
+      "lep": "Lipoatrophy and contour depression."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "systemic",
+     "name": "Systemic lupus association",
+     "values": {
+      "acle": "Strong; often tracks systemic activity.",
+      "scle": "Moderate; many meet classification criteria, usually with less severe renal/CNS disease than classic SLE cohorts.",
+      "dle": "Lower when localized; higher with generalized or childhood disease.",
+      "tumid": "Usually skin-limited.",
+      "lep": "Variable; evaluate for SLE and associated DLE."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "histo",
+     "name": "Histopathologic emphasis",
+     "values": {
+      "acle": "Relatively superficial interface dermatitis and mucin.",
+      "scle": "Interface dermatitis; often not subtype-specific.",
+      "dle": "Follicular plugging, adnexal inflammation, basement-membrane thickening, mucin, scarring.",
+      "tumid": "Perivascular/periadnexal lymphocytes and mucin; minimal/no interface.",
+      "lep": "Lobular lymphocytic panniculitis with hyaline fat necrosis and lymphoid aggregates."
+     },
+     "isDistinguisher": true
+    }
+   ],
+   "citations": [
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "pmid": "27859683",
+     "doi": "10.1111/jdv.14053",
+     "quote": "European S2k guideline outlines topical, antimalarial, and subsequent systemic treatment strategies for cutaneous lupus erythematosus."
+    }
+   ]
+  },
+  {
+   "id": "cle-vs-dm-cmp",
+   "topic": "cutaneous-lupus",
+   "title": "Cutaneous Lupus vs Dermatomyositis",
+   "subtitle": "High-yield clinical and histopathologic discriminators",
+   "entities": [
+    {
+     "id": "cle",
+     "name": "Cutaneous lupus",
+     "shortName": "CLE"
+    },
+    {
+     "id": "dm",
+     "name": "Dermatomyositis",
+     "shortName": "DM"
+    }
+   ],
+   "features": [
+    {
+     "id": "hands",
+     "name": "Hands",
+     "values": {
+      "cle": "ACLE may favor interarticular dorsal fingers; chilblain/DLE variants can involve digits.",
+      "dm": "Gottron papules/sign over extensor joints; periungual erythema, dilated/dropout capillaries, ragged cuticles."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "face",
+     "name": "Midface and eyelids",
+     "values": {
+      "cle": "Malar ACLE classically spares nasolabial folds; eyelid disease is not usually a heliotrope.",
+      "dm": "Midfacial erythema often involves nasolabial folds; violaceous heliotrope and edema are characteristic."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "symptom",
+     "name": "Pruritus",
+     "values": {
+      "cle": "Often minimal, though individual lesions can itch or burn.",
+      "dm": "Pruritus and scalp burning can be severe and quality-of-life limiting."
+     }
+    },
+    {
+     "id": "systemic",
+     "name": "Systemic clues",
+     "values": {
+      "cle": "Nephritis, cytopenias, serositis, thrombosis, inflammatory arthritis, neurologic disease.",
+      "dm": "Proximal weakness, dysphagia, ILD, myositis-specific phenotype, malignancy association."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "histology",
+     "name": "Routine H&E",
+     "values": {
+      "cle": "Interface dermatitis, perivascular/periadnexal inflammation, mucin; DLE has follicular/scarring changes.",
+      "dm": "Interface dermatitis, dyskeratosis, mucin; can be indistinguishable from CLE on routine skin biopsy."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "test",
+     "name": "Most useful next tests",
+     "values": {
+      "cle": "ANA/ENA, dsDNA, complement, CBC, renal assessment/urinalysis; subtype-directed biopsy.",
+      "dm": "Strength/function, CK/aldolase/LDH, MRI if discordant, MSA panel, PFT/HRCT and IMACS cancer-risk assessment."
+     },
+     "isDistinguisher": true
+    }
+   ],
+   "citations": [
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "doi": "10.1111/bjd.17536",
+     "quote": "Concha et al. review diagnostic and classification limitations in amyopathic dermatomyositis, including overlap with lupus."
+    },
+    {
+     "pmid": "37827694",
+     "doi": "10.1136/ard-2023-224762",
+     "quote": "EULAR 2023 recommendations emphasize hydroxychloroquine, glucocorticoid minimization, organ-directed immunosuppression, and biologic options in SLE."
+    }
+   ]
+  }
+ ]
+}

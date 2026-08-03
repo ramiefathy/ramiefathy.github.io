@@ -1,0 +1,226 @@
+{
+ "version": 1,
+ "kind": "comparisons",
+ "topic": "dermatomyositis",
+ "order": 1,
+ "comparisons": [
+  {
+   "id": "dm-clinical-histologic-mimics-cmp",
+   "topic": "dermatomyositis",
+   "title": "Dermatomyositis vs Key Cutaneous Mimics",
+   "subtitle": "Clinical distribution is usually more discriminating than routine interface histology",
+   "entities": [
+    {
+     "id": "dm",
+     "name": "Dermatomyositis",
+     "shortName": "DM"
+    },
+    {
+     "id": "cle",
+     "name": "Cutaneous lupus erythematosus",
+     "shortName": "CLE"
+    },
+    {
+     "id": "psoriasis",
+     "name": "Psoriasis",
+     "shortName": "PsO"
+    },
+    {
+     "id": "contact",
+     "name": "Allergic/photoallergic dermatitis",
+     "shortName": "Dermatitis"
+    }
+   ],
+   "features": [
+    {
+     "id": "hands",
+     "name": "Dorsal hands / joints",
+     "values": {
+      "dm": "Gottron papules over MCP/IP joints; erythema can extend linearly between joints; periungual capillary change.",
+      "cle": "ACLE often favors skin between joints and may spare the knuckles; chilblain/DLE variants can involve digits.",
+      "psoriasis": "Well-demarcated scaly plaques may cover knuckles; nail pitting/onycholysis support psoriasis.",
+      "contact": "Exposure-shaped eczematous plaques; dorsal hands common, often fissured or vesicular."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "face",
+     "name": "Face",
+     "values": {
+      "dm": "Heliotrope; midfacial erythema often involves nasolabial folds; scalp pruritus/scale common.",
+      "cle": "Malar ACLE classically spares nasolabial folds; DLE may scar; SCLE usually spares central face.",
+      "psoriasis": "Hairline/scalp plaques; may involve brows/nasolabial areas as sebopsoriasis.",
+      "contact": "Eyelids/face may be prominent; sharp exposure pattern, edema, itch, and episodic relation to products/sun."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "symptoms",
+     "name": "Symptoms",
+     "values": {
+      "dm": "Often markedly pruritic or burning; weakness, myalgia, dysphagia, dyspnea, arthritis may coexist.",
+      "cle": "Often asymptomatic or mildly symptomatic; systemic lupus features depend on subtype and patient.",
+      "psoriasis": "Variable itch; joint pain, stiffness, enthesitis, or dactylitis may signal PsA.",
+      "contact": "Pruritus is dominant; burning possible; improves with avoidance."
+     }
+    },
+    {
+     "id": "histo",
+     "name": "Routine histopathology",
+     "values": {
+      "dm": "Vacuolar interface dermatitis, dyskeratosis, lymphocytic inflammation, and mucin; not reliably separable from CLE.",
+      "cle": "Interface change, basal injury, perivascular/periadnexal inflammation and mucin; DLE adds follicular plugging and scarring features.",
+      "psoriasis": "Regular psoriasiform hyperplasia, parakeratosis, diminished granular layer, neutrophils in stratum corneum.",
+      "contact": "Spongiotic dermatitis with variable vesiculation and eosinophils; chronic lesions may become psoriasiform."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "next",
+     "name": "Most useful next discriminator",
+     "values": {
+      "dm": "Nailfold examination, proximal strength/function, muscle enzymes/MRI, MSA phenotype, lung/cancer risk assessment.",
+      "cle": "CLE subtype morphology, ANA/ENA/systemic evaluation, medication review for SCLE, scarring risk.",
+      "psoriasis": "Full skin/nail exam, family history, PsA screen; biopsy if atypical.",
+      "contact": "Exposure chronology, distribution, avoidance response, and patch testing."
+     },
+     "isDistinguisher": true
+    }
+   ],
+   "citations": [
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "doi": "10.1111/bjd.17536",
+     "quote": "Concha et al. review diagnostic and classification limitations in amyopathic dermatomyositis, including overlap with lupus."
+    },
+    {
+     "pmid": "27859683",
+     "doi": "10.1111/jdv.14053",
+     "quote": "European S2k guideline outlines topical, antimalarial, and subsequent systemic treatment strategies for cutaneous lupus erythematosus."
+    }
+   ]
+  },
+  {
+   "id": "dm-msa-phenotypes-cmp",
+   "topic": "dermatomyositis",
+   "title": "Dermatomyositis MSA Phenotype Matrix",
+   "subtitle": "Associations guide surveillance; no antibody perfectly predicts an individual patient",
+   "entities": [
+    {
+     "id": "mda5",
+     "name": "Anti-MDA5",
+     "shortName": "MDA5"
+    },
+    {
+     "id": "tif1",
+     "name": "Anti-TIF1γ",
+     "shortName": "TIF1γ"
+    },
+    {
+     "id": "nxp2",
+     "name": "Anti-NXP2",
+     "shortName": "NXP2"
+    },
+    {
+     "id": "mi2",
+     "name": "Anti-Mi-2",
+     "shortName": "Mi-2"
+    },
+    {
+     "id": "sae",
+     "name": "Anti-SAE",
+     "shortName": "SAE"
+    },
+    {
+     "id": "antisyn",
+     "name": "Antisynthetase",
+     "shortName": "ARS"
+    }
+   ],
+   "features": [
+    {
+     "id": "skin",
+     "name": "Characteristic cutaneous clues",
+     "values": {
+      "mda5": "Painful palmar papules, ulcerated Gottron lesions, lateral nailfold/digital ulcers, alopecia, oral pain/ulcers.",
+      "tif1": "Extensive skin disease, poikiloderma, psoriasiform or hyperkeratotic lesions, palatal patch, red-on-white change.",
+      "nxp2": "Often less striking skin relative to muscle; edema and calcinosis may dominate.",
+      "mi2": "Classic prominent Gottron, heliotrope, shawl/V-sign phenotype.",
+      "sae": "Severe skin-predominant onset; later myositis may develop.",
+      "antisyn": "Mechanic’s hands, Raynaud; DM-specific rash may be absent or present."
+     }
+    },
+    {
+     "id": "muscle",
+     "name": "Muscle pattern",
+     "values": {
+      "mda5": "Often amyopathic or less severe muscle disease.",
+      "tif1": "Variable; can have classic myositis.",
+      "nxp2": "Often substantial weakness, myalgia, edema, dysphagia.",
+      "mi2": "Classic proximal myositis, often treatment responsive.",
+      "sae": "Myositis may follow initial skin disease; dysphagia can be prominent.",
+      "antisyn": "Myositis ranges from absent/subclinical to severe."
+     }
+    },
+    {
+     "id": "lung",
+     "name": "ILD risk",
+     "values": {
+      "mda5": "High; rapidly progressive ILD is the defining emergency phenotype.",
+      "tif1": "Generally lower than MDA5/antisynthetase phenotypes.",
+      "nxp2": "Not the dominant association.",
+      "mi2": "Generally lower risk.",
+      "sae": "Variable, usually not the dominant feature.",
+      "antisyn": "High; ILD may precede or dominate muscle disease."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "cancer",
+     "name": "Adult cancer association",
+     "values": {
+      "mda5": "Not the primary cancer-associated phenotype.",
+      "tif1": "Strong association; use enhanced risk-stratified screening.",
+      "nxp2": "Association reported; considered high risk in IMACS framework.",
+      "mi2": "Lower than TIF1γ/NXP2 in most cohorts.",
+      "sae": "Intermediate/variable by cohort.",
+      "antisyn": "Generally lower than classic cancer-associated DM phenotypes."
+     },
+     "isDistinguisher": true
+    },
+    {
+     "id": "pearls",
+     "name": "Clinical pearl",
+     "values": {
+      "mda5": "Do not be reassured by normal CK when ulcers/palmar papules and respiratory symptoms coexist.",
+      "tif1": "Atypical extensive rash plus older age should accelerate malignancy workup.",
+      "nxp2": "Dysphagia, edema, or severe weakness may be disproportionate to visible skin disease.",
+      "mi2": "Classic morphology and favorable response are common but not guaranteed.",
+      "sae": "Continue muscle surveillance after a skin-predominant presentation.",
+      "antisyn": "The complete triad is unnecessary; isolated ILD plus mechanic’s hands can be the clue."
+     },
+     "isDistinguisher": true
+    }
+   ],
+   "citations": [
+    {
+     "pmid": "23568993",
+     "quote": "Myositis-specific autoantibodies define clinically useful dermatomyositis phenotypes, including MDA5, TIF1γ, NXP2, Mi-2, and SAE associations."
+    },
+    {
+     "pmid": "37945774",
+     "doi": "10.1038/s41584-023-01045-w",
+     "quote": "IMACS international guideline provides risk-stratified cancer screening recommendations for idiopathic inflammatory myopathies."
+    },
+    {
+     "pmid": "38973714",
+     "doi": "10.1002/art.42860",
+     "quote": "ACR/CHEST guideline conditionally recommends PFTs and HRCT for screening people with systemic autoimmune rheumatic diseases at risk for ILD."
+    }
+   ]
+  }
+ ]
+}

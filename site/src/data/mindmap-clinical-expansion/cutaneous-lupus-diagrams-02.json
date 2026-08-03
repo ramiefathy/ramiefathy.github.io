@@ -1,0 +1,311 @@
+{
+ "version": 1,
+ "kind": "diagrams",
+ "topic": "cutaneous-lupus",
+ "order": 2,
+ "diagrams": [
+  {
+   "id": "cle-systemic-evaluation-wp",
+   "topic": "cutaneous-lupus",
+   "title": "Systemic Evaluation for a Patient With CLE",
+   "subtitle": "A risk-proportionate baseline and follow-up pathway",
+   "type": "workup-pathway",
+   "data": {
+    "stages": [
+     {
+      "id": "frame",
+      "items": [
+       {
+        "id": "frame-subtype",
+        "label": "Subtype, distribution, activity, damage, and onset",
+        "detail": "ACLE, SCLE, generalized DLE, childhood DLE, vasculitic lesions, and nonscarring alopecia generally justify a lower threshold for systemic evaluation than a single localized DLE plaque."
+       }
+      ],
+      "name": "1 · Define cutaneous phenotype"
+     },
+     {
+      "id": "history",
+      "items": [
+       {
+        "id": "history-domains",
+        "label": "Joint, renal, hematologic, neurologic, cardiopulmonary, thrombotic, mucosal and constitutional review"
+       },
+       {
+        "id": "history-meds",
+        "label": "Medication, supplement, smoking, UV, pregnancy, and infection history",
+        "detail": "New SCLE requires a detailed medication timeline."
+       }
+      ],
+      "name": "2 · Systemic history and examination"
+     },
+     {
+      "id": "baseline",
+      "items": [
+       {
+        "id": "base-cbc",
+        "label": "CBC with differential; creatinine/eGFR; liver profile as indicated"
+       },
+       {
+        "id": "base-urine",
+        "label": "Urinalysis with sediment; quantify protein if abnormal"
+       },
+       {
+        "id": "base-serology",
+        "label": "ANA (preferably IF), anti-dsDNA, C3/C4; ENA and antiphospholipid tests when phenotype warrants",
+        "detail": "Do not diagnose or treat SLE based on an isolated positive ANA."
+       }
+      ],
+      "name": "3 · Baseline laboratory assessment"
+     },
+     {
+      "id": "triage",
+      "items": [
+       {
+        "id": "triage-renal",
+        "label": "Proteinuria, hematuria/casts, or renal dysfunction → urgent rheumatology/nephrology pathway"
+       },
+       {
+        "id": "triage-cyt",
+        "label": "Hemolysis or significant cytopenia → confirm cause and assess active SLE, drug toxicity, infection, or marrow disease"
+       },
+       {
+        "id": "triage-neuro",
+        "label": "Seizure, psychosis, focal deficit, thrombosis, or severe serositis → emergency organ-specific evaluation"
+       }
+      ],
+      "name": "4 · Escalate abnormalities"
+     },
+     {
+      "id": "follow",
+      "items": [
+       {
+        "id": "follow-risk",
+        "label": "Frequency follows subtype, symptoms, prior abnormalities, treatment, and pregnancy status",
+        "detail": "Classification criteria are research tools that can organize findings but do not replace clinical diagnosis."
+       }
+      ],
+      "name": "5 · Longitudinal monitoring"
+     }
+    ]
+   },
+   "citations": [
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "pmid": "37827694",
+     "doi": "10.1136/ard-2023-224762",
+     "quote": "EULAR 2023 recommendations emphasize hydroxychloroquine, glucocorticoid minimization, organ-directed immunosuppression, and biologic options in SLE."
+    }
+   ]
+  },
+  {
+   "id": "cle-drug-induced-scle-dt",
+   "topic": "cutaneous-lupus",
+   "title": "New or Worsening SCLE: Is It Drug-Induced?",
+   "subtitle": "A medication-timeline workflow",
+   "type": "decision-tree",
+   "data": {
+    "start": "start",
+    "steps": [
+     {
+      "id": "start",
+      "type": "decision",
+      "prompt": "Annular/polycyclic or papulosquamous photodistributed eruption compatible with SCLE?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "med-history"
+       },
+       {
+        "label": "No / uncertain",
+        "nextStepId": "broaden"
+       }
+      ]
+     },
+     {
+      "id": "broaden",
+      "type": "terminal",
+      "prompt": "Broaden the photodistributed differential",
+      "detail": "Dermatomyositis, psoriasis, tinea, polymorphous light eruption, photoallergic/phototoxic dermatitis, drug exanthem, and CTCL can mimic SCLE."
+     },
+     {
+      "id": "med-history",
+      "type": "action",
+      "prompt": "Build a complete medication and supplement timeline",
+      "detail": "Include recent starts, dose changes, intermittent drugs, and agents discontinued weeks to months earlier. Common implicated classes include proton-pump inhibitors, thiazides/other antihypertensives, terbinafine, TNF inhibitors, anticonvulsants, and others."
+     },
+     {
+      "id": "pattern",
+      "type": "decision",
+      "prompt": "New widespread disease, older onset, or close temporal relation to a plausible agent?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "stop"
+       },
+       {
+        "label": "No / unclear",
+        "nextStepId": "idiopathic"
+       }
+      ]
+     },
+     {
+      "id": "stop",
+      "type": "action",
+      "prompt": "When clinically safe, coordinate withdrawal/substitution of the suspected agent",
+      "detail": "Do not stop an essential therapy without the prescribing clinician. Treat active skin disease concurrently; improvement may take weeks to months."
+     },
+     {
+      "id": "idiopathic",
+      "type": "decision",
+      "prompt": "Anti-Ro/SSA, lupus symptoms, or persistent disease after withdrawal?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "systemic"
+       },
+       {
+        "label": "No",
+        "nextStepId": "monitor"
+       }
+      ]
+     },
+     {
+      "id": "systemic",
+      "type": "terminal",
+      "prompt": "Evaluate for idiopathic CLE/SLE and treat by severity",
+      "detail": "Drug-induced and idiopathic SCLE can share anti-Ro positivity and histology; persistence does not automatically exclude a drug contribution."
+     },
+     {
+      "id": "monitor",
+      "type": "terminal",
+      "prompt": "Document response and reconsider competing diagnoses",
+      "detail": "Re-biopsy or pursue patch/photopatch testing when morphology or course is discordant."
+     }
+    ]
+   },
+   "citations": [
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "pmid": "27859683",
+     "doi": "10.1111/jdv.14053",
+     "quote": "European S2k guideline outlines topical, antimalarial, and subsequent systemic treatment strategies for cutaneous lupus erythematosus."
+    }
+   ]
+  },
+  {
+   "id": "cle-treatment-by-phenotype-sw",
+   "topic": "cutaneous-lupus",
+   "title": "CLE Treatment by Phenotype and Risk",
+   "subtitle": "Escalate for active scarring disease, extent, symptoms, or systemic involvement",
+   "type": "swimlane",
+   "data": {
+    "lanes": [
+     {
+      "id": "foundation",
+      "name": "Foundation / local therapy"
+     },
+     {
+      "id": "systemic",
+      "name": "Systemic control"
+     },
+     {
+      "id": "refractory",
+      "name": "Refractory / organ-driven"
+     }
+    ],
+    "rows": [
+     {
+      "id": "localized",
+      "name": "Localized non-scarring ACLE/SCLE/tumid disease",
+      "cells": {
+       "foundation": {
+        "text": "Broad-spectrum UV protection, protective clothing, smoking cessation; site-appropriate topical corticosteroid or calcineurin inhibitor.",
+        "emphasis": "primary"
+       },
+       "systemic": {
+        "text": "Hydroxychloroquine if persistent, recurrent, symptomatic, or too extensive for local therapy.",
+        "emphasis": "primary"
+       },
+       "refractory": {
+        "text": "Recheck diagnosis, drug triggers, UV exposure, adherence, and antimalarial exposure before adding another systemic agent.",
+        "emphasis": "muted"
+       }
+      }
+     },
+     {
+      "id": "dle",
+      "name": "DLE / scarring scalp or face disease",
+      "cells": {
+       "foundation": {
+        "text": "Treat active border early; potent topical or intralesional corticosteroid where appropriate; photograph and track activity vs scar.",
+        "emphasis": "caution"
+       },
+       "systemic": {
+        "text": "Hydroxychloroquine is usual first systemic therapy; add/transition to methotrexate or mycophenolate when disease remains active or progressive.",
+        "emphasis": "primary"
+       },
+       "refractory": {
+        "text": "Selected retinoid, dapsone, thalidomide/lenalidomide, or other specialist therapy; biopsy changing hypertrophic/nonhealing lesions to exclude SCC.",
+        "emphasis": "caution"
+       }
+      }
+     },
+     {
+      "id": "lep",
+      "name": "Lupus panniculitis / deep disease",
+      "cells": {
+       "foundation": {
+        "text": "Deep biopsy; analgesia and damage documentation; local therapy alone is often insufficient.",
+        "emphasis": "caution"
+       },
+       "systemic": {
+        "text": "Antimalarial plus a steroid-sparing agent selected by severity and systemic phenotype; a short glucocorticoid bridge may be needed.",
+        "emphasis": "primary"
+       },
+       "refractory": {
+        "text": "Reassess for lymphoma mimic and active SLE; contour reconstruction should wait until inflammation is inactive.",
+        "emphasis": "caution"
+       }
+      }
+     },
+     {
+      "id": "systemic-sle",
+      "name": "CLE with active systemic lupus",
+      "cells": {
+       "foundation": {
+        "text": "Continue skin-directed care and photoprotection while defining the organ-threatening domain.",
+        "emphasis": "primary"
+       },
+       "systemic": {
+        "text": "Hydroxychloroquine unless contraindicated; minimize glucocorticoid exposure; select immunosuppressive therapy to control the dominant systemic organ.",
+        "emphasis": "primary"
+       },
+       "refractory": {
+        "text": "Anifrolumab, belimumab, rituximab, cyclophosphamide, or other therapy may be appropriate depending on organ involvement and prior response.",
+        "emphasis": "caution"
+       }
+      }
+     }
+    ]
+   },
+   "citations": [
+    {
+     "pmid": "27859683",
+     "doi": "10.1111/jdv.14053",
+     "quote": "European S2k guideline outlines topical, antimalarial, and subsequent systemic treatment strategies for cutaneous lupus erythematosus."
+    },
+    {
+     "pmid": "37827694",
+     "doi": "10.1136/ard-2023-224762",
+     "quote": "EULAR 2023 recommendations emphasize hydroxychloroquine, glucocorticoid minimization, organ-directed immunosuppression, and biologic options in SLE."
+    }
+   ]
+  }
+ ]
+}

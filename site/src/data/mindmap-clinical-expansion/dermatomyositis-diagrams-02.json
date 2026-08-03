@@ -1,0 +1,286 @@
+{
+ "version": 1,
+ "kind": "diagrams",
+ "topic": "dermatomyositis",
+ "order": 2,
+ "diagrams": [
+  {
+   "id": "dm-autoantibody-phenotypes-cl",
+   "topic": "dermatomyositis",
+   "title": "Dermatomyositis Autoantibody Phenotypes",
+   "subtitle": "Use phenotype concordance; commercial assays are not perfectly standardized",
+   "type": "classification",
+   "data": {
+    "root": {
+     "id": "dm-ab-root",
+     "children": [
+      {
+       "id": "dm-ab-mda5",
+       "name": "MDA5",
+       "detail": "Clinically amyopathic or less-muscular phenotype; painful palmar papules, ulcers/necrosis, oral disease, arthritis; high ILD and rapidly progressive ILD risk."
+      },
+      {
+       "id": "dm-ab-tif",
+       "name": "TIF1γ",
+       "detail": "Often extensive or atypical cutaneous disease; strong adult malignancy association. Lower frequency of ILD than several other phenotypes."
+      },
+      {
+       "id": "dm-ab-nxp2",
+       "name": "NXP2",
+       "detail": "Severe muscle disease, dysphagia, myalgia, edema, calcinosis; adult malignancy association in some cohorts. Juvenile disease commonly has calcinosis."
+      },
+      {
+       "id": "dm-ab-mi2",
+       "name": "Mi-2",
+       "detail": "Classic Gottron/heliotrope/shawl phenotype with prominent skin and muscle disease; often treatment-responsive and lower ILD risk."
+      },
+      {
+       "id": "dm-ab-sae",
+       "name": "SAE",
+       "detail": "Skin-predominant onset may precede myositis; dysphagia can be prominent. Associations vary by cohort."
+      },
+      {
+       "id": "dm-ab-antisyn",
+       "name": "Antisynthetase antibodies",
+       "detail": "ILD, inflammatory arthritis, Raynaud, fever, myositis, and mechanic’s hands; the complete syndrome need not be present."
+      },
+      {
+       "id": "dm-ab-overlap",
+       "name": "PM/Scl, Ku, U1-RNP, Ro52 and other associated antibodies",
+       "detail": "Suggest overlap myositis or modify organ risk; Ro52 may accompany antisynthetase disease and correlate with ILD severity in some cohorts."
+      }
+     ],
+     "name": "Myositis-specific / associated autoantibodies",
+     "detail": "Autoantibodies support prognosis and organ-risk assessment; they are not required for diagnosis and should not overrule the phenotype."
+    }
+   },
+   "citations": [
+    {
+     "pmid": "23568993",
+     "quote": "Myositis-specific autoantibodies define clinically useful dermatomyositis phenotypes, including MDA5, TIF1γ, NXP2, Mi-2, and SAE associations."
+    },
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "pmid": "38973714",
+     "doi": "10.1002/art.42860",
+     "quote": "ACR/CHEST guideline conditionally recommends PFTs and HRCT for screening people with systemic autoimmune rheumatic diseases at risk for ILD."
+    }
+   ]
+  },
+  {
+   "id": "dm-cancer-screening-dt",
+   "topic": "dermatomyositis",
+   "title": "Cancer Screening in Adult IIM / Dermatomyositis",
+   "subtitle": "Operationalized from the IMACS international guideline; use local pathways and shared decision-making",
+   "type": "decision-tree",
+   "data": {
+    "start": "start",
+    "steps": [
+     {
+      "id": "start",
+      "type": "decision",
+      "prompt": "Adult-onset IIM with cancer risk assessment completed?",
+      "detail": "First complete standard age- and sex-appropriate population screening and evaluate any symptoms or examination findings that independently require diagnostic workup.",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "count-high"
+       },
+       {
+        "label": "No",
+        "nextStepId": "risk-assess"
+       }
+      ]
+     },
+     {
+      "id": "risk-assess",
+      "type": "action",
+      "prompt": "Identify IMACS high- and intermediate-risk factors",
+      "detail": "**High-risk examples:** dermatomyositis subtype, anti-TIF1γ, anti-NXP2, age >40 years at onset, persistent high disease activity despite therapy, moderate/severe dysphagia, cutaneous necrosis/ulceration. **Intermediate examples:** clinically amyopathic DM, selected antibodies such as MDA5/SAE1, male sex, and other guideline-defined factors."
+     },
+     {
+      "id": "count-high",
+      "type": "decision",
+      "prompt": "At least 2 high-risk factors?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "high"
+       },
+       {
+        "label": "No",
+        "nextStepId": "moderate-check"
+       }
+      ]
+     },
+     {
+      "id": "moderate-check",
+      "type": "decision",
+      "prompt": "1 high-risk factor OR at least 2 intermediate-risk factors?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "moderate"
+       },
+       {
+        "label": "No",
+        "nextStepId": "standard"
+       }
+      ]
+     },
+     {
+      "id": "high",
+      "type": "action",
+      "prompt": "High risk: basic + enhanced screening at diagnosis",
+      "detail": "Basic screening includes history, examination, CBC, liver profile, inflammatory markers, serum protein electrophoresis, urinalysis, and chest radiograph per guideline. Enhanced screening includes CT neck/chest/abdomen/pelvis plus sex-specific and GI testing as appropriate."
+     },
+     {
+      "id": "high-follow",
+      "type": "terminal",
+      "prompt": "Repeat basic screening annually for 3 years; consider additional testing if initial evaluation is negative",
+      "detail": "Depending on local expertise and patient factors, consider FDG-PET/CT, upper/lower GI endoscopy, or nasoendoscopy for patients from regions with high nasopharyngeal carcinoma incidence. New symptoms always override the schedule."
+     },
+     {
+      "id": "moderate",
+      "type": "terminal",
+      "prompt": "Moderate risk: basic + enhanced screening once at diagnosis",
+      "detail": "Continue routine population screening and symptom-directed evaluation thereafter unless risk or phenotype changes."
+     },
+     {
+      "id": "standard",
+      "type": "terminal",
+      "prompt": "Standard risk: basic screening at diagnosis",
+      "detail": "Continue routine population screening. Do not infer zero risk; investigate any concerning symptom, sign, or laboratory abnormality."
+     }
+    ]
+   },
+   "citations": [
+    {
+     "pmid": "37945774",
+     "doi": "10.1038/s41584-023-01045-w",
+     "quote": "IMACS international guideline provides risk-stratified cancer screening recommendations for idiopathic inflammatory myopathies."
+    }
+   ]
+  },
+  {
+   "id": "dm-ild-screening-monitoring-dt",
+   "topic": "dermatomyositis",
+   "title": "Dermatomyositis-Associated ILD",
+   "subtitle": "Screening, triage, and longitudinal monitoring",
+   "type": "decision-tree",
+   "data": {
+    "start": "start",
+    "steps": [
+     {
+      "id": "start",
+      "type": "decision",
+      "prompt": "New dermatomyositis / idiopathic inflammatory myopathy diagnosis?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "risk"
+       },
+       {
+        "label": "Established disease",
+        "nextStepId": "new-symptoms"
+       }
+      ]
+     },
+     {
+      "id": "risk",
+      "type": "decision",
+      "prompt": "High ILD-risk phenotype or respiratory concern?",
+      "detail": "High-risk clues include anti-MDA5 or antisynthetase antibodies, mechanic’s hands, inflammatory arthritis, Raynaud, palmar papules, ulcers/necrosis, unexplained cough/dyspnea, crackles, or reduced oxygenation.",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "pft-hrct"
+       },
+       {
+        "label": "No obvious risk",
+        "nextStepId": "baseline"
+       }
+      ]
+     },
+     {
+      "id": "baseline",
+      "type": "action",
+      "prompt": "Obtain baseline PFTs; decide on HRCT using risk, guideline framework, and local practice",
+      "detail": "A normal chest radiograph does not exclude ILD. A cancer-staging CT is not a substitute for HRCT when ILD characterization is needed."
+     },
+     {
+      "id": "pft-hrct",
+      "type": "decision",
+      "prompt": "Obtain PFTs and HRCT promptly—evidence of ILD or rapid progression?",
+      "branches": [
+       {
+        "label": "ILD present/stable",
+        "nextStepId": "multidisciplinary"
+       },
+       {
+        "label": "Rapidly progressive / hypoxemic",
+        "nextStepId": "emergency"
+       },
+       {
+        "label": "No ILD",
+        "nextStepId": "surveillance"
+       }
+      ]
+     },
+     {
+      "id": "new-symptoms",
+      "type": "decision",
+      "prompt": "New/worsening cough, dyspnea, exertional desaturation, chest symptoms, or falling PFTs?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "pft-hrct"
+       },
+       {
+        "label": "No",
+        "nextStepId": "surveillance"
+       }
+      ]
+     },
+     {
+      "id": "multidisciplinary",
+      "type": "terminal",
+      "prompt": "Coordinate rheumatology, pulmonology, radiology, and dermatology",
+      "detail": "Characterize pattern/extent, exclude infection and alternative causes, document baseline PFTs/oxygenation, and choose treatment based on phenotype, severity, trajectory, and comorbidity."
+     },
+     {
+      "id": "emergency",
+      "type": "terminal",
+      "prompt": "Treat as rapidly progressive ILD / respiratory emergency",
+      "detail": "Hospitalize when appropriate; urgently exclude infection and pulmonary embolism; initiate specialist-directed combination immunomodulation and supportive care. MDA5-associated RP-ILD can deteriorate quickly."
+     },
+     {
+      "id": "surveillance",
+      "type": "terminal",
+      "prompt": "Serial clinical review and PFT monitoring",
+      "detail": "Repeat PFTs at intervals matched to risk and recent trajectory; obtain HRCT when symptoms, PFTs, or clinical concern indicate. Do not use symptoms alone to declare stability."
+     }
+    ]
+   },
+   "citations": [
+    {
+     "pmid": "38973714",
+     "doi": "10.1002/art.42860",
+     "quote": "ACR/CHEST guideline conditionally recommends PFTs and HRCT for screening people with systemic autoimmune rheumatic diseases at risk for ILD."
+    },
+    {
+     "pmid": "38973731",
+     "doi": "10.1002/acr.25348",
+     "quote": "ACR/CHEST guideline provides disease-specific initial, progressive, and rapidly progressive SARD-ILD treatment frameworks."
+    },
+    {
+     "pmid": "23568993",
+     "quote": "Myositis-specific autoantibodies define clinically useful dermatomyositis phenotypes, including MDA5, TIF1γ, NXP2, Mi-2, and SAE associations."
+    }
+   ]
+  }
+ ]
+}

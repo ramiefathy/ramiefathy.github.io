@@ -1,0 +1,298 @@
+{
+ "version": 1,
+ "kind": "diagrams",
+ "topic": "dermatomyositis",
+ "order": 1,
+ "diagrams": [
+  {
+   "id": "dm-initial-evaluation-wp",
+   "topic": "dermatomyositis",
+   "title": "Initial Dermatomyositis Evaluation",
+   "subtitle": "A clinic-ready sequence from recognition to organ-risk stratification",
+   "type": "workup-pathway",
+   "data": {
+    "stages": [
+     {
+      "id": "recognize",
+      "items": [
+       {
+        "id": "recognize-skin",
+        "label": "Full skin, scalp, oral, and nailfold examination",
+        "detail": "Document Gottron papules/sign, heliotrope, photodistributed poikiloderma, scalp disease, mechanic’s hands, palmar papules, ulcers/necrosis, calcinosis, and activity versus damage."
+       },
+       {
+        "id": "recognize-muscle",
+        "label": "Focused neuromuscular history and examination",
+        "detail": "Ask about stairs, rising from a chair/floor, overhead tasks, falls, neck weakness, myalgia, dysphagia, dysphonia, and aspiration."
+       }
+      ],
+      "name": "1 · Recognize the syndrome"
+     },
+     {
+      "id": "phenotype",
+      "items": [
+       {
+        "id": "phenotype-muscle",
+        "label": "Classic, hypomyopathic, or clinically amyopathic",
+        "detail": "A normal CK or normal bedside strength does not exclude subclinical muscle disease."
+       },
+       {
+        "id": "phenotype-overlap",
+        "label": "Look for overlap features",
+        "detail": "Raynaud, sclerodactyly, inflammatory arthritis, mechanic’s hands, sicca, or lupus features may change serology interpretation and treatment."
+       }
+      ],
+      "name": "2 · Define phenotype"
+     },
+     {
+      "id": "labs",
+      "items": [
+       {
+        "id": "labs-muscle",
+        "label": "CK, aldolase, LDH, AST/ALT",
+        "detail": "Interpret trends and baseline variation; AST/ALT can be muscle-derived."
+       },
+       {
+        "id": "labs-msa",
+        "label": "Myositis-specific/associated antibody panel",
+        "detail": "Use to refine phenotype, cancer risk, and ILD risk; verify unexpected results with clinical context and assay limitations."
+       },
+       {
+        "id": "labs-safety",
+        "label": "CBC, CMP and treatment-safety tests",
+        "detail": "Add infection screening, pregnancy testing, immunization review, and other tests based on anticipated therapy."
+       }
+      ],
+      "name": "3 · Baseline testing"
+     },
+     {
+      "id": "muscle",
+      "items": [
+       {
+        "id": "muscle-clear",
+        "label": "Weakness plus enzyme elevation",
+        "detail": "In a patient with convincing DM skin findings, this often establishes muscle involvement without muscle biopsy."
+       },
+       {
+        "id": "muscle-discordant",
+        "label": "Discordant symptoms, examination, or enzymes",
+        "detail": "Obtain MRI of bilateral thighs with myositis protocol; consider EMG or biopsy when an alternative myopathy remains plausible."
+       }
+      ],
+      "name": "4 · Resolve muscle uncertainty"
+     },
+     {
+      "id": "systemic",
+      "items": [
+       {
+        "id": "systemic-lung",
+        "label": "PFTs; HRCT according to risk and guideline framework",
+        "detail": "Use a low threshold in MDA5, antisynthetase, mechanic’s hands, arthritis, dyspnea, or ulcerative disease."
+       },
+       {
+        "id": "systemic-cancer",
+        "label": "IMACS risk-stratified cancer screening",
+        "detail": "Complete age/sex-appropriate screening and add basic/enhanced testing by risk."
+       },
+       {
+        "id": "systemic-swallow",
+        "label": "Swallowing, aspiration, cardiac, and functional assessment",
+        "detail": "Escalate dysphagia, aspiration, rapid weakness, or cardiopulmonary symptoms."
+       }
+      ],
+      "name": "5 · Screen dangerous domains"
+     },
+     {
+      "id": "followup",
+      "items": [
+       {
+        "id": "followup-domain",
+        "label": "Track each domain separately",
+        "detail": "Skin activity can persist after muscle improvement and vice versa. Repeat muscle review and testing during the early disease course even in initially amyopathic disease."
+       }
+      ],
+      "name": "6 · Longitudinal reassessment"
+     }
+    ]
+   },
+   "citations": [
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "doi": "10.1111/bjd.17536",
+     "quote": "Concha et al. review diagnostic and classification limitations in amyopathic dermatomyositis, including overlap with lupus."
+    },
+    {
+     "pmid": "23568993",
+     "quote": "Myositis-specific autoantibodies define clinically useful dermatomyositis phenotypes, including MDA5, TIF1γ, NXP2, Mi-2, and SAE associations."
+    },
+    {
+     "pmid": "37945774",
+     "doi": "10.1038/s41584-023-01045-w",
+     "quote": "IMACS international guideline provides risk-stratified cancer screening recommendations for idiopathic inflammatory myopathies."
+    },
+    {
+     "pmid": "38973714",
+     "doi": "10.1002/art.42860",
+     "quote": "ACR/CHEST guideline conditionally recommends PFTs and HRCT for screening people with systemic autoimmune rheumatic diseases at risk for ILD."
+    }
+   ]
+  },
+  {
+   "id": "dm-muscle-assessment-dt",
+   "topic": "dermatomyositis",
+   "title": "Dermatomyositis Muscle Assessment",
+   "subtitle": "What to do when strength, symptoms, and enzymes do not line up",
+   "type": "decision-tree",
+   "data": {
+    "start": "start",
+    "steps": [
+     {
+      "id": "start",
+      "type": "decision",
+      "prompt": "Convincing dermatomyositis skin phenotype?",
+      "detail": "If the cutaneous diagnosis is uncertain, biopsy an active lesion and maintain a broad differential; skin histology alone may not distinguish DM from CLE.",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "weakness"
+       },
+       {
+        "label": "Uncertain",
+        "nextStepId": "skin-first"
+       }
+      ]
+     },
+     {
+      "id": "skin-first",
+      "type": "action",
+      "prompt": "Establish the cutaneous syndrome first",
+      "detail": "Photograph distribution, examine nailfolds and scalp, biopsy if needed, and consider CLE, psoriasis, contact/photoallergic dermatitis, and drug eruption."
+     },
+     {
+      "id": "weakness",
+      "type": "decision",
+      "prompt": "Objective symmetric proximal weakness or major functional decline?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "enzymes"
+       },
+       {
+        "label": "No / equivocal",
+        "nextStepId": "symptoms"
+       }
+      ]
+     },
+     {
+      "id": "enzymes",
+      "type": "decision",
+      "prompt": "Any muscle enzyme elevated (CK, aldolase, LDH, AST/ALT)?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "confirmed"
+       },
+       {
+        "label": "No",
+        "nextStepId": "mri"
+       }
+      ]
+     },
+     {
+      "id": "confirmed",
+      "type": "terminal",
+      "prompt": "Muscle involvement is strongly supported",
+      "detail": "Stage severity, assess swallowing/respiratory involvement, begin appropriate systemic therapy, and reserve biopsy for atypical or discordant cases."
+     },
+     {
+      "id": "symptoms",
+      "type": "decision",
+      "prompt": "Myalgia, soreness, fatigue, subtle functional loss, dysphagia, or high-risk phenotype?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "mri"
+       },
+       {
+        "label": "No",
+        "nextStepId": "amyopathic-monitor"
+       }
+      ]
+     },
+     {
+      "id": "mri",
+      "type": "decision",
+      "prompt": "MRI shows muscle/fascial edema compatible with inflammatory myopathy?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "mri-positive"
+       },
+       {
+        "label": "No / nondiagnostic",
+        "nextStepId": "discordant"
+       }
+      ]
+     },
+     {
+      "id": "mri-positive",
+      "type": "terminal",
+      "prompt": "Classify as muscle-involved or hypomyopathic DM in context",
+      "detail": "Use examination, imaging, enzymes, and trajectory together; MRI can also guide a biopsy if needed."
+     },
+     {
+      "id": "discordant",
+      "type": "decision",
+      "prompt": "Alternative myopathy or neuropathy plausible?",
+      "detail": "Examples: immune-mediated necrotizing myopathy, inclusion-body myositis, muscular dystrophy, metabolic/toxic myopathy, neuropathy, deconditioning, or steroid myopathy.",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "emg-biopsy"
+       },
+       {
+        "label": "No",
+        "nextStepId": "serial"
+       }
+      ]
+     },
+     {
+      "id": "emg-biopsy",
+      "type": "terminal",
+      "prompt": "Use EMG, targeted muscle biopsy, neurology input, and focused testing",
+      "detail": "Choose a clinically/MRI-involved but not end-stage muscle; avoid treating an unverified alternative diagnosis as DM."
+     },
+     {
+      "id": "serial",
+      "type": "terminal",
+      "prompt": "Repeat objective assessment over time",
+      "detail": "Recheck strength/function and enzymes; repeat imaging if the phenotype evolves."
+     },
+     {
+      "id": "amyopathic-monitor",
+      "type": "terminal",
+      "prompt": "Clinically amyopathic phenotype—continue surveillance",
+      "detail": "Continue periodic strength, symptom, and enzyme review, especially during the first years and whenever new weakness, dysphagia, or respiratory symptoms appear."
+     }
+    ]
+   },
+   "citations": [
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "doi": "10.1111/bjd.17536",
+     "quote": "Concha et al. review diagnostic and classification limitations in amyopathic dermatomyositis, including overlap with lupus."
+    },
+    {
+     "pmid": "23568993",
+     "quote": "Myositis-specific autoantibodies define clinically useful dermatomyositis phenotypes, including MDA5, TIF1γ, NXP2, Mi-2, and SAE associations."
+    }
+   ]
+  }
+ ]
+}

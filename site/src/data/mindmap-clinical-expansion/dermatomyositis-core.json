@@ -1,0 +1,231 @@
+{
+ "version": 1,
+ "kind": "dataset-core",
+ "topic": "dermatomyositis",
+ "manifest": {
+  "id": "dermatomyositis",
+  "title": "Dermatomyositis: Diagnosis, Systemic Risk & Treatment",
+  "defaultTab": "overview",
+  "theme": "atlas",
+  "tabs": [
+   {
+    "id": "overview",
+    "name": "Clinical Frame"
+   },
+   {
+    "id": "diagnosis",
+    "name": "Diagnosis"
+   },
+   {
+    "id": "systemic-risk",
+    "name": "Systemic Risk"
+   },
+   {
+    "id": "treatment",
+    "name": "Treatment"
+   }
+  ]
+ },
+ "tabs": {
+  "diagnosis": {
+   "id": "dm-diagnosis-root",
+   "name": "Diagnosing Dermatomyositis",
+   "tooltip": {
+    "title": "Diagnostic synthesis",
+    "markdown": "Use a convergent pattern rather than any single laboratory result."
+   },
+   "children": [
+    {
+     "id": "dm-dx-skin",
+     "name": "Cutaneous anchors",
+     "tooltip": {
+      "title": "Examination",
+      "markdown": "Gottron papules/sign, heliotrope, periungual erythema with capillary dilatation/dropout, ragged cuticles, shawl/V-sign, holster sign, scalp erythema/scale, mechanic’s hands, palmar papules, ulcers, calcinosis."
+     }
+    },
+    {
+     "id": "dm-dx-muscle",
+     "name": "Muscle phenotype",
+     "tooltip": {
+      "title": "Examination and testing",
+      "markdown": "Test neck flexors, deltoids/abductors, hip flexors/abductors/extensors, and functional tasks. Distinguish true weakness from pain, arthritis, deconditioning, neuropathy, and steroid myopathy."
+     }
+    },
+    {
+     "id": "dm-dx-labs",
+     "name": "Laboratory interpretation",
+     "tooltip": {
+      "title": "Supportive, not solitary",
+      "markdown": "CK, aldolase, LDH, AST/ALT; CBC/CMP; urinalysis when overlap disease is possible. Myositis panels may be false-positive or false-negative and should be reconciled with phenotype."
+     }
+    },
+    {
+     "id": "dm-dx-imaging",
+     "name": "MRI when uncertainty remains",
+     "tooltip": {
+      "title": "Myositis protocol",
+      "markdown": "Bilateral thigh MRI with fluid-sensitive sequences can identify edema/fasciitis and guide a biopsy site. Use EMG or muscle biopsy when the diagnosis remains discordant or another myopathy is plausible."
+     }
+    },
+    {
+     "id": "dm-dx-mimics",
+     "name": "Key mimics",
+     "tooltip": {
+      "title": "Clinical and histologic differential",
+      "markdown": "Cutaneous lupus, psoriasis, seborrheic/contact dermatitis, phototoxic/photoallergic eruption, lichen planus, antisynthetase syndrome, immune-mediated necrotizing myopathy, inclusion-body myositis, muscular dystrophy, drug-induced myopathy."
+     }
+    }
+   ]
+  },
+  "overview": {
+   "id": "dm-overview-root",
+   "name": "Dermatomyositis",
+   "tooltip": {
+    "title": "Clinical frame",
+    "markdown": "A phenotype-driven rheum-derm framework. Confirm the cutaneous syndrome, define muscle involvement, identify organ-threatening disease, and use autoantibodies for prognosis rather than as a stand-alone diagnosis."
+   },
+   "children": [
+    {
+     "id": "dm-overview-3ml",
+     "name": "Three M’s + L",
+     "tooltip": {
+      "title": "Core evaluation",
+      "markdown": "**Myositis-specific antibodies · Muscle · Malignancy · Lungs.** Add swallowing, cardiac, joint, and calcinosis assessment when clinically indicated."
+     }
+    },
+    {
+     "id": "dm-overview-skin",
+     "name": "Recognize the skin phenotype",
+     "tooltip": {
+      "title": "High-specificity findings",
+      "markdown": "**Gottron papules/sign** and **heliotrope eruption** are the highest-specificity findings. Also inspect scalp, photodistributed chest/back, lateral thighs, palms, oral mucosa, and nailfolds."
+     }
+    },
+    {
+     "id": "dm-overview-muscle",
+     "name": "Do not let a normal CK close the case",
+     "tooltip": {
+      "title": "Muscle assessment",
+      "markdown": "Symmetric proximal weakness is typical, but clinically amyopathic or hypomyopathic disease exists. Aldolase, LDH, AST/ALT, MRI, EMG, or muscle biopsy may be needed when the examination and CK are discordant."
+     }
+    },
+    {
+     "id": "dm-overview-risk",
+     "name": "Escalate organ-risk phenotypes",
+     "tooltip": {
+      "title": "Time-sensitive risk",
+      "markdown": "Treat **dyspnea, rapidly progressive respiratory symptoms, dysphagia/aspiration, severe weakness, myocarditis concern, cutaneous necrosis, or extensive ulceration** as urgent multidisciplinary problems."
+     }
+    },
+    {
+     "id": "dm-overview-histo",
+     "name": "Clinicopathologic correlation",
+     "tooltip": {
+      "title": "Skin biopsy limitation",
+      "markdown": "A skin biopsy can support an interface dermatitis but usually cannot reliably separate dermatomyositis from cutaneous lupus. Distribution, morphology, nailfolds, muscle findings, and systemic phenotype carry the distinction."
+     }
+    }
+   ]
+  },
+  "systemic-risk": {
+   "id": "dm-risk-root",
+   "name": "Systemic Risk Stratification",
+   "tooltip": {
+    "title": "Phenotype directs surveillance",
+    "markdown": "Autoantibodies refine risk; they do not replace complete organ assessment."
+   },
+   "children": [
+    {
+     "id": "dm-risk-msa",
+     "name": "MSA phenotype",
+     "tooltip": {
+      "title": "Prognostic use",
+      "markdown": "**MDA5:** ulcerative/palmar phenotype, arthritis, clinically amyopathic disease, ILD/RP-ILD. **TIF1γ:** extensive skin disease and cancer association. **NXP2:** severe muscle disease, dysphagia, edema, calcinosis; adult cancer association. **Mi-2:** classic phenotype, generally favorable muscle response. **Antisynthetase:** ILD, arthritis, Raynaud, fever, mechanic’s hands."
+     }
+    },
+    {
+     "id": "dm-risk-cancer",
+     "name": "Cancer screening",
+     "tooltip": {
+      "title": "IMACS framework",
+      "markdown": "Risk-stratify by IIM subtype, autoantibody, age at onset, dysphagia, cutaneous necrosis/ulceration, and persistent disease activity. Complete age/sex-appropriate screening for everyone; add basic or enhanced screening according to risk."
+     }
+    },
+    {
+     "id": "dm-risk-lung",
+     "name": "ILD screening",
+     "tooltip": {
+      "title": "Do not rely on symptoms alone",
+      "markdown": "Obtain baseline PFTs and use HRCT liberally in high-risk IIM/DM phenotypes. Cancer-staging CT is not equivalent to a dedicated HRCT protocol."
+     }
+    },
+    {
+     "id": "dm-risk-swallow",
+     "name": "Swallowing and aspiration",
+     "tooltip": {
+      "title": "Urgent when progressive",
+      "markdown": "Ask about solids/liquids, nasal regurgitation, coughing with meals, weight loss, recurrent pneumonia, and voice change. Use speech-language/swallow evaluation and nutrition support when indicated."
+     }
+    },
+    {
+     "id": "dm-risk-other",
+     "name": "Other domains",
+     "tooltip": {
+      "title": "Targeted evaluation",
+      "markdown": "Inflammatory arthritis, Raynaud, myocarditis/arrhythmia symptoms, edema, calcinosis, lipodystrophy (especially juvenile disease), gastrointestinal vasculopathy in children, and functional disability."
+     }
+    }
+   ]
+  },
+  "treatment": {
+   "id": "dm-treatment-root",
+   "name": "Dermatomyositis Treatment",
+   "tooltip": {
+    "title": "Treat the dominant and dangerous domains",
+    "markdown": "Skin, muscle, lung, and swallowing activity can behave independently. Document each domain and avoid interpreting persistent damage as active inflammation."
+   },
+   "children": [
+    {
+     "id": "dm-tx-foundation",
+     "name": "Foundation",
+     "tooltip": {
+      "title": "Every phenotype",
+      "markdown": "Photoprotection, topical anti-inflammatory therapy, vaccination/infection risk review, bone protection when glucocorticoids are used, exercise/rehabilitation when safe, pruritus/pain control, and objective activity measures."
+     }
+    },
+    {
+     "id": "dm-tx-skin",
+     "name": "Skin-predominant disease",
+     "tooltip": {
+      "title": "Steroid-sparing strategy",
+      "markdown": "Topical corticosteroid or calcineurin inhibitor for focal disease; methotrexate or mycophenolate are common systemic choices. IVIG and selected targeted/off-label therapies may be used for refractory disease after phenotype and safety review."
+     }
+    },
+    {
+     "id": "dm-tx-muscle",
+     "name": "Active myositis",
+     "tooltip": {
+      "title": "Early systemic control",
+      "markdown": "Systemic glucocorticoids are commonly used for substantial weakness or organ threat, with early steroid-sparing therapy such as methotrexate, azathioprine, or mycophenolate. IVIG is particularly useful in selected severe or refractory disease, including dysphagia."
+     }
+    },
+    {
+     "id": "dm-tx-lung",
+     "name": "ILD / rapidly progressive ILD",
+     "tooltip": {
+      "title": "Multidisciplinary emergency",
+      "markdown": "Coordinate rheumatology and pulmonology. Mycophenolate, rituximab, cyclophosphamide, calcineurin inhibitors, or JAK inhibition may be considered by phenotype and trajectory; rapidly progressive MDA5 disease often requires urgent combination therapy."
+     }
+    },
+    {
+     "id": "dm-tx-monitor",
+     "name": "Reassess by domain",
+     "tooltip": {
+      "title": "Avoid false failure",
+      "markdown": "Track strength/function, enzymes, patient symptoms, CDASI activity/damage, PFT trends, imaging when indicated, swallowing, and toxicity. Slow-onset therapies need an adequate trial unless disease is worsening."
+     }
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,296 @@
+{
+ "version": 1,
+ "kind": "diagrams",
+ "topic": "oral-ulcers",
+ "order": 1,
+ "diagrams": [
+  {
+   "id": "oral-ulcer-differential-dt",
+   "topic": "oral-ulcers",
+   "title": "Oral Ulcer and Erosion Differential",
+   "subtitle": "A morphology-first pathway from common aphthae to systemic and scarring disease",
+   "type": "decision-tree",
+   "data": {
+    "start": "start",
+    "steps": [
+     {
+      "id": "start",
+      "type": "decision",
+      "prompt": "Is the lesion a discrete punched-out ulcer, or a broad erosion/desquamative gingivitis/blister?",
+      "branches": [
+       {
+        "label": "Discrete ulcer",
+        "nextStepId": "ulcer"
+       },
+       {
+        "label": "Erosion/blister/gingivitis",
+        "nextStepId": "erosion"
+       }
+      ]
+     },
+     {
+      "id": "ulcer",
+      "type": "decision",
+      "prompt": "Is it solitary and persistent >2–3 weeks, indurated/fixed, unexplained bleeding, or associated with adenopathy?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "biopsy-cancer"
+       },
+       {
+        "label": "No",
+        "nextStepId": "recurrent"
+       }
+      ]
+     },
+     {
+      "id": "biopsy-cancer",
+      "type": "terminal",
+      "prompt": "Prompt biopsy for malignancy and other persistent-ulcer causes",
+      "detail": "Sample the edge and base for H&E; add cultures or special studies according to host and morphology."
+     },
+     {
+      "id": "recurrent",
+      "type": "decision",
+      "prompt": "Recurrent round/oval painful ulcers on nonkeratinized mucosa with complete healing?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "aphthous"
+       },
+       {
+        "label": "No / atypical",
+        "nextStepId": "atypical"
+       }
+      ]
+     },
+     {
+      "id": "aphthous",
+      "type": "decision",
+      "prompt": "Minor infrequent pattern, or major/herpetiform/near-continuous/scarring disease?",
+      "branches": [
+       {
+        "label": "Minor infrequent",
+        "nextStepId": "ras"
+       },
+       {
+        "label": "Severe/complex",
+        "nextStepId": "complex"
+       }
+      ]
+     },
+     {
+      "id": "ras",
+      "type": "terminal",
+      "prompt": "Likely minor recurrent aphthous stomatitis",
+      "detail": "Clinical diagnosis; topical anti-inflammatory and analgesic care. Investigate secondary causes only when onset, severity, systemic symptoms, or examination is atypical."
+     },
+     {
+      "id": "complex",
+      "type": "decision",
+      "prompt": "Genital ulcers/scars, uveitis, vascular/neurologic disease, papulopustules, or pathergy?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "behcet"
+       },
+       {
+        "label": "No",
+        "nextStepId": "secondary"
+       }
+      ]
+     },
+     {
+      "id": "behcet",
+      "type": "terminal",
+      "prompt": "Evaluate Behçet syndrome",
+      "detail": "Document recurrence and organ domains; urgent ophthalmology for eye symptoms. Classification criteria support but do not replace clinical diagnosis."
+     },
+     {
+      "id": "secondary",
+      "type": "terminal",
+      "prompt": "Evaluate secondary complex aphthosis",
+      "detail": "CBC/differential, iron/B12/folate, celiac/IBD, HIV/immunodeficiency, medication/toxin, cyclic neutropenia, and autoinflammatory causes according to phenotype."
+     },
+     {
+      "id": "atypical",
+      "type": "decision",
+      "prompt": "Fresh grouped vesicles/erosions on keratinized mucosa or immunocompromised host?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "infectious"
+       },
+       {
+        "label": "No",
+        "nextStepId": "systemic"
+       }
+      ]
+     },
+     {
+      "id": "infectious",
+      "type": "terminal",
+      "prompt": "Obtain pathogen-directed testing",
+      "detail": "HSV PCR from fresh lesion; consider CMV, syphilis, fungal/mycobacterial disease and culture/biopsy according to host."
+     },
+     {
+      "id": "systemic",
+      "type": "terminal",
+      "prompt": "Broaden to IBD, lupus, reactive arthritis, drug injury, hematologic disease, trauma, and malignancy",
+      "detail": "Use systemic clues and biopsy if persistent or diagnostically uncertain."
+     },
+     {
+      "id": "erosion",
+      "type": "decision",
+      "prompt": "Are there fragile bullae, desquamative gingivitis, chronic widespread erosions, or ocular/genital scarring symptoms?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "dif"
+       },
+       {
+        "label": "No",
+        "nextStepId": "erosive-ddx"
+       }
+      ]
+     },
+     {
+      "id": "dif",
+      "type": "terminal",
+      "prompt": "Two-biopsy autoimmune mucosal workup",
+      "detail": "Lesional/perilesional edge for H&E in formalin plus perilesional or normal-appearing mucosa for DIF in correct medium; add BP180/BP230, desmoglein, laminin-332, type VII collagen or other serology according to phenotype."
+     },
+     {
+      "id": "erosive-ddx",
+      "type": "terminal",
+      "prompt": "Consider erosive lichen planus, lupus, erythema multiforme, contact/drug reaction, trauma, infection, and nutritional disease",
+      "detail": "Biopsy persistent or unclear disease; correlate with skin, eye, genital, and medication findings."
+     }
+    ]
+   },
+   "citations": [
+    {
+     "doi": "10.1111/prd.12262",
+     "quote": "Review presents an etiologic classification and diagnostic algorithm for recurrent oral ulceration."
+    },
+    {
+     "doi": "10.1111/dth.15500",
+     "quote": "Review summarizes diagnosis and stepwise treatment of recurrent aphthous stomatitis."
+    },
+    {
+     "pmid": "29625968",
+     "doi": "10.1136/annrheumdis-2018-213225",
+     "quote": "EULAR recommendations address mucocutaneous, ocular, vascular, neurologic, gastrointestinal, and joint involvement in Behçet syndrome."
+    },
+    {
+     "pmid": "34309078",
+     "quote": "European MMP guideline recommends direct immunofluorescence with serology and interdisciplinary management for mucosa-predominant disease."
+    }
+   ]
+  },
+  {
+   "id": "oral-biopsy-dif-workup-wp",
+   "topic": "oral-ulcers",
+   "title": "Oral Biopsy and Direct Immunofluorescence Workflow",
+   "subtitle": "Use separate specimens, correct sites, and correct transport media",
+   "type": "workup-pathway",
+   "data": {
+    "stages": [
+     {
+      "id": "define",
+      "name": "1 · Define the lesion",
+      "items": [
+       {
+        "id": "ob-site",
+        "label": "Map exact site and keratinization",
+        "detail": "Buccal/labial mucosa, tongue, floor of mouth, soft palate, hard palate, attached gingiva and vermilion have different differentials."
+       },
+       {
+        "id": "ob-primary",
+        "label": "Look for primary vesicle/bulla, desquamative gingivitis, reticulation, induration, necrosis, or scar"
+       },
+       {
+        "id": "ob-extra",
+        "label": "Examine skin, eyes, nose, genital/perianal mucosa and nails"
+       }
+      ]
+     },
+     {
+      "id": "histo",
+      "name": "2 · H&E specimen",
+      "items": [
+       {
+        "id": "ob-h-ulcer",
+        "label": "Persistent ulcer",
+        "detail": "Biopsy the active edge including adjacent epithelium and adequate lamina propria; avoid only necrotic center."
+       },
+       {
+        "id": "ob-h-bullous",
+        "label": "Suspected autoimmune blistering",
+        "detail": "Biopsy the edge of a fresh blister/erosion for routine histology."
+       },
+       {
+        "id": "ob-h-malignant",
+        "label": "Suspected malignancy",
+        "detail": "Ensure sufficient depth; coordinate incisional/excisional approach with oral surgery/ENT when needed."
+       }
+      ]
+     },
+     {
+      "id": "dif",
+      "name": "3 · DIF specimen",
+      "items": [
+       {
+        "id": "ob-dif-site",
+        "label": "Take a separate specimen from perilesional or normal-appearing mucosa",
+        "detail": "Normal buccal mucosa can have high diagnostic yield in pemphigus/MMP and may be easier than friable perilesional tissue."
+       },
+       {
+        "id": "ob-dif-medium",
+        "label": "Place in Michel’s/Zeus medium or laboratory-approved transport; never formalin."
+       },
+       {
+        "id": "ob-dif-question",
+        "label": "State the differential",
+        "detail": "Pemphigus, MMP, linear IgA disease, EBA, lupus, or lichen planus patterns require different interpretation."
+       }
+      ]
+     },
+     {
+      "id": "micro",
+      "name": "4 · Microbiology / molecular testing",
+      "items": [
+       {
+        "id": "ob-hsv",
+        "label": "Fresh vesicle/ulcer swab for HSV PCR when indicated"
+       },
+       {
+        "id": "ob-culture",
+        "label": "Deep tissue culture for atypical infection in immunocompromised or persistent lesions"
+       },
+       {
+        "id": "ob-no-swab",
+        "label": "Do not let nonspecific surface colonization substitute for tissue diagnosis"
+       }
+      ]
+     }
+    ]
+   },
+   "citations": [
+    {
+     "pmid": "34309078",
+     "quote": "European MMP guideline recommends direct immunofluorescence with serology and interdisciplinary management for mucosa-predominant disease."
+    },
+    {
+     "pmid": "37268547",
+     "doi": "10.1016/j.ijom.2023.05.005",
+     "quote": "Meta-analysis compares perilesional and normal-appearing oral mucosal biopsy sites for DIF in pemphigus vulgaris and mucous membrane pemphigoid."
+    },
+    {
+     "doi": "10.1111/prd.12262",
+     "quote": "Review presents an etiologic classification and diagnostic algorithm for recurrent oral ulceration."
+    }
+   ]
+  }
+ ]
+}

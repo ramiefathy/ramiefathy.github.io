@@ -1,0 +1,287 @@
+{
+ "version": 1,
+ "kind": "diagrams",
+ "topic": "cutaneous-lupus",
+ "order": 1,
+ "diagrams": [
+  {
+   "id": "cle-subtype-classification-cl",
+   "topic": "cutaneous-lupus",
+   "title": "Cutaneous Lupus Classification",
+   "subtitle": "Morphologic subtype predicts scarring behavior and systemic association",
+   "type": "classification",
+   "data": {
+    "root": {
+     "id": "cle-root",
+     "children": [
+      {
+       "id": "cle-acute",
+       "children": [
+        {
+         "id": "cle-acute-local",
+         "name": "Localized ACLE",
+         "detail": "Malar/butterfly eruption; nasolabial sparing supports lupus over DM or rosacea."
+        },
+        {
+         "id": "cle-acute-general",
+         "name": "Generalized ACLE",
+         "detail": "Symmetric photodistributed macules/papules; severe bullous/TEN-like variants are uncommon."
+        }
+       ],
+       "name": "Acute CLE (ACLE)",
+       "detail": "Transient, photosensitive, non-scarring; usually associated with active SLE."
+      },
+      {
+       "id": "cle-subacute",
+       "children": [
+        {
+         "id": "cle-subacute-ann",
+         "name": "Annular/polycyclic",
+         "detail": "Raised scaly edge with central clearing."
+        },
+        {
+         "id": "cle-subacute-pap",
+         "name": "Papulosquamous",
+         "detail": "Psoriasiform or eczematous plaques in a photodistribution."
+        }
+       ],
+       "name": "Subacute CLE (SCLE)",
+       "detail": "Highly photosensitive, non-scarring; anti-Ro/SSA common; drug induction is important."
+      },
+      {
+       "id": "cle-chronic",
+       "children": [
+        {
+         "id": "cle-chronic-dle",
+         "name": "Discoid LE",
+         "detail": "Localized or generalized; follicular plugging, scarring, dyspigmentation and alopecia."
+        },
+        {
+         "id": "cle-chronic-tumid",
+         "name": "Tumid LE",
+         "detail": "Smooth edematous plaques without epidermal change or scarring."
+        },
+        {
+         "id": "cle-chronic-lep",
+         "name": "Lupus panniculitis",
+         "detail": "Deep nodules/plaques with lipoatrophy."
+        },
+        {
+         "id": "cle-chronic-chil",
+         "name": "Chilblain LE",
+         "detail": "Cold-sensitive acral violaceous lesions."
+        },
+        {
+         "id": "cle-chronic-other",
+         "name": "Other variants",
+         "detail": "Hypertrophic, mucosal, lichenoid overlap and other less common patterns."
+        }
+       ],
+       "name": "Chronic CLE (CCLE)",
+       "detail": "Greater risk of permanent damage; systemic risk varies by subtype."
+      }
+     ],
+     "name": "Cutaneous lupus erythematosus",
+     "detail": "Clinicopathologic correlation is required; histology can overlap."
+    }
+   },
+   "citations": [
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "pmid": "27859683",
+     "doi": "10.1111/jdv.14053",
+     "quote": "European S2k guideline outlines topical, antimalarial, and subsequent systemic treatment strategies for cutaneous lupus erythematosus."
+    }
+   ]
+  },
+  {
+   "id": "cle-clinical-biopsy-dt",
+   "topic": "cutaneous-lupus",
+   "title": "CLE Morphology and Biopsy Strategy",
+   "subtitle": "Choose the lesion and specimen that answer the diagnostic question",
+   "type": "decision-tree",
+   "data": {
+    "start": "start",
+    "steps": [
+     {
+      "id": "start",
+      "type": "decision",
+      "prompt": "Is the dominant lesion superficial/epidermal, smooth-edematous, deep, or ulcerative?",
+      "branches": [
+       {
+        "label": "Scaly/interface lesion",
+        "nextStepId": "interface"
+       },
+       {
+        "label": "Smooth edematous plaque",
+        "nextStepId": "tumid"
+       },
+       {
+        "label": "Deep nodule/atrophy",
+        "nextStepId": "deep"
+       },
+       {
+        "label": "Ulcer/bulla",
+        "nextStepId": "ulcer"
+       }
+      ]
+     },
+     {
+      "id": "interface",
+      "type": "decision",
+      "prompt": "Scarring/follicular plugging or active alopecia?",
+      "branches": [
+       {
+        "label": "Yes",
+        "nextStepId": "dle-biopsy"
+       },
+       {
+        "label": "No",
+        "nextStepId": "scle-acle"
+       }
+      ]
+     },
+     {
+      "id": "dle-biopsy",
+      "type": "terminal",
+      "prompt": "Biopsy the active erythematous/scaly edge, including follicles",
+      "detail": "H&E may show interface dermatitis, follicular plugging, thickened basement membrane, periadnexal inflammation, mucin, and later scarring. Sample scalp early if distinguishing active DLE from burnt-out scarring alopecia."
+     },
+     {
+      "id": "scle-acle",
+      "type": "terminal",
+      "prompt": "Biopsy a fresh active plaque and correlate with distribution",
+      "detail": "ACLE and SCLE may show superficial interface dermatitis; histology alone may not subtype disease or distinguish DM. Medication history and morphology remain essential."
+     },
+     {
+      "id": "tumid",
+      "type": "terminal",
+      "prompt": "Biopsy the center/active portion of a fully developed smooth plaque",
+      "detail": "Expected pattern: dense perivascular/periadnexal lymphocytes and abundant dermal mucin with minimal or absent epidermal/interface change. Consider Jessner infiltrate and polymorphous light eruption."
+     },
+     {
+      "id": "deep",
+      "type": "terminal",
+      "prompt": "Use a deep punch/incisional biopsy that captures subcutis",
+      "detail": "Lobular lymphocytic panniculitis, hyaline fat necrosis, lymphoid aggregates, and mucin support lupus panniculitis. Exclude subcutaneous panniculitis-like T-cell lymphoma when atypical."
+     },
+     {
+      "id": "ulcer",
+      "type": "decision",
+      "prompt": "Could this be infection, vasculitis/vasculopathy, immunobullous disease, drug reaction, or malignancy?",
+      "branches": [
+       {
+        "label": "Yes / uncertain",
+        "nextStepId": "multi-specimen"
+       },
+       {
+        "label": "Classic CLE context",
+        "nextStepId": "active-edge"
+       }
+      ]
+     },
+     {
+      "id": "multi-specimen",
+      "type": "terminal",
+      "prompt": "Plan multiple specimens before immunosuppression",
+      "detail": "H&E from lesional edge; tissue cultures/stains if infection is plausible; perilesional tissue in appropriate transport medium for DIF if immunobullous disease is considered. Depth should match suspected vessel/panniculus involvement."
+     },
+     {
+      "id": "active-edge",
+      "type": "terminal",
+      "prompt": "Biopsy the active edge and reassess systemic disease",
+      "detail": "Ulceration is not a routine feature of most CLE subtypes; investigate vasculitis, antiphospholipid vasculopathy, pyoderma gangrenosum, infection, calciphylaxis, and malignancy."
+     }
+    ]
+   },
+   "citations": [
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "pmid": "27859683",
+     "doi": "10.1111/jdv.14053",
+     "quote": "European S2k guideline outlines topical, antimalarial, and subsequent systemic treatment strategies for cutaneous lupus erythematosus."
+    },
+    {
+     "pmid": "37268547",
+     "doi": "10.1016/j.ijom.2023.05.005",
+     "quote": "Meta-analysis compares perilesional and normal-appearing oral mucosal biopsy sites for DIF in pemphigus vulgaris and mucous membrane pemphigoid."
+    }
+   ]
+  },
+  {
+   "id": "cle-histopath-patterns-cl",
+   "topic": "cutaneous-lupus",
+   "title": "CLE Histopathology by Clinical Subtype",
+   "subtitle": "Histology is supportive; lesion age, treatment, and biopsy site alter the pattern",
+   "type": "classification",
+   "data": {
+    "root": {
+     "id": "cle-histo-root",
+     "children": [
+      {
+       "id": "cle-histo-interface",
+       "children": [
+        {
+         "id": "cle-histo-acle",
+         "name": "ACLE",
+         "detail": "Usually relatively superficial vacuolar interface dermatitis with dyskeratotic keratinocytes and dermal mucin."
+        },
+        {
+         "id": "cle-histo-scle",
+         "name": "SCLE",
+         "detail": "Interface dermatitis with superficial perivascular inflammation; may be difficult to distinguish from ACLE, DM, or lichenoid drug reaction."
+        },
+        {
+         "id": "cle-histo-dle",
+         "name": "DLE",
+         "detail": "More prominent follicular plugging, basement-membrane thickening, superficial/deep perivascular and periadnexal inflammation, mucin, and late scarring."
+        }
+       ],
+       "name": "Interface-predominant CLE"
+      },
+      {
+       "id": "cle-histo-noninterface",
+       "children": [
+        {
+         "id": "cle-histo-tumid",
+         "name": "Tumid lupus",
+         "detail": "Dense superficial/deep perivascular and periadnexal lymphocytes with abundant mucin and little/no interface change."
+        },
+        {
+         "id": "cle-histo-pannic",
+         "name": "Lupus panniculitis",
+         "detail": "Lobular lymphocytic panniculitis, hyaline fat necrosis, lymphoid aggregates, mucin, and possible overlying DLE."
+        }
+       ],
+       "name": "Minimal-interface / deep patterns"
+      },
+      {
+       "id": "cle-histo-dif",
+       "name": "Direct immunofluorescence",
+       "detail": "Granular immunoreactants at the dermoepidermal junction can support lupus but are neither perfectly sensitive nor specific; use the correct specimen and clinical context."
+      }
+     ],
+     "name": "Lupus-associated patterns",
+     "detail": "Clinicopathologic correlation is essential."
+    }
+   },
+   "citations": [
+    {
+     "doi": "10.1007/978-3-319-18446-3",
+     "quote": "Garg, Merola, and Fitzpatrick (eds.). Interdisciplinary Approaches to Overlap Disorders in Dermatology & Rheumatology. Springer, 2022."
+    },
+    {
+     "pmid": "27859683",
+     "doi": "10.1111/jdv.14053",
+     "quote": "European S2k guideline outlines topical, antimalarial, and subsequent systemic treatment strategies for cutaneous lupus erythematosus."
+    }
+   ]
+  }
+ ]
+}
