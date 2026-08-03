@@ -43,11 +43,13 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
     expect(response.ok()).toBeTruthy();
     const html = await response.text();
 
-    // Phase 7 Atlas redesign: hero-copy was replaced by atlas-hero-plate-text.
-    expect(html).toContain('atlas-hero-plate-text');
-    expect(html).toContain('Ramie Fathy, MD');
-    // Regression guard: SSR output must not ship the hero plate with opacity:0 (would flash hidden).
-    expect(html).not.toMatch(/class="atlas-hero-plate-text"[^>]*style="[^"]*opacity:\s*0\b/i);
+    // Field Console redesign: the hero copy lives in .field-hero__body and is
+    // real SSR markup so it is legible before hydration and without JS.
+    expect(html).toContain('field-hero__body');
+    expect(html).toContain('Ramie');
+    expect(html).toContain('field-hero__degree');
+    // Regression guard: SSR output must not ship the hero copy hidden (would flash).
+    expect(html).not.toMatch(/class="field-hero__body"[^>]*style="[^"]*opacity:\s*0\b/i);
   });
 
   test('primary nav links are correct and key routes render', async ({ page }) => {
@@ -84,10 +86,10 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
 
   // Phase 7 Atlas redesign removed:
   //   - The AppsGallery React island (replaced by a static `.app-plate` grid with filters).
-  //     Coverage now lives in `atlas-plates.spec.ts` (apps catalog filter test) and
+  //     Coverage now lives in `field-console.spec.ts` (apps catalog filter test) and
   //     `skinoculars.spec.ts` (canonical URL regression).
-  //   - The homepage `article.pub-card` + `.pub-timeline` widget (replaced by a `.pub-table`
-  //     register that `atlas-plates.spec.ts` smoke-tests).
+  //   - The homepage `article.pub-card` + `.pub-timeline` widget (replaced by the homepage's
+  //     `.f-pubs` publication list; no spec currently asserts on its content directly).
   //   - The homepage `#contact` section (the footer + /contact route carry the Gmail-mailto
   //     regression goal; those assertions remain below and in the footer test).
 
@@ -200,16 +202,16 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
 
   test('custom 404 route exists and provides recovery links', async ({ page }) => {
     await page.goto('/404', { waitUntil: 'domcontentloaded' });
-    // Phase 7 Atlas redesign: the 404 h1 is "Off the atlas." and recovery buttons use
-    // Atlas copy (e.g. "Back to home", "Open the apps catalog", "View research", "Get in touch").
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Off the\s+atlas\./);
+    // Field Console redesign: the 404 headline is "No such page." and the recovery
+    // buttons read "Back to home", "Browse the apps", "View research", "Get in touch".
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/No such\s+page\./);
     const main = page.locator('#main-content');
     await expect(main.getByRole('link', { name: /Back to home/i })).toHaveAttribute('href', '/');
     await expect(main.getByRole('link', { name: /Get in touch/i })).toHaveAttribute('href', '/contact');
   });
 
-  // Phase 7 Atlas redesign: theme toggle removed — Atlas is light-only by design
-  // (see atlas-plates.spec.ts "Header has no theme toggle button").
+  // Field Console redesign: theme toggle removed — the site is single-theme dark
+  // by design (see field-console.spec.ts "single-theme site ships no theme toggle").
 
   test('mobile drawer navigation works and Escape closes it', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });

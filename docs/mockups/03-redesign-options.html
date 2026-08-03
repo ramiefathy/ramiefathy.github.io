@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ramiefathy.com — six redesign directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=Work+Sans:wght@300..800&family=Space+Grotesk:wght@300..700&family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@300..800&family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=EB+Garamond:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   WRAPPER — neutral review document chrome.
+   Each mockup below is fully scoped with an .mN- class prefix
+   and carries its own committed palette + type system.
+   ============================================================ */
+:root{
+  --w-bg:#EFEEEA; --w-panel:#FFFFFF; --w-ink:#1D1D1B; --w-muted:#54534E;
+  --w-line:#D8D6CF; --w-accent:#8A3B22;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+body{background:var(--w-bg);color:var(--w-ink);font:16px/1.6 "Work Sans",Seravek,Verdana,sans-serif}
+a{color:inherit}
+img{max-width:100%}
+
+.wrap-head{max-width:1080px;margin:0 auto;padding:56px 24px 8px}
+.wrap-head .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--w-muted);font-weight:600}
+.wrap-head h1{font-size:clamp(28px,4.5vw,44px);line-height:1.1;font-weight:750;letter-spacing:-.02em;margin:12px 0 16px;max-width:20ch}
+.wrap-head p{max-width:72ch;color:var(--w-muted)}
+.wrap-head p+p{margin-top:10px}
+.wrap-head strong{color:var(--w-ink)}
+
+.toc{position:sticky;top:0;z-index:50;background:rgba(239,238,234,.94);backdrop-filter:blur(4px);border-bottom:1px solid var(--w-line);margin-top:32px}
+.toc-inner{max-width:1080px;margin:0 auto;padding:10px 24px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.toc-inner .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--w-muted);margin-right:8px;font-weight:600}
+.toc a{font-size:13px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid var(--w-line);border-radius:999px;background:var(--w-panel)}
+.toc a:hover{border-color:var(--w-ink)}
+.toc a:focus-visible{outline:2px solid var(--w-accent);outline-offset:2px}
+
+.option{max-width:1080px;margin:0 auto;padding:64px 24px 8px}
+.option-notes{background:var(--w-panel);border:1px solid var(--w-line);padding:28px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:28px}
+.option-notes h2{font-size:24px;font-weight:750;letter-spacing:-.01em}
+.option-notes h2 span.no{color:var(--w-accent);font-variant-numeric:tabular-nums;margin-right:10px}
+.option-notes .thesis{margin-top:10px;color:var(--w-muted)}
+.option-notes ul{margin:14px 0 0 18px;color:var(--w-muted);font-size:14.5px}
+.option-notes li{margin-top:6px}
+.option-notes li strong{color:var(--w-ink)}
+.spec{font-size:13.5px}
+.spec dt{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--w-muted);font-weight:600;margin-top:14px}
+.spec dt:first-child{margin-top:0}
+.spec dd{margin-top:4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;border:1px solid var(--w-line);padding:3px 8px 3px 4px;border-radius:3px;background:#FBFBF9;font-variant-numeric:tabular-nums}
+.chip i{width:14px;height:14px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.frame{max-width:1080px;margin:20px auto 0;padding:0 24px}
+.frame-bar{display:flex;align-items:center;gap:10px;background:#DDDBD4;border:1px solid var(--w-line);border-bottom:0;padding:8px 14px;border-radius:6px 6px 0 0}
+.frame-bar .dots{display:flex;gap:5px}
+.frame-bar .dots span{width:9px;height:9px;border-radius:50%;background:#B9B6AD}
+.frame-bar .url{font-size:12px;color:var(--w-muted);background:#EFEEEA;border:1px solid var(--w-line);border-radius:4px;padding:3px 10px;font-variant-numeric:tabular-nums}
+.frame-body{border:1px solid var(--w-line);border-radius:0 0 6px 6px;overflow:hidden;box-shadow:0 14px 34px rgba(29,29,27,.10)}
+
+.verdict{max-width:1080px;margin:72px auto 0;padding:0 24px 80px}
+.verdict h2{font-size:26px;font-weight:750;letter-spacing:-.01em;margin-bottom:16px}
+.verdict .tblwrap{overflow-x:auto;background:var(--w-panel);border:1px solid var(--w-line)}
+.verdict table{border-collapse:collapse;width:100%;font-size:14px;min-width:760px}
+.verdict th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--w-muted);padding:12px 14px;border-bottom:2px solid var(--w-ink)}
+.verdict td{padding:12px 14px;border-bottom:1px solid var(--w-line);vertical-align:top}
+.verdict tr:last-child td{border-bottom:0}
+.verdict td:first-child{font-weight:700;white-space:nowrap}
+.verdict .rec{margin-top:24px;background:var(--w-panel);border-left:4px solid var(--w-accent);border-top:1px solid var(--w-line);border-right:1px solid var(--w-line);border-bottom:1px solid var(--w-line);padding:22px 24px;max-width:none}
+.verdict .rec h3{font-size:17px;margin-bottom:8px}
+.verdict .rec p{color:var(--w-muted);max-width:80ch}
+.verdict .rec p+p{margin-top:8px}
+
+@media(max-width:760px){
+  .option-notes{grid-template-columns:1fr}
+}
+
+/* ============================================================
+   OPTION 1 — WARM EDITORIAL  (.m1-)
+   Paper #FBF7F0 · ink #221E1A · green #2D5A3D · Source Serif 4
+   ============================================================ */
+.m1{background:#FBF7F0;color:#221E1A;font:17px/1.65 "Source Serif 4",Georgia,serif}
+.m1 a{text-decoration:none}
+.m1-nav{display:flex;justify-content:space-between;align-items:baseline;padding:26px 48px;border-bottom:1px solid #E4DDD0}
+.m1-name{font-weight:600;font-size:18px;letter-spacing:-.01em}
+.m1-links{display:flex;gap:26px;font-family:"Work Sans",sans-serif;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.m1-links a{color:#6B5D4F}
+.m1-links a:hover,.m1-links a[aria-current]{color:#2D5A3D}
+.m1-links a[aria-current]{border-bottom:2px solid #2D5A3D;padding-bottom:2px}
+.m1-hero{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:64px;padding:84px 48px 72px;align-items:start}
+.m1-hero-h{font-size:clamp(34px,4.6vw,56px);line-height:1.12;font-weight:500;letter-spacing:-.015em}
+.m1-hero-h em{font-style:italic;color:#2D5A3D}
+.m1-hero-p{margin-top:26px;font-size:19px;line-height:1.6;color:#463D33;max-width:56ch}
+.m1-hero-cta{margin-top:34px;display:flex;gap:14px;flex-wrap:wrap;font-family:"Work Sans",sans-serif;font-size:14px;font-weight:600}
+.m1-btn{padding:12px 22px;background:#2D5A3D;color:#FBF7F0;border-radius:3px}
+.m1-btn:hover{background:#234830}
+.m1-btn2{padding:12px 22px;color:#2D5A3D;border:1px solid #2D5A3D;border-radius:3px}
+.m1-aside{border-top:3px solid #221E1A;padding-top:18px}
+.m1-aside .k{font-family:"Work Sans",sans-serif;font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:#6B5D4F}
+.m1-aside p{margin-top:12px;font-size:15.5px;line-height:1.55;color:#463D33}
+.m1-aside p+p{margin-top:10px;border-top:1px solid #E4DDD0;padding-top:10px}
+.m1-sec{padding:56px 48px;border-top:1px solid #E4DDD0}
+.m1-sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.m1-sec-h{font-size:27px;font-weight:500;letter-spacing:-.01em}
+.m1-more{font-family:"Work Sans",sans-serif;font-size:13px;font-weight:600;color:#2D5A3D}
+.m1-more:hover{text-decoration:underline}
+.m1-proj{display:grid;grid-template-columns:52px minmax(0,1.1fr) minmax(0,2fr) auto;gap:20px;align-items:baseline;padding:22px 0;border-bottom:1px solid #E4DDD0}
+.m1-proj:last-of-type{border-bottom:0}
+.m1-proj .n{font-family:"Work Sans",sans-serif;font-size:13px;color:#6B5D4F;font-variant-numeric:tabular-nums}
+.m1-proj .t{font-size:20px;font-weight:600}
+.m1-proj .t a:hover{color:#2D5A3D}
+.m1-proj .d{font-size:15.5px;color:#463D33;line-height:1.55}
+.m1-proj .tag{font-family:"Work Sans",sans-serif;font-size:12px;color:#6B5D4F;white-space:nowrap}
+.m1-pub{padding:14px 0 14px 34px;text-indent:-34px;border-bottom:1px solid #E4DDD0;font-size:16px;line-height:1.6;max-width:88ch}
+.m1-pub:last-of-type{border-bottom:0}
+.m1-pub .y{font-family:"Work Sans",sans-serif;font-size:13px;font-weight:700;color:#2D5A3D;margin-right:10px;font-variant-numeric:tabular-nums}
+.m1-pub a{font-weight:600}
+.m1-pub a:hover{color:#2D5A3D;text-decoration:underline}
+.m1-pub .v{color:#6B5D4F;font-style:italic}
+.m1-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:30px 48px;border-top:1px solid #E4DDD0;font-family:"Work Sans",sans-serif;font-size:13px;color:#6B5D4F}
+.m1-foot .fl{display:flex;gap:20px}
+.m1-foot a:hover{color:#2D5A3D}
+@media(max-width:820px){.m1-hero{grid-template-columns:1fr;gap:40px;padding:56px 24px}.m1-nav,.m1-sec,.m1-foot{padding-left:24px;padding-right:24px}.m1-links{display:none}.m1-proj{grid-template-columns:40px 1fr;grid-template-rows:auto auto}.m1-proj .d{grid-column:2}.m1-proj .tag{display:none}}
+
+/* ============================================================
+   OPTION 2 — SWISS GRID  (.m2-)
+   White · ink #111 · red #C8102E · Space Grotesk + Space Mono
+   ============================================================ */
+.m2{background:#FFFFFF;color:#111111;font:16px/1.55 "Space Grotesk",Futura,sans-serif}
+.m2 a{text-decoration:none}
+.m2-top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:18px 40px;border-bottom:2px solid #111}
+.m2-brand{font-weight:700;font-size:15px;letter-spacing:.02em}
+.m2-brand b{color:#C8102E}
+.m2-nav{display:flex;gap:2px}
+.m2-nav a{font-family:"Space Mono",monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;color:#555}
+.m2-nav a:hover{color:#111;background:#F2F2F2}
+.m2-nav a[aria-current]{color:#FFF;background:#111}
+.m2-hero{display:grid;grid-template-columns:repeat(12,1fr);gap:0;border-bottom:1px solid #111}
+.m2-hero-main{grid-column:1/9;padding:72px 40px;border-right:1px solid #111}
+.m2-kick{font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#C8102E;font-weight:700}
+.m2-hero-h{font-size:clamp(44px,7vw,92px);line-height:.98;font-weight:700;letter-spacing:-.03em;margin-top:18px;text-transform:none}
+.m2-hero-p{margin-top:26px;font-size:18px;line-height:1.55;color:#333;max-width:52ch;font-weight:400}
+.m2-hero-cta{margin-top:36px;display:flex;gap:0}
+.m2-btn{font-family:"Space Mono",monospace;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;padding:14px 24px;background:#111;color:#FFF;border:1px solid #111}
+.m2-btn:hover{background:#C8102E;border-color:#C8102E}
+.m2-btn2{font-family:"Space Mono",monospace;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;padding:14px 24px;color:#111;border:1px solid #111;border-left:0}
+.m2-btn2:hover{background:#F2F2F2}
+.m2-hero-side{grid-column:9/13;display:flex;flex-direction:column}
+.m2-fact{padding:22px 28px;border-bottom:1px solid #111;flex:1}
+.m2-fact:last-child{border-bottom:0}
+.m2-fact .l{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#555}
+.m2-fact .v{margin-top:6px;font-size:15.5px;font-weight:500;line-height:1.4}
+.m2-sec{padding:56px 40px;border-bottom:1px solid #111}
+.m2-sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:28px}
+.m2-sec-h{font-size:13px;font-family:"Space Mono",monospace;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.m2-sec-h::before{content:"";display:inline-block;width:12px;height:12px;background:#C8102E;margin-right:10px;vertical-align:baseline}
+.m2-more{font-family:"Space Mono",monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:#555;border-bottom:1px solid #C8102E;padding-bottom:2px}
+.m2-more:hover{color:#C8102E}
+.m2-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #111;border-left:1px solid #111}
+.m2-cell{border-right:1px solid #111;border-bottom:1px solid #111;padding:26px 28px;min-height:170px;display:flex;flex-direction:column;position:relative}
+.m2-cell:hover{background:#FAFAFA}
+.m2-cell .no{font-family:"Space Mono",monospace;font-size:11px;color:#555;font-variant-numeric:tabular-nums}
+.m2-cell .t{font-size:21px;font-weight:700;letter-spacing:-.01em;margin-top:10px}
+.m2-cell .d{margin-top:8px;font-size:14.5px;color:#333;line-height:1.5;max-width:44ch}
+.m2-cell .s{margin-top:auto;padding-top:16px;font-family:"Space Mono",monospace;font-size:11px;color:#555}
+.m2-cell .go{position:absolute;top:22px;right:24px;color:#C8102E;font-weight:700}
+.m2-tbl{width:100%;border-collapse:collapse}
+.m2-tbl td{padding:16px 12px;border-bottom:1px solid #D9D9D9;vertical-align:baseline}
+.m2-tbl tr:hover td{background:#FAFAFA}
+.m2-tbl .y{font-family:"Space Mono",monospace;font-size:13px;width:64px;color:#C8102E;font-variant-numeric:tabular-nums}
+.m2-tbl .t{font-size:16.5px;font-weight:500;letter-spacing:-.005em}
+.m2-tbl .t small{display:block;font-size:12.5px;color:#555;font-weight:400;margin-top:3px}
+.m2-tbl .ven{font-size:12.5px;color:#555;text-align:right;width:26%}
+.m2-foot{background:#111;color:#FFF;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:26px 40px;font-family:"Space Mono",monospace;font-size:11.5px;letter-spacing:.06em}
+.m2-foot .fl{display:flex;gap:22px}
+.m2-foot a:hover{color:#FF5C5C}
+@media(max-width:820px){.m2-hero{grid-template-columns:1fr}.m2-hero-main{grid-column:1/-1;border-right:0;border-bottom:1px solid #111;padding:48px 24px}.m2-hero-side{grid-column:1/-1}.m2-top,.m2-sec,.m2-foot{padding-left:24px;padding-right:24px}.m2-nav{display:none}.m2-grid{grid-template-columns:1fr}.m2-tbl .ven{display:none}}
+
+/* ============================================================
+   OPTION 3 — DARK TECHNICAL  (.m3-)
+   #10141A · text #E8EAED · amber #F5B942 · IBM Plex Sans + JetBrains Mono
+   ============================================================ */
+.m3{background:#10141A;color:#E8EAED;font:15.5px/1.6 "IBM Plex Sans",Seravek,sans-serif}
+.m3 a{text-decoration:none}
+.m3-nav{display:flex;justify-content:space-between;align-items:center;padding:20px 44px;border-bottom:1px solid #232B36}
+.m3-brand{font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:700;color:#E8EAED}
+.m3-brand .tld{color:#F5B942}
+.m3-links{display:flex;gap:24px;font-size:13.5px;font-weight:500}
+.m3-links a{color:#9AA3AD}
+.m3-links a:hover{color:#E8EAED}
+.m3-links a[aria-current]{color:#F5B942}
+.m3-hero{padding:84px 44px 64px;max-width:1000px}
+.m3-kick{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#F5B942;letter-spacing:.04em}
+.m3-hero-h{font-size:clamp(32px,4.6vw,54px);line-height:1.12;font-weight:600;letter-spacing:-.02em;margin-top:16px;max-width:24ch}
+.m3-hero-p{margin-top:22px;font-size:17px;color:#9AA3AD;max-width:58ch;line-height:1.65}
+.m3-hero-p b{color:#E8EAED;font-weight:500}
+.m3-status{margin-top:30px;display:inline-flex;align-items:center;gap:10px;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#9AA3AD;background:#1A2028;border:1px solid #232B36;border-radius:6px;padding:9px 14px}
+.m3-status .dot{width:8px;height:8px;border-radius:50%;background:#5FBF77}
+.m3-hero-cta{margin-top:34px;display:flex;gap:12px;flex-wrap:wrap}
+.m3-btn{font-size:14px;font-weight:600;padding:12px 20px;background:#F5B942;color:#10141A;border-radius:6px}
+.m3-btn:hover{background:#FFD066}
+.m3-btn2{font-size:14px;font-weight:600;padding:12px 20px;color:#E8EAED;border:1px solid #39434F;border-radius:6px}
+.m3-btn2:hover{border-color:#9AA3AD}
+.m3-sec{padding:52px 44px;border-top:1px solid #232B36}
+.m3-sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:26px}
+.m3-sec-h{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.m3-sec-h::before{content:"// ";font-family:"JetBrains Mono",monospace;color:#F5B942;font-weight:400}
+.m3-more{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#9AA3AD}
+.m3-more:hover{color:#F5B942}
+.m3-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.m3-card{background:#1A2028;border:1px solid #232B36;border-radius:8px;padding:22px;display:flex;flex-direction:column;min-height:180px}
+.m3-card:hover{background:#1F2630;border-color:#39434F}
+.m3-card .t{font-size:17px;font-weight:600}
+.m3-card .t a:hover{color:#F5B942}
+.m3-card .d{margin-top:10px;font-size:14px;color:#9AA3AD;line-height:1.55}
+.m3-card .s{margin-top:auto;padding-top:18px;display:flex;gap:8px;flex-wrap:wrap}
+.m3-card .s span{font-family:"JetBrains Mono",monospace;font-size:11px;color:#9AA3AD;background:#10141A;border:1px solid #232B36;border-radius:4px;padding:3px 8px}
+.m3-pub{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:18px;align-items:baseline;padding:16px 0;border-bottom:1px solid #232B36}
+.m3-pub:last-of-type{border-bottom:0}
+.m3-pub .y{font-family:"JetBrains Mono",monospace;font-size:13px;color:#F5B942;font-variant-numeric:tabular-nums}
+.m3-pub .t{font-size:15.5px;font-weight:500;line-height:1.45}
+.m3-pub .t a:hover{color:#F5B942}
+.m3-pub .t small{display:block;font-size:12.5px;color:#9AA3AD;font-weight:400;margin-top:3px}
+.m3-pub .ven{font-size:12.5px;color:#9AA3AD;text-align:right;max-width:220px}
+.m3-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:26px 44px;border-top:1px solid #232B36;font-family:"JetBrains Mono",monospace;font-size:12px;color:#9AA3AD}
+.m3-foot .fl{display:flex;gap:20px}
+.m3-foot a:hover{color:#F5B942}
+@media(max-width:820px){.m3-nav,.m3-sec,.m3-foot{padding-left:24px;padding-right:24px}.m3-hero{padding:56px 24px 48px}.m3-links{display:none}.m3-pub{grid-template-columns:56px 1fr}.m3-pub .ven{display:none}}
+
+/* ============================================================
+   OPTION 4 — CALM PRODUCT  (.m4-)
+   #F6F8F9 · ink #1C2B33 · teal #0E7C7B · Manrope
+   ============================================================ */
+.m4{background:#F6F8F9;color:#1C2B33;font:15.5px/1.6 "Manrope",Seravek,sans-serif}
+.m4 a{text-decoration:none}
+.m4-nav{display:flex;justify-content:space-between;align-items:center;padding:18px 44px;background:#FFFFFF;border-bottom:1px solid #E3E8EA}
+.m4-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15.5px;letter-spacing:-.01em}
+.m4-mark{width:30px;height:30px;border-radius:8px;background:#0E7C7B;color:#FFF;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.m4-links{display:flex;gap:4px;font-size:14px;font-weight:600}
+.m4-links a{color:#5B6B73;padding:8px 14px;border-radius:8px}
+.m4-links a:hover{background:#EEF3F4;color:#1C2B33}
+.m4-links a[aria-current]{background:#E3F1F0;color:#0E7C7B}
+.m4-hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:48px;padding:72px 44px;align-items:center}
+.m4-pill{display:inline-block;font-size:12.5px;font-weight:700;color:#0E7C7B;background:#E3F1F0;border-radius:999px;padding:6px 14px}
+.m4-hero-h{font-size:clamp(32px,4.4vw,50px);line-height:1.12;font-weight:800;letter-spacing:-.025em;margin-top:18px}
+.m4-hero-h span{color:#0E7C7B}
+.m4-hero-p{margin-top:20px;font-size:17px;color:#42525B;max-width:54ch;line-height:1.65}
+.m4-hero-cta{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap}
+.m4-btn{font-size:14.5px;font-weight:700;padding:13px 22px;background:#0E7C7B;color:#FFF;border-radius:10px}
+.m4-btn:hover{background:#0A6362}
+.m4-btn2{font-size:14.5px;font-weight:700;padding:13px 22px;color:#1C2B33;background:#FFF;border:1px solid #CFD8DC;border-radius:10px}
+.m4-btn2:hover{border-color:#8FA1A9}
+.m4-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.m4-stat{background:#FFF;border:1px solid #E3E8EA;border-radius:14px;padding:22px}
+.m4-stat .v{font-size:30px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.m4-stat .l{margin-top:4px;font-size:13px;color:#5B6B73;font-weight:600}
+.m4-sec{padding:52px 44px}
+.m4-sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:22px}
+.m4-sec-h{font-size:23px;font-weight:800;letter-spacing:-.02em}
+.m4-more{font-size:14px;font-weight:700;color:#0E7C7B}
+.m4-more:hover{text-decoration:underline}
+.m4-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+.m4-card{background:#FFF;border:1px solid #E3E8EA;border-radius:14px;padding:24px;display:flex;flex-direction:column;min-height:190px}
+.m4-card .t{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.m4-card .t a:hover{color:#0E7C7B}
+.m4-card .d{margin-top:9px;font-size:14px;color:#42525B;line-height:1.55}
+.m4-card .s{margin-top:auto;padding-top:18px;display:flex;gap:8px;flex-wrap:wrap}
+.m4-card .s span{font-size:12px;font-weight:700;color:#0E7C7B;background:#E3F1F0;border-radius:999px;padding:4px 10px}
+.m4-list{background:#FFF;border:1px solid #E3E8EA;border-radius:14px;overflow:hidden}
+.m4-pub{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:18px;align-items:baseline;padding:18px 24px;border-bottom:1px solid #EDF1F2}
+.m4-pub:last-child{border-bottom:0}
+.m4-pub:hover{background:#F9FBFB}
+.m4-pub .y{font-size:13px;font-weight:800;color:#0E7C7B;font-variant-numeric:tabular-nums}
+.m4-pub .t{font-size:15px;font-weight:700;line-height:1.45;letter-spacing:-.005em}
+.m4-pub .t small{display:block;font-size:12.5px;color:#5B6B73;font-weight:500;margin-top:3px}
+.m4-pub .ven{font-size:12.5px;color:#5B6B73;font-weight:600;text-align:right;max-width:220px}
+.m4-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:26px 44px;background:#FFF;border-top:1px solid #E3E8EA;font-size:13px;color:#5B6B73;font-weight:600}
+.m4-foot .fl{display:flex;gap:20px}
+.m4-foot a:hover{color:#0E7C7B}
+@media(max-width:820px){.m4-hero{grid-template-columns:1fr;padding:48px 24px}.m4-nav,.m4-sec,.m4-foot{padding-left:24px;padding-right:24px}.m4-links{display:none}.m4-pub .ven{display:none}}
+
+/* ============================================================
+   OPTION 5 — DISPLAY STATEMENT  (.m5-)
+   Cream #F2EFE9 · ink #16130E · blue #002FA7 · Fraunces + Work Sans
+   ============================================================ */
+.m5{background:#F2EFE9;color:#16130E;font:16px/1.6 "Work Sans",Seravek,sans-serif}
+.m5 a{text-decoration:none}
+.m5-nav{display:flex;justify-content:space-between;align-items:center;padding:22px 40px}
+.m5-brand{font-family:"Fraunces",Georgia,serif;font-size:19px;font-weight:600}
+.m5-links{display:flex;gap:24px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.m5-links a{color:#6E675C}
+.m5-links a:hover{color:#002FA7}
+.m5-links a[aria-current]{color:#16130E;border-bottom:2px solid #002FA7;padding-bottom:3px}
+.m5-hero{padding:40px 40px 56px;border-bottom:2px solid #16130E}
+.m5-hero-h{font-family:"Fraunces",Georgia,serif;font-size:clamp(56px,11vw,152px);line-height:.95;font-weight:500;letter-spacing:-.03em}
+.m5-hero-h .row2{display:block;font-style:italic;color:#002FA7;font-weight:400}
+.m5-hero-sub{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;margin-top:44px;align-items:end}
+.m5-hero-p{font-size:18px;line-height:1.6;color:#3E3A31;max-width:50ch}
+.m5-hero-meta{display:flex;flex-direction:column;gap:8px;font-size:13.5px;color:#6E675C;text-align:right}
+.m5-hero-meta b{color:#16130E;font-weight:600}
+.m5-hero-cta{margin-top:36px;display:flex;gap:14px;flex-wrap:wrap}
+.m5-btn{font-size:14px;font-weight:600;letter-spacing:.03em;padding:14px 26px;background:#002FA7;color:#F2EFE9;border-radius:999px}
+.m5-btn:hover{background:#00227A}
+.m5-btn2{font-size:14px;font-weight:600;letter-spacing:.03em;padding:14px 26px;color:#16130E;border:1.5px solid #16130E;border-radius:999px}
+.m5-btn2:hover{background:#16130E;color:#F2EFE9}
+.m5-sec{padding:56px 40px;border-bottom:2px solid #16130E}
+.m5-sec:last-of-type{border-bottom:0}
+.m5-sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:30px}
+.m5-sec-h{font-family:"Fraunces",Georgia,serif;font-size:34px;font-weight:500;letter-spacing:-.01em}
+.m5-sec-h em{font-style:italic;color:#002FA7}
+.m5-more{font-size:13px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;color:#002FA7}
+.m5-more:hover{text-decoration:underline}
+.m5-strip{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:24px;overflow-x:auto;padding-bottom:6px}
+.m5-work{border-top:2px solid #16130E;padding-top:16px;min-width:0}
+.m5-work .n{font-size:12px;letter-spacing:.08em;color:#6E675C;font-variant-numeric:tabular-nums}
+.m5-work .t{font-family:"Fraunces",Georgia,serif;font-size:23px;font-weight:500;margin-top:8px;line-height:1.15}
+.m5-work .t a:hover{color:#002FA7;font-style:italic}
+.m5-work .d{margin-top:10px;font-size:14px;color:#3E3A31;line-height:1.55}
+.m5-pubs{display:flex;flex-direction:column}
+.m5-pub{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:24px;align-items:baseline;padding:20px 0;border-top:1px solid #D6D0C4}
+.m5-pub:first-of-type{border-top:0}
+.m5-pub .y{font-family:"Fraunces",Georgia,serif;font-size:22px;font-style:italic;color:#002FA7;font-variant-numeric:tabular-nums}
+.m5-pub .t{font-size:18px;font-weight:500;line-height:1.4;letter-spacing:-.005em}
+.m5-pub .t a:hover{color:#002FA7}
+.m5-pub .ven{font-size:13px;color:#6E675C;text-align:right;max-width:230px}
+.m5-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:28px 40px;background:#16130E;color:#F2EFE9;font-size:13px}
+.m5-foot .fl{display:flex;gap:22px}
+.m5-foot a:hover{color:#9DB4F5}
+@media(max-width:820px){.m5-nav,.m5-hero,.m5-sec,.m5-foot{padding-left:24px;padding-right:24px}.m5-links{display:none}.m5-hero-sub{grid-template-columns:1fr}.m5-hero-meta{text-align:left}.m5-strip{grid-template-columns:1fr 1fr}.m5-pub{grid-template-columns:70px 1fr}.m5-pub .ven{display:none}}
+
+/* ============================================================
+   OPTION 6 — QUIET ACADEMIC  (.m6-)
+   White · ink #171717 · link #1D3FBF · EB Garamond
+   ============================================================ */
+.m6{background:#FFFFFF;color:#171717;font:19px/1.65 "EB Garamond",Georgia,serif;padding:72px 24px 56px}
+.m6-col{max-width:660px;margin:0 auto}
+.m6 a{color:#1D3FBF;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.m6 a:hover{color:#132C88}
+.m6-name{font-size:34px;font-weight:600;letter-spacing:-.01em}
+.m6-role{margin-top:6px;font-size:19px;color:#595959;font-style:italic}
+.m6-navline{margin-top:18px;padding:10px 0;border-top:1px solid #171717;border-bottom:1px solid #E0E0E0;font-size:16px}
+.m6-navline a{margin-right:18px}
+.m6-p{margin-top:26px}
+.m6-p+.m6-p{margin-top:14px}
+.m6-h{font-size:23px;font-weight:600;margin-top:44px;padding-bottom:6px;border-bottom:1px solid #E0E0E0}
+.m6-item{margin-top:16px;padding-left:28px;text-indent:-28px}
+.m6-item .y{font-variant-numeric:tabular-nums;color:#595959;margin-right:8px}
+.m6-item .v{font-style:italic;color:#595959}
+.m6-soft{margin-top:16px}
+.m6-soft b{font-weight:600}
+.m6-soft .d{color:#3D3D3D}
+.m6-footline{margin-top:48px;padding-top:14px;border-top:1px solid #E0E0E0;font-size:15.5px;color:#595959}
+</style>
+</head>
+<body>
+
+<header class="wrap-head">
+  <p class="eyebrow">ramiefathy.com · design review · six directions</p>
+  <h1>Redesign options for your site</h1>
+  <p><strong>What's being replaced:</strong> the current design commits hard to a reference-book conceit — stamped section labels, decorative barcodes, numbered plates, volume references in the hero and footer — plus a warm bone/terracotta palette, heavy black borders, and a two-layer WebGL shader hero. The content architecture underneath (profile, apps, publications as data) is solid and carries over unchanged.</p>
+  <p><strong>What these options do differently:</strong> every mockup below drops the conceit entirely — plain section names, no decorative numbering systems, no metaphor in the copy. Each is a committed, distinct visual direction rendered with your real content: name, bio, the four flagship apps, and actual publications. Scroll through all six, or jump with the index. A comparison table and recommendation are at the end.</p>
+</header>
+
+<nav class="toc" aria-label="Options index">
+  <div class="toc-inner">
+    <span class="lbl">Jump to</span>
+    <a href="#opt1">1 · Warm Editorial</a>
+    <a href="#opt2">2 · Swiss Grid</a>
+    <a href="#opt3">3 · Dark Technical</a>
+    <a href="#opt4">4 · Calm Product</a>
+    <a href="#opt5">5 · Display Statement</a>
+    <a href="#opt6">6 · Quiet Academic</a>
+    <a href="#verdict">Comparison</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ================================================================ OPTION 1 -->
+<section class="option" id="opt1" aria-labelledby="opt1-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="opt1-h"><span class="no">01</span>Warm Editorial</h2>
+      <p class="thesis">The closest evolution of what you have: keeps the warmth and the serif literacy, sheds every gimmick. Reads like a well-set essay collection — a physician-writer's site first, a developer's second.</p>
+      <ul>
+        <li><strong>Keeps</strong> the warm paper tone and serif voice you already own, so the change feels like a refinement, not a rebrand.</li>
+        <li><strong>Drops</strong> black plate borders, stamps, and mono microcopy; structure comes from whitespace and hairlines.</li>
+        <li>Projects become a numbered <strong>list, not cards</strong> — quieter, more editorial, easier to scan.</li>
+        <li>Publications set as proper <strong>hanging-indent citations</strong>.</li>
+      </ul>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#FBF7F0"></i>#FBF7F0 paper</span>
+        <span class="chip"><i style="background:#221E1A"></i>#221E1A ink</span>
+        <span class="chip"><i style="background:#2D5A3D"></i>#2D5A3D green</span>
+        <span class="chip"><i style="background:#6B5D4F"></i>#6B5D4F muted</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>Source Serif 4 (display + body) · Work Sans (UI meta)</dd>
+      <dt>Structure</dt>
+      <dd>Asymmetric two-column hero; single-column list sections; hairline rules only</dd>
+      <dt>Effort</dt>
+      <dd>Low–medium — mostly CSS-token and copy changes; layout skeleton survives</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="m1">
+        <div class="m1-nav">
+          <span class="m1-name">Ramie Fathy, MD</span>
+          <nav class="m1-links" aria-label="Option 1 nav">
+            <a href="#opt1" aria-current="page">Home</a><a href="#opt1">About</a><a href="#opt1">Apps</a><a href="#opt1">Research</a><a href="#opt1">Blog</a><a href="#opt1">Contact</a>
+          </nav>
+        </div>
+        <div class="m1-hero">
+          <div>
+            <h3 class="m1-hero-h">Dermatology, clinical AI, and the questions <em>between them.</em></h3>
+            <p class="m1-hero-p">I'm a dermatology resident at Johns Hopkins. I build clinical AI tools — and study how they should, and should not, be used at the bedside.</p>
+            <div class="m1-hero-cta">
+              <a class="m1-btn" href="#opt1">Browse the apps</a>
+              <a class="m1-btn2" href="#opt1">Read the research</a>
+            </div>
+          </div>
+          <aside class="m1-aside">
+            <span class="k">Currently</span>
+            <p>Final-year dermatology resident, Johns Hopkins — inflammatory and complex medical dermatology, dermatopathology, clinical AI evaluation.</p>
+            <p>Incoming rheumatology–dermatology fellow, Mass General Brigham, joining Dr. Adam Rodman's research lab.</p>
+            <p>AAD Council on Science &amp; Research, 2025–2027.</p>
+          </aside>
+        </div>
+        <div class="m1-sec">
+          <div class="m1-sec-head">
+            <h4 class="m1-sec-h">Software</h4>
+            <a class="m1-more" href="#opt1">All projects →</a>
+          </div>
+          <div class="m1-proj">
+            <span class="n">01</span>
+            <span class="t"><a href="#opt1">RAMIE</a></span>
+            <span class="d">Real-time AI assistant for dermatology clinic: live transcription, differential support, and documentation drafting.</span>
+            <span class="tag">WebRTC · Gemini</span>
+          </div>
+          <div class="m1-proj">
+            <span class="n">02</span>
+            <span class="t"><a href="#opt1">Dermatopathology Navigator</a></span>
+            <span class="d">Learning platform with an AI study assistant, spaced repetition, and a differential-diagnosis builder.</span>
+            <span class="tag">React · Gemini</span>
+          </div>
+          <div class="m1-proj">
+            <span class="n">03</span>
+            <span class="t"><a href="#opt1">Dermatology Mind Maps</a></span>
+            <span class="d">Interactive, annotation-ready maps covering alopecia, CTCL, psoriasis, and autoimmune bullous disease.</span>
+            <span class="tag">Astro · D3</span>
+          </div>
+        </div>
+        <div class="m1-sec">
+          <div class="m1-sec-head">
+            <h4 class="m1-sec-h">Selected publications</h4>
+            <a class="m1-more" href="#opt1">Full list →</a>
+          </div>
+          <p class="m1-pub"><span class="y">2025</span><a href="#opt1">Comparative assessment of GPT-4 Vision in dermoscopic image analysis.</a> Tadros AR, Zhuo W, Fathy RA, et&nbsp;al. <span class="v">J Am Acad Dermatol.</span></p>
+          <p class="m1-pub"><span class="y">2024</span><a href="#opt1">Demographic differences and the impact of research years for reapplicants to dermatology residency.</a> Truel JS, Ferree S, Fathy R, et&nbsp;al. <span class="v">J Am Acad Dermatol.</span></p>
+          <p class="m1-pub"><span class="y">2023</span><a href="#opt1">Increased ambient outdoor temperatures are associated with increased disease flaring in hidradenitis suppurativa.</a> Singh R, Fathy R, et&nbsp;al. <span class="v">Arch Dermatol Res.</span></p>
+        </div>
+        <div class="m1-foot">
+          <span>© 2026 Ramie Fathy, MD</span>
+          <span class="fl"><a href="#opt1">Email</a><a href="#opt1">Google Scholar</a><a href="#opt1">LinkedIn</a><a href="#opt1">GitHub</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ OPTION 2 -->
+<section class="option" id="opt2" aria-labelledby="opt2-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="opt2-h"><span class="no">02</span>Swiss Grid</h2>
+      <p class="thesis">International-style rigor: white ground, one red accent, a visible grid where the borders <em>are</em> the layout. Confident and structural without needing any conceit — the discipline is the personality.</p>
+      <ul>
+        <li>Oversized flush-left name; <strong>asymmetric 12-column grid</strong> with facts in the right rail.</li>
+        <li>Projects live in a <strong>ruled grid</strong> — the lines do the work cards usually fake.</li>
+        <li>Publications as a <strong>dense registry table</strong> with tabular year column; suits a growing list.</li>
+        <li>Scales beautifully to CV-style pages; the strictness keeps future additions tidy.</li>
+      </ul>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#FFFFFF"></i>#FFFFFF white</span>
+        <span class="chip"><i style="background:#111111"></i>#111111 ink</span>
+        <span class="chip"><i style="background:#C8102E"></i>#C8102E red</span>
+        <span class="chip"><i style="background:#555555"></i>#555555 muted</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>Space Grotesk (display + body) · Space Mono (labels, data)</dd>
+      <dt>Structure</dt>
+      <dd>Exposed grid with 1px rules; black footer band; zero shadows, zero radius</dd>
+      <dt>Effort</dt>
+      <dd>Medium — new layout skeleton, but reuses your existing mono font asset</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="m2">
+        <div class="m2-top">
+          <span class="m2-brand">RAMIE FATHY<b>, MD</b></span>
+          <nav class="m2-nav" aria-label="Option 2 nav">
+            <a href="#opt2" aria-current="page">Home</a><a href="#opt2">About</a><a href="#opt2">Apps</a><a href="#opt2">Research</a><a href="#opt2">Blog</a><a href="#opt2">Contact</a>
+          </nav>
+        </div>
+        <div class="m2-hero">
+          <div class="m2-hero-main">
+            <p class="m2-kick">Dermatology resident · AI researcher · Writer</p>
+            <h3 class="m2-hero-h">Ramie<br>Fathy, MD</h3>
+            <p class="m2-hero-p">Dermatology resident at Johns Hopkins. I build clinical AI tools and study how they should — and should not — be used at the bedside.</p>
+            <div class="m2-hero-cta">
+              <a class="m2-btn" href="#opt2">Browse the apps</a>
+              <a class="m2-btn2" href="#opt2">See publications</a>
+            </div>
+          </div>
+          <div class="m2-hero-side">
+            <div class="m2-fact">
+              <span class="l">Now</span>
+              <p class="v">Final-year dermatology resident, Johns Hopkins</p>
+            </div>
+            <div class="m2-fact">
+              <span class="l">Next</span>
+              <p class="v">Rheumatology–dermatology fellow, Mass General Brigham — Rodman Lab</p>
+            </div>
+            <div class="m2-fact">
+              <span class="l">Service</span>
+              <p class="v">AAD Council on Science &amp; Research, 2025–2027</p>
+            </div>
+          </div>
+        </div>
+        <div class="m2-sec">
+          <div class="m2-sec-head">
+            <h4 class="m2-sec-h">Software</h4>
+            <a class="m2-more" href="#opt2">All projects</a>
+          </div>
+          <div class="m2-grid">
+            <a class="m2-cell" href="#opt2">
+              <span class="no">01</span><span class="go">→</span>
+              <span class="t">RAMIE</span>
+              <span class="d">Real-time AI assistant for dermatology clinic: live transcription, differential support, documentation drafting.</span>
+              <span class="s">WebRTC · Gemini · WebSockets</span>
+            </a>
+            <a class="m2-cell" href="#opt2">
+              <span class="no">02</span><span class="go">→</span>
+              <span class="t">Dermatopathology Navigator</span>
+              <span class="d">Learning platform with an AI study assistant, spaced repetition, and a differential builder.</span>
+              <span class="s">React · Gemini</span>
+            </a>
+            <a class="m2-cell" href="#opt2">
+              <span class="no">03</span><span class="go">→</span>
+              <span class="t">Dermatology Mind Maps</span>
+              <span class="d">Interactive maps for alopecia, CTCL, psoriasis, and bullous disease, with search and export.</span>
+              <span class="s">Astro · D3 · Fuse.js</span>
+            </a>
+            <a class="m2-cell" href="#opt2">
+              <span class="no">04</span><span class="go">→</span>
+              <span class="t">Skinoculars</span>
+              <span class="d">Interactive 3D dermatology visualization in the browser.</span>
+              <span class="s">React · Three.js</span>
+            </a>
+          </div>
+        </div>
+        <div class="m2-sec">
+          <div class="m2-sec-head">
+            <h4 class="m2-sec-h">Selected publications</h4>
+            <a class="m2-more" href="#opt2">Full list</a>
+          </div>
+          <table class="m2-tbl">
+            <tr>
+              <td class="y">2025</td>
+              <td class="t"><a href="#opt2">Comparative assessment of GPT-4 Vision in dermoscopic image analysis</a><small>Tadros AR, Zhuo W, Fathy RA, Robinson MA, Belzberg M, Alhariri JM</small></td>
+              <td class="ven">J Am Acad Dermatol</td>
+            </tr>
+            <tr>
+              <td class="y">2024</td>
+              <td class="t"><a href="#opt2">Demographic differences and the impact of research years for reapplicants to dermatology residency</a><small>Truel JS, Ferree S, Fathy R, Hossler E, Rosman IS</small></td>
+              <td class="ven">J Am Acad Dermatol</td>
+            </tr>
+            <tr>
+              <td class="y">2023</td>
+              <td class="t"><a href="#opt2">Increased ambient outdoor temperatures are associated with increased disease flaring in hidradenitis suppurativa</a><small>Singh R, Fathy R, Kassamali B, Noe MH, Barbieri JS, et al.</small></td>
+              <td class="ven">Arch Dermatol Res</td>
+            </tr>
+            <tr>
+              <td class="y">2023</td>
+              <td class="t"><a href="#opt2">Sentinel lymph node biopsy in Merkel cell carcinoma: rates and predictors of compliance with NCCN guidelines</a><small>Lewis DJ, Fathy RA, Nugent S, Etzkorn JR, et al.</small></td>
+              <td class="ven">J Am Acad Dermatol</td>
+            </tr>
+          </table>
+        </div>
+        <div class="m2-foot">
+          <span>© 2026 RAMIE FATHY, MD</span>
+          <span class="fl"><a href="#opt2">EMAIL</a><a href="#opt2">SCHOLAR</a><a href="#opt2">LINKEDIN</a><a href="#opt2">GITHUB</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ OPTION 3 -->
+<section class="option" id="opt3" aria-labelledby="opt3-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="opt3-h"><span class="no">03</span>Dark Technical</h2>
+      <p class="thesis">A builder's site: near-black ground, one warm amber accent, surfaces elevated by lightness instead of shadows. Signals "I ship working software" — the strongest frame for the apps and the AI-evaluation research.</p>
+      <ul>
+        <li>Dark UI puts the <strong>apps front and center</strong> — screenshots and demos pop against it.</li>
+        <li>A live-feeling <strong>status line</strong> ("Currently: …") replaces decorative ornament with real signal.</li>
+        <li>Amber, not the usual dark-mode teal/purple — warmer and more distinctive against slate.</li>
+        <li>Best candidate if you want <strong>dark + light themes</strong>; this becomes the dark half.</li>
+      </ul>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#10141A"></i>#10141A ground</span>
+        <span class="chip"><i style="background:#1A2028"></i>#1A2028 surface</span>
+        <span class="chip"><i style="background:#E8EAED"></i>#E8EAED text</span>
+        <span class="chip"><i style="background:#F5B942"></i>#F5B942 amber</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>IBM Plex Sans (body) · JetBrains Mono (labels, data)</dd>
+      <dt>Structure</dt>
+      <dd>Left-weighted hero; surface-elevation cards; hairline dividers; 6–8px radii</dd>
+      <dt>Effort</dt>
+      <dd>Medium–high — full token flip plus contrast re-audit of every page</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="m3">
+        <div class="m3-nav">
+          <span class="m3-brand">ramiefathy<span class="tld">.com</span></span>
+          <nav class="m3-links" aria-label="Option 3 nav">
+            <a href="#opt3" aria-current="page">Home</a><a href="#opt3">About</a><a href="#opt3">Apps</a><a href="#opt3">Research</a><a href="#opt3">Blog</a><a href="#opt3">Contact</a>
+          </nav>
+        </div>
+        <div class="m3-hero">
+          <p class="m3-kick">dermatology × clinical AI</p>
+          <h3 class="m3-hero-h">I build clinical AI tools — and test whether they belong at the bedside.</h3>
+          <p class="m3-hero-p"><b>Ramie Fathy, MD</b> — dermatology resident at Johns Hopkins. Clinical interests in inflammatory and complex medical dermatology, dermatopathology, and the rigorous evaluation of AI in clinical workflows.</p>
+          <p class="m3-status"><span class="dot"></span>Currently: evaluating vision-language models on dermoscopic images</p>
+          <div class="m3-hero-cta">
+            <a class="m3-btn" href="#opt3">Try the apps</a>
+            <a class="m3-btn2" href="#opt3">Read the research</a>
+          </div>
+        </div>
+        <div class="m3-sec">
+          <div class="m3-sec-head">
+            <h4 class="m3-sec-h">apps</h4>
+            <a class="m3-more" href="#opt3">view all →</a>
+          </div>
+          <div class="m3-cards">
+            <div class="m3-card">
+              <span class="t"><a href="#opt3">RAMIE</a></span>
+              <span class="d">Real-time AI assistant for dermatology clinic — live transcription, differential support, documentation drafting.</span>
+              <span class="s"><span>webrtc</span><span>gemini</span><span>websockets</span></span>
+            </div>
+            <div class="m3-card">
+              <span class="t"><a href="#opt3">Dermatopathology Navigator</a></span>
+              <span class="d">Learning platform with an AI study assistant, spaced repetition, and a differential-diagnosis builder.</span>
+              <span class="s"><span>react</span><span>gemini</span></span>
+            </div>
+            <div class="m3-card">
+              <span class="t"><a href="#opt3">Dermatology Mind Maps</a></span>
+              <span class="d">Interactive maps for alopecia, CTCL, psoriasis, and bullous disease — searchable, exportable.</span>
+              <span class="s"><span>astro</span><span>d3</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="m3-sec">
+          <div class="m3-sec-head">
+            <h4 class="m3-sec-h">publications</h4>
+            <a class="m3-more" href="#opt3">full list →</a>
+          </div>
+          <div class="m3-pub">
+            <span class="y">2025</span>
+            <p class="t"><a href="#opt3">Comparative assessment of GPT-4 Vision in dermoscopic image analysis</a><small>Tadros AR, Zhuo W, Fathy RA, Robinson MA, Belzberg M, Alhariri JM</small></p>
+            <span class="ven">J Am Acad Dermatol</span>
+          </div>
+          <div class="m3-pub">
+            <span class="y">2024</span>
+            <p class="t"><a href="#opt3">Demographic differences and the impact of research years for reapplicants to dermatology residency</a><small>Truel JS, Ferree S, Fathy R, Hossler E, Rosman IS</small></p>
+            <span class="ven">J Am Acad Dermatol</span>
+          </div>
+          <div class="m3-pub">
+            <span class="y">2023</span>
+            <p class="t"><a href="#opt3">Increased ambient outdoor temperatures and disease flaring in hidradenitis suppurativa</a><small>Singh R, Fathy R, Kassamali B, et al.</small></p>
+            <span class="ven">Arch Dermatol Res</span>
+          </div>
+        </div>
+        <div class="m3-foot">
+          <span>© 2026 ramie fathy</span>
+          <span class="fl"><a href="#opt3">email</a><a href="#opt3">scholar</a><a href="#opt3">linkedin</a><a href="#opt3">github</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ OPTION 4 -->
+<section class="option" id="opt4" aria-labelledby="opt4-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="opt4-h"><span class="no">04</span>Calm Product</h2>
+      <p class="thesis">A contemporary product-site register: soft cool neutrals, white cards, one teal accent, generous radii used deliberately. The most approachable of the six — reads instantly to patients, program directors, and collaborators alike.</p>
+      <ul>
+        <li>Hero pairs the intro with a <strong>stat block</strong> (publications, apps, stage of training) — concrete numbers instead of decoration.</li>
+        <li>Radius is a <strong>scale, not a constant</strong>: 14px cards, 10px buttons, pills for tags only.</li>
+        <li>The friendliest surface for <strong>app screenshots</strong> and future case-study pages.</li>
+        <li>Lowest-risk direction; the trade-off is it's the least distinctive of the six.</li>
+      </ul>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#F6F8F9"></i>#F6F8F9 ground</span>
+        <span class="chip"><i style="background:#FFFFFF"></i>#FFFFFF card</span>
+        <span class="chip"><i style="background:#1C2B33"></i>#1C2B33 ink</span>
+        <span class="chip"><i style="background:#0E7C7B"></i>#0E7C7B teal</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>Manrope throughout — weight extremes (800 headings / 400–600 body) do the hierarchy</dd>
+      <dt>Structure</dt>
+      <dd>Card system on a soft ground; split hero with stats; contained list for publications</dd>
+      <dt>Effort</dt>
+      <dd>Medium — new tokens and card components; conventional patterns port quickly</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="m4">
+        <div class="m4-nav">
+          <span class="m4-brand"><span class="m4-mark">RF</span>Ramie Fathy, MD</span>
+          <nav class="m4-links" aria-label="Option 4 nav">
+            <a href="#opt4" aria-current="page">Home</a><a href="#opt4">About</a><a href="#opt4">Apps</a><a href="#opt4">Research</a><a href="#opt4">Blog</a><a href="#opt4">Contact</a>
+          </nav>
+        </div>
+        <div class="m4-hero">
+          <div>
+            <span class="m4-pill">Dermatology · Clinical AI · Baltimore</span>
+            <h3 class="m4-hero-h">Building clinical AI that earns its place <span>at the bedside.</span></h3>
+            <p class="m4-hero-p">I'm Ramie Fathy — dermatology resident at Johns Hopkins. I make browser-based clinical tools, and I study how AI performs (and fails) on real dermatology problems.</p>
+            <div class="m4-hero-cta">
+              <a class="m4-btn" href="#opt4">Explore the apps</a>
+              <a class="m4-btn2" href="#opt4">About me</a>
+            </div>
+          </div>
+          <div class="m4-stats">
+            <div class="m4-stat"><p class="v">12</p><p class="l">Selected publications</p></div>
+            <div class="m4-stat"><p class="v">12</p><p class="l">Clinical tools in the browser</p></div>
+            <div class="m4-stat"><p class="v">PGY-4</p><p class="l">Johns Hopkins dermatology</p></div>
+            <div class="m4-stat"><p class="v">2026</p><p class="l">Fellowship, Mass General Brigham</p></div>
+          </div>
+        </div>
+        <div class="m4-sec">
+          <div class="m4-sec-head">
+            <h4 class="m4-sec-h">Apps &amp; projects</h4>
+            <a class="m4-more" href="#opt4">View all →</a>
+          </div>
+          <div class="m4-cards">
+            <div class="m4-card">
+              <span class="t"><a href="#opt4">RAMIE</a></span>
+              <span class="d">Real-time AI assistant for dermatology clinic: live transcription, differential support, documentation drafting.</span>
+              <span class="s"><span>WebRTC</span><span>Gemini</span></span>
+            </div>
+            <div class="m4-card">
+              <span class="t"><a href="#opt4">Dermatopathology Navigator</a></span>
+              <span class="d">Learning platform with an AI study assistant, spaced repetition, and a differential builder.</span>
+              <span class="s"><span>React</span><span>Gemini</span></span>
+            </div>
+            <div class="m4-card">
+              <span class="t"><a href="#opt4">Dermatology Mind Maps</a></span>
+              <span class="d">Interactive maps for alopecia, CTCL, psoriasis, and bullous disease, with search and export.</span>
+              <span class="s"><span>Astro</span><span>D3</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="m4-sec">
+          <div class="m4-sec-head">
+            <h4 class="m4-sec-h">Recent publications</h4>
+            <a class="m4-more" href="#opt4">Full list →</a>
+          </div>
+          <div class="m4-list">
+            <div class="m4-pub">
+              <span class="y">2025</span>
+              <p class="t"><a href="#opt4">Comparative assessment of GPT-4 Vision in dermoscopic image analysis</a><small>Tadros AR, Zhuo W, Fathy RA, Robinson MA, Belzberg M, Alhariri JM</small></p>
+              <span class="ven">J Am Acad Dermatol</span>
+            </div>
+            <div class="m4-pub">
+              <span class="y">2024</span>
+              <p class="t"><a href="#opt4">Demographic differences and the impact of research years for reapplicants to dermatology residency</a><small>Truel JS, Ferree S, Fathy R, Hossler E, Rosman IS</small></p>
+              <span class="ven">J Am Acad Dermatol</span>
+            </div>
+            <div class="m4-pub">
+              <span class="y">2023</span>
+              <p class="t"><a href="#opt4">Increased ambient outdoor temperatures and disease flaring in hidradenitis suppurativa</a><small>Singh R, Fathy R, Kassamali B, et al.</small></p>
+              <span class="ven">Arch Dermatol Res</span>
+            </div>
+          </div>
+        </div>
+        <div class="m4-foot">
+          <span>© 2026 Ramie Fathy, MD</span>
+          <span class="fl"><a href="#opt4">Email</a><a href="#opt4">Google Scholar</a><a href="#opt4">LinkedIn</a><a href="#opt4">GitHub</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ OPTION 5 -->
+<section class="option" id="opt5" aria-labelledby="opt5-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="opt5-h"><span class="no">05</span>Display Statement</h2>
+      <p class="thesis">Magazine-cover energy: your name set enormous in a high-contrast serif, cream ground, a single deep blue. The most memorable first impression of the six — personality carried entirely by type, no ornament required.</p>
+      <ul>
+        <li>The name <strong>is</strong> the hero — no shader, no graphic, instant identity.</li>
+        <li>One accent (deep blue) against cream; italics as the only "decoration."</li>
+        <li>Work presented as a <strong>ruled four-up strip</strong>; publications in large type with oversized italic years.</li>
+        <li>Great if the site should double as a <strong>speaking / writing</strong> presence, not just a directory.</li>
+      </ul>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#F2EFE9"></i>#F2EFE9 cream</span>
+        <span class="chip"><i style="background:#16130E"></i>#16130E ink</span>
+        <span class="chip"><i style="background:#002FA7"></i>#002FA7 blue</span>
+        <span class="chip"><i style="background:#6E675C"></i>#6E675C muted</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>Fraunces (display) · Work Sans (body/UI)</dd>
+      <dt>Structure</dt>
+      <dd>Full-width display hero; 2px section rules; four-column work strip; dark footer band</dd>
+      <dt>Effort</dt>
+      <dd>Medium — type-driven, so most of the work is scale + spacing discipline</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="m5">
+        <div class="m5-nav">
+          <span class="m5-brand">RF</span>
+          <nav class="m5-links" aria-label="Option 5 nav">
+            <a href="#opt5" aria-current="page">Home</a><a href="#opt5">About</a><a href="#opt5">Apps</a><a href="#opt5">Research</a><a href="#opt5">Blog</a><a href="#opt5">Contact</a>
+          </nav>
+        </div>
+        <div class="m5-hero">
+          <h3 class="m5-hero-h">Ramie Fathy<span class="row2">dermatologist &amp; builder</span></h3>
+          <div class="m5-hero-sub">
+            <p class="m5-hero-p">Dermatology resident at Johns Hopkins. I build clinical AI tools and study how they should — and should not — be used at the bedside.</p>
+            <div class="m5-hero-meta">
+              <span><b>Now</b> — Johns Hopkins Dermatology, PGY-4</span>
+              <span><b>Next</b> — Rheum–Derm Fellowship, Mass General Brigham</span>
+              <span><b>Service</b> — AAD Council on Science &amp; Research</span>
+            </div>
+          </div>
+          <div class="m5-hero-cta">
+            <a class="m5-btn" href="#opt5">See the work</a>
+            <a class="m5-btn2" href="#opt5">Get in touch</a>
+          </div>
+        </div>
+        <div class="m5-sec">
+          <div class="m5-sec-head">
+            <h4 class="m5-sec-h">Selected <em>work</em></h4>
+            <a class="m5-more" href="#opt5">All projects</a>
+          </div>
+          <div class="m5-strip">
+            <div class="m5-work">
+              <span class="n">01</span>
+              <p class="t"><a href="#opt5">RAMIE</a></p>
+              <p class="d">Real-time AI assistant for dermatology clinic — transcription, differentials, documentation.</p>
+            </div>
+            <div class="m5-work">
+              <span class="n">02</span>
+              <p class="t"><a href="#opt5">Dermatopathology Navigator</a></p>
+              <p class="d">AI study assistant with spaced repetition and a differential builder.</p>
+            </div>
+            <div class="m5-work">
+              <span class="n">03</span>
+              <p class="t"><a href="#opt5">Dermatology Mind Maps</a></p>
+              <p class="d">Interactive maps across sixteen inflammatory and neoplastic topics.</p>
+            </div>
+            <div class="m5-work">
+              <span class="n">04</span>
+              <p class="t"><a href="#opt5">Skinoculars</a></p>
+              <p class="d">Interactive 3D dermatology visualization in the browser.</p>
+            </div>
+          </div>
+        </div>
+        <div class="m5-sec">
+          <div class="m5-sec-head">
+            <h4 class="m5-sec-h">Recent <em>publications</em></h4>
+            <a class="m5-more" href="#opt5">Full list</a>
+          </div>
+          <div class="m5-pubs">
+            <div class="m5-pub">
+              <span class="y">2025</span>
+              <p class="t"><a href="#opt5">Comparative assessment of GPT-4 Vision in dermoscopic image analysis</a></p>
+              <span class="ven">J Am Acad Dermatol</span>
+            </div>
+            <div class="m5-pub">
+              <span class="y">2024</span>
+              <p class="t"><a href="#opt5">Demographic differences and the impact of research years for dermatology residency reapplicants</a></p>
+              <span class="ven">J Am Acad Dermatol</span>
+            </div>
+            <div class="m5-pub">
+              <span class="y">2023</span>
+              <p class="t"><a href="#opt5">Ambient outdoor temperatures and disease flaring in hidradenitis suppurativa</a></p>
+              <span class="ven">Arch Dermatol Res</span>
+            </div>
+          </div>
+        </div>
+        <div class="m5-foot">
+          <span>© 2026 Ramie Fathy, MD</span>
+          <span class="fl"><a href="#opt5">Email</a><a href="#opt5">Scholar</a><a href="#opt5">LinkedIn</a><a href="#opt5">GitHub</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ OPTION 6 -->
+<section class="option" id="opt6" aria-labelledby="opt6-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="opt6-h"><span class="no">06</span>Quiet Academic</h2>
+      <p class="thesis">The deliberate counterweight: a single beautifully-set column, classic serif, underlined links, essentially zero chrome. The academic-homepage tradition done with real typographic care — content is the only interface.</p>
+      <ul>
+        <li><strong>Fastest possible site</strong>: no JS required, one font file, near-zero maintenance.</li>
+        <li>Publications become the <strong>centerpiece</strong>, set as proper citations.</li>
+        <li>Ages gracefully — this style has looked current for thirty years.</li>
+        <li>Trade-off: little room for app showcasing; tools live as an annotated link list.</li>
+      </ul>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#FFFFFF"></i>#FFFFFF white</span>
+        <span class="chip"><i style="background:#171717"></i>#171717 ink</span>
+        <span class="chip"><i style="background:#1D3FBF"></i>#1D3FBF link</span>
+        <span class="chip"><i style="background:#595959"></i>#595959 muted</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>EB Garamond throughout, 19px/1.65, 66ch measure</dd>
+      <dt>Structure</dt>
+      <dd>Single centered column; rules above/below nav; hanging-indent citation lists</dd>
+      <dt>Effort</dt>
+      <dd>Low — could ship in a weekend; deletes far more code than it adds</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="m6">
+        <div class="m6-col">
+          <h3 class="m6-name">Ramie Fathy, MD</h3>
+          <p class="m6-role">Dermatology resident, Johns Hopkins · Baltimore, Maryland</p>
+          <nav class="m6-navline" aria-label="Option 6 nav">
+            <a href="#opt6">About</a><a href="#opt6">Apps</a><a href="#opt6">Research</a><a href="#opt6">Blog</a><a href="#opt6">Contact</a>
+          </nav>
+          <p class="m6-p">I am completing my final year of dermatology residency at Johns Hopkins, with clinical interests in inflammatory and complex medical dermatology, dermatopathology, and the evaluation of AI in clinical settings. In 2026 I join Mass General Brigham as a rheumatology–dermatology fellow in <a href="#opt6">Dr. Adam Rodman's research lab</a>.</p>
+          <p class="m6-p">I build browser-based clinical tools — privacy-preserving, no account required — and study how large models perform on real dermatology problems. I serve on the <a href="#opt6">AAD Council on Science and Research</a> (2025–2027).</p>
+          <h4 class="m6-h">Selected publications</h4>
+          <p class="m6-item"><span class="y">2025.</span> Tadros AR, Zhuo W, <b>Fathy RA</b>, Robinson MA, Belzberg M, Alhariri JM. <a href="#opt6">Comparative assessment of GPT-4 Vision in dermoscopic image analysis</a>. <span class="v">J Am Acad Dermatol.</span></p>
+          <p class="m6-item"><span class="y">2024.</span> Truel JS, Ferree S, <b>Fathy R</b>, Hossler E, Rosman IS. <a href="#opt6">Demographic differences and the impact of research years for reapplicants to dermatology residency programs</a>. <span class="v">J Am Acad Dermatol.</span> 91(5):971–972.</p>
+          <p class="m6-item"><span class="y">2023.</span> Singh R, <b>Fathy R</b>, Kassamali B, Noe MH, Barbieri JS, LaChance A, et al. <a href="#opt6">Increased ambient outdoor temperatures are associated with increased disease flaring in hidradenitis suppurativa</a>. <span class="v">Arch Dermatol Res.</span> 316(1):49.</p>
+          <p class="m6-item"><span class="y">2023.</span> Lewis DJ, <b>Fathy RA</b>, Nugent S, Etzkorn JR, Sobanko JF, Shin TM, et al. <a href="#opt6">Sentinel lymph node biopsy in Merkel cell carcinoma: rates and predictors of compliance with NCCN guidelines</a>. <span class="v">J Am Acad Dermatol.</span> 88(2):448–450.</p>
+          <h4 class="m6-h">Software</h4>
+          <p class="m6-soft"><b><a href="#opt6">RAMIE</a></b> — <span class="d">real-time AI assistant for dermatology clinic: live transcription, differential support, and documentation drafting.</span></p>
+          <p class="m6-soft"><b><a href="#opt6">Dermatopathology Navigator</a></b> — <span class="d">learning platform with an AI study assistant, spaced repetition, and a differential-diagnosis builder.</span></p>
+          <p class="m6-soft"><b><a href="#opt6">Dermatology Mind Maps</a></b> — <span class="d">interactive, annotation-ready maps covering alopecia, CTCL, psoriasis, and autoimmune bullous disease.</span></p>
+          <p class="m6-soft"><b><a href="#opt6">Skinoculars</a></b> — <span class="d">interactive 3D dermatology visualization in the browser.</span></p>
+          <p class="m6-footline">ramiefathy at gmail · <a href="#opt6">Google Scholar</a> · <a href="#opt6">LinkedIn</a> · <a href="#opt6">GitHub</a> · © 2026</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ VERDICT -->
+<section class="verdict" id="verdict" aria-labelledby="verdict-h">
+  <h2 id="verdict-h">Side-by-side</h2>
+  <div class="tblwrap">
+  <table>
+    <thead>
+      <tr><th>Option</th><th>Feel</th><th>Type</th><th>Best when the site is mainly…</th><th>Risk / trade-off</th><th>Effort</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1 · Warm Editorial</td><td>Literary, warm, unhurried</td><td>Source Serif 4 + Work Sans</td><td>A physician-writer's home — essays, research, bio</td><td>Less spotlight on the apps</td><td>Low–med</td></tr>
+      <tr><td>2 · Swiss Grid</td><td>Rigorous, confident, structural</td><td>Space Grotesk + Space Mono</td><td>A working portfolio + CV that will keep growing</td><td>Strictness can read cold if copy stays sparse</td><td>Medium</td></tr>
+      <tr><td>3 · Dark Technical</td><td>Builder-forward, current</td><td>IBM Plex Sans + JetBrains Mono</td><td>A launchpad for the apps and AI-eval work</td><td>Dark-only alienates some readers; needs a light mode eventually</td><td>Med–high</td></tr>
+      <tr><td>4 · Calm Product</td><td>Approachable, polished, familiar</td><td>Manrope</td><td>A broad-audience professional presence</td><td>Least distinctive; closest to generic</td><td>Medium</td></tr>
+      <tr><td>5 · Display Statement</td><td>Bold, memorable, editorial</td><td>Fraunces + Work Sans</td><td>A personal brand for writing + speaking</td><td>Big type demands restraint everywhere else</td><td>Medium</td></tr>
+      <tr><td>6 · Quiet Academic</td><td>Timeless, austere, fast</td><td>EB Garamond</td><td>A publications-first academic homepage</td><td>Undersells the software portfolio</td><td>Low</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="rec">
+    <h3>Recommendation</h3>
+    <p>If one direction has to carry the whole site, <strong>Option 2 (Swiss Grid)</strong> is the strongest fit: it presents apps and publications with equal seriousness, scales cleanly as both lists grow, keeps a distinct personality with zero conceit, and reuses type assets you already ship. <strong>Option 1</strong> is the best choice if you want the smallest visible break from today's site, and <strong>Option 3</strong> if the apps are the main event.</p>
+    <p>Hybrids are cheap from here — e.g. Option 2's structure with Option 1's warm paper ground, or Option 5's display hero on top of Option 2's tables. Pick a base and I can fold in elements you like from the others before implementation.</p>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

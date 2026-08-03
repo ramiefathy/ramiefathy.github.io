@@ -1,7 +1,7 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import Header from '../components/Header.jsx';
-import Hero from '../components/Hero.jsx';
+import FieldHero from '../components/FieldHero.jsx';
 import profile from '../data/profile.json';
 import apps from '../data/apps.json';
 import { publications } from '../data/publications.js';
@@ -13,101 +13,88 @@ const featuredApps = apps
 const featuredPublications = [...publications]
   .filter((entry) => entry.featured)
   .sort((a, b) => b.year - a.year)
-  .slice(0, 5);
+  .slice(0, 4);
 
-const highlights = profile.about.highlights.slice(0, 4);
-const highlightLabels = ['Active', 'Incoming', 'Council', 'Education'];
+const activeAppCount = apps.filter((app) => app.status === 'active' && app.listed !== false).length;
 ---
-<MainLayout title="Ramie Fathy, MD – Dermatology & AI" description={profile.summary}>
+<MainLayout title="Ramie Fathy, MD – Dermatology & Clinical AI" description={profile.summary}>
   <Header client:load />
 
   <main id="main-content">
-    <Hero client:load profile={profile} />
+    <FieldHero client:load profile={profile} />
 
-    <!-- =================== Home: featured apps =================== -->
+    <!-- =================== Software =================== -->
     <section id="apps" class="section">
-      <div class="plate-stamp"><b>Home</b><span class="barcode"></span><span>Featured Catalog</span></div>
-      <div class="plate-head">
+      <div class="section-head">
         <div>
-          <span class="kicker">Featured applications</span>
-          <h2 class="display2" style="margin-top:8px">A working <em>laboratory</em>.</h2>
+          <span class="cmd-preface"><b>$</b> ls apps --featured</span>
+          <h2 class="display2">Software</h2>
         </div>
-        <a class="button button--primary" href="/apps">Open the catalog →</a>
+        <a class="section-action" href="/apps">View all {activeAppCount} →</a>
       </div>
-      <p class="lede" style="margin-bottom:32px">Browser-based instruments — privacy-preserving, no account required, built around real clinic and resident-education workflows.</p>
 
-      <div class="featured-grid">
+      <p class="lede" style="margin-bottom:32px">Browser-based clinical instruments — privacy-preserving, no account required, built around real clinic and resident-education workflows.</p>
+
+      <div class="f-apps">
         {featuredApps.map((app, idx) => (
-          <a class={`feature-card ${idx === 0 ? 'large' : ''}`} href={app.href} target={app.href.startsWith('http') ? '_blank' : undefined} rel={app.href.startsWith('http') ? 'noreferrer' : undefined}>
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span class="lab">{idx === 0 ? `App № 0${idx + 1} · Featured` : `App № 0${idx + 1}`}</span>
-              <span class="lab" style={idx === 0 ? 'color:rgba(244,240,232,0.5)' : 'color:var(--slate)'}>{(app.stack || [])[0] || ''}</span>
-            </div>
-            <h4>{app.name}</h4>
-            {idx === 0 ? <div class="image">[ {app.name} preview ]</div> : null}
-            <p>{app.description}</p>
-            <div class="footer">
-              <span>{(app.stack || []).slice(0, 3).join(' · ')}</span>
-              <span>Open →</span>
-            </div>
+          <a
+            class="f-app"
+            href={app.href}
+            target={app.href.startsWith('http') ? '_blank' : undefined}
+            rel={app.href.startsWith('http') ? 'noreferrer' : undefined}
+          >
+            <span class="f-app__idx">{String(idx + 1).padStart(2, '0')}</span>
+            <span class="f-app__status">{app.runtimeStatus ?? 'running'}</span>
+            <h3 class="f-app__title">{app.name.replace(/^RAMIE - .*/, 'RAMIE')}</h3>
+            <p class="f-app__desc">{app.description}</p>
+            <span class="f-app__stack">{(app.stack || []).slice(0, 3).join(' · ').toLowerCase()}</span>
           </a>
         ))}
       </div>
     </section>
 
-    <!-- =================== Home: about =================== -->
-    <section id="about" class="section">
-      <div class="plate-stamp"><b>Home</b><span class="barcode"></span><span>About</span></div>
-      <div class="plate-head">
+    <!-- =================== Publications =================== -->
+    <section id="publications" class="section">
+      <div class="section-head">
         <div>
-          <h2 class="display2">A working <em>atlas</em>.</h2>
+          <span class="cmd-preface"><b>$</b> ls publications --recent</span>
+          <h2 class="display2">Selected publications</h2>
         </div>
-        <a class="button button--secondary" href="/about">Read the bio →</a>
+        <a class="section-action" href="/research">Full list →</a>
       </div>
-      <p class="lede" style="margin-bottom:0">{profile.about.intro}</p>
 
-      <div class="plates-row" style="margin-top:32px">
-        {highlights.map((item, idx) => (
-          <div>
-            <span class="plate-num">A.0{idx + 1}</span>
-            <p style="font-size:14px;line-height:1.5;color:var(--ink-soft)">{item}</p>
-            <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--slate);margin-top:auto">{highlightLabels[idx]}</span>
-          </div>
+      <div class="f-pubs">
+        {featuredPublications.map((entry) => (
+          <a class="f-pub" href={entry.url} target="_blank" rel="noreferrer">
+            <span class="f-pub__year">{entry.year}</span>
+            <p class="f-pub__title">
+              {entry.title}
+              <span class="f-pub__authors">{entry.authors}</span>
+            </p>
+            <span class="f-pub__venue">{entry.venue.replace(/\.\s*\d{4}.*$/, '').toLowerCase()}</span>
+          </a>
         ))}
       </div>
     </section>
 
-    <!-- =================== Home: publications register =================== -->
-    <section id="publications" class="section">
-      <div class="plate-stamp"><b>Home</b><span class="barcode"></span><span>Index of Selected Scholarship</span></div>
-      <div class="pub-register">
-        <div class="ph">
-          <div>
-            <span class="kicker">Selected scholarship</span>
-            <h2 class="display2" style="margin-top:8px">Selected <em>publications</em>.</h2>
-          </div>
-          <a class="button button--primary" href="/research">Full register →</a>
+    <!-- =================== About =================== -->
+    <section id="about" class="section">
+      <div class="section-head">
+        <div>
+          <span class="cmd-preface"><b>$</b> whoami --verbose</span>
+          <h2 class="display2">About</h2>
         </div>
+        <a class="section-action" href="/about">Full bio →</a>
+      </div>
 
-        <div class="pub-table" style="margin-top:32px">
-          <div class="row head">
-            <div class="cell">№</div>
-            <div class="cell">Year</div>
-            <div class="cell">Title</div>
-            <div class="cell">Venue</div>
-            <div class="cell"></div>
-          </div>
-          {featuredPublications.map((entry, idx) => (
-            <a class={`row ${idx === 0 ? 'featured' : ''}`} href={entry.url} target="_blank" rel="noreferrer" style="text-decoration:none;color:inherit">
-              <div class="cell num">P.0{idx + 1}</div>
-              <div class="cell yr" style="color:var(--terracotta-2)">{entry.year}</div>
-              <div class="cell title">
-                {entry.title}
-                <small>{entry.authors}</small>
-              </div>
-              <div class="cell venue">{entry.venue}</div>
-              <div class="cell arrow">→</div>
-            </a>
+      <div class="f-about">
+        <p class="f-about__lede">{profile.about.intro}</p>
+        <div class="f-facts">
+          {(profile.facts || []).map((fact) => (
+            <div class="f-fact">
+              <span class="f-fact__key">{fact.key}</span>
+              <span class="f-fact__value"><strong>{fact.lead}</strong>{fact.rest}</span>
+            </div>
           ))}
         </div>
       </div>

@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ramiefathy.com — five expressive redesign concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Space+Grotesk:wght@300..700&family=Work+Sans:wght@300..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=EB+Garamond:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   WRAPPER — review chrome. Concepts are scoped .a- .b- .c- .d- .e-
+   ============================================================ */
+:root{--w-bg:#EFEEEA;--w-panel:#FFF;--w-ink:#1D1D1B;--w-muted:#54534E;--w-line:#D8D6CF;--w-accent:#8A3B22}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .no-rm{animation:none!important;transition:none!important}
+}
+body{background:var(--w-bg);color:var(--w-ink);font:16px/1.6 "Work Sans",Seravek,Verdana,sans-serif}
+a{color:inherit}
+.wrap-head{max-width:1120px;margin:0 auto;padding:56px 24px 8px}
+.wrap-head .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--w-muted);font-weight:600}
+.wrap-head h1{font-size:clamp(28px,4.5vw,44px);line-height:1.1;font-weight:750;letter-spacing:-.02em;margin:12px 0 16px;max-width:24ch}
+.wrap-head p{max-width:76ch;color:var(--w-muted)}
+.wrap-head p+p{margin-top:10px}
+.wrap-head strong{color:var(--w-ink)}
+.toc{position:sticky;top:0;z-index:80;background:rgba(239,238,234,.95);backdrop-filter:blur(4px);border-bottom:1px solid var(--w-line);margin-top:30px}
+.toc-inner{max-width:1120px;margin:0 auto;padding:10px 24px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.toc-inner .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--w-muted);margin-right:8px;font-weight:600}
+.toc a{font-size:13px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid var(--w-line);border-radius:999px;background:var(--w-panel)}
+.toc a:hover{border-color:var(--w-ink)}
+.option{max-width:1120px;margin:0 auto;padding:64px 24px 8px}
+.option-notes{background:var(--w-panel);border:1px solid var(--w-line);padding:26px 28px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:28px}
+.option-notes h2{font-size:24px;font-weight:750;letter-spacing:-.01em}
+.option-notes h2 span.no{color:var(--w-accent);font-variant-numeric:tabular-nums;margin-right:10px}
+.option-notes .thesis{margin-top:10px;color:var(--w-muted)}
+.option-notes ul{margin:14px 0 0 18px;color:var(--w-muted);font-size:14.5px}
+.option-notes li{margin-top:6px}
+.option-notes li strong{color:var(--w-ink)}
+.try{display:inline-block;margin-top:14px;font-size:13px;font-weight:700;color:var(--w-accent);border:1px dashed var(--w-accent);padding:7px 12px}
+.spec{font-size:13.5px}
+.spec dt{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--w-muted);font-weight:600;margin-top:14px}
+.spec dt:first-child{margin-top:0}
+.spec dd{margin-top:4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;border:1px solid var(--w-line);padding:3px 8px 3px 4px;border-radius:3px;background:#FBFBF9;font-variant-numeric:tabular-nums}
+.chip i{width:14px;height:14px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.frame{max-width:1120px;margin:20px auto 0;padding:0 24px}
+.frame-bar{display:flex;align-items:center;gap:10px;background:#DDDBD4;border:1px solid var(--w-line);border-bottom:0;padding:8px 14px;border-radius:6px 6px 0 0}
+.frame-bar .dots{display:flex;gap:5px}
+.frame-bar .dots span{width:9px;height:9px;border-radius:50%;background:#B9B6AD}
+.frame-bar .url{font-size:12px;color:var(--w-muted);background:#EFEEEA;border:1px solid var(--w-line);border-radius:4px;padding:3px 10px}
+.frame-body{border:1px solid var(--w-line);border-radius:0 0 6px 6px;overflow:hidden;box-shadow:0 14px 34px rgba(29,29,27,.10)}
+.verdict{max-width:1120px;margin:72px auto 0;padding:0 24px 80px}
+.verdict h2{font-size:26px;font-weight:750;letter-spacing:-.01em;margin-bottom:16px}
+.verdict .tblwrap{overflow-x:auto;background:var(--w-panel);border:1px solid var(--w-line)}
+.verdict table{border-collapse:collapse;width:100%;font-size:14px;min-width:780px}
+.verdict th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--w-muted);padding:12px 14px;border-bottom:2px solid var(--w-ink)}
+.verdict td{padding:12px 14px;border-bottom:1px solid var(--w-line);vertical-align:top}
+.verdict tr:last-child td{border-bottom:0}
+.verdict td:first-child{font-weight:700;white-space:nowrap}
+.verdict .rec{margin-top:24px;background:var(--w-panel);border-left:4px solid var(--w-accent);border-top:1px solid var(--w-line);border-right:1px solid var(--w-line);border-bottom:1px solid var(--w-line);padding:22px 24px}
+.verdict .rec h3{font-size:17px;margin-bottom:8px}
+.verdict .rec p{color:var(--w-muted);max-width:82ch}
+.verdict .rec p+p{margin-top:8px}
+@media(max-width:760px){.option-notes{grid-template-columns:1fr}}
+
+/* ============================================================
+   CONCEPT A — GENERATIVE FIELD  (.a-)
+   #0B0E13 · #F2F4F6 · coral #FF6B4A · Instrument Serif + Space Grotesk
+   ============================================================ */
+.a-root{background:#0B0E13;color:#F2F4F6;font:15.5px/1.6 "Space Grotesk",Futura,sans-serif;position:relative}
+.a-root a{text-decoration:none}
+.a-stage{position:relative;height:88vh;min-height:560px;overflow:hidden}
+.a-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.a-chrome{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:28px 40px;pointer-events:none}
+.a-chrome>*{pointer-events:auto}
+.a-nav{display:flex;justify-content:space-between;align-items:baseline}
+.a-brand{font-family:"JetBrains Mono",monospace;font-size:13px;color:#8A94A0}
+.a-brand b{color:#F2F4F6;font-weight:500}
+.a-links{display:flex;gap:22px;font-size:13px;color:#8A94A0}
+.a-links a:hover{color:#FF6B4A}
+.a-hero{align-self:center;text-align:center;margin-top:-4vh}
+.a-kick{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#FF6B4A}
+.a-name{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:clamp(64px,11vw,148px);line-height:.95;letter-spacing:-.015em;margin-top:18px}
+.a-name .it{font-style:italic;color:#FF6B4A}
+.a-sub{margin-top:22px;font-size:16px;color:#8A94A0;max-width:52ch;margin-left:auto;margin-right:auto;line-height:1.6}
+.a-sub b{color:#F2F4F6;font-weight:500}
+.a-foot{display:flex;justify-content:space-between;align-items:center;font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#8A94A0}
+.a-hint{border:1px solid #232A34;border-radius:999px;padding:6px 14px}
+.a-cta{display:flex;gap:10px}
+.a-btn{font-size:13px;font-weight:600;color:#0B0E13;background:#FF6B4A;padding:10px 18px;border-radius:3px}
+.a-btn:hover{background:#FF8666}
+.a-btn2{font-size:13px;font-weight:600;color:#F2F4F6;border:1px solid #39414D;padding:10px 18px;border-radius:3px}
+.a-btn2:hover{border-color:#8A94A0}
+.a-work{border-top:1px solid #1B212B;padding:8px 40px 40px}
+.a-row{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:26px;align-items:center;padding:26px 0;border-bottom:1px solid #1B212B;color:#F2F4F6}
+.a-row:last-child{border-bottom:0}
+.a-row .idx{font-family:"Instrument Serif",Georgia,serif;font-size:56px;line-height:1;color:transparent;-webkit-text-stroke:1px #39414D;transition:color .25s ease,-webkit-text-stroke-color .25s ease}
+.a-row:hover .idx{color:#FF6B4A;-webkit-text-stroke-color:#FF6B4A}
+.a-row .t{font-size:24px;font-weight:500;letter-spacing:-.01em}
+.a-row .d{margin-top:6px;font-size:14px;color:#8A94A0;max-width:62ch}
+.a-row .m{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#8A94A0;text-align:right}
+.a-row .m em{display:block;font-style:normal;color:#FF6B4A;margin-top:4px;opacity:0;transform:translateX(-6px);transition:opacity .25s ease,transform .25s ease}
+.a-row:hover .m em{opacity:1;transform:none}
+@media(max-width:820px){.a-chrome{padding:20px 22px}.a-links{display:none}.a-work{padding:8px 22px 32px}.a-row{grid-template-columns:64px 1fr}.a-row .idx{font-size:36px}.a-row .m{display:none}}
+
+/* ============================================================
+   CONCEPT B — SPLIT IDENTITY  (.b-)
+   paper #F5F1E8/#191713/rust vs dark #12151B/#E9ECEF/sky
+   ============================================================ */
+.b-root{position:relative;font:15.5px/1.6 "Work Sans",Seravek,sans-serif}
+.b-root a{text-decoration:none}
+.b-stage{position:relative;height:88vh;min-height:600px;overflow:hidden;--split:50%}
+.b-layer{position:absolute;inset:0;padding:30px 44px;display:flex;flex-direction:column}
+.b-left{background:#F5F1E8;color:#191713}
+.b-right{background:#12151B;color:#E9ECEF;clip-path:inset(0 0 0 var(--split))}
+.b-topline{display:flex;justify-content:space-between;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.b-left .b-topline{color:#8A3B22}
+.b-right .b-topline{color:#6FC2FF;font-family:"JetBrains Mono",monospace;font-weight:400;letter-spacing:.1em;text-transform:lowercase}
+.b-mid{flex:1;display:flex;flex-direction:column;justify-content:center}
+.b-name{font-size:clamp(56px,9.5vw,124px);line-height:.98;letter-spacing:-.02em;white-space:nowrap}
+.b-left .b-name{font-family:"EB Garamond",Georgia,serif;font-weight:500}
+.b-right .b-name{font-family:"Space Grotesk",Futura,sans-serif;font-weight:700;letter-spacing:-.03em}
+.b-role{margin-top:26px;font-size:17px;max-width:44ch;line-height:1.6}
+.b-left .b-role{font-family:"EB Garamond",Georgia,serif;font-size:19px;color:#453E33;font-style:italic}
+.b-right .b-role{font-family:"JetBrains Mono",monospace;font-size:13.5px;color:#94A0AC}
+.b-facts{margin-top:30px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.b-left .b-facts{color:#6B6357}
+.b-left .b-facts b{color:#191713;font-weight:600}
+.b-right .b-facts{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#94A0AC}
+.b-right .b-facts b{color:#6FC2FF;font-weight:500}
+.b-bottomline{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.b-left .b-bottomline{color:#6B6357}
+.b-right .b-bottomline{color:#94A0AC;font-family:"JetBrains Mono",monospace;font-size:12px}
+.b-handle{position:absolute;top:0;bottom:0;left:var(--split);width:0;z-index:5}
+.b-grip{position:absolute;top:50%;left:0;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:#FFFFFF;border:2px solid #191713;display:flex;align-items:center;justify-content:center;cursor:ew-resize;font-size:14px;color:#191713;box-shadow:0 4px 18px rgba(0,0,0,.35);user-select:none}
+.b-grip:focus-visible{outline:3px solid #6FC2FF;outline-offset:2px}
+.b-seam{position:absolute;top:0;bottom:0;left:-1px;width:2px;background:#FFFFFF;mix-blend-mode:difference}
+.b-sideR{position:absolute;right:44px;top:50%;transform:translateY(-50%);text-align:right;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#94A0AC;display:flex;flex-direction:column;gap:14px}
+.b-sideR .lbl{font-size:11px;letter-spacing:.14em;color:#6FC2FF}
+.b-sideR a{color:#E9ECEF;text-decoration:none}
+.b-sideR a:hover{color:#6FC2FF}
+.b-sideR .sub{font-size:11px;color:#94A0AC}
+@media(max-width:820px){.b-sideR{display:none}}
+.b-below{background:#F5F1E8;color:#191713;padding:56px 44px;border-top:1px solid #E2DACB}
+.b-below-h{font-family:"EB Garamond",Georgia,serif;font-size:30px;font-weight:500}
+.b-below-h em{font-style:italic;color:#8A3B22}
+.b-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;margin-top:28px;border:1px solid #191713}
+.b-pair+.b-pair{border-top:0;margin-top:0}
+.b-cellL{padding:24px 28px;border-right:1px solid #191713}
+.b-cellL .t{font-family:"EB Garamond",Georgia,serif;font-size:21px;font-weight:600}
+.b-cellL .d{margin-top:6px;font-size:14.5px;color:#453E33;max-width:52ch}
+.b-cellR{padding:24px 28px;background:#12151B;color:#94A0AC;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:1.7}
+.b-cellR .k{color:#6FC2FF}
+@media(max-width:820px){.b-layer{padding:22px}.b-name{font-size:clamp(40px,11vw,72px)}.b-below{padding:40px 22px}.b-pair{grid-template-columns:1fr}.b-cellL{border-right:0;border-bottom:1px solid #191713}}
+
+/* ============================================================
+   CONCEPT C — KINETIC EDITORIAL  (.c-)
+   cream #F5F0E6 · ink #141210 · vermilion #C22F14 · Fraunces + Space Grotesk
+   ============================================================ */
+.c-root{background:#F5F0E6;color:#141210;font:16px/1.6 "Space Grotesk",Futura,sans-serif;position:relative}
+.c-root a{text-decoration:none}
+.c-scroller{height:88vh;min-height:580px;overflow-y:auto;scroll-snap-type:y mandatory;position:relative}
+.c-panel{height:100%;scroll-snap-align:start;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.c-nav{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.c-nav .links{display:flex;gap:20px;color:#6E655A}
+.c-nav .links a:hover{color:#C22F14}
+.c-hero{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 40px 30px}
+.c-line{overflow:hidden}
+.c-line span{display:block;transform:translateY(110%);animation:cRise .8s cubic-bezier(.16,1,.3,1) forwards}
+.c-line:nth-child(2) span{animation-delay:.12s}
+.c-line:nth-child(3) span{animation-delay:.24s}
+@keyframes cRise{to{transform:none}}
+@media (prefers-reduced-motion: reduce){.c-line span{transform:none;animation:none}}
+.c-hero .big{font-family:"Fraunces",Georgia,serif;font-size:clamp(54px,10.5vw,138px);line-height:.92;font-weight:560;letter-spacing:-.025em}
+.c-hero .big i{font-style:italic;font-weight:400;color:#C22F14}
+.c-hero .meta{display:flex;justify-content:space-between;align-items:end;margin-top:34px;gap:24px;flex-wrap:wrap}
+.c-hero .meta p{font-size:16.5px;max-width:46ch;color:#3A342C;line-height:1.55}
+.c-hero .meta .dir{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:#6E655A;text-align:right}
+.c-hero .meta .dir b{display:block;color:#141210}
+.c-tick{background:#141210;color:#F5F0E6;overflow:hidden;white-space:nowrap;padding:12px 0;font-size:14px;letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+.c-tick .in{display:inline-block;animation:cTick 26s linear infinite;padding-left:0}
+.c-tick b{color:#FF8A70;margin:0 18px;font-weight:500}
+@keyframes cTick{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion: reduce){.c-tick .in{animation:none}}
+.c-sec-head{display:flex;justify-content:space-between;align-items:baseline;padding:34px 40px 8px}
+.c-sec-h{font-family:"Fraunces",Georgia,serif;font-size:15px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:#6E655A}
+.c-count{font-family:"Fraunces",Georgia,serif;font-size:15px;color:#C22F14;font-variant-numeric:tabular-nums}
+.c-works{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 40px 40px}
+.c-work{position:relative;display:block;padding:24px 0;border-top:1px solid #D9D2C2;color:#141210}
+.c-work:last-child{border-bottom:1px solid #D9D2C2}
+.c-work .t{font-family:"Fraunces",Georgia,serif;font-size:clamp(28px,4.6vw,54px);font-weight:520;letter-spacing:-.015em;line-height:1.05;transition:transform .3s cubic-bezier(.16,1,.3,1),color .2s ease}
+.c-work:hover .t{transform:translateX(18px);color:#C22F14;font-style:italic}
+.c-work .d{margin-top:8px;font-size:14.5px;color:#3A342C;max-width:60ch;transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.c-work:hover .d{transform:translateX(18px)}
+.c-work .gn{position:absolute;right:0;top:50%;transform:translateY(-50%);font-family:"Fraunces",Georgia,serif;font-size:clamp(44px,7vw,96px);color:transparent;-webkit-text-stroke:1px #C9C0AD;transition:color .25s ease,-webkit-text-stroke-color .25s ease;font-variant-numeric:tabular-nums}
+.c-work:hover .gn{color:#C22F14;-webkit-text-stroke-color:#C22F14}
+.c-pubs{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 40px 40px}
+.c-pub{display:grid;grid-template-columns:120px minmax(0,1fr);gap:26px;align-items:baseline;padding:20px 0;border-top:1px solid #D9D2C2;color:#141210}
+.c-pub:last-child{border-bottom:1px solid #D9D2C2}
+.c-pub .y{font-family:"Fraunces",Georgia,serif;font-size:30px;font-style:italic;color:#C22F14;font-variant-numeric:tabular-nums}
+.c-pub .t{font-size:19px;font-weight:500;letter-spacing:-.005em;line-height:1.4}
+.c-pub .t:hover{color:#C22F14}
+.c-pub .v{margin-top:4px;font-size:13px;color:#6E655A;letter-spacing:.04em;text-transform:uppercase}
+.c-end{background:#141210;color:#F5F0E6}
+.c-end .c-sec-h{color:#B7AE9C}
+.c-end-in{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 40px 40px}
+.c-end-h{font-family:"Fraunces",Georgia,serif;font-size:clamp(40px,7vw,92px);font-weight:520;letter-spacing:-.02em;line-height:1}
+.c-end-h i{font-style:italic;color:#FF8A70}
+.c-end-links{display:flex;gap:26px;margin-top:36px;font-size:14px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.c-end-links a{color:#F5F0E6;border-bottom:2px solid #FF8A70;padding-bottom:4px}
+.c-end-links a:hover{color:#FF8A70}
+.c-dots{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:6}
+.c-dots button{width:10px;height:10px;border-radius:50%;border:1px solid #141210;background:transparent;cursor:pointer;padding:0}
+.c-dots button[aria-current]{background:#C22F14;border-color:#C22F14}
+@media(max-width:820px){.c-nav,.c-hero,.c-works,.c-pubs,.c-end-in{padding-left:22px;padding-right:22px}.c-sec-head{padding:26px 22px 6px}.c-nav .links{display:none}.c-work .gn{display:none}.c-pub{grid-template-columns:76px 1fr}}
+
+/* ============================================================
+   CONCEPT D — LIVE CONSOLE  (.d-)
+   soot #0E120F · text #E6EDE4 · phosphor #A4F27E · JetBrains Mono + Space Grotesk
+   ============================================================ */
+.d-root{background:#0E120F;color:#E6EDE4;font:15px/1.6 "Space Grotesk",Futura,sans-serif;position:relative;overflow:hidden}
+.d-root a{text-decoration:none}
+.d-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;border-bottom:1px solid #1D241D;font-family:"JetBrains Mono",monospace;font-size:12px;color:#93A196}
+.d-bar .st{display:flex;align-items:center;gap:8px}
+.d-bar .dot{width:8px;height:8px;border-radius:50%;background:#A4F27E}
+.d-bar .who{color:#E6EDE4}
+.d-main{padding:72px 44px 56px;max-width:980px}
+.d-kick{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#93A196}
+.d-kick b{color:#A4F27E;font-weight:500}
+.d-name{font-size:clamp(44px,7.5vw,92px);font-weight:700;letter-spacing:-.03em;line-height:1;margin-top:18px}
+.d-name span{color:#93A196;font-weight:300}
+.d-term{margin-top:34px;background:#121812;border:1px solid #1D241D;border-radius:8px;padding:22px 24px;font-family:"JetBrains Mono",monospace;font-size:14px;line-height:1.9;min-height:118px}
+.d-term .ln{color:#93A196}
+.d-term .ln .p{color:#A4F27E}
+.d-term .typed{color:#E6EDE4}
+.d-caret{display:inline-block;width:9px;height:17px;background:#A4F27E;vertical-align:-3px;margin-left:2px;animation:dBlink 1.1s steps(1) infinite}
+@keyframes dBlink{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.d-caret{animation:none}}
+.d-actions{margin-top:30px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.d-btn{font-size:14px;font-weight:600;color:#0E120F;background:#A4F27E;padding:12px 20px;border-radius:6px}
+.d-btn:hover{background:#C0FF9E}
+.d-palette-btn{display:inline-flex;align-items:center;gap:10px;font-family:"JetBrains Mono",monospace;font-size:13px;color:#93A196;background:#121812;border:1px solid #2A332A;border-radius:6px;padding:11px 16px;cursor:pointer}
+.d-palette-btn:hover{border-color:#93A196;color:#E6EDE4}
+.d-palette-btn kbd{font-family:inherit;font-size:11px;border:1px solid #2A332A;border-radius:4px;padding:2px 6px;color:#A4F27E}
+.d-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:#1D241D;border-top:1px solid #1D241D}
+.d-cell{background:#0E120F;padding:26px 28px}
+.d-cell:hover{background:#121812}
+.d-cell .k{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#A4F27E}
+.d-cell .t{font-size:18px;font-weight:600;margin-top:10px;letter-spacing:-.01em}
+.d-cell .t a:hover{color:#A4F27E}
+.d-cell .d{margin-top:8px;font-size:13.5px;color:#93A196;line-height:1.55}
+.d-pubs{padding:44px;border-top:1px solid #1D241D}
+.d-pubs-h{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#93A196;margin-bottom:18px}
+.d-pubs-h b{color:#A4F27E;font-weight:500}
+.d-pub{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:16px;align-items:baseline;padding:13px 0;border-bottom:1px dashed #1D241D;font-size:15px}
+.d-pub:last-child{border-bottom:0}
+.d-pub .y{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#A4F27E}
+.d-pub .t{font-weight:500}
+.d-pub .t:hover{color:#A4F27E}
+.d-pub .v{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#93A196}
+.d-overlay{position:absolute;inset:0;background:rgba(6,8,6,.72);display:none;align-items:flex-start;justify-content:center;padding-top:12vh;z-index:20}
+.d-overlay.open{display:flex}
+.d-pal{width:min(560px,92%);background:#121812;border:1px solid #2A332A;border-radius:10px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.d-pal input{width:100%;background:transparent;border:0;border-bottom:1px solid #2A332A;padding:16px 18px;color:#E6EDE4;font:14px "JetBrains Mono",monospace;outline:none}
+.d-pal input::placeholder{color:#5E6A5E}
+.d-pal-list{max-height:280px;overflow-y:auto}
+.d-pal-item{display:flex;justify-content:space-between;padding:12px 18px;font-size:14px;color:#E6EDE4;cursor:pointer}
+.d-pal-item:hover,.d-pal-item.sel{background:#1A211A}
+.d-pal-item .hint{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#93A196}
+.d-pal-item.hidden{display:none}
+@media(max-width:820px){.d-main{padding:52px 22px 40px}.d-pubs{padding:32px 22px}.d-pub{grid-template-columns:48px 1fr}.d-pub .v{display:none}}
+
+/* ============================================================
+   CONCEPT E — NIGHT GALLERY  (.e-)
+   charcoal #14110E · text #F0E9DF · gold #D9A441 · Fraunces + Work Sans
+   ============================================================ */
+.e-root{background:#14110E;color:#F0E9DF;font:15.5px/1.6 "Work Sans",Seravek,sans-serif;position:relative}
+.e-root a{text-decoration:none}
+.e-nav{display:flex;justify-content:space-between;align-items:center;padding:20px 36px;border-bottom:1px solid #241F19}
+.e-brand{font-family:"Fraunces",Georgia,serif;font-size:17px;font-weight:560}
+.e-links{display:flex;gap:22px;font-size:13px;color:#A39785}
+.e-links a:hover{color:#D9A441}
+.e-gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;height:74vh;min-height:520px;scrollbar-width:none}
+.e-gal::-webkit-scrollbar{display:none}
+.e-pane{flex:0 0 86%;max-width:900px;scroll-snap-align:center;position:relative;display:flex;flex-direction:column;justify-content:center;padding:48px 56px;border-right:1px solid #241F19;overflow:hidden}
+.e-pane::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 420px at var(--sx,70%) var(--sy,30%),rgba(217,164,65,.14),transparent 70%);pointer-events:none}
+.e-pane.intro{flex-basis:92%}
+.e-kick{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#D9A441;font-weight:600}
+.e-name{font-family:"Fraunces",Georgia,serif;font-size:clamp(52px,8.5vw,116px);font-weight:520;letter-spacing:-.02em;line-height:.96;margin-top:20px}
+.e-name i{font-style:italic;font-weight:360;color:#D9A441}
+.e-intro-p{margin-top:24px;font-size:17px;color:#CDC3B4;max-width:50ch;line-height:1.65}
+.e-scrollhint{margin-top:36px;display:inline-flex;align-items:center;gap:12px;font-size:13px;color:#A39785}
+.e-scrollhint .arr{display:inline-block;animation:eNudge 1.8s ease-in-out infinite;color:#D9A441}
+@keyframes eNudge{0%,100%{transform:none}50%{transform:translateX(8px)}}
+@media (prefers-reduced-motion: reduce){.e-scrollhint .arr{animation:none}}
+.e-num{font-family:"Fraunces",Georgia,serif;font-size:clamp(90px,14vw,180px);line-height:1;color:transparent;-webkit-text-stroke:1px #4A4036;font-variant-numeric:tabular-nums}
+.e-pane:hover .e-num{-webkit-text-stroke-color:#D9A441}
+.e-pt{font-family:"Fraunces",Georgia,serif;font-size:clamp(30px,4.5vw,52px);font-weight:520;letter-spacing:-.015em;margin-top:10px;line-height:1.05}
+.e-pt a:hover{color:#D9A441}
+.e-pd{margin-top:14px;font-size:15px;color:#CDC3B4;max-width:52ch;line-height:1.6}
+.e-pm{margin-top:22px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#A39785}
+.e-publist{margin-top:6px}
+.e-pubrow{display:grid;grid-template-columns:64px 1fr;gap:16px;align-items:baseline;padding:13px 0;border-bottom:1px solid #241F19;font-size:15px}
+.e-pubrow:last-child{border-bottom:0}
+.e-pubrow .y{font-family:"Fraunces",Georgia,serif;font-style:italic;color:#D9A441;font-variant-numeric:tabular-nums}
+.e-pubrow .t{font-weight:500;line-height:1.45}
+.e-pubrow .t:hover{color:#D9A441}
+.e-pubrow .v{display:block;margin-top:2px;font-size:12px;color:#A39785;letter-spacing:.06em;text-transform:uppercase}
+.e-ctl{display:flex;justify-content:space-between;align-items:center;padding:18px 36px;border-top:1px solid #241F19}
+.e-prog{flex:1;height:2px;background:#241F19;margin:0 26px;position:relative}
+.e-prog i{position:absolute;left:0;top:0;bottom:0;width:12%;background:#D9A441;transition:width .15s linear}
+.e-arrows{display:flex;gap:8px}
+.e-arrows button{width:42px;height:42px;border-radius:50%;border:1px solid #4A4036;background:transparent;color:#F0E9DF;font-size:16px;cursor:pointer}
+.e-arrows button:hover{border-color:#D9A441;color:#D9A441}
+.e-arrows button:focus-visible{outline:2px solid #D9A441;outline-offset:2px}
+.e-count{font-family:"Fraunces",Georgia,serif;font-size:14px;color:#A39785;font-variant-numeric:tabular-nums}
+@media(max-width:820px){.e-nav,.e-ctl{padding-left:20px;padding-right:20px}.e-pane{padding:32px 26px;flex-basis:94%}.e-links{display:none}}
+</style>
+</head>
+<body>
+
+<header class="wrap-head">
+  <p class="eyebrow">ramiefathy.com · design review · round 2 · concepts 07–11</p>
+  <h1>Five expressive, interaction-led concepts</h1>
+  <p><strong>Round 1 established systems; this round establishes moments.</strong> Each concept below is built around one signature interaction that actually runs in this page — a generative canvas that answers your cursor, a draggable seam between two identities, kinetic editorial type, a working command palette, a horizontally staged portfolio. These are the kinds of committed, single-idea executions that distinguish a memorable personal site from a template.</p>
+  <p>Everything remains real content and plain language — no themed verbiage. Motion respects reduced-motion preferences, and every palette passes WCAG AA. Each mockup shows the homepage moment plus enough of the work/publication treatment to judge the system; interior pages would inherit the same language at lower intensity.</p>
+</header>
+
+<nav class="toc" aria-label="Concepts index">
+  <div class="toc-inner">
+    <span class="lbl">Jump to</span>
+    <a href="#optA">07 · Generative Field</a>
+    <a href="#optB">08 · Split Identity</a>
+    <a href="#optC">09 · Kinetic Editorial</a>
+    <a href="#optD">10 · Live Console</a>
+    <a href="#optE">11 · Night Gallery</a>
+    <a href="#verdict2">Comparison</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ================================================================ CONCEPT A -->
+<section class="option" id="optA" aria-labelledby="optA-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="optA-h"><span class="no">07</span>Generative Field</h2>
+      <p class="thesis">A living particle field — hundreds of drifting trails that swirl into a vortex around your cursor — beneath an enormous serif name. The system reads as both organic and computational without a single literal image: exactly your territory.</p>
+      <ul>
+        <li>The canvas is the identity: <strong>generative, reactive, never the same twice</strong> — replaces the old shader hero with something visitors actually play with.</li>
+        <li>Instrument Serif at display scale gives editorial gravity over a technical substrate.</li>
+        <li>Work rows use <strong>outlined numerals that ink in</strong> on hover; restrained everywhere else so the field stays the star.</li>
+        <li>Reduced motion: the field renders once as a still texture — same atmosphere, no animation.</li>
+      </ul>
+      <span class="try">Try it — move your cursor through the dark field below</span>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#0B0E13"></i>#0B0E13 ground</span>
+        <span class="chip"><i style="background:#F2F4F6"></i>#F2F4F6 text</span>
+        <span class="chip"><i style="background:#FF6B4A"></i>#FF6B4A coral</span>
+        <span class="chip"><i style="background:#8A94A0"></i>#8A94A0 muted</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>Instrument Serif (display) · Space Grotesk (UI) · JetBrains Mono (meta)</dd>
+      <dt>Signature interaction</dt>
+      <dd>Cursor-reactive flow-field canvas, ~650 particles, vortex attraction</dd>
+      <dt>Effort</dt>
+      <dd>Medium–high — canvas system + tuning; the rest is restrained and fast to build</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="a-root">
+        <div class="a-stage" id="aStage">
+          <canvas id="aCanvas" aria-hidden="true"></canvas>
+          <div class="a-chrome">
+            <div class="a-nav">
+              <span class="a-brand"><b>ramie fathy</b> · md</span>
+              <nav class="a-links" aria-label="Concept A nav">
+                <a href="#optA">About</a><a href="#optA">Apps</a><a href="#optA">Research</a><a href="#optA">Blog</a><a href="#optA">Contact</a>
+              </nav>
+            </div>
+            <div class="a-hero">
+              <p class="a-kick">Dermatology · Clinical AI · Research</p>
+              <h3 class="a-name">Ramie <span class="it">Fathy</span></h3>
+              <p class="a-sub"><b>Dermatology resident at Johns Hopkins.</b> I build clinical AI tools and study how they should — and should not — be used at the bedside.</p>
+            </div>
+            <div class="a-foot">
+              <span class="a-hint">The field responds to your cursor</span>
+              <div class="a-cta">
+                <a class="a-btn" href="#optA">Explore the apps</a>
+                <a class="a-btn2" href="#optA">Publications</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="a-work">
+          <a class="a-row" href="#optA">
+            <span class="idx">01</span>
+            <span><span class="t">RAMIE</span><p class="d">Real-time AI assistant for dermatology clinic — live transcription, differential support, documentation drafting.</p></span>
+            <span class="m">webrtc · gemini<em>open →</em></span>
+          </a>
+          <a class="a-row" href="#optA">
+            <span class="idx">02</span>
+            <span><span class="t">Dermatopathology Navigator</span><p class="d">Learning platform with an AI study assistant, spaced repetition, and a differential-diagnosis builder.</p></span>
+            <span class="m">react · gemini<em>open →</em></span>
+          </a>
+          <a class="a-row" href="#optA">
+            <span class="idx">03</span>
+            <span><span class="t">Dermatology Mind Maps</span><p class="d">Interactive maps across sixteen inflammatory and neoplastic topics — searchable, exportable.</p></span>
+            <span class="m">astro · d3<em>open →</em></span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ CONCEPT B -->
+<section class="option" id="optB" aria-labelledby="optB-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="optB-h"><span class="no">08</span>Split Identity</h2>
+      <p class="thesis">The site is literally two sites — a warm serif world for the physician, a dark monospaced world for the builder — divided by a seam the visitor drags. One name set in two typefaces meets at the split. The concept <em>is</em> the biography.</p>
+      <ul>
+        <li>The draggable seam is a <strong>statement about dual practice</strong>, not a gimmick: every piece of content exists in both registers.</li>
+        <li>Below the fold, the two registers <strong>fuse into paired panels</strong> — clinical description on paper, technical spec on dark.</li>
+        <li>Keyboard accessible (arrow keys move the seam); degrades to a static 50/50 without JS.</li>
+        <li>Endlessly extensible: blog posts, app pages, even the CV can carry the dual reading.</li>
+      </ul>
+      <span class="try">Try it — drag the round handle, or focus it and use ← →</span>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#F5F1E8"></i>#F5F1E8 paper</span>
+        <span class="chip"><i style="background:#8A3B22"></i>#8A3B22 rust</span>
+        <span class="chip"><i style="background:#12151B"></i>#12151B dark</span>
+        <span class="chip"><i style="background:#6FC2FF"></i>#6FC2FF sky</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>EB Garamond (physician side) · Space Grotesk + JetBrains Mono (builder side)</dd>
+      <dt>Signature interaction</dt>
+      <dd>Draggable clip-path seam revealing two complete art directions of the same page</dd>
+      <dt>Effort</dt>
+      <dd>High — every surface is designed twice; the payoff is a site nobody else has</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="b-root">
+        <div class="b-stage" id="bStage">
+          <div class="b-layer b-left">
+            <div class="b-topline"><span>The physician</span><span>Baltimore, Maryland</span></div>
+            <div class="b-mid">
+              <h3 class="b-name">Ramie Fathy</h3>
+              <p class="b-role">Final-year dermatology resident at Johns Hopkins — inflammatory and complex medical dermatology, dermatopathology, and the careful evaluation of AI at the bedside.</p>
+              <div class="b-facts">
+                <span><b>Now</b> — Johns Hopkins Dermatology, PGY-4</span>
+                <span><b>Next</b> — Rheumatology–dermatology fellowship, Mass General Brigham</span>
+                <span><b>Service</b> — AAD Council on Science &amp; Research</span>
+              </div>
+            </div>
+            <div class="b-bottomline"><span>Publications · About · Contact</span><span>ramiefathy.com</span></div>
+          </div>
+          <div class="b-layer b-right" aria-hidden="true">
+            <div class="b-topline"><span>the_builder</span><span>baltimore, md</span></div>
+            <div class="b-mid">
+              <h3 class="b-name">Ramie Fathy</h3>
+              <p class="b-role">ships browser-based clinical tools: realtime scribes, spaced-repetition tutors, decision-support maps. evaluates vision-language models on dermoscopy. privacy-preserving by default.</p>
+              <div class="b-facts">
+                <span><b>stack</b> — astro · react · d3 · python · gemini</span>
+                <span><b>apps</b> — 12 live, no accounts, no tracking</span>
+                <span><b>latest</b> — GPT-4V vs dermoscopy, JAAD 2025</span>
+              </div>
+            </div>
+            <div class="b-bottomline"><span>apps · research · blog</span><span>ramiefathy.com</span></div>
+            <div class="b-sideR">
+              <span class="lbl">./apps</span>
+              <span><a href="#optB">ramie</a><br><span class="sub">realtime scribe</span></span>
+              <span><a href="#optB">dermpath-navigator</a><br><span class="sub">spaced repetition</span></span>
+              <span><a href="#optB">mind-maps</a><br><span class="sub">16 topics</span></span>
+              <span><a href="#optB">skinoculars</a><br><span class="sub">3d viewer</span></span>
+            </div>
+          </div>
+          <div class="b-handle">
+            <span class="b-seam" aria-hidden="true"></span>
+            <button class="b-grip" id="bGrip" aria-label="Drag to reveal more of either identity, or use arrow keys" title="Drag me">⟷</button>
+          </div>
+        </div>
+        <div class="b-below">
+          <h4 class="b-below-h">One person. <em>Both hands.</em></h4>
+          <div class="b-pair">
+            <div class="b-cellL">
+              <p class="t">RAMIE — an assistant in clinic</p>
+              <p class="d">Listens during the visit, drafts the note, suggests the differential — so the physician can look at the patient, not the screen.</p>
+            </div>
+            <div class="b-cellR"><span class="k">runtime</span> webrtc audio → websocket → gemini<br><span class="k">latency</span> live token streaming<br><span class="k">auth</span> short-lived jwt, no accounts</div>
+          </div>
+          <div class="b-pair">
+            <div class="b-cellL">
+              <p class="t">Dermatopathology Navigator — a tutor that remembers</p>
+              <p class="d">Spaced repetition tuned to how residents actually forget, with an AI study assistant for the hard slides.</p>
+            </div>
+            <div class="b-cellR"><span class="k">runtime</span> react 18 + gemini<br><span class="k">method</span> sm-2 scheduling, differential builder<br><span class="k">scope</span> full dermpath curriculum</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ CONCEPT C -->
+<section class="option" id="optC" aria-labelledby="optC-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="optC-h"><span class="no">09</span>Kinetic Editorial</h2>
+      <p class="thesis">Full-screen typographic chapters that snap as you scroll, a ticker strip in constant motion, and work titles that italicize and slide on hover. No images anywhere — the typography is the imagery, at poster scale.</p>
+      <ul>
+        <li><strong>Scroll-snap chapters</strong> give the homepage cinematic pacing: name → work → publications → contact, each a full frame.</li>
+        <li>One orchestrated load reveal (staggered line rise) — then motion only ever answers the visitor.</li>
+        <li>Hover physics on work rows: <strong>title slides and turns italic, ghost numeral inks in</strong>.</li>
+        <li>The ticker doubles as a site-wide device — category strips on interior pages.</li>
+      </ul>
+      <span class="try">Try it — scroll inside the mockup; hover the work titles; use the right-edge dots</span>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#F5F0E6"></i>#F5F0E6 cream</span>
+        <span class="chip"><i style="background:#141210"></i>#141210 ink</span>
+        <span class="chip"><i style="background:#C22F14"></i>#C22F14 vermilion</span>
+        <span class="chip"><i style="background:#6E655A"></i>#6E655A muted</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>Fraunces (display, roman + italic) · Space Grotesk (UI/body)</dd>
+      <dt>Signature interaction</dt>
+      <dd>Snap-scrolled full-frame chapters + kinetic hover states + marquee ticker</dd>
+      <dt>Effort</dt>
+      <dd>Medium — mostly CSS; the discipline is in type scale and spacing, not code</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="c-root">
+        <div class="c-scroller" id="cScroller" tabindex="0" aria-label="Scrollable homepage chapters">
+          <div class="c-panel" data-dot="0">
+            <div class="c-nav">
+              <span>Ramie Fathy, MD</span>
+              <span class="links"><a href="#optC">About</a><a href="#optC">Apps</a><a href="#optC">Research</a><a href="#optC">Blog</a><a href="#optC">Contact</a></span>
+            </div>
+            <div class="c-hero">
+              <h3 class="big">
+                <span class="c-line"><span>Dermatology,</span></span>
+                <span class="c-line"><span>machines, <i>and</i></span></span>
+                <span class="c-line"><span>good judgment.</span></span>
+              </h3>
+              <div class="meta">
+                <p>Dermatology resident at Johns Hopkins. I build clinical AI tools and study how they should — and should not — be used at the bedside.</p>
+                <p class="dir"><b>Scroll</b>four chapters ↓</p>
+              </div>
+            </div>
+            <div class="c-tick" aria-hidden="true"><span class="in">Clinical AI <b>×</b> Inflammatory dermatology <b>×</b> Dermatopathology <b>×</b> Resident education <b>×</b> Health equity <b>×</b> Clinical AI <b>×</b> Inflammatory dermatology <b>×</b> Dermatopathology <b>×</b> Resident education <b>×</b> Health equity <b>×</b>&nbsp;</span></div>
+          </div>
+          <div class="c-panel" data-dot="1">
+            <div class="c-sec-head"><span class="c-sec-h">Software</span><span class="c-count">3 of 12</span></div>
+            <div class="c-works">
+              <a class="c-work" href="#optC">
+                <span class="gn">01</span>
+                <span class="t">RAMIE</span>
+                <p class="d">Real-time AI assistant for dermatology clinic — live transcription, differential support, documentation drafting.</p>
+              </a>
+              <a class="c-work" href="#optC">
+                <span class="gn">02</span>
+                <span class="t">Dermatopathology Navigator</span>
+                <p class="d">An AI study assistant with spaced repetition and a differential-diagnosis builder.</p>
+              </a>
+              <a class="c-work" href="#optC">
+                <span class="gn">03</span>
+                <span class="t">Dermatology Mind Maps</span>
+                <p class="d">Interactive maps across sixteen inflammatory and neoplastic topics.</p>
+              </a>
+            </div>
+          </div>
+          <div class="c-panel" data-dot="2">
+            <div class="c-sec-head"><span class="c-sec-h">Selected publications</span><span class="c-count">3 of 12</span></div>
+            <div class="c-pubs">
+              <a class="c-pub" href="#optC">
+                <span class="y">2025</span>
+                <span><span class="t">Comparative assessment of GPT-4 Vision in dermoscopic image analysis</span><span class="v">J Am Acad Dermatol</span></span>
+              </a>
+              <a class="c-pub" href="#optC">
+                <span class="y">2024</span>
+                <span><span class="t">Demographic differences and the impact of research years for dermatology residency reapplicants</span><span class="v">J Am Acad Dermatol</span></span>
+              </a>
+              <a class="c-pub" href="#optC">
+                <span class="y">2023</span>
+                <span><span class="t">Ambient outdoor temperatures and disease flaring in hidradenitis suppurativa</span><span class="v">Arch Dermatol Res</span></span>
+              </a>
+            </div>
+          </div>
+          <div class="c-panel c-end" data-dot="3">
+            <div class="c-sec-head"><span class="c-sec-h">Contact</span></div>
+            <div class="c-end-in">
+              <h4 class="c-end-h">Working on something <i>at this intersection?</i></h4>
+              <div class="c-end-links">
+                <a href="#optC">Email</a><a href="#optC">Google Scholar</a><a href="#optC">LinkedIn</a><a href="#optC">GitHub</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="c-dots" id="cDots" aria-label="Chapter navigation">
+          <button aria-label="Chapter 1" aria-current="true"></button>
+          <button aria-label="Chapter 2"></button>
+          <button aria-label="Chapter 3"></button>
+          <button aria-label="Chapter 4"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ CONCEPT D -->
+<section class="option" id="optD" aria-labelledby="optD-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="optD-h"><span class="no">10</span>Live Console</h2>
+      <p class="thesis">The site presents itself as a running instrument: a status bar with a live clock, a terminal that streams what you're actually working on, and a real command palette for navigation. For someone whose research is <em>evaluating AI</em>, the medium is the message.</p>
+      <ul>
+        <li>The typewriter feed is a <strong>truthful activity log</strong>, not decoration — it cycles through real current work.</li>
+        <li>The <strong>command palette works</strong> (open it, type to filter, Esc to close) — power-user navigation as identity.</li>
+        <li>Phosphor green on soot, tempered by Space Grotesk headlines, keeps it refined rather than retro-terminal kitsch.</li>
+        <li>Apps grid reads as a process table: name, one-line purpose, stack — dense and confident.</li>
+      </ul>
+      <span class="try">Try it — click "navigate ⌘K" and type; watch the console stream</span>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#0E120F"></i>#0E120F soot</span>
+        <span class="chip"><i style="background:#E6EDE4"></i>#E6EDE4 text</span>
+        <span class="chip"><i style="background:#A4F27E"></i>#A4F27E phosphor</span>
+        <span class="chip"><i style="background:#93A196"></i>#93A196 muted</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>Space Grotesk (headlines) · JetBrains Mono (console, meta)</dd>
+      <dt>Signature interaction</dt>
+      <dd>Streaming console + functional command-palette navigation (⌘K)</dd>
+      <dt>Effort</dt>
+      <dd>Medium — palette and feed are small, well-understood components</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="d-root" id="dRoot">
+        <div class="d-bar">
+          <span class="st"><span class="dot"></span><span class="who">ramie fathy, md</span> · johns hopkins dermatology</span>
+          <span id="dClock">— : — : —</span>
+        </div>
+        <div class="d-main">
+          <p class="d-kick"><b>$</b> whoami</p>
+          <h3 class="d-name">Ramie Fathy <span>/ dermatology × AI</span></h3>
+          <div class="d-term" aria-live="off">
+            <p class="ln"><span class="p">›</span> building clinical AI tools. testing whether they belong at the bedside.</p>
+            <p class="ln"><span class="p">›</span> <span class="typed" id="dTyped"></span><span class="d-caret" aria-hidden="true"></span></p>
+          </div>
+          <div class="d-actions">
+            <a class="d-btn" href="#optD">Open the apps</a>
+            <button class="d-palette-btn" id="dPalBtn">navigate <kbd>⌘K</kbd></button>
+          </div>
+        </div>
+        <div class="d-grid">
+          <div class="d-cell">
+            <p class="k">app/01 · stable</p>
+            <p class="t"><a href="#optD">RAMIE</a></p>
+            <p class="d">Real-time clinic assistant — transcription, differentials, documentation.</p>
+          </div>
+          <div class="d-cell">
+            <p class="k">app/02 · stable</p>
+            <p class="t"><a href="#optD">Dermatopathology Navigator</a></p>
+            <p class="d">AI study assistant with spaced repetition and a differential builder.</p>
+          </div>
+          <div class="d-cell">
+            <p class="k">app/03 · growing</p>
+            <p class="t"><a href="#optD">Dermatology Mind Maps</a></p>
+            <p class="d">Sixteen interactive topic maps — searchable, exportable.</p>
+          </div>
+        </div>
+        <div class="d-pubs">
+          <p class="d-pubs-h"><b>$</b> ls publications --recent</p>
+          <a class="d-pub" href="#optD"><span class="y">2025</span><span class="t">Comparative assessment of GPT-4 Vision in dermoscopic image analysis</span><span class="v">jaad</span></a>
+          <a class="d-pub" href="#optD"><span class="y">2024</span><span class="t">Research years and dermatology residency reapplicants</span><span class="v">jaad</span></a>
+          <a class="d-pub" href="#optD"><span class="y">2023</span><span class="t">Outdoor temperatures and flaring in hidradenitis suppurativa</span><span class="v">arch derm res</span></a>
+        </div>
+        <div class="d-overlay" id="dOverlay">
+          <div class="d-pal" role="dialog" aria-label="Navigation palette">
+            <input id="dPalInput" type="text" placeholder="Type a destination…" aria-label="Filter destinations">
+            <div class="d-pal-list" id="dPalList">
+              <div class="d-pal-item" data-k="home"><span>Home</span><span class="hint">↵</span></div>
+              <div class="d-pal-item" data-k="about bio"><span>About</span><span class="hint">↵</span></div>
+              <div class="d-pal-item" data-k="apps projects software ramie navigator mind maps"><span>Apps &amp; projects</span><span class="hint">↵</span></div>
+              <div class="d-pal-item" data-k="research publications papers"><span>Research</span><span class="hint">↵</span></div>
+              <div class="d-pal-item" data-k="blog writing essays"><span>Blog</span><span class="hint">↵</span></div>
+              <div class="d-pal-item" data-k="contact email"><span>Contact</span><span class="hint">↵</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ CONCEPT E -->
+<section class="option" id="optE" aria-labelledby="optE-h">
+  <div class="option-notes">
+    <div>
+      <h2 id="optE-h"><span class="no">11</span>Night Gallery</h2>
+      <p class="thesis">The homepage becomes a darkened room you move through sideways: each project gets its own full-height wall, a giant outlined numeral, and a warm spotlight that follows your cursor. Slow, deliberate, and completely unlike a scrolling feed.</p>
+      <ul>
+        <li><strong>Horizontal staging</strong> forces one-thing-at-a-time attention — each app is presented, not listed.</li>
+        <li>The <strong>cursor spotlight</strong> (a warm radial glow) makes the visitor hold the flashlight.</li>
+        <li>Wheel, drag, arrows, and buttons all work; a progress filament tracks the walk.</li>
+        <li>Extends naturally: each wall can later take a live demo or full-bleed capture behind the glow.</li>
+      </ul>
+      <span class="try">Try it — scroll or drag sideways inside; move your cursor to aim the light</span>
+    </div>
+    <dl class="spec">
+      <dt>Palette</dt>
+      <dd class="chips">
+        <span class="chip"><i style="background:#14110E"></i>#14110E charcoal</span>
+        <span class="chip"><i style="background:#F0E9DF"></i>#F0E9DF text</span>
+        <span class="chip"><i style="background:#D9A441"></i>#D9A441 gold</span>
+        <span class="chip"><i style="background:#A39785"></i>#A39785 muted</span>
+      </dd>
+      <dt>Type</dt>
+      <dd>Fraunces (display) · Work Sans (body/UI)</dd>
+      <dt>Signature interaction</dt>
+      <dd>Horizontal snap-panels + cursor-tracked spotlight + progress filament</dd>
+      <dt>Effort</dt>
+      <dd>Medium–high — horizontal UX needs care on mobile (falls back to vertical stack)</dd>
+    </dl>
+  </div>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+    <div class="frame-body">
+      <div class="e-root">
+        <div class="e-nav">
+          <span class="e-brand">Ramie Fathy, MD</span>
+          <nav class="e-links" aria-label="Concept E nav">
+            <a href="#optE">About</a><a href="#optE">Apps</a><a href="#optE">Research</a><a href="#optE">Blog</a><a href="#optE">Contact</a>
+          </nav>
+        </div>
+        <div class="e-gal" id="eGal" tabindex="0" aria-label="Horizontally scrollable work panels">
+          <div class="e-pane intro">
+            <p class="e-kick">Dermatology · Clinical AI</p>
+            <h3 class="e-name">Work worth<br><i>looking at slowly.</i></h3>
+            <p class="e-intro-p">I'm Ramie Fathy — dermatology resident at Johns Hopkins. I build clinical AI tools and study how they should, and should not, be used at the bedside.</p>
+            <p class="e-scrollhint">Move sideways <span class="arr">⟶</span></p>
+          </div>
+          <div class="e-pane">
+            <span class="e-num">01</span>
+            <p class="e-pt"><a href="#optE">RAMIE</a></p>
+            <p class="e-pd">A real-time AI assistant for dermatology clinic: it listens, drafts the note, and suggests the differential — so the physician can look at the patient, not the screen.</p>
+            <p class="e-pm">WebRTC · Gemini · Live transcription</p>
+          </div>
+          <div class="e-pane">
+            <span class="e-num">02</span>
+            <p class="e-pt"><a href="#optE">Dermatopathology Navigator</a></p>
+            <p class="e-pd">A tutor that remembers what you forget: spaced repetition across the dermpath curriculum, with an AI assistant for the hard slides.</p>
+            <p class="e-pm">React · Gemini · Spaced repetition</p>
+          </div>
+          <div class="e-pane">
+            <span class="e-num">03</span>
+            <p class="e-pt"><a href="#optE">Dermatology Mind Maps</a></p>
+            <p class="e-pd">Sixteen interactive topic maps — alopecia to vasculitis — searchable, annotation-ready, exportable for teaching.</p>
+            <p class="e-pm">Astro · D3 · Sixteen topics</p>
+          </div>
+          <div class="e-pane">
+            <span class="e-kick">Selected publications</span>
+            <div class="e-publist">
+              <a class="e-pubrow" href="#optE"><span class="y">2025</span><span class="t">Comparative assessment of GPT-4 Vision in dermoscopic image analysis<span class="v">J Am Acad Dermatol</span></span></a>
+              <a class="e-pubrow" href="#optE"><span class="y">2024</span><span class="t">Research years and dermatology residency reapplicants<span class="v">J Am Acad Dermatol</span></span></a>
+              <a class="e-pubrow" href="#optE"><span class="y">2023</span><span class="t">Outdoor temperatures and flaring in hidradenitis suppurativa<span class="v">Arch Dermatol Res</span></span></a>
+              <a class="e-pubrow" href="#optE"><span class="y">2023</span><span class="t">Sentinel lymph node biopsy in Merkel cell carcinoma<span class="v">J Am Acad Dermatol</span></span></a>
+            </div>
+          </div>
+          <div class="e-pane">
+            <span class="e-kick">Contact</span>
+            <h3 class="e-name" style="font-size:clamp(38px,6vw,84px)">Let's talk<br><i>shop.</i></h3>
+            <p class="e-intro-p">Email · Google Scholar · LinkedIn · GitHub</p>
+          </div>
+        </div>
+        <div class="e-ctl">
+          <span class="e-count" id="eCount">1 / 6</span>
+          <div class="e-prog"><i id="eProg"></i></div>
+          <div class="e-arrows">
+            <button id="ePrev" aria-label="Previous panel">←</button>
+            <button id="eNext" aria-label="Next panel">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ VERDICT -->
+<section class="verdict" id="verdict2" aria-labelledby="verdict2-h">
+  <h2 id="verdict2-h">Side-by-side</h2>
+  <div class="tblwrap">
+  <table>
+    <thead>
+      <tr><th>Concept</th><th>Signature moment</th><th>Emotional register</th><th>Risk</th><th>Effort</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>07 · Generative Field</td><td>Cursor-reactive particle flow under a giant serif name</td><td>Atmospheric, alive, quietly technical</td><td>Needs perf care on low-end devices; canvas must never upstage legibility</td><td>Med–high</td></tr>
+      <tr><td>08 · Split Identity</td><td>Draggable seam between two complete art directions</td><td>Conceptual, witty, deeply personal</td><td>Highest build cost — everything designed twice; must not feel like a toy</td><td>High</td></tr>
+      <tr><td>09 · Kinetic Editorial</td><td>Snap-scroll chapters + kinetic hover type + ticker</td><td>Confident, cinematic, poster-like</td><td>Scroll-jacking fatigue if pacing is off; needs flawless mobile fallback</td><td>Medium</td></tr>
+      <tr><td>10 · Live Console</td><td>Streaming activity feed + working ⌘K palette</td><td>Precise, credible, insider</td><td>Reads engineer-first; clinicians may find it cool but cold</td><td>Medium</td></tr>
+      <tr><td>11 · Night Gallery</td><td>Horizontal walk with a cursor-held spotlight</td><td>Theatrical, luxurious, unhurried</td><td>Horizontal UX divides opinion; mobile needs a vertical re-stage</td><td>Med–high</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="rec">
+    <h3>Recommendation</h3>
+    <p><strong>08 · Split Identity</strong> is the award-shaped one: a single interaction that tells your exact story (physician / builder), infinitely quotable, and no template can imitate it. If you want maximum atmosphere for less structural commitment, <strong>07 · Generative Field</strong> delivers the strongest first three seconds and layers cleanly onto a conventional page structure underneath.</p>
+    <p>These also compose: 07's field could live behind 09's editorial chapters; 10's command palette is worth shipping on any of them as a power-user layer. Pick the concept (or pairing) and I'll build it for real in the Astro site — the mockup interactions here are already vanilla JS, so they port directly.</p>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ===== Concept A — flow field ===== */
+(function(){
+  const c=document.getElementById('aCanvas');if(!c)return;
+  const ctx=c.getContext('2d');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const BG='#0B0E13';
+  let w=0,h=0;
+  function size(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const r=c.getBoundingClientRect();
+    w=r.width;h=r.height;
+    c.width=Math.max(1,w*dpr);c.height=Math.max(1,h*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.fillStyle=BG;ctx.fillRect(0,0,w,h);
+  }
+  size();
+  addEventListener('resize',size);
+  const N=820,P=[];
+  for(let i=0;i<N;i++){
+    P.push({x:Math.random()*w,y:Math.random()*h,px:0,py:0,coral:Math.random()<0.08});
+  }
+  let mx=-1e4,my=-1e4,t=Math.random()*100;
+  const stage=document.getElementById('aStage');
+  stage.addEventListener('pointermove',e=>{
+    const r=c.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;
+  });
+  stage.addEventListener('pointerleave',()=>{mx=-1e4;my=-1e4;});
+  function field(x,y){
+    const s=0.0016;
+    return Math.sin(y*s*2.1+t*0.7)+Math.cos(x*s*1.7-t*0.4)+Math.sin((x+y)*s*0.8+t*0.23);
+  }
+  function tick(draw){
+    t+=0.004;
+    for(const p of P){
+      const a=field(p.x,p.y)*Math.PI;
+      let vx=Math.cos(a),vy=Math.sin(a);
+      const dx=mx-p.x,dy=my-p.y,d2=dx*dx+dy*dy,R=170;
+      if(d2<R*R){
+        const d=Math.sqrt(d2)||1,f=(1-d/R)*1.7;
+        vx+=(-dy/d)*f*2.0+(dx/d)*f*0.35;
+        vy+=( dx/d)*f*2.0+(dy/d)*f*0.35;
+      }
+      p.px=p.x;p.py=p.y;
+      p.x+=vx*1.55;p.y+=vy*1.55;
+      if(p.x<-6){p.x=w+6;p.px=p.x}if(p.x>w+6){p.x=-6;p.px=p.x}
+      if(p.y<-6){p.y=h+6;p.py=p.y}if(p.y>h+6){p.y=-6;p.py=p.y}
+      if(draw&&Math.abs(p.x-p.px)<22&&Math.abs(p.y-p.py)<22){
+        ctx.strokeStyle=p.coral?'rgba(255,107,74,0.85)':'rgba(214,226,235,0.32)';
+        ctx.lineWidth=1.1;
+        ctx.beginPath();ctx.moveTo(p.px,p.py);ctx.lineTo(p.x,p.y);ctx.stroke();
+      }
+    }
+  }
+  if(reduce){
+    for(let k=0;k<140;k++)tick(k>20);
+    return;
+  }
+  let visible=true;
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(en=>{visible=en[0].isIntersecting},{threshold:0.02}).observe(c);
+  }
+  (function loop(){
+    if(visible){
+      ctx.fillStyle='rgba(11,14,19,0.045)';ctx.fillRect(0,0,w,h);
+      tick(true);
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ===== Concept B — draggable seam ===== */
+(function(){
+  const stage=document.getElementById('bStage'),grip=document.getElementById('bGrip');
+  if(!stage||!grip)return;
+  let pct=50;
+  const apply=()=>stage.style.setProperty('--split',pct+'%');
+  apply();
+  const clamp=v=>Math.max(16,Math.min(84,v));
+  function setFromX(clientX){
+    const r=stage.getBoundingClientRect();
+    pct=clamp((clientX-r.left)/r.width*100);apply();
+  }
+  grip.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    grip.setPointerCapture(e.pointerId);
+    const mv=ev=>setFromX(ev.clientX);
+    grip.addEventListener('pointermove',mv);
+    grip.addEventListener('pointerup',()=>grip.removeEventListener('pointermove',mv),{once:true});
+  });
+  grip.addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'){pct=clamp(pct-4);apply();e.preventDefault();}
+    if(e.key==='ArrowRight'){pct=clamp(pct+4);apply();e.preventDefault();}
+  });
+})();
+
+/* ===== Concept C — chapter dots ===== */
+(function(){
+  const sc=document.getElementById('cScroller'),dotsWrap=document.getElementById('cDots');
+  if(!sc||!dotsWrap)return;
+  const panels=[...sc.querySelectorAll('.c-panel')];
+  const dots=[...dotsWrap.querySelectorAll('button')];
+  dots.forEach((d,i)=>d.addEventListener('click',()=>{
+    panels[i].scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest'});
+  }));
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(entries=>{
+      entries.forEach(en=>{
+        if(en.isIntersecting){
+          const i=panels.indexOf(en.target);
+          dots.forEach((d,j)=>j===i?d.setAttribute('aria-current','true'):d.removeAttribute('aria-current'));
+        }
+      });
+    },{root:sc,threshold:0.6});
+    panels.forEach(p=>io.observe(p));
+  }
+})();
+
+/* ===== Concept D — clock, typewriter, palette ===== */
+(function(){
+  const clock=document.getElementById('dClock');
+  if(clock){
+    const f=()=>{const n=new Date();clock.textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':')+' · baltimore';};
+    f();setInterval(f,1000);
+  }
+  const typed=document.getElementById('dTyped');
+  const phrases=[
+    'evaluating GPT-4 Vision on dermoscopic images…',
+    'drafting a clinic note from live audio…',
+    'scheduling spaced repetition for 1,400 dermpath cards…',
+    'writing about what AI gets wrong at the bedside…'
+  ];
+  if(typed){
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches){
+      typed.textContent=phrases[0];
+    }else{
+      let pi=0,ci=0,del=false;
+      (function type(){
+        const ph=phrases[pi];
+        typed.textContent=ph.slice(0,ci);
+        let wait=del?26:52;
+        if(!del&&ci===ph.length){wait=1900;del=true;}
+        else if(del&&ci===0){del=false;pi=(pi+1)%phrases.length;wait=380;}
+        else ci+=del?-1:1;
+        setTimeout(type,wait);
+      })();
+    }
+  }
+  const btn=document.getElementById('dPalBtn'),ov=document.getElementById('dOverlay'),
+        input=document.getElementById('dPalInput'),list=document.getElementById('dPalList');
+  if(!btn||!ov)return;
+  const items=[...list.querySelectorAll('.d-pal-item')];
+  function open(){ov.classList.add('open');input.value='';filter('');input.focus();}
+  function close(){ov.classList.remove('open');btn.focus();}
+  function filter(q){
+    q=q.trim().toLowerCase();
+    items.forEach(it=>{
+      const hay=(it.textContent+' '+(it.dataset.k||'')).toLowerCase();
+      it.classList.toggle('hidden',q&&!hay.includes(q));
+    });
+  }
+  btn.addEventListener('click',open);
+  ov.addEventListener('click',e=>{if(e.target===ov)close();});
+  input.addEventListener('input',()=>filter(input.value));
+  input.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+  document.addEventListener('keydown',e=>{
+    if(ov.classList.contains('open')&&e.key==='Escape')close();
+  });
+  items.forEach(it=>it.addEventListener('click',close));
+})();
+
+/* ===== Concept E — horizontal gallery ===== */
+(function(){
+  const gal=document.getElementById('eGal');if(!gal)return;
+  const prog=document.getElementById('eProg'),count=document.getElementById('eCount');
+  const panes=[...gal.querySelectorAll('.e-pane')];
+  gal.addEventListener('wheel',e=>{
+    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
+      gal.scrollLeft+=e.deltaY;
+      e.preventDefault();
+    }
+  },{passive:false});
+  function update(){
+    const max=gal.scrollWidth-gal.clientWidth;
+    const r=max>0?gal.scrollLeft/max:0;
+    if(prog)prog.style.width=(8+r*92)+'%';
+    if(count){
+      let best=0,bd=1e9;
+      panes.forEach((p,i)=>{
+        const d=Math.abs(p.offsetLeft-gal.scrollLeft);
+        if(d<bd){bd=d;best=i;}
+      });
+      count.textContent=(best+1)+' / '+panes.length;
+    }
+  }
+  gal.addEventListener('scroll',update,{passive:true});
+  update();
+  const step=dir=>{
+    const wdt=panes[1]?panes[1].getBoundingClientRect().width:gal.clientWidth*0.86;
+    gal.scrollBy({left:dir*wdt,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  };
+  const pv=document.getElementById('ePrev'),nx=document.getElementById('eNext');
+  if(pv)pv.addEventListener('click',()=>step(-1));
+  if(nx)nx.addEventListener('click',()=>step(1));
+  gal.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'){step(1);e.preventDefault();}
+    if(e.key==='ArrowLeft'){step(-1);e.preventDefault();}
+  });
+  panes.forEach(p=>{
+    p.addEventListener('pointermove',e=>{
+      const r=p.getBoundingClientRect();
+      p.style.setProperty('--sx',((e.clientX-r.left)/r.width*100)+'%');
+      p.style.setProperty('--sy',((e.clientY-r.top)/r.height*100)+'%');
+    });
+  });
+})();
+</script>
+</body>
+</html>
