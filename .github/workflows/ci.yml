@@ -7,49 +7,10 @@ on:
     branches: [master]
 
 permissions:
-  contents: write
+  contents: read
   statuses: write
 
 jobs:
-  bootstrap-dnd-static:
-    if: ${{ github.event_name == 'pull_request' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Commit expanded non-workflow D&D source tree
-        env:
-          HEAD_BRANCH: ${{ github.head_ref }}
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          parts=(.dnd-static-bundle.part*)
-          if [[ ${#parts[@]} -eq 0 ]]; then
-            echo 'No staged D&D bundle; nothing to bootstrap.'
-            exit 0
-          fi
-          cat "${parts[@]}" | base64 --decode > /tmp/dnd-static-bundle.tar.gz
-          echo '90ccfd2aed69f10c0d10691c6ab4dd67b4c8f485bd13b43e61950b30c25312bb  /tmp/dnd-static-bundle.tar.gz' | sha256sum --check --strict
-          tar -xzf /tmp/dnd-static-bundle.tar.gz
-          curl --fail-with-body --silent --show-error --location https://raw.githubusercontent.com/howard-branch/ai-dm/a7dcb41743c046e9ab7ceb031c45962f946951ff/assets/srd5_2/spells.json --output /tmp/srd-521-spells.json
-          node site/scripts/vendor-dnd-spells.mjs /tmp/srd-521-spells.json tools/dnd-l20-console-f2c7a9/data.js
-          rm -f tools/dnd-l20-console-f2c7a9/payload-*.js tools/dnd-l20-console-f2c7a9/boot.js tools/dnd-l20-console-f2c7a9/styles-*.css tools/dnd-l20-console-f2c7a9/app-*.js
-          rm -f .dnd-static-bundle.part*
-          git checkout HEAD -- .github/workflows/ci.yml .github/workflows/pages.yml .github/workflows/dnd-static-bootstrap.yml
-          node --check tools/dnd-l20-console-f2c7a9/data.js
-          node --check tools/dnd-l20-console-f2c7a9/app.js
-          test "$(find tools/dnd-l20-console-f2c7a9 -maxdepth 1 -type f | wc -l)" -eq 7
-          grep -Fq '4.0.0-srd521' tools/dnd-l20-console-f2c7a9/data.js
-          grep -Fq '"count":337' tools/dnd-l20-console-f2c7a9/data.js
-          ! grep -Rq 'payload-01.js\|DecompressionStream\|window.__DND_PAYLOAD' tools/dnd-l20-console-f2c7a9
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Implement direct static D&D character platform'
-          git push origin "HEAD:${HEAD_BRANCH}"
-
   build-site:
     runs-on: ubuntu-latest
     steps:
@@ -66,6 +27,23 @@ jobs:
         run: npm run site:test
       - name: Build site
         run: npm run site:build
+      - name: Verify direct D&D static build contract
+        run: |
+          set -euo pipefail
+          root=site/dist/tools/dnd-l20-console-f2c7a9
+          for file in index.html styles.css data.js app.js manifest.webmanifest icon.svg sw.js; do
+            test -s "$root/$file"
+          done
+          ! find "$root" -maxdepth 1 -type f \( -name 'payload-*' -o -name 'boot.js' \) | grep -q .
+          grep -Fq '4.0.0-srd521' "$root/data.js"
+          grep -Fq 'Lisa Blesslie' "$root/data.js"
+          grep -Fq 'Steph Scurry' "$root/data.js"
+          grep -Fq '"count":337' "$root/data.js"
+          grep -Fq 'calculateCurrentCharacter' "$root/app.js"
+          grep -Fq 'renderDefenses' "$root/app.js"
+          grep -Fq 'calculateEncumbrance' "$root/app.js"
+          grep -Fq 'renderBuilder' "$root/app.js"
+          grep -Fq 'calculateSpellSlots' "$root/app.js"
       - name: Guard against simulated RAMIE scribe
         run: |
           if grep -R -n -E "AI Generation Functions \(Placeholders\)|Simulated response" site/dist/apps/dermatology-scribe/index.html; then
