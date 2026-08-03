@@ -2227,6 +2227,14 @@ h1, h2, h3, h4, h5, h6 {
   grid-template-columns: 80px 80px 1fr 200px 60px;
 }
 
+.archive-rows {
+  background: var(--plate-bg);
+  border: 1px solid var(--line);
+  border-top: 0;
+  display: grid;
+  grid-template-columns: 80px 80px 1fr 80px;
+}
+
 .br {
   display: contents;
   cursor: pointer;
@@ -2435,6 +2443,30 @@ h1, h2, h3, h4, h5, h6 {
   .blog-rows {
     grid-template-columns: 1fr;
     border: 0;
+  }
+  /* Archive rows: 240px of fixed columns can't fit a 390px viewport —
+     collapse each row to a card with index/year inline above the title. */
+  .archive-rows {
+    display: block;
+    border-left: 0;
+    border-right: 0;
+  }
+  .archive-rows .br {
+    display: block;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .archive-rows .br .c {
+    display: inline-flex;
+    border-bottom: 0;
+    padding: 0 10px 0 0;
+  }
+  .archive-rows .br .c.title {
+    display: block;
+    padding: 4px 0 0;
+  }
+  .archive-rows .c.arrow {
+    display: none;
   }
   .pub-table .row.head {
     display: none;

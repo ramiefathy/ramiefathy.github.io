@@ -216,6 +216,14 @@
             transform: translateY(0);
             transition: opacity 0.3s, transform 0.3s;
         }
+        /* Mobile: the header's title block plus its search/theme/user controls
+           exceed a 390px viewport unless the row is allowed to wrap. */
+        @media (max-width: 640px) {
+            header .flex.items-center.justify-between {
+                flex-wrap: wrap;
+                row-gap: 8px;
+            }
+        }
     </style>
 
     <script type="text/tailwind-config">

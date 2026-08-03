@@ -8,6 +8,8 @@ body[data-legacy-shell='true'].pdf-studio-page {
 }
 
 .pdf-studio {
+  /* width:100% + the layout's own padding overflows the viewport without this */
+  box-sizing: border-box;
   width: 100%;
 }
 
