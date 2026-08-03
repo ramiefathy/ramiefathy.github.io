@@ -1,0 +1,71 @@
+name: Install direct static D&D console
+
+on:
+  push:
+    branches:
+      - codex/dnd-static-builder-parity
+    paths:
+      - '.dnd-static-bundle.part*'
+      - '.github/workflows/dnd-static-bootstrap.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dnd-static-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/dnd-static-builder-parity
+          fetch-depth: 0
+      - name: Decode and verify implementation bundle
+        run: |
+          set -euo pipefail
+          cat .dnd-static-bundle.part* | base64 --decode > /tmp/dnd-static-bundle.tar.gz
+          echo '90ccfd2aed69f10c0d10691c6ab4dd67b4c8f485bd13b43e61950b30c25312bb  /tmp/dnd-static-bundle.tar.gz' | sha256sum --check --strict
+          tar -xzf /tmp/dnd-static-bundle.tar.gz
+      - name: Vendor the complete SRD 5.2.1 spell catalog
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error --location \
+            https://raw.githubusercontent.com/howard-branch/ai-dm/a7dcb41743c046e9ab7ceb031c45962f946951ff/assets/srd5_2/spells.json \
+            --output /tmp/srd-521-spells.json
+          node site/scripts/vendor-dnd-spells.mjs \
+            /tmp/srd-521-spells.json \
+            tools/dnd-l20-console-f2c7a9/data.js
+      - name: Remove the compressed legacy implementation
+        run: |
+          set -euo pipefail
+          rm -f tools/dnd-l20-console-f2c7a9/payload-*.js
+          rm -f tools/dnd-l20-console-f2c7a9/boot.js
+          rm -f tools/dnd-l20-console-f2c7a9/styles-*.css
+          rm -f tools/dnd-l20-console-f2c7a9/app-*.js
+          rm -f .dnd-static-bundle.part*
+          rm -f .github/workflows/dnd-static-bootstrap.yml
+      - name: Verify direct static contract
+        run: |
+          set -euo pipefail
+          node --check tools/dnd-l20-console-f2c7a9/data.js
+          node --check tools/dnd-l20-console-f2c7a9/app.js
+          test "$(find tools/dnd-l20-console-f2c7a9 -maxdepth 1 -type f | wc -l)" -eq 7
+          grep -Fq '4.0.0-srd521' tools/dnd-l20-console-f2c7a9/data.js
+          grep -Fq '"count":337' tools/dnd-l20-console-f2c7a9/data.js
+          grep -Fq 'calculateCurrentCharacter' tools/dnd-l20-console-f2c7a9/app.js
+          grep -Fq 'calculateEncumbrance' tools/dnd-l20-console-f2c7a9/app.js
+          grep -Fq 'calculateSpellSlots' tools/dnd-l20-console-f2c7a9/app.js
+          grep -Fq 'renderDefenses' tools/dnd-l20-console-f2c7a9/app.js
+          grep -Fq 'renderBuilder' tools/dnd-l20-console-f2c7a9/app.js
+          ! grep -Rq 'payload-01.js\|DecompressionStream\|window.__DND_PAYLOAD' tools/dnd-l20-console-f2c7a9
+      - name: Commit the maintainable implementation
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Implement direct static D&D character platform'
+          git push origin HEAD:codex/dnd-static-builder-parity
