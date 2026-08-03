@@ -8,13 +8,10 @@ const source = path.join(repositoryRoot, 'tools', 'dnd-l20-console-f2c7a9', 'ind
 
 export const prerender = true;
 
-export const GET: APIRoute = async () => {
-  const body = await readFile(source);
-  return new Response(body, {
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-cache',
-      'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet',
-    },
-  });
-};
+export const GET: APIRoute = async () => new Response(await readFile(source), {
+  headers: {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Cache-Control': 'no-cache',
+    'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet',
+  },
+});
