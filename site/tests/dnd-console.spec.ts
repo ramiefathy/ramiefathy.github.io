@@ -2,12 +2,14 @@ import { expect, test, type Page } from '@playwright/test'
 
 const route = '/tools/dnd-l20-console-f2c7a9/'
 const version = '4.0.0-srd521'
+const patchVersion = '4.0.1-ci-remediation'
 
 async function openClean(page: Page) {
   await page.goto(route, { waitUntil: 'networkidle' })
   await page.evaluate(() => localStorage.clear())
   await page.reload({ waitUntil: 'networkidle' })
   await expect(page.locator('.app')).toHaveAttribute('data-version', version)
+  await expect(page.locator('.app')).toHaveAttribute('data-patch-version', patchVersion)
 }
 
 async function tab(page: Page, name: string) {
@@ -27,6 +29,7 @@ test.describe('Table Ledger D&D console', () => {
     expect(index).toContain('app.js')
     expect(index).not.toContain('payload-01.js')
     expect(index).not.toContain('boot.js')
+    expect(index).toContain('4.0.1-ci-remediation')
     const app = await (await request.get(`${route}app.js`)).text()
     for (const marker of ['calculateCurrentCharacter', 'renderDefenses', 'calculateEncumbrance', 'renderBuilder', 'calculateSpellSlots']) expect(app).toContain(marker)
     const data = await (await request.get(`${route}data.js`)).text()
@@ -44,15 +47,20 @@ test.describe('Table Ledger D&D console', () => {
     await expect(page.locator('main')).toContainText('Printed 25')
     await expect(page.locator('main')).toContainText('Armor Class')
     await expect(page.locator('main')).toContainText('22')
+    await expect(page.locator('main')).toContainText('Current maximum')
 
     await tab(page, 'inventory')
-    await page.locator('[data-item-id="belt-fire-giant"] [data-item-field="attuned"]').uncheck()
+    await expect(page.locator('[data-testid="attunement-count"]')).toHaveText('3/3')
+    await expect(page.locator('#rules-mode')).toHaveValue('source')
+    await expect(page.locator('main')).toContainText('Source-applied')
+    await page.selectOption('#rules-mode', 'strict')
     await tab(page, 'sheet')
     await expect(page.locator('[data-testid="ability-str"] b')).toHaveText('12')
     await expect(page.locator('[data-testid="skill-athletics"] .bonus')).toHaveText('+13')
     await expect(page.locator('[data-testid="skill-athletics"] td').nth(3)).toContainText('+19')
 
     await tab(page, 'inventory')
+    await page.selectOption('#rules-mode', 'source')
     await page.locator('[data-item-id="amulet-health"] [data-item-field="attuned"]').uncheck()
     await tab(page, 'sheet')
     await expect(page.locator('[data-testid="ability-con"] b')).toHaveText('8')
@@ -154,13 +162,34 @@ test.describe('Table Ledger D&D console', () => {
     await expect(page.locator('main')).toContainText('New container')
   })
 
-  test('enforces attunement limits while allowing Steph’s fourth slot', async ({ page }) => {
+  test('enforces attunement limits while preserving the imported source snapshot', async ({ page }) => {
     await openClean(page)
     await tab(page, 'inventory')
     await expect(page.locator('[data-testid="attunement-count"]')).toHaveText('3/3')
+    await expect(page.locator('#rules-mode')).toHaveValue('source')
+    await expect(page.locator('[data-item-id="belt-fire-giant"] [data-item-field="attuned"]')).not.toBeChecked()
+    await expect(page.locator('main')).toContainText('does not consume an attunement slot')
     await page.selectOption('#character-select', 'steph')
     await tab(page, 'inventory')
     await expect(page.locator('[data-testid="attunement-count"]')).toHaveText('4/4')
+  })
+
+  test('migrates an older over-limit Lisa save into a legal source-snapshot state', async ({ page }) => {
+    await openClean(page)
+    await page.evaluate(() => {
+      const state = window.TableLedger.getState()
+      const belt = state.characters.lisa.items.find((item: any) => item.id === 'belt-fire-giant')
+      belt.attuned = true
+      delete belt.sourceApplied
+      delete state.characters.lisa.rulesMode
+      localStorage.setItem('table-ledger-state-v4', JSON.stringify(state))
+    })
+    await page.reload({ waitUntil: 'networkidle' })
+    await tab(page, 'inventory')
+    await expect(page.locator('[data-testid="attunement-count"]')).toHaveText('3/3')
+    await expect(page.locator('#rules-mode')).toHaveValue('source')
+    await tab(page, 'sheet')
+    await expect(page.locator('[data-testid="ability-str"] b')).toHaveText('25')
   })
 
   test('builder exposes all SRD classes, species paths, backgrounds, feats and level unlocks', async ({ page }) => {
