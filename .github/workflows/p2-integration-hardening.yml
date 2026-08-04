@@ -1,0 +1,179 @@
+name: Harden Rheum-Derm Atlas P2 initialization and accessibility
+
+on:
+  push:
+    branches:
+      - tmp/p2-integration-hardening
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rheum-derm-atlas-p2-integration-hardening
+  cancel-in-progress: false
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: fix/rheum-derm-atlas-p0-integrity
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply deterministic integration hardening
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          js_path = Path('site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js')
+          js = js_path.read_text(encoding='utf-8')
+
+          text_line = "  const text = value => String(value ?? '').trim()\n"
+          helpers = """  const escapeHtml = value => text(value).replace(/[&<>\"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' })[character])
+  async function copyText(value) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value)
+      return true
+    }
+    const textarea = document.createElement('textarea')
+    textarea.value = value
+    textarea.setAttribute('readonly', '')
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    const copied = document.execCommand('copy')
+    textarea.remove()
+    return copied
+  }
+"""
+          if 'const escapeHtml' not in js:
+              if text_line not in js:
+                  raise SystemExit('text helper anchor missing')
+              js = js.replace(text_line, text_line + helpers, 1)
+
+          js = js.replace(
+              "${Object.entries(groups).map(([type, items]) => `<section role=\"group\" aria-label=\"${type}\"><div class=\"network-search-group\">${type}</div>${items.map(item => `<button type=\"button\" role=\"option\" data-search-id=\"${item.id}\" data-search-type=\"${item.type}\" aria-selected=\"false\"><span>${item.label}</span><small>${item.id}</small></button>`).join('')}</section>`).join('')}",
+              "${Object.entries(groups).map(([type, items]) => `<section role=\"group\" aria-label=\"${escapeHtml(type)}\"><div class=\"network-search-group\">${escapeHtml(type)}</div>${items.map((item, optionIndex) => `<button id=\"network-search-option-${normalize(type)}-${optionIndex}\" type=\"button\" role=\"option\" data-search-id=\"${escapeHtml(item.id)}\" data-search-type=\"${escapeHtml(item.type)}\" aria-selected=\"false\"><span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.id)}</small></button>`).join('')}</section>`).join('')}"
+          )
+
+          js = js.replace(
+              "        results.hidden = true\n        input.setAttribute('aria-expanded', 'false')\n        active = -1\n",
+              "        results.hidden = true\n        input.setAttribute('aria-expanded', 'false')\n        input.removeAttribute('aria-activedescendant')\n        active = -1\n",
+              1,
+          )
+          js = js.replace(
+              "        options.forEach((option, index) => option.setAttribute('aria-selected', String(index === active)))\n        options[active].scrollIntoView({ block: 'nearest' })\n",
+              "        options.forEach((option, index) => option.setAttribute('aria-selected', String(index === active)))\n        input.setAttribute('aria-activedescendant', options[active].id)\n        options[active].scrollIntoView({ block: 'nearest' })\n",
+              1,
+          )
+          js = js.replace(
+              "      results.hidden = true\n      input.setAttribute('aria-expanded', 'false')\n      scheduleUrlWrite()\n",
+              "      results.hidden = true\n      input.setAttribute('aria-expanded', 'false')\n      input.removeAttribute('aria-activedescendant')\n      scheduleUrlWrite()\n",
+              1,
+          )
+
+          js = js.replace("labels.map(label => `<li>${label}</li>`)", "labels.map(label => `<li>${escapeHtml(label)}</li>`)")
+          js = js.replace(
+              "  const dimensionRow = (term, value) => `<div><dt>${term}</dt><dd>${value || 'Not specified'}</dd></div>`\n",
+              "  const dimensionRow = (term, value) => `<div><dt>${escapeHtml(term)}</dt><dd>${escapeHtml(value || 'Not specified')}</dd></div>`\n",
+          )
+          js = js.replace(
+              "const source = relation.provenance.sourceSpan ? `<blockquote>${relation.provenance.sourceSpan}</blockquote>` : '<p>No exact source span is recorded.</p>'",
+              "const source = relation.provenance.sourceSpan ? `<blockquote>${escapeHtml(relation.provenance.sourceSpan)}</blockquote>` : '<p>No exact source span is recorded.</p>'",
+          )
+          js = js.replace("${relation.provenance.mappingRule || 'No generated mapping rule.'}", "${escapeHtml(relation.provenance.mappingRule || 'No generated mapping rule.')}")
+          js = js.replace("${supporting}</p>", "${escapeHtml(supporting)}</p>")
+          js = js.replace("${conflicting}</p>", "${escapeHtml(conflicting)}</p>")
+          js = js.replace("${relation.scope.applicability}</p>", "${escapeHtml(relation.scope.applicability)}</p>")
+          js = js.replace("${relation.curation.decision || 'No additional decision note.'}</p>", "${escapeHtml(relation.curation.decision || 'No additional decision note.')}</p>")
+          js = js.replace("await navigator.clipboard?.writeText(JSON.stringify(relation, null, 2))", "await copyText(JSON.stringify(relation, null, 2))")
+          js = js.replace("await navigator.clipboard?.writeText(location.href)", "await copyText(location.href)")
+
+          visible_anchor = "    const canonical = $('#networkCanonicalBackground')?.checked\n    return governedRelations.filter(row => {\n"
+          visible_replacement = "    const canonical = $('#networkCanonicalBackground')?.checked\n    const condition = $('#networkCondition')?.value || ''\n    return governedRelations.filter(row => {\n      if (condition && !row.scope.conditionIds.includes(condition) && !row.scope.conditionIds.includes('cross-condition')) return false\n"
+          if visible_anchor in js:
+              js = js.replace(visible_anchor, visible_replacement, 1)
+
+          init_anchor = "  async function initialize() {\n    if (!atlasData) return\n"
+          init_replacement = "  async function initialize() {\n    if (document.documentElement.dataset.atlasP2Initialized === 'true') return\n    if (!atlasData) return\n    document.documentElement.dataset.atlasP2Initialized = 'true'\n"
+          if init_anchor in js:
+              js = js.replace(init_anchor, init_replacement, 1)
+
+          old_boot = """  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => void initialize(), { once: true })
+  } else {
+    void initialize()
+  }
+"""
+          new_boot = """  async function waitForAtlasReady() {
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      const conditionReady = ($('#networkCondition')?.options?.length || 0) > 0
+      const representationReady = Boolean($('#triptychTab') && $('#freeSpaceTab'))
+      if (conditionReady && representationReady) {
+        await initialize()
+        return
+      }
+      await new Promise(resolve => setTimeout(resolve, 50))
+    }
+    await initialize()
+  }
+
+  const scheduleInitialization = () => setTimeout(() => { void waitForAtlasReady() }, 0)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleInitialization, { once: true })
+  } else {
+    scheduleInitialization()
+  }
+"""
+          if old_boot in js:
+              js = js.replace(old_boot, new_boot, 1)
+          elif 'async function waitForAtlasReady' not in js:
+              raise SystemExit('initialization footer anchor missing')
+
+          js_path.write_text(js, encoding='utf-8')
+
+          css_path = Path('site/public/apps/rheum-derm-immune-atlas/explorer/p2-interface.css')
+          css = css_path.read_text(encoding='utf-8')
+          if '.network-toolbar {' not in css:
+              css = css.replace('.network-share-controls {', '.network-toolbar {\n  position: relative;\n}\n\n.network-share-controls {', 1)
+          css_path.write_text(css, encoding='utf-8')
+
+          test_path = Path('site/tests/rheum-derm-atlas-p2-interface.spec.ts')
+          test = test_path.read_text(encoding='utf-8')
+          test = test.replace(
+              "return { width: rect.width, height: rect.height }\n  }))\n",
+              "return { width: rect.width, height: rect.height }\n  })).then(items => items.filter(item => item.width > 0 && item.height > 0))\n",
+          )
+          test_path.write_text(test, encoding='utf-8')
+          PY
+
+          node --check site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          grep -q 'async function waitForAtlasReady' site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          grep -q 'aria-activedescendant' site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          grep -q 'const condition =' site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          git diff --check
+
+      - name: Commit and push with rebase retry
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'No integration hardening change required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js \
+                  site/public/apps/rheum-derm-immune-atlas/explorer/p2-interface.css \
+                  site/tests/rheum-derm-atlas-p2-interface.spec.ts
+          git commit -m 'fix(atlas): harden P2 initialization and accessibility'
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin fix/rheum-derm-atlas-p0-integrity
+            if git push origin HEAD:fix/rheum-derm-atlas-p0-integrity; then exit 0; fi
+            sleep $((attempt * 3))
+          done
+          exit 1
