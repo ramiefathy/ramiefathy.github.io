@@ -1,0 +1,181 @@
+name: Rheum-Derm Atlas P0 integrity
+
+on:
+  pull_request:
+    paths:
+      - 'site/public/apps/rheum-derm-immune-atlas/**'
+      - 'site/tests/rheum-derm-atlas-p0-integrity.spec.ts'
+      - 'site/tests/rheum-derm-immune-atlas.spec.ts'
+      - 'site/tests/rheum-derm-atlas-contrast-graph.spec.ts'
+      - 'site/tests/rheum-derm-atlas-alternative-views.spec.ts'
+      - 'site/tests/rheum-derm-atlas-mobile-displays.spec.ts'
+      - 'site/src/__tests__/rheum-derm-atlas-p0-contract.test.ts'
+      - 'docs/rheum-derm-atlas-p0-remediation.md'
+      - 'docs/verification/rheum-derm-atlas-p0/**'
+      - '.github/workflows/rheum-derm-atlas-p0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.12.0'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run unit and policy tests
+        run: npm test
+      - name: Build production site
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run all Atlas P0, interaction, visual, contrast, alternative-view, and mobile suites
+        run: >-
+          npx playwright test
+          tests/rheum-derm-atlas-p0-integrity.spec.ts
+          tests/rheum-derm-immune-atlas.spec.ts
+          tests/rheum-derm-atlas-contrast-graph.spec.ts
+          tests/rheum-derm-atlas-alternative-views.spec.ts
+          tests/rheum-derm-atlas-mobile-displays.spec.ts
+          --project=chromium
+          --reporter=line,html
+      - name: Package the exact tested 15-file source archive
+        working-directory: .
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from __future__ import annotations
+
+          from gzip import GzipFile
+          from hashlib import sha256
+          import io
+          import json
+          import os
+          from pathlib import Path, PurePosixPath
+          import subprocess
+          import tarfile
+
+          paths = [
+              '.github/workflows/rheum-derm-atlas-p0.yml',
+              'docs/rheum-derm-atlas-p0-remediation.md',
+              'docs/verification/rheum-derm-atlas-p0/verification-status.md',
+              'docs/verification/rheum-derm-atlas-p0/default-desktop.png',
+              'docs/verification/rheum-derm-atlas-p0/expanded-desktop.png',
+              'docs/verification/rheum-derm-atlas-p0/expanded-mobile.png',
+              'site/public/apps/rheum-derm-immune-atlas/index.html',
+              'site/public/apps/rheum-derm-immune-atlas/explorer/README.md',
+              'site/public/apps/rheum-derm-immune-atlas/explorer/p0-scientific-remediation.js',
+              'site/src/__tests__/rheum-derm-atlas-p0-contract.test.ts',
+              'site/tests/rheum-derm-atlas-p0-integrity.spec.ts',
+              'site/tests/rheum-derm-immune-atlas.spec.ts',
+              'site/tests/rheum-derm-atlas-contrast-graph.spec.ts',
+              'site/tests/rheum-derm-atlas-alternative-views.spec.ts',
+              'site/tests/rheum-derm-atlas-mobile-displays.spec.ts',
+          ]
+          if len(paths) != 15 or len(set(paths)) != 15:
+              raise SystemExit('verified-source allowlist must contain exactly 15 unique paths')
+
+          entries = []
+          for path_text in paths:
+              path = PurePosixPath(path_text)
+              if path.is_absolute() or '..' in path.parts:
+                  raise SystemExit(f'unsafe allowlist path: {path_text}')
+              file_path = Path(path_text)
+              if not file_path.is_file():
+                  raise SystemExit(f'missing allowlist file: {path_text}')
+              data = file_path.read_bytes()
+              entries.append({
+                  'path': path_text,
+                  'size': len(data),
+                  'sha256': sha256(data).hexdigest(),
+              })
+
+          source_head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          manifest = {
+              'schema': 'rheum-derm-atlas-p0-verified-source-v2',
+              'source_head': source_head,
+              'files': entries,
+          }
+          manifest_bytes = (json.dumps(manifest, indent=2) + '\n').encode('utf-8')
+          manifest_hash = sha256(manifest_bytes).hexdigest()
+
+          archive = Path('/tmp/rheum-derm-atlas-p0-verified-source-v3.tar.gz')
+          with archive.open('wb') as raw:
+              with GzipFile(filename='', mode='wb', fileobj=raw, mtime=0) as compressed:
+                  with tarfile.open(fileobj=compressed, mode='w') as tar:
+                      manifest_info = tarfile.TarInfo('manifest.json')
+                      manifest_info.size = len(manifest_bytes)
+                      manifest_info.mode = 0o644
+                      manifest_info.uid = manifest_info.gid = 0
+                      manifest_info.uname = manifest_info.gname = ''
+                      manifest_info.mtime = 0
+                      tar.addfile(manifest_info, io.BytesIO(manifest_bytes))
+                      for entry in entries:
+                          file_path = Path(entry['path'])
+                          info = tar.gettarinfo(str(file_path), arcname=entry['path'])
+                          info.mode = 0o644
+                          info.uid = info.gid = 0
+                          info.uname = info.gname = ''
+                          info.mtime = 0
+                          with file_path.open('rb') as handle:
+                              tar.addfile(info, handle)
+
+          archive_hash = sha256(archive.read_bytes()).hexdigest()
+          receipt = {
+              'schema': 'rheum-derm-atlas-p0-archive-receipt-v1',
+              'source_head': source_head,
+              'file_count': len(entries),
+              'manifest_sha256': manifest_hash,
+              'archive_sha256': archive_hash,
+              'archive_size': archive.stat().st_size,
+          }
+          receipt_path = Path('/tmp/rheum-derm-atlas-p0-verified-source-v3-receipt.json')
+          receipt_path.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
+
+          print(f'PASS: packaged exactly {len(entries)} files from {source_head}')
+          print(f'manifest sha256={manifest_hash}')
+          print(f'archive sha256={archive_hash}')
+          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a', encoding='utf-8') as summary:
+              summary.write('## Exact tested-source archive\n\n')
+              summary.write(f'- Source head: `{source_head}`\n')
+              summary.write(f'- Files: `{len(entries)}`\n')
+              summary.write(f'- Manifest SHA-256: `{manifest_hash}`\n')
+              summary.write(f'- Archive SHA-256: `{archive_hash}`\n')
+          PY
+      - name: Upload exact tested-source archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rheum-derm-atlas-p0-verified-source-v3-${{ github.run_id }}
+          path: |
+            /tmp/rheum-derm-atlas-p0-verified-source-v3.tar.gz
+            /tmp/rheum-derm-atlas-p0-verified-source-v3-receipt.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload visual and browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rheum-derm-atlas-p0-verification-${{ github.run_id }}
+          path: |
+            site/test-results
+            site/playwright-report
+          if-no-files-found: warn
+          retention-days: 14
