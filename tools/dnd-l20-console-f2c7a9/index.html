@@ -136,12 +136,12 @@
         setBeltMode(lisa);
         persist();
         rerender();
+        requestAnimationFrame(() => document.getElementById('rules-mode')?.focus());
       });
       const appRoot = document.getElementById('app');
       new MutationObserver(() => queueMicrotask(enhance)).observe(appRoot, { childList: true, subtree: true });
       setBeltMode(getLisa());
       persist();
-      rerender();
       enhance();
     })();
   </script>
