@@ -1,0 +1,102 @@
+name: Apply deterministic Rheum-Derm Atlas P1-P2 runtime hardening
+
+on:
+  push:
+    branches:
+      - tmp/p2-runtime-hardening
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deterministic-rheum-derm-atlas-p1-p2-hardening
+  cancel-in-progress: false
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: fix/rheum-derm-atlas-p0-integrity
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Rewrite lexical aliases and interaction fallbacks deterministically
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js')
+          source = path.read_text(encoding='utf-8')
+
+          # Convert uses before inserting aliases, so declarations cannot be rewritten into self-references.
+          source = source.replace('window.DATA', 'atlasData')
+          source = source.replace('window.PATHWAY_ONTOLOGY', 'atlasPathways')
+          source = source.replace('(window.canonicalBackgroundRules || window.__ATLAS_P0__?.canonicalBackgroundRules || [])', 'atlasCanonicalRules')
+          source = source.replace("if (window.causalRules?.length && !$('#networkCanonicalBackground')?.checked)", "if (atlasCausalRules.length && !$('#networkCanonicalBackground')?.checked)")
+
+          # Remove any prior alias attempt, then insert one known-good block.
+          source = re.sub(r"^  const asArray = .*\n", '', source, flags=re.M)
+          source = re.sub(r"^  const unique = .*\n", '', source, flags=re.M)
+          source = re.sub(r"^  const atlasData = .*\n", '', source, flags=re.M)
+          source = re.sub(r"^  const atlasPathways = .*\n", '', source, flags=re.M)
+          source = re.sub(r"^  const atlasCanonicalRules = .*\n", '', source, flags=re.M)
+          source = re.sub(r"^  const atlasCausalRules = .*\n", '', source, flags=re.M)
+          anchor = "  const clone = value => JSON.parse(JSON.stringify(value))\n"
+          if anchor not in source:
+              raise SystemExit('clone helper anchor missing')
+          aliases = (
+              "  const asArray = value => Array.isArray(value) ? value : value == null || value === '' ? [] : [value]\n"
+              "  const unique = values => [...new Set(asArray(values).filter(Boolean))]\n"
+              "  const atlasData = typeof DATA !== 'undefined' ? DATA : globalThis.DATA\n"
+              "  const atlasPathways = typeof PATHWAY_ONTOLOGY !== 'undefined' ? PATHWAY_ONTOLOGY : (globalThis.PATHWAY_ONTOLOGY || [])\n"
+              "  const atlasCanonicalRules = typeof canonicalBackgroundRules !== 'undefined' ? canonicalBackgroundRules : (globalThis.canonicalBackgroundRules || globalThis.__ATLAS_P0__?.canonicalBackgroundRules || [])\n"
+              "  const atlasCausalRules = typeof causalRules !== 'undefined' ? causalRules : (globalThis.causalRules || [])\n"
+          )
+          source = source.replace(anchor, aliases + anchor, 1)
+
+          source = source.replace('class="atlas-task-grid" role="list"', 'class="atlas-task-grid" role="group"')
+          source = source.replace(' role="listitem" aria-pressed=', ' aria-pressed=')
+
+          pointer_up = "        canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: centerX + dx, clientY: centerY + dy, button: 0, shiftKey: shift, bubbles: true }))\n"
+          if pointer_up in source and "new MouseEvent('mousedown'" not in source:
+              source = source.replace(pointer_up, pointer_up +
+                  "        canvas.dispatchEvent(new MouseEvent('mousedown', { clientX: centerX, clientY: centerY, button: 0, shiftKey: shift, bubbles: true }))\n"
+                  "        canvas.dispatchEvent(new MouseEvent('mousemove', { clientX: centerX + dx, clientY: centerY + dy, buttons: 1, shiftKey: shift, bubbles: true }))\n"
+                  "        canvas.dispatchEvent(new MouseEvent('mouseup', { clientX: centerX + dx, clientY: centerY + dy, button: 0, shiftKey: shift, bubbles: true }))\n")
+
+          prohibited = ['window.DATA', 'window.PATHWAY_ONTOLOGY', 'atlasDataData', ' : atlasData\n', ' : atlasPathways\n', ' : atlasCanonicalRules\n']
+          for token in prohibited:
+              if token in source:
+                  raise SystemExit(f'prohibited runtime token remains: {token!r}')
+          path.write_text(source, encoding='utf-8')
+          PY
+
+          node --check site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          grep -q "const atlasData = typeof DATA !== 'undefined' ? DATA : globalThis.DATA" site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          grep -q "const atlasPathways = typeof PATHWAY_ONTOLOGY" site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          grep -q "const atlasCanonicalRules = typeof canonicalBackgroundRules" site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          ! grep -q 'role="listitem"' site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          git diff --check
+
+      - name: Commit and push with rebase retry
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'No deterministic hardening change required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          git commit -m 'fix(atlas): harden P1-P2 classic-script runtime'
+          for attempt in 1 2 3 4; do
+            git pull --rebase origin fix/rheum-derm-atlas-p0-integrity
+            if git push origin HEAD:fix/rheum-derm-atlas-p0-integrity; then exit 0; fi
+            sleep $((attempt * 3))
+          done
+          exit 1
