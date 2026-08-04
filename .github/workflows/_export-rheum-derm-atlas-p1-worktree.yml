@@ -1,0 +1,45 @@
+name: Export Rheum-Derm Atlas P1 worktree
+
+on:
+  push:
+    branches:
+      - fix/rheum-derm-atlas-p0-integrity
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    if: ${{ contains(github.event.head_commit.message, '[p1-export]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 1
+          lfs: true
+          persist-credentials: false
+      - name: Package exact checked-out worktree
+        run: |
+          set -euo pipefail
+          tar \
+            --exclude=.git \
+            --exclude=node_modules \
+            --exclude=dist \
+            --exclude=test-results \
+            --exclude=playwright-report \
+            --sort=name \
+            --mtime='UTC 1970-01-01' \
+            --owner=0 \
+            --group=0 \
+            --numeric-owner \
+            -czf /tmp/ramiefathy-github-io-p1-worktree.tar.gz .
+          sha256sum /tmp/ramiefathy-github-io-p1-worktree.tar.gz | tee /tmp/ramiefathy-github-io-p1-worktree.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rheum-derm-atlas-p1-worktree-${{ github.run_id }}
+          path: |
+            /tmp/ramiefathy-github-io-p1-worktree.tar.gz
+            /tmp/ramiefathy-github-io-p1-worktree.sha256
+          if-no-files-found: error
+          retention-days: 3
