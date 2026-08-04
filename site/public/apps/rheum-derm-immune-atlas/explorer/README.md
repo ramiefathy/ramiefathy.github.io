@@ -41,3 +41,10 @@ The implementation and consultation roadmap lives in `docs/rheum-derm-atlas-expl
 ## P0 scientific-integrity layer
 
 `p0-scientific-remediation.js` executes after the explorer renderers and before atlas initialization. It splits vasculitis endotypes, repairs phenotype classification, enforces exact-span/curator-confirmed default links, quarantines generated hypotheses, and adds explicit opt-in controls for exploratory mappings and canonical-background rules. See `docs/rheum-derm-atlas-p0-remediation.md`.
+
+
+## P1/P2 governed relationship and interface layer
+
+`p1-p2-governance.js` loads after the P0 remediation layer and before parent initialization. It owns the orthogonal seven-dimension relationship contract, polyhierarchical phenotype tags, mandatory endotype/tissue/applicability scope, curation and conflicting-evidence support, task-oriented navigation, provenance-first defaults, epistemic denominators, grouped search and label disclosure, expanded provenance inspection, reproducible URL state, visible-subset export, and non-drag/touch/assistive-technology alternatives. `p2-interface.css` owns the corresponding responsive interface grammar.
+
+The default experience is the two-dimensional provenance triptych. The free-space 3D graph is an optional projection; distance, angle, proximity, and node size do not encode biological magnitude or causal strength.
