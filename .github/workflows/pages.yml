@@ -61,7 +61,7 @@ jobs:
               [[ "$code" == 200 ]] || ready=0
             done
             if [[ "$ready" == 1 ]] \
-              && grep -Fq '<title>Table Ledger — D&D Character Console</title>' "$work/index.html" \
+              && grep -Fq '<title>Table Ledger — D&amp;D Character Console</title>' "$work/index.html" \
               && grep -Fq 'styles.css' "$work/index.html" \
               && grep -Fq 'data.js' "$work/index.html" \
               && grep -Fq 'app.js' "$work/index.html" \
