@@ -39,6 +39,7 @@ jobs:
             exit 1
           fi
           while IFS= read -r file; do test -s "$root/$file"; done <<< "$expected"
+          grep -Fq '<title>Table Ledger — D&amp;D Character Console</title>' "$root/index.html"
           grep -Fq '4.0.0-srd521' "$root/data.js"
           grep -Fq '4.0.1-ci-remediation' "$root/index.html"
           grep -Fq 'Lisa Blesslie' "$root/data.js"
