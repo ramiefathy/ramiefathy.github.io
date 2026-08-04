@@ -1,0 +1,76 @@
+name: Stage Rheum-Derm Atlas P1-P2 loader integration
+
+on:
+  push:
+    branches:
+      - tmp/p2-publication-probe
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stage-rheum-derm-atlas-p1-p2
+  cancel-in-progress: false
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: fix/rheum-derm-atlas-p0-integrity
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Integrate governed loader and remove non-workflow probes
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          index_path = Path('site/public/apps/rheum-derm-immune-atlas/index.html')
+          source = index_path.read_text(encoding='utf-8')
+          script = '<script src="explorer/p1-p2-governance.js?v=20260804-p1-p2-1"></script>'
+          if 'p1-p2-governance.js' not in source:
+              pattern = re.compile(r'(<script[^>]+src=["\'][^"\']*p0-scientific-remediation\.js[^"\']*["\'][^>]*></script>)', re.I)
+              match = pattern.search(source)
+              if not match:
+                  raise SystemExit('P0 remediation script tag was not found; refusing an ambiguous insertion')
+              source = source[:match.end()] + '\n  ' + script + source[match.end():]
+              index_path.write_text(source, encoding='utf-8')
+
+          readme_path = Path('site/public/apps/rheum-derm-immune-atlas/explorer/README.md')
+          readme = readme_path.read_text(encoding='utf-8')
+          heading = '## P1/P2 governed relationship and interface layer'
+          if heading not in readme:
+              readme += f'''\n\n{heading}\n\n`p1-p2-governance.js` loads after the P0 remediation layer and before parent initialization. It owns the orthogonal seven-dimension relationship contract, polyhierarchical phenotype tags, mandatory endotype/tissue/applicability scope, curation and conflicting-evidence support, task-oriented navigation, provenance-first defaults, epistemic denominators, grouped search and label disclosure, expanded provenance inspection, reproducible URL state, visible-subset export, and non-drag/touch/assistive-technology alternatives. `p2-interface.css` owns the corresponding responsive interface grammar.\n\nThe default experience is the two-dimensional provenance triptych. The free-space 3D graph is an optional projection; distance, angle, proximity, and node size do not encode biological magnitude or causal strength.\n'''
+              readme_path.write_text(readme, encoding='utf-8')
+          PY
+
+          rm -rf tmp
+          node --check site/public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js
+          grep -q 'p0-scientific-remediation.js' site/public/apps/rheum-derm-immune-atlas/index.html
+          grep -q 'p1-p2-governance.js' site/public/apps/rheum-derm-immune-atlas/index.html
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('site/public/apps/rheum-derm-immune-atlas/index.html').read_text()
+          assert source.index('p0-scientific-remediation.js') < source.index('p1-p2-governance.js')
+          PY
+          git diff --check
+
+      - name: Commit staged application changes
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'No loader changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site/public/apps/rheum-derm-immune-atlas/index.html \
+                  site/public/apps/rheum-derm-immune-atlas/explorer/README.md \
+                  tmp || true
+          git commit -m 'feat(atlas): integrate P1-P2 governed interface'
+          git push origin HEAD:fix/rheum-derm-atlas-p0-integrity
