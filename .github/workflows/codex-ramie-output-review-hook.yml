@@ -1,0 +1,80 @@
+name: Qualify RAMIE clinician output adjudication
+
+on:
+  push:
+    branches:
+      - codex/portfolio-quality-remediation-20260806
+    paths:
+      - .github/workflows/codex-ramie-output-review-hook.yml
+
+concurrency:
+  group: portfolio-remediation-mutations
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  qualify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/portfolio-quality-remediation-20260806
+          fetch-depth: 0
+          lfs: true
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Hook output adjudication exactly once
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('site/public/apps/dermatology-scribe/index.html')
+          source = path.read_text()
+          research = '<script src="research-boundary.js" defer></script>'
+          review = '<script src="output-review.js" defer></script>'
+          if research not in source:
+              raise SystemExit('RAMIE research-boundary hook is missing')
+          if review not in source:
+              source = source.replace(research, f'{research}\n    {review}', 1)
+          if source.count(review) != 1:
+              raise SystemExit(f'Output-review hook count is {source.count(review)}')
+          path.write_text(source)
+
+      - name: Install dependencies and Chromium
+        run: npm --prefix site install
+      - working-directory: site
+        run: npx playwright install --with-deps chromium
+
+      - name: Run RAMIE boundary and adjudication browser gates
+        working-directory: site
+        run: npx playwright test ramie-research-boundary.spec.ts ramie-output-review.spec.ts --reporter=line
+
+      - name: Run policy suite and production build
+        run: |
+          npm run site:test
+          npm run site:build
+          grep -Fq 'output-review.js' site/dist/apps/dermatology-scribe/index.html
+          grep -Fq 'RamieOutputReview' site/dist/apps/dermatology-scribe/output-review.js
+
+      - name: Remove temporary workflow and commit exact qualified source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/codex-ramie-output-review-hook.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A \
+            .github/workflows/codex-ramie-output-review-hook.yml \
+            site/public/apps/dermatology-scribe/index.html
+          git commit -m 'feat(ramie): require clinician adjudication before clinical export'
+          git fetch origin codex/portfolio-quality-remediation-20260806
+          git rebase origin/codex/portfolio-quality-remediation-20260806
+          git push origin HEAD:codex/portfolio-quality-remediation-20260806
