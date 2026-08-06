@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "title": "Rheum–Derm Clinical Trials Evidence Dashboard",
+  "recordCountClaim": 214,
+  "classification": "research evidence dashboard",
+  "clinicalUse": "research only",
+  "sourceTopology": "verified generated HTML payload",
+  "normalizedSourceRecords": {
+    "status": "not-yet-published",
+    "releaseBlockerForReviewedReference": true,
+    "requiredFields": [
+      "registry_identifier",
+      "study_or_program_class",
+      "phase",
+      "recruitment_or_regulatory_status",
+      "sponsor",
+      "condition_and_subtype",
+      "intervention_and_target",
+      "comparator",
+      "enrollment",
+      "primary_and_secondary_endpoints",
+      "administration_route",
+      "key_dates",
+      "results_availability",
+      "publication_identifiers",
+      "record_provenance",
+      "last_registry_check"
+    ]
+  },
+  "verifiedPayload": {
+    "base64Characters": 216104,
+    "gzipBytes": 162078,
+    "gzipSha256": "cc0fef45addb8c8bc97a72cc2f4de237c98878b1149bda4bf5843799bd31504d",
+    "decodedHtmlBytes": 864417,
+    "decodedHtmlSha256": "7da4751bb81838b1dfd7be71a4209d0b90fbcea0c0235b07d6e1da2f4f4e86dc"
+  },
+  "interpretiveBoundaries": [
+    "A registered study is not evidence of positive efficacy.",
+    "Interventional trials, observational studies, extensions, regulatory events, development programs, and mechanistic studies must remain distinguishable.",
+    "Registration status, posted results, publication interpretation, and regulatory approval must not be conflated.",
+    "The dashboard is a research artifact and is not patient-specific clinical guidance."
+  ],
+  "nextRequiredRelease": [
+    "Publish normalized source records and a data dictionary.",
+    "Add deterministic registry and publication refresh diffs.",
+    "Add adjudication status for ambiguous or duplicate records.",
+    "Provide a non-JavaScript searchable fallback and normalized data export."
+  ]
+}

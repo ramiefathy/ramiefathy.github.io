@@ -1,0 +1,170 @@
+name: Final source-only portfolio cleanup
+
+on:
+  push:
+    branches:
+      - codex/portfolio-quality-remediation-20260806
+    paths:
+      - .github/workflows/codex-final-source-cleanup.yml
+
+concurrency:
+  group: portfolio-remediation-mutations
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/portfolio-quality-remediation-20260806
+          fetch-depth: 0
+          lfs: true
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Normalize RAMIE script hooks
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('site/public/apps/dermatology-scribe/index.html')
+          source = path.read_text()
+          base = '<script src="research-boundary.js" defer></script>'
+          review = '<script src="output-review.js" defer></script>'
+          app_scripts = '    <script src="ui-enhancements.js" defer></script>\n    <script src="app.js" defer></script>'
+          if base not in source:
+              if source.count(app_scripts) != 1:
+                  raise SystemExit('RAMIE app-script insertion point is not unique')
+              source = source.replace(app_scripts, f'    {base}\n    {review}\n{app_scripts}', 1)
+          elif review not in source:
+              source = source.replace(base, f'{base}\n    {review}', 1)
+          if source.count(base) != 1 or source.count(review) != 1:
+              raise SystemExit('RAMIE governance hooks are duplicated or missing')
+          path.write_text(source)
+
+      - name: Recover durable JeopaGen route if needed
+        shell: bash
+        env:
+          EXPECTED_SOURCE_COMMIT: 99d9d85cba36cda6a231c64f0bf612f6d26a0c8f
+        run: |
+          set -euo pipefail
+          target=site/public/tools/jeopagen
+          source_branch=codex/publish-jeopagen-static-20260804
+          if [[ ! -s "$target/index.html" ]]; then
+            git fetch origin "$source_branch:refs/remotes/origin/$source_branch"
+            git checkout "origin/$source_branch" -- "$target"
+          fi
+          test -s "$target/release-manifest.json"
+          test -s "$target/SHA256SUMS"
+          jq -e --arg commit "$EXPECTED_SOURCE_COMMIT" '.repository == "ramiefathy/JeopaGen" and .commit == $commit and .public_route == "/tools/jeopagen/"' "$target/release-manifest.json" >/dev/null
+          (cd "$target" && sha256sum --check --strict SHA256SUMS)
+          ! grep -R -n -E 'VITE_GOOGLE_API_KEY|live-verification-placeholder-key|sdmntpreastus|[?&](token|sig)=' "$target"
+
+      - name: Normalize JeopaGen registry and remove transient publisher data
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+
+          apps_path = Path('site/src/data/apps.json')
+          apps = json.loads(apps_path.read_text())
+          matches = [app for app in apps if app.get('slug') == 'jeopagen']
+          if len(matches) != 1:
+              raise SystemExit(f'JeopaGen registry count: {len(matches)}')
+          matches[0].update({
+              'listed': True,
+              'status': 'active',
+              'visibility': 'public',
+              'maturity': 'qualified-release',
+              'href': '/tools/jeopagen/',
+              'preview': '/tools/jeopagen/',
+              'reviewStatus': 'qualified-release',
+              'dataFlow': 'Uploaded sources are parsed locally; AI actions send selected source content directly to the user-configured Gemini API.',
+              'accountRequirement': 'No account in the static app; the user-supplied provider key is session-scoped.',
+              'phiPolicy': 'Do not upload PHI or confidential patient documents.',
+              'privacy': 'Source files and exports remain local except content intentionally sent to the configured AI provider.'
+          })
+          apps_path.write_text(json.dumps(apps, indent=2) + '\n')
+
+          publisher = Path('.github/workflows/publish-jeopagen.yml')
+          text = publisher.read_text() if publisher.exists() else ''
+          if 'sdmntpreastus' in text or 'RELEASE_URL' in text:
+              publisher.write_text('''name: Verify committed JeopaGen release\n\non:\n  pull_request:\n    branches: [master]\n    paths:\n      - site/public/tools/jeopagen/**\n      - .github/workflows/publish-jeopagen.yml\n      - site/src/data/apps.json\n  push:\n    branches: [master]\n    paths:\n      - site/public/tools/jeopagen/**\n      - .github/workflows/publish-jeopagen.yml\n      - site/src/data/apps.json\n  workflow_dispatch:\n\npermissions:\n  contents: read\n\njobs:\n  qualify:\n    runs-on: ubuntu-latest\n    timeout-minutes: 30\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          lfs: true\n          persist-credentials: false\n      - uses: actions/setup-node@v4\n        with:\n          node-version-file: .nvmrc\n      - name: Verify immutable committed release\n        shell: bash\n        run: |\n          set -euo pipefail\n          root=site/public/tools/jeopagen\n          test -s "$root/index.html"\n          test -s "$root/release-manifest.json"\n          test -s "$root/SHA256SUMS"\n          jq -e '.repository == "ramiefathy/JeopaGen" and .commit == "99d9d85cba36cda6a231c64f0bf612f6d26a0c8f" and .public_route == "/tools/jeopagen/"' "$root/release-manifest.json" >/dev/null\n          (cd "$root" && sha256sum --check --strict SHA256SUMS)\n          ! grep -R -n -E 'VITE_GOOGLE_API_KEY|live-verification-placeholder-key|sdmntpreastus|[?&](token|sig)=' "$root"\n      - run: npm --prefix site install\n      - run: npm run site:test\n      - run: npm run site:build\n      - name: Verify built route\n        run: |\n          test -s site/dist/tools/jeopagen/index.html\n          test -s site/dist/tools/jeopagen/release-manifest.json\n          (cd site/dist/tools/jeopagen && sha256sum --check --strict SHA256SUMS)\n''')
+
+      - name: Verify private routes are fail-closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'not served from the unauthenticated public portfolio' site/public/tasks/index.html
+          grep -Fq 'not served from the unauthenticated public portfolio' site/public/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html
+          ! grep -Eiq 'firebase-|localStorage|sessionStorage|<script' site/public/tasks/index.html
+          ! grep -Eiq 'financial sketch|use of funds|milestones-grid|<script' site/public/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html
+
+      - name: Verify governed Pages workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'deploy-manifest.json' .github/workflows/pages.yml
+          grep -Fq 'dermatology-scribe' .github/workflows/pages.yml
+          ! grep -Eiq 'table ledger|lisa blesslie|steph scurry|dnd_url' .github/workflows/pages.yml
+
+      - name: Remove all temporary mutation workflows
+        shell: bash
+        run: find .github/workflows -maxdepth 1 -type f -name 'codex-*.yml' -delete
+
+      - name: Install dependencies, run policies, and build
+        run: |
+          npm --prefix site install
+          npm run site:test
+          npm run site:build
+
+      - name: Install Chromium and run focused high-risk browser gates
+        working-directory: site
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test \
+            field-console.spec.ts \
+            portfolio-governance.spec.ts \
+            private-surfaces.spec.ts \
+            ramie-research-boundary.spec.ts \
+            ramie-output-review.spec.ts \
+            pdf-studio-governance.spec.ts \
+            --reporter=line
+
+      - name: Verify exact built release boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'research-boundary.js' site/dist/apps/dermatology-scribe/index.html
+          grep -Fq 'output-review.js' site/dist/apps/dermatology-scribe/index.html
+          grep -Fq 'not served from the unauthenticated public portfolio' site/dist/tasks/index.html
+          grep -Fq 'not served from the unauthenticated public portfolio' site/dist/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html
+          test -s site/dist/tools/jeopagen/index.html
+          jq -e '.[] | select(.slug == "jeopagen") | .listed == true and .href == "/tools/jeopagen/"' site/src/data/apps.json >/dev/null
+          ! grep -R -n -E 'sdmntpreastus|RELEASE_URL:.*[?&](sig|token)=' .github site/src site/public --exclude-dir=node_modules
+          test "$(find .github/workflows -maxdepth 1 -type f -name 'codex-*.yml' | wc -l)" -eq 0
+
+      - name: Commit final source-only head
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'Final source-only state already present.'
+            exit 0
+          fi
+          git commit -m 'feat(portfolio): finalize governed source-only application release'
+          git fetch origin codex/portfolio-quality-remediation-20260806
+          git rebase origin/codex/portfolio-quality-remediation-20260806
+          git push origin HEAD:codex/portfolio-quality-remediation-20260806

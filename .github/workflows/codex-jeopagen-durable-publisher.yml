@@ -1,0 +1,248 @@
+name: Migrate JeopaGen to durable committed publication
+
+on:
+  push:
+    branches:
+      - codex/portfolio-quality-remediation-20260806
+    paths:
+      - .github/workflows/codex-jeopagen-durable-publisher.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out portfolio remediation branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/portfolio-quality-remediation-20260806
+          fetch-depth: 0
+          lfs: true
+          persist-credentials: true
+
+      - name: Use repository Node.js pin
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Recover the qualified same-repository release
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_branch='codex/publish-jeopagen-static-20260804'
+          target='site/public/tools/jeopagen'
+          if git fetch origin "$source_branch:refs/remotes/origin/$source_branch" \
+            && git cat-file -e "origin/$source_branch:$target/index.html" 2>/dev/null; then
+            rm -rf "$target"
+            git checkout "origin/$source_branch" -- "$target"
+          elif [[ -s "$target/index.html" ]]; then
+            echo 'Using already committed qualified route on the remediation branch.'
+          else
+            echo 'No durable qualified JeopaGen route is available.'
+            exit 1
+          fi
+
+      - name: Verify qualified route and release provenance
+        shell: bash
+        env:
+          EXPECTED_SOURCE_COMMIT: 99d9d85cba36cda6a231c64f0bf612f6d26a0c8f
+        run: |
+          set -euo pipefail
+          root='site/public/tools/jeopagen'
+          test -s "$root/index.html"
+          test -s "$root/release-manifest.json"
+          test -s "$root/SHA256SUMS"
+          grep -Fq '<title>JeopaGen · AI game studio</title>' "$root/index.html"
+          jq -e --arg commit "$EXPECTED_SOURCE_COMMIT" \
+            '.repository == "ramiefathy/JeopaGen" and .commit == $commit and .public_route == "/tools/jeopagen/"' \
+            "$root/release-manifest.json" >/dev/null
+          (
+            cd "$root"
+            sha256sum --check --strict SHA256SUMS
+          )
+          if grep -R -n -E 'VITE_GOOGLE_API_KEY|live-verification-placeholder-key|sdmntpreastus|[?&](token|sig)=' "$root"; then
+            echo 'Credential or transient release marker detected in qualified route.'
+            exit 1
+          fi
+
+      - name: Replace transient publisher with committed-route verifier
+        shell: bash
+        run: |
+          cat > .github/workflows/publish-jeopagen.yml <<'EOF'
+          name: Verify and deploy committed JeopaGen release
+
+          on:
+            push:
+              branches: [master]
+              paths:
+                - site/public/tools/jeopagen/**
+                - .github/workflows/publish-jeopagen.yml
+                - site/src/data/apps.json
+            workflow_dispatch:
+
+          permissions:
+            contents: read
+
+          concurrency:
+            group: jeopagen-committed-release
+            cancel-in-progress: false
+
+          env:
+            EXPECTED_SOURCE_COMMIT: '99d9d85cba36cda6a231c64f0bf612f6d26a0c8f'
+            JEOPAGEN_URL: 'https://ramiefathy.com/tools/jeopagen/'
+
+          jobs:
+            qualify:
+              runs-on: ubuntu-latest
+              timeout-minutes: 30
+              steps:
+                - uses: actions/checkout@v4
+                  with:
+                    lfs: true
+                    persist-credentials: false
+                - uses: actions/setup-node@v4
+                  with:
+                    node-version-file: '.nvmrc'
+                - name: Verify immutable committed release
+                  shell: bash
+                  run: |
+                    set -euo pipefail
+                    root='site/public/tools/jeopagen'
+                    test -s "$root/index.html"
+                    test -s "$root/release-manifest.json"
+                    test -s "$root/SHA256SUMS"
+                    jq -e --arg commit "$EXPECTED_SOURCE_COMMIT" \
+                      '.repository == "ramiefathy/JeopaGen" and .commit == $commit and .public_route == "/tools/jeopagen/"' \
+                      "$root/release-manifest.json" >/dev/null
+                    (
+                      cd "$root"
+                      sha256sum --check --strict SHA256SUMS
+                    )
+                    if grep -R -n -E 'VITE_GOOGLE_API_KEY|live-verification-placeholder-key|sdmntpreastus|[?&](token|sig)=' "$root"; then
+                      echo 'Credential or transient release marker detected.'
+                      exit 1
+                    fi
+                - run: npm --prefix site install
+                - run: npm run site:test
+                - run: npm run site:build
+                - name: Verify built route
+                  shell: bash
+                  run: |
+                    set -euo pipefail
+                    root='site/dist/tools/jeopagen'
+                    test -s "$root/index.html"
+                    test -s "$root/release-manifest.json"
+                    test -s "$root/SHA256SUMS"
+                    jq -e --arg commit "$EXPECTED_SOURCE_COMMIT" '.commit == $commit' "$root/release-manifest.json" >/dev/null
+                    (
+                      cd "$root"
+                      sha256sum --check --strict SHA256SUMS
+                    )
+                - uses: actions/upload-pages-artifact@v3
+                  with:
+                    path: site/dist
+
+            deploy:
+              needs: qualify
+              runs-on: ubuntu-latest
+              permissions:
+                pages: write
+                id-token: write
+              environment:
+                name: github-pages
+                url: ${{ steps.deploy.outputs.page_url }}
+              steps:
+                - id: deploy
+                  uses: actions/deploy-pages@v4
+
+            live-smoke:
+              needs: [qualify, deploy]
+              runs-on: ubuntu-latest
+              timeout-minutes: 15
+              steps:
+                - name: Verify exact live release manifest and route
+                  shell: bash
+                  run: |
+                    set -euo pipefail
+                    manifest="$RUNNER_TEMP/jeopagen-release-manifest.json"
+                    for attempt in $(seq 1 36); do
+                      cache_key="${GITHUB_RUN_ID}-${attempt}"
+                      code=$(curl --silent --show-error --location --connect-timeout 15 --max-time 30 \
+                        --output "$manifest" --write-out '%{http_code}' \
+                        "${JEOPAGEN_URL}release-manifest.json?deploy=${cache_key}" || true)
+                      if [[ "$code" == 200 ]] \
+                        && jq -e --arg commit "$EXPECTED_SOURCE_COMMIT" '.commit == $commit' "$manifest" >/dev/null 2>&1 \
+                        && curl --fail --silent --show-error --location "${JEOPAGEN_URL}?deploy=${cache_key}" | grep -Fq '<title>JeopaGen · AI game studio</title>'; then
+                        echo "Committed JeopaGen release verified live on attempt ${attempt}."
+                        exit 0
+                      fi
+                      sleep 10
+                    done
+                    echo 'Committed JeopaGen release did not become live.'
+                    exit 1
+          EOF
+
+      - name: Publish JeopaGen in governed catalog
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+
+          path = Path('site/src/data/apps.json')
+          apps = json.loads(path.read_text())
+          matches = [app for app in apps if app.get('slug') == 'jeopagen']
+          if len(matches) != 1:
+              raise SystemExit(f'Expected exactly one JeopaGen registry record; found {len(matches)}')
+          app = matches[0]
+          app.update({
+              'listed': True,
+              'status': 'active',
+              'visibility': 'public',
+              'maturity': 'qualified-release',
+              'href': '/tools/jeopagen/',
+              'preview': '/tools/jeopagen/',
+              'reviewStatus': 'qualified-release',
+              'dataFlow': 'Uploaded sources are parsed locally; AI actions send selected source content directly to the user-configured Gemini API.',
+              'accountRequirement': 'No account in the static app; user-supplied provider key is session-scoped.',
+              'phiPolicy': 'Do not upload PHI or confidential patient documents.',
+              'privacy': 'Source files and exports remain local except content intentionally sent to the configured AI provider.'
+          })
+          path.write_text(json.dumps(apps, indent=2) + '\n')
+
+      - name: Install and qualify complete website
+        run: |
+          npm --prefix site install
+          npm run site:test
+          npm run site:build
+
+      - name: Verify built governed route
+        shell: bash
+        run: |
+          set -euo pipefail
+          root='site/dist/tools/jeopagen'
+          test -s "$root/index.html"
+          test -s "$root/release-manifest.json"
+          test -s "$root/SHA256SUMS"
+          grep -Fq '<title>JeopaGen · AI game studio</title>' "$root/index.html"
+          grep -Fq '"slug": "jeopagen"' site/src/data/apps.json
+          jq -e '.[] | select(.slug == "jeopagen") | .listed == true and .href == "/tools/jeopagen/"' site/src/data/apps.json >/dev/null
+
+      - name: Remove migration workflow and commit durable publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/codex-jeopagen-durable-publisher.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A \
+            .github/workflows \
+            site/public/tools/jeopagen \
+            site/src/data/apps.json
+          git commit -m 'feat(publication): commit qualified JeopaGen release durably'
+          git push origin HEAD:codex/portfolio-quality-remediation-20260806

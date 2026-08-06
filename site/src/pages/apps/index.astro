@@ -1,123 +1,239 @@
 ---
 import MainLayout from '../../layouts/MainLayout.astro';
 import Header from '../../components/Header.jsx';
-import apps from '../../data/apps.json';
+import appsJson from '../../data/apps.json';
 
-// Map slugs to catalogue categories (clinical / learning / reference / productivity / external).
-const CATEGORY_BY_SLUG: Record<string, 'clinical' | 'learning' | 'reference' | 'productivity' | 'external'> = {
-  'dermatology-scribe': 'clinical',
-  'skinoculars': 'clinical',
-  'dermatopathology-navigator': 'learning',
-  'mindmaps': 'learning',
-  'rheum-derm-immune-atlas': 'reference',
-  'rheum-derm-clinical-trials': 'reference',
-  'dermoscopy-llm-dashboard': 'reference',
-  'biologic-monitoring': 'reference',
-  'skinscores': 'reference',
-  'pdf-tools': 'productivity',
-  'scheduler-pro': 'clinical',
-  'dermai-reference': 'productivity',
-  'dermascribe-legacy': 'clinical'
+type CatalogApp = {
+  name: string;
+  slug: string;
+  description: string;
+  outcome: string;
+  category: 'clinical' | 'learning' | 'research' | 'reference' | 'productivity' | 'private' | 'archive';
+  status: 'active' | 'legacy';
+  maturity: string;
+  maturityLabel: string;
+  audience: string[];
+  featured: boolean;
+  listed: boolean;
+  sortRank: number;
+  visibility: string;
+  clinicalUse: string;
+  dataFlow: string;
+  privacySummary: string;
+  accountRequirement: string;
+  phiPolicy: string;
+  sourceRepo: string | null;
+  acceptanceProfile: string;
+  review: {
+    status: string;
+    reviewedOn?: string;
+    reviewIntervalDays?: number;
+    note: string;
+  };
+  stack: string[];
+  href: string;
+  preview?: string;
+  previewImage?: string;
 };
 
+const apps = appsJson as CatalogApp[];
+const CATEGORY_ORDER: CatalogApp['category'][] = ['clinical', 'research', 'reference', 'learning', 'productivity'];
 const CATEGORY_LABELS: Record<string, string> = {
   all: 'All',
-  clinical: 'Clinical',
-  learning: 'Learning',
+  clinical: 'Clinical workflow',
+  research: 'Research',
   reference: 'Reference',
+  learning: 'Learning',
   productivity: 'Productivity'
 };
 
-// Filter to active apps that are also publicly listed.
-// Set `"listed": false` on an apps.json entry to keep the data record but hide it
-// from the catalog (e.g., private dashboards still hosted at a subdomain but not
-// advertised on the public site).
-const active = apps.filter((app) => app.status === 'active' && app.listed !== false);
-const enriched = active.map((app, idx) => ({
-  ...app,
-  indexNumber: String(idx + 1).padStart(2, "0"),
-  category: CATEGORY_BY_SLUG[app.slug] ?? 'clinical',
-  isExternal: typeof app.href === 'string' && app.href.startsWith('http')
-}));
+const active = apps
+  .filter((app) => app.status === 'active' && app.listed && CATEGORY_ORDER.includes(app.category))
+  .sort((a, b) => {
+    if (Boolean(a.featured) !== Boolean(b.featured)) return a.featured ? -1 : 1;
+    const categoryDelta = CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category);
+    if (categoryDelta !== 0) return categoryDelta;
+    if (a.sortRank !== b.sortRank) return a.sortRank - b.sortRank;
+    return a.name.localeCompare(b.name);
+  })
+  .map((app, index) => ({
+    ...app,
+    indexNumber: String(index + 1).padStart(2, '0'),
+    isExternal: app.href.startsWith('http'),
+    searchText: [
+      app.name,
+      app.outcome,
+      app.description,
+      app.category,
+      app.maturityLabel,
+      app.audience.join(' '),
+      app.stack.join(' ')
+    ].join(' ').toLowerCase()
+  }));
 
-const totalCount = enriched.length;
-const counts: Record<string, number> = {
-  all: totalCount,
-  featured: enriched.filter((app) => app.featured).length,
-  clinical: enriched.filter((app) => app.category === 'clinical').length,
-  learning: enriched.filter((app) => app.category === 'learning').length,
-  reference: enriched.filter((app) => app.category === 'reference').length,
-  productivity: enriched.filter((app) => app.category === 'productivity').length
+const counts = Object.fromEntries([
+  ['all', active.length],
+  ['featured', active.filter((app) => app.featured).length],
+  ...CATEGORY_ORDER.map((category) => [category, active.filter((app) => app.category === category).length])
+]);
+
+const dataFlowLabel: Record<string, string> = {
+  'static-local': 'Local/static',
+  'configured-backend': 'Configured backend',
+  'firebase-account': 'Account cloud',
+  'byok-provider': 'Bring your own key',
+  'optional-ai-provider': 'Optional AI provider',
+  'private-service': 'Private service'
 };
+
+const accountLabel: Record<string, string> = {
+  none: 'No account',
+  optional: 'Optional account',
+  required: 'Account required',
+  'deployment-dependent': 'Deployment dependent'
+};
+
+const phiLabel: Record<string, string> = {
+  'not-accepted': 'No PHI',
+  'approved-deployment-only': 'PHI only in approved deployment',
+  'not-applicable': 'PHI not applicable'
+};
+
+const reviewedCount = active.filter((app) => app.review.status === 'reviewed').length;
+const reviewDueCount = active.filter((app) => app.review.status === 'review-due').length;
 ---
-<MainLayout title="Applications – Ramie Fathy, MD" description="Interactive dermatology tools and prototypes developed by Dr. Ramie Fathy.">
+<MainLayout
+  title="Applications – Ramie Fathy, MD"
+  description="Clinical, research, learning, reference, and productivity applications with explicit maturity and data-handling disclosures."
+>
   <Header client:load />
   <main id="main-content">
     <section class="section">
-      <div class="section-marker"><b>$</b><span>ls apps --all</span></div>
+      <div class="section-marker"><b>$</b><span>open application registry</span></div>
 
       <div class="section-head">
         <div>
           <span class="kicker">Applications</span>
-          <h1 class="display1" style="margin-top:14px">Browser-first<br><em>clinical tools</em>.</h1>
+          <h1 class="display1" style="margin-top:14px">Tools with<br><em>explicit boundaries</em>.</h1>
         </div>
         <div class="right">
-          Apps and projects, 2026.<br>
-          Local-first by default.<br>
-          <span style="color:var(--terracotta)">No accounts. No tracking.</span>
+          Clinical · research · learning.<br>
+          Maturity and data flow shown per app.<br>
+          <span style="color:var(--terracotta)">{reviewedCount} reviewed · {reviewDueCount} review due</span>
         </div>
       </div>
 
-      <p class="lede">Applications for resident clinics, dermatology education, and research workflows.</p>
+      <p class="lede">
+        Each application states what it is for, whether data leaves the browser, whether an account is required,
+        and whether it is a clinical workflow, reference, educational tool, or research prototype.
+      </p>
 
-      <div class="apps-toolbar" style="margin-top:48px">
-        <div class="left" id="apps-filters">
-          <button class="active" data-filter="all">All <span class="c">{counts.all}</span></button>
-          <button data-filter="featured">Featured <span class="c">{counts.featured}</span></button>
-          <button data-filter="clinical">Clinical <span class="c">{counts.clinical}</span></button>
-          <button data-filter="learning">Learning <span class="c">{counts.learning}</span></button>
-          <button data-filter="reference">Reference <span class="c">{counts.reference}</span></button>
-          <button data-filter="productivity">Productivity <span class="c">{counts.productivity}</span></button>
+      <aside class="catalog-boundary" aria-label="Application safety boundary">
+        <strong>Use the label on each application.</strong>
+        A research prototype or educational tool is not clinical decision support. Do not enter protected health information
+        unless an application explicitly states that the deployed environment is approved for it.
+      </aside>
+
+      <div class="apps-toolbar" style="margin-top:36px">
+        <div class="left" id="apps-filters" aria-label="Filter applications">
+          <button class="active" data-filter="all" aria-pressed="true">All <span class="c">{counts.all}</span></button>
+          <button data-filter="featured" aria-pressed="false">Featured <span class="c">{counts.featured}</span></button>
+          {CATEGORY_ORDER.map((category) => (
+            <button data-filter={category} aria-pressed="false">
+              {CATEGORY_LABELS[category]} <span class="c">{counts[category]}</span>
+            </button>
+          ))}
         </div>
-        <div class="right" style="display:flex;align-items:center;gap:10px">
-          <span>›</span>
-          <input id="apps-search" type="search" placeholder="filter by name, stack, or tag…" />
+        <div class="right apps-search-wrap">
+          <label for="apps-search">Search applications</label>
+          <input id="apps-search" type="search" placeholder="Try labs, schedules, dermpath, target, local…" autocomplete="off" />
         </div>
       </div>
+
+      <p id="apps-result-summary" class="apps-result-summary" aria-live="polite">Showing {active.length} applications.</p>
 
       <div class="apps-plates" id="apps-grid">
-        {enriched.map((app) => (
+        {active.map((app) => (
           <a
             class={`app-plate cat-${app.category}`}
             href={app.href}
             target={app.isExternal ? '_blank' : undefined}
             rel={app.isExternal ? 'noreferrer' : undefined}
-            data-name={app.name.toLowerCase()}
-            data-stack={(app.stack || []).join(' ').toLowerCase()}
+            data-search={app.searchText}
             data-category={app.category}
             data-featured={app.featured ? 'true' : 'false'}
+            data-app-slug={app.slug}
           >
-            <span class="swatch"></span>
+            <span class="swatch" aria-hidden="true"></span>
             <div class="stamp">
               <span class="pn">{app.indexNumber}</span>
-              <span class={`st ${app.featured ? 'featured' : ''}`}>{app.featured ? 'Featured' : (app.isExternal ? 'External' : 'Active')}</span>
+              <span class={`st maturity-${app.maturity}`}>{app.maturityLabel}</span>
             </div>
-            <h4>{app.name.replace(/^RAMIE - /, 'RAMIE — ')}</h4>
-            <p>{app.description}</p>
-            <div class="stack">
-              {(app.stack || []).slice(0, 3).map((tag) => <span>{tag}</span>)}
+            <h2 class="app-card-title">{app.name}</h2>
+            <p class="app-outcome">{app.outcome}</p>
+            <p class="app-description">{app.description}</p>
+            <div class="app-trust-grid" aria-label="Application disclosures">
+              <span>{dataFlowLabel[app.dataFlow] ?? app.dataFlow}</span>
+              <span>{accountLabel[app.accountRequirement] ?? app.accountRequirement}</span>
+              <span>{phiLabel[app.phiPolicy] ?? app.phiPolicy}</span>
+              <span>{CATEGORY_LABELS[app.category] ?? app.category}</span>
+            </div>
+            <p class="app-privacy"><strong>Data boundary:</strong> {app.privacySummary}</p>
+            <div class="stack" aria-label="Technology and capability tags">
+              {app.stack.slice(0, 3).map((tag) => <span>{tag}</span>)}
             </div>
           </a>
         ))}
       </div>
+      <div id="apps-empty" class="apps-empty" hidden>
+        <h2>No applications match</h2>
+        <p>Clear the search or select a different category.</p>
+      </div>
     </section>
   </main>
 
+  <style>
+    .catalog-boundary {
+      margin-top: 28px;
+      padding: 16px 18px;
+      border: 1px solid color-mix(in srgb, var(--terracotta) 45%, transparent);
+      background: color-mix(in srgb, var(--terracotta) 8%, transparent);
+      line-height: 1.55;
+    }
+    .catalog-boundary strong { display: block; margin-bottom: 4px; }
+    .apps-search-wrap { display: grid !important; gap: 5px !important; }
+    .apps-search-wrap label { font-size: 11px; text-transform: uppercase; letter-spacing: .09em; }
+    .apps-result-summary { margin: 18px 0 8px; color: var(--muted, #666); font-size: 14px; }
+    .app-card-title { margin: 22px 0 8px; font-size: clamp(22px, 2.3vw, 32px); line-height: 1.05; }
+    .app-outcome { font-size: 17px !important; line-height: 1.45; font-weight: 600; margin-bottom: 10px !important; }
+    .app-description { opacity: .82; font-size: 14px !important; line-height: 1.5; }
+    .app-trust-grid { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 10px; }
+    .app-trust-grid span {
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 10px;
+      line-height: 1.2;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      opacity: .78;
+    }
+    .app-privacy { font-size: 12px !important; line-height: 1.5; opacity: .76; margin-bottom: 14px !important; }
+    .apps-empty { margin-top: 30px; padding: 24px; border: 1px dashed currentColor; text-align: center; }
+    @media (max-width: 720px) {
+      .apps-toolbar { align-items: stretch; }
+      .apps-search-wrap { width: 100%; }
+      #apps-search { width: 100%; }
+    }
+  </style>
+
   <script>
     (function () {
-      const filterButtons = document.querySelectorAll('#apps-filters button');
+      const filterButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('#apps-filters button'));
       const searchInput = document.getElementById('apps-search') as HTMLInputElement | null;
       const grid = document.getElementById('apps-grid');
+      const summary = document.getElementById('apps-result-summary');
+      const empty = document.getElementById('apps-empty');
       if (!grid) return;
       const cards = Array.from(grid.querySelectorAll<HTMLElement>('.app-plate'));
 
@@ -125,31 +241,37 @@ const counts: Record<string, number> = {
       let activeSearch = '';
 
       const applyFilters = () => {
+        let visibleCount = 0;
         for (const card of cards) {
           const matchesFilter =
             activeFilter === 'all' ||
             (activeFilter === 'featured' ? card.dataset.featured === 'true' : card.dataset.category === activeFilter);
-          const haystack = `${card.dataset.name || ''} ${card.dataset.stack || ''}`;
-          const matchesSearch = !activeSearch || haystack.includes(activeSearch);
-          card.style.display = matchesFilter && matchesSearch ? '' : 'none';
+          const matchesSearch = !activeSearch || (card.dataset.search || '').includes(activeSearch);
+          const visible = matchesFilter && matchesSearch;
+          card.hidden = !visible;
+          if (visible) visibleCount += 1;
         }
+        if (summary) summary.textContent = `Showing ${visibleCount} application${visibleCount === 1 ? '' : 's'}.`;
+        if (empty) empty.hidden = visibleCount !== 0;
       };
 
       filterButtons.forEach((button) => {
         button.addEventListener('click', () => {
-          filterButtons.forEach((other) => other.classList.remove('active'));
+          filterButtons.forEach((other) => {
+            other.classList.remove('active');
+            other.setAttribute('aria-pressed', 'false');
+          });
           button.classList.add('active');
-          activeFilter = (button as HTMLButtonElement).dataset.filter || 'all';
+          button.setAttribute('aria-pressed', 'true');
+          activeFilter = button.dataset.filter || 'all';
           applyFilters();
         });
       });
 
-      if (searchInput) {
-        searchInput.addEventListener('input', () => {
-          activeSearch = searchInput.value.trim().toLowerCase();
-          applyFilters();
-        });
-      }
+      searchInput?.addEventListener('input', () => {
+        activeSearch = searchInput.value.trim().toLowerCase();
+        applyFilters();
+      });
     })();
   </script>
 </MainLayout>

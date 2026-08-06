@@ -1,0 +1,126 @@
+name: Governed Portfolio Quality
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-quality-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - run: npm --prefix site install
+      - name: Reject temporary mutation workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          offenders=$(find .github/workflows -maxdepth 1 -type f -name 'codex-*.yml' -printf '%f\n' | sort || true)
+          if [[ -n "$offenders" ]]; then
+            echo 'Temporary mutation workflows must self-remove before qualification:'
+            echo "$offenders"
+            exit 1
+          fi
+      - name: Run registry, acceptance, clinical-data, security, and unit policies
+        run: npm run site:test
+      - name: Build exact proposed source
+        run: npm run site:build
+      - name: Verify governed build surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s site/dist/apps/index.html
+          test -s site/dist/apps/dermatology-scribe/index.html
+          test -s site/dist/apps/biologic-monitoring-dashboard/index.html
+          test -s site/dist/apps/rheum-derm-clinical-trials/index.html
+          test -s site/dist/research/dermoscopy-llm-dashboard/index.html
+          grep -Fq 'Tools with' site/dist/apps/index.html
+          grep -Fq 'research-boundary.js' site/dist/apps/dermatology-scribe/index.html
+          grep -Fq 'clinical-data-gate.js' site/dist/apps/biologic-monitoring-dashboard/index.html
+          grep -Fq 'rheum-derm-trials-research-boundary' site/dist/apps/rheum-derm-clinical-trials/index.html
+          grep -Fq '100 unique images' site/dist/research/dermoscopy-llm-dashboard/index.html
+          if grep -R -n -E 'sdmntpreastus|RELEASE_URL:.*[?&](sig|token)=' .github site/src site/public --exclude-dir=node_modules; then
+            echo 'Transient signed publication URL detected.'
+            exit 1
+          fi
+
+  browser-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - run: npm --prefix site install
+      - name: Install Chromium
+        working-directory: site
+        run: npx playwright install --with-deps chromium
+      - name: Run full browser matrix
+        working-directory: site
+        run: npx playwright test --reporter=line
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: governed-portfolio-browser-evidence
+          path: |
+            site/test-results
+            site/playwright-report
+          if-no-files-found: ignore
+          retention-days: 7
+
+  ramie-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r services/ai-scribe/requirements.txt
+      - name: Compile and test backend
+        run: |
+          python -m compileall services/ai-scribe
+          python -m pytest services/ai-scribe/tests -q
+
+  qualification-summary:
+    if: always()
+    needs: [source-policy, browser-matrix, ramie-backend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce all blocking gates
+        shell: bash
+        env:
+          SOURCE_POLICY: ${{ needs.source-policy.result }}
+          BROWSER_MATRIX: ${{ needs.browser-matrix.result }}
+          RAMIE_BACKEND: ${{ needs.ramie-backend.result }}
+        run: |
+          set -euo pipefail
+          printf 'source-policy=%s\nbrowser-matrix=%s\nramie-backend=%s\n' \
+            "$SOURCE_POLICY" "$BROWSER_MATRIX" "$RAMIE_BACKEND"
+          [[ "$SOURCE_POLICY" == success ]]
+          [[ "$BROWSER_MATRIX" == success ]]
+          [[ "$RAMIE_BACKEND" == success ]]

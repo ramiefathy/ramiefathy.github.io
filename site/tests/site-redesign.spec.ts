@@ -67,12 +67,12 @@ test.describe('Site redesign smoke (routing, contact, SEO, motion)', () => {
     await expect(nav.getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/contact');
 
     // Phase 7 Atlas redesign: headline copy changed across all routes. Assertions
-    // now match the Atlas display1 copy (with <em>...</em> emphasis rendered inline).
+    // match the current display1 copy (with <em>...</em> emphasis rendered inline).
     await page.goto('/about', { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/A clinician,\s*a writer,\s*a builder\./);
 
     await page.goto('/apps', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Browser-first\s*clinical tools\./);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Tools with\s*explicit boundaries\./);
 
     await page.goto('/research', { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Selected\s*scholarship\./);
