@@ -46,6 +46,9 @@ const footerLinks = [
     <link rel="preload" href="/apps/shared/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/apps/shared/legacy-fonts.css" />
     <link rel="stylesheet" href="/style.css" />
+    <style is:global>
+      [hidden] { display: none !important; }
+    </style>
     <title>{title}</title>
     {shouldRenderCanonical && <link rel="canonical" href={canonicalUrl} />}
   </head>
