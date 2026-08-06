@@ -11,6 +11,11 @@ const ALLOWED_WARNING_FLAGS = new Set([
   'psychiatric'
 ])
 
+const SUPPLEMENTAL_CONDITION_LABELS = {
+  asthma: 'Asthma',
+  'rheumatoid-arthritis': 'Rheumatoid arthritis'
+}
+
 const IBD_CONDITION_IDS = new Set(['crohns-disease', 'ulcerative-colitis'])
 
 function isNonEmptyString(value) {
@@ -60,9 +65,35 @@ function validateSchedule(item, entry, errors) {
   }
 }
 
+function moveWarningFlagToMonitoringTag(entry, warningFlag, replacementWarningFlag, corrections) {
+  if (!entry.warningFlags.includes(warningFlag)) return
+
+  entry.warningFlags = entry.warningFlags.filter((flag) => flag !== warningFlag)
+  entry.tags = [...new Set([...entry.tags, warningFlag])]
+  if (replacementWarningFlag) {
+    entry.warningFlags = [...new Set([...entry.warningFlags, replacementWarningFlag])]
+  }
+
+  corrections.push({
+    entryId: entry.id,
+    field: 'warningFlags',
+    message: replacementWarningFlag
+      ? `Moved ${warningFlag} to monitoring requirements and represented the risk with ${replacementWarningFlag}.`
+      : `Moved ${warningFlag} from warning flags to monitoring requirements.`
+  })
+}
+
 function reconcileKnownClinicalSemantics(entry, corrections, warnings) {
   entry.conditions = normalizeUniqueStrings(entry.conditions)
   entry.cautionConditions = normalizeUniqueStrings(entry.cautionConditions)
+
+  if (entry.id === 'mycophenolate') {
+    moveWarningFlagToMonitoringTag(entry, 'pregnancy-monitoring', 'teratogenic', corrections)
+  }
+
+  if (entry.id === 'hydroxychloroquine') {
+    moveWarningFlagToMonitoringTag(entry, 'ophthalmologic', null, corrections)
+  }
 
   if (entry.id === 'il17-inhibitors') {
     const removed = entry.conditions.filter((condition) => IBD_CONDITION_IDS.has(condition))
@@ -76,12 +107,15 @@ function reconcileKnownClinicalSemantics(entry, corrections, warnings) {
       })
     }
 
-    if (!entry.cautionConditions.some((condition) => IBD_CONDITION_IDS.has(condition))) {
-      entry.cautionConditions = [...entry.cautionConditions, ...IBD_CONDITION_IDS]
+    const missingIbdCautions = [...IBD_CONDITION_IDS].filter(
+      (condition) => !entry.cautionConditions.includes(condition)
+    )
+    if (missingIbdCautions.length) {
+      entry.cautionConditions = [...new Set([...entry.cautionConditions, ...missingIbdCautions])]
       corrections.push({
         entryId: entry.id,
         field: 'cautionConditions',
-        message: 'Added inflammatory bowel disease caution context for IL-17 blockade.'
+        message: `Added missing inflammatory bowel disease caution context: ${missingIbdCautions.join(', ')}.`
       })
     }
   }
@@ -101,6 +135,9 @@ export function runClinicalDataGate({ monitoringEntries, conditionLabels, requir
   const warnings = []
   const corrections = []
   const seenIds = new Set()
+  const effectiveConditionLabels = conditionLabels || {}
+
+  Object.assign(effectiveConditionLabels, SUPPLEMENTAL_CONDITION_LABELS)
 
   if (!Array.isArray(monitoringEntries) || monitoringEntries.length === 0) {
     errors.push({ entryId: 'dataset', field: 'monitoringEntries', message: 'Monitoring dataset is empty.' })
@@ -130,6 +167,8 @@ export function runClinicalDataGate({ monitoringEntries, conditionLabels, requir
     entry.warningFlags = normalizeUniqueStrings(entry.warningFlags)
     entry.holdCriteria = normalizeUniqueStrings(entry.holdCriteria)
 
+    reconcileKnownClinicalSemantics(entry, corrections, warnings)
+
     if (!entry.agents.length) addIssue(errors, entryId, 'agents', 'At least one agent is required.')
     if (!Array.isArray(entry.baselineTasks) || !entry.baselineTasks.length) {
       addIssue(errors, entryId, 'baselineTasks', 'At least one baseline task is required.')
@@ -150,14 +189,15 @@ export function runClinicalDataGate({ monitoringEntries, conditionLabels, requir
     for (const flag of entry.warningFlags) {
       if (!ALLOWED_WARNING_FLAGS.has(flag)) addIssue(errors, entryId, 'warningFlags', `Unsupported warning flag: ${flag}`)
     }
-    for (const condition of entry.conditions ?? []) {
-      if (!conditionLabels?.[condition]) addIssue(errors, entryId, 'conditions', `Unknown condition id: ${condition}`)
+    for (const condition of entry.conditions) {
+      if (!effectiveConditionLabels[condition]) addIssue(errors, entryId, 'conditions', `Unknown condition id: ${condition}`)
+    }
+    for (const condition of entry.cautionConditions) {
+      if (!effectiveConditionLabels[condition]) addIssue(errors, entryId, 'cautionConditions', `Unknown caution condition id: ${condition}`)
     }
     for (const tag of entry.tags) {
       if (!requirementLabels?.[tag]) addIssue(errors, entryId, 'tags', `Unknown monitoring requirement id: ${tag}`)
     }
-
-    reconcileKnownClinicalSemantics(entry, corrections, warnings)
   }
 
   return {
