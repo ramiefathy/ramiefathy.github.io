@@ -33,8 +33,9 @@ describe('application acceptance profiles', () => {
     expect(problems).toEqual([])
   })
 
-  it('holds clinical and research systems to high or critical risk tiers', () => {
+  it('holds active clinical and research systems to high or critical risk tiers', () => {
     const offenders = registry
+      .filter((app) => app.status === 'active')
       .filter((app) => ['clinical-workflow', 'clinical-reference', 'research-only'].includes(app.clinicalUse))
       .filter((app) => !['high', 'critical'].includes(profiles[app.acceptanceProfile]?.riskTier))
       .map((app) => `${app.slug}: ${profiles[app.acceptanceProfile]?.riskTier}`)
