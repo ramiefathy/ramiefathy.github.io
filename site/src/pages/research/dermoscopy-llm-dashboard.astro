@@ -2,60 +2,148 @@
 import MainLayout from '../../layouts/MainLayout.astro';
 import Header from '../../components/Header.jsx';
 import DermoscopyLLMEvaluationDashboard from '../../components/DermoscopyLLMEvaluationDashboard.jsx';
+
+const UNIQUE_IMAGES = 100;
+const MODEL_COUNT = 17;
+const PROMPTING_ARMS = 6;
+const REPEATED_EVALUATIONS = UNIQUE_IMAGES * MODEL_COUNT * PROMPTING_ARMS;
+const EVALUATIONS_PER_IMAGE = MODEL_COUNT * PROMPTING_ARMS;
 ---
 
 <MainLayout
   title="Dermoscopy LLM Evaluation Dashboard – Ramie Fathy, MD"
-  description="Interactive dashboard exploring multimodal LLM performance on dermoscopic image classification across 17 models and 6 prompting strategies."
+  description="Research dashboard for 10,200 repeated model-prompt evaluations performed on 100 unique dermoscopic images across 17 models and 6 prompting strategies."
 >
   <Header client:load />
   <main id="main-content">
     <section class="section">
-      <div class="section-marker"><b>$</b><span>open dermoscopy-llm-eval</span></div>
+      <div class="section-marker"><b>$</b><span>open dermoscopy-llm-eval --show-denominators</span></div>
 
       <div class="section-head">
         <div>
-          <span class="kicker">/research/dermoscopy-llm-dashboard</span>
-          <h1 class="display1" style="margin-top:14px">17 models. <em>10,200</em><br>trials. One question.</h1>
+          <span class="kicker">Research companion · not clinical use</span>
+          <h1 class="display1" style="margin-top:14px"><em>{UNIQUE_IMAGES}</em> unique images.<br>{REPEATED_EVALUATIONS.toLocaleString()} repeated evaluations.</h1>
         </div>
         <div class="right">
-          Aggregate evaluation,<br>
-          multimodal LLMs on<br>
-          dermoscopy.<br>
-          <span style="color:var(--terracotta)">JAAD 2025 (in press)</span>
+          {MODEL_COUNT} model configurations.<br>
+          {PROMPTING_ARMS} prompting strategies.<br>
+          <span style="color:var(--terracotta)">{EVALUATIONS_PER_IMAGE} evaluations per image</span>
         </div>
+      </div>
+
+      <div class="research-boundary" role="note" aria-label="Research interpretation boundary">
+        <strong>Experimental denominator.</strong>
+        The dashboard contains {REPEATED_EVALUATIONS.toLocaleString()} model × prompt observations generated from only {UNIQUE_IMAGES} unique images.
+        Repeated observations of the same image are correlated and must not be interpreted as {REPEATED_EVALUATIONS.toLocaleString()} independent clinical cases.
       </div>
 
       <div class="dash-cover">
         <div class="text">
           <span class="kicker">Question · Method · Limit</span>
-          <p class="lede" style="font-size:22px">Can a multimodal LLM, prompted carefully, recognize dermatoscopic features as well as a board-certified dermatologist? Across 6 prompting arms and 8 diagnoses — short answer: <em>not yet, but the gap is closing.</em></p>
-          <p class="body-copy">Dataset spans 8 dermatologic diagnoses tested across 17 multimodal LLMs from OpenAI and Google. 6 prompting strategies cover zero-shot label list, few-shot exemplars, primer board, anti-anchoring, and free-form variants.</p>
-          <div style="display:flex;gap:24px;margin-top:14px">
+          <p class="lede" style="font-size:22px">
+            How do evaluated multimodal LLM snapshots classify a fixed dermoscopy image set under six prompting strategies,
+            and where do their errors, latency, and cost differ?
+          </p>
+          <p class="body-copy">
+            The dataset includes eight diagnoses, {MODEL_COUNT} evaluated model configurations, and {PROMPTING_ARMS} prompting arms.
+            Results describe this fixed benchmark and these model snapshots; they do not establish clinical safety, generalizability,
+            or equivalence to dermatologist performance.
+          </p>
+          <div style="display:flex;gap:24px;margin-top:14px;flex-wrap:wrap">
             <a class="button button--secondary" href="/research">Back to research →</a>
-            <a class="button button--primary" href="/apps">Browse apps →</a>
+            <a class="button button--primary" href="#dashboard-methods">Read methods boundary →</a>
           </div>
         </div>
         <div class="meta">
-          <b>Method</b>
-          Aggregate accuracy, sensitivity,<br>
-          and specificity across all<br>
-          model × prompt × diagnosis<br>
-          combinations.
-          <b>Citation</b>
-          Tadros AR, Zhuo W, Fathy RA,<br>
-          et al. JAAD 2025 (in press).
-          <b>Disclaimer</b>
+          <b>Independent units</b>
+          {UNIQUE_IMAGES} unique images.<br>
+          Repeated model/prompt runs<br>
+          are not independent cases.
+          <b>Displayed summaries</b>
+          Accuracy, sensitivity, specificity,<br>
+          error types, latency, and cost.
+          <b>Use boundary</b>
           Research dashboard. Not medical<br>
-          advice. Not for clinical use.
+          advice or clinical decision support.
         </div>
       </div>
 
-      <!-- React dashboard mounted inside the site chrome.
-           Internal styling sweep happens in Phase 4. -->
-      <div style="margin-top:48px">
+      <section id="dashboard-methods" class="methods-panel" aria-labelledby="dashboard-methods-heading">
+        <div>
+          <span class="kicker">Methods and interpretation</span>
+          <h2 id="dashboard-methods-heading">What the dashboard can—and cannot—support</h2>
+        </div>
+        <div class="methods-grid">
+          <article>
+            <h3>Experimental unit</h3>
+            <p>{UNIQUE_IMAGES} unique images are repeatedly evaluated by {MODEL_COUNT} model configurations under {PROMPTING_ARMS} prompting strategies. Image-level pairing is therefore central to comparative inference.</p>
+          </article>
+          <article>
+            <h3>Confidence intervals</h3>
+            <p>Displayed binomial intervals are descriptive summaries. They do not replace image-level paired analyses, clustered bootstrap intervals, or hierarchical models that account for repeated observations.</p>
+          </article>
+          <article>
+            <h3>Model scope</h3>
+            <p>Results apply only to the exact model snapshots, prompts, image set, preprocessing, and evaluation pipeline used in the study. Current product versions may behave differently.</p>
+          </article>
+          <article>
+            <h3>Clinical scope</h3>
+            <p>The benchmark is not a prospective diagnostic-accuracy study, a deployment evaluation, or evidence of clinical bioequivalence to a dermatologist or another diagnostic system.</p>
+          </article>
+          <article>
+            <h3>Subgroups and fairness</h3>
+            <p>Do not infer performance across skin tones, devices, acquisition settings, or populations unless those variables are explicitly represented and denominated in the underlying study data.</p>
+          </article>
+          <article>
+            <h3>Recommended comparisons</h3>
+            <p>Use paired image-level effect estimates, discordant-case review, per-diagnosis confusion matrices, calibration, abstention analyses, and multiplicity-aware comparisons for confirmatory conclusions.</p>
+          </article>
+        </div>
+      </section>
+
+      <div style="margin-top:48px" aria-label="Interactive dermoscopy LLM results">
         <DermoscopyLLMEvaluationDashboard client:load />
       </div>
     </section>
   </main>
 </MainLayout>
+
+<style>
+  .research-boundary {
+    margin: 28px 0;
+    padding: 16px 18px;
+    border: 1px solid color-mix(in srgb, var(--terracotta) 48%, transparent);
+    border-left: 4px solid var(--terracotta);
+    background: color-mix(in srgb, var(--terracotta) 8%, transparent);
+    line-height: 1.55;
+  }
+  .research-boundary strong { display: block; margin-bottom: 4px; }
+  .methods-panel {
+    margin-top: 42px;
+    padding: 28px;
+    border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  }
+  .methods-panel h2 {
+    margin: 9px 0 24px;
+    max-width: 760px;
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4vw, 52px);
+    line-height: 1;
+    letter-spacing: -.04em;
+  }
+  .methods-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background: color-mix(in srgb, currentColor 18%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  }
+  .methods-grid article {
+    padding: 20px;
+    background: var(--background, #fff);
+  }
+  .methods-grid h3 { margin: 0 0 9px; font-size: 16px; }
+  .methods-grid p { margin: 0; font-size: 14px; line-height: 1.55; opacity: .78; }
+  @media (max-width: 900px) { .methods-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 620px) { .methods-grid { grid-template-columns: 1fr; } .methods-panel { padding: 18px; } }
+</style>
