@@ -38,8 +38,12 @@ jobs:
       - name: Install website dependencies
         run: npm --prefix site install
 
-      - name: Run portfolio governance audit
-        run: npm --prefix site run audit:portfolio
+      - name: Validate and run portfolio governance audit
+        shell: bash
+        run: |
+          set -o pipefail
+          node --check site/scripts/portfolio-audit.mjs 2>&1 | tee portfolio-audit.log
+          npm --prefix site run audit:portfolio 2>&1 | tee -a portfolio-audit.log
 
       - name: Run complete unit and policy suite
         run: npm run site:test
@@ -72,6 +76,7 @@ jobs:
         with:
           name: portfolio-remediation-verification-${{ github.sha }}
           path: |
+            portfolio-audit.log
             site/portfolio-audit.json
             site/test-results
             site/playwright-report
@@ -82,7 +87,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f .github/workflows/portfolio-remediation-bootstrap.yml scripts/apply_portfolio_remediation.py
+          rm -f .github/workflows/portfolio-remediation-bootstrap.yml scripts/apply_portfolio_remediation.py portfolio-audit.log
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
