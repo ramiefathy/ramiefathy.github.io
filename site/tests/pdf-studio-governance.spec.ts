@@ -47,7 +47,9 @@ test.describe('PDF Studio release boundaries', () => {
     await runButton.click()
 
     await expect(page.locator('.pdf-ocr-queue-item [data-status]')).toHaveText(/done · text layer found/i)
-    await expect(page.locator('.legacy-workflow__status[data-tone="error"]')).toContainText(/Text-layer extraction mode/i)
+    await expect(
+      page.locator('.legacy-workflow__status[data-tone="error"]').filter({ hasText: 'Text-layer extraction mode' })
+    ).toContainText(/No image recognition will occur/i)
     await expect(page.locator('.pdf-output-list')).toContainText(/does not claim OCR/i)
 
     const downloads = page.locator('.pdf-output-list a[download]')
