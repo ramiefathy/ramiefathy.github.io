@@ -15,18 +15,19 @@
     <script src="../shared/legacy-guidance.js" defer></script>
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body class="legacy-focus-ring" data-view="cards" data-legacy-shell="true" data-help-steps='["Start with Quick search, then narrow with filters.","Switch Cards/Table view for comparison.","Use Reset filters to return to the full reference."]'>
+  <body class="legacy-focus-ring" data-view="cards" data-legacy-shell="true" data-shell-kicker="Reference" data-help-steps='["Review the data-version and review-due boundary before use.","Start with Quick search, then narrow with filters.","Switch Cards/Table view for comparison.","Open an entry to inspect its agent list, hold criteria, and source links.","Use Reset filters to return to the full reference."]'>
     <main class="page">
       <section class="hero" id="overview">
         <div class="hero__content">
-          <p class="hero__kicker">Clinical reference</p>
+          <p class="hero__kicker">Clinical reference · review due</p>
           <h1>Biologic Monitoring Dashboard</h1>
           <p class="cl-page-subtitle">
-            Searchable, filterable monitoring guidance for dermatology biologics and systemic immunomodulators. Built from
-            FDA prescribing information and consensus guidelines updated September&nbsp;23,&nbsp;2025. Use it to double-check baseline labs,
-            follow-up cadence, and safety counseling before initiating or refilling therapy.
+            Searchable, filterable monitoring guidance for dermatology biologics and systemic immunomodulators. The dataset
+            draws from prescribing information and consensus guidance; its exact data version and current review status are shown above.
+            Confirm consequential decisions against the current agent-specific label, patient context, and local policy.
           </p>
           <nav class="jump-nav" aria-label="Jump to section">
+            <a href="#clinical-data-quality">Data status</a>
             <a href="#controls">Filters</a>
             <a href="#comparison-view">Comparison</a>
             <a href="#result-count">Results</a>
@@ -35,11 +36,16 @@
         </div>
       </section>
 
+      <section id="clinical-data-quality" class="control-card" aria-live="polite" aria-label="Clinical data validation status">
+        <strong>Validating embedded clinical dataset…</strong>
+        <p>The application will load only after record structure, identifiers, schedules, and source links pass the release gate.</p>
+      </section>
+
       <section id="controls" class="controls" aria-label="Filters">
         <div class="control-card control-card--search">
           <label for="search-input">Quick search</label>
           <div class="search-input">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -54,7 +60,7 @@
 
           <div class="inline-dropdowns">
             <div class="filter-dropdown" data-dropdown>
-              <button class="dropdown-toggle" type="button" data-dropdown-toggle="conditions" aria-haspopup="true" aria-expanded="false"><span class="dropdown-toggle__label">Clinical uses</span><span class="dropdown-toggle__icon" aria-hidden="true">▾</span></button>
+              <button class="dropdown-toggle" type="button" data-dropdown-toggle="conditions" aria-haspopup="true" aria-expanded="false"><span class="dropdown-toggle__label">Treatment indications</span><span class="dropdown-toggle__icon" aria-hidden="true">▾</span></button>
               <div class="dropdown-panel" data-dropdown-panel="conditions" role="menu">
                 <div class="dropdown-options" id="condition-filters"></div>
               </div>
@@ -114,6 +120,7 @@
     <script>
       if (window.LegacyGuidance?.maybeShow) {
         window.LegacyGuidance.maybeShow('biologic-monitoring-dashboard', [
+          'Review the data-version and review-due boundary before use.',
           'Start with Quick search, then narrow using dropdown filters.',
           'Use category pills and view toggle to compare treatments quickly.',
           'Use Reset filters to return to the full monitoring reference.'
@@ -143,9 +150,7 @@
             const visible = entries
               .filter((entry) => entry.isIntersecting)
               .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-            if (visible?.target?.id) {
-              setActive(visible.target.id)
-            }
+            if (visible?.target?.id) setActive(visible.target.id)
           },
           { threshold: [0.25, 0.5, 0.75], rootMargin: '-96px 0px -45% 0px' }
         )
@@ -153,6 +158,50 @@
         sections.forEach(({ target }) => observer.observe(target))
       })
     </script>
-    <script type="module" src="./app.js"></script>
+    <script type="module">
+      import {
+        monitoringEntries,
+        CONDITION_LABELS,
+        REQUIREMENT_LABELS,
+        dataVersion
+      } from './data.js'
+      import { formatClinicalDataDate, runClinicalDataGate } from './clinical-data-gate.js'
+
+      const report = runClinicalDataGate({
+        monitoringEntries,
+        conditionLabels: CONDITION_LABELS,
+        requirementLabels: REQUIREMENT_LABELS,
+        dataVersion
+      })
+      window.BIOLOGIC_MONITORING_DATA_QUALITY = report
+
+      const status = document.getElementById('clinical-data-quality')
+      const correctionText = report.corrections.length
+        ? ` ${report.corrections.length} known semantic correction${report.corrections.length === 1 ? '' : 's'} applied before rendering.`
+        : ''
+      const warningText = report.warnings.length
+        ? ` ${report.warnings.length} non-blocking reconciliation warning${report.warnings.length === 1 ? '' : 's'} remain visible for review.`
+        : ''
+
+      if (status) {
+        if (report.ok) {
+          status.dataset.state = 'valid'
+          status.innerHTML = `<strong>Dataset gate passed · ${report.entryCount} treatment records · data version ${formatClinicalDataDate(dataVersion)}</strong><p>Structure, identifiers, schedules, and source URLs passed validation.${correctionText}${warningText} Clinical content remains review due.</p>`
+        } else {
+          status.dataset.state = 'invalid'
+          status.innerHTML = `<strong>Dataset blocked · ${report.errors.length} validation error${report.errors.length === 1 ? '' : 's'}</strong><p>The monitoring interface did not load because the embedded clinical data failed its release contract.</p><pre></pre>`
+          status.querySelector('pre').textContent = report.errors.map((error) => `${error.entryId}.${error.field}: ${error.message}`).join('\n')
+        }
+      }
+
+      const publishCurrency = () => {
+        window.LegacyShell?.setDatasetCurrency?.(`Data as of ${formatClinicalDataDate(dataVersion)}`)
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', publishCurrency, { once: true })
+      else publishCurrency()
+
+      if (!report.ok) throw new Error(`Biologic monitoring dataset failed validation with ${report.errors.length} error(s).`)
+      await import('./app.js')
+    </script>
   </body>
 </html>
