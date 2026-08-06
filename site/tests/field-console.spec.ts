@@ -155,12 +155,15 @@ test('Apps catalog filter buttons work on /apps', async ({ page }) => {
   const filterButtons = page.locator('.apps-toolbar button[data-filter]')
   await expect(filterButtons.first()).toBeVisible()
   await expect(filterButtons).toHaveCount(7)
-  await expect(filterButtons).toContainText(['All', 'Featured', 'Clinical workflow', 'Research', 'Reference', 'Learning', 'Productivity'])
+  const expectedFilters = ['All', 'Featured', 'Clinical workflow', 'Research', 'Reference', 'Learning', 'Productivity']
+  for (let index = 0; index < expectedFilters.length; index += 1) {
+    await expect(filterButtons.nth(index)).toContainText(expectedFilters[index])
+  }
 
   // Click a category filter and verify at least one app card remains visible.
   await filterButtons.filter({ hasText: /^Learning/ }).click()
   await expect(page.locator('.app-plate.cat-learning').first()).toBeVisible()
-  await expect(page.locator('.app-plate:not(.cat-learning)')).toBeHidden()
+  await expect(page.locator('.app-plate:not(.cat-learning):visible')).toHaveCount(0)
 })
 
 test('Apps catalog does not create mobile horizontal overflow', async ({ page }) => {
