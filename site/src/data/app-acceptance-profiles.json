@@ -1,0 +1,102 @@
+{
+  "skinscores-clinical": {
+    "riskTier": "high",
+    "requiredSuites": ["unit", "formula-vectors", "missing-input", "browser", "accessibility", "firebase-rules", "offline", "visual"],
+    "blockingGates": ["no-silent-defaults", "instrument-provenance", "reference-test-vectors", "zero-runtime-errors", "no-critical-a11y-violations", "tenant-isolation", "versioned-export"]
+  },
+  "rheum-derm-atlas-reference": {
+    "riskTier": "high",
+    "requiredSuites": ["relationship-contract", "provenance", "browser", "accessibility", "responsive", "visual", "export"],
+    "blockingGates": ["unknown-not-absence", "inference-opt-in", "source-trace-complete", "visible-denominators", "no-runtime-errors", "mobile-containment"]
+  },
+  "mindmaps-learning": {
+    "riskTier": "moderate",
+    "requiredSuites": ["schema", "topic-library", "search", "browser", "accessibility", "responsive", "export"],
+    "blockingGates": ["all-manifests-valid", "no-unescaped-content", "deep-links-stable", "education-boundary-visible", "no-runtime-errors"]
+  },
+  "dermatotarget-research": {
+    "riskTier": "high",
+    "requiredSuites": ["data-schema", "score-decomposition", "sensitivity", "negative-controls", "browser", "accessibility", "export"],
+    "blockingGates": ["source-manifest", "scores-reproducible", "hypothesis-label-visible", "no-causal-overclaim", "no-runtime-errors"]
+  },
+  "clinisched-operational": {
+    "riskTier": "high",
+    "requiredSuites": ["unit", "constraint-vectors", "rbac", "firestore-rules", "emulator", "browser", "accessibility", "backup-restore", "production-smoke"],
+    "blockingGates": ["tenant-isolation", "unauthorized-writes-denied", "hard-constraints-never-violated", "schedule-versioning", "audit-log", "restore-drill", "zero-runtime-errors"]
+  },
+  "jeopagen-learning": {
+    "riskTier": "moderate",
+    "requiredSuites": ["parser", "source-grounding", "item-rubric", "browser", "accessibility", "export", "release-integrity"],
+    "blockingGates": ["source-location-per-item", "human-approval-before-export", "api-key-not-persisted", "no-phi-warning", "durable-release-source", "zero-runtime-errors"]
+  },
+  "ramie-research-prototype": {
+    "riskTier": "critical",
+    "requiredSuites": ["backend-unit", "auth", "origin-policy", "transcript-grounding", "note-fidelity", "browser", "microphone-errors", "accessibility", "privacy-boundary", "production-smoke"],
+    "blockingGates": ["research-prototype-label", "public-demo-no-phi", "configured-destination-visible", "unsupported-claims-flagged", "clinician-review-required", "expired-token-handled", "no-query-token-in-production", "zero-runtime-errors"]
+  },
+  "rheum-derm-trials-research": {
+    "riskTier": "high",
+    "requiredSuites": ["source-manifest", "record-schema", "deduplication", "artifact-integrity", "browser", "accessibility", "fallback", "export"],
+    "blockingGates": ["normalized-source-records", "study-type-explicit", "registry-identifiers-valid", "results-not-conflated-with-registration", "artifact-reproducible", "no-runtime-errors"]
+  },
+  "biologic-monitoring-reference": {
+    "riskTier": "critical",
+    "requiredSuites": ["clinical-data-gate", "agent-indication-matrix", "source-links", "browser", "accessibility", "export", "review-currency"],
+    "blockingGates": ["treatment-vs-caution-separated", "agent-level-provenance", "review-status-visible", "stale-content-warning", "no-unknown-ids", "https-sources", "zero-runtime-errors"]
+  },
+  "dermoscopy-llm-research": {
+    "riskTier": "high",
+    "requiredSuites": ["dataset-contract", "denominator-check", "paired-analysis", "browser", "accessibility", "responsive", "reproducibility"],
+    "blockingGates": ["unique-images-explicit", "repeated-evaluations-explicit", "no-independence-overclaim", "model-snapshot-scope", "clinical-boundary-visible", "zero-runtime-errors"]
+  },
+  "dermpath-learning": {
+    "riskTier": "high",
+    "requiredSuites": ["content-schema", "image-provenance", "unknown-cases", "spaced-repetition", "browser", "accessibility", "responsive", "offline"],
+    "blockingGates": ["education-boundary-visible", "image-license-complete", "answer-hidden-before-submit", "no-patient-specific-claim", "no-runtime-errors"]
+  },
+  "skinoculars-learning": {
+    "riskTier": "moderate",
+    "requiredSuites": ["profile-schema", "epistemic-labels", "threejs", "webgl-recovery", "browser", "accessibility", "responsive", "xr"],
+    "blockingGates": ["schematic-vs-validated-explicit", "source-metadata-per-profile", "non-3d-fallback", "keyboard-path", "webgl-context-recovery", "zero-runtime-errors"]
+  },
+  "pdf-studio-utility": {
+    "riskTier": "high",
+    "requiredSuites": ["no-network", "malformed-files", "encrypted-files", "large-files", "output-integrity", "browser", "accessibility", "offline"],
+    "blockingGates": ["local-processing-verifiable", "no-false-redaction-claim", "output-opens", "cancel-recovery", "no-external-runtime-dependencies", "zero-runtime-errors"]
+  },
+  "ksa-credit-private": {
+    "riskTier": "high",
+    "requiredSuites": ["access-control", "role-authorization", "source-timestamps", "calculation-vectors", "backup-restore", "health-check", "fail-closed"],
+    "blockingGates": ["unauthenticated-access-denied", "licensed-data-not-public", "source-and-staleness-visible", "methodology-versioned", "restore-drill", "tunnel-failure-closed"]
+  },
+  "table-ledger-private": {
+    "riskTier": "low",
+    "requiredSuites": ["rules-vectors", "migration", "browser", "accessibility", "mobile", "offline"],
+    "blockingGates": ["source-vs-strict-explicit", "state-versioned", "calculations-deterministic", "separate-deployment-gate", "zero-runtime-errors"]
+  },
+  "taskboard-private": {
+    "riskTier": "high",
+    "requiredSuites": ["authentication", "authorization", "firebase-rules", "browser", "backup-restore", "production-smoke"],
+    "blockingGates": ["not-protected-by-obscurity", "unauthorized-data-denied", "app-check", "separate-private-deployment", "restore-drill"]
+  },
+  "mcq-research": {
+    "riskTier": "high",
+    "requiredSuites": ["dataset-contract", "judge-reliability", "human-adjudication", "statistics", "payload-performance", "browser", "accessibility"],
+    "blockingGates": ["automated-vs-human-distinguished", "judge-version-visible", "item-source-provenance", "uncertainty-reported", "payload-partitioned", "zero-runtime-errors"]
+  },
+  "private-strategy": {
+    "riskTier": "high",
+    "requiredSuites": ["access-control", "assumption-versioning", "source-currency", "export", "browser", "backup"],
+    "blockingGates": ["authenticated-distribution", "confidentiality-label", "assumptions-traceable", "source-dates-visible", "no-sensitive-public-assets"]
+  },
+  "woundcare-archive": {
+    "riskTier": "critical",
+    "requiredSuites": ["archive-boundary", "browser", "accessibility", "link-integrity"],
+    "blockingGates": ["historical-date-visible", "not-current-guidance-visible", "excluded-from-public-catalog", "no-clinical-call-to-action"]
+  },
+  "legacy-archive": {
+    "riskTier": "moderate",
+    "requiredSuites": ["archive-boundary", "route-integrity", "browser", "accessibility"],
+    "blockingGates": ["archive-label-visible", "excluded-from-public-catalog", "no-active-product-claim", "replacement-route-linked-when-applicable"]
+  }
+}
