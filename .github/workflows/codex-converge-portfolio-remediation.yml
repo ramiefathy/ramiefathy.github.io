@@ -1,0 +1,187 @@
+name: Converge portfolio remediation atomically
+
+on:
+  push:
+    branches:
+      - codex/portfolio-quality-remediation-20260806
+    paths:
+      - .github/workflows/codex-converge-portfolio-remediation.yml
+
+concurrency:
+  group: portfolio-remediation-mutations
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  converge:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out latest remediation branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/portfolio-quality-remediation-20260806
+          fetch-depth: 0
+          lfs: true
+          persist-credentials: true
+
+      - name: Use repository Node.js pin
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Ensure RAMIE preflight is hooked exactly once
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('site/public/apps/dermatology-scribe/index.html')
+          source = path.read_text()
+          marker = '<script src="research-boundary.js" defer></script>'
+          if marker not in source:
+              insertion = '    <script src="ui-enhancements.js" defer></script>\n    <script src="app.js" defer></script>'
+              replacement = f'    {marker}\n' + insertion
+              count = source.count(insertion)
+              if count != 1:
+                  raise SystemExit(f'RAMIE insertion point count: {count}')
+              source = source.replace(insertion, replacement)
+          if source.count(marker) != 1:
+              raise SystemExit(f'RAMIE boundary hook count: {source.count(marker)}')
+          path.write_text(source)
+
+      - name: Enforce private-route fail-closed stubs
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def stub(title, description, destination, classification):
+              return f'''<!doctype html>
+          <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive,nosnippet"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"><title>{title} — private deployment required</title><style>:root{{color-scheme:light dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}}*{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;place-items:center;background:#111827;color:#f8fafc;padding:24px}}main{{width:min(720px,100%);border:1px solid #475569;border-left:6px solid #dc7d47;border-radius:14px;background:#1e293b;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.35)}}.eyebrow{{margin:0 0 12px;color:#fdba74;font-size:12px;font-weight:750;letter-spacing:.14em;text-transform:uppercase}}h1{{margin:0;font-size:clamp(32px,7vw,58px);line-height:.98}}p{{color:#cbd5e1;line-height:1.65}}code{{color:#fed7aa}}a{{color:#bae6fd}}.status{{margin-top:22px;border:1px solid #7c2d12;background:#431407;padding:14px;border-radius:9px;color:#ffedd5;font-weight:650}}</style></head><body><main><p class="eyebrow">{classification}</p><h1>{title}</h1><p>{description}</p><div class="status" role="status">This application is not served from the unauthenticated public portfolio. Access must fail closed until an authenticated, separately monitored deployment exists.</div><p>Required destination: <code>{destination}</code>. The prior public implementation remains only in repository history for controlled migration; it is not loaded by this route.</p><p><a href="/apps">Return to the governed application catalog</a></p></main></body></html>'''
+
+          Path('site/public/tasks/index.html').write_text(stub(
+              'Taskboard',
+              'Internal work-management data and Firebase-backed actions require authenticated authorization, tenant-scoped rules, App Check, audit logging, and a tested backup/restore path.',
+              'authenticated private Taskboard deployment',
+              'Private internal application'))
+          Path('site/public/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html').write_text(stub(
+              'Dermie fundraising packet',
+              'Financial scenarios, fundraising assumptions, milestones, demo materials, and competitive analysis are confidential business materials and must not rely on an unlisted URL for protection.',
+              'authenticated confidential-document deployment',
+              'Confidential fundraising material'))
+
+          docs = Path('docs/private-surface-migration.md')
+          if not docs.exists():
+              docs.write_text('''# Private surface migration record\n\nDate: 2026-08-06\n\nThe public artifact no longer serves the internal Taskboard or Dermie fundraising packet as functional applications. Both routes fail closed with no JavaScript, network, Firebase, document, or business-data payload. Reactivation requires a separate authenticated deployment, deny-by-default authorization, audit logging, backup/restore, and exact-head unauthorized-access testing. Prior source remains in repository history for controlled migration.\n''')
+
+      - name: Recover and verify durable JeopaGen artifact
+        shell: bash
+        env:
+          EXPECTED_SOURCE_COMMIT: 99d9d85cba36cda6a231c64f0bf612f6d26a0c8f
+        run: |
+          set -euo pipefail
+          target='site/public/tools/jeopagen'
+          source_branch='codex/publish-jeopagen-static-20260804'
+          if [[ ! -s "$target/index.html" ]]; then
+            git fetch origin "$source_branch:refs/remotes/origin/$source_branch"
+            git cat-file -e "origin/$source_branch:$target/index.html"
+            git checkout "origin/$source_branch" -- "$target"
+          fi
+          test -s "$target/release-manifest.json"
+          test -s "$target/SHA256SUMS"
+          jq -e --arg commit "$EXPECTED_SOURCE_COMMIT" '.repository == "ramiefathy/JeopaGen" and .commit == $commit and .public_route == "/tools/jeopagen/"' "$target/release-manifest.json" >/dev/null
+          (
+            cd "$target"
+            sha256sum --check --strict SHA256SUMS
+          )
+          if grep -R -n -E 'VITE_GOOGLE_API_KEY|live-verification-placeholder-key|sdmntpreastus|[?&](token|sig)=' "$target"; then
+            exit 1
+          fi
+
+      - name: Ensure governed JeopaGen catalog record
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+          path = Path('site/src/data/apps.json')
+          apps = json.loads(path.read_text())
+          matches = [app for app in apps if app.get('slug') == 'jeopagen']
+          if len(matches) != 1:
+              raise SystemExit(f'Expected one JeopaGen record; found {len(matches)}')
+          matches[0].update({
+              'listed': True,
+              'status': 'active',
+              'visibility': 'public',
+              'maturity': 'qualified-release',
+              'href': '/tools/jeopagen/',
+              'preview': '/tools/jeopagen/',
+              'reviewStatus': 'qualified-release',
+              'dataFlow': 'Uploaded sources are parsed locally; AI actions send selected source content directly to the user-configured Gemini API.',
+              'accountRequirement': 'No account in the static app; the user-supplied provider key is session-scoped.',
+              'phiPolicy': 'Do not upload PHI or confidential patient documents.',
+              'privacy': 'Source files and exports remain local except content intentionally sent to the configured AI provider.'
+          })
+          path.write_text(json.dumps(apps, indent=2) + '\n')
+
+      - name: Remove transient signed JeopaGen publisher configuration
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('.github/workflows/publish-jeopagen.yml')
+          source = path.read_text() if path.exists() else ''
+          if 'sdmntpreastus' in source or 'RELEASE_URL' in source:
+              path.write_text('''name: Verify committed JeopaGen release\n\non:\n  push:\n    branches: [master]\n    paths:\n      - site/public/tools/jeopagen/**\n      - .github/workflows/publish-jeopagen.yml\n      - site/src/data/apps.json\n  workflow_dispatch:\n\npermissions:\n  contents: read\n\njobs:\n  qualify:\n    runs-on: ubuntu-latest\n    timeout-minutes: 30\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          lfs: true\n          persist-credentials: false\n      - uses: actions/setup-node@v4\n        with:\n          node-version-file: .nvmrc\n      - name: Verify immutable committed release\n        shell: bash\n        run: |\n          set -euo pipefail\n          root=site/public/tools/jeopagen\n          test -s "$root/index.html"\n          test -s "$root/release-manifest.json"\n          test -s "$root/SHA256SUMS"\n          jq -e '.repository == "ramiefathy/JeopaGen" and .commit == "99d9d85cba36cda6a231c64f0bf612f6d26a0c8f" and .public_route == "/tools/jeopagen/"' "$root/release-manifest.json" >/dev/null\n          (cd "$root" && sha256sum --check --strict SHA256SUMS)\n          ! grep -R -n -E 'VITE_GOOGLE_API_KEY|live-verification-placeholder-key|sdmntpreastus|[?&](token|sig)=' "$root"\n      - run: npm --prefix site install\n      - run: npm run site:test\n      - run: npm run site:build\n      - name: Verify built route\n        run: |\n          test -s site/dist/tools/jeopagen/index.html\n          test -s site/dist/tools/jeopagen/release-manifest.json\n          (cd site/dist/tools/jeopagen && sha256sum --check --strict SHA256SUMS)\n''')
+
+      - name: Ensure governed Pages workflow is independent of D&D
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('.github/workflows/pages.yml')
+          source = path.read_text()
+          if any(marker.lower() in source.lower() for marker in ['table ledger', 'lisa blesslie', 'steph scurry', 'dnd_url']):
+              raise SystemExit('Legacy D&D-coupled Pages workflow remains; rerun the dedicated governed-pages migration before convergence.')
+          if 'deploy-manifest.json' not in source or 'dermatology-scribe' not in source:
+              raise SystemExit('Governed Pages exact-source smoke is not present.')
+
+      - name: Remove all temporary mutation workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          find .github/workflows -maxdepth 1 -type f -name 'codex-*.yml' -delete
+
+      - name: Install and run complete policy/build qualification
+        run: |
+          npm --prefix site install
+          npm run site:test
+          npm run site:build
+
+      - name: Verify converged built surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'research-boundary.js' site/dist/apps/dermatology-scribe/index.html
+          grep -Fq 'not served from the unauthenticated public portfolio' site/dist/tasks/index.html
+          grep -Fq 'not served from the unauthenticated public portfolio' site/dist/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html
+          test -s site/dist/tools/jeopagen/index.html
+          jq -e '.[] | select(.slug == "jeopagen") | .listed == true and .href == "/tools/jeopagen/"' site/src/data/apps.json >/dev/null
+          ! grep -R -n -E 'sdmntpreastus|RELEASE_URL:.*[?&](sig|token)=' .github site/src site/public --exclude-dir=node_modules
+          test "$(find .github/workflows -maxdepth 1 -type f -name 'codex-*.yml' | wc -l)" -eq 0
+
+      - name: Commit one converged source-only head
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'Branch already converged.'
+            exit 0
+          fi
+          git commit -m 'feat(portfolio): converge governed application release boundaries'
+          git fetch origin codex/portfolio-quality-remediation-20260806
+          git rebase origin/codex/portfolio-quality-remediation-20260806
+          git push origin HEAD:codex/portfolio-quality-remediation-20260806
