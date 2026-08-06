@@ -1,0 +1,166 @@
+---
+import MainLayout from '../../../layouts/MainLayout.astro';
+import Header from '../../../components/Header.jsx';
+import { listAvailableMindMaps } from '../../../apps/mindmaps/dataLoader';
+
+const maps = listAvailableMindMaps().map((manifest) => ({
+  ...manifest,
+  diagramCount: manifest.diagrams?.length ?? 0,
+  comparisonCount: manifest.comparisons?.length ?? 0,
+  searchText: `${manifest.title} ${manifest.id} ${manifest.tabs.map((tab) => tab.name).join(' ')}`.toLowerCase()
+}));
+---
+<MainLayout
+  title="Dermatology Mind Map Library – Ramie Fathy, MD"
+  description="Searchable library of interactive dermatology mind maps, diagrams, comparisons, and diagnostic pathways."
+>
+  <Header client:load />
+  <main id="main-content">
+    <section class="section mindmap-library">
+      <div class="section-marker"><b>$</b><span>list mindmaps --reviewed-status</span></div>
+      <div class="section-head">
+        <div>
+          <span class="kicker">Dermatology learning library</span>
+          <h1 class="display1" style="margin-top:14px">Choose a topic.<br><em>Follow the structure.</em></h1>
+        </div>
+        <div class="right">
+          {maps.length} interactive topics.<br>
+          Atlas · diagrams · comparisons.<br>
+          <span style="color:var(--terracotta)">Educational beta</span>
+        </div>
+      </div>
+      <p class="lede">
+        Search across topic names and view types, then open a map for structured exploration, comparison, and export.
+      </p>
+
+      <aside class="content-boundary" role="note">
+        <strong>Educational boundary.</strong>
+        Content is for learning and teaching, not patient-specific diagnosis or treatment. Topic-level clinical review dates and
+        assertion-level provenance are being added; verify consequential clinical decisions against current primary guidance.
+      </aside>
+
+      <div class="library-controls">
+        <label for="mindmap-library-search">Search topics</label>
+        <input id="mindmap-library-search" type="search" placeholder="Try alopecia, ulcers, psoriasis, drug eruption…" autocomplete="off" />
+        <span id="mindmap-library-count" aria-live="polite">{maps.length} topics</span>
+      </div>
+
+      <div class="library-grid" id="mindmap-library-grid">
+        {maps.map((map, index) => (
+          <a class="library-card" href={`/apps/mindmaps/${map.id}`} data-search={map.searchText}>
+            <div class="library-card__stamp">
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <span>{map.tabs.length} views</span>
+            </div>
+            <h2>{map.title}</h2>
+            <p>{map.tabs.map((tab) => tab.name).join(' · ')}</p>
+            <div class="library-card__meta">
+              <span>{map.diagramCount} diagrams</span>
+              <span>{map.comparisonCount} comparisons</span>
+              <span>Searchable atlas</span>
+            </div>
+          </a>
+        ))}
+      </div>
+      <div class="library-empty" id="mindmap-library-empty" hidden>
+        <h2>No matching topic</h2>
+        <p>Try a broader disease, symptom, or morphology term.</p>
+      </div>
+    </section>
+  </main>
+
+  <style>
+    .mindmap-library { padding-bottom: 80px; }
+    .content-boundary {
+      margin: 28px 0;
+      padding: 16px 18px;
+      border-left: 4px solid var(--terracotta);
+      background: color-mix(in srgb, var(--terracotta) 8%, transparent);
+      line-height: 1.55;
+    }
+    .content-boundary strong { display: block; margin-bottom: 4px; }
+    .library-controls {
+      display: grid;
+      grid-template-columns: auto minmax(220px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin: 34px 0 22px;
+    }
+    .library-controls label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      font-weight: 700;
+    }
+    .library-controls input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid currentColor;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+    }
+    .library-controls span { font-size: 13px; opacity: .7; }
+    .library-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .library-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 230px;
+      padding: 20px;
+      border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+      color: inherit;
+      text-decoration: none;
+      transition: transform .15s ease, border-color .15s ease;
+    }
+    .library-card:hover,
+    .library-card:focus-visible {
+      transform: translateY(-2px);
+      border-color: var(--terracotta);
+    }
+    .library-card__stamp,
+    .library-card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      opacity: .72;
+    }
+    .library-card__stamp { justify-content: space-between; }
+    .library-card h2 { margin: 28px 0 10px; font-size: 26px; line-height: 1.05; }
+    .library-card p { line-height: 1.5; opacity: .78; }
+    .library-card__meta { margin-top: auto; padding-top: 18px; }
+    .library-card__meta span { border: 1px solid currentColor; border-radius: 999px; padding: 4px 7px; }
+    .library-empty { padding: 28px; text-align: center; border: 1px dashed currentColor; }
+    @media (max-width: 960px) { .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) {
+      .library-controls { grid-template-columns: 1fr; }
+      .library-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { .library-card { transition: none; } }
+  </style>
+
+  <script>
+    const search = document.getElementById('mindmap-library-search') as HTMLInputElement | null;
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('.library-card'));
+    const count = document.getElementById('mindmap-library-count');
+    const empty = document.getElementById('mindmap-library-empty');
+    const update = () => {
+      const query = search?.value.trim().toLowerCase() ?? '';
+      let visible = 0;
+      for (const card of cards) {
+        const match = !query || (card.dataset.search ?? '').includes(query);
+        card.hidden = !match;
+        if (match) visible += 1;
+      }
+      if (count) count.textContent = `${visible} topic${visible === 1 ? '' : 's'}`;
+      if (empty) empty.hidden = visible !== 0;
+    };
+    search?.addEventListener('input', update);
+  </script>
+</MainLayout>
