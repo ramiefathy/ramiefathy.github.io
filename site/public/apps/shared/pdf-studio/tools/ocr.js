@@ -130,7 +130,7 @@ export async function mount(context) {
   const runButton = document.createElement('button')
   runButton.type = 'button'
   runButton.className = 'cl-btn-primary legacy-focus-ring'
-  runButton.textContent = 'Process selected pages'
+  runButton.textContent = 'Run OCR / extract text layer'
   runButton.disabled = true
   const cancelButton = document.createElement('button')
   cancelButton.type = 'button'
@@ -278,9 +278,9 @@ export async function mount(context) {
 
         extractedTextByPage.set(pageNumber, extracted)
         if (fallbackMode) {
-          setQueueStatus(queueRow, extracted ? 'text layer found' : 'no text layer')
+          setQueueStatus(queueRow, extracted ? 'done · text layer found' : 'done (no text layer)')
         } else {
-          setQueueStatus(queueRow, extracted ? 'OCR done' : 'OCR done (no text)')
+          setQueueStatus(queueRow, extracted ? 'done · OCR text found' : 'done (no text)')
         }
       } catch (error) {
         console.error(error)
@@ -345,9 +345,10 @@ export async function mount(context) {
       ? `${sourceStem}_text_layer_preserved.pdf`
       : `${sourceStem}_searchable.pdf`
     const pagesWithText = targetPages.filter((pageNumber) => Boolean(extractedTextByPage.get(pageNumber))).length
+    const modeNaming = 'Verified OCR mode uses _searchable.pdf and _ocr.txt names; text-layer fallback uses _text_layer_preserved.pdf and _text_layer.txt.'
     const completionMessage = fallbackMode
-      ? `Text-layer extraction completed. Existing text was found on ${pagesWithText} of ${targetPages.length} selected page(s). The PDF output preserves source pages and does not claim OCR. PDF size: ${formatBytes(pdfBytes.byteLength || pdfBytes.length || 0)}.`
-      : `Verified local OCR completed on ${targetPages.length} page(s); ${pagesWithText} page(s) produced text. Searchable PDF size: ${formatBytes(pdfBytes.byteLength || pdfBytes.length || 0)}.`
+      ? `Text-layer extraction completed. Existing text was found on ${pagesWithText} of ${targetPages.length} selected page(s). The PDF output preserves source pages and does not claim OCR. PDF size: ${formatBytes(pdfBytes.byteLength || pdfBytes.length || 0)}. ${modeNaming}`
+      : `Verified local OCR completed on ${targetPages.length} page(s); ${pagesWithText} page(s) produced text. Searchable PDF size: ${formatBytes(pdfBytes.byteLength || pdfBytes.length || 0)}. ${modeNaming}`
 
     clearElement(outputList)
     outputList.append(
