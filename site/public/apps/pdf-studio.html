@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Professional local-first PDF Studio for organizing, extracting, assembling, stamping, OCR, and document cleanup workflows.">
+  <meta name="description" content="Local-first PDF Studio for organizing, extracting, assembling, stamping, metadata cleanup, text extraction, and OCR-readiness workflows.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
   <title>PDF Studio</title>
   <link rel="stylesheet" href="./shared/legacy-tokens.css">
   <link rel="stylesheet" href="./shared/legacy-primitives.css">
@@ -16,14 +18,14 @@
   <script src="./vendor/pdf-lib.min.js" defer></script>
   <script src="./vendor/pdf.min.js" defer></script>
 </head>
-<body class="legacy-focus-ring pdf-studio-page" data-legacy-shell="true" data-help-steps='["Pick a tool in the left panel.","Load your files and review preflight checks.","Run generation and use the single output panel to download results."]'>
+<body class="legacy-focus-ring pdf-studio-page" data-legacy-shell="true" data-shell-kicker="Productivity" data-help-steps='["Review the local-processing and redaction boundary above the workspace.","Pick a tool in the left panel.","Load files and review preflight checks.","Run generation and inspect the output summary before downloading.","For OCR, confirm whether a real local engine is available or the tool is using text-layer extraction fallback."]'>
   <main class="pdf-studio cl-panel-layout cl-panel-layout--three-pane" data-workflow="pdf">
     <aside class="pdf-studio__toolnav cl-panel-layout__sidebar" id="pdf-studio-nav"></aside>
 
     <section class="pdf-studio__workspace cl-panel-layout__main">
       <section class="legacy-workflow__panel" aria-live="polite">
         <h1 id="pdf-studio-title">PDF Studio</h1>
-        <p class="cl-page-subtitle" id="pdf-studio-subtitle">Local-first professional PDF workflows with shared preflight and output summaries.</p>
+        <p class="cl-page-subtitle" id="pdf-studio-subtitle">Local-first PDF workflows with preflight, explicit capability status, and output summaries.</p>
       </section>
 
       <section class="legacy-workflow__panel legacy-workflow__primary" id="pdf-studio-primary"></section>
