@@ -42,8 +42,8 @@ jobs:
           {
             python - <<'PY'
           from pathlib import Path
-          broken = "+" + "'" + "\n" + "'" + ");"
-          fixed = "+" + "'" + "\\n" + "'" + ");"
+          broken = "'" + "\n" + "'"
+          fixed = "'" + "\\n" + "'"
           for name in [
               "site/scripts/portfolio-audit.mjs",
               "site/scripts/assemble-rheum-derm-dashboard.mjs",
@@ -53,7 +53,7 @@ jobs:
               replacements = text.count(broken)
               text = text.replace(broken, fixed)
               path.write_text(text, encoding="utf-8")
-              print(f"{name}: normalized {replacements} escaped-newline occurrence(s)")
+              print(f"{name}: normalized {replacements} single-quoted newline literal(s)")
           PY
             echo '--- portfolio-audit.mjs ---'
             node --check site/scripts/portfolio-audit.mjs
