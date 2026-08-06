@@ -35,6 +35,25 @@ jobs:
       - name: Apply source-first portfolio remediation
         run: python scripts/apply_portfolio_remediation.py
 
+      - name: Normalize generated newline escapes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          broken = "+" + "'" + "\n" + "'" + ");"
+          fixed = "+" + "'" + "\\n" + "'" + ");"
+          for name in [
+              "site/scripts/portfolio-audit.mjs",
+              "site/scripts/assemble-rheum-derm-dashboard.mjs",
+          ]:
+              path = Path(name)
+              text = path.read_text(encoding="utf-8")
+              text = text.replace(broken, fixed)
+              path.write_text(text, encoding="utf-8")
+          PY
+          node --check site/scripts/portfolio-audit.mjs
+          node --check site/scripts/assemble-rheum-derm-dashboard.mjs
+
       - name: Install website dependencies
         run: npm --prefix site install
 
@@ -42,8 +61,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          node --check site/scripts/portfolio-audit.mjs 2>&1 | tee portfolio-audit.log
-          npm --prefix site run audit:portfolio 2>&1 | tee -a portfolio-audit.log
+          npm --prefix site run audit:portfolio 2>&1 | tee portfolio-audit.log
 
       - name: Run complete unit and policy suite
         run: npm run site:test
