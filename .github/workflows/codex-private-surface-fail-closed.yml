@@ -1,0 +1,125 @@
+name: Fail closed for internal public-build surfaces
+
+on:
+  push:
+    branches:
+      - codex/portfolio-quality-remediation-20260806
+    paths:
+      - .github/workflows/codex-private-surface-fail-closed.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/portfolio-quality-remediation-20260806
+          lfs: true
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Replace unauthenticated private routes with fail-closed notices
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def stub(title, description, destination, classification):
+              return f'''<!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+            <meta name="referrer" content="no-referrer">
+            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+            <title>{title} — private deployment required</title>
+            <style>
+              :root{{color-scheme:light dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}}
+              *{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;place-items:center;background:#111827;color:#f8fafc;padding:24px}}
+              main{{width:min(720px,100%);border:1px solid #475569;border-left:6px solid #dc7d47;border-radius:14px;background:#1e293b;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.35)}}
+              .eyebrow{{margin:0 0 12px;color:#fdba74;font-size:12px;font-weight:750;letter-spacing:.14em;text-transform:uppercase}}h1{{margin:0;font-size:clamp(32px,7vw,58px);line-height:.98}}
+              p{{color:#cbd5e1;line-height:1.65}}code{{color:#fed7aa}}a{{color:#bae6fd}}.status{{margin-top:22px;border:1px solid #7c2d12;background:#431407;padding:14px;border-radius:9px;color:#ffedd5;font-weight:650}}
+            </style>
+          </head>
+          <body><main><p class="eyebrow">{classification}</p><h1>{title}</h1><p>{description}</p><div class="status" role="status">This application is not served from the unauthenticated public portfolio. Access must fail closed until an authenticated, separately monitored deployment exists.</div><p>Required destination: <code>{destination}</code>. The prior public implementation remains only in repository history for controlled migration; it is not loaded by this route.</p><p><a href="/apps">Return to the governed application catalog</a></p></main></body>
+          </html>'''
+
+          Path('site/public/tasks/index.html').write_text(stub(
+              'Taskboard',
+              'Internal work-management data and Firebase-backed actions require authenticated authorization, tenant-scoped rules, App Check, audit logging, and a tested backup/restore path.',
+              'authenticated private Taskboard deployment',
+              'Private internal application'
+          ))
+          Path('site/public/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html').write_text(stub(
+              'Dermie fundraising packet',
+              'Financial scenarios, fundraising assumptions, milestones, demo materials, and competitive analysis are confidential business materials and must not rely on an unlisted URL for protection.',
+              'authenticated confidential-document deployment',
+              'Confidential fundraising material'
+          ))
+
+      - name: Add migration and acceptance record
+        shell: bash
+        run: |
+          cat > docs/private-surface-migration.md <<'EOF'
+          # Private surface migration record
+
+          Date: 2026-08-06
+
+          The public GitHub Pages artifact no longer serves the internal Taskboard or Dermie fundraising packet as functional applications. Both routes fail closed to static access-required notices with no JavaScript, network, Firebase, document, or business-data payload.
+
+          This is containment, not completion of private deployment. Before either application is reactivated, it requires:
+
+          - a separate deployment project and hostname;
+          - authentication before application assets are served;
+          - role-based authorization and deny-by-default datastore rules;
+          - App Check or equivalent client attestation where Firebase is used;
+          - audit logging and session expiry;
+          - encrypted backup and tested restore;
+          - no confidential or licensed payload in the public website repository;
+          - exact-head browser and unauthorized-access tests;
+          - fail-closed behavior when the identity, tunnel, or backend is unavailable.
+
+          Previous public source remains recoverable from repository history for controlled migration. Git-history removal would require a separate, disruptive history-rewrite decision and does not substitute for rotating any credential that may ever have been exposed.
+          EOF
+
+      - name: Install, test, and build complete site
+        run: |
+          npm --prefix site install
+          npm run site:test
+          npm run site:build
+
+      - name: Verify fail-closed built routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            site/dist/tasks/index.html \
+            site/dist/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html; do
+            test -s "$file"
+            grep -Fq 'not served from the unauthenticated public portfolio' "$file"
+            ! grep -Eiq 'firebase-|financial sketch|use of funds|milestones-grid|localStorage|sessionStorage|<script' "$file"
+          done
+
+      - name: Remove migration workflow and commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/codex-private-surface-fail-closed.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A \
+            .github/workflows/codex-private-surface-fail-closed.yml \
+            site/public/tasks/index.html \
+            site/public/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html \
+            docs/private-surface-migration.md
+          git commit -m 'security(private): fail closed for internal public routes'
+          git push origin HEAD:codex/portfolio-quality-remediation-20260806
