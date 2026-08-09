@@ -1,0 +1,77 @@
+name: NHANES mercury-psoriasis reproducibility analysis
+
+on:
+  push:
+    branches:
+      - research/nhanes-mercury-psoriasis-20260809
+    paths:
+      - 'research/nhanes_mercury_psoriasis/**'
+      - '.github/workflows/nhanes-mercury-psoriasis.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Install R dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::haven
+            any::dplyr
+            any::tidyr
+            any::readr
+            any::readxl
+            any::survey
+            any::ggplot2
+            any::broom
+            any::jsonlite
+            any::scales
+          cache-version: 1
+
+      - name: Normalize source typo introduced by contents transport
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('research/nhanes_mercury_psoriasis/analysis.R')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('file(log_file, open = "wt")nsink(', 'file(log_file, open = "wt")\nsink(')
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Run analysis
+        shell: bash
+        run: Rscript research/nhanes_mercury_psoriasis/analysis.R
+
+      - name: Preserve executed source and workflow
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p research/nhanes_mercury_psoriasis/output/executed_source
+          cp research/nhanes_mercury_psoriasis/analysis.R research/nhanes_mercury_psoriasis/output/executed_source/analysis.R
+          cp .github/workflows/nhanes-mercury-psoriasis.yml research/nhanes_mercury_psoriasis/output/executed_source/workflow.yml
+
+      - name: Upload complete research package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nhanes-mercury-psoriasis-results
+          path: research/nhanes_mercury_psoriasis/output
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 6
