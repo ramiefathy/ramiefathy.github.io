@@ -41,18 +41,11 @@ jobs:
             any::broom
             any::jsonlite
             any::scales
-          cache-version: 1
+          cache-version: 2
 
-      - name: Normalize source typo introduced by contents transport
+      - name: Apply documented source and survey-weight corrections
         shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('research/nhanes_mercury_psoriasis/analysis.R')
-          text = path.read_text(encoding='utf-8')
-          text = text.replace('file(log_file, open = "wt")nsink(', 'file(log_file, open = "wt")\nsink(')
-          path.write_text(text, encoding='utf-8')
-          PY
+        run: python research/nhanes_mercury_psoriasis/patch_analysis_v2.py
 
       - name: Run analysis
         shell: bash
@@ -64,6 +57,7 @@ jobs:
         run: |
           mkdir -p research/nhanes_mercury_psoriasis/output/executed_source
           cp research/nhanes_mercury_psoriasis/analysis.R research/nhanes_mercury_psoriasis/output/executed_source/analysis.R
+          cp research/nhanes_mercury_psoriasis/patch_analysis_v2.py research/nhanes_mercury_psoriasis/output/executed_source/patch_analysis_v2.py
           cp .github/workflows/nhanes-mercury-psoriasis.yml research/nhanes_mercury_psoriasis/output/executed_source/workflow.yml
 
       - name: Upload complete research package
