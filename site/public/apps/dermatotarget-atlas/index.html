@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DermatoTarget Atlas — Research Workbench</title>
+  <meta name="description" content="Interactive workbench over the DermatoTarget Atlas public-data dermatology target-prioritization study. Hypothesis-generating evidence, not clinical guidance." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div id="app" class="app" aria-busy="true">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">DT</div>
+        <div class="brand-text">
+          <strong>DermatoTarget Atlas</strong>
+          <span>Research workbench</span>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <!-- nav items injected by app.js -->
+      </nav>
+
+      <div class="sidebar-foot">
+        <span class="hyp-badge" title="All outputs are prioritization hypotheses, not clinical guidance.">
+          Hypothesis-generating
+        </span>
+        <span class="run-stamp" id="run-stamp"></span>
+      </div>
+    </aside>
+
+    <div class="content">
+      <header class="topbar" role="toolbar" aria-label="Page tools">
+        <button type="button" class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">Menu</button>
+        <div class="topbar-title" id="topbar-title">Overview</div>
+        <div class="topbar-search">
+          <input type="search" id="global-search" placeholder="Jump to gene (e.g. JAK1, IL13)..."
+                 autocomplete="off" aria-label="Search targets by gene symbol" />
+          <div class="search-results" id="search-results" hidden></div>
+        </div>
+      </header>
+
+      <main id="main" class="main" tabindex="-1">
+        <div id="view" class="view"><!-- view content injected here --></div>
+      </main>
+
+      <footer class="appfoot">
+        <span>Public-data, non-PHI study; sources: Open Targets, GWAS Catalog, Human Protein Atlas, ClinicalTrials.gov, PubMed/Entrez.</span>
+        <span>Prioritization hypotheses only - not clinical decision support or treatment guidance.</span>
+      </footer>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close">×</button>
+    <figure>
+      <img id="lightbox-img" alt="" />
+      <figcaption id="lightbox-cap"></figcaption>
+    </figure>
+  </div>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>

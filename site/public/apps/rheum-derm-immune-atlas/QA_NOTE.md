@@ -1,0 +1,52 @@
+# Rheum–Derm Immune Atlas release QA
+
+Date: 2026-07-13
+Route: `/apps/rheum-derm-immune-atlas/`
+
+## Disposition
+
+Approved for the repository's stacked review workflow as version 5.0 after the provenance-triptych and interaction-restraint layer. The relational contract now drives five pairwise presets, a complete 18-condition ledger, separate treatment lanes, a fixed three-facet provenance view and a source-backed four-class storyboard.
+
+## Evidence
+
+- Focused Playwright tests: 11 passed, including the ten-route JAK–STAT wiring contract, two-inhibitor route model, 27-pathway treatment lanes, categorical overlap boundary, five-preset comparator, complete cohort ledger, fixed provenance triptych, four-step supported storyboard, cross-view context synchronization, two narrow-screen local-overflow contracts, antibody matrix, 18-condition subtype inventory, theme contract, and relational-contract closure.
+- Full site unit/policy suite: 212 passed.
+- Full Playwright suite: 147 passed and 21 opt-in screenshot tests skipped by configuration; no failures across 168 collected tests.
+- Production Astro build: passed; 27 routes generated.
+- JavaScript syntax check: passed.
+- Heading/landmark check: passed.
+- Anti-slop blocklist: 0 errors and 0 warnings.
+- Dark primary text achieves 16.36:1 against the page field; secondary and faint text achieve 8.87:1 and 5.84:1 against panels; ochre and blue accents achieve 7.59:1 and 7.41:1. All tested pairs meet WCAG AA.
+- Light-theme primary, secondary, faint, accent and link pairs achieve 15.60:1, 6.95:1, 4.99:1, 5.38:1 and 5.57:1 respectively. All tested pairs meet WCAG AA.
+- A grayscale visual pass preserved separate circle, diamond, square and dashed-circle encodings for present, mapped-no-effect, filtered and unmapped cells. Antibody association direction also retains arrow, border and dash encodings, so hue is not the sole channel.
+- Custom browser checks at 390 × 844 and 1440 × 1000 found zero runtime errors and zero body overflow. All ten receptor routes retained four labeled stages, all 18 subtype modules were non-empty, and new controls were keyboard-operable.
+- The orthographic comparator completed 100 redraws in 20.7–21.2 ms locally in headless Chromium.
+- Reduced-motion behavior collapses animation and transition durations while preserving interaction state.
+- Contrast-engine unit tests: 10 passed.
+- Canonical inventory already covered the route; the inventory-driven route test passed.
+- The preceding version 4 built artifact was byte-identical to its tested `site/public` source (`630ac6acaf2872ba44eb418e21a7f27b28c7b006a6a39b304b7f265202daa881`). The version 4.1 production build is byte-identical to source at SHA-256 `03726743ee8de86249ff7411f330a1ab750e23d31edd6feb102fa326447a7703`; version 4.2 at `550fdaafe3e4cfb1150296b6353968f9ecacb683d0b47be6b6c714b1f62830b5`; version 4.3 at `98d97f0a7fd29844baadc49305f154f7bc47812f5e7443d91a5fb858365a25c3`; and version 5.0 at `fa74b32f4fc80fdf9a87e7ebb9c53ec7107df85b19d2d66a10a69fa99aa49fea`.
+- Version 4 golden baseline before the relational changes: production/source SHA-256 `630ac6acaf2872ba44eb418e21a7f27b28c7b006a6a39b304b7f265202daa881`; 5 focused Playwright tests passed.
+- Version 4.1 relational raw-row audit: 18 condition, 27 canonical pathway, 49 medication and 124 normalized feature entities; 736 normalized relationship rows across condition–pathway, condition–feature, condition–medication, medication–feature and medication–pathway strata. Contract validation reports zero errors.
+- The five resolver outcomes were exercised directly: direct, explicit zero, filtered, unknown and derived. Missing rows remain unknown; explicit zero requires a source row; derived rows retain an intermediate-path record.
+- Version 4.2 exposes five pairwise presets: condition × pathway, condition × treatment, condition × feature, treatment × pathway and treatment × feature. Treatment × feature requires an explicit condition context.
+- The cohort ledger renders the frozen 18-condition order against all 27 pathways, 49 treatments or 124 normalized features. Browser assertions verify 486, 882 and 2,232 visible coordinates respectively; none are silently dropped.
+- At 390 × 844, inactive slabs collapse to face-on tabs, the document width remains within the viewport and the active ledger scrolls locally.
+- Version 4.3 renders one or two agents in separate lanes against all 27 canonical pathways. The optional overlap row emits set categories only (both, A-only, B-only, neither), and its permanent boundary explicitly prohibits combined-magnitude or synergy interpretation.
+- Version 5.0 adds a fixed Pathway → Condition → Treatment/Feature triptych. Direct and derived target edges use solid versus dashed strokes, named target waypoints remain explicit, and the view reports 27 scanned pathways plus visible-node denominators.
+- The four-class storyboard advances through context, pathway program, feature and intervention only when each class has a source-backed entity. Unsupported chains stop with an explicit status rather than substituting an inferred node.
+- Selecting a condition in the triptych synchronizes the free-space explorer, phenotype comparator, treatment-feature context and subtype navigator.
+- Auto-rotation, animated edge particles and canvas shadow glow were removed. The free-space graph now uses flat evidence-weighted fills and outlines, with redundant shape and line-style encodings retained.
+- Visual inspection at 1440 × 1000 confirmed legible facet separation, restrained edge contrast, readable source metadata and a coherent four-step storyboard. At 390 × 844, the document remains viewport-contained and the fixed-width SVG scrolls only inside its local shell.
+
+## Residual risk
+
+- The atlas remains a large self-contained HTML application. The expansion deliberately keeps the dense visualizations and evidence payload local rather than adding runtime dependencies.
+- Combination coverage reports declared molecular target intersection only. It does not model dose, tissue exposure, pharmacodynamics, efficacy, synergy, antagonism or safety.
+- “Outside declared target model” is not evidence of biological absence; unmapped, filtered and mapped-zero states remain separate in the interface.
+- Antibody marks summarize cohort-level enrichment and can vary by assay platform, population and ascertainment. The assay caveat and source links remain visible beside the matrix.
+- Subtype labels are overlapping organizational phenotypes, not a validated classification instrument.
+- The cohort ledger is intentionally dense and uses local horizontal scrolling. It is an inventory/overlap surface, not a ranking model; cell magnitude reflects the embedded relation strength only.
+- Named JAK1/2/3 inhibitors project to the atlas's existing JAK-inhibitor class relation; deucravacitinib projects to the TYK2 entry. The lane therefore supports class-level pathway coverage, while the adjacent receptor-routing panel retains agent-specific JAK selectivity.
+- The triptych is a focused trace: it shows up to ten strongest visible pathways and twelve visible right-facet entities after the selected evidence floor. Its denominator states how many were scanned and shown; it is not a complete substitute for the cohort ledger or exported relation table.
+- Feature-level links reuse already embedded condition/effect source trails and do not add new efficacy claims. The relation export is a normalized projection of the existing evidence payload, not an independent systematic review.
+- Canonical `origin/master` currently installs with eight dependency audit findings. This change does not modify dependencies.

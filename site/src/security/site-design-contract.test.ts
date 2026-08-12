@@ -4,14 +4,22 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /**
- * Site-side Atlas design contract.
+ * Site-side Field Console design contract.
  *
  * Mirrors `frontend-design-contract.test.ts` (which guards `site/public/apps/**`)
- * but scoped to the Astro source: `site/src/components/**` and `site/src/pages/**`.
+ * but scoped to the Astro source: `site/src/components/**`, `src/pages/**`,
+ * `src/styles/**`, `src/layouts/**`.
  *
- * Catches regressions where a future component or page reintroduces the pre-Atlas
- * navy/cyan/teal palette, the old Playfair/IBM Plex fonts, an emoji glyph, or a
- * banned vibecoded pattern.
+ * This file previously encoded the light "atlas" palette (bone/terracotta,
+ * Bricolage/Newsreader) and the plate-stamp primitives. That theme was retired;
+ * the contract below guards the replacement:
+ *
+ *   - a dark ground (#0b0e13) with a SINGLE coral accent (#ff6b4a)
+ *   - Fraunces (display) / Bricolage Grotesque (UI) / Space Mono (data)
+ *   - no second accent hue — "live" is signalled by form (pulse, caret), so a
+ *     phosphor-green accent must not creep back in and clash with the coral
+ *   - no decorative barcode / plate-number ornament, and no themed verbiage
+ *   - fonts stay self-hosted (no Google Fonts CDN)
  */
 
 const __filename = fileURLToPath(import.meta.url)
@@ -24,7 +32,7 @@ const STYLES_ROOT = path.resolve(SITE_ROOT, 'src', 'styles')
 const LAYOUTS_ROOT = path.resolve(SITE_ROOT, 'src', 'layouts')
 const APPS_ROOT = path.resolve(SITE_ROOT, 'src', 'apps')
 
-const ATLAS_INCLUDE_EXT = new Set(['.astro', '.jsx', '.tsx', '.ts', '.js', '.css', '.html'])
+const INCLUDE_EXT = new Set(['.astro', '.jsx', '.tsx', '.ts', '.js', '.css', '.html'])
 
 function walk(root: string): string[] {
   const out: string[] = []
@@ -38,7 +46,7 @@ function walk(root: string): string[] {
         stack.push(full)
         continue
       }
-      if (!ATLAS_INCLUDE_EXT.has(path.extname(entry.name))) continue
+      if (!INCLUDE_EXT.has(path.extname(entry.name))) continue
       out.push(full)
     }
   }
@@ -53,10 +61,12 @@ const SITE_FILES = [
   ...walk(APPS_ROOT),
 ]
 
-describe('Atlas Site Design Contract (Astro src)', () => {
-  it('no banned palette hexes appear in src/components, src/pages, src/styles, or src/layouts', () => {
-    // Pre-Atlas navy/cyan/teal/blue/purple/violet/indigo families that should never
-    // re-appear in the Atlas codebase.
+const GLOBAL_CSS = path.join(STYLES_ROOT, 'global.css')
+
+describe('Field Console Site Design Contract (Astro src)', () => {
+  it('no banned palette hexes appear in src', () => {
+    // Pre-existing navy/cyan/teal families plus the AI-default purple/indigo
+    // family, none of which belong in a single-coral-accent system.
     const banned: Array<{ label: string; re: RegExp }> = [
       { label: 'old teal primary', re: /#0f766e\b/i },
       { label: 'old cyan accent', re: /#0ea5e9\b/i },
@@ -78,24 +88,38 @@ describe('Atlas Site Design Contract (Astro src)', () => {
 
     const offenders: Array<{ file: string; hex: string }> = []
     for (const file of SITE_FILES) {
-      const rel = path.relative(SITE_ROOT, file)
-      // global.css legitimately documents its tokens — exempt the token block
-      // by skipping lines matching `--ink: ` / token assignments.
       const content = fs.readFileSync(file, 'utf-8')
       for (const { re } of banned) {
         const match = content.match(re)
-        if (match) offenders.push({ file: rel, hex: match[0] })
+        if (match) offenders.push({ file: path.relative(SITE_ROOT, file), hex: match[0] })
       }
     }
 
     expect(offenders).toEqual([])
   })
 
-  it('no banned font families in src/components, pages, styles, layouts', () => {
-    // Banned: AI-default sans + the now-legacy Playfair/IBM Plex pair.
-    // Allowed exemption: `src/styles/global.css` references Bricolage/Newsreader/Space Mono
-    // and `legacy-fonts.css` (in /apps/shared/) still has Playfair etc. but that's
-    // outside this test's scope.
+  it('no phosphor-green second accent reappears alongside the coral', () => {
+    // The green/orange pair read as a clash. Coral is the only hue; anything
+    // "live" is expressed through motion and form instead.
+    const greens: Array<{ label: string; re: RegExp }> = [
+      { label: 'phosphor green', re: /#a4f27e\b/i },
+      { label: 'phosphor green (bright)', re: /#c0ff9e\b/i },
+      { label: 'terminal green', re: /#5fbf77\b/i },
+      { label: 'phosphor rgb', re: /rgba?\(\s*164\s*,\s*242\s*,\s*126/i },
+    ]
+
+    const offenders: Array<{ file: string; token: string }> = []
+    for (const file of SITE_FILES) {
+      const content = fs.readFileSync(file, 'utf-8')
+      for (const { label, re } of greens) {
+        if (re.test(content)) offenders.push({ file: path.relative(SITE_ROOT, file), token: label })
+      }
+    }
+
+    expect(offenders).toEqual([])
+  })
+
+  it('no banned font families in src', () => {
     const bannedFonts: Array<{ label: string; re: RegExp }> = [
       { label: 'Inter', re: /['"]Inter['"]/ },
       { label: 'Poppins', re: /['"]Poppins['"]/ },
@@ -103,46 +127,57 @@ describe('Atlas Site Design Contract (Astro src)', () => {
       { label: 'Montserrat', re: /['"]Montserrat['"]/ },
       { label: 'DM Sans', re: /['"]DM Sans['"]/ },
       { label: 'Geist Sans', re: /['"]Geist Sans['"]/ },
-      // Atlas migration replaced these — should not be reintroduced in the Astro src.
       { label: 'Playfair Display (legacy)', re: /['"]Playfair Display['"]/ },
       { label: 'IBM Plex Sans (legacy)', re: /['"]IBM Plex Sans['"]/ },
     ]
 
     const offenders: Array<{ file: string; font: string }> = []
     for (const file of SITE_FILES) {
-      const rel = path.relative(SITE_ROOT, file)
       const content = fs.readFileSync(file, 'utf-8')
       for (const { label, re } of bannedFonts) {
-        if (re.test(content)) offenders.push({ file: rel, font: label })
+        if (re.test(content)) offenders.push({ file: path.relative(SITE_ROOT, file), font: label })
       }
     }
 
     expect(offenders).toEqual([])
   })
 
-  it('no Google Fonts CDN references in src — fonts are self-hosted via legacy-fonts.css', () => {
+  it('no Google Fonts CDN references in src — fonts are self-hosted', () => {
     const offenders: string[] = []
     for (const file of SITE_FILES) {
-      const rel = path.relative(SITE_ROOT, file)
       const content = fs.readFileSync(file, 'utf-8')
       if (/fonts\.googleapis\.com|fonts\.gstatic\.com/.test(content)) {
-        offenders.push(rel)
+        offenders.push(path.relative(SITE_ROOT, file))
       }
     }
     expect(offenders).toEqual([])
   })
 
-  it('no emoji glyphs in src components/pages (excluding .md and inline content quotes)', () => {
-    // Atlas uses Material Symbols glyphs or text labels — not emoji.
-    // Common offenders: ✨ ☀ ☾ 🚀 💡 🎉 🔥 ⚡ 📚 📖 🏥 ⭐ ★ ❤
-    // Note: this is a softer check — only flag if emoji appears in markup attributes
-    // (className, label, aria-label) or as direct text content of a UI element.
+  it('every display font referenced by the tokens is actually self-hosted', () => {
+    const css = fs.readFileSync(GLOBAL_CSS, 'utf-8')
+    const faceCss = fs.readFileSync(
+      path.resolve(SITE_ROOT, 'public', 'apps', 'shared', 'legacy-fonts.css'),
+      'utf-8'
+    )
+    // @font-face blocks only, so a family name mentioned elsewhere in the file
+    // (e.g. a fallback stack in a comment) can't satisfy "actually self-hosted".
+    const faceBlocks = faceCss.match(/@font-face\s*\{[^}]*\}/g) ?? []
+    for (const family of ['Fraunces', 'Bricolage Grotesque', 'Space Mono']) {
+      const referencedByToken = new RegExp(`['"]${family}['"]`).test(css)
+      expect(referencedByToken, `${family} should be referenced by a token`).toBe(true)
+      const declaredInFontFace = faceBlocks.some((block) =>
+        new RegExp(`font-family:\\s*['"]${family}['"]`).test(block)
+      )
+      expect(declaredInFontFace, `${family} needs an @font-face declaration`).toBe(true)
+    }
+  })
+
+  it('no emoji glyphs in src components/pages', () => {
     const emojiRe = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2700}-\u{27BF}\u{1F000}-\u{1F2FF}\u{1F600}-\u{1F64F}\u{1F900}-\u{1F9FF}]/u
 
     const offenders: Array<{ file: string; sample: string }> = []
     for (const file of SITE_FILES) {
       const rel = path.relative(SITE_ROOT, file)
-      // Skip data files (publications.js, blog.json) — content can quote articles
       if (rel.includes('data')) continue
       const content = fs.readFileSync(file, 'utf-8')
       const match = content.match(emojiRe)
@@ -155,13 +190,17 @@ describe('Atlas Site Design Contract (Astro src)', () => {
     expect(offenders).toEqual([])
   })
 
-  it('Atlas type primitives are referenced across the Astro pages', () => {
-    // Sanity check that templates use the Atlas type system (kicker / display1 /
-    // display2 / lede). At least 4 pages should reference these.
+  it('type primitives are referenced across the Astro pages', () => {
+    // Sanity check that templates use the shared type system rather than
+    // one-off inline styling.
     const referencingPages = new Set<string>()
     for (const file of walk(PAGES_ROOT)) {
       const content = fs.readFileSync(file, 'utf-8')
-      if (/\b(class|className)=["'`][^"'`]*\b(kicker|display1|display2|lede|plate-stamp|plate-head)\b/.test(content)) {
+      if (
+        /\b(class|className)=["'`][^"'`]*\b(kicker|display1|display2|lede|section-marker|section-head|cmd-preface)\b/.test(
+          content
+        )
+      ) {
         referencingPages.add(path.relative(PAGES_ROOT, file))
       }
     }
@@ -169,27 +208,83 @@ describe('Atlas Site Design Contract (Astro src)', () => {
     expect(referencingPages.size).toBeGreaterThanOrEqual(4)
   })
 
-  it('Atlas color tokens are defined in src/styles/global.css', () => {
-    const css = fs.readFileSync(path.join(STYLES_ROOT, 'global.css'), 'utf-8')
-    for (const required of ['--bone:', '--ink:', '--terracotta:', '--slate:', '--moss:', '--gold:']) {
+  it('Field Console color tokens are defined in global.css', () => {
+    const css = fs.readFileSync(GLOBAL_CSS, 'utf-8')
+    for (const required of ['--ground:', '--surface:', '--text:', '--accent:', '--text-muted:', '--line:']) {
       expect(css).toContain(required)
     }
-    expect(css).toMatch(/--bone:\s*#f4f0e8\b/i)
-    expect(css).toMatch(/--terracotta:\s*#c2674a\b/i)
-    expect(css).toMatch(/--ink:\s*#0a0a0a\b/i)
+    expect(css).toMatch(/--ground:\s*#0b0e13\b/i)
+    expect(css).toMatch(/--accent:\s*#ff6b4a\b/i)
+    expect(css).toMatch(/--text:\s*#f2f4f6\b/i)
   })
 
-  it('Atlas font families resolve to Bricolage / Newsreader / Space Mono', () => {
-    const css = fs.readFileSync(path.join(STYLES_ROOT, 'global.css'), 'utf-8')
-    expect(css).toMatch(/--font-display:\s*['"]Bricolage Grotesque['"]/i)
-    expect(css).toMatch(/--font-(emphasis|body):\s*['"]Newsreader['"]/i)
+  it('legacy token names remain aliased so downstream rules keep resolving', () => {
+    // ~2400 rules in this file still reference the older names. They are kept
+    // as role-preserving aliases; dropping them would silently unstyle pages.
+    const css = fs.readFileSync(GLOBAL_CSS, 'utf-8')
+    for (const alias of ['--bone:', '--ink:', '--terracotta:', '--slate:', '--rule:', '--invert-bg:']) {
+      expect(css, `${alias} alias must stay defined`).toContain(alias)
+    }
+  })
+
+  it('font tokens resolve to Fraunces / Bricolage Grotesque / Space Mono', () => {
+    const css = fs.readFileSync(GLOBAL_CSS, 'utf-8')
+    expect(css).toMatch(/--font-display:\s*['"]Fraunces['"]/i)
+    expect(css).toMatch(/--font-(body|ui):\s*['"]Bricolage Grotesque['"]/i)
     expect(css).toMatch(/--font-mono:\s*['"]Space Mono['"]/i)
   })
 
-  it('dark-mode override blocks have been removed from global.css', () => {
-    const css = fs.readFileSync(path.join(STYLES_ROOT, 'global.css'), 'utf-8')
-    // `html[data-theme='dark']` blocks were Atlas-removed (light-only).
-    expect(css).not.toMatch(/html\[data-theme=['"]dark['"]\]/)
+  it('hero copy keeps a scrim between it and the particle canvas', () => {
+    // The rest of this file checks text against --ground, which is the wrong
+    // backdrop for the hero: the canvas paints coral strokes directly behind
+    // the copy, and the cursor vortex drives them to full intensity. Measured
+    // against real pixels the 12px kicker hit 1.76:1 before this scrim existed.
+    // Nothing else here can catch that, so guard the scrim itself.
+    const css = fs.readFileSync(GLOBAL_CSS, 'utf-8')
+    const scrim = css.match(/\.field-hero__body::before\s*\{[^}]*\}/)
+    expect(scrim, '.field-hero__body::before scrim must exist').toBeTruthy()
+    const alphas = [...scrim![0].matchAll(/rgba\(\s*11,\s*14,\s*19,\s*([\d.]+)\s*\)/g)].map((m) =>
+      parseFloat(m[1])
+    )
+    expect(alphas.length, 'scrim must be a --ground gradient').toBeGreaterThan(1)
+    // 0.85 is what holds the worst observed stroke above 4.5:1; see the rule's comment.
+    expect(Math.max(...alphas), 'scrim must stay opaque enough under the copy').toBeGreaterThanOrEqual(0.85)
+
+    // The cursor hint sits outside that scrim, over the densest part of the
+    // field, so it carries its own plate.
+    const hint = css.match(/\.field-hero__hint\s*\{[^}]*\}/)
+    expect(hint, '.field-hero__hint rule must exist').toBeTruthy()
+    const hintAlpha = hint![0].match(/background:\s*rgba\(\s*11,\s*14,\s*19,\s*([\d.]+)\s*\)/)
+    expect(hintAlpha, 'hint must keep an opaque --ground plate').toBeTruthy()
+    expect(parseFloat(hintAlpha![1])).toBeGreaterThanOrEqual(0.9)
+  })
+
+  it('is a single-theme dark site — no light-mode override blocks', () => {
+    const css = fs.readFileSync(GLOBAL_CSS, 'utf-8')
+    expect(css).not.toMatch(/\[data-theme=['"]light['"]\]/)
     expect(css).not.toMatch(/\[data-theme=['"]dark['"]\]/)
+  })
+
+  it('the retired theme\'s ornament and verbiage stay out of src', () => {
+    // The decorative barcode rule, plate numbering, and volume/coordinate
+    // language were the specific things the redesign removed.
+    const bannedMarkup: Array<{ label: string; re: RegExp }> = [
+      { label: 'decorative barcode element', re: /(class|className)=["'][^"']*\bbarcode\b/ },
+      { label: 'plate-number variable', re: /plateNumber|\bplate-number\b/ },
+      { label: 'volume reference', re: /\bVol\.\s*(I|II|III|IV|V)\b/ },
+      { label: 'frontispiece', re: /frontispiece/i },
+      { label: '"working atlas" tagline', re: /working\s+atlas/i },
+      { label: 'map-coordinate verbiage', re: /at that coordinate/i },
+    ]
+
+    const offenders: Array<{ file: string; label: string }> = []
+    for (const file of SITE_FILES) {
+      const content = fs.readFileSync(file, 'utf-8')
+      for (const { label, re } of bannedMarkup) {
+        if (re.test(content)) offenders.push({ file: path.relative(SITE_ROOT, file), label })
+      }
+    }
+
+    expect(offenders).toEqual([])
   })
 })

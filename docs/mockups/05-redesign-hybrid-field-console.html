@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ramiefathy.com — hybrid concept: Field Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:ital,wght@0,300..700;1,300..700&family=Work+Sans:wght@300..800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   WRAPPER — review chrome
+   ============================================================ */
+:root{--w-bg:#EFEEEA;--w-panel:#FFF;--w-ink:#1D1D1B;--w-muted:#54534E;--w-line:#D8D6CF;--w-accent:#8A3B22}
+*{box-sizing:border-box;margin:0;padding:0}
+@media (prefers-reduced-motion: reduce){
+  *{scroll-behavior:auto}
+}
+body{background:var(--w-bg);color:var(--w-ink);font:16px/1.6 "Work Sans",Seravek,Verdana,sans-serif}
+a{color:inherit}
+.wrap-head{max-width:1120px;margin:0 auto;padding:52px 24px 6px}
+.wrap-head .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--w-muted);font-weight:600}
+.wrap-head h1{font-size:clamp(28px,4.5vw,42px);line-height:1.1;font-weight:750;letter-spacing:-.02em;margin:12px 0 16px}
+.wrap-head p{max-width:78ch;color:var(--w-muted)}
+.wrap-head p+p{margin-top:10px}
+.wrap-head strong{color:var(--w-ink)}
+.rules{max-width:1120px;margin:24px auto 0;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.rule-card{background:var(--w-panel);border:1px solid var(--w-line);padding:18px 20px;font-size:14px}
+.rule-card h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.rule-card h2 .sw{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.15)}
+.rule-card p{color:var(--w-muted)}
+.try-row{max-width:1120px;margin:18px auto 0;padding:0 24px;display:flex;gap:10px;flex-wrap:wrap}
+.try{font-size:13px;font-weight:700;color:var(--w-accent);border:1px dashed var(--w-accent);padding:7px 12px;background:var(--w-panel)}
+.frame{max-width:1120px;margin:22px auto 64px;padding:0 24px}
+.frame-bar{display:flex;align-items:center;gap:10px;background:#DDDBD4;border:1px solid var(--w-line);border-bottom:0;padding:8px 14px;border-radius:6px 6px 0 0}
+.frame-bar .dots{display:flex;gap:5px}
+.frame-bar .dots span{width:9px;height:9px;border-radius:50%;background:#B9B6AD}
+.frame-bar .url{font-size:12px;color:var(--w-muted);background:#EFEEEA;border:1px solid var(--w-line);border-radius:4px;padding:3px 10px}
+.frame-body{border:1px solid var(--w-line);border-radius:0 0 6px 6px;overflow:hidden;box-shadow:0 14px 34px rgba(29,29,27,.10)}
+
+/* ============================================================
+   FIELD CONSOLE — the fused site  (.f-)
+   ground #0B0E13 · surface #151B23 · text #F2F4F6
+   coral #FF6B4A is the ONLY accent — "live" is signaled by motion/form, not hue
+   Instrument Serif (display) · Space Grotesk (UI) · JetBrains Mono (data)
+   ============================================================ */
+.f-root{background:#0B0E13;color:#F2F4F6;font:15.5px/1.6 "Space Grotesk",Futura,sans-serif;position:relative}
+.f-root a{text-decoration:none}
+.f-root ::selection{background:#FF6B4A;color:#0B0E13}
+
+.f-bar{display:flex;justify-content:space-between;align-items:center;padding:13px 28px;border-bottom:1px solid #1B222C;font-family:"JetBrains Mono",monospace;font-size:12px;color:#8A94A0;position:relative;z-index:3}
+.f-bar .st{display:flex;align-items:center;gap:9px}
+.f-bar .dot{width:8px;height:8px;border-radius:50%;background:#FF6B4A}
+@keyframes fPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,74,.5)}55%{box-shadow:0 0 0 7px rgba(255,107,74,0)}}
+.f-bar .dot{animation:fPulse 2.6s ease-out infinite}
+@media (prefers-reduced-motion: reduce){.f-bar .dot{animation:none}}
+.f-bar .who{color:#F2F4F6}
+.f-bar .rt{display:flex;align-items:center;gap:18px}
+.f-palkey{display:inline-flex;align-items:center;gap:8px;background:#11161D;border:1px solid #232B36;border-radius:5px;padding:5px 10px;cursor:pointer;color:#8A94A0;font:inherit}
+.f-palkey:hover{border-color:#8A94A0;color:#F2F4F6}
+.f-palkey kbd{font-family:inherit;font-size:10.5px;border:1px solid #232B36;border-radius:3px;padding:1px 5px;color:#FF6B4A}
+
+.f-stage{position:relative;min-height:92vh;overflow:hidden;display:flex;flex-direction:column}
+.f-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.f-chrome{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;pointer-events:none}
+.f-chrome a,.f-chrome button{pointer-events:auto}
+.f-nav{display:flex;justify-content:space-between;align-items:baseline;padding:22px 40px}
+.f-brand{font-family:"Instrument Serif",Georgia,serif;font-size:19px;color:#F2F4F6}
+.f-links{display:flex;gap:24px;font-size:13.5px;color:#8A94A0}
+.f-links a:hover{color:#FF6B4A}
+.f-links a[aria-current]{color:#F2F4F6;border-bottom:1px solid #FF6B4A;padding-bottom:3px}
+.f-hero{flex:1;display:flex;flex-direction:column;justify-content:center;padding:24px 40px;max-width:1200px}
+.f-kick{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#FF6B4A}
+.f-name{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:clamp(58px,9.5vw,132px);line-height:.95;letter-spacing:-.015em;margin-top:16px}
+.f-name .it{font-style:italic;color:#FF6B4A}
+.f-name .deg{font-size:.42em;color:#8A94A0;letter-spacing:0}
+.f-sub{margin-top:20px;font-size:16.5px;color:#8A94A0;max-width:54ch;line-height:1.65}
+.f-sub b{color:#F2F4F6;font-weight:500}
+.f-cta{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.f-btn{font-size:14px;font-weight:600;color:#0B0E13;background:#FF6B4A;padding:12px 20px;border-radius:3px}
+.f-btn:hover{background:#FF8666}
+.f-btn2{font-size:14px;font-weight:600;color:#F2F4F6;border:1px solid #39414D;padding:12px 20px;border-radius:3px}
+.f-btn2:hover{border-color:#8A94A0}
+.f-consolewrap{position:relative;z-index:2;padding:0 40px 34px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;align-items:end}
+.f-term{background:rgba(17,22,29,.92);border:1px solid #232B36;border-radius:8px;padding:18px 22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.85}
+.f-term .hd{display:flex;justify-content:space-between;color:#8A94A0;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.f-term .hd .live{color:#FF6B4A}
+.f-term .ln{color:#8A94A0}
+.f-term .ln .p{color:#FF6B4A}
+.f-term .typed{color:#F2F4F6}
+.f-caret{display:inline-block;width:8px;height:16px;background:#FF6B4A;vertical-align:-3px;margin-left:2px;animation:fBlink 1.1s steps(1) infinite}
+@keyframes fBlink{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.f-caret{animation:none}}
+.f-hint{justify-self:end;font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#8A94A0;border:1px solid #232B36;border-radius:999px;padding:7px 14px;background:rgba(11,14,19,.6)}
+
+.f-sec{padding:60px 40px;border-top:1px solid #1B222C;position:relative;z-index:2;background:#0B0E13}
+.f-sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:30px}
+.f-sec-h{font-family:"Instrument Serif",Georgia,serif;font-size:32px;font-weight:400;letter-spacing:-.01em}
+.f-sec-h .cmd{display:block;font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.04em;color:#8A94A0;margin-bottom:10px}
+.f-sec-h .cmd b{color:#FF6B4A;font-weight:500}
+.f-more{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#8A94A0}
+.f-more:hover{color:#FF6B4A}
+.f-apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;background:#1B222C;border:1px solid #1B222C}
+.f-app{background:#0B0E13;padding:28px 30px;display:flex;flex-direction:column;min-height:210px;position:relative;color:#F2F4F6}
+.f-app:hover{background:#11161D}
+.f-app .idx{font-family:"Instrument Serif",Georgia,serif;font-size:44px;line-height:1;color:transparent;-webkit-text-stroke:1px #39414D;transition:color .25s ease,-webkit-text-stroke-color .25s ease}
+.f-app:hover .idx{color:#FF6B4A;-webkit-text-stroke-color:#FF6B4A}
+.f-app .stat{position:absolute;top:30px;right:30px;font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#8A94A0}
+.f-app .stat::before{content:"●";margin-right:6px;font-size:8px;color:#FF6B4A}
+.f-app .t{font-size:20px;font-weight:600;letter-spacing:-.01em;margin-top:16px}
+.f-app:hover .t{color:#FF6B4A}
+.f-app .d{margin-top:9px;font-size:14px;color:#8A94A0;line-height:1.6}
+.f-app .s{margin-top:auto;padding-top:18px;font-family:"JetBrains Mono",monospace;font-size:11px;color:#8A94A0}
+.f-pubs .f-pub{display:grid;grid-template-columns:66px minmax(0,1fr) auto;gap:20px;align-items:baseline;padding:17px 0;border-bottom:1px solid #1B222C;color:#F2F4F6}
+.f-pubs .f-pub:last-child{border-bottom:0}
+.f-pub .y{font-family:"JetBrains Mono",monospace;font-size:13px;color:#FF6B4A}
+.f-pub .t{font-size:16.5px;font-weight:500;line-height:1.45}
+.f-pub:hover .t{color:#FF6B4A}
+.f-pub .t small{display:block;font-size:12.5px;color:#8A94A0;font-weight:400;margin-top:4px}
+.f-pub .v{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#8A94A0;text-align:right}
+.f-about{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:48px;align-items:start}
+.f-about .lede{font-family:"Instrument Serif",Georgia,serif;font-size:26px;line-height:1.35;color:#F2F4F6}
+.f-about .lede em{font-style:italic;color:#FF6B4A}
+.f-facts{display:flex;flex-direction:column;gap:0;border-top:1px solid #1B222C}
+.f-fact{display:grid;grid-template-columns:96px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid #1B222C;font-size:14px}
+.f-fact .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#FF6B4A;padding-top:2px}
+.f-fact .v{color:#8A94A0}
+.f-fact .v b{color:#F2F4F6;font-weight:500}
+.f-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:26px 40px;border-top:1px solid #1B222C;font-family:"JetBrains Mono",monospace;font-size:12px;color:#8A94A0;position:relative;z-index:2}
+.f-foot .fl{display:flex;gap:20px}
+.f-foot a:hover{color:#FF6B4A}
+.f-overlay{position:absolute;inset:0;background:rgba(5,7,10,.74);display:none;align-items:flex-start;justify-content:center;padding-top:11vh;z-index:30}
+.f-overlay.open{display:flex}
+.f-pal{width:min(580px,92%);background:#11161D;border:1px solid #232B36;border-radius:10px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.65)}
+.f-pal input{width:100%;background:transparent;border:0;border-bottom:1px solid #232B36;padding:16px 18px;color:#F2F4F6;font:14px "JetBrains Mono",monospace;outline:none}
+.f-pal input::placeholder{color:#5A6570}
+.f-pal-list{max-height:300px;overflow-y:auto}
+.f-pal-item{display:flex;justify-content:space-between;padding:12px 18px;font-size:14px;color:#F2F4F6;cursor:pointer}
+.f-pal-item:hover,.f-pal-item.sel{background:#1A222C}
+.f-pal-item .hint{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#8A94A0}
+.f-pal-item.hidden{display:none}
+@media(max-width:860px){
+  .f-nav,.f-hero{padding-left:22px;padding-right:22px}
+  .f-links{display:none}
+  .f-consolewrap{grid-template-columns:1fr;padding:0 22px 26px}
+  .f-hint{display:none}
+  .f-sec{padding:44px 22px}
+  .f-about{grid-template-columns:1fr;gap:28px}
+  .f-pub{grid-template-columns:56px 1fr}
+  .f-pub .v{display:none}
+  .f-bar{padding:11px 16px}
+  .f-bar .rt .clk{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="wrap-head">
+  <p class="eyebrow">ramiefathy.com · design review · round 3 · hybrid concept</p>
+  <h1>Field Console — 07 × 10, fused</h1>
+  <p>You liked both, and they want to be one site: <strong>Generative Field supplies the atmosphere</strong> (the living canvas, the enormous serif name) and <strong>Live Console supplies the credibility</strong> (status bar with a real clock, a truthful activity stream, ⌘K navigation). This is the full homepage, not a fragment — hero, apps, publications, about, footer — so you can judge the system end to end.</p>
+  <p>The fusion is held together by two rules, below. If this direction is right, this mockup is the build spec: everything here is vanilla JS and ports directly into the Astro site.</p>
+</header>
+
+<div class="rules">
+  <div class="rule-card">
+    <h2><span class="sw" style="background:#FF6B4A"></span>Coral — the only color</h2>
+    <p>The italic in your name, hover states, primary buttons, publication years, prompts, and status dots. One hue, so nothing competes; hierarchy comes from scale and weight.</p>
+  </div>
+  <div class="rule-card">
+    <h2><span class="sw" style="background:#8A94A0"></span>Live is a behavior, not a hue</h2>
+    <p>The earlier green accent clashed with coral, so "live" is now signaled by form instead: the pulsing dot, the blinking caret, the streaming text. Status labels sit in neutral steel with a small coral dot.</p>
+  </div>
+  <div class="rule-card">
+    <h2><span class="sw" style="background:#0B0E13"></span>One ground, three voices</h2>
+    <p>Instrument Serif speaks as the person, Space Grotesk as the interface, JetBrains Mono as the machine. The particle field runs under the hero only — sections sit on solid ground so reading stays effortless.</p>
+  </div>
+</div>
+
+<div class="try-row">
+  <span class="try">Move your cursor through the hero field</span>
+  <span class="try">Watch the console stream</span>
+  <span class="try">Click "navigate ⌘K" (or press K) and type</span>
+</div>
+
+<main>
+<div class="frame">
+  <div class="frame-bar"><span class="dots"><span></span><span></span><span></span></span><span class="url">ramiefathy.com</span></div>
+  <div class="frame-body">
+    <div class="f-root" id="fRoot">
+
+      <div class="f-bar">
+        <span class="st"><span class="dot"></span><span class="who">ramie fathy, md</span> · johns hopkins dermatology</span>
+        <span class="rt">
+          <span class="clk" id="fClock">— : — : —</span>
+          <button class="f-palkey" id="fPalBtn">navigate <kbd>⌘K</kbd></button>
+        </span>
+      </div>
+
+      <div class="f-stage" id="fStage">
+        <canvas id="fCanvas" aria-hidden="true"></canvas>
+        <div class="f-chrome">
+          <div class="f-nav">
+            <span class="f-brand">Ramie Fathy, MD</span>
+            <nav class="f-links" aria-label="Primary">
+              <a href="#fRoot" aria-current="page">Home</a><a href="#fApps">Apps</a><a href="#fPubs">Research</a><a href="#fAbout">About</a><a href="#fRoot">Blog</a><a href="#fRoot">Contact</a>
+            </nav>
+          </div>
+          <div class="f-hero">
+            <p class="f-kick">Dermatology · Clinical AI · Research</p>
+            <p class="f-name">Ramie <span class="it">Fathy</span><span class="deg">, MD</span></p>
+            <p class="f-sub"><b>Dermatology resident at Johns Hopkins.</b> I build clinical AI tools and study how they should — and should not — be used at the bedside.</p>
+            <div class="f-cta">
+              <a class="f-btn" href="#fApps">Explore the apps</a>
+              <a class="f-btn2" href="#fPubs">Read the research</a>
+            </div>
+          </div>
+        </div>
+        <div class="f-consolewrap">
+          <div class="f-term" aria-live="off">
+            <div class="hd"><span>activity</span><span class="live">● live</span></div>
+            <p class="ln"><span class="p">›</span> building clinical AI tools. testing whether they belong at the bedside.</p>
+            <p class="ln"><span class="p">›</span> <span class="typed" id="fTyped"></span><span class="f-caret" aria-hidden="true"></span></p>
+          </div>
+          <span class="f-hint">The field responds to your cursor</span>
+        </div>
+      </div>
+
+      <div class="f-sec" id="fApps">
+        <div class="f-sec-head">
+          <h2 class="f-sec-h"><span class="cmd"><b>$</b> ls apps --featured</span>Software</h2>
+          <a class="f-more" href="#fApps">view all 12 →</a>
+        </div>
+        <div class="f-apps">
+          <a class="f-app" href="#fApps">
+            <span class="idx">01</span>
+            <span class="stat">running</span>
+            <span class="t">RAMIE</span>
+            <span class="d">Real-time AI assistant for dermatology clinic — live transcription, differential support, documentation drafting.</span>
+            <span class="s">webrtc · gemini · websockets</span>
+          </a>
+          <a class="f-app" href="#fApps">
+            <span class="idx">02</span>
+            <span class="stat">running</span>
+            <span class="t">Dermatopathology Navigator</span>
+            <span class="d">Learning platform with an AI study assistant, spaced repetition, and a differential-diagnosis builder.</span>
+            <span class="s">react · gemini · sm-2</span>
+          </a>
+          <a class="f-app" href="#fApps">
+            <span class="idx">03</span>
+            <span class="stat">growing</span>
+            <span class="t">Dermatology Mind Maps</span>
+            <span class="d">Sixteen interactive topic maps — alopecia to vasculitis — searchable, annotation-ready, exportable.</span>
+            <span class="s">astro · d3 · fuse.js</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="f-sec" id="fPubs">
+        <div class="f-sec-head">
+          <h2 class="f-sec-h"><span class="cmd"><b>$</b> ls publications --recent</span>Selected publications</h2>
+          <a class="f-more" href="#fPubs">full list →</a>
+        </div>
+        <div class="f-pubs">
+          <a class="f-pub" href="#fPubs">
+            <span class="y">2025</span>
+            <span class="t">Comparative assessment of GPT-4 Vision in dermoscopic image analysis<small>Tadros AR, Zhuo W, Fathy RA, Robinson MA, Belzberg M, Alhariri JM</small></span>
+            <span class="v">j am acad dermatol</span>
+          </a>
+          <a class="f-pub" href="#fPubs">
+            <span class="y">2024</span>
+            <span class="t">Demographic differences and the impact of research years for reapplicants to dermatology residency<small>Truel JS, Ferree S, Fathy R, Hossler E, Rosman IS</small></span>
+            <span class="v">j am acad dermatol</span>
+          </a>
+          <a class="f-pub" href="#fPubs">
+            <span class="y">2023</span>
+            <span class="t">Increased ambient outdoor temperatures and disease flaring in hidradenitis suppurativa<small>Singh R, Fathy R, Kassamali B, Noe MH, Barbieri JS, et al.</small></span>
+            <span class="v">arch dermatol res</span>
+          </a>
+          <a class="f-pub" href="#fPubs">
+            <span class="y">2023</span>
+            <span class="t">Sentinel lymph node biopsy in Merkel cell carcinoma: compliance with NCCN guidelines<small>Lewis DJ, Fathy RA, Nugent S, Etzkorn JR, et al.</small></span>
+            <span class="v">j am acad dermatol</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="f-sec" id="fAbout">
+        <div class="f-sec-head">
+          <h2 class="f-sec-h"><span class="cmd"><b>$</b> whoami --verbose</span>About</h2>
+          <a class="f-more" href="#fAbout">full bio →</a>
+        </div>
+        <div class="f-about">
+          <p class="lede">Final-year dermatology resident at Johns Hopkins — inflammatory and complex medical dermatology, dermatopathology, and the careful evaluation of AI <em>at the bedside.</em></p>
+          <div class="f-facts">
+            <div class="f-fact"><span class="k">now</span><span class="v"><b>Johns Hopkins Dermatology</b>, PGY-4</span></div>
+            <div class="f-fact"><span class="k">next</span><span class="v"><b>Rheumatology–dermatology fellowship</b>, Mass General Brigham — Rodman Lab</span></div>
+            <div class="f-fact"><span class="k">service</span><span class="v"><b>AAD Council on Science &amp; Research</b>, 2025–2027</span></div>
+            <div class="f-fact"><span class="k">training</span><span class="v">Princeton AB, molecular biology · Penn MD</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="f-foot">
+        <span>© 2026 ramie fathy, md</span>
+        <span class="fl"><a href="#fRoot">email</a><a href="#fRoot">scholar</a><a href="#fRoot">linkedin</a><a href="#fRoot">github</a></span>
+      </div>
+
+      <div class="f-overlay" id="fOverlay">
+        <div class="f-pal" role="dialog" aria-label="Navigation palette">
+          <input id="fPalInput" type="text" placeholder="Type a destination…" aria-label="Filter destinations">
+          <div class="f-pal-list" id="fPalList">
+            <div class="f-pal-item" data-k="home"><span>Home</span><span class="hint">↵</span></div>
+            <div class="f-pal-item" data-k="about bio training fellowship"><span>About</span><span class="hint">↵</span></div>
+            <div class="f-pal-item" data-k="apps projects software ramie navigator mind maps skinoculars"><span>Apps &amp; projects</span><span class="hint">↵</span></div>
+            <div class="f-pal-item" data-k="research publications papers scholarship"><span>Research</span><span class="hint">↵</span></div>
+            <div class="f-pal-item" data-k="blog writing essays"><span>Blog</span><span class="hint">↵</span></div>
+            <div class="f-pal-item" data-k="contact email reach"><span>Contact</span><span class="hint">↵</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</main>
+
+<script>
+/* ===== flow field (under the hero only) ===== */
+(function(){
+  const c=document.getElementById('fCanvas');if(!c)return;
+  const ctx=c.getContext('2d');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const BG='#0B0E13';
+  let w=0,h=0;
+  function size(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const r=c.getBoundingClientRect();
+    w=r.width;h=r.height;
+    c.width=Math.max(1,w*dpr);c.height=Math.max(1,h*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.fillStyle=BG;ctx.fillRect(0,0,w,h);
+  }
+  size();
+  addEventListener('resize',size);
+  const N=820,P=[];
+  for(let i=0;i<N;i++){
+    P.push({x:Math.random()*w,y:Math.random()*h,px:0,py:0,coral:Math.random()<0.08});
+  }
+  let mx=-1e4,my=-1e4,t=Math.random()*100;
+  const stage=document.getElementById('fStage');
+  stage.addEventListener('pointermove',e=>{
+    const r=c.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;
+  });
+  stage.addEventListener('pointerleave',()=>{mx=-1e4;my=-1e4;});
+  function field(x,y){
+    const s=0.0016;
+    return Math.sin(y*s*2.1+t*0.7)+Math.cos(x*s*1.7-t*0.4)+Math.sin((x+y)*s*0.8+t*0.23);
+  }
+  function tick(draw){
+    t+=0.004;
+    for(const p of P){
+      const a=field(p.x,p.y)*Math.PI;
+      let vx=Math.cos(a),vy=Math.sin(a);
+      const dx=mx-p.x,dy=my-p.y,d2=dx*dx+dy*dy,R=170;
+      if(d2<R*R){
+        const d=Math.sqrt(d2)||1,f=(1-d/R)*1.7;
+        vx+=(-dy/d)*f*2.0+(dx/d)*f*0.35;
+        vy+=( dx/d)*f*2.0+(dy/d)*f*0.35;
+      }
+      p.px=p.x;p.py=p.y;
+      p.x+=vx*1.55;p.y+=vy*1.55;
+      if(p.x<-6){p.x=w+6;p.px=p.x}if(p.x>w+6){p.x=-6;p.px=p.x}
+      if(p.y<-6){p.y=h+6;p.py=p.y}if(p.y>h+6){p.y=-6;p.py=p.y}
+      if(draw&&Math.abs(p.x-p.px)<22&&Math.abs(p.y-p.py)<22){
+        ctx.strokeStyle=p.coral?'rgba(255,107,74,0.85)':'rgba(214,226,235,0.32)';
+        ctx.lineWidth=1.1;
+        ctx.beginPath();ctx.moveTo(p.px,p.py);ctx.lineTo(p.x,p.y);ctx.stroke();
+      }
+    }
+  }
+  if(reduce){
+    for(let k=0;k<140;k++)tick(k>20);
+    return;
+  }
+  let visible=true;
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(en=>{visible=en[0].isIntersecting},{threshold:0.02}).observe(c);
+  }
+  (function loop(){
+    if(visible){
+      ctx.fillStyle='rgba(11,14,19,0.045)';ctx.fillRect(0,0,w,h);
+      tick(true);
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ===== clock ===== */
+(function(){
+  const clock=document.getElementById('fClock');if(!clock)return;
+  const f=()=>{const n=new Date();clock.textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':')+' · baltimore';};
+  f();setInterval(f,1000);
+})();
+
+/* ===== typewriter ===== */
+(function(){
+  const typed=document.getElementById('fTyped');if(!typed)return;
+  const phrases=[
+    'evaluating GPT-4 Vision on dermoscopic images…',
+    'drafting a clinic note from live audio…',
+    'scheduling spaced repetition for 1,400 dermpath cards…',
+    'writing about what AI gets wrong at the bedside…'
+  ];
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){
+    typed.textContent=phrases[0];
+    return;
+  }
+  let pi=0,ci=0,del=false;
+  (function type(){
+    const ph=phrases[pi];
+    typed.textContent=ph.slice(0,ci);
+    let wait=del?26:52;
+    if(!del&&ci===ph.length){wait=2100;del=true;}
+    else if(del&&ci===0){del=false;pi=(pi+1)%phrases.length;wait=420;}
+    else ci+=del?-1:1;
+    setTimeout(type,wait);
+  })();
+})();
+
+/* ===== command palette ===== */
+(function(){
+  const btn=document.getElementById('fPalBtn'),ov=document.getElementById('fOverlay'),
+        input=document.getElementById('fPalInput'),list=document.getElementById('fPalList');
+  if(!btn||!ov)return;
+  const items=[...list.querySelectorAll('.f-pal-item')];
+  function open(){ov.classList.add('open');input.value='';filter('');input.focus();}
+  function close(){ov.classList.remove('open');btn.focus();}
+  function filter(q){
+    q=q.trim().toLowerCase();
+    items.forEach(it=>{
+      const hay=(it.textContent+' '+(it.dataset.k||'')).toLowerCase();
+      it.classList.toggle('hidden',q&&!hay.includes(q));
+    });
+  }
+  btn.addEventListener('click',open);
+  ov.addEventListener('click',e=>{if(e.target===ov)close();});
+  input.addEventListener('input',()=>filter(input.value));
+  document.addEventListener('keydown',e=>{
+    if(ov.classList.contains('open')){
+      if(e.key==='Escape')close();
+      return;
+    }
+    if((e.key==='k'||e.key==='K')&&(e.metaKey||e.ctrlKey||document.activeElement===document.body)){
+      e.preventDefault();open();
+    }
+  });
+  items.forEach(it=>it.addEventListener('click',close));
+})();
+</script>
+</body>
+</html>

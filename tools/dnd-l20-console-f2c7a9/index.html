@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0c1522">
+  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+  <title>Table Ledger — D&amp;D Character Console</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to character tools</a>
+  <div id="app" aria-live="polite">
+    <main class="boot-card" role="status">
+      <div class="boot-die" aria-hidden="true">20</div>
+      <div><p class="eyebrow">Table Ledger</p><h1>Opening the character folio</h1><p>Loading sheet math, actions, defenses, spells, inventory, and builder.</p></div>
+    </main>
+  </div>
+  <noscript>This character console requires JavaScript.</noscript>
+  <script src="data.js"></script>
+  <script>
+    (() => {
+      'use strict';
+      const PATCH_VERSION = '4.0.1-ci-remediation';
+      const lisa = window.TABLE_LEDGER_DATA?.characters?.lisa;
+      const belt = lisa?.items?.find((item) => item.id === 'belt-fire-giant');
+      if (belt) {
+        belt.sourceApplied = true;
+        belt.attuned = false;
+        const effect = belt.effects?.find((entry) => entry.type === 'setAbility' && entry.ability === 'STR');
+        if (effect) {
+          effect.strictRequirements = ['carried', 'attuned'];
+          effect.requires = ['carried'];
+        }
+      }
+      window.TABLE_LEDGER_PATCH_VERSION = PATCH_VERSION;
+    })();
+  </script>
+  <script src="app.js"></script>
+  <script>
+    (() => {
+      'use strict';
+      const PATCH_VERSION = window.TABLE_LEDGER_PATCH_VERSION;
+      const STORAGE_KEY = 'table-ledger-state-v4';
+      const getState = () => window.TableLedger?.getState?.();
+      const getLisa = () => getState()?.characters?.lisa;
+      const getBelt = (character = getLisa()) => character?.items?.find((item) => item.id === 'belt-fire-giant');
+      const setBeltMode = (character) => {
+        if (!character) return;
+        character.rulesMode ||= 'source';
+        const belt = getBelt(character);
+        if (!belt) return;
+        belt.sourceApplied = true;
+        const count = character.items.filter((item) => item.attuned).length;
+        if (belt.attuned && count > character.attunementLimit) belt.attuned = false;
+        const effect = belt.effects?.find((entry) => entry.type === 'setAbility' && entry.ability === 'STR');
+        if (effect) effect.requires = character.rulesMode === 'strict' ? ['carried', 'attuned'] : ['carried'];
+      };
+      const persist = () => {
+        const state = getState();
+        if (state) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      };
+      const rerender = () => {
+        const state = getState();
+        const current = state && document.querySelector(`[data-action="tab"][data-tab="${state.tab}"]`);
+        current?.click();
+      };
+      const panelByTitle = (title) => [...document.querySelectorAll('.panel')].find((panel) => panel.querySelector('.panel-head h2')?.textContent?.trim() === title);
+      const enhanceSheet = (character) => {
+        const core = panelByTitle('Core statistics')?.querySelector('.card-list');
+        if (!core || core.querySelector('[data-patch-current-max]')) return;
+        const maximum = window.TableLedger.calculateCurrentCharacter(character).hpMax;
+        core.insertAdjacentHTML('afterbegin', `<div class="record" data-patch-current-max><b>Maximum HP</b><span class="bonus" style="float:right">${maximum}</span><p>Current maximum · Printed ${character.printed.hpMax}</p></div>`);
+      };
+      const enhanceInventoryNames = () => {
+        document.querySelectorAll('.inventory-row:not(.header) input[data-item-field="name"]').forEach((input) => {
+          if (input.closest('.inventory-name-cell')) return;
+          const wrapper = document.createElement('label');
+          wrapper.className = 'inventory-name-cell';
+          const visible = document.createElement('strong');
+          visible.className = 'inventory-visible-name';
+          visible.textContent = input.value;
+          const caption = document.createElement('span');
+          caption.textContent = 'Edit name';
+          input.before(wrapper);
+          wrapper.append(visible, caption, input);
+          input.setAttribute('aria-label', `Edit ${input.value} name`);
+          input.addEventListener('input', () => { visible.textContent = input.value; });
+        });
+      };
+      const enhanceRulesPanel = (character) => {
+        if (character.id !== 'lisa' || document.getElementById('rules-mode')) return;
+        const stack = document.querySelector('#main > .stack');
+        if (!stack) return;
+        stack.insertAdjacentHTML('afterbegin', `<section class="panel" data-patch-rules><div class="panel-head"><div><p class="eyebrow">Source fidelity versus rules legality</p><h2>Rules interpretation</h2></div></div><div class="panel-body"><div class="grid two"><div class="field"><label for="rules-mode">Calculation mode</label><select id="rules-mode"><option value="source">Uploaded source snapshot</option><option value="strict">Strict attunement rules</option></select></div><div class="record"><b>${character.rulesMode === 'source' ? 'Source snapshot active' : 'Strict rules active'}</b><p>${character.rulesMode === 'source' ? 'Preserves uploaded Strength 25 while counting only the three items recorded in the sheet’s attunement fields.' : 'Requires the Belt of Fire Giant Strength to be legally attuned before it changes current Strength.'}</p></div></div><p class="muted small">The Belt of Fire Giant Strength is source-applied only in snapshot mode and does not consume a fourth attunement slot.</p></div></section>`);
+        document.getElementById('rules-mode').value = character.rulesMode;
+      };
+      const enhanceAttunement = (character) => {
+        if (character.id !== 'lisa' || character.rulesMode !== 'source') return;
+        const record = [...document.querySelectorAll('.record')].find((entry) => entry.querySelector('h3')?.textContent?.trim() === 'Belt of Fire Giant Strength');
+        if (!record) return;
+        const chip = record.querySelector('.chip');
+        if (chip) {
+          if (chip.textContent !== 'Source-applied') chip.textContent = 'Source-applied';
+          chip.classList.add('active');
+        }
+        if (!record.querySelector('.source-warning')) record.insertAdjacentHTML('beforeend', '<p class="source-warning">Applied only to reproduce the uploaded source snapshot; it does not consume an attunement slot.</p>');
+      };
+      const enhanceAudit = (character) => {
+        if (character.id !== 'lisa' || document.querySelector('[data-patch-source-audit]')) return;
+        const stack = document.querySelector('#main > .stack');
+        if (!stack) return;
+        stack.insertAdjacentHTML('afterbegin', `<section class="panel" data-patch-source-audit><div class="panel-head"><div><p class="eyebrow">Explicit source discrepancy</p><h2>Source fidelity and rules legality</h2></div></div><div class="panel-body"><p><b>Current mode:</b> ${character.rulesMode === 'source' ? 'Uploaded source snapshot' : 'Strict attunement rules'}.</p><p>The uploaded sheet records Strength 25 but names only Arrow-Catching Shield, Amulet of Health, and Plate Armor of Resistance in its three attunement fields. Snapshot mode preserves the printed total without misreporting a fourth attunement slot.</p></div></section>`);
+      };
+      const enhance = () => {
+        const app = document.querySelector('.app');
+        const state = getState();
+        const character = state?.characters?.[state.activeId];
+        if (!app || !state || !character) return;
+        app.dataset.patchVersion = PATCH_VERSION;
+        if (state.tab === 'sheet') enhanceSheet(character);
+        if (state.tab === 'inventory') {
+          enhanceInventoryNames();
+          enhanceRulesPanel(character);
+          enhanceAttunement(character);
+        }
+        if (state.tab === 'audit') enhanceAudit(character);
+      };
+      document.addEventListener('change', (event) => {
+        if (event.target?.id !== 'rules-mode') return;
+        const lisa = getLisa();
+        if (!lisa) return;
+        lisa.rulesMode = event.target.value === 'strict' ? 'strict' : 'source';
+        setBeltMode(lisa);
+        persist();
+        rerender();
+        requestAnimationFrame(() => document.getElementById('rules-mode')?.focus());
+      });
+      const appRoot = document.getElementById('app');
+      new MutationObserver(() => queueMicrotask(enhance)).observe(appRoot, { childList: true, subtree: true });
+      setBeltMode(getLisa());
+      persist();
+      enhance();
+    })();
+  </script>
+</body>
+</html>

@@ -1475,8 +1475,10 @@
 .view-switcher__tab:last-child { border-right: 0; }
 .view-switcher__tab:hover { background: var(--bone-2, rgba(10, 10, 10, 0.04)); }
 .view-switcher__tab.is-active {
-  background: var(--mm-node-stroke, var(--ink, #0a0a0a));
-  color: var(--bone, #f4f0e8);
+  /* Use the mindmap's own tokens, not the site aliases: --bone now resolves
+     to the dark --ground, which made this label invisible on its dark plate. */
+  background: var(--mm-node-stroke, #0a0a0a);
+  color: var(--mm-node-fill, #fbf8f1);
 }
 .view-switcher__count {
   font-family: var(--font-mono, monospace);
@@ -1486,8 +1488,8 @@
   padding: 2px 6px;
 }
 .view-switcher__tab.is-active .view-switcher__count {
-  background: var(--bone, #f4f0e8);
-  color: var(--ink, #0a0a0a);
+  background: var(--mm-node-fill, #f4f0e8);
+  color: var(--mm-node-stroke, #0a0a0a);
 }
 
 @media (max-width: 420px) {

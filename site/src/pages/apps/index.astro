@@ -3,13 +3,15 @@ import MainLayout from '../../layouts/MainLayout.astro';
 import Header from '../../components/Header.jsx';
 import apps from '../../data/apps.json';
 
-// Map slugs to Atlas categories (clinical / learning / reference / productivity / external).
+// Map slugs to catalogue categories (clinical / learning / reference / productivity / external).
 const CATEGORY_BY_SLUG: Record<string, 'clinical' | 'learning' | 'reference' | 'productivity' | 'external'> = {
   'dermatology-scribe': 'clinical',
   'skinoculars': 'clinical',
   'dermatopathology-navigator': 'learning',
   'mindmaps': 'learning',
   'margin-war-reference-v2': 'learning',
+  'rheum-derm-immune-atlas': 'reference',
+  'rheum-derm-clinical-trials': 'reference',
   'dermoscopy-llm-dashboard': 'reference',
   'biologic-monitoring': 'reference',
   'skinscores': 'reference',
@@ -27,10 +29,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   productivity: 'Productivity'
 };
 
-const active = apps.filter((app) => app.status === 'active');
+// Filter to active apps that are also publicly listed.
+// Set `"listed": false` on an apps.json entry to keep the data record but hide it
+// from the catalog (e.g., private dashboards still hosted at a subdomain but not
+// advertised on the public site).
+const active = apps.filter((app) => app.status === 'active' && app.listed !== false);
 const enriched = active.map((app, idx) => ({
   ...app,
-  plateNumber: `III.${String(idx + 1).padStart(2, '0')}`,
+  indexNumber: String(idx + 1).padStart(2, "0"),
   category: CATEGORY_BY_SLUG[app.slug] ?? 'clinical',
   isExternal: typeof app.href === 'string' && app.href.startsWith('http')
 }));
@@ -49,21 +55,21 @@ const counts: Record<string, number> = {
   <Header client:load />
   <main id="main-content">
     <section class="section">
-      <div class="plate-stamp"><b>Apps</b><span class="barcode"></span><span>Catalog · {totalCount} Instruments</span></div>
+      <div class="section-marker"><b>$</b><span>ls apps --all</span></div>
 
-      <div class="plate-head">
+      <div class="section-head">
         <div>
-          <span class="kicker">Catalog of working instruments</span>
-          <h1 class="display1" style="margin-top:14px">{totalCount} <em>browser-first</em><br>tools, indexed.</h1>
+          <span class="kicker">Applications</span>
+          <h1 class="display1" style="margin-top:14px">Browser-first<br><em>clinical tools</em>.</h1>
         </div>
         <div class="right">
-          Apps & projects · 2026.<br>
+          Apps and projects, 2026.<br>
           Local-first by default.<br>
-          <span style="color:var(--terracotta)">— sorted by ID —</span>
+          <span style="color:var(--terracotta)">No accounts. No tracking.</span>
         </div>
       </div>
 
-      <p class="lede">Each application below is built for resident clinics, dermatology education, or translational research — and runs directly in the browser with no account required.</p>
+      <p class="lede">Applications for resident clinics, dermatology education, and research workflows.</p>
 
       <div class="apps-toolbar" style="margin-top:48px">
         <div class="left" id="apps-filters">
@@ -94,7 +100,7 @@ const counts: Record<string, number> = {
           >
             <span class="swatch"></span>
             <div class="stamp">
-              <span class="pn">{app.plateNumber}</span>
+              <span class="pn">{app.indexNumber}</span>
               <span class={`st ${app.featured ? 'featured' : ''}`}>{app.featured ? 'Featured' : (app.isExternal ? 'External' : 'Active')}</span>
             </div>
             <h4>{app.name.replace(/^RAMIE - /, 'RAMIE — ')}</h4>

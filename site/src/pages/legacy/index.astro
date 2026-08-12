@@ -7,7 +7,7 @@ let runningIndex = 0;
 const sectionsWithIds = legacy.sections.map((section) => {
   const items = section.items.map((item) => {
     runningIndex += 1;
-    return { ...item, plateNumber: `L.${String(runningIndex).padStart(2, '0')}` };
+    return { ...item, indexNumber: String(runningIndex).padStart(2, "0") };
   });
   return { ...section, items };
 });
@@ -16,9 +16,9 @@ const sectionsWithIds = legacy.sections.map((section) => {
   <Header client:load />
   <main id="main-content">
     <section class="section">
-      <div class="plate-stamp"><b>Legacy</b><span class="barcode"></span><span>Archive · {runningIndex} entries</span></div>
+      <div class="section-marker"><b>$</b><span>ls archive · {runningIndex} entries</span></div>
 
-      <div class="plate-head">
+      <div class="section-head">
         <div>
           <span class="kicker">Archived for record</span>
           <h1 class="display1" style="margin-top:14px">The <em>archive</em>.</h1>
@@ -42,10 +42,10 @@ const sectionsWithIds = legacy.sections.map((section) => {
             </div>
             <p style="font-family:var(--font-mono);font-size:11px;color:var(--slate);letter-spacing:0.06em">{section.items.length} entries</p>
           </div>
-          <div style="background:var(--plate-bg);border:1px solid var(--ink);border-top:0;display:grid;grid-template-columns:80px 80px 1fr 80px">
+          <div class="archive-rows">
             {section.items.map((item) => (
               <a class="br" href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined} style="text-decoration:none;color:inherit">
-                <div class="c year" style="font-family:var(--font-mono);font-size:11px;color:var(--terracotta);font-weight:700">{item.plateNumber}</div>
+                <div class="c year" style="font-family:var(--font-mono);font-size:11px;color:var(--terracotta);font-weight:700">{item.indexNumber}</div>
                 <div class="c year">{item.year}</div>
                 <div class="c title" style="font-family:var(--font-display);font-size:17px;font-weight:500;letter-spacing:-0.005em">
                   {item.name}

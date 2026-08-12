@@ -3,7 +3,7 @@ import '../styles/global.css';
 import profile from '../data/profile.json';
 const {
   title = 'Ramie Fathy, MD',
-  description = 'Dermatology resident physician, researcher, and writer with a focus on human-centered AI and complex medical dermatology.',
+  description = 'Dermatology, clinical AI, research, writing, and software by Dr. Ramie Fathy.',
   canonical,
   noindex = false
 } = Astro.props;
@@ -28,7 +28,8 @@ const footerLinks = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
-    <meta name="theme-color" content="#f4f0e8" />
+    <meta name="theme-color" content="#0b0e13" />
+    <meta name="color-scheme" content="dark" />
     <meta property="og:site_name" content="Ramie Fathy, MD" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -39,8 +40,9 @@ const footerLinks = [
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
+    <link rel="preload" href="/apps/shared/fonts/Fraunces-VariableFont_opsz,wght.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/apps/shared/fonts/Fraunces-Italic-VariableFont_opsz,wght.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/apps/shared/fonts/BricolageGrotesque-Variable.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/apps/shared/fonts/Newsreader-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/apps/shared/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/apps/shared/legacy-fonts.css" />
     <link rel="stylesheet" href="/style.css" />
@@ -55,9 +57,9 @@ const footerLinks = [
       <div class="layout-footer__inner">
         <div class="layout-footer__brand">
           <p class="layout-footer__name">Ramie <em>Fathy</em>, MD</p>
-          <p class="layout-footer__tagline">Dermatology · AI · Equity · Baltimore.</p>
+          <p class="layout-footer__tagline">Dermatology · Clinical AI · Baltimore.</p>
           <p class="layout-footer__meta">
-            © {new Date().getFullYear()} {profile.name} · Atlas Vol. IV · Built with Astro.
+            © {new Date().getFullYear()} {profile.name}
           </p>
         </div>
         <div class="layout-footer__group">
@@ -80,7 +82,7 @@ const footerLinks = [
           <p class="layout-footer__group-title">Colophon</p>
           <a class="layout-footer__link" href="https://github.com/ramiefathy/ramiefathy.github.io" target="_blank" rel="noreferrer">Source on GitHub</a>
           <a class="layout-footer__link" href="/legacy">Legacy archive</a>
-          <span class="layout-footer__link" style="cursor:default">Bricolage · Newsreader · Space Mono</span>
+          <span class="layout-footer__link" style="cursor:default">Fraunces · Bricolage · Space Mono</span>
         </div>
       </div>
     </footer>

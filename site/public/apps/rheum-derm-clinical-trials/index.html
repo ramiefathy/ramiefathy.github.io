@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Interactive evidence dashboard covering 214 rheumatologic-dermatologic and autoimmune skin disease studies and programs.">
+<title>Rheum–Derm Clinical Trials Evidence Dashboard</title>
+<style>html,body{height:100%;margin:0}body{display:grid;place-items:center;background:#f5f4ef;color:#17324d;font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.loader{max-width:36rem;padding:2rem;text-align:center}.bar{height:3px;background:#d7e4e7;overflow:hidden;border-radius:99px}.bar:after{content:"";display:block;width:45%;height:100%;background:#1f6e78;animation:load 1.1s ease-in-out infinite}@keyframes load{0%{transform:translateX(-110%)}100%{transform:translateX(240%)}}@media(prefers-reduced-motion:reduce){.bar:after{animation:none;width:100%}}</style>
+</head>
+<body><main class="loader"><h1>Rheum–Derm Evidence Dashboard</h1><p>Loading the embedded 214-study evidence map…</p><div class="bar" aria-hidden="true"></div><noscript><p>JavaScript is required to open this interactive dashboard.</p></noscript></main>
+<script>
+(async()=>{
+  try {
+    const files=["dashboard.0.b64", "dashboard.1.b64", "dashboard.2.b64", "dashboard.3.b64", "dashboard.4.b64", "dashboard.5.b64", "dashboard.6.b64"];
+    const parts=await Promise.all(files.map(async file=>{const response=await fetch(file,{cache:'force-cache'});if(!response.ok)throw new Error(`Failed to load ${file}`);return response.text();}));
+    const encoded=parts.join('').trim();
+    const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
+    const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const dashboard=await new Response(stream).text();
+    document.open();document.write(dashboard);document.close();
+  } catch(error) {
+    document.body.innerHTML='<main class="loader"><h1>Dashboard could not load</h1><p>Please use a current version of Chrome, Edge, Safari, or Firefox and reload the page.</p></main>';
+    console.error(error);
+  }
+})();
+</script>
+</body>
+</html>

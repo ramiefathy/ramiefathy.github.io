@@ -28,29 +28,29 @@ const domains = [
   <Header client:load />
   <main id="main-content">
     <section class="section">
-      <div class="plate-stamp"><b>About</b><span class="barcode"></span><span>CV · Trajectory · Domains</span></div>
+      <div class="section-marker"><b>$</b><span>cat about.md</span></div>
 
-      <div class="plate-head">
+      <div class="section-head">
         <div>
-          <span class="kicker">Curriculum Vitae · v.4 · 2026</span>
-          <h1 class="display1" style="margin-top:14px">A clinician,<br>a builder, <em>a writer.</em></h1>
+          <span class="kicker">Biography</span>
+          <h1 class="display1" style="margin-top:14px">A clinician,<br>a writer, <em>a builder.</em></h1>
         </div>
         <div class="right">
-          Last revised<br>
-          2026 · 04 · 18<br>
-          2 pages · 142 KB
+          Training, service,<br>
+          and the three domains<br>
+          the work sits across.
         </div>
       </div>
 
       <div class="about-cover" style="margin-top:32px">
-        <div class="portrait" aria-hidden="true"></div>
+        <div class="portrait" role="img" aria-label="Portrait of Ramie Fathy"></div>
         <div class="text">
           <p class="lede" style="font-size:22px">{profile.about.intro}</p>
-          <p class="body-copy">My work spans inflammatory dermatoses, cutaneous oncology, patient-centered teledermatology, and responsible AI. I build clinical decision tools, study the equity implications of new technologies, and translate complex science into <em style="font-style:italic;color:var(--terracotta)">empathetic narratives</em> for trainees, clinicians, and patients.</p>
-          <p class="body-copy">Outside the clinic I love mentoring future physician-innovators, producing radio and podcast stories, and exploring Baltimore's culinary community. When traveling, you'll find me sketching architectural textures and searching for the best espresso shot in town.</p>
+          <p class="body-copy">My work spans inflammatory dermatoses, cutaneous oncology, teledermatology, and clinical AI. I build decision-support tools, study technology in clinical settings, and write for trainees, clinicians, and patients.</p>
+          <p class="body-copy">Outside the clinic I mentor medical students, work on audio storytelling projects, and explore Baltimore.</p>
           <div style="display:flex;gap:24px;align-items:center;margin-top:auto">
             <a class="button button--primary" href="/contact">Get in touch →</a>
-            <a class="button button--secondary" href="/apps">Browse the catalog →</a>
+            <a class="button button--secondary" href="/apps">Browse the apps →</a>
           </div>
         </div>
       </div>
@@ -92,20 +92,20 @@ const domains = [
       </div>
 
       <!-- Domain plates (replaces fake skill-bar percentages) -->
-      <div class="plate-head" style="margin-top:64px">
+      <div class="section-head" style="margin-top:64px">
         <div>
-          <span class="kicker">Domain Map · Three overlapping regna</span>
+          <span class="kicker">Domains</span>
           <h2 class="display2" style="margin-top:8px">Three <em>overlapping</em> domains.</h2>
         </div>
       </div>
-      <p class="lede">Replaces the older bar-chart of skill percentages. The interesting projects sit in the intersections — RAMIE in clinical × technical, the JAAD '22 essay in scholarly × clinical, the dermoscopy dashboard in technical × scholarly.</p>
+      <p class="lede">The interesting projects sit in the intersections: RAMIE in clinical and technical work, the JAAD essay in scholarly and clinical work, and the dermoscopy dashboard in technical and scholarly work.</p>
 
       <div class="domains-plates" style="margin-top:32px">
         {domains.map((domain, idx) => (
           <div class={`domain-plate ${domain.cls}`}>
             <div class="head">
               <h4>{domain.label}</h4>
-              <span class="ct">{['A', 'B', 'C'][idx]} · 0{domain.items.length}</span>
+              <span class="ct">{['A', 'B', 'C'][idx]}</span>
             </div>
             <ul>
               {domain.items.map((skill) => (
@@ -116,6 +116,20 @@ const domains = [
             </ul>
           </div>
         ))}
+      </div>
+
+      {/* Postscript — companion essays: sonic self-portrait at /music/, ludic at /games/ */}
+      <div class="section-head" style="margin-top:64px">
+        <div>
+          <span class="kicker">Postscript · Companion essays</span>
+          <h2 class="display2" style="margin-top:8px">Outside the clinic, a few <em>self-portraits</em> in data.</h2>
+        </div>
+      </div>
+      <p class="lede">A close reading of my Spotify all-time top 100 — Pareto distributions, era cartography, a genre map, and a weighted carousel of every album cover. Honest data about what I actually play. Its companion, <em>Revealed Preference</em>, reads the full streaming history with timestamps — what gets played, when, and the gap between the library I curate and the music I actually reach for. A third piece, a <em>ludic self-portrait</em>, runs the same analysis on my all-time favorite games — genre concentration, a two-axis era map of when each game was made versus when I played it, and the same honest look at what I keep returning to.</p>
+      <div style="display:flex;gap:24px;align-items:center;margin-top:24px;flex-wrap:wrap">
+        <a class="button button--primary" href="/music/">Read the music essay →</a>
+        <a class="button button--primary" href="/music/listening-history/">Read the companion →</a>
+        <a class="button button--primary" href="/games/">Read the games essay →</a>
       </div>
     </section>
   </main>

@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node ./scripts/assemble-rheum-derm-dashboard.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "test": "vitest run",
@@ -18,11 +18,9 @@
     "test:e2e:update": "playwright test --update-snapshots=all"
   },
   "dependencies": {
-    "@astrojs/react": "^4.3.1",
+    "@astrojs/react": "^6.0.2",
     "@babel/standalone": "^7.29.1",
-    "@paper-design/shaders": "^0.0.52",
-    "@paper-design/shaders-react": "^0.0.52",
-    "astro": "^6.1.6",
+    "astro": "^7.1.1",
     "chart.js": "^4.5.1",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",

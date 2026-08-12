@@ -2,16 +2,16 @@
 import MainLayout from '../layouts/MainLayout.astro';
 import Header from '../components/Header.jsx';
 ---
-<MainLayout title="404 – Off the atlas" description="The page you requested does not exist.">
+<MainLayout title="404 – Page not found" description="The page you requested does not exist.">
   <Header client:load />
   <main id="main-content">
     <section class="section">
-      <div class="plate-stamp"><b>Not Found</b><span class="barcode"></span><span>404</span></div>
+      <div class="section-marker"><b>$</b><span>cd 'that page' — no such path</span></div>
 
-      <div class="plate-head">
+      <div class="section-head">
         <div>
           <span class="kicker">404 · Page not found</span>
-          <h1 class="display1" style="margin-top:14px">Off the <em>atlas</em>.</h1>
+          <h1 class="display1" style="margin-top:14px">No such <em>page</em>.</h1>
         </div>
         <div class="right">
           The URL may be mistyped,<br>
@@ -20,11 +20,11 @@ import Header from '../components/Header.jsx';
         </div>
       </div>
 
-      <p class="lede">Nothing at that coordinate. Pick one of the working pages below — the catalog is complete on the index pages.</p>
+      <p class="lede">That URL does not resolve. It may be mistyped, or the page may have moved. The index pages below are complete.</p>
 
       <div style="display:flex;gap:24px;margin-top:32px;flex-wrap:wrap">
         <a class="button button--primary" href="/">Back to home →</a>
-        <a class="button button--secondary" href="/apps">Open the apps catalog →</a>
+        <a class="button button--secondary" href="/apps">Browse the apps →</a>
         <a class="button button--secondary" href="/research">View research →</a>
         <a class="button button--secondary" href="/contact">Get in touch →</a>
       </div>

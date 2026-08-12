@@ -32,8 +32,8 @@ const otherMaps = available.filter((manifest) => manifest.id !== dataset.manifes
   <Header client:load />
   <main id="main-content" class="mindmap-page">
     <section class="section mindmap-intro">
-      <div class="plate-stamp"><b>Mind Map</b><span class="barcode"></span><span>{dataset.manifest.title}</span></div>
-      <div class="plate-head">
+      <div class="section-marker"><b>$</b><span>open mindmap/{dataset.manifest.id}</span></div>
+      <div class="section-head">
         <div>
           <span class="kicker">Interactive · D3 · Searchable</span>
           <h1 class="display1 mindmap-title">{dataset.manifest.title}</h1>
