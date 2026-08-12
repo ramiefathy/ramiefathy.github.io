@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "revisionDate": "2026-08-12",
+  "scope": "Rheum-Derm Clinical Trials Evidence Dashboard listing identity and regimen detail enhancement",
+  "sourceArtifact": {
+    "studyCount": 214,
+    "rowsWithNctIdentifiers": 109,
+    "uniqueNctIdentifiers": 143,
+    "htmlBytes": 864417,
+    "htmlSha256": "7da4751bb81838b1dfd7be71a4209d0b90fbcea0c0235b07d6e1da2f4f4e86dc"
+  },
+  "registryReconciliation": {
+    "originalIdentifiersResolved": 143,
+    "originalIdentifiersRequested": 143,
+    "finalSnapshotRecords": 142,
+    "retrievedAt": "2026-08-12",
+    "snapshotBytes": 287865,
+    "snapshotSha256": "0744c5d276c2122e0e4a28de39425e7878747ef57d8025c814b00f83f93df8fb"
+  },
+  "releaseDenominator": {
+    "studyCount": 214,
+    "identifiableUniqueDisplayTitles": 214,
+    "regimenDetailCounts": {
+      "record-dose": 72,
+      "registry-dose": 31,
+      "publication-dose": 2,
+      "variable-regimen": 18,
+      "registry-schedule": 1,
+      "dose-not-reported": 89,
+      "source-mismatch": 1
+    },
+    "sourceMismatchQuarantined": 1
+  },
+  "identityDispositions": [
+    {
+      "studyId": "s082-resolve-1",
+      "disposition": "corrected",
+      "detail": "Renamed to DETERMINE and corrected from NCT03398837 to NCT03813160."
+    },
+    {
+      "studyId": "s085-phase-2-randomized-trial",
+      "disposition": "quarantined",
+      "detail": "Removed rejected NCT04027101 and suppressed efficacy interpretation because the cited registry is BACHELOR in polymyalgia rheumatica, not a brepocitinib dermatomyositis trial."
+    },
+    {
+      "studyId": "s116-rapids-2",
+      "disposition": "corrected",
+      "detail": "Removed unrelated lymphoma registry NCT00301795; retained the RAPIDS-2 primary publication and publication-backed regimen."
+    },
+    {
+      "studyId": "s148-blister",
+      "disposition": "corrected",
+      "detail": "Corrected from unrelated NCT02226146 to ISRCTN13704604."
+    }
+  ],
+  "enhancedArtifact": {
+    "htmlBytes": 1237210,
+    "htmlSha256": "5648daf1a29433105d1a4ec7b83b1bcdf3fdab201b05dbf49ee36d37e076d5a7"
+  },
+  "releaseBoundaries": {
+    "engineeringVerification": "Passed: 5 Node contract tests, 4 focused Chromium tests, 217 repository Vitest tests, exact artifact hash checks, and a production Astro build on 2026-08-12.",
+    "clinicalFacultyReview": "Not performed; required before treating the normalized regimen text as clinically approved content.",
+    "deployment": "Not deployed by this revision."
+  }
+}
