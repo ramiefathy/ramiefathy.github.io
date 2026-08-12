@@ -24,6 +24,7 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
     "/",
     "/about",
     "/apps",
+    "/apps/rheum-derm-medication-dashboard/",
     "/research",
     "/research/dermoscopy-llm-dashboard",
     "/blog",
