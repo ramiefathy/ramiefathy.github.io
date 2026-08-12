@@ -183,6 +183,14 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       ]
     },
     {
+      "slug": "margin-war-reference-v2",
+      "canonicalUrl": "https://margin-war.ramiefathy.com/",
+      "surfacesToCheck": [
+        "site/src/data/apps.json",
+        "site/src/pages/apps/index.astro"
+      ]
+    },
+    {
       "slug": "ksa-sovereign-credit-analytics",
       "canonicalUrl": "https://ksa-credit.ramiefathy.com/",
       "surfacesToCheck": [
