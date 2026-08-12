@@ -127,6 +127,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "requiresDownloads": true
     },
     {
+      "label": "Rheum–Derm Therapeutics Field Guide",
+      "route": "/apps/rheum-derm-medication-dashboard/",
+      "file": "site/public/apps/rheum-derm-medication-dashboard/index.html",
+      "category": "clinical-reference",
+      "requiresDownloads": false
+    },
+    {
       "label": "Dermatopathology Differentials (legacy)",
       "route": "/apps/dermatopathology-differentials.html",
       "file": "site/public/apps/dermatopathology-differentials.html",
