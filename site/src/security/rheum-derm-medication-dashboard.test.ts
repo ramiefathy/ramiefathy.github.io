@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const dashboardPath = resolve(
   __dirname,
-  '../../public/apps/rheum-derm-medication-dashboard/index.html'
+  '../data/rheum-derm-medication-dashboard/index.html'
 )
 const catalogPath = resolve(__dirname, '../data/apps.json')
 
@@ -16,6 +16,8 @@ describe('Rheum–Derm Therapeutics Field Guide publication contract', () => {
     slug: string
     href: string
     preview?: string
+    status: string
+    listed?: boolean
   }>
 
   it('publishes the audited teaching artifact with its evidence boundary', () => {
@@ -32,12 +34,18 @@ describe('Rheum–Derm Therapeutics Field Guide publication contract', () => {
     const entry = catalog.find(item => item.slug === 'rheum-derm-medication-dashboard')
     expect(entry).toMatchObject({
       href: '/apps/rheum-derm-medication-dashboard/',
-      preview: '/apps/rheum-derm-medication-dashboard/'
+      preview: '/apps/rheum-derm-medication-dashboard/',
+      status: 'active'
     })
+    expect(entry?.listed).not.toBe(false)
   })
 
   it('remains self-contained and avoids prohibited presentation dependencies', () => {
-    expect(html).not.toMatch(/<script[^>]+src=["']https?:\/\//i)
+    expect(html).not.toMatch(/<(?:script|img|iframe|audio|video|source|embed)[^>]+src=["'](?:https?:)?\/\//i)
+    expect(html).not.toMatch(/<(?:link)[^>]+href=["'](?:https?:)?\/\//i)
+    expect(html).not.toMatch(/<(?:object)[^>]+data=["'](?:https?:)?\/\//i)
+    expect(html).not.toMatch(/@import\s+(?:url\()?\s*["']?(?:https?:)?\/\//i)
+    expect(html).not.toMatch(/url\(\s*["']?(?:https?:)?\/\//i)
     expect(html).not.toMatch(/fonts\.googleapis\.com|fonts\.gstatic\.com/i)
     expect(html).not.toContain('backdrop-filter')
   })

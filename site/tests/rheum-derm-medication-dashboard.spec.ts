@@ -5,7 +5,16 @@ import { setDeterministicUi } from './helpers/nav.js'
 const APP_ROUTE = '/apps/rheum-derm-medication-dashboard/'
 
 test.describe('Rheum–Derm Therapeutics Field Guide', () => {
+  let externalRequests: string[]
+
   test.beforeEach(async ({ page }) => {
+    externalRequests = []
+    page.on('request', request => {
+      const url = request.url()
+      if (/^https?:\/\/(?!127\.0\.0\.1|localhost|\[::1\])/i.test(url)) {
+        externalRequests.push(url)
+      }
+    })
     await setDeterministicUi(page, { width: 1440, height: 1000 })
     await blockExternalRequests(page)
   })
@@ -28,6 +37,7 @@ test.describe('Rheum–Derm Therapeutics Field Guide', () => {
     await expect(page.locator('.drawer').getByRole('heading', { level: 3, name: 'Avoid / contraindications' })).toBeVisible()
 
     runtime.assertClean()
+    expect(externalRequests).toEqual([])
   })
 
   test('keeps navigation and the pipeline view usable at phone width', async ({ page }) => {
@@ -46,5 +56,6 @@ test.describe('Rheum–Derm Therapeutics Field Guide', () => {
     expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport)
 
     runtime.assertClean()
+    expect(externalRequests).toEqual([])
   })
 })
