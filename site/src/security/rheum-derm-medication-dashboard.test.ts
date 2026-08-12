@@ -28,6 +28,7 @@ describe('Rheum–Derm Therapeutics Field Guide publication contract', () => {
     expect(html).toContain('Not clinical decision support or a complete interaction engine.')
     expect(html).toContain('Representative regimens only; current labels and primary sources control.')
     expect(html).toContain('role=toolbar aria-label="Page tools"')
+    expect(html).toContain('("main",{id:"main-content",children:')
   })
 
   it('is cataloged at its canonical public route', () => {
