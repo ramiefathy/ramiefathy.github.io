@@ -1,0 +1,67 @@
+name: Rheum-Derm Atlas P0-P2 verification
+
+on:
+  pull_request:
+    paths:
+      - 'site/public/apps/rheum-derm-immune-atlas/**'
+      - 'site/src/__tests__/rheum-derm-atlas-*.test.ts'
+      - 'site/tests/rheum-derm-atlas-*.spec.ts'
+      - 'site/tests/rheum-derm-immune-atlas.spec.ts'
+      - 'docs/rheum-derm-atlas-*.md'
+      - 'docs/verification/rheum-derm-atlas-*/**'
+      - '.github/workflows/rheum-derm-atlas-p0-p2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.12.0'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run complete unit and policy suite
+        run: npm test
+      - name: Build production site
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run focused P0-P2 scientific, interaction, visual, contrast, alternative-view, and mobile suites
+        run: >-
+          npx playwright test
+          tests/rheum-derm-atlas-p0-integrity.spec.ts
+          tests/rheum-derm-atlas-p2-interface.spec.ts
+          tests/rheum-derm-immune-atlas.spec.ts
+          tests/rheum-derm-atlas-contrast-graph.spec.ts
+          tests/rheum-derm-atlas-alternative-views.spec.ts
+          tests/rheum-derm-atlas-mobile-displays.spec.ts
+          --project=chromium
+          --reporter=line,html
+      - name: Upload focused browser and visual evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rheum-derm-atlas-p0-p2-verification-${{ github.run_id }}
+          path: |
+            site/test-results
+            site/playwright-report
+          if-no-files-found: warn
+          retention-days: 14

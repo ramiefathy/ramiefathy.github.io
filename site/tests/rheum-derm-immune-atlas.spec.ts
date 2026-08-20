@@ -43,13 +43,14 @@ test.describe('Rheum–Derm Immune Atlas', () => {
 
   test('loads the systems explorer from its own deployable asset boundary', async ({ page, request }) => {
     const runtime = watchRuntime(page)
-    const [documentResponse, shellResponse, scriptResponse, styleResponse, alternativeScriptResponse, alternativeStyleResponse] = await Promise.all([
+    const [documentResponse, shellResponse, scriptResponse, styleResponse, alternativeScriptResponse, alternativeStyleResponse, p0Response] = await Promise.all([
       request.get(APP_ROUTE),
       request.get(`${APP_ROUTE}explorer/systems-explorer-shell.js`),
       request.get(`${APP_ROUTE}explorer/systems-explorer.js`),
       request.get(`${APP_ROUTE}explorer/systems-explorer.css`),
       request.get(`${APP_ROUTE}explorer/alternative-views.js`),
-      request.get(`${APP_ROUTE}explorer/alternative-views.css`)
+      request.get(`${APP_ROUTE}explorer/alternative-views.css`),
+      request.get(`${APP_ROUTE}explorer/p0-scientific-remediation.js`)
     ])
 
     expect(documentResponse.ok()).toBe(true)
@@ -58,6 +59,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     expect(styleResponse.ok()).toBe(true)
     expect(alternativeScriptResponse.ok()).toBe(true)
     expect(alternativeStyleResponse.ok()).toBe(true)
+    expect(p0Response.ok()).toBe(true)
 
     const document = await documentResponse.text()
     expect(document).toContain('href="./explorer/systems-explorer.css?v=atlas-contrast-graph-20260714"')
@@ -65,6 +67,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     expect(document).toContain('src="./explorer/systems-explorer-shell.js?v=atlas-contrast-graph-20260714"')
     expect(document).toContain('src="./explorer/systems-explorer.js?v=atlas-contrast-graph-20260714"')
     expect(document).toContain('src="./explorer/alternative-views.js?v=atlas-contrast-graph-20260714"')
+    expect(document).toContain('src="./explorer/p0-scientific-remediation.js?v=atlas-p0-20260803-3"')
     expect(document).not.toContain('Structured 3D mechanistic knowledge graph')
     expect(document).not.toContain('<canvas id="network3d"')
     await expect(shellResponse.text()).resolves.toContain('id="network3d"')
@@ -72,6 +75,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     await expect(styleResponse.text()).resolves.toContain('.network-workspace')
     await expect(alternativeScriptResponse.text()).resolves.toContain('function renderCoverageVolume')
     await expect(alternativeStyleResponse.text()).resolves.toContain('.alternative-panel')
+    await expect(p0Response.text()).resolves.toContain('P0 scientific-integrity remediation')
 
     await page.goto(APP_ROUTE, { waitUntil: 'networkidle' })
     await gotoAtlasSection(page, 'network')
@@ -138,7 +142,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     await expect(page.locator('#antibodyMatrix')).toContainText('Rapidly progressive ILD')
     await expect(page.locator('#antibodyMatrix')).toContainText('Anti-TIF1γ')
     await expect(page.locator('#antibodyCaveat')).toContainText('assay')
-    await expect(page.locator('#subtypeCondition option')).toHaveCount(18)
+    await expect(page.locator('#subtypeCondition option')).toHaveCount(21)
 
     await page.locator('#compareConditionA').selectOption('dm')
     await page.locator('#compareConditionB').selectOption('sle')
@@ -165,12 +169,13 @@ test.describe('Rheum–Derm Immune Atlas', () => {
     await expect(page.getByRole('tab', { name: 'Cohort ledger' })).toHaveAttribute('aria-selected', 'true')
     await expect(page.locator('#cohortLedgerPanel')).toBeVisible()
     await expect(page.locator('#cohortStack .cohort-slab')).toHaveCount(3)
-    await expect(page.locator('#cohortDenominator')).toContainText('18 conditions')
+    await expect(page.locator('#cohortDenominator')).toContainText('21 conditions')
     await expect(page.locator('#cohortDenominator')).toContainText('27 pathways')
     await expect(page.locator('#cohortInspector')).toContainText('Select a cell')
 
     await page.getByRole('tab', { name: 'Treatments', exact: true }).click()
     await expect(page.locator('.cohort-slab[data-cohort-facet="medications"]')).toHaveClass(/active/)
+    await expect(page.locator('.cohort-slab[data-cohort-facet="medications"] .cohort-slab-label')).toHaveText(/^Treatments · \d+$/)
     await expect(page.locator('#cohortDenominator')).toContainText('49 treatments')
 
     runtime.assertClean()
@@ -315,7 +320,7 @@ test.describe('Rheum–Derm Immune Atlas', () => {
 
     expect(contract).not.toBeNull()
     expect(contract?.schemaVersion).toBe('5.0')
-    expect(contract?.counts.conditions).toBe(18)
+    expect(contract?.counts.conditions).toBe(21)
     expect(contract?.counts.medications).toBe(49)
     expect(contract?.counts.pathways).toBeGreaterThan(20)
     expect(contract?.counts.features).toBeGreaterThan(100)
