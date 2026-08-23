@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="theme-color" content="#0b0e13" />
+  <title>Derm-Shift Medical Campus — 3D Viewer</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.min.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <main id="app">
+    <canvas id="viewport" aria-label="Interactive three-dimensional Derm-Shift medical campus"></canvas>
+
+    <section id="loading" class="loading" aria-live="polite">
+      <div class="loading__card">
+        <div class="loading__eyebrow">DERM-SHIFT / CAMPUS MODEL</div>
+        <h1>Preparing the medical campus</h1>
+        <p id="loading-copy">Loading the web-optimized spatial model…</p>
+        <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+        <div id="progress-label" class="loading__metric">0%</div>
+      </div>
+    </section>
+
+    <header class="brand panel">
+      <span class="brand__signal" aria-hidden="true"></span>
+      <div>
+        <div class="eyebrow">UNLISTED ENVIRONMENT VIEWER</div>
+        <strong>Derm-Shift Medical Campus</strong>
+      </div>
+    </header>
+
+    <aside id="controls-panel" class="controls panel" aria-label="Campus viewer controls">
+      <div class="controls__header">
+        <div>
+          <div class="eyebrow">NAVIGATION</div>
+          <h2>Explore the campus</h2>
+        </div>
+        <button id="collapse" class="icon-button" type="button" aria-label="Collapse controls" aria-expanded="true">—</button>
+      </div>
+
+      <div id="controls-body">
+        <label class="field">
+          <span>Destination</span>
+          <select id="preset">
+            <option value="overview">Campus overview</option>
+            <option value="academic">Academic medical center</option>
+            <option value="lobby">Main lobby</option>
+            <option value="ed">Emergency department</option>
+            <option value="icu">Intensive care unit</option>
+            <option value="inpatient">Inpatient wards</option>
+            <option value="derm-floor">Hospital dermatology floor</option>
+            <option value="rooftop">Rooftop / helipad</option>
+            <option value="dermpath">Dermatopathology laboratory</option>
+            <option value="mohs">Derm surgery / Mohs center</option>
+            <option value="specialty">Specialty dermatology clinic</option>
+          </select>
+        </label>
+
+        <div class="button-grid">
+          <button id="orbit-mode" class="button is-active" type="button">Orbit</button>
+          <button id="walk-mode" class="button" type="button">Free flight</button>
+          <button id="reset-view" class="button" type="button">Reset</button>
+          <button id="fullscreen" class="button" type="button">Full screen</button>
+        </div>
+
+        <div class="section-control">
+          <div class="section-control__label">
+            <label for="cut-height">Cutaway height</label>
+            <output id="cut-height-label" for="cut-height">All floors</output>
+          </div>
+          <input id="cut-height" type="range" min="0" max="44" step="0.5" value="44" />
+          <p>Lower the plane to inspect stacked interiors. This is a live section cut; it does not alter the source model.</p>
+        </div>
+
+        <dl class="metrics">
+          <div><dt>Viewer geometry</dt><dd id="face-count">—</dd></div>
+          <div><dt>Campus footprint</dt><dd>231 × 181 m</dd></div>
+          <div><dt>Current position</dt><dd id="position">—</dd></div>
+        </dl>
+
+        <div class="help">
+          <strong>Free-flight controls</strong>
+          <p><kbd>W A S D</kbd> move · <kbd>Space</kbd>/<kbd>C</kbd> vertical · <kbd>Shift</kbd> boost · mouse look · <kbd>Esc</kbd> release</p>
+          <p class="mobile-note">Touch devices use orbit, pan, and pinch-to-zoom.</p>
+        </div>
+      </div>
+    </aside>
+
+    <div id="location-card" class="location panel" aria-live="polite">
+      <span class="eyebrow">CURRENT VIEW</span>
+      <strong id="location-title">Campus overview</strong>
+      <span id="mode-label">Orbit navigation</span>
+    </div>
+
+    <button id="enter-flight" class="enter-flight" type="button" hidden>Click to enter free flight</button>
+    <div id="crosshair" class="crosshair" aria-hidden="true"></div>
+
+    <noscript>This viewer requires JavaScript and WebGL.</noscript>
+  </main>
+
+  <script type="module" src="./viewer.js"></script>
+</body>
+</html>
