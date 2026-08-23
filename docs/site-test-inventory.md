@@ -261,6 +261,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "file": "site/public/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html",
       "category": "internal-unlisted",
       "requiresDownloads": false
+    },
+    {
+      "label": "Derm-Shift medical campus viewer (unlisted)",
+      "route": "/derm-shift-campus-c5q8n2x7/",
+      "file": "site/public/derm-shift-campus-c5q8n2x7/index.html",
+      "category": "internal-unlisted",
+      "requiresDownloads": false
     }
   ],
   "unlistedAstroRoutes": [
