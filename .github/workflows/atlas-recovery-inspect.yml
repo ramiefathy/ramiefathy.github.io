@@ -1,0 +1,27 @@
+name: Inspect Atlas source transfer
+on:
+  push:
+    branches: [audit/atlas-publish-staging-20260905]
+    paths: [.github/workflows/atlas-recovery-inspect.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Package exact transferred bytes and roadmap
+        run: |
+          mkdir -p /tmp/inspect
+          tar -czf /tmp/inspect/transfer.tar.gz .atlas-recovery
+          git rev-parse HEAD > /tmp/inspect/COMMIT.txt
+          curl --fail --silent --show-error --location https://raw.githubusercontent.com/ramiefathy/ramiefathy.github.io/0be79e58d62122a6da830a2e637450150be1bfd3/docs/platform-roadmap-2026-09.md -o /tmp/inspect/platform-roadmap-2026-09.md
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: atlas-transfer-inspection
+          path: /tmp/inspect
+          if-no-files-found: error
+          retention-days: 7
