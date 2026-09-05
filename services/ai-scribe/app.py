@@ -309,11 +309,18 @@ async def handler(websocket):
             logger.debug("Received a client message")
 
             if message_type == "start_new_session":
+                reset_id = data.get("resetId")
+                if reset_id is not None and (not isinstance(reset_id, str) or not 1 <= len(reset_id) <= 80):
+                    await websocket.send(json.dumps({"type": "error", "message": "Invalid session reset identifier."}))
+                    continue
                 logger.info(f"Starting new session explicitly for {current_session_id_to_use}")
                 # Invalidate before yielding: providers may return while handling cancellation.
                 session.reset_session_data()
                 await cancel_suggestions()
-                await websocket.send(json.dumps({"type": "status", "message": "New session initialized. Ready to record."}))
+                await websocket.send(json.dumps({
+                    "type": "status", "event": "session_reset", "resetId": reset_id,
+                    "message": "New session initialized. Ready to record."
+                }))
 
             elif message_type == "transcript_segment":
                 segment = data.get("segment", "")
