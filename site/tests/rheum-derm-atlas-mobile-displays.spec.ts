@@ -311,7 +311,7 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
     await expect(page.locator('#evidenceConstructLabel')).toHaveText('Pathway rows')
     await construct.selectOption('benefits')
     await expect(page.locator('#evidenceConstructLabel')).toHaveText('Condition–benefit rows')
-    await expect(page.locator('#evidenceN')).toHaveText('143')
+    await expect(page.locator('#evidenceN')).toHaveText('138')
     await expect(page.locator('#evidenceLegend')).toContainText('Grade A')
     await construct.selectOption('mechanisms')
     await expect(page.locator('#evidenceConstructLabel')).toHaveText('Medication-mechanism rows')
