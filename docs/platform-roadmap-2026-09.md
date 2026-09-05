@@ -132,7 +132,7 @@ site/src/data/graph/
 ### Deliverables and milestones
 - Week 2–3: schemas, evidence-tier mapping, reference table seeded from atlas + trials, validator test in Vitest.
 - Week 4–6: six extractors + crosswalks; target ≥ 95% of drugs and ≥ 90% of conditions mapped across all surfaces; unresolved rows listed in a checked-in report.
-- Week 6–8: `/graph` route + entity pages; command palette re-index; inventory + design-contract compliance.
+- Week 6–8: `/graph` route + entity pages; command palette re-index; inventory (`/graph` as a literal, entity pages via `generatedRoutes`) + design-contract compliance.
 - Week 8–10: mind map canonical ids + cross-topic links; deep links from the four legacy apps.
 
 ### Acceptance
@@ -166,7 +166,7 @@ site/src/data/graph/
 5. **Talks page** `/talks`: a `talks` content collection (title, date, venue, slides href, video href, abstract). The two existing lectures stay unlisted unless the owner opts them in; the page ships with whatever the owner is willing to list.
 6. **Changelog** `/changelog`: build-time parse of `docs/devlog.md` into entries. Optionally the "what's new" dot in the header that the April 2026 audit proposed, driven by entries in the last 30 days.
 7. **Publication freshness.** Weekly scheduled workflow that queries PubMed E-utilities (author query) and, if new records appear, opens a PR editing `publications.js`. Scholar has no API and scraping it is brittle; PubMed plus a manual `ORCID` check is the reliable path. *Assumption:* the owner has or will create an ORCID.
-8. **Inventory and palette.** Add `/blog/[slug]`, `/talks`, `/changelog`, `/graph/**` to `astroRoutes`; note the inventory test generates a Playwright test per route asserting `<main>` is visible (`site/tests/inventory-surface.spec.ts:16-25`).
+8. **Inventory and palette.** Static routes (`/blog`, `/talks`, `/changelog`, `/graph`, `/data`) go into `astroRoutes` as literals. Dynamic routes (`/blog/<slug>`, `/graph/drug/<id>`, and so on) must **not** be added as placeholder strings: `site/tests/inventory.ts:88-90` returns `astroRoutes` unchanged and `site/tests/inventory-surface.spec.ts:16-25` passes each string straight to `page.goto()`, so a literal `/blog/[slug]` would test a 404 and leave every real page uncovered. Instead, add a `generatedRoutes` block to the inventory JSON in the same shape as the existing `mindmapTopics` derivation (`{ sourceDir | sourceGlob, routePrefix, derivation }`), extend `inventory.ts` with a `getGeneratedRoutes()` that enumerates the concrete paths from the content collection and graph data at test time, and have the surface spec iterate both lists. The inventory policy test should assert that no `astroRoutes` entry contains `[`, `]`, or `*`.
 
 ### Deliverables and milestones
 - Week 2–3: deps + lockfile, content collections, first three posts migrated or written, `/blog/[slug]`, RSS, sitemap, robots.
@@ -298,7 +298,7 @@ derm-vlm-bench/
 1. **Grounded generation.** The generator is given a bounded source packet: graph entities and their referenced quotes, mind map tooltips and diagram citations, and PubMed abstracts fetched by PMID. It may not cite anything outside the packet. Board-style but synthetic; no reproduction of any board item.
 2. **Independent verification.** A different model family from the generator (per the repo's rigor guidance on correlated errors) receives each claim in the stem, key, and explanation and must return, for each, the source id and an exact quote span from the packet that entails it, or `unsupported`. Quote spans are checked by string match against the packet, not trusted. Any `unsupported` claim in the stem or key rejects the item; `unsupported` in a distractor explanation flags it.
 3. **Rubric scoring.** Reuse the 10-criterion rubric from the existing artifacts so new items are comparable to the 3,400 already judged.
-4. **Human adjudication queue.** An unlisted `/study/adjudicate` route (same `noindex`/`canonical={null}` pattern as other unlisted pages) where the owner approves, edits, or rejects. Approval writes `human-verified`. Target: a bank of 300 human-verified items before public launch, seeded by re-verifying the best-scoring items from the existing 3,400.
+4. **Human adjudication queue, local-first.** The site is `output: 'static'` on GitHub Pages, so a hosted page has no write path back to the item bank; approvals made in a browser would be lost or stay browser-local. The adjudication UI therefore ships **inside the pipeline repo** as a small local web app (`mcq-forge adjudicate`, served on localhost) that reads the candidate items and writes decisions directly to the bank files (`items/<id>.json` gets `verification.status`, `adjudicator`, `verifiedAt`; an append-only `decisions.jsonl` records every action). The build-time export reads only from those files. If remote adjudication is ever needed, the fallback is the same UI exporting a `decisions.jsonl` that is committed via PR and applied by the pipeline, never a browser-side write. Target: a bank of 300 human-verified items before public launch, seeded by re-verifying the best-scoring items from the existing 3,400.
 
 **Delivery.** Astro route `/study` with a React island: session builder (by graph entity, superdomain, difficulty), item player with rationale reveal and source quotes shown inline, and per-item "report a problem" that files a GitHub issue via a prefilled URL (no backend). Bank served from `/api/v1/mcq/` (Workstream 3) with only verified items exported.
 
@@ -311,12 +311,12 @@ derm-vlm-bench/
 
 ### Deliverables and milestones
 - Week 14–16: `site/src/lib/study/` with SM-2 + FSRS, IndexedDB store, migration, tests; dermpath differentials switched over.
-- Week 16–20: mcq-forge pipeline; re-verify top existing items; adjudication route.
+- Week 16–20: mcq-forge pipeline; re-verify top existing items; local adjudication tool.
 - Week 20–24: `/study` player; `/api/v1/mcq/`; mind map study hooks.
 - Week 24–28: 300 verified items; public launch post; `apps.json` copy for the dermpath navigator corrected to match reality.
 
 ### Acceptance
-- An item cannot appear in `/api/v1/mcq/` unless `verification.status` is `human-verified` (asserted by a build-time test).
+- An item cannot appear in `/api/v1/mcq/` unless `verification.status` is `human-verified` in the committed bank files (asserted by a build-time test); no verification state lives only in a browser.
 - Every displayed rationale shows at least one clickable source with a quote that string-matches the source packet.
 - Existing SRS users keep their cards after migration (Playwright test seeds `dermpath_srs_data`, loads the app, asserts due counts match).
 
@@ -384,7 +384,7 @@ Candidate source classes (to be confirmed at build time, not asserted here): ACR
 
 ### Deliverables
 - Week 26–28: sourcing + licensing record; tiling tool; 20 slides on R2.
-- Week 29–33: viewer route `/apps/dermpath-slides`; annotation layer; expert annotations for the 20 slides (owner time).
+- Week 29–33: viewer route `/apps/dermpath-slides`; annotation layer; expert annotations for the 20 slides authored in a local annotation mode that exports GeoJSON committed to the repo (owner time). Same constraint as the MCQ adjudicator: the static site has no write path, so authoring is local and the export is the artifact.
 - Week 34–38: trainer scoring, SRS cards, launch.
 
 ### Acceptance
@@ -421,13 +421,14 @@ Nothing in-repo. This is greenfield and intentionally last.
 
 ## Cross-cutting engineering rules for every workstream
 
-1. **Surface contract.** Every new route goes into `docs/site-test-inventory.md` (`astroRoutes`, or `unlistedAstroRoutes` with `noindex={true}` and `canonical={null}` and `allowedLinkFiles`). The inventory test auto-generates a Playwright test per route.
-2. **Design contract.** No emoji in non-data source, no Google Fonts, banned hex/font lists, type primitives in use, single dark theme, coral as the only accent hue. Run `npx vitest run src/security/site-design-contract.test.ts` before pushing.
-3. **Data validation is a test.** Every dataset has a zod schema and a Vitest test; every build-emitted artifact has a hash in a manifest that a test checks.
-4. **Fail closed on evidence.** Unsourced edges render as unsourced; unverified items are not served; low-n strata are suppressed; rules without two sign-offs do not publish.
-5. **No secrets in the browser.** Any LLM call goes through a backend (the scribe's sessionStorage-only JWT pattern at `site/public/apps/dermatology-scribe/app.js:1-52` is the reference) or happens offline in a pipeline. The dermpath navigator's stripped Gemini key is the cautionary example.
-6. **Devlog per phase**, commit format `agent(<name>): <summary>`, vault update when the vault is present (per `CLAUDE.md`).
-7. **Large files go to R2**, never to `site/public`.
+1. **Surface contract.** Every new static route goes into `docs/site-test-inventory.md` (`astroRoutes`, or `unlistedAstroRoutes` with `noindex={true}` and `canonical={null}` and `allowedLinkFiles`). Dynamic routes go into the new `generatedRoutes` block and are enumerated at test time (Workstream 2, item 8); placeholder strings such as `/blog/[slug]` are never valid inventory entries. The inventory test auto-generates a Playwright test per enumerated route.
+2. **No browser-only state of record.** The site is static on GitHub Pages. Anything that must persist (adjudication decisions, annotations, review sign-offs) is authored locally and committed as files, or goes through an authenticated backend. A page that appears to save but cannot write back is a defect.
+3. **Design contract.** No emoji in non-data source, no Google Fonts, banned hex/font lists, type primitives in use, single dark theme, coral as the only accent hue. Run `npx vitest run src/security/site-design-contract.test.ts` before pushing.
+4. **Data validation is a test.** Every dataset has a zod schema and a Vitest test; every build-emitted artifact has a hash in a manifest that a test checks.
+5. **Fail closed on evidence.** Unsourced edges render as unsourced; unverified items are not served; low-n strata are suppressed; rules without two sign-offs do not publish.
+6. **No secrets in the browser.** Any LLM call goes through a backend (the scribe's sessionStorage-only JWT pattern at `site/public/apps/dermatology-scribe/app.js:1-52` is the reference) or happens offline in a pipeline. The dermpath navigator's stripped Gemini key is the cautionary example.
+7. **Devlog per phase**, commit format `agent(<name>): <summary>`, vault update when the vault is present (per `CLAUDE.md`).
+8. **Large files go to R2**, never to `site/public`.
 
 ## Sequenced calendar (assumes two parallel tracks)
 
