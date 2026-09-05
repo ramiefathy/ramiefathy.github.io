@@ -1,0 +1,41 @@
+name: Atlas continuation snapshot
+on:
+  push:
+    branches: [audit/clinical-source-validation-20260904]
+    paths: [.github/workflows/atlas-continuation-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          lfs: true
+          persist-credentials: false
+      - name: Capture current source and database interface
+        run: |
+          mkdir -p /tmp/atlas-continuation
+          git rev-parse HEAD > /tmp/atlas-continuation/COMMIT.txt
+          tar --exclude=.git -czf /tmp/atlas-continuation/source.tar.gz .
+          python - <<'PY'
+          import json,urllib.request,pathlib,hashlib,datetime
+          query='query { meta { apiVersion { x y z } dataVersion { year month iteration } } disease(id:"EFO_1000710") { id name associatedTargets(page:{index:0,size:2}) { count rows { target { id approvedSymbol } score datasourceScores { id score } } } } __type(name:"Disease") { fields { name args { name type { kind name ofType { kind name ofType { kind name } } } } } } }'
+          dest=pathlib.Path('/tmp/atlas-continuation')
+          request={'query':query}
+          (dest/'opentargets-request.json').write_text(json.dumps(request,indent=2))
+          try:
+              req=urllib.request.Request('https://api.platform.opentargets.org/api/v4/graphql',data=json.dumps(request).encode(),headers={'Content-Type':'application/json','User-Agent':'AtlasEvidenceAudit/1.0'})
+              with urllib.request.urlopen(req,timeout=60) as r: raw=r.read()
+              (dest/'opentargets-response.json').write_bytes(raw)
+              (dest/'opentargets-receipt.json').write_text(json.dumps({'url':req.full_url,'retrieved_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}))
+          except Exception as e:
+              (dest/'opentargets-error.txt').write_text(str(e))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: atlas-continuation-source
+          path: /tmp/atlas-continuation
+          if-no-files-found: error
+          retention-days: 7
