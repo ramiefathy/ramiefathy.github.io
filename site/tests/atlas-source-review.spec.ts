@@ -97,7 +97,7 @@ test('Immune Atlas quarantines historical efficacy before constructing runtime v
   const counts = await page.evaluate(() => {
     const d = (window as any).__RHEUM_DERM_ATLAS_DATA__;
     // DATA is a top-level lexical constant; evaluate the public contract through the browser realm.
-    return (0, eval)('({active:DATA.effects.length,archived:DATA.quarantinedEffects.length,hasAvacopan:DATA.effects.some(r=>r.med==="avacopan"),derived:DATA.manifestationLinks.length})');
+    return (0, eval)('({active:DATA.effects.length,archived:DATA.quarantinedEffects.length,hasAvacopan:DATA.effects.some(r=>r.med==="avacopan"),derived:DATA.sourceManifestationLinks.length})');
   });
   expect(counts).toEqual({ active: 138, archived: 5, hasAvacopan: false, derived: 239 });
   await page.getByLabel('Atlas source record category', { exact: true }).selectOption('QUARANTINED');

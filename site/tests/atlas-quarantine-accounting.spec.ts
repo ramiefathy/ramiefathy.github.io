@@ -8,7 +8,7 @@ test('quarantine changes visible denominators without creating zero-effect evide
   await page.goto('/apps/rheum-derm-immune-atlas/', { waitUntil: 'networkidle' });
   await expect.poll(() => page.evaluate(() => Boolean((window as any).__ATLAS_V5__?.validation.ok))).toBe(true);
   const actual = await page.evaluate(() => (0, eval)(`(() => {
-    const key = r => r.condition + ':' + r.med;
+    const key = r => (r.condition === 'aav' ? 'vasculitis' : r.condition) + ':' + r.med;
     const held = new Set(DATA.quarantinedEffects.map(key));
     const counts = threshold => volumeData(threshold).reduce((out, row) => {
       out[row.state] = (out[row.state] || 0) + 1; return out;
@@ -19,7 +19,7 @@ test('quarantine changes visible denominators without creating zero-effect evide
       archivedPairs: [...held].sort(),
       leakedEffects: DATA.effects.filter(row => held.has(key(row))).length,
       leakedRelations: DATA.relations.filter(row => row.sourceType === 'condition' &&
-        row.targetType === 'medication' && held.has(row.sourceId + ':' + row.targetId)).length,
+        row.targetType === 'medication' && held.has((row.sourceId === 'aav' ? 'vasculitis' : row.sourceId) + ':' + row.targetId)).length,
       B: counts('B'), D: counts('D'),
       remainingZeroCoordinates: volumeData('D').filter(row => row.state === 'explicit-zero')
         .map(row => row.cid + ':' + row.tid + ':' + row.pid).sort()
@@ -29,8 +29,8 @@ test('quarantine changes visible denominators without creating zero-effect evide
     active: 138, original: 143,
     archivedPairs: ['schnitzler:anakinra', 'schnitzler:hcq', 'schnitzler:rilon', 'schnitzler:tnfi_ada', 'vasculitis:avacopan'],
     leakedEffects: 0, leakedRelations: 0,
-    B: { unknown: 23691, derived: 57, filtered: 66 },
-    D: { unknown: 23690, derived: 123, 'explicit-zero': 1 },
+    B: { unknown: 27660, derived: 57, filtered: 66 },
+    D: { unknown: 27659, derived: 123, 'explicit-zero': 1 },
     remainingZeroCoordinates: ['caps:tnfi_ada:pathway:neutrophil']
   });
   runtime.assertClean();

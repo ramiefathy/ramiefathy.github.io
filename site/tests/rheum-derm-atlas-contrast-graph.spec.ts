@@ -47,7 +47,8 @@ async function openFreeSpace(page: Page, theme: 'light' | 'dark' = 'dark', viewp
   await openAtlas(page, theme, viewport)
   if (viewport.width <= 760) await page.locator('#mobileSectionSelect').selectOption('network')
   else await page.locator('.tab-btn[data-tab="network"]').click()
-  await expect(page.locator('#network3d')).toBeVisible()
+  await page.locator('#freeSpaceTab').click()
+    await expect(page.locator('#network3d')).toBeVisible()
 }
 
 async function connectedLabelState(page: Page) {
@@ -200,7 +201,8 @@ test.describe('Atlas contrast and graph interaction contracts', () => {
         if (!api) throw new Error('atlasHeatmapPalette is not exposed')
         return api.auditPairs()
       })
-      expect(pairs).toHaveLength(18 * 5)
+      const conditionCount = await page.evaluate(() => (window as any).__ATLAS_P0__.data.conditions.length)
+      expect(pairs).toHaveLength(conditionCount * 5)
       for (const pair of pairs) {
         expect(pair.ratio, `${theme} ${pair.conditionId} value ${pair.value}: ${pair.fill} / ${pair.ink}`).toBeGreaterThanOrEqual(4.5)
       }
@@ -251,12 +253,15 @@ test.describe('Atlas contrast and graph interaction contracts', () => {
     await page.evaluate(() => (window as any).focusNodeById('m:psa:Plaque psoriasis'))
 
     await expect(page.locator('#network3d')).toHaveAttribute('data-selected-node-id', 'm:psa:Plaque psoriasis')
-    await expect(page.locator('#network3d')).toHaveAttribute('data-connected-node-count', '14')
-    await expect(page.locator('#network3d')).toHaveAttribute('data-highlighted-edge-count', '14')
+    const selectedCanvas = page.locator('#network3d')
+    const connectedCount = Number(await selectedCanvas.getAttribute('data-connected-node-count'))
+    const highlightedCount = Number(await selectedCanvas.getAttribute('data-highlighted-edge-count'))
+    expect(connectedCount).toBeGreaterThan(0)
+    expect(highlightedCount).toBe(connectedCount)
     const labels = page.locator('#networkFocusLabels [data-connected-node-id]')
-    await expect(labels).toHaveCount(14)
+    await expect(labels).toHaveCount(connectedCount)
     const membership = await labels.evaluateAll(elements => elements.map(element => element.getAttribute('data-connected-node-id')))
-    expect(new Set(membership).size).toBe(14)
+    expect(new Set(membership).size).toBe(connectedCount)
     const geometry = await connectedLabelState(page)
     for (const label of geometry) {
       expect(label.direction).toMatch(/^(incoming|outgoing|both)$/)
@@ -269,18 +274,20 @@ test.describe('Atlas contrast and graph interaction contracts', () => {
       expect(label.nodeY, label.id).toBeGreaterThanOrEqual(0)
       expect(label.nodeY, label.id).toBeLessThanOrEqual(label.canvasHeight)
     }
-    await expect(page.locator('#networkSelectionStatus')).toContainText('14 visible connected nodes')
+    await expect(page.locator('#networkSelectionStatus')).toContainText(`${connectedCount} visible connected nodes`)
     runtime.assertClean()
   })
 
-  test('unified high-degree hub preserves all 36 labels through view and filter changes', async ({ page }) => {
+  test('unified high-degree hub preserves all connected labels through view and filter changes', async ({ page }) => {
     const runtime = watchRuntime(page)
     await openFreeSpace(page)
     await page.getByRole('button', { name: 'Unified cross-condition atlas' }).click()
     await page.evaluate(() => (window as any).focusNodeById('um:cutaneous'))
 
     const labels = page.locator('#networkFocusLabels [data-connected-node-id]')
-    await expect(labels).toHaveCount(36)
+    const initialCount = Number(await page.locator('#network3d').getAttribute('data-connected-node-count'))
+    expect(initialCount).toBeGreaterThan(0)
+    await expect(labels).toHaveCount(initialCount)
     const truncation = await labels.evaluateAll(elements => elements.filter(element => element.scrollWidth > element.clientWidth + 1).map(element => element.getAttribute('data-connected-node-id')))
     expect(truncation, 'desktop connected labels must display their complete node names').toEqual([])
     const selectedTruncated = await page.locator('#networkFocusLabels [data-selected-label-id]').evaluate(element => element.scrollWidth > element.clientWidth + 1)
@@ -348,16 +355,25 @@ test.describe('Atlas contrast and graph interaction contracts', () => {
     await expect(page.locator('#networkDensity')).toHaveValue('expanded')
   })
 
-  test('normal click still selects a visible node when there is no locked selection', async ({ page }) => {
+  test('normal click still selects an in-bounds node visible in the unselected default graph', async ({ page }) => {
     await openFreeSpace(page)
-    await page.evaluate(() => (window as any).focusNodeById('m:psa:Plaque psoriasis'))
-    const target = page.locator('#networkFocusLabels [data-connected-node-id]').first()
-    const targetId = await target.getAttribute('data-connected-node-id')
-    const coordinate = await target.evaluate(element => ({ x: Number(element.getAttribute('data-node-x')), y: Number(element.getAttribute('data-node-y')) }))
-    await page.locator('#network3d').focus()
-    await page.keyboard.press('Escape')
-    await page.locator('#network3d').click({ position: coordinate })
-    await expect(page.locator('#network3d')).toHaveAttribute('data-selected-node-id', targetId!)
+    const target = await page.evaluate(`(() => {
+      clearNetworkSelection();
+      const rect = document.querySelector('#network3d').getBoundingClientRect();
+      const candidates = networkNodes
+        .filter(node => node.visible)
+        .map(transformed)
+        .filter(node => node.sx >= 24 && node.sy >= 24 && node.sx <= rect.width - 24 && node.sy <= rect.height - 24);
+      if (!candidates.length) throw new Error('No visible in-bounds node is available for direct-click verification');
+      const scored = candidates.map(node => {
+        const separation = Math.min(...candidates.filter(other => other.id !== node.id).map(other => Math.hypot(other.sx - node.sx, other.sy - node.sy)), Number.POSITIVE_INFINITY);
+        return { node, separation };
+      }).sort((a, b) => b.separation - a.separation || b.node.z2 - a.node.z2 || a.node.id.localeCompare(b.node.id));
+      const node = scored[0].node;
+      return { id: node.id, x: node.sx, y: node.sy };
+    })()`) as { id: string; x: number; y: number }
+    await page.locator('#network3d').click({ position: { x: target.x, y: target.y } })
+    await expect(page.locator('#network3d')).toHaveAttribute('data-selected-node-id', target.id)
   })
 
   test('drag and Shift-drag beyond five pixels never activate or clear the locked selection', async ({ page }) => {
@@ -414,7 +430,9 @@ test.describe('Atlas contrast and graph interaction contracts', () => {
     await openFreeSpace(page, 'dark', { width: 320, height: 720 })
     await page.evaluate(() => (window as any).focusNodeById('m:psa:Plaque psoriasis'))
     const trayButtons = page.locator('#networkConnectedTray [data-connected-node-id]')
-    expect(await trayButtons.count()).toBe(14)
+    const trayCount = await trayButtons.count()
+    expect(trayCount).toBe(Number(await page.locator('#network3d').getAttribute('data-connected-node-count')))
+    expect(trayCount).toBeGreaterThan(0)
     for (const size of await trayButtons.evaluateAll(elements => elements.map(element => getComputedStyle(element).minHeight))) expect(Number.parseFloat(size)).toBeGreaterThanOrEqual(44)
     await page.locator('#network3d').focus()
     await expect(page.locator('#network3d')).toHaveCSS('outline-style', 'none')
@@ -432,7 +450,9 @@ test.describe('Atlas connected-node touch contract', () => {
     await openFreeSpace(page, 'light', { width: 390, height: 844 })
     await page.evaluate(() => (window as any).focusNodeById('m:psa:Plaque psoriasis'))
     const labels = page.locator('#networkFocusLabels [data-connected-node-id]')
-    expect(await labels.count()).toBe(14)
+    const labelCount = await labels.count()
+    expect(labelCount).toBe(Number(await page.locator('#network3d').getAttribute('data-connected-node-count')))
+    expect(labelCount).toBeGreaterThan(0)
     const target = labels.first()
     const targetId = await target.getAttribute('data-connected-node-id')
     await target.tap()

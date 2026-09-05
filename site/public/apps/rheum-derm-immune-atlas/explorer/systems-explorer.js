@@ -333,6 +333,26 @@ nCanvas.addEventListener('pointerdown',event=>{networkPointers.set(event.pointer
 nCanvas.addEventListener('pointermove',event=>{if(networkPointers.has(event.pointerId)){networkPointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(networkPinch&&networkPointers.size>=2){const points=[...networkPointers.values()],distance=pointerDistance(points[0],points[1]);if(networkPinch.distance>0)zoom=Math.max(.22,Math.min(2.2,networkPinch.zoom*distance/networkPinch.distance));draw3D();return}if(networkGesture?.pointerId===event.pointerId){const moved=Math.hypot(event.clientX-networkGesture.startX,event.clientY-networkGesture.startY);if(moved>5)networkGesture.dragged=true;if(networkGesture.dragged){const dx=event.clientX-networkGesture.lastX,dy=event.clientY-networkGesture.lastY;if(networkGesture.shiftKey){panX+=dx;panY+=dy}else{rotY+=dx*.0065;rotX+=dy*.0065;rotX=Math.max(-1.45,Math.min(1.45,rotX))}networkGesture.lastX=event.clientX;networkGesture.lastY=event.clientY;draw3D()}return}}const hit=nearestNetworkHit(event.clientX,event.clientY);nCanvas.dataset.cursor=hit?'pointer':'';networkHovered=hit?.type==='node'?hit.obj:null;networkHoveredEdge=hit?.type==='edge'?hit.obj:null;if(networkHovered)tip(`<b>${esc(networkHovered.label)}</b><br><span class="tooltip-body">${esc(networkHovered.type)} · ${networkHovered.degree} links · grade ${networkHovered.grade}</span>`,event.clientX,event.clientY);else if(networkHoveredEdge)tip(`<b>${esc(networkHoveredEdge.label)}</b><br><span class="tooltip-body">${esc(EDGE_STYLE[networkHoveredEdge.type]?.label||networkHoveredEdge.type)} · grade ${networkHoveredEdge.grade}</span>`,event.clientX,event.clientY);else hideTip();draw3D()});
 nCanvas.addEventListener('pointerup',event=>finishNetworkPointer(event));nCanvas.addEventListener('pointercancel',event=>finishNetworkPointer(event,true));nCanvas.addEventListener('lostpointercapture',event=>{networkPointers.delete(event.pointerId);if(networkGesture?.pointerId===event.pointerId)networkGesture=null;if(networkPointers.size<2)networkPinch=null;nCanvas.dataset.gesture=''});nCanvas.addEventListener('pointerleave',()=>{if(networkGesture)return;networkHovered=null;networkHoveredEdge=null;nCanvas.dataset.cursor='';hideTip();draw3D()});nCanvas.addEventListener('wheel',e=>{e.preventDefault();zoom*=e.deltaY>0?.91:1.10;zoom=Math.max(.22,Math.min(2.2,zoom));draw3D()},{passive:false});
 nCanvas.addEventListener('dblclick',()=>setViewPreset(nCanvas.dataset.viewPreset||'front'));
+// Non-drag controls call the camera directly: synthetic pointer events do not own
+// an active pointer and cannot safely use setPointerCapture in a real browser.
+window.atlasAdjustView = function(control) {
+  const before = {rotX,rotY,zoom,panX,panY};
+  switch(control) {
+    case 'rotate-left': rotY-=.273; break;
+    case 'rotate-right': rotY+=.273; break;
+    case 'zoom-in': zoom=Math.min(2.2,zoom*1.10); break;
+    case 'zoom-out': zoom=Math.max(.22,zoom*.91); break;
+    case 'pan-left': panX-=42; break;
+    case 'pan-right': panX+=42; break;
+    case 'pan-up': panY-=42; break;
+    case 'pan-down': panY+=42; break;
+    default: throw new TypeError('Unknown graph camera control');
+  }
+  nCanvas.dataset.viewZoom=String(zoom);
+  draw3D();
+  return {before,after:{rotX,rotY,zoom,panX,panY}};
+};
+
 $$('[data-network-mode]').forEach(b=>b.onclick=()=>setNetworkMode(b.dataset.networkMode));
 $$('[data-network-representation]').forEach(b=>b.onclick=()=>setNetworkRepresentation(b.dataset.networkRepresentation));
 $('#networkCondition').onchange=e=>{syncConditionContext(e.target.value);if(networkMode==='condition')buildNetwork(e.target.value);else if(networkRepresentation==='triptych')renderTriptych()};

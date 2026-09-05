@@ -8,7 +8,7 @@
     return item;
   };
   const section = document.getElementById('atlas-source-review');
-  const states = { ACTIVE: 'Active synthesis (not fully validated)', QUARANTINED: 'Quarantined evidence', DERIVED: 'Derived manifestation mappings' };
+  const states = { ACTIVE: 'Active synthesis (not fully validated)', QUARANTINED: 'Quarantined evidence', DERIVED: 'Derived manifestation mappings', SCOPED_CLAIMS: 'Primary-source mechanism assertions' };
   const title = node('h3', 'Source-review workbench');
   const boundary = node('p', 'Targeted corrections do not validate every clinical claim. Quarantined efficacy is excluded before all runtime indexes are built; archived numerical values must not be reused. Mechanism, organ-specific outcomes, regulatory status, and therapeutic inference are distinct.');
   const stats = DATA.sourceReview;
@@ -21,9 +21,10 @@
   const exportButton = node('button', 'Export filtered evidence (CSV)', { type: 'button', class: 'btn' });
   const results = node('div', undefined, { class: 'review-records' });
   const all = [
+    ...DATA.scopedClaims.map(row => ({ ...row, category: 'SCOPED_CLAIMS' })),
     ...DATA.effects.map(row => ({ ...row, category: 'ACTIVE' })),
     ...DATA.quarantinedEffects.map(row => ({ ...row, category: 'QUARANTINED' })),
-    ...DATA.manifestationLinks.map(row => ({ ...row, category: 'DERIVED' }))
+    ...(DATA.sourceManifestationLinks || DATA.manifestationLinks).map(row => ({ ...row, category: 'DERIVED' }))
   ];
   let selected = [];
   function sourceLink(id) {
@@ -49,11 +50,17 @@
       const condition = DATA.conditions.find(c => c.id === row.condition)?.name || row.condition;
       const med = DATA.medications.find(m => m.id === row.med)?.name || row.med;
       const detail = node('details');
-      detail.append(node('summary', `${condition} — ${med || row.pathway} — ${row.manifestations || row.manifestation}`));
+      detail.append(node('summary', `${condition} — ${med || row.pathway || row.id} — ${row.claim || row.manifestations || row.manifestation}`));
+      if (row.category === 'SCOPED_CLAIMS') {
+        detail.append(node('p', `${row.disposition}: ${row.studyDesign}. AI-assisted source adjudication, not human sign-off or clinical validation.`));
+        detail.append(node('blockquote', row.quote));
+        detail.append(node('p', `Locator: ${row.locator}`));
+        detail.append(node('p', row.limitations, { class: 'disclaimer' }));
+      }
       detail.append(node('p', `Review status: ${row.reviewStatus}. Source grade ${row.grade || 'not recorded'} is inherited from the synthesis, not a new independent grade.`));
       if (row.category === 'QUARANTINED') detail.append(node('p', row.quarantineReason, { class: 'disclaimer' }));
       else if (row.category === 'DERIVED') detail.append(node('p', 'This relationship is a derived mapping. A parent citation or a treatment response does not independently establish this pathway–manifestation claim.', { class: 'disclaimer' }));
-      else detail.append(node('p', row.sourceReview || 'Complete claim-by-claim source adjudication remains pending.'));
+      else if (row.category !== 'SCOPED_CLAIMS') detail.append(node('p', row.sourceReview || 'Complete claim-by-claim source adjudication remains pending.'));
       for (const key of ['summary', 'caveat', 'basis', 'rationale']) if (row[key]) detail.append(node('p', `${key}: ${row[key]}`));
       const links = node('div'); (row.refs || []).forEach(id => { const p = node('p'); p.append(sourceLink(id)); links.append(p); }); detail.append(links);
       results.append(detail);
