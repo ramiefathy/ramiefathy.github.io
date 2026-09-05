@@ -1,0 +1,62 @@
+name: Atlas ontology-aware association recapture
+on:
+  push:
+    branches: [audit/clinical-source-validation-20260904]
+    paths: [.github/workflows/atlas-ontology-recapture.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Retrieve hash-verified independent gene identity capture
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/ramiefathy/ramiefathy.github.io/actions/artifacts/9970225993/zip > /tmp/identities.zip
+          echo '23cf5c7978b8d654be62acb39c088351f1bf49897a712934a06194b1b15175e6  /tmp/identities.zip' | sha256sum --check
+          mkdir -p /tmp/identities /tmp/ontology
+          unzip -q /tmp/identities.zip -d /tmp/identities
+      - name: Resolve exact disease names and capture direct associations
+        run: |
+          python - <<'PY'
+          import urllib.request,urllib.error,json,pathlib,hashlib,datetime,time,re
+          out=pathlib.Path('/tmp/ontology');records=[];decisions=[];targets=json.load(open('site/public/apps/dermatotarget-atlas/data/targets.json'));genes=json.load(open('/tmp/identities/ensembl-symbols-response.json'))
+          def capture(name,query):
+              body=json.dumps({'query':query}).encode();(out/(name+'-request.json')).write_bytes(body);rec={'id':name,'url':'https://api.platform.opentargets.org/api/v4/graphql','retrieved_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'request_sha256':hashlib.sha256(body).hexdigest()}
+              try:
+                  req=urllib.request.Request(rec['url'],data=body,headers={'Content-Type':'application/json','Accept':'application/json','User-Agent':'AtlasEvidenceAudit/1.0'})
+                  with urllib.request.urlopen(req,timeout=60) as r:raw=r.read();rec['http_status']=r.status
+                  data=json.loads(raw);rec['status']='graphql_error' if data.get('errors') else 'retrieved'
+              except urllib.error.HTTPError as e:raw=e.read();data={};rec.update(status='http_error',http_status=e.code)
+              except Exception as e:raw=json.dumps({'error':str(e)}).encode();data={};rec['status']='transport_error'
+              (out/(name+'-response.json')).write_bytes(raw);rec['response_sha256']=hashlib.sha256(raw).hexdigest();records.append(rec);time.sleep(.5);return data
+          capture('meta','{ meta { dataVersion { year month iteration } } }')
+          for key in sorted({t['disease_key'] for t in targets}):
+              ts=[t for t in targets if t['disease_key']==key];name=ts[0]['disease_name']
+              result=capture(key+'-search','{ search(queryString:'+json.dumps(name)+',entityNames:["disease"],page:{index:0,size:10}) { hits { id name entity } } }')
+              hits=result.get('data',{}).get('search',{}).get('hits',[]);exact=[h for h in hits if h.get('entity')=='disease' and h.get('name','').casefold()==name.casefold()]
+              decision={'disease_key':key,'historical_id':ts[0]['disease_id'],'requested_name':name,'status':'UNRESOLVED_OR_AMBIGUOUS','candidate_hits':hits}
+              if len(exact)==1:
+                  did=exact[0]['id'];decision.update(status='EXACT_NAME_MATCH_NOT_BLANKET_EQUIVALENCE',current_id=did,current_name=exact[0]['name'])
+                  ids=[]
+                  for t in ts:
+                      g=genes.get(t['gene'],{});valid=g.get('display_name')==t['gene'] and g.get('species')=='homo_sapiens' and g.get('object_type')=='Gene' and g.get('assembly_name')=='GRCh38'
+                      if valid and (not t['target_id'] or t['target_id']==g.get('id')):ids.append(g['id'])
+                  decision['requested_target_ids']=ids
+                  capture(key+'-associations','{ disease(efoId:'+json.dumps(did)+') { id name synonyms { terms } dbXRefs associatedTargets(Bs:'+json.dumps(ids)+',enableIndirect:false,page:{index:0,size:100}) { count rows { target { id approvedSymbol } score datasourceScores { id score } } } } }')
+              decisions.append(decision)
+          (out/'decisions.json').write_text(json.dumps(decisions,indent=2));(out/'manifest.json').write_text(json.dumps(records,indent=2))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: atlas-ontology-aware-evidence
+          path: /tmp/ontology
+          if-no-files-found: error
+          retention-days: 7
