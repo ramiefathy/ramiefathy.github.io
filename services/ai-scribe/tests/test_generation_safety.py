@@ -267,12 +267,15 @@ async def test_handler_invalidates_before_cancellation_can_return_a_result(monke
             yield json.dumps({"type": "transcript_segment", "data": {"segment": "synthetic " * 21, "is_final": True}})
             await asyncio.wait_for(started.wait(), timeout=2)
             if operation == "reset":
-                yield json.dumps({"type": "start_new_session"})
+                yield json.dumps({"type": "start_new_session", "data": {"resetId": "synthetic-reset-1"}})
             elif operation == "replacement":
                 yield json.dumps({"type": "transcript_segment", "data": {"segment": "replacement " * 21, "is_final": True}})
             # Ending iteration exercises the disconnect cleanup ordering as well.
 
     await asyncio.wait_for(app.handler(Socket()), timeout=5)
+    if operation == "reset":
+        assert any(message.get("event") == "session_reset" and message.get("resetId") == "synthetic-reset-1"
+                   for message in messages)
     assert cancellations, "The stale provider must actually reach its cancellation handler"
     assert "SYNTHETIC_STALE_ENCOUNTER" not in json.dumps(messages)
     session_id = next(message["sessionId"] for message in messages if message["type"] == "connection_ack")

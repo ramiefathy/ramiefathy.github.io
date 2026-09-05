@@ -110,3 +110,23 @@ backend regressions are not counted as passed here until hosted receipts confirm
 them. CodeRabbit reviewed earlier revisions; later review requests hit the
 account's rate limit. Copilot review did not execute because of its quota limit.
 Those limitations must not be described as independent approval of the final head.
+
+
+## Queued-response encounter boundary
+
+An additional adversarial check found that cancellation alone cannot retract a
+response already queued on the connection. The client now fences clinical replies
+as soon as it requests reset, uses a unique local reset identifier, and accepts
+clinical output again only after the server acknowledges that exact reset (or an
+acknowledgment establishes a fresh replacement connection). Earlier reset
+acknowledgments cannot release a later reset. Events from superseded WebSockets are
+ignored. This also prevents an in-flight sequential generation from repopulating a
+newly cleared client before the backend reaches its queued reset command.
+
+The backend echoes the bounded reset identifier and invalidates old work before
+acknowledging. Legacy clients can still omit the identifier; the new client needs
+the updated backend acknowledgment protocol. Deploy the frontend and service
+together. An older backend cannot release the new client's safety fence, so the
+client deliberately does not silently accept potentially cross-encounter output.
+New browser tests exercise this boundary with a synthetic WebSocket transport;
+this does not claim live model or production networking validation.

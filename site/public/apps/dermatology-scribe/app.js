@@ -69,6 +69,9 @@
         let websocket = null;
         let currentSessionId = null;
         let wsConnected = false;
+        let resetSequence = 0;
+        let pendingResetId = null;
+        let pendingResetSocket = null;
 	        let wsReconnectAttempts = 0;
 	        const MAX_RECONNECT_ATTEMPTS = 5;
 	        let pendingRequests = new Map();
@@ -150,8 +153,10 @@
 		            }
 		
 		            websocket = new WebSocket(wsUrl.toString(), buildAuthProtocols(activeToken));
+                    const activeSocket = websocket;
 
             websocket.onopen = () => {
+                if (websocket !== activeSocket) return;
                 console.log('WebSocket connection established');
                 wsConnected = true;
                 wsReconnectAttempts = 0;
@@ -159,6 +164,7 @@
             };
 
             websocket.onmessage = (event) => {
+                if (websocket !== activeSocket) return;
                 try {
                     const message = JSON.parse(event.data);
                     if (!message || typeof message !== 'object' || typeof message.type !== 'string') throw new Error('Invalid message');
@@ -170,11 +176,13 @@
             };
 
             websocket.onerror = (error) => {
+                if (websocket !== activeSocket) return;
                 console.error('WebSocket error:', error);
                 updateConnectionStatus(false);
             };
 
 		            websocket.onclose = (event) => {
+                        if (websocket !== activeSocket) return;
 		                console.log('WebSocket connection closed');
                         discardProvisionalOutput();
 		                wsConnected = false;
@@ -230,6 +238,14 @@
         }
 
         function sendToServer(type, data = {}) {
+            if (type === 'start_new_session') {
+                // Reject all queued clinical replies until this exact reset is acknowledged.
+                pendingResetId = String(++resetSequence);
+                pendingResetSocket = websocket && websocket.readyState === WebSocket.OPEN ? websocket : null;
+                data = { ...data, resetId: pendingResetId };
+                streamBuffers = { note: '', chat: '', analysis: '' };
+                isStreaming = false;
+            }
             if (!websocket || websocket.readyState !== WebSocket.OPEN) {
                 showNotification('Not connected to server. Attempting to reconnect...', 'warning');
                 connectWebSocket();
@@ -287,6 +303,17 @@
 		        }
 
         function handleWebSocketMessage(message) {
+            if (pendingResetId !== null) {
+                const resetAcknowledged = message.type === 'status' && message.event === 'session_reset' &&
+                    message.resetId === pendingResetId;
+                const freshConnection = message.type === 'connection_ack' && pendingResetSocket !== websocket;
+                if (resetAcknowledged || freshConnection) {
+                    pendingResetId = null;
+                    pendingResetSocket = null;
+                } else if (message.type !== 'connection_ack') {
+                    return; // Includes completed notes, provisional chunks, suggestions, and old reset acknowledgments.
+                }
+            }
             console.log('Server message:', message.type);
 
 	            switch (message.type) {
@@ -891,7 +918,7 @@ Atopic dermatitis, [mild/moderate/severe]
 		            resetChatUI();
 		            resetTranscriptionOutputsUI();
 		            sendToServer('start_new_session', {});
-		            showNotification('New chat session started', 'success');
+		            showNotification('New local chat session started; server reset confirmation pending.', 'info');
 		        }
 		
 		        function beginNewTranscriptionSession() {
@@ -902,7 +929,7 @@ Atopic dermatitis, [mild/moderate/severe]
 		            resetTranscriptionOutputsUI();
 		            // Also reset server-side session state
 		            sendToServer('start_new_session', {});
-		            showNotification('New transcription session started', 'success');
+		            showNotification('New local transcription session started; server reset confirmation pending.', 'info');
 		        }
 		
 	        // Mode Selection

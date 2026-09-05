@@ -116,7 +116,8 @@ test('shared shell does not fabricate save success and traps/restores help focus
 
 test('scribe rejects provisional output after a provider failure or incomplete completion', async ({ page }) => {
   await blockExternalRequests(page); await page.goto('/apps/dermatology-scribe/index.html', { waitUntil: 'networkidle' });
-  await page.click('#startTranscriptionModeCard');
+  // This isolated streaming test opens the view without requesting an offline server reset.
+  await page.evaluate(() => (window as any).startTranscriptionMode());
   await page.evaluate(() => {
     (window as any).handleWebSocketMessage({ type: 'note_updated', draftNote: 'Previously completed note' });
     (window as any).handleWebSocketMessage({ type: 'stream_chunk', streamType: 'note', text: 'UNFINISHED DRAFT' });
