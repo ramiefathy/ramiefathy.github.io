@@ -1,0 +1,26 @@
+name: Inspect Atlas integration transfer
+on:
+  push:
+    branches: [audit/atlas-publish-staging-20260905]
+    paths: [.github/workflows/atlas-integration-transfer.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Preserve transfer receipt
+        run: |
+          mkdir /tmp/integration-transfer
+          cp .atlas-integration/part*.b64 /tmp/integration-transfer/
+          sha256sum /tmp/integration-transfer/part*.b64 > /tmp/integration-transfer/SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: atlas-integration-transfer
+          path: /tmp/integration-transfer
+          if-no-files-found: error
+          retention-days: 3
