@@ -142,12 +142,16 @@ jobs:
         run: python -m compileall services/ai-scribe
       - name: Run backend tests
         run: python -m pytest services/ai-scribe/tests -q --junitxml=services/ai-scribe/test-results.xml
+      - name: Test source-excerpt gate with synthetic failure injection
+        run: python -m pytest scripts/tests/test_source_excerpt_gate.py -q --junitxml=scripts/source-gate-results.xml
       - name: Upload backend test evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ai-scribe-test-evidence
-          path: services/ai-scribe/test-results.xml
+          path: |
+            services/ai-scribe/test-results.xml
+            scripts/source-gate-results.xml
           if-no-files-found: error
           retention-days: 7
 
