@@ -1,0 +1,92 @@
+name: Application audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [audit/clinical-apps-20260904]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Package exact source for reproducible offline inspection
+        run: |
+          mkdir -p /tmp/app-audit
+          git rev-parse HEAD > /tmp/app-audit/COMMIT.txt
+          git archive HEAD | gzip > /tmp/app-audit/source.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-audit-source-${{ github.sha }}
+          path: /tmp/app-audit
+          if-no-files-found: error
+          retention-days: 3
+  site-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          lfs: true
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install locked dependencies
+        run: npm --prefix site ci
+      - name: Unit tests
+        id: unit
+        continue-on-error: true
+        run: npm --prefix site test -- --reporter=default --reporter=json --outputFile=unit-results.json
+      - name: Production build
+        id: build
+        continue-on-error: true
+        run: npm --prefix site run build
+      - name: Dependency security audit
+        id: security
+        continue-on-error: true
+        run: npm --prefix site audit --json > site/dependency-audit.json
+      - name: Install Chromium
+        working-directory: site
+        run: npx playwright install --with-deps chromium
+      - name: Browser tests
+        id: browser
+        continue-on-error: true
+        working-directory: site
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: browser-results.json
+        run: npx playwright test --reporter=line,json
+      - name: Preserve test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-audit-evidence-${{ github.sha }}
+          path: |
+            site/unit-results.json
+            site/browser-results.json
+            site/dependency-audit.json
+            site/test-results
+          if-no-files-found: error
+          retention-days: 7
+      - name: Require every verification gate
+        if: always()
+        env:
+          UNIT: ${{ steps.unit.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          SECURITY: ${{ steps.security.outcome }}
+          BROWSER: ${{ steps.browser.outcome }}
+        run: |
+          test "$UNIT" = success
+          test "$BUILD" = success
+          test "$SECURITY" = success
+          test "$BROWSER" = success
