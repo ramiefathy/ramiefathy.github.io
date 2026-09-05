@@ -159,8 +159,14 @@
             };
 
             websocket.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                handleWebSocketMessage(message);
+                try {
+                    const message = JSON.parse(event.data);
+                    if (!message || typeof message !== 'object' || typeof message.type !== 'string') throw new Error('Invalid message');
+                    handleWebSocketMessage(message);
+                } catch {
+                    discardProvisionalOutput();
+                    showNotification('Invalid server response; previous output retained.', 'error');
+                }
             };
 
             websocket.onerror = (error) => {
@@ -170,6 +176,7 @@
 
 		            websocket.onclose = (event) => {
 		                console.log('WebSocket connection closed');
+                        discardProvisionalOutput();
 		                wsConnected = false;
 		                updateConnectionStatus(false);
 
@@ -324,6 +331,7 @@
                     // Handle streaming text chunks
                     isStreaming = true;
                     const streamType = message.streamType || 'note';
+                    if (!Object.prototype.hasOwnProperty.call(streamBuffers, streamType) || typeof message.text !== 'string') break;
                     streamBuffers[streamType] += message.text;
 
                     if (streamType === 'note') {
@@ -341,10 +349,12 @@
 	                    const completeType = message.streamType || 'note';
 
 		                    if (completeType === 'note') {
-	                        if (typeof message.noteText === 'string') {
+	                        if (typeof message.noteText === 'string' && message.noteText.trim()) {
 	                            currentDraftNote = message.noteText;
 	                        } else {
-	                            currentDraftNote = streamBuffers.note;
+                                discardProvisionalOutput();
+                                showNotification('Incomplete note response; previous output retained.', 'error');
+                                break;
 	                        }
 		                        if (typeof message.analysisText === 'string') {
 		                            currentAiAnalysis = message.analysisText;
@@ -353,7 +363,8 @@
 		                        displaySOAPNote(currentDraftNote);
 		                        markAutosaveDirty();
 		                    } else if (completeType === 'chat') {
-		                        addChatMessage(streamBuffers.chat, 'ai');
+		                        document.getElementById('streamingChatMessage')?.remove();
+	                        addChatMessage(streamBuffers.chat, 'ai');
 		                    } else if (completeType === 'analysis') {
 		                        currentAiAnalysis = streamBuffers.analysis;
 		                        displayDifferentialDiagnosis(currentAiAnalysis);
@@ -422,7 +433,7 @@
                     break;
 
                 case 'error':
-                    isStreaming = false;
+                    if (message.area !== 'suggestions') discardProvisionalOutput();
                     showNotification(message.message || 'An error occurred', 'error');
                     break;
 
@@ -431,13 +442,25 @@
             }
         }
 
+        // Provisional text must never remain looking like a completed clinical result.
+        function discardProvisionalOutput() {
+            isStreaming = false;
+            streamBuffers.note = '';
+            streamBuffers.chat = '';
+            streamBuffers.analysis = '';
+            document.getElementById('streamingChatMessage')?.remove();
+            hideTypingIndicator();
+            displaySOAPNote(currentDraftNote);
+            displayDifferentialDiagnosis(currentAiAnalysis);
+        }
+
         // Streaming display functions
         function displayStreamingNote(text) {
             const output = document.getElementById('soapNoteOutput');
             if (!output) return;
 
             output.innerHTML = `
-                <h4 class="text-accent mb-3">Clinical Note: <span class="streaming-indicator">●</span></h4>
+                <h4 class="text-accent mb-3">Provisional note — not saved: <span class="streaming-indicator">●</span></h4>
                 <div class="ai-content streaming">
                     ${formatAiOutputRaw(text)}
                 </div>
@@ -478,7 +501,7 @@
             if (!output) return;
 
             output.innerHTML = `
-                <h4 class="text-accent mb-3">AI Analysis: <span class="streaming-indicator">●</span></h4>
+                <h4 class="text-accent mb-3">Provisional analysis — not saved: <span class="streaming-indicator">●</span></h4>
                 <div class="ai-content streaming">
                     ${formatAiOutputRaw(text)}
                 </div>

@@ -1,3 +1,4 @@
+import { validateEvidence } from './dermoscopy-dashboard/evidence-contract.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ARM_KEYS, ARM_NAMES, DATA_URL, DIAG_KEYS, DIAG_LABELS, ERROR_TYPE_META, PROVIDER_COLORS } from './dermoscopy-dashboard/constants.js';
@@ -412,7 +413,6 @@ function OverviewTab({ data, selectedModels }) {
     const totalTrials = selectedModelEntries.reduce((sum, entry) => sum + (entry.n_trials || 0), 0);
     const totalCorrect = selectedModelEntries.reduce((sum, entry) => sum + (entry.correct || 0), 0);
     const accuracy = safeDivide(totalCorrect, totalTrials);
-    const [accuracyCiLow, accuracyCiHigh] = wilsonInterval(totalCorrect, totalTrials);
 
     const malTp = selectedModelEntries.reduce((sum, entry) => sum + (entry.mal_tp || 0), 0);
     const malFn = selectedModelEntries.reduce((sum, entry) => sum + (entry.mal_fn || 0), 0);
@@ -420,8 +420,6 @@ function OverviewTab({ data, selectedModels }) {
     const malFp = selectedModelEntries.reduce((sum, entry) => sum + (entry.mal_fp || 0), 0);
     const malignantSensitivity = safeDivide(malTp, malTp + malFn);
     const benignSpecificity = safeDivide(malTn, malTn + malFp);
-    const [sensCiLow, sensCiHigh] = wilsonInterval(malTp, malTp + malFn);
-    const [specCiLow, specCiHigh] = wilsonInterval(malTn, malTn + malFp);
 
     const melTp = selectedModelEntries.reduce((sum, entry) => sum + (entry.mel_tp || 0), 0);
     const melFn = selectedModelEntries.reduce((sum, entry) => sum + (entry.mel_fn || 0), 0);
@@ -441,14 +439,8 @@ function OverviewTab({ data, selectedModels }) {
       totalTrials,
       totalCorrect,
       accuracy,
-      accuracyCiLow,
-      accuracyCiHigh,
       malignantSensitivity,
       benignSpecificity,
-      sensCiLow,
-      sensCiHigh,
-      specCiLow,
-      specCiHigh,
       melanomaSensitivity,
       melanomaSpecificity,
       totalCost,
@@ -562,14 +554,14 @@ function LeaderboardTab({ data, selectedModels }) {
       .filter((model) => selectedModels.includes(model.model))
       .map((model) => {
         let displayAccuracy = model.accuracy;
-        let displayCiLow = model.accuracy_ci_low;
-        let displayCiHigh = model.accuracy_ci_high;
+        let displayCiLow = null; // Repeated images across arms: pooled binomial CI is not valid.
+        let displayCiHigh = null;
         let displayN = model.n_trials;
         if (rankBy === 'diagnosis' && diagFilter !== 'all') {
           const byDiag = data.modelDiagCounts.find((entry) => entry.model === model.model && entry.key === diagFilter);
           displayAccuracy = byDiag ? byDiag.accuracy || 0 : 0;
           displayN = byDiag ? byDiag.n_trials : 0;
-          const [low, high] = wilsonInterval(byDiag?.correct || 0, byDiag?.n_trials || 0);
+          const [low, high] = [null, null]; // Diagnosis aggregates still repeat images across arms.
           displayCiLow = low;
           displayCiHigh = high;
         }
@@ -628,29 +620,18 @@ function LeaderboardTab({ data, selectedModels }) {
       .map((entry) => {
         const palette = getProviderPalette(entry.provider);
         let value = entry.accuracy;
-        let ciLow = entry.accuracy_ci_low;
-        let ciHigh = entry.accuracy_ci_high;
+        let ciLow = null;
+        let ciHigh = null;
         if (figureMetric === 'sensitivity') {
           value = entry.sensitivity;
-          ciLow = entry.sensitivity_ci_low;
-          ciHigh = entry.sensitivity_ci_high;
         } else if (figureMetric === 'specificity') {
           value = entry.specificity;
-          ciLow = entry.specificity_ci_low;
-          ciHigh = entry.specificity_ci_high;
         } else if (figureMetric === 'mel_sensitivity') {
           value = entry.mel_sensitivity;
-          ciLow = entry.mel_sensitivity_ci_low;
-          ciHigh = entry.mel_sensitivity_ci_high;
         } else if (figureMetric === 'mel_specificity') {
           value = entry.mel_specificity;
-          ciLow = entry.mel_specificity_ci_low;
-          ciHigh = entry.mel_specificity_ci_high;
         } else if (figureMetric === 'other_rate') {
           value = entry.other_rate;
-          const [low, high] = wilsonInterval(entry.other_count || 0, entry.n_trials || 0);
-          ciLow = low;
-          ciHigh = high;
         }
 
         return {
@@ -678,7 +659,7 @@ function LeaderboardTab({ data, selectedModels }) {
     if (!detailModel) return [];
     return data.diagnoses.map((diag) => {
       const entry = data.modelDiagCounts.find((row) => row.model === detailModel && row.diagnosis === diag);
-      const [ciLow, ciHigh] = wilsonInterval(entry?.correct || 0, entry?.n_trials || 0);
+      const [ciLow, ciHigh] = [null, null]; // Pooled arms share images.
       const value = entry?.accuracy || 0;
       const isMalignant = data.diagnosisSummary.find((d) => d.diagnosis === diag)?.is_malignant;
       return {
@@ -847,15 +828,15 @@ function LeaderboardTab({ data, selectedModels }) {
       </div>
 
       <div className="llm-dashboard__card llm-dashboard__card--tight">
-        <h2 className="llm-dashboard__card-title">Model-level accuracy (95% CI)</h2>
-        <p className="llm-dashboard__card-subtitle">Paper-style ranked figure for the current leaderboard view (top 12 entries).</p>
+        <h2 className="llm-dashboard__card-title">Model-level accuracy</h2>
+        <p className="llm-dashboard__card-subtitle">Current leaderboard view (top 12). A 95% image-level Wilson interval is shown only for a single model/arm; pooled intervals are withheld.</p>
         <CIBarList items={chartItems} maxValue={1} valueFormatter={(value) => formatPercent(value, 1)} />
       </div>
 
       <div className="llm-dashboard__grid-two">
         <div className="llm-dashboard__card llm-dashboard__card--tight">
-          <h2 className="llm-dashboard__card-title">Metric ranking (95% CI)</h2>
-          <p className="llm-dashboard__card-subtitle">Switch the metric to compare models on performance and safety-relevant endpoints.</p>
+          <h2 className="llm-dashboard__card-title">Metric ranking (point estimates)</h2>
+          <p className="llm-dashboard__card-subtitle">Descriptive performance endpoints, not clinical safety validation. Pooled confidence intervals are withheld because these summaries repeat the same images across prompting arms.</p>
           <div className="llm-dashboard__filters">
             <div className="llm-dashboard__filter">
               <span className="llm-dashboard__filter-label">Metric</span>
@@ -2312,9 +2293,11 @@ export default function DermoscopyLLMEvaluationDashboard() {
     async function load() {
       try {
         setLoadState({ status: 'loading', error: null });
+        setData(null);
         const response = await fetch(DATA_URL);
         if (!response.ok) throw new Error(`Failed to load data (${response.status})`);
         const payload = await response.json();
+        validateEvidence(payload);
         if (cancelled) return;
         setData(payload);
         setLoadState({ status: 'ready', error: null });
@@ -2404,6 +2387,10 @@ export default function DermoscopyLLMEvaluationDashboard() {
 
 	      {data && (
 	        <>
+	          <aside className="llm-dashboard__notice" aria-label="Evidence limitations">
+              <strong>{formatNumber(data.overallStats.uniqueImages)} unique images; {formatNumber(data.overallStats.totalTrials)} repeated model/arm evaluations—not independent patients.</strong>{' '}
+              Models and prompting arms reuse the same images. Pooled trial-level binomial intervals are not valid independent-case uncertainty estimates and are withheld. Single-arm intervals remain image-level, not patient-level. This is a fixed research benchmark, not prospective clinical validation or current model performance.
+            </aside>
 	          <nav className="llm-dashboard__nav" role="tablist" aria-label="Dashboard sections">
 	            {tabs.map((entry) => (
 	              <button
