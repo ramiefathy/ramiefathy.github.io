@@ -1,0 +1,46 @@
+name: Atlas association evidence recapture
+on:
+  push:
+    branches: [audit/clinical-source-validation-20260904]
+    paths: [.github/workflows/atlas-evidence-recapture.yml]
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Capture request-response evidence and structured failures
+        run: |
+          mkdir -p /tmp/evidence
+          python - <<'PY'
+          import urllib.request,urllib.error,json,pathlib,hashlib,datetime,time
+          dest=pathlib.Path('/tmp/evidence'); manifest=[]
+          queries={'schema':'{ __type(name:"Disease") { fields { name type { kind name ofType { kind name } } args { name type { kind name ofType { kind name } } } } } }', 'meta':'{ meta { dataVersion { year month iteration } } }'}
+          ids={x['disease_key']:x['disease_id'] for x in json.load(open('site/public/apps/dermatotarget-atlas/data/targets.json'))}
+          for key,did in ids.items():
+              queries[key]='{ disease(id:"'+did+'") { id name associatedTargets(page:{index:0,size:5000}) { count rows { target { id approvedSymbol } score datasourceScores { id score } } } } }'
+          for key,query in queries.items():
+              request={'query':query}; reqraw=json.dumps(request).encode(); (dest/(key+'-request.json')).write_bytes(reqraw)
+              record={'id':key,'endpoint':'https://api.platform.opentargets.org/api/v4/graphql','retrieved_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'request_sha256':hashlib.sha256(reqraw).hexdigest()}
+              try:
+                  req=urllib.request.Request(record['endpoint'],data=reqraw,headers={'Content-Type':'application/json','User-Agent':'AtlasEvidenceAudit/1.0'})
+                  with urllib.request.urlopen(req,timeout=60) as response: raw=response.read();record['http_status']=response.status
+                  payload=json.loads(raw);record['status']='graphql_error' if payload.get('errors') else 'retrieved'
+              except urllib.error.HTTPError as e:
+                  raw=e.read();record.update(http_status=e.code,status='http_error')
+              except Exception as e:
+                  raw=json.dumps({'error':str(e)}).encode();record['status']='transport_error'
+              (dest/(key+'-response.json')).write_bytes(raw)
+              record.update(response_sha256=hashlib.sha256(raw).hexdigest(),bytes=len(raw));manifest.append(record);time.sleep(1)
+          (dest/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: atlas-association-evidence
+          path: /tmp/evidence
+          if-no-files-found: error
+          retention-days: 7
