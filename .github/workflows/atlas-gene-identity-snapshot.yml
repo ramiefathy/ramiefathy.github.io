@@ -1,0 +1,42 @@
+name: Atlas gene identity snapshot
+on:
+  push:
+    branches: [audit/clinical-source-validation-20260904]
+    paths: [.github/workflows/atlas-gene-identity-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Preserve complete request and response bytes
+        run: |
+          mkdir -p /tmp/identities
+          python - <<'PY'
+          import urllib.request,urllib.error,json,pathlib,hashlib,datetime
+          out=pathlib.Path('/tmp/identities');rows=json.load(open('site/public/apps/dermatotarget-atlas/data/targets.json'));symbols=sorted({r['gene'] for r in rows});assert len(symbols)<=1000
+          cases=[('ensembl-release','https://rest.ensembl.org/info/data',None),('ensembl-symbols','https://rest.ensembl.org/lookup/symbol/homo_sapiens',{'symbols':symbols}),('opentargets-control','https://api.platform.opentargets.org/api/v4/graphql',{'query':'{ disease(efoId:"EFO_0000676") { id name } target(ensemblId:"ENSG00000157764") { id approvedSymbol } }'})]
+          records=[]
+          for name,url,body in cases:
+              request=json.dumps(body).encode() if body is not None else None
+              (out/(name+'-request.json')).write_text(json.dumps({'url':url,'method':'POST' if body else 'GET','body':body},indent=2))
+              receipt={'id':name,'url':url,'retrieved_at':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              try:
+                  req=urllib.request.Request(url,data=request,headers={'Content-Type':'application/json','Accept':'application/json','User-Agent':'AtlasEvidenceAudit/1.0'})
+                  with urllib.request.urlopen(req,timeout=60) as r:raw=r.read();receipt.update(http_status=r.status,status='retrieved')
+              except urllib.error.HTTPError as e:raw=e.read();receipt.update(http_status=e.code,status='http_error')
+              except Exception as e:raw=json.dumps({'error':str(e)}).encode();receipt['status']='transport_error'
+              (out/(name+'-response.json')).write_bytes(raw);receipt['response_sha256']=hashlib.sha256(raw).hexdigest();receipt['request_sha256']=hashlib.sha256((out/(name+'-request.json')).read_bytes()).hexdigest();records.append(receipt)
+          (out/'manifest.json').write_text(json.dumps(records,indent=2))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: atlas-gene-identity-evidence
+          path: /tmp/identities
+          if-no-files-found: error
+          retention-days: 7
