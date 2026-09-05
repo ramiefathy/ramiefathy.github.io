@@ -17,7 +17,7 @@ test.describe('Clinical reference safety regressions', () => {
   });
   test('legacy and new checklist marks cannot silently carry across page reloads', async ({ page }) => {
     await page.goto(route, { waitUntil: 'networkidle' });
-    await page.evaluate(() => localStorage.setItem('biologic-dashboard:checklist', JSON.stringify({ 'tnf-inhibitors': { baseline: { cbc: true } } })));
+    await page.evaluate(() => localStorage.setItem('biologic-dashboard:checklist', JSON.stringify({ 'tnf-inhibitors': { baseline: { cbc: true } } } })));
     await page.reload({ waitUntil: 'networkidle' });
     expect(await page.evaluate(() => localStorage.getItem('biologic-dashboard:checklist'))).toBeNull();
     const first = page.locator(cards).first();
@@ -141,10 +141,42 @@ test('research dashboard distinguishes repeated evaluations from independent ima
   await expect(page.locator('.llm-dashboard__ci-error')).toHaveCount(0);
 });
 
-test('research dashboard rejects corrupt image-level denominators instead of rendering metrics', async ({ page }) => {
+test.describe('Research failure injection without service-worker interception', () => {
+  // A worker-owned fetch bypasses page.route. Other suites keep workers enabled.
+  test.use({ serviceWorkers: 'block' });
+  test('research dashboard rejects corrupt image-level denominators instead of rendering metrics', async ({ page }) => {
+    await blockExternalRequests(page);
+    let intercepted = 0;
+    await page.route('**/data/dermoscopy-llm-eval.json', async (request) => {
+      intercepted += 1;
+      await request.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ overallStats: { uniqueImages: 10200 }, cases: { count: 100 } }) });
+    });
+    await page.goto('/research/dermoscopy-llm-dashboard', { waitUntil: 'networkidle' });
+    await expect.poll(() => intercepted).toBeGreaterThan(0);
+    await expect(page.getByRole('alert')).toContainText('Unable to load dashboard data');
+    await expect(page.getByRole('tablist', { name: 'Dashboard sections' })).toHaveCount(0);
+  });
+});
+
+test('active site worker never serves cached clinical research data', async ({ page, context }) => {
   await blockExternalRequests(page);
-  await page.route('**/data/dermoscopy-llm-eval.json', (request) => request.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ overallStats: { uniqueImages: 10200 }, cases: { count: 100 } }) }));
-  await page.goto('/research/dermoscopy-llm-dashboard', { waitUntil: 'networkidle' });
-  await expect(page.getByRole('alert')).toContainText('Unable to load dashboard data');
-  await expect(page.getByRole('tablist', { name: 'Dashboard sections' })).toHaveCount(0);
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  // Simulate an old cache surviving deletion: fetch eligibility must still exclude it.
+  await page.evaluate(async () => {
+    const cache = await caches.open('rf-site-static-v1');
+    await cache.put('/data/dermoscopy-llm-eval.json', new Response('STALE_CLINICAL_DATA'));
+  });
+  const responsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === '/data/dermoscopy-llm-eval.json');
+  const text = await page.evaluate(async () => (await fetch('/data/dermoscopy-llm-eval.json')).text());
+  const response = await responsePromise;
+  expect(response.fromServiceWorker()).toBe(false);
+  expect(text).not.toContain('STALE_CLINICAL_DATA');
+  await context.setOffline(true);
+  const offline = await page.evaluate(async () => {
+    try { return await (await fetch('/data/dermoscopy-llm-eval.json', { cache: 'no-store' })).text(); }
+    catch { return 'NETWORK_REQUIRED'; }
+  });
+  expect(offline).toBe('NETWORK_REQUIRED');
 });
