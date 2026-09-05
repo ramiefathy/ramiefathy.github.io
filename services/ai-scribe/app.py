@@ -87,9 +87,9 @@ def issue_jwt(subject: str) -> str:
 
 def verify_jwt(token: str):
     try:
-        return jwt.decode(token, config.JWT_SIGNING_SECRET, algorithms=["HS256"])
+        return jwt.decode(token, config.JWT_SIGNING_SECRET, algorithms=["HS256"], options={"require": ["exp", "iat", "sub"]})
     except jwt.PyJWTError as exc:
-        raise ValueError(f"Invalid token: {exc}")
+        raise ValueError("Invalid authentication token") from None
 
 
 def decode_ramie_auth_subprotocol(encoded_token: str) -> str | None:
@@ -162,7 +162,7 @@ async def process_http_request(connection, request):
     Responds to Render's health checks (often GET or HEAD on /)
     to prevent WebSocket handshake errors from these pings.
     """
-    path = getattr(request, "path", None)
+    path = urlparse(getattr(request, "path", "") or "").path
     headers = getattr(request, "headers", None)
     upgrade_header = headers.get("Upgrade") if headers else None
     logger.debug(f"process_http_request received: Path='{path}', Upgrade='{upgrade_header}'")
@@ -188,6 +188,16 @@ async def handler(websocket):
     """
     session_id = None
     client_key = None
+    suggestion_tasks = set()
+
+    async def cancel_suggestions():
+        tasks = tuple(suggestion_tasks)
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+        suggestion_tasks.clear()
+
     try:
         request = getattr(websocket, "request", None)
         request_headers = getattr(request, "headers", None)
@@ -277,9 +287,17 @@ async def handler(websocket):
                 }))
                 log_event("rate_limited", client=client_key, session_id=session_id, retry_after=retry_after)
                 continue
-            message = json.loads(message_str)
-            message_type = message.get("type")
-            data = message.get("data", {})
+            try:
+                message = json.loads(message_str)
+                if not isinstance(message, dict) or not isinstance(message.get("type"), str):
+                    raise ValueError()
+                data = message.get("data", {})
+                if not isinstance(data, dict):
+                    raise ValueError()
+            except (ValueError, TypeError):
+                await websocket.send(json.dumps({"type": "error", "message": "Invalid message format."}))
+                continue
+            message_type = message["type"]
             current_session_id_to_use = session_id 
 
             session = session_manager.get_session(current_session_id_to_use)
@@ -288,16 +306,21 @@ async def handler(websocket):
                 await websocket.send(json.dumps({"type": "error", "message": "Session not found. Please reconnect."}))
                 break
 
-            logger.info(f"Received message type: {message_type} from {current_session_id_to_use}")
+            logger.debug("Received a client message")
 
             if message_type == "start_new_session":
                 logger.info(f"Starting new session explicitly for {current_session_id_to_use}")
+                await cancel_suggestions()
                 session.reset_session_data()
                 await websocket.send(json.dumps({"type": "status", "message": "New session initialized. Ready to record."}))
 
             elif message_type == "transcript_segment":
                 segment = data.get("segment", "")
                 is_final = data.get("is_final", data.get("isFinal", False))
+
+                if not isinstance(segment, str) or not isinstance(is_final, bool):
+                    await websocket.send(json.dumps({"type": "error", "message": "Invalid transcript segment."}))
+                    continue
 
                 is_discussion = bool(data.get("is_discussion", data.get("isDiscussion", False)))
                 if is_discussion:
@@ -311,11 +334,14 @@ async def handler(websocket):
                 suggestion_trigger_threshold = 20
                 if is_final and current_word_count > session.last_suggestion_word_count + suggestion_trigger_threshold:
                     session.last_suggestion_word_count = current_word_count
-                    asyncio.create_task(
+                    await cancel_suggestions()
+                    task = asyncio.create_task(
                         trigger_realtime_suggestions(
                             websocket, current_session_id_to_use, data.get("modelName")
                         )
                     )
+                    suggestion_tasks.add(task)
+                    task.add_done_callback(suggestion_tasks.discard)
 
             elif message_type == "stop_finalize_recording":
                 logger.info(f"Finalizing recording for session {current_session_id_to_use}")
@@ -342,8 +368,8 @@ async def handler(websocket):
                         "aiAnalysis": analysis_text
                     }))
                 except Exception as e:
-                    logger.error(f"Error during final generation for {current_session_id_to_use}: {e}", exc_info=True)
-                    await websocket.send(json.dumps({"type": "error", "message": f"Error generating final note/analysis: {str(e)}"}))
+                    logger.error("Request failed (%s)", type(e).__name__)
+                    await websocket.send(json.dumps({"type": "error", "message": "AI operation failed; no new result was saved. Please retry."}))
 
             elif message_type == "stream_generate":
                 # Streaming generation - sends chunks as they arrive.
@@ -414,8 +440,8 @@ async def handler(websocket):
                             await websocket.send(json.dumps(complete_payload))
                             break
                 except Exception as e:
-                    logger.error(f"Error during streaming for {current_session_id_to_use}: {e}", exc_info=True)
-                    await websocket.send(json.dumps({"type": "error", "message": f"Streaming error: {str(e)}"}))
+                    logger.error("Request failed (%s)", type(e).__name__)
+                    await websocket.send(json.dumps({"type": "error", "area": "stream", "streamType": stream_type, "message": "Generation failed; provisional output was not saved. Please retry."}))
 
 
             elif message_type == "analyze_image":
@@ -440,8 +466,8 @@ async def handler(websocket):
                         "description": description
                     }))
                 except Exception as e:
-                    logger.error(f"Error during image analysis for {current_session_id_to_use}: {e}", exc_info=True)
-                    await websocket.send(json.dumps({"type": "error", "message": f"Error analyzing image: {str(e)}"}))
+                    logger.error("Request failed (%s)", type(e).__name__)
+                    await websocket.send(json.dumps({"type": "error", "message": "AI operation failed; no new result was saved. Please retry."}))
             
             elif message_type == "integrate_image_description":
                 description = data.get("description", "")
@@ -466,8 +492,8 @@ async def handler(websocket):
                             "message": "Note and analysis updated with image findings."
                         }))
                     except Exception as e:
-                        logger.error(f"Error during regeneration after image integration for {current_session_id_to_use}: {e}", exc_info=True)
-                        await websocket.send(json.dumps({"type": "error", "message": f"Error regenerating after image: {str(e)}"}))
+                        logger.error("Request failed (%s)", type(e).__name__)
+                        await websocket.send(json.dumps({"type": "error", "message": "AI operation failed; no new result was saved. Please retry."}))
 
             elif message_type == "discussion_input":
                 physician_input = data.get("text", "")
@@ -576,8 +602,8 @@ async def handler(websocket):
                         }))
 
                 except Exception as e:
-                    logger.error(f"Error during discussion processing for {current_session_id_to_use}: {e}", exc_info=True)
-                    await websocket.send(json.dumps({"type": "error", "message": f"Error in discussion: {str(e)}"}))
+                    logger.error("Request failed (%s)", type(e).__name__)
+                    await websocket.send(json.dumps({"type": "error", "message": "AI operation failed; no new result was saved. Please retry."}))
             
             elif message_type == "request_session_data_for_save":
                 logger.info(f"Client {current_session_id_to_use} requested session data for saving.")
@@ -595,8 +621,9 @@ async def handler(websocket):
                 }))
 
             else:
-                logger.warning(f"Unknown message type received: {message_type} from {current_session_id_to_use}")
-                await websocket.send(json.dumps({"type": "error", "message": f"Unknown message type: {message_type}"}))
+                logger.warning("Unknown message type received")
+                await websocket.send(json.dumps({"type": "error", "message": "Unknown message type."}))
+                continue
 
             duration_ms = int((time.perf_counter() - message_start) * 1000)
             log_event(
@@ -611,15 +638,15 @@ async def handler(websocket):
     except websockets.exceptions.ConnectionClosedOK:
         logger.info(f"Client disconnected: {websocket.remote_address}, Session ID: {session_id}")
     except websockets.exceptions.ConnectionClosedError as e:
-        logger.error(f"Client connection closed with error: {websocket.remote_address}, Session ID: {session_id}, Error: {e}")
+        logger.error("Request failed (%s)", type(e).__name__)
     except Exception as e:
-        logger.error(f"Unhandled error in WebSocket handler for session {session_id}: {e}", exc_info=True)
-        if websocket.open: 
-            try:
-                await websocket.send(json.dumps({"type": "error", "message": "An unexpected server error occurred."}))
-            except websockets.exceptions.ConnectionClosed:
-                logger.warning(f"Could not send error to {session_id}, connection already closed.")
+        logger.error("Request failed (%s)", type(e).__name__)
+        try:
+            await websocket.send(json.dumps({"type": "error", "message": "An unexpected server error occurred."}))
+        except websockets.exceptions.ConnectionClosed:
+            logger.warning("Connection already closed.")
     finally:
+        await cancel_suggestions()
         if session_id:
             session_manager.remove_session(session_id)
             log_event("session_cleanup", session_id=session_id, client=client_key, rate_limit=rate_limiter.snapshot().get(client_key, {}))
@@ -629,6 +656,7 @@ async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=
     if not session or not session.full_transcript.strip():
         return
 
+    generation = session.generation
     recent_context_chars = 1000 
     transcript_segment = session.full_transcript[-recent_context_chars:]
 
@@ -651,12 +679,14 @@ async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=
     try:
         suggestion_model = client_model_pref if client_model_pref else config.GEMINI_SUGGESTION_MODEL
         suggestions_text = await service.call_gemini_api(prompt, model_name=suggestion_model)
+        if session_manager.get_session(session_id) is not session or session.generation != generation:
+            return
         
         if suggestions_text and suggestions_text.strip().lower() != "no specific suggestions at this moment.":
             new_suggestions = [s.strip() for s in suggestions_text.split('\n') if s.strip()]
             unique_new_suggestions = []
             for sug_text in new_suggestions:
-                clean_sug = sug_text.replace("Suggestion:", "").replace("-","").strip()
+                clean_sug = sug_text.removeprefix("Suggestion:").strip().removeprefix("- ").strip()
                 if clean_sug and clean_sug not in session.shown_suggestion_texts:
                     unique_new_suggestions.append(clean_sug)
                     session.shown_suggestion_texts.add(clean_sug) 
@@ -673,7 +703,9 @@ async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=
                     "message": "No specific suggestions at this moment."
                 }))
     except Exception as e:
-        logger.error(f"Error fetching real-time suggestions for {session_id}: {e}", exc_info=True)
+        if session_manager.get_session(session_id) is not session or session.generation != generation:
+            return
+        logger.error("Request failed (%s)", type(e).__name__)
         await websocket.send(json.dumps({"type": "error", "area": "suggestions", "message": "Error fetching suggestions."}))
 
 def select_subprotocol(connection, offered_subprotocols):

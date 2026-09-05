@@ -1,3 +1,4 @@
+import { validateEvidence } from '../components/dermoscopy-dashboard/evidence-contract.js';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -60,5 +61,18 @@ describe('dermoscopy-llm-eval.json', () => {
     const sorted = (set: Set<string>) => Array.from(set).sort();
     expect(sorted(latencyModels)).toEqual(sorted(models));
     expect(sorted(costModels)).toEqual(sorted(models));
+  });
+});
+
+
+describe('image-level evidence contract', () => {
+  it('reconciles all paired image results to aggregate counts', () => { expect(validateEvidence(loadData())).toBe(true); });
+  it.each(['short', 'invalid', 'duplicate', 'denominator'])('fails closed on %s pairing', (kind) => {
+    const data = loadData();
+    if (kind === 'short') data.cases.correctByModelArm[0].correct_bits = '1';
+    if (kind === 'invalid') data.cases.correctByModelArm[0].correct_bits = 'x'.repeat(100);
+    if (kind === 'duplicate') data.cases.correctByModelArm.push(data.cases.correctByModelArm[0]);
+    if (kind === 'denominator') data.overallStats.uniqueImages = 10200;
+    expect(() => validateEvidence(data)).toThrow();
   });
 });

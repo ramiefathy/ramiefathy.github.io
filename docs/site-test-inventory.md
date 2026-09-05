@@ -287,3 +287,14 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
   ]
 }
 ```
+
+## Clinical safety regression coverage (2026-09-04)
+
+`site/tests/clinical-reference-safety.spec.ts` exercises the monitoring reference's
+fail-closed loader, blocked storage, encounter checklist clearing, clipboard failures,
+source-preserving exports, table safety details, mobile layout/touch, shared-shell
+state/focus behavior, and scribe provisional-output rejection.
+`site/src/utils/clinicalSafety.test.js` validates all 23 monitoring records, targeted
+clinical corrections, CSV injection defenses and the vendored spreadsheet provenance
+and export round trip. These checks establish implementation contracts, **not full
+clinical validation**. See `docs/audits/2026-09-04-clinical-app-audit.md`.

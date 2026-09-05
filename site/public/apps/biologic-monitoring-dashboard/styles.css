@@ -1392,3 +1392,11 @@ small {
     justify-content: center;
   }
 }
+
+/* Safety context stays visible in cards, tables, comparisons and printouts. */
+.clinical-safety-notice { border: 1px solid var(--legacy-border, #404650); border-radius: 0.75rem; padding: 1rem 1.25rem; margin-block: 1rem; }
+.clinical-safety-notice p { max-width: 95ch; line-height: 1.6; }
+.entry-review { padding-inline: 1.25rem; overflow-wrap: anywhere; }
+@media print { .clinical-safety-notice, .entry-review { display: block !important; color: black; } }
+
+.table-safety { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
