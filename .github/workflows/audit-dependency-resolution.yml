@@ -19,11 +19,14 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version-file: .nvmrc
-      - name: Resolve patched versions within existing dependency ranges
+      - name: Resolve security fixes without forced major upgrades
         run: |
+          mkdir -p /tmp/resolved
+          npm install --global npm@11.6.0
+          npm --version
           npm --prefix site ci
           npm --prefix site uninstall xlsx
-          npm --prefix site update dompurify fflate nanoid sharp vite
+          npm --prefix site audit fix
           curl --fail --location --proto '=https' --tlsv1.2 --retry 3 https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz -o /tmp/sheetjs.tgz
           mkdir /tmp/sheetjs
           tar -xzf /tmp/sheetjs.tgz -C /tmp/sheetjs
@@ -36,11 +39,10 @@ jobs:
           record={'package':'xlsx','version':'0.20.3','source':'https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz','documentation':'https://docs.sheetjs.com/docs/getting-started/installation/nodejs/','retrieved_utc':'2026-09-05','tarball_sha256':hashlib.sha256(pathlib.Path('/tmp/sheetjs.tgz').read_bytes()).hexdigest(),'files':{name:hashlib.sha256((vendor/name).read_bytes()).hexdigest() for name in ['xlsx.mjs','xlsx.LICENSE.txt']}}
           (vendor/'xlsx.provenance.json').write_text(json.dumps(record,indent=2)+'\n')
           PY
-          npm --prefix site audit --json > /tmp/dependency-audit.json
+          npm --prefix site audit --json > /tmp/resolved/dependency-audit.json
       - name: Commit only dependency remediation to audit branch
         env:
           GH_TOKEN: ${{ github.token }}
-          EXPECTED_HEAD: ${{ github.sha }}
         run: |
           test "$GITHUB_REF" = refs/heads/audit/clinical-apps-20260904
           git config user.name 'github-actions[bot]'
@@ -50,14 +52,18 @@ jobs:
           git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/clinical-apps-20260904
       - name: Package exact locked dependency evidence and local test runtime
         run: |
-          mkdir -p /tmp/resolved
-          cp /tmp/dependency-audit.json /tmp/resolved/
           git rev-parse HEAD > /tmp/resolved/COMMIT.txt
           tar -czf /tmp/resolved/dependencies.tar.gz site/package.json site/package-lock.json site/node_modules site/public/apps/vendor/xlsx.mjs site/public/apps/vendor/xlsx.LICENSE.txt site/public/apps/vendor/xlsx.provenance.json
+      - name: Preserve diagnostics
+        if: always()
+        run: |
+          mkdir -p /tmp/resolved/diagnostics
+          cp site/package.json site/package-lock.json /tmp/resolved/diagnostics/
+          cp -r "$HOME/.npm/_logs" /tmp/resolved/diagnostics/ || true
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: resolved-audit-dependencies
           path: /tmp/resolved
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 3
