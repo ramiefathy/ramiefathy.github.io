@@ -1,0 +1,123 @@
+name: Exact clinical evidence identities
+on:
+  push:
+    branches: [audit/clinical-source-validation-20260904]
+    paths: [.github/workflows/clinical-evidence-identities-v2.yml]
+permissions:
+  contents: read
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/audit/clinical-source-validation-20260904'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Retrieve bounded candidate records and correctly scoped publication identifiers
+        run: |
+          python - <<'PY'
+          import datetime,hashlib,json,pathlib,re,time,urllib.parse,urllib.request,xml.etree.ElementTree as E
+          out=pathlib.Path('/tmp/exact-clinical-evidence');out.mkdir()
+          queries={
+          'R01':'Gossec[Author] AND psoriatic arthritis[Title] AND recommendations[Title] AND 2024[DP]',
+          'R02':'Coates[Author] AND psoriatic arthritis[Title] AND recommendations[Title] AND 2022[DP]',
+          'R03':'Bimekizumab[Title] AND adalimumab[Title] AND 2021[DP]',
+          'R04':'Armstrong[Author] AND POETYK PSO-1[Title] AND 2023[DP]',
+          'R05':'Fanouriakis[Author] AND lupus[Title] AND recommendations[Title] AND 2024[DP]',
+          'R06':'Morand[Author] AND anifrolumab[Title] AND lupus[Title] AND 2020[DP]',
+          'R07':'Furie[Author] AND belimumab[Title] AND nephritis[Title] AND 2020[DP]',
+          'R08':'Rovin[Author] AND AURORA[Title] AND 2021[DP]',
+          'R09':'Furie[Author] AND obinutuzumab[Title] AND nephritis[Title] AND 2025[DP]',
+          'R11':'Aggarwal[Author] AND immune globulin[Title] AND dermatomyositis[Title] AND 2022[DP]',
+          'R12':'Oddis[Author] AND rituximab[Title] AND 2013[DP]',
+          'R13':'Gasparotto[Author] AND myopathies[Title] AND interferon',
+          'R14':'Del Galdo[Author] AND systemic sclerosis[Title] AND recommendations[Title]',
+          'R15':'Distler[Author] AND nintedanib[Title] AND 2019[DP]',
+          'R16':'Khanna[Author] AND tocilizumab[Title] AND 2020[DP]',
+          'R17':'Ebata[Author] AND rituximab[Title] AND 2021[DP]',
+          'R18':'Zulian[Author] AND methotrexate[Title] AND randomized[Title] AND 2011[DP]',
+          'R19':'Knobler[Author] AND guideline[Title] AND 2017[DP]',
+          'R20':'Hatemi[Author] AND recommendations[Title] AND Behcet AND 2018[DP]',
+          'R21':'Hatemi[Author] AND apremilast[Title] AND 2019[DP]',
+          'R22':'European S2k[Title] AND hidradenitis[Title] AND treatment[Title]',
+          'R23':'Kimball[Author] AND adalimumab[Title] AND hidradenitis[Title] AND 2016[DP]',
+          'R24':'Kimball[Author] AND SUNSHINE[Title] AND 2023[DP]',
+          'R25':'Kimball[Author] AND bimekizumab[Title] AND 2024[DP]',
+          'R27':'Smolen[Author] AND recommendations[Title] AND rheumatoid[Title] AND 2023[DP]',
+          'R28':'Chung[Author] AND guideline[Title] AND vasculitis[Title] AND 2021[DP]',
+          'R29':'Jayne[Author] AND avacopan[Title] AND 2021[DP]',
+          'R30':'Stone[Author] AND tocilizumab[Title] AND giant[Title] AND 2017[DP]',
+          'R31':'Blockmans[Author] AND upadacitinib[Title] AND 2025[DP]',
+          'R33':'Wechsler[Author] AND mepolizumab[Title] AND 2017[DP]',
+          'R34':'Wechsler[Author] AND benralizumab[Title] AND mepolizumab[Title] AND 2024[DP]',
+          'R36':'Baughman[Author] AND guidelines[Title] AND sarcoidosis[Title] AND 2021[DP]',
+          'R37':'Baughman[Author] AND infliximab[Title] AND 2006[DP]',
+          'R38':'Fautrel[Author] AND recommendations[Title] AND Still[Title] AND 2024[DP]',
+          'R39':'Kedor[Author] AND CONSIDER[Title] AND 2020[DP]',
+          'R40':'Krause[Author] AND canakinumab[Title] AND 2017[DP]',
+          'R41':'SAPHO[Title] AND systematic review[Title] AND 2023[DP]',
+          'R42':'relapsing polychondritis[Title] AND systematic review[Title] AND 2022[DP]',
+          'R43':'Ormerod[Author] AND pyoderma[Title] AND 2015[DP]',
+          'R44':'Brooklyn[Author] AND infliximab[Title] AND 2006[DP]',
+          'R45':'Ramos-Casals[Author] AND recommendations[Title] AND Sjogren AND 2020[DP]',
+          'R46':'Bowman[Author] AND rituximab[Title] AND 2017[DP]',
+          'R47':'Lachmann[Author] AND canakinumab[Title] AND 2009[DP]',
+          'R48':'Tektonidou[Author] AND recommendations[Title] AND 2019[DP]',
+          'R49':'Rendon[Author] AND psoriasis[Title] AND 2019[DP]',
+          'R50':'Tsokos[Author] AND pathogenesis[Title] AND lupus[Title] AND 2020[DP]',
+          'R51':'Allanore[Author] AND systemic sclerosis[Title] AND 2024[DP]',
+          'R52':'Frew[Author] AND hidradenitis[Title] AND 2022[DP]',
+          'R53':'Jennette[Author] AND complement AND vasculitis AND 2022[DP]',
+          'R54':'Feist[Author] AND Still[Title] AND 2018[DP]',
+          'R55':'Tanaka[Author] AND Janus[Title] AND 2022[DP]',
+          'R56':'Mariette[Author] AND Criswell[Author] AND 2018[DP]',
+          'R57':'Garcia[Author] AND Erkan[Author] AND antiphospholipid[Title] AND 2018[DP]',
+          'R58':'Varga[Author] AND Abraham[Author] AND fibrosis AND 2023[DP]',
+          'R59':'Leccese[Author] AND Alpsoy[Author] AND 2019[DP]',
+          'R60':'Marzano[Author] AND neutrophilic[Title] AND 2021[DP]',
+          'R61':'American College[Title] AND guideline[Title] AND lupus[Title] AND 2025[DP]',
+          'R62':'American College[Title] AND guideline[Title] AND interstitial[Title] AND 2024[DP]'}
+          records=[];receipts=[]
+          def get(url,key):
+              record={'id':key,'url':url,'retrieved_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'status':'retrieval_failed'}
+              try:
+                  with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'ClinicalEvidenceAudit/1.0'}),timeout=18) as response:raw=response.read(15000000)
+                  tree=E.fromstring(raw);(out/(key+'.xml')).write_bytes(raw)
+                  record.update(status='retrieved_not_validated',sha256=hashlib.sha256(raw).hexdigest())
+                  return tree
+              except Exception as exc:record['error']=str(exc);return None
+              finally:
+                  receipts.append(record);(out/'receipts.json').write_text(json.dumps(receipts,indent=2));time.sleep(.65)
+          texts='\n'.join(p.read_text() for p in pathlib.Path('site/src/data/mindmaps').rglob('*.json'))
+          field=pathlib.Path('site/src/data/rheum-derm-medication-dashboard/index.html').read_text()
+          ids=set(re.findall(r'"pmid"\s*:\s*"?(\d+)',texts));ids.update(re.findall(r'pubmed\.ncbi\.nlm\.nih\.gov/(\d+)',field))
+          ids.update('28010890 40843597 35157307 30635287 31558559 23026936 33987864 28584619 20927234 41234147 39255973 2382917 42377355 33596356 19248104 23268365 41232611 39874231 35609174'.split())
+          for key,query in queries.items():
+              tree=get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=xml&retmax=8&term='+urllib.parse.quote(query),key+'-search')
+              found=[x.text for x in tree.findall('./IdList/Id')] if tree is not None else []
+              ids.update(found);records.append({'id':key,'query':query,'candidate_pmids':found,'status':'candidate_requires_identity_and_support_review'})
+              (out/'candidates.json').write_text(json.dumps(records,indent=2))
+          pmcs=set(re.findall(r'PMC\d+',field))
+          for start in range(0,len(ids),40):
+              tree=get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id='+','.join(sorted(ids)[start:start+40]),'pubmed-'+str(start))
+              if tree is None:continue
+              for article in tree.findall('./PubmedArticle'):
+                  pmid=article.findtext('./MedlineCitation/PMID');a=article.find('./MedlineCitation/Article')
+                  record={'pmid':pmid,'title':' '.join(a.find('ArticleTitle').itertext()),'abstract':[{'label':x.get('Label'),'text':' '.join(x.itertext())} for x in a.findall('./Abstract/AbstractText')],'ids':{x.get('IdType'):x.text for x in article.findall('./PubmedData/ArticleIdList/ArticleId')},'publication_types':[x.text for x in a.findall('./PublicationTypeList/PublicationType')],'corrections':[{'type':x.get('RefType'),'pmid':x.findtext('PMID'),'source':x.findtext('RefSource')} for x in article.findall('./MedlineCitation/CommentsCorrectionsList/CommentsCorrections')],'date':E.tostring(a.find('./Journal/JournalIssue/PubDate'),encoding='unicode'),'journal':a.findtext('./Journal/Title')}
+                  (out/('PMID'+pmid+'.json')).write_text(json.dumps(record,ensure_ascii=False,indent=2))
+                  if 'pmc' in record['ids']:pmcs.add(record['ids']['pmc'])
+          for pmc in sorted(pmcs):
+              tree=get('https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_xml/'+pmc+'/unicode',pmc)
+              if tree is None:continue
+              sections=[{'index':i,'type':x.findtext('infon[@key="section_type"]',''),'text':x.findtext('text','')} for i,x in enumerate(tree.findall('.//passage'))]
+              (out/(pmc+'.json')).write_text(json.dumps(sections,ensure_ascii=False,indent=2))
+          print('Retrieved candidate metadata, not validated conclusions:',len(ids),len(pmcs))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: exact-clinical-evidence
+          path: /tmp/exact-clinical-evidence
+          if-no-files-found: error
+          retention-days: 3
