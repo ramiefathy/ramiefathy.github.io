@@ -8,26 +8,41 @@ export const ASSOCIATION_STATES = Object.freeze({
 export function validateAssociationSnapshot(snapshot, targets) {
   if (!snapshot || snapshot.schema_version !== 1 || !Array.isArray(snapshot.pairs) ||
       !Array.isArray(targets) || snapshot.pairs.length !== targets.length ||
-      !snapshot.source_version || !snapshot.retrieved_at || snapshot.enable_indirect !== false) {
+      typeof snapshot.source_version !== 'string' || !snapshot.source_version.trim() ||
+      typeof snapshot.retrieved_at !== 'string' || !Number.isFinite(Date.parse(snapshot.retrieved_at)) ||
+      !/^[a-f0-9]{64}$/.test(snapshot.historical_targets_sha256 || '') || snapshot.enable_indirect !== false) {
     throw new Error('Incomplete association snapshot; independent evidence is unavailable.');
   }
   const expected = new Map(targets.map(t => [JSON.stringify([t.disease_key, t.gene]), t]));
   if (expected.size !== targets.length) throw new Error('Duplicate historical target identity.');
   const seen = new Set();
+  const counts = Object.fromEntries(Object.keys(ASSOCIATION_STATES).map(key => [key, 0]));
   for (const row of snapshot.pairs) {
+    if (!row || typeof row !== 'object') throw new Error('Invalid association row.');
     const key = JSON.stringify([row.disease_key, row.gene]);
     const historical = expected.get(key);
     if (!historical || seen.has(key) || !Object.hasOwn(ASSOCIATION_STATES, row.status) ||
         row.historical_target_id !== historical.target_id || row.historical_disease_id !== historical.disease_id ||
         row.clinically_validated !== false || row.therapeutic_direction !== 'NOT_ESTABLISHED' ||
-        !Array.isArray(row.sources) || !row.sources.length || !row.note || !Array.isArray(row.datasource_scores)) {
+        !Array.isArray(row.sources) || !row.sources.length || typeof row.note !== 'string' || !row.note.trim() ||
+        row.disease_name !== historical.disease_name || !Array.isArray(row.datasource_scores)) {
       throw new Error('Invalid or duplicate association identity.');
     }
     seen.add(key);
+    counts[row.status] += 1;
+    if (row.status === 'IDENTITY_UNRESOLVED') {
+      if (row.target_id !== null || row.identity_method !== 'UNRESOLVED_OR_CONFLICT') {
+        throw new Error('Unresolved identity must remain unassigned.');
+      }
+    } else if (!/^ENSG\d{11}$/.test(row.target_id || '') ||
+               !/^(MONDO|EFO|Orphanet)_\d+$/.test(row.disease_id || '') ||
+               row.identity_method !== 'EXACT_SYMBOL_GRCH38') {
+      throw new Error('Resolved evidence requires confirmed identifiers.');
+    }
     if (row.status === 'DIRECT_ASSOCIATION_RETURNED') {
       if (!/^ENSG\d{11}$/.test(row.target_id || '') || !/^(MONDO|EFO|Orphanet)_\d+$/.test(row.disease_id || '') ||
           !Number.isFinite(row.score) || row.score < 0 || row.score > 1 || !Array.isArray(row.datasource_scores) ||
-          row.datasource_scores.some(x => !x.id || !Number.isFinite(x.score) || x.score < 0 || x.score > 1) ||
+          row.datasource_scores.some(x => !x || typeof x.id !== 'string' || !x.id.trim() || !Number.isFinite(x.score) || x.score < 0 || x.score > 1) ||
           new Set(row.datasource_scores.map(x => x.id)).size !== row.datasource_scores.length) {
         throw new Error('Invalid direct association score or source.');
       }
@@ -39,6 +54,11 @@ export function validateAssociationSnapshot(snapshot, targets) {
         throw new Error('Unsafe evidence source path.');
       }
     }
+  }
+  if (!snapshot.counts || typeof snapshot.counts !== 'object' ||
+      Object.keys(snapshot.counts).length !== Object.keys(counts).length ||
+      Object.entries(counts).some(([key, value]) => snapshot.counts[key] !== value)) {
+    throw new Error('Association summary counts disagree with the actual records.');
   }
   return snapshot;
 }
@@ -60,6 +80,9 @@ export function validateDrugCandidates(col) {
     }
   }
   if (col.report_count.some(v => !Number.isSafeInteger(v) || v < 0)) throw new Error('Invalid report count.');
+  // A cached validation is sound only while the validated payload is immutable.
+  for (const name of dimensionNames) { Object.freeze(col.dims[name]); Object.freeze(col.cols[name]); }
+  Object.freeze(col.report_count); Object.freeze(col.dims); Object.freeze(col.cols); Object.freeze(col);
   validatedCandidates.add(col);
   return col;
 }
