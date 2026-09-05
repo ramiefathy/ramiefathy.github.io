@@ -17,6 +17,7 @@ jobs:
         with:
           ref: audit/clinical-atlas-review-20260905
           persist-credentials: false
+          lfs: true
       - name: Verify complete source delta and base before applying
         env:
           GH_TOKEN: ${{ github.token }}
@@ -65,7 +66,9 @@ jobs:
               manifest.append({'path':str(path),'sha256':item['after'],'bytes':len(content)})
               if path.parts[0]!='.github':staged.append(str(path))
           (dest/'source-manifest.json').write_text(json.dumps({'base':'f2d9abc818dc99d9b7054dc448ccddcd59705947','files':manifest},indent=2))
-          subprocess.run(['git','add','--',*staged],check=True)
+          # The repository ignores generic tests/ directories. Stage only these
+          # exact, already hash-verified paths, including the new source-gate test.
+          subprocess.run(['git','add','-f','--',*staged],check=True)
           PY
           git diff --cached --check
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -100,7 +103,6 @@ jobs:
           test "$(git rev-parse HEAD)" = f2d9abc818dc99d9b7054dc448ccddcd59705947
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add scripts/tests/test_source_excerpt_gate.py
           git commit -m 'agent(codex): repair integrated Atlas controls and retain trial-scoped source evidence'
           git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/clinical-atlas-review-20260905
           git rev-parse HEAD > /tmp/atlas-followup/PUBLISHED_COMMIT.txt
