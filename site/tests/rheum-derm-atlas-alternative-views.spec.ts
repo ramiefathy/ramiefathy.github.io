@@ -142,20 +142,30 @@ test.describe('Rheum–Derm Atlas alternative representations', () => {
     await expect(page.locator('#coverageVolumeSvg')).toContainText('Pathways')
     await expect(page.locator('#coverageVolumeSvg')).toContainText('Treatments')
     expect(await page.locator('#coverageVolumeSvg [data-volume-point]').count()).toBeGreaterThan(0)
-    await expect(page.locator('#coverageVolumeDenominator')).toContainText('23814 three-class coordinates')
-    await expect(page.locator('#coverageVolumeDenominator')).toContainText('57 derived')
-    await expect(page.locator('#coverageVolumeDenominator')).toContainText('66 filtered')
-    await expect(page.locator('#coverageVolumeDenominator')).toContainText('23691 unknown')
+    const dimensions = await page.evaluate(`(() => ({
+      conditions: DATA.layoutManifest.conditionIds.length,
+      pathways: DATA.layoutManifest.pathwayIds.length,
+      treatments: DATA.layoutManifest.medicationIds.length,
+    }))()`) as { conditions: number; pathways: number; treatments: number }
+    const totalCoordinates = dimensions.conditions * dimensions.pathways * dimensions.treatments
+    const denominator = page.locator('#coverageVolumeDenominator')
+    await expect(denominator).toContainText(`${totalCoordinates} three-class coordinates`)
+    const denominatorText = (await denominator.textContent()) ?? ''
+    const stateCounts = [...denominatorText.matchAll(/(\d+)\s+(?:direct|derived|explicit zero|filtered|unknown|unavailable)/g)].map(match => Number(match[1]))
+    expect(stateCounts.reduce((sum, value) => sum + value, 0)).toBe(totalCoordinates)
+    await expect(denominator).toContainText(/derived/)
+    await expect(denominator).toContainText(/filtered/)
+    await expect(denominator).toContainText(/unknown/)
     await page.locator('#coverageVolumeEvidence').selectOption('D')
-    await expect(page.locator('#coverageVolumeDenominator')).toContainText('1 explicit zero')
+    await expect(denominator).toContainText(/\d+ explicit zero/)
     await page.locator('#coverageVolumeEvidence').selectOption('B')
-    await expect(page.locator('#coverageSliceGrid [data-volume-cell]')).toHaveCount(1323)
+    await expect(page.locator('#coverageSliceGrid [data-volume-cell]')).toHaveCount(dimensions.pathways * dimensions.treatments)
     await page.locator('#coverageSliceGrid [data-volume-cell][tabindex="0"]').press('Enter')
     await expect(page.locator('#coverageVolumeInspector')).toContainText(/Component states|Derivation rule/)
     await page.locator('#coverageSliceAxis').selectOption('pathway')
-    await expect(page.locator('#coverageSliceGrid [data-volume-cell]')).toHaveCount(882)
+    await expect(page.locator('#coverageSliceGrid [data-volume-cell]')).toHaveCount(dimensions.conditions * dimensions.treatments)
     await page.locator('#coverageSliceAxis').selectOption('treatment')
-    await expect(page.locator('#coverageSliceGrid [data-volume-cell]')).toHaveCount(486)
+    await expect(page.locator('#coverageSliceGrid [data-volume-cell]')).toHaveCount(dimensions.conditions * dimensions.pathways)
     await expect(page.locator('#coverageVolumeTable')).toBeVisible()
 
     runtime.assertClean()

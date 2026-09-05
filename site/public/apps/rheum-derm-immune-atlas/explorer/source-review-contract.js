@@ -29,6 +29,8 @@
     data.quarantinedEffects = archived;
     data.effects = active;
     data.manifestationLinks = data.manifestationLinks.map(row => ({ ...row, reviewStatus: 'DERIVED_NOT_INDEPENDENTLY_VALIDATED' }));
+    // Retain the complete historical denominator before optional inference layers filter it.
+    data.sourceManifestationLinks = JSON.parse(JSON.stringify(data.manifestationLinks));
     data.sourceReview = {
       reviewedAt: '2026-09-05', scope: 'Targeted source corrections, not exhaustive claim validation',
       originalEffectCount: active.length + archived.length, activeEffectCount: active.length,

@@ -231,3 +231,14 @@
 - Final Codex adversarial review pending.
 
 ---
+
+## 2026-09-05 — Atlas integration and scoped primary-source review
+
+Integrated the PR #175 scientific/governance layers with PR #186's clinical-effect
+quarantine and source workbench. Fixed initialization, scope normalization,
+false curator/consensus promotion, cross-endotype steroid copying, exact record
+selection, filtered exports, clipboard failure handling and non-drag controls.
+Added five explicitly bounded vasculitis mechanism assertions and PubMed identity/
+excerpt checks. See `docs/audits/2026-09-05-atlas-scientific-integration.md` for
+inputs, accounting and remaining clinical-validation limits. Final browser and
+CI receipts are recorded against the reviewed PR head, not assumed here.
