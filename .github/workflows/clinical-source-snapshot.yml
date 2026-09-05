@@ -1,0 +1,83 @@
+name: Clinical primary-source snapshot
+on:
+  workflow_dispatch:
+  push:
+    branches: [audit/clinical-source-validation-20260904]
+    paths: [.github/workflows/clinical-source-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/audit/clinical-source-validation-20260904'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Retrieve official label XML and available primary-source articles
+        run: |
+          python - <<'PY'
+          import concurrent.futures,datetime,hashlib,json,pathlib,re,tarfile,time,urllib.request,xml.etree.ElementTree as ET
+          out=pathlib.Path('/tmp/clinical-source-review');out.mkdir()
+          field=pathlib.Path('site/src/data/rheum-derm-medication-dashboard/index.html').read_text()
+          atlas=pathlib.Path('site/public/apps/rheum-derm-immune-atlas/index.html').read_text()
+          setids=sorted(set(re.findall(r'dailymed[^"\s<>]*?setid=([a-f0-9-]{36})',field)))
+          pmcs=sorted(set(re.findall(r'PMC\d+',field+atlas)))
+          pmids=sorted(set(re.findall(r'pubmed\.ncbi\.nlm\.nih\.gov/(\d+)',field+atlas)))
+          tasks=[]
+          for sid in setids:
+              tasks.append(('label-'+sid,'https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/'+sid+'.xml','label'))
+          for pid in pmcs:
+              tasks.append((pid,'https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_xml/'+pid+'/unicode','article'))
+          for pid in pmids:
+              tasks.append(('PMID'+pid,'https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pubmed.cgi/BioC_xml/'+pid+'/unicode','abstract'))
+          def retrieve(task):
+              key,url,kind=task
+              record={'id':key,'url':url,'kind':kind,'retrieved_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              try:
+                  request=urllib.request.Request(url,headers={'User-Agent':'ClinicalSourceAudit/1.0 (public reference validation; no patient data)'})
+                  with urllib.request.urlopen(request,timeout=45) as response:
+                      raw=response.read(12_000_001)
+                      if len(raw)>12_000_000:raise ValueError('Source exceeds size limit')
+                      record['resolved_url']=response.url
+                  tree=ET.fromstring(raw)
+                  record['sha256']=hashlib.sha256(raw).hexdigest()
+                  if kind=='label':
+                      ns={'h':'urn:hl7-org:v3'}
+                      ver=tree.find('h:versionNumber',ns);date=tree.find('h:effectiveTime',ns)
+                      record['version']=ver.get('value') if ver is not None else None
+                      record['effective_date']=date.get('value') if date is not None else None
+                      sections=[]
+                      for section in tree.findall('.//h:section',ns):
+                          title=section.find('h:title',ns);text=section.find('h:text',ns)
+                          if text is None:continue
+                          sections.append({'id':section.get('ID'),'title':' '.join(title.itertext()) if title is not None else '', 'text':re.sub(r'\s+',' ',' '.join(text.itertext())).strip()})
+                  else:
+                      sections=[{'id':str(i),'title':p.findtext('infon[@key="section_type"]',''),'text':p.findtext('text','')} for i,p in enumerate(tree.findall('.//passage'))]
+                  if not sections:raise ValueError('No source sections returned; not reviewed')
+                  (out/(key+'.xml')).write_bytes(raw)
+                  (out/(key+'.json')).write_text(json.dumps({'source':record,'sections':sections},ensure_ascii=False,indent=2))
+                  record['status']='retrieved_not_semantically_validated'
+                  record['sections']=len(sections)
+              except Exception as exc:
+                  record['status']='retrieval_failed';record['error']=str(exc)
+              time.sleep(.45)
+              return record
+          with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+              records=list(pool.map(retrieve,tasks))
+          (out/'sources.json').write_text(json.dumps(records,indent=2))
+          sources=['site/src/data/rheum-derm-medication-dashboard','site/src/data/mindmaps','site/public/apps/MindMaps','site/public/apps/rheum-derm-immune-atlas','site/public/apps/dermatotarget-atlas']
+          with tarfile.open(out/'pinned-clinical-source.tar.gz','w:gz') as archive:
+              for path in sources:archive.add(path)
+          (out/'source-commit.txt').write_text('fe42b9d2ae5695f853d0f360ac60f665bed1e5f4\n')
+          print(json.dumps({'label_setids':len(setids),'sources':len(records),'retrieval_failed':[r['id'] for r in records if r['status']=='retrieval_failed']}))
+          PY
+      - name: Preserve evidence for inspection (retrieval does not establish validation)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: clinical-source-snapshot
+          path: /tmp/clinical-source-review
+          if-no-files-found: error
+          retention-days: 3
