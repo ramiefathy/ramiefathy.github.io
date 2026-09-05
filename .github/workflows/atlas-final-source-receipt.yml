@@ -1,0 +1,46 @@
+name: Archive exact Atlas review source
+on:
+  push:
+    branches: [audit/atlas-publish-staging-20260905]
+    paths: [.github/workflows/atlas-final-source-receipt.yml]
+permissions:
+  contents: read
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 02ca13167576e48d54a82c9a0811703b71ae06be
+          fetch-depth: 20
+          persist-credentials: false
+      - name: Archive exact incremental source without runtime or font files
+        run: |
+          python - <<'PY'
+          import subprocess,pathlib,json,hashlib,tarfile,io
+          head='02ca13167576e48d54a82c9a0811703b71ae06be';base='fe42b9d2ae5695f853d0f360ac60f665bed1e5f4'
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==head
+          paths=subprocess.check_output(['git','diff','--name-only','-z',base,head]).decode().strip('\0').split('\0')
+          out=pathlib.Path('/tmp/atlas-review-source');out.mkdir()
+          manifest={'head':head,'base':base,'scope':'Incremental changes on PR 184; not a complete repository or clinical validation certificate','files':[]}
+          with tarfile.open(out/'source.tar.gz','w:gz') as archive:
+              for name in sorted(paths):
+                  path=pathlib.PurePosixPath(name)
+                  assert path.parts[0] in {'site','scripts','docs'} and '..' not in path.parts
+                  assert path.suffix.lower() not in {'.ttf','.otf','.woff','.woff2'}
+                  raw=subprocess.check_output(['git','show',head+':'+name]);digest=hashlib.sha256(raw).hexdigest()
+                  info=tarfile.TarInfo('repo/'+name);info.size=len(raw);info.mode=0o644;info.mtime=0
+                  archive.addfile(info,io.BytesIO(raw));manifest['files'].append({'path':name,'sha256':digest,'bytes':len(raw)})
+          manifest['file_count']=len(manifest['files'])
+          (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          (out/'changes.patch').write_bytes(subprocess.check_output(['git','diff','--binary',base,head]))
+          (out/'README.txt').write_text('Exact incremental source for PR #186. Apply changes.patch to a clean checkout at '+base+' or use the PR branch. source.tar.gz contains every changed file; manifest.json records the exact commit and SHA-256 of each file. This archive excludes dependency directories and fonts. No merge, deployment, or clinical certification is implied.\n')
+          print(manifest['file_count'],'exact source files')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: atlas-final-source-receipt
+          path: /tmp/atlas-review-source
+          if-no-files-found: error
+          retention-days: 7
