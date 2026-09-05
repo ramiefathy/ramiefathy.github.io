@@ -1,0 +1,61 @@
+name: Apply verified clinical audit
+on:
+  push:
+    branches: [audit/clinical-apps-20260904]
+    paths: [.github/workflows/apply-clinical-audit.yml]
+permissions:
+  contents: read
+jobs:
+  apply:
+    if: github.ref == 'refs/heads/audit/clinical-apps-20260904'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: audit-transfer-receipt
+          path: .audit-transfer/
+          if-no-files-found: error
+          retention-days: 3
+      - name: Validate and apply exact source bytes
+        run: |
+          python - <<'PY'
+          import base64,gzip,hashlib,json,pathlib,subprocess
+          raw=gzip.decompress(base64.b64decode(''.join(pathlib.Path(f'.audit-transfer/part{i}.b64').read_text().strip() for i in range(3)),validate=True))
+          assert hashlib.sha256(raw).hexdigest()=='5f46a946cb23927137fa1c868159ef55373eb36dd62c30f15b8e07b59c6ecbbc','Transfer checksum mismatch'
+          staged=[]
+          for item in json.loads(raw):
+              path=pathlib.Path(item['path'])
+              assert not path.is_absolute() and '..' not in path.parts and path.parts[0] in ('.github','docs','services','site')
+              assert not path.is_symlink()
+              old=path.read_bytes() if path.exists() else b''
+              assert (hashlib.sha256(old).hexdigest() if path.exists() else None)==item['before'],f'Base mismatch: {path}'
+              text=old.decode('utf-8')
+              end=0
+              for a,b,new in item['ops']:
+                  assert end<=a<=b<=len(text)
+                  end=b
+              for a,b,new in reversed(item['ops']): text=text[:a]+new+text[b:]
+              content=text.encode('utf-8')
+              assert hashlib.sha256(content).hexdigest()==item['after'],f'Result mismatch: {path}'
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_bytes(content)
+              if path.parts[0]!='.github': staged.append(str(path))
+              print(str(path),item['after'])
+          subprocess.run(['git','add','--',*staged],check=True)
+          PY
+          git diff --cached --check
+      - name: Publish only the audited source to the isolated branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/audit/clinical-apps-20260904
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'agent(codex): harden clinical references, encounter isolation, exports, and evidence integrity'
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/clinical-apps-20260904
