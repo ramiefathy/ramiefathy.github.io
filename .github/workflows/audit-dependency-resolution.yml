@@ -1,0 +1,63 @@
+name: Resolve audited dependencies
+on:
+  push:
+    branches: [audit/clinical-apps-20260904]
+    paths: [.github/workflows/audit-dependency-resolution.yml]
+permissions:
+  contents: read
+jobs:
+  resolve:
+    if: github.ref == 'refs/heads/audit/clinical-apps-20260904'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+      - name: Resolve patched versions within existing dependency ranges
+        run: |
+          npm --prefix site ci
+          npm --prefix site uninstall xlsx
+          npm --prefix site update dompurify fflate nanoid sharp vite
+          curl --fail --location --proto '=https' --tlsv1.2 --retry 3 https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz -o /tmp/sheetjs.tgz
+          mkdir /tmp/sheetjs
+          tar -xzf /tmp/sheetjs.tgz -C /tmp/sheetjs
+          node --input-type=module -e "import fs from 'node:fs'; const p=JSON.parse(fs.readFileSync('/tmp/sheetjs/package/package.json')); if(p.name!=='xlsx'||p.version!=='0.20.3')process.exit(1)"
+          cp /tmp/sheetjs/package/xlsx.mjs site/public/apps/vendor/xlsx.mjs
+          cp /tmp/sheetjs/package/LICENSE site/public/apps/vendor/xlsx.LICENSE.txt
+          python - <<'PY'
+          import hashlib,json,pathlib
+          vendor=pathlib.Path('site/public/apps/vendor')
+          record={'package':'xlsx','version':'0.20.3','source':'https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz','documentation':'https://docs.sheetjs.com/docs/getting-started/installation/nodejs/','retrieved_utc':'2026-09-05','tarball_sha256':hashlib.sha256(pathlib.Path('/tmp/sheetjs.tgz').read_bytes()).hexdigest(),'files':{name:hashlib.sha256((vendor/name).read_bytes()).hexdigest() for name in ['xlsx.mjs','xlsx.LICENSE.txt']}}
+          (vendor/'xlsx.provenance.json').write_text(json.dumps(record,indent=2)+'\n')
+          PY
+          npm --prefix site audit --json > /tmp/dependency-audit.json
+      - name: Commit only dependency remediation to audit branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/audit/clinical-apps-20260904
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site/package.json site/package-lock.json site/public/apps/vendor/xlsx.mjs site/public/apps/vendor/xlsx.LICENSE.txt site/public/apps/vendor/xlsx.provenance.json
+          git commit -m 'agent(codex): patch audited dependencies and vendor supported SheetJS release'
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/clinical-apps-20260904
+      - name: Package exact locked dependency evidence and local test runtime
+        run: |
+          mkdir -p /tmp/resolved
+          cp /tmp/dependency-audit.json /tmp/resolved/
+          git rev-parse HEAD > /tmp/resolved/COMMIT.txt
+          tar -czf /tmp/resolved/dependencies.tar.gz site/package.json site/package-lock.json site/node_modules site/public/apps/vendor/xlsx.mjs site/public/apps/vendor/xlsx.LICENSE.txt site/public/apps/vendor/xlsx.provenance.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: resolved-audit-dependencies
+          path: /tmp/resolved
+          if-no-files-found: warn
+          retention-days: 3
