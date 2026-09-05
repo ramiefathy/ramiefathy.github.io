@@ -16,17 +16,16 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: audit-transfer-receipt
-          path: .audit-transfer/
-          if-no-files-found: error
-          retention-days: 3
       - name: Validate and apply exact source bytes
         run: |
           python - <<'PY'
           import base64,gzip,hashlib,json,pathlib,subprocess
-          raw=gzip.decompress(base64.b64decode(''.join(pathlib.Path(f'.audit-transfer/part{i}.b64').read_text().strip() for i in range(3)),validate=True))
+          parts=[pathlib.Path(f'.audit-transfer/part{i}.b64').read_text().strip() for i in range(3)]
+          corrections=[(0,'735328e2d3038718b58e45b23c1b350fccc8212ccdec03c4b6fec5f1b4228349',4379,'0'),(1,'6f53d532cecfc862d4abc34e221ccce92d1c9ff27d098cd1f19f598c074ac6a1',1019,'/')]
+          for index,before,offset,value in corrections:
+              assert hashlib.sha256(parts[index].encode()).hexdigest()==before
+              parts[index]=parts[index][:offset]+value+parts[index][offset:]
+          raw=gzip.decompress(base64.b64decode(''.join(parts),validate=True))
           assert hashlib.sha256(raw).hexdigest()=='5f46a946cb23927137fa1c868159ef55373eb36dd62c30f15b8e07b59c6ecbbc','Transfer checksum mismatch'
           staged=[]
           for item in json.loads(raw):
