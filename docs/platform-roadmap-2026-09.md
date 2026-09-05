@@ -49,7 +49,7 @@ Every section below has the same shape: **what exists today (verified in-repo)**
 ### Deliverables
 
 1. `LICENSE` (MIT, code) and `LICENSE-DATA` (CC BY 4.0, applying only to owner-authored content as scoped by the rights manifest) at repo root, plus `CITATION.cff` and `.zenodo.json` skeletons. A **rights manifest** (`site/src/data/rights.json`, zod-validated) records, per source or asset class: scope, license and version, whether redistribution is permitted, required attribution, and explicit third-party exclusions. Every dataset export (Workstream 3) and every Zenodo release is gated on the manifest clearing the bytes actually exported; uncleared material is excluded or replaced by a citation pointer. Owner approval licenses the owner's contributions only and cannot grant rights in another party's material. Zenodo's GitHub integration deposits on **GitHub Releases**, so a release tagging convention is needed: `data-v<semver>` for dataset releases, `bench-v<semver>` for benchmark releases.
-2. Service worker: land **#184** first and keep its regression tests. On top of it, the only additions this plan needs are allowlist decisions, each with a test: `/api/`, `/data/`, `/rss.xml`, `/sitemap*.xml`, `/blog/**`, `/graph/**`, and all clinical HTML under `/apps/**` stay outside the public-shell allowlist (bypassed, never cached). Immutable, content-addressed dataset files (`/api/v1/<dataset>/<version>/...`) may later be cached aggressively because their bytes never change; the current-version pointer (`index.json`), any retraction or status file, and every clinical HTML page are always fetched fresh. Freshness of "what is current" is a different property from caching "what is immutable", and the tests should assert both.
+2. Service worker: land **#184** first and keep its regression tests. On top of it, the only additions this plan needs are allowlist decisions, each with a test: `/api/`, `/data/`, `/rss.xml`, `/sitemap*.xml`, `/blog/**`, `/graph/**`, and all clinical HTML under `/apps/**` stay outside the public-shell allowlist (bypassed, never cached). The API uses one route shape (defined in Workstream 3): immutable dataset objects live at `/api/v1/<dataset>/v<semver>/<file>.json` and never change once published; mutable pointers live at `/api/v1/index.json`, `/api/v1/<dataset>/latest.json`, and `/api/v1/<dataset>/status.json`. Only the immutable objects are ever eligible for the service-worker allowlist; the pointers, status files, and every clinical HTML page are never cached by the worker. A regression test asserts that an immutable object may be served from cache and that a pointer or status response is always fetched from the network. Freshness of "what is current" is a different property from caching "what is immutable", and the tests assert both.
 3. Fix the trials `index.html` stub so the committed file matches the shard names (or commit the assembled artifact and stop overwriting it; either is fine, but the repo should not contain a loader that cannot load).
 4. Resolve or strip the 21 dangling psoriasis markers. Preferred: recover the source bibliography if it exists off-repo and add it as a `references` block resolved by the tooltip renderer; fallback: strip markers and add structured `DiagramCitation`-style refs to the tooltips that make specific claims.
 5. Large-file storage decision: **Cloudflare R2** bucket (S3-compatible, free egress) for WSI tiles, benchmark prediction dumps, and any dataset over a few MB. GitHub Pages has a 1 GB site limit and 100 MB per-file limit; the 13 MB `study/mcq-benchmark-dashboard/dashboard.json` is already the wrong shape for this host.
@@ -91,7 +91,7 @@ Concrete collisions: methotrexate is `mtx` (atlas, field guide) and `methotrexat
 
 **Principle: add a canonical layer and crosswalks; do not rewrite the five apps first.** The apps keep shipping unchanged while the graph is built beside them, then each app is migrated to read canonical ids in its own PR.
 
-```
+```text
 site/src/data/graph/
   schema/            zod schemas (zod is already a dependency) + generated JSON Schema
   entities/
@@ -123,7 +123,7 @@ site/src/data/graph/
 
 | Field | Meaning | Populated from |
 |---|---|---|
-| `sourceGrade`, `sourceGradeSystem` | the source's own label, verbatim, with the system named | every surface |
+| `sourceGrade`, `sourceGradeSystem` | the source's own explicit evidence label, verbatim, with the system named; **null when the surface has no grade** (Biologic Monitoring exposes `riskLevel` only, which maps to `safetySeverity`/`monitoringBurden` and never to `sourceGrade`) | atlas (A–D), trials (A1–N), field guide only where a source label exists |
 | `studyDesign`, `designQuality` | RCT, cohort, case series, guideline, label, review; quality notes | trials, atlas refs |
 | `claimDirectness` | direct (the source states the edge), derived (curator inference), exploratory (lexical or treatment-response inference, per #175) | atlas, curator |
 | `treatmentRole` | anchor, alternative, refractory, adjunct, emerging | field guide |
@@ -224,10 +224,10 @@ Filtering and sorting operate on one field at a time and the UI names it. A Vite
 ### Design
 
 - **Static, build-generated API** at `/api/v1/`. Astro prerendered endpoints (`src/pages/api/v1/**/*.json.ts`) read `site/src/data/**` and the graph build output and emit JSON. This keeps the API in lockstep with what the site renders.
-- **Index and manifest.** `/api/v1/index.json` lists every dataset with `id, title, description, version (semver), schemaVersion, updatedAt, license, sha256, bytes, schemaUrl, doi?`. Each dataset also has `/api/v1/<dataset>/schema.json` (JSON Schema generated from the zod schemas via `zod-to-json-schema`).
+- **Route shape.** Immutable objects: `/api/v1/<dataset>/v<semver>/<file>.json` and `/api/v1/<dataset>/v<semver>/schema.json` (JSON Schema generated from the zod schemas via `zod-to-json-schema`). A published version directory is never modified; a correction is a new version. Mutable pointers: `/api/v1/index.json` (every dataset with `id, title, description, latestVersion, schemaVersion, updatedAt, license, sha256, bytes, schemaUrl, doi?`), `/api/v1/<dataset>/latest.json` (redirect-style pointer to the current version), and `/api/v1/<dataset>/status.json` (retraction, correction, or deprecation notices with dates).
 - **Datasets in v1:** `graph/{conditions,drugs,pathways,references,edges}`, `trials/studies` (with the free-text originals preserved), `medications`, `monitoring`, `mindmaps/<topic>`, `dermoscopy-eval/aggregate`, `publications`. Files over ~5 MB (the MCQ corpus) live on R2 with a signed manifest entry rather than in `site/dist`.
 - **Fail-closed build check.** A Vitest test compares each emitted file's sha256 to the manifest and fails the build on mismatch; a second test asserts each dataset validates against its own published schema. This follows the pattern the trials assembly script already uses.
-- **Cache and CORS.** Cloudflare rule for `/api/*`: `Cache-Control: public, max-age=300, stale-while-revalidate=86400`, `Access-Control-Allow-Origin: *`. *Unverified:* whether GitHub Pages already emits a permissive CORS header; test with `curl -I` before relying on Cloudflare.
+- **Cache and CORS.** Two Cloudflare rules, matching the two route classes: `/api/v1/*/v*/*` (immutable objects) gets `Cache-Control: public, max-age=31536000, immutable`; `/api/v1/index.json`, `/api/v1/*/latest.json`, and `/api/v1/*/status.json` get `Cache-Control: no-store` (or `no-cache` with ETag revalidation if `no-store` proves too costly). Both get `Access-Control-Allow-Origin: *`. No stale-while-revalidate anywhere on pointers or status files. *Unverified:* whether GitHub Pages already emits a permissive CORS header; test with `curl -I` before relying on Cloudflare.
 - **Zenodo.** `.zenodo.json` with creators (ORCID), license, keywords, related identifiers (the site URL, the benchmark repo). Each `data-v*` GitHub Release triggers a Zenodo deposit and a concept DOI plus version DOI. The `Dataset` JSON-LD (Workstream 2) and `index.json` carry the DOI back onto the site.
 - **Docs page** `/data`: human-readable catalogue with schema links, DOI badges, changelog per dataset, and a "how to cite" block generated from `CITATION.cff`.
 
@@ -268,7 +268,8 @@ Filtering and sorting operate on one field at a time and the UI names it. A Vite
 *Unverified:* current license text and access terms for each dataset. Confirm before the first run and record the confirmed terms in the harness README. The harness must **never** commit or publish images; it publishes image-id manifests with per-dataset hashes and instructs users to obtain images from the source.
 
 **Harness architecture.**
-```
+
+```text
 derm-vlm-bench/
   configs/            run configs (dataset, split, models, arms, seeds, n) as YAML, hashed into the run id
   datasets/           loaders + manifest builders; label taxonomies per dataset with an explicit mapping to the benchmark's parent classes
@@ -361,7 +362,7 @@ derm-vlm-bench/
 ### Acceptance
 
 - An item cannot appear in `/api/v1/mcq/` unless `verification.status` is `human-verified` in the committed bank files (asserted by a build-time test); no verification state lives only in a browser.
-- Every displayed rationale shows at least one clickable source with a quote that string-matches the source packet.
+- Every displayed rationale shows at least one clickable source with a citation identifier and locator. When the rights manifest clears that source for quotation, the rendered quote must string-match the source packet; when it does not, the rationale renders the citation and locator with no verbatim text, and a test asserts that no quote text from an uncleared source appears in the served bank or the rendered page.
 - Existing SRS users keep their cards, favorites, and notes after migration (Playwright test seeds both `dermpath_srs_data` and `dermatopathologyDifferentialsState`, loads the app, and asserts due counts, favorite set, and note text all match; a Vitest unit test covers the migration function with malformed and partial legacy payloads).
 
 ### Risks
@@ -390,7 +391,8 @@ derm-vlm-bench/
 Conditional criteria ("resume when the wound shows evidence of healing and there is no infection") are rendered as conditions, never converted into a calendar date. No weight, labs, or patient identifiers are collected; nothing is stored beyond the session unless the user exports a PDF (existing jspdf dependency), and the PDF carries the scenario's synthetic label.
 
 **Rule record** (new graph edge type `drug-timing.json`):
-```
+
+```text
 { drugId, context: "perioperative"|"live-vaccine"|"inactivated-vaccine"|"pregnancy"|"lactation"|"conception-male"|"conception-female",
   applicability: { diagnosis?, severity?, procedureClass?, formulation?, regimen?, dosingCycle?, vaccineType?, population? },  // every predicate the source conditions on; all required to compute
   rule: { holdRelativeTo: "last-dose"|"procedure"|"vaccine", holdText, resumeCondition?: { kind: "conditional"|"interval", text }, windowText },
@@ -400,6 +402,7 @@ Conditional criteria ("resume when the wound shows evidence of healing and there
   reviewedBy: [{ initials, date }],                    // two sign-offs required before "published"
   status: "draft"|"reviewed"|"published"|"retired", supersedes? }
 ```
+
 Candidate source classes (to be confirmed at build time, not asserted here): ACR/AAHKS perioperative guideline for arthroplasty, ACR vaccination guideline, ACR reproductive health guideline, FDA labels via DailyMed, and specialty society statements. The build rejects a rule whose sources lack quotes or retrieval dates.
 
 **UI** `/apps/immunosuppression-planner` (Astro + React island): drug picker from the graph, context tabs, a horizontal timeline with hold/resume bands, and a "what the sources do not say" panel listing contexts with no published rule for that drug. Every band is clickable to the quote. Persistent banner: teaching tool, not a substitute for the treating clinician's judgement or the label.
@@ -495,7 +498,7 @@ Nothing in-repo. This is greenfield and intentionally last.
 4. **Data validation is a test.** Every dataset has a zod schema and a Vitest test; every build-emitted artifact has a hash in a manifest that a test checks.
 5. **Fail closed on evidence.** Unsourced edges render as unsourced; unverified items are not served; low-n strata are suppressed; rules without two sign-offs do not publish.
 6. **No secrets in the browser.** Any LLM call goes through a backend (the scribe's sessionStorage-only JWT pattern at `site/public/apps/dermatology-scribe/app.js:1-52` is the reference) or happens offline in a pipeline. The dermpath navigator's stripped Gemini key is the cautionary example.
-7. **Devlog per phase**, commit format `agent(<name>): <summary>`, vault update when the vault is present (per `CLAUDE.md`).
+7. **Devlog per phase**, commit format `agent(claude-code): <summary>` for shipped work (the Codex-flavoured equivalent uses its own prefix per `AGENTS.md`), vault update when the vault is present (per `CLAUDE.md`).
 8. **Large files go to R2**, never to `site/public`.
 
 ## Sequenced calendar (assumes two parallel tracks)
