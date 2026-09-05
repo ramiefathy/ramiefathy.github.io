@@ -1,3 +1,4 @@
+import { validateEvidence } from '../components/dermoscopy-dashboard/evidence-contract.js';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -60,5 +61,42 @@ describe('dermoscopy-llm-eval.json', () => {
     const sorted = (set: Set<string>) => Array.from(set).sort();
     expect(sorted(latencyModels)).toEqual(sorted(models));
     expect(sorted(costModels)).toEqual(sorted(models));
+  });
+});
+
+
+describe('image-level evidence contract', () => {
+  it('reconciles all paired image results to aggregate counts', () => { expect(validateEvidence(loadData())).toBe(true); });
+  it.each([
+    ['short', 'Invalid image-vector length.'],
+    ['invalid', 'Non-binary image results.'],
+    ['duplicate', 'Duplicate or unpaired image results.'],
+    ['alias', 'Duplicate or unpaired image results.'],
+    ['denominator', 'Invalid unique-image denominator.'],
+    ['aggregate duplicate', 'Duplicate or unpaired aggregate row.'],
+    ['aggregate orphan', 'Duplicate or unpaired aggregate row.'],
+    ['aggregate missing', 'Image results disagree with aggregate counts.'],
+    ['aggregate accuracy', 'Image results disagree with aggregate counts.'],
+    ['model duplicate', 'Invalid model or arm inventory.'],
+    ['arm duplicate', 'Invalid model or arm inventory.'],
+    ['missing pair', 'Evaluation denominator mismatch.'],
+    ['total', 'Evaluation denominator mismatch.']
+  ])('fails closed on %s pairing with the intended error', (kind, message) => {
+    const data = loadData();
+    const rows = data.cases.correctByModelArm;
+    if (kind === 'short') rows[0].correct_bits = rows[0].correct_bits.slice(1);
+    if (kind === 'invalid') rows[0].correct_bits = 'x'.repeat(data.overallStats.uniqueImages);
+    if (kind === 'duplicate') rows.push({ ...rows[0] });
+    if (kind === 'alias') rows.push({ ...rows[0], arm: String(rows[0].arm).padStart(2, '0') });
+    if (kind === 'denominator') data.overallStats.uniqueImages += 1;
+    if (kind === 'aggregate duplicate') data.modelArmTradeoffs.push({ ...data.modelArmTradeoffs[0] });
+    if (kind === 'aggregate orphan') data.modelArmTradeoffs.push({ ...data.modelArmTradeoffs[0], model: 'unknown' });
+    if (kind === 'aggregate missing') data.modelArmTradeoffs.pop();
+    if (kind === 'aggregate accuracy') data.modelArmTradeoffs[0].accuracy = -1;
+    if (kind === 'model duplicate') data.modelSummary.push({ ...data.modelSummary[0] });
+    if (kind === 'arm duplicate') data.armSummary.push({ ...data.armSummary[0] });
+    if (kind === 'missing pair') rows.pop();
+    if (kind === 'total') data.overallStats.totalTrials += 1;
+    expect(() => validateEvidence(data)).toThrow(message);
   });
 });

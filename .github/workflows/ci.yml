@@ -12,19 +12,22 @@ permissions:
 jobs:
   build-site:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           lfs: true
           persist-credentials: false
       - name: Use Node.js from .nvmrc
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version-file: '.nvmrc'
       - name: Install site dependencies
-        run: npm --prefix site install
+        run: npm --prefix site ci
       - name: Run site unit tests
-        run: npm run site:test
+        run: npm --prefix site test -- --reporter=default --reporter=json --outputFile=unit-results.json
+      - name: Audit locked dependencies
+        run: npm --prefix site audit --json > site/dependency-audit.json
       - name: Build site
         run: npm run site:build
       - name: Verify direct D&D static build contract
@@ -57,9 +60,19 @@ jobs:
             echo "Simulation markers detected in deployed scribe entrypoint"
             exit 1
           fi
+      - name: Upload unit and dependency evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: site-unit-evidence
+          path: |
+            site/unit-results.json
+            site/dependency-audit.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload rheum-derm dashboard payload audit
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: rheum-derm-dashboard-payload
           path: site/public/apps/rheum-derm-clinical-trials
@@ -67,7 +80,7 @@ jobs:
           retention-days: 1
       - name: Upload built D&D console for audit
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: dnd-console-built-route
           path: site/dist/tools/dnd-l20-console-f2c7a9
@@ -83,30 +96,37 @@ jobs:
           lfs: true
           persist-credentials: false
       - name: Use Node.js from .nvmrc
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version-file: '.nvmrc'
       - name: Install site dependencies
-        run: npm --prefix site install
+        run: npm --prefix site ci
       - name: Install Playwright (Chromium)
         working-directory: site
         run: npx playwright install --with-deps chromium
-      - name: Run Playwright e2e
+      - name: Run Playwright e2e and visual inventory
         working-directory: site
-        run: npx playwright test --reporter=line
-      - name: Upload D&D Playwright audit output
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: browser-results.json
+          PHASE7_SCREENSHOTS: '1'
+          VISUAL_AUDIT: '1'
+          VISUAL_AUDIT_RUN_ID: ci
+        run: npx playwright test --reporter=line,json
+      - name: Upload browser test evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: dnd-console-playwright-audit
+          name: site-playwright-evidence
           path: |
-            site/test-results/dnd-console-audit
+            site/test-results
+            site/browser-results.json
             site/playwright-report
           if-no-files-found: ignore
           retention-days: 3
 
   ai-scribe-lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -121,7 +141,15 @@ jobs:
       - name: Lint
         run: python -m compileall services/ai-scribe
       - name: Run backend tests
-        run: python -m pytest services/ai-scribe/tests -q
+        run: python -m pytest services/ai-scribe/tests -q --junitxml=services/ai-scribe/test-results.xml
+      - name: Upload backend test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ai-scribe-test-evidence
+          path: services/ai-scribe/test-results.xml
+          if-no-files-found: error
+          retention-days: 7
 
   report-master-ci-status:
     if: ${{ always() && github.event_name == 'push' }}

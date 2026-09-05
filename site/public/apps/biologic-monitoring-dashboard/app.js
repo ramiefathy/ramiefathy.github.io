@@ -1,3 +1,4 @@
+import { CLINICAL_SCOPE, CHECKLIST_SCOPE, escapeHtml, highlightSafe, clinicalExport, reviewSummary, csvCell } from './safety.js';
 import {
   monitoringEntries,
   CONDITION_LABELS,
@@ -7,7 +8,7 @@ import {
   dataVersion
 } from './data.js';
 
-const COPY_BUTTON_LABEL = 'Copy monitoring checklist for clinical note';
+const COPY_BUTTON_LABEL = 'Copy educational monitoring reference'; // Export includes scope, precautions and sources.
 
 const FAVORITE_ICON_OUTLINE = `
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
@@ -33,7 +34,10 @@ const riskBadgeConfig = {
   rems: { icon: 'REMS', className: 'cl-badge-caution' },
   'age-65-plus': { icon: '65+', className: 'cl-badge-caution' },
   pediatric: { icon: 'Peds', className: 'cl-badge-caution' },
-  infection: { icon: 'Inf', className: 'cl-badge-danger' }
+  infection: { icon: 'Inf', className: 'cl-badge-danger' },
+  psychiatric: { icon: 'Mood', className: 'cl-badge-caution' },
+  'pregnancy-monitoring': { icon: 'Preg', className: 'cl-badge-caution' },
+  ophthalmologic: { icon: 'Eye', className: 'cl-badge-caution' }
 };
 
 const riskBadgeDescriptions = {
@@ -48,7 +52,13 @@ const riskBadgeDescriptions = {
   pediatric:
     'Pediatric-specific considerations – dosing, safety, or monitoring differs in children and adolescents.',
   infection:
-    'Elevated serious infection risk – ensure screening, vaccination, and patient counseling on early symptom reporting.'
+    'Elevated serious infection risk – ensure screening, vaccination, and patient counseling on early symptom reporting.',
+  psychiatric:
+    'Mood or suicidality precaution – review the specific agent warning and assess new or worsening psychiatric symptoms.',
+  'pregnancy-monitoring':
+    'Pregnancy-related assessment – consult the individual agent guidance; this badge does not by itself mean pregnancy is contraindicated.',
+  ophthalmologic:
+    'Retinal monitoring – verify baseline and follow-up screening requirements and individual risk factors.'
 };
 
 const STORAGE_KEYS = {
@@ -162,27 +172,25 @@ function loadArray(key) {
 }
 
 function loadChecklist(key) {
+  // Legacy versions saved completion across patients. Never restore these marks.
+  try { localStorage.removeItem(key); } catch { /* Storage may be disabled. */ }
+  return Object.create(null);
+}
+
+function persistPreference(key, value) {
   try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return typeof parsed === 'object' && parsed !== null ? parsed : {};
-  } catch (error) {
-    console.warn('Failed to load checklist from storage', error);
-    return {};
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch {
+    showToast('Browser storage is unavailable. This preference was not saved.', true);
+    return false;
   }
 }
-
 function persistFavorites() {
-  localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(Array.from(userPreferences.favorites)));
+  return persistPreference(STORAGE_KEYS.favorites, Array.from(userPreferences.favorites));
 }
-
 function persistRecent() {
-  localStorage.setItem(STORAGE_KEYS.recent, JSON.stringify(userPreferences.recent));
-}
-
-function persistChecklist() {
-  localStorage.setItem(STORAGE_KEYS.checklist, JSON.stringify(userPreferences.checklist));
+  return persistPreference(STORAGE_KEYS.recent, userPreferences.recent);
 }
 
 function toTitleCase(value) {
@@ -235,10 +243,7 @@ function matchesSearch(entry, query) {
 }
 
 function highlightText(text, query) {
-  if (!query || !text) return text;
-  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`(${escaped})`, 'gi');
-  return text.replace(regex, '<mark class="highlight">$1</mark>');
+  return highlightSafe(text, query);
 }
 
 function filterEntries() {
@@ -341,7 +346,7 @@ function buildRiskIndicators(entry) {
       const description = riskBadgeDescriptions[flag] || 'Review prescribing information for additional safety guidance.';
       return `<span class="risk-badge ${config.className}" tabindex="0" data-tooltip="${escapeAttribute(
         description
-      )}" aria-label="${escapeAttribute(description)}">${config.icon} <span class="risk-badge__text">${label}</span></span>`;
+      )}" aria-label="${escapeAttribute(`${label}. ${description}`)}">${config.icon} <span class="risk-badge__text">${label}</span></span>`;
     })
     .join('');
   return `<div class="risk-indicators">${badges}</div>`;
@@ -402,80 +407,14 @@ function buildReferences(entry) {
     .join('')}</div>`;
 }
 
-function buildTimeline(entry) {
-  const items = entry.monitoringSchedule || [];
-  if (!items.length) return '';
-  const numericWeeks = items.map((item) => item.relativeWeeks).filter((value) => typeof value === 'number');
-  const maxWeeks = numericWeeks.length ? Math.max(...numericWeeks, 52) : 52;
-  const points = items.map((item) => {
-    const weeks = typeof item.relativeWeeks === 'number' ? item.relativeWeeks : maxWeeks + 8;
-    const position = Math.min(100, Math.round((weeks / Math.max(maxWeeks, 1)) * 100));
-    return {
-      label: item.timing,
-      description: item.description,
-      priority: item.priority,
-      position
-    };
-  });
-  return `
-    <div class="timeline">
-      <div class="timeline-track">
-        ${points
-          .map(
-            (point) => `
-              <div class="timeline-point timeline-point--${point.priority}" style="left: ${point.position}%">
-                <div class="timeline-marker"></div>
-                <div class="timeline-tooltip">
-                  <strong>${point.label}</strong>
-                  <span>${point.description}</span>
-                </div>
-              </div>
-            `
-          )
-          .join('')}
-      </div>
-      <div class="timeline-axis">
-        <span>Baseline</span>
-        <span>3 mo</span>
-        <span>6 mo</span>
-        <span>12 mo</span>
-        <span>Ongoing</span>
-      </div>
-    </div>
-  `;
+function buildTimeline() {
+  // Exact, keyboard-readable timing is already shown in the adjacent checklist.
+  // A fixed 12-month graphic misrepresented 5-year and conditional schedules.
+  return '';
 }
 
 function buildClipboardText(entry) {
-  const agents = entry.agents.join(', ');
-  const header = `**<u>Monitoring checklist for ${entry.name} (${agents})</u>**`;
-
-  const baselineItems = (entry.baselineTasks || []).map((task) => `- ${task.label}`);
-  const followUpItems = (entry.monitoringSchedule || []).map(
-    (item) => `- ${item.timing}: ${item.description}`
-  );
-
-  const baselineSection = baselineItems.length
-    ? baselineItems.join('\n')
-    : '- Refer to regimen baseline guidance';
-  const followUpSection = followUpItems.length
-    ? followUpItems.join('\n')
-    : '- Clinical surveillance per specialist guidance';
-
-  const cautionsLine = entry.cautions ? `*Cautions: ${entry.cautions}*` : '';
-
-  return [
-    header,
-    '',
-    '<u>Baseline:</u>',
-    baselineSection,
-    '',
-    '<u>Follow-up:</u>',
-    followUpSection,
-    '',
-    cautionsLine
-  ]
-    .filter((segment, index, arr) => segment || arr[index - 1])
-    .join('\n');
+  return clinicalExport(entry, dataVersion);
 }
 
 function renderEntryCard(entry, query) {
@@ -557,6 +496,7 @@ function renderEntryCard(entry, query) {
           </div>
         </div>
       </header>
+      <p class="entry-review muted">${escapeHtml(reviewSummary(entry, dataVersion))}</p>
       <div class="entry-meta-block">
         <div>
           <h3>Agents</h3>
@@ -578,7 +518,7 @@ function renderEntryCard(entry, query) {
                 tab === 'monitoring'
                   ? 'Monitoring'
                   : tab === 'contraindications'
-                  ? 'Contraindications'
+                  ? 'Contraindications / precautions'
                   : tab === 'interactions'
                   ? 'Drug interactions'
                   : 'Dosing notes';
@@ -642,7 +582,7 @@ function renderTable(entries) {
                 <td>${highlightText(entry.summary, query)}</td>
                 <td>${baseline || '<span class="muted">Refer to detailed view</span>'}</td>
                 <td>${monitoring || '<span class="muted">Refer to detailed view</span>'}</td>
-                <td>${highlightText(entry.cautions || '', query)}</td>
+                <td>${highlightText(entry.cautions || '', query)}<details><summary>Full safety context and sources</summary><pre class="table-safety">${escapeHtml(clinicalExport(entry, dataVersion))}</pre></details></td>
               </tr>
             `;
           })
@@ -744,7 +684,7 @@ function render() {
   dom.viewToggle.setAttribute('aria-label', viewLabel);
 
   if (!filtered.length) {
-    dom.resultCount.textContent = `0 regimens shown · Data refreshed ${formatVersionDate(dataVersion)}`;
+    dom.resultCount.textContent = `0 regimens shown · Original dataset ${formatVersionDate(dataVersion)}`;
     dom.resultsContainer.innerHTML = `
       <div class="cl-empty-state">
         <p class="cl-empty-state__title">No matching medications</p>
@@ -755,7 +695,7 @@ function render() {
     return;
   }
 
-  dom.resultCount.textContent = `${filtered.length} regimen${filtered.length === 1 ? '' : 's'} shown · Data refreshed ${formatVersionDate(
+  dom.resultCount.textContent = `${filtered.length} regimen${filtered.length === 1 ? '' : 's'} shown · Original dataset ${formatVersionDate(
     dataVersion
   )}`;
 
@@ -772,7 +712,7 @@ function formatVersionDate(value) {
   if (!value) return 'recently';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 }
 
 function handleCardInteraction(event) {
@@ -862,7 +802,7 @@ function handleChecklistChange(event) {
   const entryState = (userPreferences.checklist[entryId] = userPreferences.checklist[entryId] || {});
   const typeState = (entryState[type] = entryState[type] || {});
   typeState[itemId] = checkbox.checked;
-  persistChecklist();
+  // Completion is deliberately memory-only and is never autosaved.
 }
 
 function addRecent(entryId) {
@@ -881,14 +821,7 @@ function clearComparison() {
 }
 
 function exportChecklist(entry) {
-  const entryChecklist = userPreferences.checklist[entry.id] || {};
-  const baseline = (entry.baselineTasks || []).map((task) => `${entryChecklist.baseline?.[task.id] ? '[x]' : '[ ]'} ${task.label}`);
-  const monitoring = (entry.monitoringSchedule || []).map(
-    (item) => `${entryChecklist.monitoring?.[item.id] ? '[x]' : '[ ]'} ${item.timing}: ${item.description}`
-  );
-  const content = `Checklist for ${entry.name}\n\nBaseline essentials:\n${baseline.join('\n')}\n\nFollow-up cadence:\n${monitoring.join('\n')}`;
-  copyToClipboard(content, null);
-  showToast('Checklist copied to clipboard');
+  return copyToClipboard(clinicalExport(entry, dataVersion, userPreferences.checklist[entry.id] || {}), null);
 }
 
 function exportCurrentViewAsCSV() {
@@ -906,7 +839,7 @@ function exportCurrentViewAsCSV() {
     'Monitoring',
     'Cautions',
     'Risk Level',
-    'Monitoring Intensity'
+    'Monitoring Intensity', 'Contraindications / precautions', 'Hold criteria', 'Interactions', 'Dosing context', 'Scope', 'Review status', 'Sources', 'Complete monitoring reference'
   ];
   const rows = entries.map((entry) => [
     entry.name,
@@ -917,10 +850,13 @@ function exportCurrentViewAsCSV() {
     entry.monitoring,
     entry.cautions,
     RISK_LEVEL_LABELS[entry.riskLevel] || entry.riskLevel,
-    MONITORING_FREQUENCY_LABELS[entry.monitoringFrequency] || entry.monitoringFrequency
+    MONITORING_FREQUENCY_LABELS[entry.monitoringFrequency] || entry.monitoringFrequency,
+    entry.contraindications, entry.holdCriteria.join("; "), entry.interactions, entry.dosing, CLINICAL_SCOPE,
+    reviewSummary(entry, dataVersion), entry.references.map((ref) => `${ref.label}: ${ref.url}`).join("; "),
+    clinicalExport(entry, dataVersion)
   ]);
   const csv = [headers, ...rows]
-    .map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+    .map((row) => row.map(csvCell).join(','))
     .join('\n');
   downloadFile(csv, 'biologic-monitoring-dashboard.csv', 'text/csv');
   showToast(`Exported ${rows.length} regimen${rows.length === 1 ? '' : 's'} as CSV.`);
@@ -938,31 +874,28 @@ function downloadFile(content, filename, mimeType) {
   URL.revokeObjectURL(url);
 }
 
-function copyToClipboard(text, button) {
-  navigator.clipboard
-    .writeText(text)
-    .then(() => {
-      if (button) {
-        button.textContent = 'Copied!';
-        button.classList.add('copied');
-        setTimeout(() => {
-          button.textContent = COPY_BUTTON_LABEL;
-          button.classList.remove('copied');
-        }, 1600);
-      } else {
-        showToast('Copied to clipboard.');
-      }
-    })
-    .catch(() => {
-      if (button) {
-        button.textContent = 'Copy failed';
-        setTimeout(() => {
-          button.textContent = COPY_BUTTON_LABEL;
-        }, 1600);
-      } else {
-        showToast('Copy failed.', true);
-      }
-    });
+async function copyToClipboard(text, button) {
+  try {
+    if (typeof navigator.clipboard?.writeText !== 'function') throw new Error('Clipboard unavailable');
+    await navigator.clipboard.writeText(text);
+    if (button) {
+      button.textContent = 'Copied!';
+      button.classList.add('copied');
+      setTimeout(() => {
+        button.textContent = COPY_BUTTON_LABEL;
+        button.classList.remove('copied');
+      }, 1600);
+    }
+    showToast('Copied to clipboard. Verify the included clinical context and sources.');
+    return true;
+  } catch {
+    if (button) {
+      button.textContent = 'Copy failed';
+      setTimeout(() => { button.textContent = COPY_BUTTON_LABEL; }, 1600);
+    }
+    showToast('Copy failed. Nothing was copied; use CSV export instead.', true);
+    return false;
+  }
 }
 
 function announce(message) {
@@ -974,6 +907,7 @@ function announce(message) {
 function showToast(message, isError = false) {
   const toast = document.createElement('div');
   toast.className = `toast ${isError ? 'is-error' : ''}`;
+  toast.setAttribute('role', isError ? 'alert' : 'status');
   toast.textContent = message;
   dom.modalRoot.appendChild(toast);
   requestAnimationFrame(() => toast.classList.add('is-visible'));
@@ -987,10 +921,10 @@ function showKeyboardShortcuts() {
   const modal = document.createElement('div');
   modal.className = 'modal-backdrop';
   modal.innerHTML = `
-    <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
       <header>
         <h2>Keyboard shortcuts</h2>
-        <button type="button" class="icon-btn" data-action="close-modal">×</button>
+        <button type="button" class="icon-btn" data-action="close-modal" aria-label="Close keyboard shortcuts">×</button>
       </header>
       <dl class="shortcut-list">
         <div><dt><kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>K</kbd></dt><dd>Focus search</dd></div>
@@ -1001,28 +935,25 @@ function showKeyboardShortcuts() {
       </dl>
     </div>
   `;
+  const previousFocus = document.activeElement;
   dom.modalRoot.appendChild(modal);
+  const closeButton = modal.querySelector('[data-action="close-modal"]');
+  const close = () => { modal.remove(); previousFocus?.focus(); };
+  closeButton.focus();
   modal.addEventListener('click', (event) => {
-    if (event.target === modal || event.target.closest('[data-action="close-modal"]')) {
-      modal.remove();
-    }
+    if (event.target === modal || event.target.closest('[data-action="close-modal"]')) close();
   });
-  document.addEventListener(
-    'keydown',
-    function escListener(event) {
-      if (event.key === 'Escape') {
-        modal.remove();
-        document.removeEventListener('keydown', escListener);
-      }
-    },
-    { once: true }
-  );
+  modal.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') { event.preventDefault(); close(); }
+    if (event.key === 'Tab') { event.preventDefault(); closeButton.focus(); }
+  });
 }
 
 function handleGlobalKeydown(event) {
   const meta = event.metaKey || event.ctrlKey;
   const activeElement = document.activeElement;
-  const isInputFocused = activeElement && ['INPUT', 'TEXTAREA'].includes(activeElement.tagName);
+  if (document.querySelector('.modal-backdrop')) return;
+  const isInputFocused = activeElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement.tagName) || activeElement.isContentEditable);
 
   if (meta && event.key.toLowerCase() === 'k') {
     event.preventDefault();
@@ -1156,9 +1087,10 @@ function attachListeners() {
   let touchStartX = 0;
   let touchEndX = 0;
   document.addEventListener('touchstart', (event) => {
-    touchStartX = event.changedTouches[0].screenX;
+    if (event.changedTouches.length) touchStartX = event.changedTouches[0].screenX;
   });
   document.addEventListener('touchend', (event) => {
+    if (!dom.favoritesPanel || !event.changedTouches.length) return;
     touchEndX = event.changedTouches[0].screenX;
     const diff = touchEndX - touchStartX;
     if (Math.abs(diff) > 60) {
@@ -1182,8 +1114,8 @@ function jumpToEntry(entryId) {
   if (card) {
     state.expanded.add(entryId);
     state.activeTabs.set(entryId, 'monitoring');
-    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     render();
+    dom.resultsContainer.querySelector(`[data-entry-id="${entryId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } else {
     announce('Entry not visible with current filters.');
   }
@@ -1217,6 +1149,11 @@ function initialiseFilters() {
 }
 
 function initialise() {
+  document.querySelector('#clear-checklists')?.addEventListener('click', () => {
+    userPreferences.checklist = Object.create(null);
+    render();
+    showToast('All temporary checklist marks cleared. No patient data was saved.');
+  });
   initialiseFilters();
   renderFavoritesList();
   renderRecentList();
