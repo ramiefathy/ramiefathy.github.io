@@ -77,6 +77,8 @@ class GeminiService:
             if not text.strip():
                 raise GenerationError("Generation returned no usable text.")
             return text
+        except GenerationError:
+            raise  # These local validation messages are already sanitized.
         except Exception as exc:
             logger.warning("Generation failed (%s)", type(exc).__name__)
             raise GenerationError("Generation failed; no result was saved. Please retry.") from None
@@ -102,6 +104,8 @@ class GeminiService:
             if not has_text or not stopped:
                 raise GenerationError("Generation ended without a complete result.")
             yield "", True
+        except GenerationError:
+            raise  # These local validation messages are already sanitized.
         except Exception as exc:
             logger.warning("Streaming generation failed (%s)", type(exc).__name__)
             raise GenerationError("Generation failed; provisional output was not saved. Please retry.") from None

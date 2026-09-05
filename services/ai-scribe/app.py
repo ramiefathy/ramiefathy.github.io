@@ -310,8 +310,9 @@ async def handler(websocket):
 
             if message_type == "start_new_session":
                 logger.info(f"Starting new session explicitly for {current_session_id_to_use}")
-                await cancel_suggestions()
+                # Invalidate before yielding: providers may return while handling cancellation.
                 session.reset_session_data()
+                await cancel_suggestions()
                 await websocket.send(json.dumps({"type": "status", "message": "New session initialized. Ready to record."}))
 
             elif message_type == "transcript_segment":
@@ -334,6 +335,7 @@ async def handler(websocket):
                 suggestion_trigger_threshold = 20
                 if is_final and current_word_count > session.last_suggestion_word_count + suggestion_trigger_threshold:
                     session.last_suggestion_word_count = current_word_count
+                    session.generation += 1  # Invalidate superseded suggestion context before awaiting.
                     await cancel_suggestions()
                     task = asyncio.create_task(
                         trigger_realtime_suggestions(
@@ -646,9 +648,10 @@ async def handler(websocket):
         except websockets.exceptions.ConnectionClosed:
             logger.warning("Connection already closed.")
     finally:
-        await cancel_suggestions()
         if session_id:
             session_manager.remove_session(session_id)
+        await cancel_suggestions()
+        if session_id:
             log_event("session_cleanup", session_id=session_id, client=client_key, rate_limit=rate_limiter.snapshot().get(client_key, {}))
 
 async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=None):

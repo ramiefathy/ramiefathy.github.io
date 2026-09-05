@@ -34,7 +34,10 @@ const riskBadgeConfig = {
   rems: { icon: 'REMS', className: 'cl-badge-caution' },
   'age-65-plus': { icon: '65+', className: 'cl-badge-caution' },
   pediatric: { icon: 'Peds', className: 'cl-badge-caution' },
-  infection: { icon: 'Inf', className: 'cl-badge-danger' }
+  infection: { icon: 'Inf', className: 'cl-badge-danger' },
+  psychiatric: { icon: 'Mood', className: 'cl-badge-caution' },
+  'pregnancy-monitoring': { icon: 'Preg', className: 'cl-badge-caution' },
+  ophthalmologic: { icon: 'Eye', className: 'cl-badge-caution' }
 };
 
 const riskBadgeDescriptions = {
@@ -49,7 +52,13 @@ const riskBadgeDescriptions = {
   pediatric:
     'Pediatric-specific considerations – dosing, safety, or monitoring differs in children and adolescents.',
   infection:
-    'Elevated serious infection risk – ensure screening, vaccination, and patient counseling on early symptom reporting.'
+    'Elevated serious infection risk – ensure screening, vaccination, and patient counseling on early symptom reporting.',
+  psychiatric:
+    'Mood or suicidality precaution – review the specific agent warning and assess new or worsening psychiatric symptoms.',
+  'pregnancy-monitoring':
+    'Pregnancy-related assessment – consult the individual agent guidance; this badge does not by itself mean pregnancy is contraindicated.',
+  ophthalmologic:
+    'Retinal monitoring – verify baseline and follow-up screening requirements and individual risk factors.'
 };
 
 const STORAGE_KEYS = {
@@ -337,7 +346,7 @@ function buildRiskIndicators(entry) {
       const description = riskBadgeDescriptions[flag] || 'Review prescribing information for additional safety guidance.';
       return `<span class="risk-badge ${config.className}" tabindex="0" data-tooltip="${escapeAttribute(
         description
-      )}" aria-label="${escapeAttribute(description)}">${config.icon} <span class="risk-badge__text">${label}</span></span>`;
+      )}" aria-label="${escapeAttribute(`${label}. ${description}`)}">${config.icon} <span class="risk-badge__text">${label}</span></span>`;
     })
     .join('');
   return `<div class="risk-indicators">${badges}</div>`;
@@ -1140,7 +1149,7 @@ function initialiseFilters() {
 }
 
 function initialise() {
-  document.querySelector('#clear-checklists').addEventListener('click', () => {
+  document.querySelector('#clear-checklists')?.addEventListener('click', () => {
     userPreferences.checklist = Object.create(null);
     render();
     showToast('All temporary checklist marks cleared. No patient data was saved.');

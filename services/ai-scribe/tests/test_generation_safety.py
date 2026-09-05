@@ -221,3 +221,59 @@ async def test_cancelled_stream_closes_both_transports(monkeypatch, service):
             seen.append((text, done))
     assert seen == [("provisional", False)]
     assert closed == ["async", "sync"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("streaming", [False, True])
+async def test_safe_validation_error_survives_provider_boundary(monkeypatch, service, streaming):
+    monkeypatch.setattr(service_module.config, "GEMINI_DEFAULT_MODEL", "")
+    with pytest.raises(GenerationError, match="deployment-validated Gemini model"):
+        if streaming:
+            async for _ in service.stream_gemini_api("synthetic"):
+                pass
+        else:
+            await service.call_gemini_api("synthetic")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("operation", ["reset", "replacement", "disconnect"])
+async def test_handler_invalidates_before_cancellation_can_return_a_result(monkeypatch, operation):
+    """Exercise the real handler against a provider that suppresses cancellation."""
+    started = asyncio.Event()
+    messages = []
+    cancellations = []
+
+    async def call(*args, **kwargs):
+        started.set()
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            cancellations.append(True)
+            return "Suggestion: SYNTHETIC_STALE_ENCOUNTER"
+
+    monkeypatch.setattr(app, "gemini_service", NS(call_gemini_api=call))
+
+    class Socket:
+        remote_address = ("127.0.0.1", 0)
+        request = NS(path="/", headers={"Authorization": "Bearer " + app.issue_jwt("cancellation-" + operation)})
+
+        async def send(self, text):
+            messages.append(json.loads(text))
+
+        async def close(self, **kwargs):
+            raise AssertionError("Unexpected authentication rejection")
+
+        async def __aiter__(self):
+            yield json.dumps({"type": "transcript_segment", "data": {"segment": "synthetic " * 21, "is_final": True}})
+            await asyncio.wait_for(started.wait(), timeout=2)
+            if operation == "reset":
+                yield json.dumps({"type": "start_new_session"})
+            elif operation == "replacement":
+                yield json.dumps({"type": "transcript_segment", "data": {"segment": "replacement " * 21, "is_final": True}})
+            # Ending iteration exercises the disconnect cleanup ordering as well.
+
+    await asyncio.wait_for(app.handler(Socket()), timeout=5)
+    assert cancellations, "The stale provider must actually reach its cancellation handler"
+    assert "SYNTHETIC_STALE_ENCOUNTER" not in json.dumps(messages)
+    session_id = next(message["sessionId"] for message in messages if message["type"] == "connection_ack")
+    assert app.session_manager.get_session(session_id) is None

@@ -76,6 +76,7 @@ describe('clinical reference contract (not clinical validation)', () => {
   it('does not confuse future iPLEDGE implementation with current requirements', () => {
     const iso = textOf('isotretinoin');
     expect(iso).toContain('November 15, 2026');
+    expect(entry('isotretinoin').references.some((ref) => ref.label.includes('June 16, 2026'))).toBe(true);
     expect(iso).toContain('pre-treatment pregnancy tests in a medical setting');
     expect(iso).not.toContain('one in-office');
     expect(entry('isotretinoin').holdCriteria.join(' ')).not.toContain('800');

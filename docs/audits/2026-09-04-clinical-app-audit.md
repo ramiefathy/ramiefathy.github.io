@@ -2,7 +2,9 @@
 
 Audit date: September 4, 2026 (America/New_York; execution receipts extend into September 5 UTC).
 Base: `2cdeb783c925192ae9d2314a7cc43e20ee52c64b`, `master`.
-Work branch: `audit/clinical-apps-20260904`.
+Review branch: `audit/clinical-reference-safety-20260904` (PR #184). The earlier `audit/clinical-apps-20260904` branch was isolated transfer/test infrastructure.
+
+Follow-up integration findings, SDK migration, and review resolutions: `2026-09-04-clinical-app-verification.md`. Final exact-head receipts are posted in the PR discussion.
 
 ## Decision and limits
 
@@ -101,6 +103,8 @@ cd services/ai-scribe
 pip install -r requirements.txt
 python -m pytest tests -q
 ```
+
+The supported backend command installs the real pinned SDK from `requirements.txt`; no import stub is used or required. The earlier local 29-test result above used an untracked temporary import shim only because package download was blocked locally. It is a historical diagnostic, not a separately reproducible test mode. Hosted CI runs the committed suite with the actual SDK installed.
 
 ## Primary sources for targeted corrections
 

@@ -183,3 +183,32 @@ test('active site worker never serves cached clinical research data', async ({ p
   });
   expect(offline).toBe('NETWORK_REQUIRED');
 });
+
+
+test('clinical risk badges retain specific accessible names for every new flag', async ({ page }) => {
+  await blockExternalRequests(page);
+  await page.goto(route, { waitUntil: 'networkidle' });
+  for (const label of ['Mood / suicidality precaution', 'Pregnancy counseling', 'Retinal monitoring']) {
+    const badge = page.locator('.risk-badge').filter({ has: page.locator('.risk-badge__text', { hasText: label }) }).first();
+    await expect(badge).toBeVisible();
+    await expect(badge).toHaveAttribute('aria-label', new RegExp(label));
+    await expect(badge).not.toHaveAttribute('aria-label', /additional safety guidance/);
+  }
+});
+
+test('missing optional checklist-clear control does not prevent reference initialization', async ({ page }) => {
+  await blockExternalRequests(page);
+  await page.route('**/biologic-monitoring-dashboard/index.html', async (request) => {
+    const response = await request.fetch();
+    const html = (await response.text()).replace('id="clear-checklists"', 'id="test-removed-clear-control"');
+    await request.fulfill({ response, body: html });
+  });
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(route, { waitUntil: 'networkidle' });
+  await expect(page.locator('#clear-checklists')).toHaveCount(0);
+  await expect(page.locator(cards)).toHaveCount(23);
+  await page.fill('#search-input', 'abrocitinib');
+  await expect(page.locator(cards)).toHaveCount(1);
+  expect(errors).toEqual([]);
+});

@@ -76,3 +76,37 @@ posted in the PR discussion after inspecting CI results. These source notes do n
 predeclare pending tests as passed. The original audit's per-app clinical-content
 boundaries remain in effect: this is not certification of all monographs or
 external applications.
+
+
+## Follow-up automated-review disposition
+
+All nine initial CodeRabbit findings were checked against source, not accepted as
+instructions. The reset-order finding was reproduced conceptually with a provider
+that returns a stale result while suppressing task cancellation: invalidation now
+precedes the await on reset, superseded suggestion requests, and disconnect. The
+new regression exercises the actual WebSocket handler for all three paths rather
+than checking only the standalone suggestion function.
+
+The evidence validator now builds a unique, canonical model/arm aggregate map and
+rejects duplicated, orphaned, missing, or inconsistent rows. It also rejects
+model/arm inventory duplicates and numeric/string arm aliases and verifies the
+aggregate accuracy against the binary image vector. Negative tests assert their
+specific failure message and derive vector lengths from the actual denominator.
+
+Already-sanitized generation errors retain their useful configuration/validation
+message, while arbitrary provider exceptions remain generic. The optional clear
+button is null-guarded. All new risk flags have specific descriptions/icons, and
+the accessible name always retains the visible risk label. JSDOM teardown now runs
+in `afterEach`, including when an assertion fails. The historical local SDK import
+shim is explicitly distinguished from the reproducible, actual-SDK CI path.
+
+The iPLEDGE date finding did not require changing the clinical data: the entry's
+cautions already name June 16, 2026, and the FDA reference label already includes
+that dated implementation-delay notice. FDA's live source was rechecked and a
+regression now explicitly requires that source date in the reference label.
+
+The expanded local unit suite passes 307 tests in 37 files. New browser and
+backend regressions are not counted as passed here until hosted receipts confirm
+them. CodeRabbit reviewed earlier revisions; later review requests hit the
+account's rate limit. Copilot review did not execute because of its quota limit.
+Those limitations must not be described as independent approval of the final head.

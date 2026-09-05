@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 const script = readFileSync(new URL('../../public/apps/shared/legacy-shell.js', import.meta.url), 'utf8');
+const openWindows: JSDOM[] = [];
+afterEach(() => { for (const dom of openWindows.splice(0)) dom.window.close(); });
 const setup = () => {
   const dom = new JSDOM('<!doctype html><title>Reference</title><body data-legacy-shell="true"><input></body>', { url: 'https://example.test/apps/reference/', runScripts: 'outside-only' });
+  openWindows.push(dom);
   dom.window.eval(script);
   dom.window.document.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
   return dom;
@@ -17,14 +20,12 @@ describe('shared shell truthful state and keyboard behavior', () => {
     expect(d.querySelector('[data-chip=saved]')?.textContent).toBe('Ready');
     (dom.window as any).LegacyShell.setSaved(true);
     expect(d.querySelector('[data-chip=saved]')?.textContent).toBe('Saved');
-    dom.window.close();
   });
   it('describes reload honestly and contains no cross-app deletion path', () => {
     const dom = setup();
     expect(dom.window.document.querySelector('[data-action=reset]')?.getAttribute('aria-label')).toContain('without deleting');
     expect(script).not.toContain('localStorage.removeItem');
     expect(script).not.toContain('legacy-guidance-v1');
-    dom.window.close();
   });
   it('contains Tab focus and restores the help trigger for both exit paths', () => {
     const dom = setup(); const d = dom.window.document;
@@ -37,6 +38,5 @@ describe('shared shell truthful state and keyboard behavior', () => {
     help.click(); close.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(d.activeElement).toBe(help);
     expect(d.querySelector('#legacy-shell-help')?.getAttribute('aria-hidden')).toBe('true');
-    dom.window.close();
   });
 });
