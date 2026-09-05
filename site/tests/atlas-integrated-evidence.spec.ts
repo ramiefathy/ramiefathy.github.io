@@ -7,7 +7,7 @@ test('primary study claims disclose scope and never claim human clinical approva
   const runtime = watchRuntime(page);
   await page.goto(app + '#sources', { waitUntil: 'networkidle' });
   await page.getByLabel('Atlas source record category', { exact: true }).selectOption('SCOPED_CLAIMS');
-  await expect(page.locator('.review-records > details')).toHaveCount(5);
+  await expect(page.locator('.review-records > details')).toHaveCount(10);
   await page.getByLabel('Search Atlas source records', { exact: true }).fill('proteomic');
   await expect(page.locator('.review-records > details')).toHaveCount(1);
   await page.locator('.review-records summary').click();
@@ -22,7 +22,14 @@ test('all non-drag camera controls work without synthetic pointer capture errors
   await page.goto(app + '?task=explore3d&rep=free#network', { waitUntil: 'networkidle' });
   await expect(page.locator('html')).toHaveAttribute('data-atlas-p2-ready', 'true');
   for (const control of ['rotate-left','rotate-right','zoom-in','zoom-out','pan-left','pan-right','pan-up','pan-down']) {
-    await page.locator(`[data-p2-control="${control}"]`).click();
+    const button = page.locator(`[data-p2-control="${control}"]`);
+    await button.scrollIntoViewIfNeeded();
+    expect(await button.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+      return element === hit || element.contains(hit);
+    }), `${control} must not be occluded`).toBe(true);
+    await button.click();
     await expect(page.locator('#networkSelectionStatus')).toContainText(control.replace('-', ' '));
   }
   runtime.assertClean();
@@ -62,4 +69,52 @@ test('mobile 2D governance preserves exact relation selection and visible export
   await select.scrollIntoViewIfNeeded();
   await info.attach('integrated-mobile-inspector', { body: await page.screenshot(), contentType: 'image/png' });
   runtime.assertClean();
+});
+
+
+test('mobile camera controls remain reachable outside the canvas and preserve touch gestures', async ({ page }, info) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  const runtime = watchRuntime(page);
+  await page.goto(app + '?task=explore3d&rep=free#network', { waitUntil: 'networkidle' });
+  await expect(page.locator('html')).toHaveAttribute('data-atlas-p2-ready', 'true');
+  const group = page.getByRole('group', { name: 'Non-drag graph controls' });
+  await expect(group).toBeVisible();
+  const boxes = await group.getByRole('button').evaluateAll(nodes => nodes.map(n => {
+    const b = n.getBoundingClientRect(); return { width: b.width, height: b.height };
+  }));
+  expect(boxes).toHaveLength(8);
+  expect(boxes.every(b => b.width >= 44 && b.height >= 44)).toBe(true);
+  for (const name of ['Pan graph right', 'Pan graph down', 'Zoom graph in']) {
+    await group.getByRole('button', { name, exact: true }).click();
+  }
+  await expect(page.locator('#network3d')).toHaveCSS('touch-action', 'none');
+  await page.locator('#network3d').focus();
+  await expect(page.locator('#network3d')).toBeFocused();
+  expect(await page.locator('#network3d').evaluate(n => getComputedStyle(n).boxShadow)).not.toBe('none');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  await group.scrollIntoViewIfNeeded();
+  await info.attach('integrated-mobile-camera-controls', { body: await page.screenshot(), contentType: 'image/png' });
+  runtime.assertClean();
+});
+
+
+test('trial source inspection and export preserve comparator and noninferiority scope', async ({ page }) => {
+  await page.goto(app + '#sources', { waitUntil: 'networkidle' });
+  await page.getByLabel('Atlas source record category', { exact: true }).selectOption('SCOPED_CLAIMS');
+  await page.getByLabel('Search Atlas source records', { exact: true }).fill('MANDARA');
+  await expect(page.locator('.review-records > details')).toHaveCount(1);
+  await page.locator('.review-records summary').click();
+  const record = page.locator('.review-records');
+  await expect(record).toContainText('noninferior, not superior');
+  await expect(record).toContainText('140 adults');
+  await expect(record).toContainText('−25 percentage points');
+  const downloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export filtered evidence (CSV)', exact: true }).click();
+  const download = await downloadEvent;
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = []; for await (const chunk of stream!) chunks.push(chunk);
+  const exported = Buffer.concat(chunks).toString('utf8');
+  expect(exported).toContain('MANDARA'); expect(exported).toContain('−25 percentage points');
+  expect(exported).toContain('automaticGraphPromotion'); expect(exported).toContain('false');
+  expect(exported).not.toContain('MIRRA');
 });

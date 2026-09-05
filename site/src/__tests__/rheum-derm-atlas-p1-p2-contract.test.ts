@@ -63,7 +63,8 @@ describe('Rheum–Derm Atlas P1/P2 governed interface contract', () => {
   it('does not retain role=application and defines touch-sized mobile controls', () => {
     expect(governance).toContain("canvas.setAttribute('role', 'region')")
     expect(styles).toContain('min-height: 44px')
-    expect(styles).toContain('touch-action: manipulation')
+    expect(styles).toContain('touch-action: none')
+    expect(styles).toContain('position: static')
     expect(styles).toContain('@media (prefers-reduced-motion: reduce)')
   })
 })

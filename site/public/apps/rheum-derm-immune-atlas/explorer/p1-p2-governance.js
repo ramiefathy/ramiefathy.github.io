@@ -13,7 +13,7 @@
 (() => {
   'use strict'
 
-  const VERSION = '2026-09-05-integration.1'
+  const VERSION = '2026-09-05-integration.2'
   const atlas = window.__ATLAS_P0__?.data
   const html = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]))
   const $ = window.$ || (selector => document.querySelector(selector))
@@ -750,7 +750,8 @@
       <button type="button" class="btn sm" data-p2-control="pan-right" aria-label="Pan graph right">→</button>
       <button type="button" class="btn sm" data-p2-control="pan-up" aria-label="Pan graph up">↑</button>
       <button type="button" class="btn sm" data-p2-control="pan-down" aria-label="Pan graph down">↓</button>`
-    controls.after(group)
+    // Keep controls in document flow: overlays must never hide pointer targets.
+    canvas.closest('.network-workspace').before(group)
     group.addEventListener('click', event => {
       const control = event.target.closest('[data-p2-control]')?.dataset.p2Control
       if (!control) return
@@ -830,13 +831,14 @@
       $('#networkNeighborhoodLabels').dispatchEvent(new Event('change', { bubbles: true }))
     }
     state.selectedId = params.get('selected') || ''
-    state.camera = params.get('camera') || 'iso'
+    // An absent camera parameter must preserve the responsive initial preset.
+    state.camera = params.get('camera') || $('#network3d')?.getAttribute('data-view-preset') || 'iso'
     const rep = params.get('rep')
     const task = params.get('task') || (rep === 'free' ? 'explore3d' : 'explain')
     state.suppressUrlWrite = false
     activateTask(task, false)
     if (rep) document.querySelector(`[data-network-representation="${CSS.escape(rep)}"]`)?.click()
-    if (state.camera) document.querySelector(`[data-view-preset="${CSS.escape(state.camera)}"]`)?.click()
+    if (params.has('camera')) document.querySelector(`[data-view-preset="${CSS.escape(state.camera)}"]`)?.click()
     if (state.selectedId) {
       const entity = entityIndex.find(item => item.id === state.selectedId)
       if (entity && $('#networkSearch')) {

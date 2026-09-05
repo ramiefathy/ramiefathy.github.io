@@ -374,17 +374,16 @@
 }
 
 .network-nondrag-controls {
-  position: absolute;
-  right: 12px;
-  bottom: 52px;
-  z-index: 5;
-  max-width: 220px;
-  justify-content: flex-end;
+  position: static;
+  max-width: 100%;
+  justify-content: flex-start;
+  padding: 8px 0;
+  margin-bottom: 8px;
 }
 
 .network-nondrag-controls .btn {
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 6px 8px;
 }
 
@@ -510,7 +509,8 @@ html[data-atlas-visual-grammar="simple"] .network-help {
   }
 
   #network3d {
-    touch-action: manipulation;
+    /* Preserve the graph's existing captured pan/pinch gesture contract. */
+    touch-action: none;
   }
 }
 
@@ -555,3 +555,9 @@ html[data-atlas-visual-grammar="simple"] .network-help {
 #networkGovernedRelation { display: block; width: 100%; max-width: 100%; min-width: 0; }
 #networkProvenanceInspector { min-width: 0; overflow-wrap: anywhere; }
 #networkProvenanceInspector select { max-width: 100%; }
+
+/* Canvas programmatic and keyboard focus both remain visible after pointer use. */
+#network3d:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 4px var(--graph-focus-ring, var(--accent));
+}

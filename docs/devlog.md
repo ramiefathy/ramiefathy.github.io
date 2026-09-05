@@ -1,5 +1,17 @@
 # Devlog — ramiefathy.github.io
 
+## [2026-09-05] Atlas integration: reachable controls and trial-scoped evidence
+
+Reconciled integrated Atlas browser failures: moved camera buttons out of the help
+overlay, preserved responsive camera presets, retained captured touch gestures,
+and restored visible programmatic focus. Added five bounded vasculitis RCT
+assertions with explicit population, comparison, endpoint and uncertainty;
+these remain separate from synthesis scores and human approval. Hardened the
+PubMed identity/excerpt gate with 18 offline failure-injection tests in CI.
+Exact-head browser and live-source receipts are tracked in PR #186; no production
+merge or clinical certification is implied. See the scientific integration audit.
+
+
 ## [2026-05-04] Production browser smoke: dermatopathology PDF export fix
 
 **What changed.** Direct production browser testing found that Dermatopathology Differentials could select findings and export XLSX files, but PDF export failed at runtime because the static app loaded vendored ESM builds with bare package specifiers. Switched the PDF export path to browser-safe UMD assets for jsPDF and jsPDF-AutoTable, loaded through a small script loader, and added a Playwright regression that selects a finding and asserts a PDF download. The same production sweep also found `/apps/` mobile horizontal overflow from the closed off-canvas navigation drawer and apps toolbar search row; the drawer is now removed from layout until open, and the apps toolbar/search row has mobile width constraints.

@@ -48,9 +48,9 @@ Neither master nor the original #175 branch is changed by this integration.
    was overgeneralized to every large-vessel vasculitis. Wording now separates the
    observational IgAV evidence and limits the GCA context to GCA.
 
-## Five independently examined, bounded primary-source assertions
+## Ten independently examined, bounded primary-source assertions
 
-`explorer/vasculitis-evidence.js` contains five separate assertions. Each has an
+`explorer/vasculitis-evidence.js` contains ten separate assertions. Each has an
 exact short abstract excerpt, DOI, PMID, study design, scope limitation and
 AI-assisted review status. They are NOT human clinical sign-offs and are NOT
 promoted automatically into causal graph edges or efficacy scores.
@@ -63,8 +63,20 @@ promoted automatically into causal graph edges or efficacy scores.
 | V04 | Schreiber 2009, PMID 19073822, DOI 10.1681/ASN.2008050497 | C5aR blockade prevented conditioned-serum neutrophil priming; not a human efficacy trial. |
 | V05 | Demir 2023, PMID 37238213, DOI 10.3390/diagnostics13101729 | Pediatric plasma proteomics implicated lectin/alternative pathways. The cohort had no renal involvement at diagnosis or one-year follow-up; no nephritis or treatment extrapolation. |
 
+Five additional randomized comparisons preserve the actual trial, indication,
+population, regimen, comparator and endpoint as separate fields in the workbench
+and CSV. They are not regulatory-status assertions and do not promote graph edges.
+
+| Claim | Primary trial and PubMed identifier | Interpretation boundary |
+|---|---|---|
+| V06 | RAVE, 20647199 | GPA/MPA remission induction; noninferiority, not universal superiority or EGPA evidence. |
+| V07 | MIRRA, 28514601 | Add-on therapy in relapsing/refractory EGPA; incomplete response remains visible. |
+| V08 | MANDARA, 38393328 | Active-comparator noninferiority with its prespecified margin; not superiority or equivalence. |
+| V09 | GiACTA, 28745999 | Four arms retain their prednisone taper schedules; remission is not a visual-loss endpoint. |
+| V10 | PEXIVAS, 32053298 | Reduced versus standard steroid regimens; not steroids versus no treatment or a skin-benefit score. |
+
 `python scripts/verify-vasculitis-source-excerpts.py --receipt <path>` verifies
-publication titles, DOIs, literal abstract excerpts and returned retraction
+publication titles, DOIs, literal abstract excerpts and returned publication-warning
 markers against a fresh batched PubMed response. Only whitespace normalization
 is allowed. A passing excerpt check proves neither entailment nor clinical
 certainty; the bounded interpretations above were separately reviewed against the
@@ -90,3 +102,24 @@ Exhaustive source adjudication of every monograph, mindmap and Atlas assertion
 remains incomplete. Active records remain synthesis claims, not a clinically
 validated treatment recommender. Institutional authorization, human clinical
 sign-off and production acceptance are not implied by passing software tests.
+
+## Browser-integration follow-up
+
+Run 33997985813 at f2d9abc818dc99d9b7054dc448ccddcd59705947 passed 301
+browser cases and failed three. The camera-button group was covered by the canvas
+help overlay; controls now occupy normal document flow with 44-pixel targets.
+Canvas focus is visible after programmatic focus as well as keyboard navigation.
+The precise mobile navigator belongs to the optional 3D view; its test now asserts
+the intended 2D default before explicitly selecting 3D. An absent camera URL
+parameter preserves the responsive front-view preset rather than forcing an
+isometric reset. The original captured pan/pinch touch-action contract is retained.
+New tests use normal pointer clicks with an occlusion assertion, not forced clicks.
+
+The source-excerpt gate now rejects empty packets, duplicate identities, missing
+or unexpected returned articles, ambiguous or dangling references, incomplete trial
+context, overlong/empty quotes and unauthorized approval flags. Missing abstracts,
+wrong titles/DOIs and publication-warning markers block a pass. Eighteen synthetic
+Python tests exercise these cases in permanent CI. Offline replay is labeled
+separately from live retrieval. A passing gate verifies identity and excerpt
+presence, never automatically verifies the full paraphrased claim. New hosted
+results must be inspected before replacing the prior-head receipts in PR #186.

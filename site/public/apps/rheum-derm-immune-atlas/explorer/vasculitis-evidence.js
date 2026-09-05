@@ -1,4 +1,4 @@
-/* Independently sourced, bounded mechanism assertions. No automatic graph promotion. */
+/* Independently sourced, bounded study assertions. No automatic graph promotion. */
 (function (root) {
   "use strict";
   const packet = {
@@ -73,6 +73,76 @@
       "kind": "Primary observational study",
       "journal": "Diagnostics",
       "note": "Supports only the separately recorded study-scoped claim; no automatic clinical or graph validation."
+    },
+    {
+      "id": "V06",
+      "title": "Rituximab versus cyclophosphamide for ANCA-associated vasculitis",
+      "year": 2010,
+      "authors": "Stone et al.",
+      "doi": "10.1056/NEJMoa0909905",
+      "pmid": "20647199",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/20647199/",
+      "type": "Primary study",
+      "evidenceStatus": "SCOPED_TRIAL_REVIEW",
+      "kind": "Primary randomized trial",
+      "journal": "N Engl J Med",
+      "note": "Study-specific result, not whole-condition validation or current regulatory-status verification."
+    },
+    {
+      "id": "V07",
+      "title": "Mepolizumab or Placebo for Eosinophilic Granulomatosis with Polyangiitis",
+      "year": 2017,
+      "authors": "Wechsler et al.",
+      "doi": "10.1056/NEJMoa1702079",
+      "pmid": "28514601",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/28514601/",
+      "type": "Primary study",
+      "evidenceStatus": "SCOPED_TRIAL_REVIEW",
+      "kind": "Primary randomized trial",
+      "journal": "N Engl J Med",
+      "note": "Study-specific result, not whole-condition validation or current regulatory-status verification."
+    },
+    {
+      "id": "V08",
+      "title": "Benralizumab versus Mepolizumab for Eosinophilic Granulomatosis with Polyangiitis",
+      "year": 2024,
+      "authors": "Wechsler et al.",
+      "doi": "10.1056/NEJMoa2311155",
+      "pmid": "38393328",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/38393328/",
+      "type": "Primary study",
+      "evidenceStatus": "SCOPED_TRIAL_REVIEW",
+      "kind": "Primary randomized trial",
+      "journal": "N Engl J Med",
+      "note": "Study-specific result, not whole-condition validation or current regulatory-status verification."
+    },
+    {
+      "id": "V09",
+      "title": "Trial of Tocilizumab in Giant-Cell Arteritis",
+      "year": 2017,
+      "authors": "Stone et al.",
+      "doi": "10.1056/NEJMoa1613849",
+      "pmid": "28745999",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/28745999/",
+      "type": "Primary study",
+      "evidenceStatus": "SCOPED_TRIAL_REVIEW",
+      "kind": "Primary randomized trial",
+      "journal": "N Engl J Med",
+      "note": "Study-specific result, not whole-condition validation or current regulatory-status verification."
+    },
+    {
+      "id": "V10",
+      "title": "Plasma Exchange and Glucocorticoids in Severe ANCA-Associated Vasculitis",
+      "year": 2020,
+      "authors": "Walsh et al.",
+      "doi": "10.1056/NEJMoa1803537",
+      "pmid": "32053298",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/32053298/",
+      "type": "Primary study",
+      "evidenceStatus": "SCOPED_TRIAL_REVIEW",
+      "kind": "Primary randomized trial",
+      "journal": "N Engl J Med",
+      "note": "Study-specific result, not whole-condition validation or current regulatory-status verification."
     }
   ],
   "claims": [
@@ -170,9 +240,129 @@
       "clinicallyValidated": false,
       "sourceKind": "primary-publication",
       "automaticGraphPromotion": false
+    },
+    {
+      "trial": "RAVE",
+      "condition": "aav",
+      "studyDesign": "Randomized double-blind noninferiority trial",
+      "claim": "Rituximab was noninferior to daily cyclophosphamide for remission induction in the studied ANCA-positive GPA/MPA population.",
+      "quote": "Rituximab therapy was not inferior to daily cyclophosphamide treatment for induction of remission",
+      "population": "197 ANCA-positive participants with GPA (reported as Wegener granulomatosis) or microscopic polyangiitis.",
+      "comparison": "Rituximab 375 mg/m² weekly for four weeks versus oral cyclophosphamide 2 mg/kg/day, with glucocorticoid tapering.",
+      "endpoint": "Disease remission without prednisone at month 6.",
+      "result": "Primary endpoint: 64% versus 53%; the noninferiority criterion was met.",
+      "limitations": "Do not transfer this comparison to EGPA or immune-complex vasculitis, claim general superiority, or assign a skin-specific effect from the overall remission endpoint.",
+      "id": "vasculitis-v06",
+      "refs": [
+        "V06"
+      ],
+      "locator": "Abstract: Methods, Results and Conclusions",
+      "disposition": "SUPPORTED_WITHIN_STUDY_SCOPE",
+      "reviewStatus": "AI_ASSISTED_SOURCE_ADJUDICATION",
+      "reviewedAt": "2026-09-05",
+      "humanApproved": false,
+      "clinicallyValidated": false,
+      "sourceKind": "primary-publication",
+      "automaticGraphPromotion": false
+    },
+    {
+      "trial": "MIRRA",
+      "condition": "egpa",
+      "studyDesign": "Randomized double-blind placebo-controlled phase 3 trial",
+      "claim": "Add-on mepolizumab increased accrued remission and remission at both weeks 36 and 48 in relapsing or refractory EGPA.",
+      "quote": "Mepolizumab treatment led to significantly more accrued weeks of remission than placebo",
+      "population": "136 participants with relapsing or refractory EGPA on stable prednisone or prednisolone.",
+      "comparison": "Mepolizumab 300 mg subcutaneously every four weeks versus placebo, both with standard care, for 52 weeks.",
+      "endpoint": "Accrued weeks of remission and remission at both weeks 36 and 48.",
+      "result": "At least 24 accrued remission weeks: 28% versus 3%; remission at both visits: 32% versus 3%.",
+      "limitations": "Remission never occurred in 47% of mepolizumab recipients. Do not infer universal response, a skin-specific benefit score, or efficacy in every vasculitis subtype.",
+      "id": "vasculitis-v07",
+      "refs": [
+        "V07"
+      ],
+      "locator": "Abstract: Methods, Results and Conclusions",
+      "disposition": "SUPPORTED_WITHIN_STUDY_SCOPE",
+      "reviewStatus": "AI_ASSISTED_SOURCE_ADJUDICATION",
+      "reviewedAt": "2026-09-05",
+      "humanApproved": false,
+      "clinicallyValidated": false,
+      "sourceKind": "primary-publication",
+      "automaticGraphPromotion": false
+    },
+    {
+      "trial": "MANDARA",
+      "condition": "egpa",
+      "studyDesign": "Randomized double-blind active-controlled noninferiority phase 3 trial",
+      "claim": "Benralizumab was noninferior, not superior, to mepolizumab for the primary remission endpoint in relapsing or refractory EGPA.",
+      "quote": "showing noninferiority but not superiority of benralizumab to mepolizumab.",
+      "population": "140 adults with relapsing or refractory EGPA receiving standard care.",
+      "comparison": "Benralizumab 30 mg versus mepolizumab 300 mg, subcutaneously every four weeks for 52 weeks.",
+      "endpoint": "Remission at weeks 36 and 48; prespecified noninferiority margin: −25 percentage points.",
+      "result": "Adjusted remission: 59% versus 56%; difference 3 percentage points (95% CI −13 to 18).",
+      "limitations": "Noninferiority under this margin is not equivalence or superiority. This comparison does not establish efficacy in GPA, MPA, GCA, or an isolated cutaneous endpoint.",
+      "id": "vasculitis-v08",
+      "refs": [
+        "V08"
+      ],
+      "locator": "Abstract: Methods, Results and Conclusions",
+      "disposition": "SUPPORTED_WITHIN_STUDY_SCOPE",
+      "reviewStatus": "AI_ASSISTED_SOURCE_ADJUDICATION",
+      "reviewedAt": "2026-09-05",
+      "humanApproved": false,
+      "clinicallyValidated": false,
+      "sourceKind": "primary-publication",
+      "automaticGraphPromotion": false
+    },
+    {
+      "trial": "GiACTA",
+      "condition": "gca",
+      "studyDesign": "Randomized placebo-controlled four-arm trial",
+      "claim": "Tocilizumab with a 26-week prednisone taper increased sustained glucocorticoid-free remission at week 52 in giant-cell arteritis.",
+      "quote": "Sustained remission at week 52 occurred in 56% of the patients treated with tocilizumab weekly",
+      "population": "251 participants with giant-cell arteritis.",
+      "comparison": "Tocilizumab 162 mg subcutaneously weekly or every other week plus 26-week taper; placebo plus either 26-week or 52-week taper.",
+      "endpoint": "Sustained glucocorticoid-free remission at week 52; primary comparison used placebo with the 26-week taper.",
+      "result": "Weekly/every-other-week tocilizumab: 56%/53%; placebo with 26-/52-week tapers: 14%/18%.",
+      "limitations": "Keep the four arms and taper schedules distinct. Do not generalize to all large-vessel vasculitis, infer prevention of visual loss, or claim indefinite remission durability.",
+      "id": "vasculitis-v09",
+      "refs": [
+        "V09"
+      ],
+      "locator": "Abstract: Methods, Results and Conclusions",
+      "disposition": "SUPPORTED_WITHIN_STUDY_SCOPE",
+      "reviewStatus": "AI_ASSISTED_SOURCE_ADJUDICATION",
+      "reviewedAt": "2026-09-05",
+      "humanApproved": false,
+      "clinicallyValidated": false,
+      "sourceKind": "primary-publication",
+      "automaticGraphPromotion": false
+    },
+    {
+      "trial": "PEXIVAS",
+      "condition": "aav",
+      "studyDesign": "Randomized two-by-two factorial trial; glucocorticoid noninferiority comparison",
+      "claim": "A reduced-dose glucocorticoid regimen was noninferior to the standard-dose regimen for death or end-stage kidney disease in severe AAV.",
+      "quote": "A reduced-dose regimen of glucocorticoids was noninferior to a standard-dose regimen with respect to death or ESKD.",
+      "population": "Severe AAV with eGFR below 50 mL/min/1.73 m² or diffuse pulmonary hemorrhage.",
+      "comparison": "Reduced-dose versus standard-dose oral glucocorticoid regimens; plasma exchange was a separately randomized factorial comparison.",
+      "endpoint": "Death or end-stage kidney disease; glucocorticoid noninferiority margin: 11 percentage points.",
+      "result": "Primary events: 92/330 versus 83/325; difference 2.3 percentage points (90% CI −3.4 to 8.0).",
+      "limitations": "This is a regimen comparison, not glucocorticoids versus no treatment. Do not transfer it to other vasculitis subtypes or use it to generate a skin-benefit score.",
+      "id": "vasculitis-v10",
+      "refs": [
+        "V10"
+      ],
+      "locator": "Abstract: Methods, Results and Conclusions",
+      "disposition": "SUPPORTED_WITHIN_STUDY_SCOPE",
+      "reviewStatus": "AI_ASSISTED_SOURCE_ADJUDICATION",
+      "reviewedAt": "2026-09-05",
+      "humanApproved": false,
+      "clinicallyValidated": false,
+      "sourceKind": "primary-publication",
+      "automaticGraphPromotion": false
     }
   ],
-  "scope": "Five narrow mechanistic assertions checked against primary publication abstracts; not whole-condition or whole-graph validation."
+  "scope": "Ten narrow primary-source assertions: five mechanistic/observational and five randomized-trial comparisons. Claims retain their study scope; no whole-condition, whole-graph, regulatory, or human approval is implied."
 };
   function freeze(value) { if (value && typeof value === "object") { Object.values(value).forEach(freeze); Object.freeze(value); } return value; }
   root.AtlasVasculitisEvidence = freeze(packet);

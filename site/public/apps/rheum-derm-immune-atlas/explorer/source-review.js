@@ -8,7 +8,7 @@
     return item;
   };
   const section = document.getElementById('atlas-source-review');
-  const states = { ACTIVE: 'Active synthesis (not fully validated)', QUARANTINED: 'Quarantined evidence', DERIVED: 'Derived manifestation mappings', SCOPED_CLAIMS: 'Primary-source mechanism assertions' };
+  const states = { ACTIVE: 'Active synthesis (not fully validated)', QUARANTINED: 'Quarantined evidence', DERIVED: 'Derived manifestation mappings', SCOPED_CLAIMS: 'Primary-source study assertions' };
   const title = node('h3', 'Source-review workbench');
   const boundary = node('p', 'Targeted corrections do not validate every clinical claim. Quarantined efficacy is excluded before all runtime indexes are built; archived numerical values must not be reused. Mechanism, organ-specific outcomes, regulatory status, and therapeutic inference are distinct.');
   const stats = DATA.sourceReview;
@@ -50,9 +50,12 @@
       const condition = DATA.conditions.find(c => c.id === row.condition)?.name || row.condition;
       const med = DATA.medications.find(m => m.id === row.med)?.name || row.med;
       const detail = node('details');
-      detail.append(node('summary', `${condition} — ${med || row.pathway || row.id} — ${row.claim || row.manifestations || row.manifestation}`));
+      detail.append(node('summary', `${condition} — ${med || row.trial || row.pathway || row.id} — ${row.claim || row.manifestations || row.manifestation}`));
       if (row.category === 'SCOPED_CLAIMS') {
         detail.append(node('p', `${row.disposition}: ${row.studyDesign}. AI-assisted source adjudication, not human sign-off or clinical validation.`));
+        for (const key of ['population', 'comparison', 'endpoint', 'result']) {
+          if (row[key]) detail.append(node('p', `${key[0].toUpperCase() + key.slice(1)}: ${row[key]}`));
+        }
         detail.append(node('blockquote', row.quote));
         detail.append(node('p', `Locator: ${row.locator}`));
         detail.append(node('p', row.limitations, { class: 'disclaimer' }));

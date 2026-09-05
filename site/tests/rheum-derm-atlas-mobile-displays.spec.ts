@@ -103,6 +103,10 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
     const runtime = watchRuntime(page)
     await openMobileExplorer(page)
 
+    // The integrated explorer intentionally opens in the provenance-first 2D view.
+    // Enter free space explicitly before testing its camera and entity controls.
+    await expect(page.locator('#triptychPanel')).toBeVisible()
+    await page.locator('#freeSpaceTab').click()
     await expect(page.locator('#networkAdvancedControls')).not.toHaveAttribute('open', '')
     await expect(page.locator('#networkMobileNavigator')).toBeVisible()
     const entityOptions = page.locator('#networkMobileEntity option')
