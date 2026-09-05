@@ -12,6 +12,7 @@ permissions:
 jobs:
   build-site:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -26,7 +27,7 @@ jobs:
       - name: Run site unit tests
         run: npm --prefix site test -- --reporter=default --reporter=json --outputFile=unit-results.json
       - name: Audit locked dependencies
-        run: npm --prefix site audit
+        run: npm --prefix site audit --json > site/dependency-audit.json
       - name: Build site
         run: npm run site:build
       - name: Verify direct D&D static build contract
@@ -59,12 +60,14 @@ jobs:
             echo "Simulation markers detected in deployed scribe entrypoint"
             exit 1
           fi
-      - name: Upload unit test evidence
+      - name: Upload unit and dependency evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: site-unit-evidence
-          path: site/unit-results.json
+          path: |
+            site/unit-results.json
+            site/dependency-audit.json
           if-no-files-found: error
           retention-days: 7
       - name: Upload rheum-derm dashboard payload audit
@@ -101,10 +104,13 @@ jobs:
       - name: Install Playwright (Chromium)
         working-directory: site
         run: npx playwright install --with-deps chromium
-      - name: Run Playwright e2e
+      - name: Run Playwright e2e and visual inventory
         working-directory: site
         env:
           PLAYWRIGHT_JSON_OUTPUT_NAME: browser-results.json
+          PHASE7_SCREENSHOTS: '1'
+          VISUAL_AUDIT: '1'
+          VISUAL_AUDIT_RUN_ID: ci
         run: npx playwright test --reporter=line,json
       - name: Upload browser test evidence
         if: always()
@@ -120,6 +126,7 @@ jobs:
 
   ai-scribe-lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -134,7 +141,15 @@ jobs:
       - name: Lint
         run: python -m compileall services/ai-scribe
       - name: Run backend tests
-        run: python -m pytest services/ai-scribe/tests -q
+        run: python -m pytest services/ai-scribe/tests -q --junitxml=services/ai-scribe/test-results.xml
+      - name: Upload backend test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ai-scribe-test-evidence
+          path: services/ai-scribe/test-results.xml
+          if-no-files-found: error
+          retention-days: 7
 
   report-master-ci-status:
     if: ${{ always() && github.event_name == 'push' }}
