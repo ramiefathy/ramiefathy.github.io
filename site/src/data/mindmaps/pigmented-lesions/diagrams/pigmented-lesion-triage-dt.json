@@ -7,26 +7,88 @@
   "data": {
     "start": "start",
     "steps": [
-      { "id": "start", "type": "decision", "prompt": "New, changing, symptomatic, or ugly-duckling pigmented lesion?", "branches": [
-        { "label": "Yes", "nextStepId": "risk" },
-        { "label": "No", "nextStepId": "benign" }
-      ] },
-      { "id": "benign", "type": "terminal", "prompt": "Routine monitoring / benign lesion pathway" },
-      { "id": "risk", "type": "decision", "prompt": "ABCDE asymmetry, border, color variation, diameter/evolution, or concerning dermoscopy?", "branches": [
-        { "label": "Yes", "nextStepId": "biopsy" },
-        { "label": "No", "nextStepId": "context" }
-      ] },
-      { "id": "biopsy", "type": "terminal", "prompt": "Biopsy suspicious lesion with melanoma-appropriate technique" },
-      { "id": "context", "type": "decision", "prompt": "High-risk patient: prior melanoma, many atypical nevi, immunosuppression, strong family history?", "branches": [
-        { "label": "Yes", "nextStepId": "short" },
-        { "label": "No", "nextStepId": "monitor" }
-      ] },
-      { "id": "short", "type": "terminal", "prompt": "Short-interval dermoscopic monitoring or biopsy depending on threshold" },
-      { "id": "monitor", "type": "terminal", "prompt": "Photographic monitoring and return precautions" }
+      {
+        "id": "start",
+        "type": "decision",
+        "prompt": "New, changing, symptomatic, or ugly-duckling pigmented lesion?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "risk"
+          },
+          {
+            "label": "No",
+            "nextStepId": "risk"
+          }
+        ]
+      },
+      {
+        "id": "benign",
+        "type": "action",
+        "prompt": "Low concern after clinical/dermoscopic and contextual assessment",
+        "detail": "An asymptomatic or apparently unchanged lesion is not automatically benign. Biopsy when diagnostic uncertainty or suspicious features remain.",
+        "branches": [
+          {
+            "label": "Monitoring appropriate",
+            "nextStepId": "monitor"
+          }
+        ]
+      },
+      {
+        "id": "risk",
+        "type": "decision",
+        "prompt": "ABCDE asymmetry, border, color variation, diameter/evolution, or concerning dermoscopy?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "biopsy"
+          },
+          {
+            "label": "No",
+            "nextStepId": "context"
+          }
+        ]
+      },
+      {
+        "id": "biopsy",
+        "type": "terminal",
+        "prompt": "Biopsy suspicious lesion with melanoma-appropriate technique"
+      },
+      {
+        "id": "context",
+        "type": "decision",
+        "prompt": "High-risk patient: prior melanoma, many atypical nevi, immunosuppression, strong family history?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "short"
+          },
+          {
+            "label": "No",
+            "nextStepId": "benign"
+          }
+        ]
+      },
+      {
+        "id": "short",
+        "type": "terminal",
+        "prompt": "Short-interval dermoscopic monitoring or biopsy depending on threshold"
+      },
+      {
+        "id": "monitor",
+        "type": "terminal",
+        "prompt": "Photographic monitoring and return precautions"
+      }
     ]
   },
   "citations": [
-    { "url": "https://www.aad.org/member/clinical-quality/guidelines/melanoma", "quote": "AAD melanoma guideline hub provides care guidance for melanoma diagnosis and management." },
-    { "url": "https://www.aad.org/public/diseases/skin-cancer/find/at-risk/abcdes", "quote": "AAD ABCDE guidance summarizes clinical warning features for melanoma recognition." }
+    {
+      "url": "https://www.aad.org/member/clinical-quality/guidelines/melanoma",
+      "quote": "AAD melanoma guideline hub provides care guidance for melanoma diagnosis and management."
+    },
+    {
+      "url": "https://www.aad.org/public/diseases/skin-cancer/find/at-risk/abcdes",
+      "quote": "AAD ABCDE guidance summarizes clinical warning features for melanoma recognition."
+    }
   ]
 }

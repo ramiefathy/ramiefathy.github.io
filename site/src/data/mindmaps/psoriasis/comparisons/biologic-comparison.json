@@ -4,36 +4,48 @@
   "title": "Psoriasis Biologic Classes",
   "subtitle": "TNF-α inhibitors vs IL-17 inhibitors vs IL-23 inhibitors",
   "entities": [
-    { "id": "tnf",  "name": "TNF-α Inhibitors",  "shortName": "TNF-α" },
-    { "id": "il17", "name": "IL-17 Inhibitors",  "shortName": "IL-17" },
-    { "id": "il23", "name": "IL-23 p19 Inhibitors", "shortName": "IL-23" }
+    {
+      "id": "tnf",
+      "name": "TNF-α Inhibitors",
+      "shortName": "TNF-α"
+    },
+    {
+      "id": "il17",
+      "name": "IL-17 Inhibitors",
+      "shortName": "IL-17"
+    },
+    {
+      "id": "il23",
+      "name": "IL-23 p19 Inhibitors",
+      "shortName": "IL-23"
+    }
   ],
   "features": [
     {
       "id": "agents",
-      "name": "Approved agents",
+      "name": "U.S. plaque-psoriasis-approved agents (not all class members)",
       "values": {
-        "tnf":  "Adalimumab, etanercept, infliximab, certolizumab pegol, golimumab",
+        "tnf": "Adalimumab, etanercept, infliximab, certolizumab pegol. Golimumab has PsA indications, not a U.S. plaque-psoriasis indication.",
         "il17": "Secukinumab, ixekizumab (IL-17A); bimekizumab (IL-17A/F); brodalumab (IL-17RA)",
-        "il23": "Guselkumab, risankizumab, tildrakizumab, mirikizumab"
+        "il23": "Guselkumab, risankizumab, tildrakizumab. Mirikizumab is an IBD drug, not U.S.-approved for plaque psoriasis."
       }
     },
     {
       "id": "onset",
       "name": "Speed of onset (weeks to PASI 75)",
       "values": {
-        "tnf":  "~12–16 weeks (infliximab fastest: 4–8 weeks IV)",
-        "il17": "~12 weeks; bimekizumab notable clearance at 4 weeks",
-        "il23": "~16 weeks (slower induction; superior durability)"
+        "tnf": "Agent- and endpoint-specific: consult the original trial and label. A fixed class-wide time-to-PASI75 is not validated here.",
+        "il17": "Agent- and endpoint-specific: consult the original trial and label. A fixed class-wide time-to-PASI75 is not validated here.",
+        "il23": "Agent- and endpoint-specific: consult the original trial and label. A fixed class-wide time-to-PASI75 is not validated here."
       }
     },
     {
       "id": "efficacy",
       "name": "Long-term PASI 90 / PASI 100 rate",
       "values": {
-        "tnf":  "PASI 90 ~40–50%; PASI 100 ~20–30% (adalimumab at 1 year)",
-        "il17": "PASI 90 ~60–85%; PASI 100 ~40–60% (bimekizumab and ixekizumab highest)",
-        "il23": "PASI 90 ~70–88%; PASI 100 ~45–65% (risankizumab/guselkumab at 1–2 years)"
+        "tnf": "Cross-trial percentages are not a validated class ranking. Compare the exact drug, dose, endpoint, assessment week, population and missing-data method; use head-to-head trials where available.",
+        "il17": "Cross-trial percentages are not a validated class ranking. Compare the exact drug, dose, endpoint, assessment week, population and missing-data method; use head-to-head trials where available.",
+        "il23": "Cross-trial percentages are not a validated class ranking. Compare the exact drug, dose, endpoint, assessment week, population and missing-data method; use head-to-head trials where available."
       }
     },
     {
@@ -41,9 +53,9 @@
       "name": "Comorbidity profile — preferred indications",
       "isDistinguisher": true,
       "values": {
-        "tnf":  "PsA ★ (all 5 agents); IBD (adalimumab, infliximab, certolizumab) ★; ankylosing spondylitis. PREFERRED when IBD comorbidity. Certolizumab PREFERRED in pregnancy.",
-        "il17": "PsA ★ (secukinumab, ixekizumab, bimekizumab, brodalumab); ankylosing spondylitis. AVOID in IBD (can exacerbate or trigger IBD flares). Preferred for rapid skin clearance.",
-        "il23": "PsA (guselkumab, risankizumab); IBD (risankizumab approved for Crohn's, mirikizumab for UC) ★. Preferred for moderate-severe plaque psoriasis WITHOUT a specific comorbidity preference. Safest class overall."
+        "tnf": "PsA ★ (all 5 agents); IBD (adalimumab, infliximab, certolizumab) ★; ankylosing spondylitis. PREFERRED when IBD comorbidity. Certolizumab PREFERRED in pregnancy.",
+        "il17": "PsA indications include secukinumab, ixekizumab and bimekizumab, not brodalumab. Assess axial disease and IBD separately; indications and precautions are agent-specific.",
+        "il23": "Guselkumab and risankizumab have PsA and IBD indications; tildrakizumab does not inherit these class-wide. Mirikizumab is not a plaque-psoriasis option. No universal safest-class ranking is established here."
       }
     },
     {
@@ -51,50 +63,56 @@
       "name": "Black box warnings and key safety signals",
       "isDistinguisher": true,
       "values": {
-        "tnf":  "BLACK BOX: serious infections (TB reactivation ★, opportunistic infections), malignancy (lymphoma ★, NMSC). HBV reactivation. Demyelination risk — CONTRAINDICATED in MS. Heart failure exacerbation (avoid in NYHA III–IV). Lupus-like reaction.",
-        "il17": "No black box for most; BRODALUMAB BLACK BOX: suicidal ideation / behavior (REMS program). Class effect: mucocutaneous candidiasis (10–20%; usually mild, responds to fluconazole). IBD exacerbation — do NOT use in active IBD. Neutropenia (monitor CBC).",
-        "il23": "No black box warnings. No REMS. Cleanest safety profile of any biologic class. Rare: upper respiratory infections, injection-site reactions. No signal for IBD exacerbation. No increased malignancy signal to date."
+        "tnf": "Boxed serious-infection and malignancy warnings. Screen for TB and HBV; assess demyelination and heart failure. Formal contraindications vary: do not translate a precaution into a universal class contraindication. Infliximab doses >5 mg/kg are contraindicated in moderate/severe heart failure.",
+        "il17": "Brodalumab has a suicidality boxed warning/REMS and a Crohn disease contraindication. Other agents have their own IBD precautions. Candidiasis frequency is drug-, dose-, indication-, and trial-specific, not a uniform 10–20% class rate. Bimekizumab requires liver testing and mood-risk assessment.",
+        "il23": "Evaluate infections, TB, hypersensitivity and product-specific hepatic risks. IBD regimens have liver-monitoring requirements. Absence of a boxed warning does not establish a class as the safest or prove absence of malignancy risk."
       }
     },
     {
       "id": "dosing",
       "name": "Dosing schedule and route",
       "values": {
-        "tnf":  "Adalimumab: SC q2w. Etanercept: SC q1–2w. Infliximab: IV infusion (0, 2, 6 wk → q8w). Certolizumab: SC q2w. Golimumab: SC q4w or IV.",
-        "il17": "Secukinumab: SC q4w after loading. Ixekizumab: SC q2w × 12 wk then q4w. Bimekizumab: SC q4w × 16 wk then q8w. Brodalumab: SC q2w after loading.",
-        "il23": "Guselkumab: SC at 0, 4 wk → q8w. Risankizumab: SC at 0, 4 wk → q12w. Tildrakizumab: SC at 0, 4 wk → q12w. Mirikizumab: SC at 0, 4, 8 wk → q8w."
+        "tnf": "Adult plaque-psoriasis examples: etanercept 50 mg SC twice weekly for 3 months, then weekly; infliximab 5 mg/kg IV at weeks 0, 2, 6 then every 8 weeks. Adalimumab and certolizumab have product-specific loading and maintenance schedules. Golimumab is not a U.S. plaque-psoriasis regimen.",
+        "il17": "Adult plaque psoriasis: secukinumab weekly at weeks 0–4 then every 4 weeks; ixekizumab 160 mg load then 80 mg every 2 weeks through week 12, then every 4 weeks; bimekizumab 320 mg at weeks 0, 4, 8, 12, 16 then every 8 weeks (consider every 4 weeks when ≥120 kg); brodalumab 210 mg at weeks 0, 1, 2 then every 2 weeks. Other indications/ages differ.",
+        "il23": "Adult plaque psoriasis: guselkumab 100 mg SC at weeks 0 and 4 then every 8 weeks; risankizumab 150 mg and tildrakizumab 100 mg at weeks 0 and 4 then every 12 weeks. Do not transfer IBD induction/maintenance schedules to skin disease; mirikizumab is not included."
       }
     },
     {
       "id": "tb-risk",
       "name": "Latent TB reactivation risk",
       "values": {
-        "tnf":  "HIGHEST risk: TNF-α is critical for granuloma maintenance. Screen with QuantiFERON-TB Gold before starting. LTBI treatment required before initiation (9 months INH or 4 months rifampin). Annual surveillance if ongoing high-risk exposure.",
-        "il17": "Lower risk than TNF inhibitors; IL-17 less critical for TB granuloma. Screen at baseline (QuantiFERON-TB Gold) per guidelines. Some guidelines allow biologic initiation after ≥1 month of LTBI treatment.",
-        "il23": "Lowest class risk; IL-23 less critical for granuloma integrity than TNF. Screen at baseline. Some evidence that LTBI treatment can be initiated concurrently (not proven as safe as with TNF — consult ID)."
+        "tnf": "Follow the individual label and local TB guidance. Exclude active TB and arrange appropriate latent-TB treatment when indicated; biologic timing requires risk assessment and specialist coordination, not automatic completion of a nine-month regimen.",
+        "il17": "Follow the individual label and local TB guidance. Exclude active TB and arrange appropriate latent-TB treatment when indicated; biologic timing requires risk assessment and specialist coordination, not automatic completion of a nine-month regimen.",
+        "il23": "Follow the individual label and local TB guidance. Exclude active TB and arrange appropriate latent-TB treatment when indicated; biologic timing requires risk assessment and specialist coordination, not automatic completion of a nine-month regimen."
       }
     },
     {
       "id": "pregnancy",
       "name": "Use in pregnancy and breastfeeding",
       "values": {
-        "tnf":  "Certolizumab pegol PREFERRED — Fc-free, minimal placental transfer (<1%); can be continued throughout pregnancy and breastfeeding. Adalimumab/etanercept: low transfer in 1st–2nd trimester; consider stopping in 3rd trimester. Neonates exposed to IgG-Fc TNF inhibitors in 3rd trimester: no live vaccines for 6 months.",
-        "il17": "INSUFFICIENT safety data for pregnancy. Animal studies show some risk at high doses. Not recommended during pregnancy or breastfeeding. Switch to certolizumab or NB-UVB before conception.",
-        "il23": "INSUFFICIENT safety data for pregnancy. Not recommended. NB-UVB and certolizumab are preferred alternatives during pregnancy."
+        "tnf": "Use an individualized maternal-disease and reproductive-risk assessment with the exact drug label. Certolizumab has minimal placental transfer, but that does not make all TNF agents interchangeable. Infant live-vaccine timing varies by drug, timing of exposure, jurisdiction and vaccine; a universal six-month rule is not appropriate.",
+        "il17": "Use an individualized maternal-disease and reproductive-risk assessment with the exact drug label. Certolizumab has minimal placental transfer, but that does not make all TNF agents interchangeable. Infant live-vaccine timing varies by drug, timing of exposure, jurisdiction and vaccine; a universal six-month rule is not appropriate.",
+        "il23": "Use an individualized maternal-disease and reproductive-risk assessment with the exact drug label. Certolizumab has minimal placental transfer, but that does not make all TNF agents interchangeable. Infant live-vaccine timing varies by drug, timing of exposure, jurisdiction and vaccine; a universal six-month rule is not appropriate."
       }
     },
     {
       "id": "response-monitoring",
       "name": "Time to assess response and monitoring",
       "values": {
-        "tnf":  "Assess at 12 weeks. Therapeutic drug level monitoring available for adalimumab and infliximab (detect antidrug antibodies). Annual screen: CBC, LFTs. Infliximab: pre-infusion checks each visit.",
-        "il17": "Assess at 12 weeks (IL-17A) or 16 weeks (bimekizumab). Routine labs not required; CBC if neutropenia concern. Monitor for candidiasis and IBD symptoms.",
-        "il23": "Assess at 16 weeks (longer induction response curve). No routine lab monitoring required. Reassess at 16 and 28 weeks before considering switch. Durable response minimizes need for frequent monitoring."
+        "tnf": "Assess at 12 weeks. Therapeutic drug level monitoring available for adalimumab and infliximab (detect antidrug antibodies). Annual screen: CBC, LFTs. Infliximab: pre-infusion checks each visit.",
+        "il17": "Assess response at an agent-appropriate interval and monitor infection, candidiasis, IBD and mood symptoms where applicable. Bimekizumab: liver enzymes, alkaline phosphatase and bilirubin before treatment and periodically thereafter; do not label the entire class as requiring no labs.",
+        "il23": "Agent- and indication-specific monitoring applies. Liver monitoring for IBD differs from psoriasis regimens. Assess symptoms and response without assuming durable efficacy removes the need for safety surveillance."
       }
     }
   ],
   "citations": [
-    { "pmid": "30772098", "quote": "Menter A et al. Joint AAD-NPF guidelines of care for the management and treatment of psoriasis with biologics. J Am Acad Dermatol. 2019." },
-    { "pmid": "30772097", "quote": "Elmets CA et al. Joint AAD-NPF guidelines of care for psoriasis with awareness and attention to comorbidities. J Am Acad Dermatol. 2019." }
+    {
+      "pmid": "30772098",
+      "quote": "Menter A et al. Joint AAD-NPF guidelines of care for the management and treatment of psoriasis with biologics. J Am Acad Dermatol. 2019."
+    },
+    {
+      "pmid": "30772097",
+      "quote": "Elmets CA et al. Joint AAD-NPF guidelines of care for psoriasis with awareness and attention to comorbidities. J Am Acad Dermatol. 2019."
+    }
   ]
 }

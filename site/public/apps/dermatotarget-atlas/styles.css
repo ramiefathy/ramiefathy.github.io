@@ -300,3 +300,14 @@ table.data tr.clickable { cursor: pointer; }
 @media (max-width: 860px) {
   .app.nav-open .nav-scrim { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(0,0,0,.5); }
 }
+
+/* Evidence workbench: preserve long source identifiers on narrow screens. */
+.atlas-evidence-boundary { margin: 16px 24px; }
+.source-workbench .toolbar { flex-wrap: wrap; }
+.source-workbench .toolbar input { min-width: 180px; flex: 1; }
+.source-workbench .toolbar select { max-width: 100%; }
+.source-workbench details { min-width: 180px; max-width: 400px; }
+.source-workbench details p { white-space: normal; overflow-wrap: anywhere; }
+.candidate-toggle { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+.candidate-toggle input { width: auto; }
+@media (max-width: 600px) { .atlas-evidence-boundary { margin: 8px; } .source-workbench .toolbar > * { max-width: 100%; } }
