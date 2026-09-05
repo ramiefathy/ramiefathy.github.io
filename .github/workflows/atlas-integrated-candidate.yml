@@ -1,0 +1,119 @@
+name: Qualify integrated Atlas candidate
+on:
+  push:
+    branches: [audit/atlas-publish-staging-20260905]
+    paths: [.github/workflows/atlas-integrated-candidate.yml]
+permissions:
+  contents: read
+jobs:
+  qualify:
+    if: github.ref == 'refs/heads/audit/atlas-publish-staging-20260905'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          path: transfer
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 02ca13167576e48d54a82c9a0811703b71ae06be
+          persist-credentials: false
+          lfs: true
+          path: candidate
+      - name: Retrieve immutable source input
+        working-directory: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' fetch --no-tags --depth=1 origin a0a9394a4a073a92f4b57d6b83cb692241d7bce0
+      - name: Verify transfer and every source before and after hash
+        working-directory: candidate
+        run: |
+          mkdir -p /tmp/atlas-integration
+          python - <<'PY'
+          import base64,gzip,hashlib,json,pathlib,subprocess
+          sha=lambda b:hashlib.sha256(b).hexdigest()
+          parts=[pathlib.Path(f'../transfer/.atlas-integration/part{i}.b64').read_text().strip() for i in range(2)]
+          repairs=[{'index':0,'before':'667bbbb5cd49878b6b838760ddecdeaace4200ba09bc87daee1094641a7d6d31','ops':[[247,248,''],[442,445,''],[6378,6378,'6'],[9020,9020,'+'],[10107,10108,'q']]},{'index':1,'before':'ad62c5941841e914fb52b795e91a79bcdea3db60824bb85b0b82b512d1bb7183','ops':[[2452,2452,'/']]}]
+          for repair in repairs:
+              i=repair['index'];assert sha(parts[i].encode())==repair['before']
+              for a,b,text in reversed(repair['ops']):parts[i]=parts[i][:a]+text+parts[i][b:]
+          raw=gzip.decompress(base64.b64decode(''.join(parts),validate=True))
+          assert sha(raw)=='4da297ebd470d3286d7ad330a6b36e9195fc6fec20153f495e3f787c3af6c14c'
+          entries=json.loads(raw);assert len(entries)==25
+          prepared=[];names=set()
+          for item in entries:
+              path=pathlib.Path(item['path']);name=str(path)
+              assert not path.is_absolute() and '..' not in path.parts and path.parts[0] in {'site','scripts','docs'} and name not in names
+              assert not any(part in {'.git','node_modules','.env'} for part in path.parts)
+              assert not any(p.is_symlink() for p in [path,*path.parents]);names.add(name)
+              if item['basis']=='175':
+                  assert not path.exists(),name
+                  old=subprocess.check_output(['git','show','a0a9394a4a073a92f4b57d6b83cb692241d7bce0:'+name])
+              elif item['basis']=='186':old=path.read_bytes()
+              else:assert item['basis'] is None and not path.exists();old=b''
+              assert (sha(old) if item['basis'] else None)==item['before'],f'Base mismatch {name}'
+              text=old.decode('utf-8');last=0
+              for a,b,new in item['ops']:
+                  assert type(a) is int and type(b) is int and last<=a<=b<=len(text) and isinstance(new,str)
+                  last=b
+              for a,b,new in reversed(item['ops']):text=text[:a]+new+text[b:]
+              content=text.encode();assert sha(content)==item['after'],f'Output mismatch {name}'
+              prepared.append((path,content))
+          assert 'site/public/apps/rheum-derm-clinical-trials/index.html' not in names
+          for path,content in prepared:path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(content)
+          subprocess.run(['git','add','--',*sorted(names)],check=True)
+          receipt={'base':'02ca13167576e48d54a82c9a0811703b71ae06be','integratedSource':'a0a9394a4a073a92f4b57d6b83cb692241d7bce0','payloadSha256':sha(raw),'files':[{'path':str(p),'sha256':sha(b),'bytes':len(b)} for p,b in prepared]}
+          pathlib.Path('/tmp/atlas-integration/source-manifest.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          PY
+          git diff --cached --check
+          python scripts/build-clinical-review-status.py --check
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: candidate/.nvmrc
+      - name: Verify current primary publication identities and literal excerpts
+        working-directory: candidate
+        run: python scripts/verify-vasculitis-source-excerpts.py --receipt /tmp/atlas-integration/primary-source-receipt.json
+      - name: Locked installation, complete units and dependency audit
+        working-directory: candidate
+        run: |
+          npm --prefix site ci
+          npm --prefix site test -- --reporter=json --outputFile=/tmp/atlas-integration/unit-results.json
+          npm --prefix site audit --json > /tmp/atlas-integration/dependency-audit.json
+      - name: Build and verify exact staged source
+        working-directory: candidate
+        run: |
+          npm run site:build
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess,tarfile
+          rows=json.load(open('/tmp/atlas-integration/source-manifest.json'))['files']
+          for row in rows:
+              staged=subprocess.check_output(['git','show',':'+row['path']])
+              assert hashlib.sha256(staged).hexdigest()==row['sha256']
+              assert hashlib.sha256(pathlib.Path(row['path']).read_bytes()).hexdigest()==row['sha256']
+          with tarfile.open('/tmp/atlas-integration/source.tar.gz','w:gz') as archive:
+              for row in rows:archive.add(row['path'],arcname=row['path'])
+          PY
+      - name: Publish only to isolated candidate branch
+        working-directory: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/audit/atlas-publish-staging-20260905
+          test "$(git rev-parse HEAD)" = 02ca13167576e48d54a82c9a0811703b71ae06be
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'agent(codex): qualify integrated Atlas governance and scoped primary evidence'
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/atlas-integration-candidate-20260905
+          git rev-parse HEAD > /tmp/atlas-integration/COMMIT.txt
+          git rev-parse HEAD^{tree} > /tmp/atlas-integration/TREE.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: atlas-integration-qualification
+          path: /tmp/atlas-integration
+          if-no-files-found: error
+          retention-days: 7
