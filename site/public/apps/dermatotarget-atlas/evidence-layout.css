@@ -1,0 +1,38 @@
+/* Evidence-specific layout: long identifiers must not hide the gene context. */
+.source-workbench .toolbar .btn {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  min-height: 44px;
+  padding: 8px 12px;
+}
+.source-workbench .toolbar .btn:hover:not(:disabled) { border-color: var(--accent); }
+.source-workbench .toolbar .btn:disabled { opacity: .55; cursor: not-allowed; }
+.source-workbench .toolbar input,
+.source-workbench .toolbar select { min-height: 44px; }
+.source-workbench :is(button, input, select, summary, a):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.source-workbench table.data { table-layout: fixed; }
+.source-workbench table.data :is(th, td) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+.source-workbench table.data th:nth-child(1) { width: 12%; }
+.source-workbench table.data th:nth-child(2) { width: 17%; }
+.source-workbench table.data th:nth-child(3) { width: 20%; }
+.source-workbench table.data th:nth-child(4) { width: 16%; }
+.source-workbench table.data th:nth-child(5) { width: 35%; }
+.source-workbench details { min-width: 0; max-width: none; }
+.source-workbench summary { cursor: pointer; line-height: 1.5; }
+@media (max-width: 600px) {
+  .source-workbench .toolbar { align-items: stretch; }
+  .source-workbench .toolbar > :is(input, select, button) { width: 100%; min-width: 0; }
+  /* Keep table semantics and all columns; scrolling stays inside its existing wrapper. */
+  .source-workbench table.data { min-width: 680px; }
+}
