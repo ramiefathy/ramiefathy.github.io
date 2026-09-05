@@ -16,6 +16,13 @@ Current procedures and runbooks for production systems.
 | [Regression Test Expansion](regression-test-expansion.md) | Test strategy roadmap | Sept 2025 |
 | [Dependency Audit](dependency-audit-2025-09-29.md) | Dependency consolidation report | Sept 2025 |
 
+## 🗺️ Roadmaps
+
+| Document | Scope | Date |
+|----------|-------|------|
+| [Platform Roadmap 2026-09](platform-roadmap-2026-09.md) | Knowledge-graph unification, publishing layer, open data API, VLM benchmark, MCQ engine, planner, slide viewer, scorecard | Sept 2026 |
+| [UI/UX Improvement Roadmap](ui-ux-improvement-roadmap.md) | Site-wide design audit (predates the Field Console contract) | Apr 2026 |
+
 ## 📊 Implementation Status
 
 Current state of features and applications.
