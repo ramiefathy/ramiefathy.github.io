@@ -1,0 +1,47 @@
+name: Atlas atopic ontology capture
+on:
+  push:
+    branches: [audit/clinical-source-validation-20260904]
+    paths: [.github/workflows/atlas-atopic-ontology-capture.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Obtain verified gene identity capture
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/ramiefathy/ramiefathy.github.io/actions/artifacts/9970225993/zip > /tmp/identities.zip
+          echo '23cf5c7978b8d654be62acb39c088351f1bf49897a712934a06194b1b15175e6  /tmp/identities.zip' | sha256sum --check
+          mkdir -p /tmp/identities /tmp/atopic
+          unzip -q /tmp/identities.zip -d /tmp/identities
+      - name: Capture exact legacy cross-reference and direct associations
+        run: |
+          python - <<'PY'
+          import urllib.request,json,pathlib,hashlib,datetime
+          out=pathlib.Path('/tmp/atopic');targets=[t for t in json.load(open('site/public/apps/dermatotarget-atlas/data/targets.json')) if t['disease_key']=='atopic_dermatitis'];genes=json.load(open('/tmp/identities/ensembl-symbols-response.json'));ids=[]
+          for t in targets:
+              g=genes.get(t['gene'],{});valid=g.get('display_name')==t['gene'] and g.get('species')=='homo_sapiens' and g.get('object_type')=='Gene' and g.get('assembly_name')=='GRCh38'
+              if valid and (not t['target_id'] or t['target_id']==g.get('id')):ids.append(g['id'])
+          query='{ disease(efoId:"MONDO_0004980") { id name synonyms { terms } dbXRefs associatedTargets(Bs:'+json.dumps(ids)+',enableIndirect:false,page:{index:0,size:100}) { count rows { target { id approvedSymbol } score datasourceScores { id score } } } } }'
+          body=json.dumps({'query':query}).encode();(out/'atopic_dermatitis-associations-request.json').write_bytes(body)
+          req=urllib.request.Request('https://api.platform.opentargets.org/api/v4/graphql',data=body,headers={'Content-Type':'application/json','User-Agent':'AtlasEvidenceAudit/1.0'})
+          with urllib.request.urlopen(req,timeout=60) as r:raw=r.read();status=r.status
+          (out/'atopic_dermatitis-associations-response.json').write_bytes(raw)
+          (out/'manifest.json').write_text(json.dumps([{'id':'atopic_dermatitis-associations','url':req.full_url,'retrieved_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'http_status':status,'request_sha256':hashlib.sha256(body).hexdigest(),'response_sha256':hashlib.sha256(raw).hexdigest()}],indent=2))
+          result=json.loads(raw);assert not result.get('errors');d=result['data']['disease'];assert d and targets[0]['disease_id'].replace('_',':',1) in d['dbXRefs'],'Legacy disease identity not confirmed'
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: atlas-atopic-ontology-evidence
+          path: /tmp/atopic
+          if-no-files-found: error
+          retention-days: 7
