@@ -32,10 +32,11 @@ jobs:
           assert blob['sha']=='92cede56c6bfc1e7889a16b55cf89433656ac63a'
           encoded=''.join(blob['content'].split())
           (dest/'received-transfer.b64').write_text(encoded)
-          # Two known transcription differences; final full-payload hashes remain mandatory.
-          for before,after in [('YKtjLPeHFLm2kKGrtJ','YKtjLPeHFXm2kKGrtJ'),('QbULHGvxaMgTxut','QbULHGxaMgTxut')]:
-              assert encoded.count(before)==1
-              encoded=encoded.replace(before,after)
+          # Exact differences verified against the downloaded receipt and local original.
+          # The original compressed and uncompressed checksums remain mandatory.
+          assert len(encoded)==16456 and encoded[3733]=='L' and encoded[4598]=='v'
+          encoded=encoded[:4598]+encoded[4599:]
+          encoded=encoded[:3733]+'X'+encoded[3734:]+'A'
           compressed=base64.b64decode(encoded,validate=True)
           assert hashlib.sha1(b'blob '+str(len(compressed)).encode()+b'\0'+compressed).hexdigest()=='8d30c5e41fb9648baa22a92186b2544f0697b4fa'
           raw=gzip.decompress(compressed)
@@ -99,6 +100,7 @@ jobs:
           test "$(git rev-parse HEAD)" = f2d9abc818dc99d9b7054dc448ccddcd59705947
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/tests/test_source_excerpt_gate.py
           git commit -m 'agent(codex): repair integrated Atlas controls and retain trial-scoped source evidence'
           git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/clinical-atlas-review-20260905
           git rev-parse HEAD > /tmp/atlas-followup/PUBLISHED_COMMIT.txt
