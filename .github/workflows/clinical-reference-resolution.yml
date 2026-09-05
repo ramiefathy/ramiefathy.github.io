@@ -1,0 +1,77 @@
+name: Resolve clinical source identities
+on:
+  push:
+    branches: [audit/clinical-source-validation-20260904]
+    paths: [.github/workflows/clinical-reference-resolution.yml]
+permissions:
+  contents: read
+jobs:
+  retrieve:
+    if: github.ref == 'refs/heads/audit/clinical-source-validation-20260904'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Resolve reference candidates without assigning support
+        run: |
+          python - <<'PY'
+          import datetime,hashlib,json,pathlib,re,time,urllib.parse,urllib.request,xml.etree.ElementTree as ET
+          out=pathlib.Path('/tmp/clinical-identities');out.mkdir()
+          texts=[p.read_text() for p in pathlib.Path('site/src/data/mindmaps').rglob('*.json')]
+          field=pathlib.Path('site/src/data/rheum-derm-medication-dashboard/index.html').read_text();texts.append(field)
+          atlas=pathlib.Path('site/public/apps/rheum-derm-immune-atlas/index.html').read_text()
+          data=json.JSONDecoder().raw_decode(atlas.split('const DATA = ',1)[1])[0]
+          ids=set(re.findall(r'"pmid"\s*:\s*"?(\d+)', '\n'.join(texts)))
+          ids.update(re.findall(r'pubmed\.ncbi\.nlm\.nih\.gov/(\d+)',field))
+          pmcs=set(re.findall(r'PMC\d+','\n'.join(texts)+atlas))
+          candidates=[];receipts=[]
+          def get(url,key):
+              rec={'id':key,'url':url,'retrieved_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              for attempt in range(3):
+                  try:
+                      req=urllib.request.Request(url,headers={'User-Agent':'ClinicalReferenceAudit/1.0 (research, no patient data)'})
+                      with urllib.request.urlopen(req,timeout=40) as response:raw=response.read(15_000_001)
+                      if len(raw)>15_000_000:raise ValueError('Size limit')
+                      ET.fromstring(raw)
+                      (out/(key+'.xml')).write_bytes(raw)
+                      rec.update(status='retrieved_not_validated',sha256=hashlib.sha256(raw).hexdigest());receipts.append(rec);time.sleep(1.1);return ET.fromstring(raw)
+                  except Exception as exc:
+                      rec['error']=str(exc);time.sleep(2+attempt*3)
+              rec['status']='unavailable';receipts.append(rec);return None
+          for ref in data['references']:
+              if ref['kind']=='Regulatory':
+                  candidates.append({'reference':ref,'candidate_pmids':[],'status':'requires_regulatory_source'});continue
+              query=ref['title']
+              url='https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=xml&retmax=3&term='+urllib.parse.quote(query)
+              result=get(url,ref['id']+'-search')
+              found=[x.text for x in result.findall('.//IdList/Id')] if result is not None else []
+              candidates.append({'reference':ref,'query':query,'candidate_pmids':found,'status':'candidate_identity_not_verified' if found else 'identity_unresolved'})
+              ids.update(found)
+          ids.update(['35609174','19248104','23268365','42377355','39874231','41232611'])
+          for start in range(0,len(ids),40):
+              batch=sorted(ids)[start:start+40]
+              result=get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id='+','.join(batch),'pubmed-batch-'+str(start))
+              if result is None:continue
+              for article in result.findall('.//PubmedArticle'):
+                  pmid=article.findtext('.//MedlineCitation/PMID')
+                  payload={'pmid':pmid,'title':' '.join(article.find('.//ArticleTitle').itertext()),'abstract':[{'label':x.get('Label'),'text':' '.join(x.itertext())} for x in article.findall('.//Abstract/AbstractText')],'publication_types':[x.text for x in article.findall('.//PublicationType')],'ids':{x.get('IdType'):x.text for x in article.findall('.//ArticleIdList/ArticleId')},'corrections':[{'type':x.get('RefType'),'pmid':x.findtext('PMID'),'source':x.findtext('RefSource')} for x in article.findall('.//CommentsCorrections')],'journal':article.findtext('.//Journal/Title'),'date':ET.tostring(article.find('.//PubDate'),encoding='unicode')}
+                  (out/('PMID'+pmid+'.json')).write_text(json.dumps(payload,ensure_ascii=False,indent=2))
+                  if 'pmc' in payload['ids']:pmcs.add(payload['ids']['pmc'])
+          for pmc in sorted(pmcs):
+              result=get('https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_xml/'+pmc+'/unicode',pmc)
+              if result is None:continue
+              sections=[{'index':i,'type':p.findtext('infon[@key="section_type"]',''),'text':p.findtext('text','')} for i,p in enumerate(result.findall('.//passage'))]
+              (out/(pmc+'.json')).write_text(json.dumps(sections,ensure_ascii=False,indent=2))
+          (out/'reference-candidates.json').write_text(json.dumps(candidates,ensure_ascii=False,indent=2))
+          (out/'retrieval-receipts.json').write_text(json.dumps(receipts,ensure_ascii=False,indent=2))
+          print(json.dumps({'unique_pmids':len(ids),'pmc_attempts':len(pmcs),'candidate_searches':len(candidates)}))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: clinical-reference-identities
+          path: /tmp/clinical-identities
+          if-no-files-found: error
+          retention-days: 3
