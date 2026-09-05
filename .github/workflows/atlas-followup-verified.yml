@@ -1,0 +1,111 @@
+name: Verify Atlas integration follow-up
+on:
+  push:
+    branches: [audit/atlas-publish-staging-20260905]
+    paths: [.github/workflows/atlas-followup-verified.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/audit/atlas-publish-staging-20260905'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: audit/clinical-atlas-review-20260905
+          persist-credentials: false
+      - name: Verify complete source delta and base before applying
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(git rev-parse HEAD)" = f2d9abc818dc99d9b7054dc448ccddcd59705947
+          mkdir -p /tmp/atlas-followup
+          python - <<'PY'
+          import urllib.request,os,json,base64,gzip,hashlib,pathlib,subprocess
+          dest=pathlib.Path('/tmp/atlas-followup')
+          url='https://api.github.com/repos/ramiefathy/ramiefathy.github.io/git/blobs/92cede56c6bfc1e7889a16b55cf89433656ac63a'
+          request=urllib.request.Request(url,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(request,timeout=45) as response: blob=json.load(response)
+          assert blob['sha']=='92cede56c6bfc1e7889a16b55cf89433656ac63a'
+          encoded=''.join(blob['content'].split())
+          (dest/'received-transfer.b64').write_text(encoded)
+          # Two known transcription differences; final full-payload hashes remain mandatory.
+          for before,after in [('YKtjLPeHFLm2kKGrtJ','YKtjLPeHFXm2kKGrtJ'),('QbULHGvxaMgTxut','QbULHGxaMgTxut')]:
+              assert encoded.count(before)==1
+              encoded=encoded.replace(before,after)
+          compressed=base64.b64decode(encoded,validate=True)
+          assert hashlib.sha1(b'blob '+str(len(compressed)).encode()+b'\0'+compressed).hexdigest()=='8d30c5e41fb9648baa22a92186b2544f0697b4fa'
+          raw=gzip.decompress(compressed)
+          assert hashlib.sha256(raw).hexdigest()=='c568d9322b8dd9ddaeb639c93b0a9ba48a2bc9c110f388da9d873154fef16b93'
+          prepared=[];seen=set()
+          for item in json.loads(raw):
+              name=item['path'];path=pathlib.Path(name)
+              assert name not in seen and not path.is_absolute() and '..' not in path.parts
+              assert path.parts[0] in ('site','docs','scripts','.github')
+              assert '.git' not in path.parts and 'node_modules' not in path.parts and '.env' not in path.parts
+              assert not any(p.is_symlink() for p in [path,*path.parents])
+              seen.add(name);old=path.read_bytes() if path.exists() else b''
+              assert (hashlib.sha256(old).hexdigest() if path.exists() else None)==item['before'],name
+              text=old.decode('utf-8');end=0
+              for a,b,new in item['ops']:
+                  assert isinstance(a,int) and isinstance(b,int) and isinstance(new,str) and end<=a<=b<=len(text)
+                  end=b
+              for a,b,new in reversed(item['ops']):text=text[:a]+new+text[b:]
+              content=text.encode('utf-8')
+              assert hashlib.sha256(content).hexdigest()==item['after'],name
+              prepared.append((path,content,item))
+          assert len(prepared)==13
+          manifest=[];staged=[]
+          for path,content,item in prepared:
+              path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(content)
+              manifest.append({'path':str(path),'sha256':item['after'],'bytes':len(content)})
+              if path.parts[0]!='.github':staged.append(str(path))
+          (dest/'source-manifest.json').write_text(json.dumps({'base':'f2d9abc818dc99d9b7054dc448ccddcd59705947','files':manifest},indent=2))
+          subprocess.run(['git','add','--',*staged],check=True)
+          PY
+          git diff --cached --check
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+      - name: Require locked installation, complete unit tests, source gate tests and audit
+        run: |
+          npm --prefix site ci
+          npm --prefix site test -- --reporter=default --reporter=json --outputFile=/tmp/atlas-followup/unit-results.json
+          python -m unittest discover -s scripts/tests -p test_source_excerpt_gate.py -v > /tmp/atlas-followup/source-gate-tests.txt 2>&1
+          npm --prefix site audit --json > /tmp/atlas-followup/dependency-audit.json
+          python scripts/build-clinical-review-status.py --check
+      - name: Verify all ten primary-publication identities and literal excerpts live
+        run: python scripts/verify-vasculitis-source-excerpts.py --receipt /tmp/atlas-followup/primary-source-receipt.json
+      - name: Require production build and source invariance
+        run: |
+          npm run site:build
+          python - <<'PY'
+          import json,hashlib,subprocess
+          for item in json.load(open('/tmp/atlas-followup/source-manifest.json'))['files']:
+              if item['path'].startswith('.github/'):continue
+              raw=subprocess.check_output(['git','show',':'+item['path']])
+              assert hashlib.sha256(raw).hexdigest()==item['sha256'],item['path']
+          PY
+          git diff --cached --check
+      - name: Publish only the verified source files to PR 186
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/audit/atlas-publish-staging-20260905
+          test "$(git branch --show-current)" = audit/clinical-atlas-review-20260905
+          test "$(git rev-parse HEAD)" = f2d9abc818dc99d9b7054dc448ccddcd59705947
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'agent(codex): repair integrated Atlas controls and retain trial-scoped source evidence'
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/clinical-atlas-review-20260905
+          git rev-parse HEAD > /tmp/atlas-followup/PUBLISHED_COMMIT.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: atlas-integration-followup-evidence
+          path: /tmp/atlas-followup
+          retention-days: 7
+          if-no-files-found: error
