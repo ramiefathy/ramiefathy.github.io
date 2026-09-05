@@ -17,7 +17,10 @@ test.describe('Clinical reference safety regressions', () => {
   });
   test('legacy and new checklist marks cannot silently carry across page reloads', async ({ page }) => {
     await page.goto(route, { waitUntil: 'networkidle' });
-    await page.evaluate(() => localStorage.setItem('biologic-dashboard:checklist', JSON.stringify({ 'tnf-inhibitors': { baseline: { cbc: true } } } })));
+    await page.evaluate(() => {
+      const oldMarks = { 'tnf-inhibitors': { baseline: { cbc: true } } };
+      localStorage.setItem('biologic-dashboard:checklist', JSON.stringify(oldMarks));
+    });
     await page.reload({ waitUntil: 'networkidle' });
     expect(await page.evaluate(() => localStorage.getItem('biologic-dashboard:checklist'))).toBeNull();
     const first = page.locator(cards).first();
