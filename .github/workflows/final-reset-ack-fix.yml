@@ -1,0 +1,71 @@
+name: Verify reset acknowledgment
+on:
+  push:
+    branches: [audit/clinical-apps-20260904]
+    paths: [.github/workflows/final-reset-ack-fix.yml]
+permissions:
+  contents: read
+jobs:
+  repair:
+    if: github.ref == 'refs/heads/audit/clinical-apps-20260904'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: audit/clinical-reference-safety-20260904
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Apply exact verified protocol correction
+        run: |
+          test "$(git rev-parse HEAD)" = 5e04d51f40f36c498b675c091156022610d96690
+          python - <<'PY'
+          import hashlib,pathlib
+          p=pathlib.Path('services/ai-scribe/app.py')
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='4422291fd82ee30085e27d4bd6a71cc8d8d574382f03ee60d3293f4fda786dfc'
+          s=p.read_text()
+          old='''            if message_type == "start_new_session":
+                          logger.info(f"Starting new session explicitly for {current_session_id_to_use}")
+                          # Invalidate before yielding: providers may return while handling cancellation.
+                          session.reset_session_data()
+                          await cancel_suggestions()
+                          await websocket.send(json.dumps({"type": "status", "message": "New session initialized. Ready to record."}))'''
+          new='''            if message_type == "start_new_session":
+                          reset_id = data.get("resetId")
+                          if reset_id is not None and (not isinstance(reset_id, str) or not 1 <= len(reset_id) <= 80):
+                              await websocket.send(json.dumps({"type": "error", "message": "Invalid session reset identifier."}))
+                              continue
+                          logger.info(f"Starting new session explicitly for {current_session_id_to_use}")
+                          # Invalidate before yielding: providers may return while handling cancellation.
+                          session.reset_session_data()
+                          await cancel_suggestions()
+                          await websocket.send(json.dumps({
+                              "type": "status", "event": "session_reset", "resetId": reset_id,
+                              "message": "New session initialized. Ready to record."
+                          }))'''
+          assert s.count(old)==1
+          p.write_text(s.replace(old,new))
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='8102d79192ad49543fa4d96892a841279918ebb29ea4313786d0090f28d11ca2'
+          PY
+          git diff --check
+          python -m compileall -q services/ai-scribe
+      - name: Require actual backend regression suite before publishing
+        run: |
+          pip install -r services/ai-scribe/requirements.txt
+          python -m pytest services/ai-scribe/tests -q
+      - name: Commit only the validated backend correction
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/audit/clinical-apps-20260904
+          test "$(git branch --show-current)" = audit/clinical-reference-safety-20260904
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add services/ai-scribe/app.py
+          git commit -m 'agent(codex): acknowledge matching encounter resets after safe cancellation'
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/clinical-reference-safety-20260904
+          git rev-parse HEAD
