@@ -25,6 +25,27 @@ jobs:
           ref: audit/clinical-atlas-review-20260905
           lfs: true
           persist-credentials: false
+      - name: Materialize cached LFS objects after the second checkout
+        run: |
+          git lfs checkout
+          git lfs fsck
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path.cwd(); rows=[]
+          for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
+              if not name or pathlib.Path(name).suffix.lower() not in {'.pdf','.mp3','.mp4'}:continue
+              pointer=subprocess.check_output(['git','show','HEAD:'+name])
+              if not pointer.startswith(b'version https://git-lfs.github.com/spec/v1'):continue
+              fields=dict(line.split(' ',1) for line in pointer.decode().splitlines())
+              content=(root/name).read_bytes();expected=fields['oid'].removeprefix('sha256:')
+              assert hashlib.sha256(content).hexdigest()==expected and len(content)==int(fields['size']),name
+              rows.append({'path':name,'bytes':len(content),'sha256':expected})
+          assert rows
+          pdf=root/'site/public/apps/dermatotarget-atlas/publication_pdf/DermatoTarget_Atlas_publication_package_2026-06-03.pdf'
+          assert pdf.read_bytes().startswith(b'%PDF')
+          pathlib.Path('/tmp/atlas-context-receipt/lfs-materialization.json').write_text(json.dumps(rows,indent=2)+'\n')
+          print('Verified materialized LFS files:',len(rows))
+          PY
       - name: Validate exact source base and reconstruction
         run: |
           test "$(git rev-parse HEAD)" = 23f64f6fc54ada0c9487437ea4a79756f1a3bf3f
@@ -32,8 +53,7 @@ jobs:
           import pathlib,base64,gzip,hashlib,json,subprocess
           receipt=pathlib.Path('/tmp/atlas-context-receipt')
           encoded=''.join((receipt/f'part{i}.b64').read_text().strip() for i in range(2))
-          # Repair the single identified transport transcription, never source text.
-          # The original complete-payload SHA-256 below is still mandatory.
+          # Correct one transport transcription; the original full hash remains required.
           encoded=encoded.replace('CSOYUU/s5','CSOYU/s5',1)
           raw=gzip.decompress(base64.b64decode(encoded,validate=True))
           assert hashlib.sha256(raw).hexdigest()=='c312aef3a8a39ba39c3a8fab3cc090aa3eebddef86114bccdbe07cf759bf8fad'
@@ -101,15 +121,15 @@ jobs:
               assert hashlib.sha256(raw).hexdigest()==item['after'],item['path']
           PY
           git diff --cached --check
+          git diff --cached > /tmp/atlas-context-receipt/staged-source.patch
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'agent(codex): preserve indication navigation and qualify primary-trial evidence'
           git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/clinical-atlas-review-20260905
           git rev-parse HEAD > /tmp/atlas-context-receipt/COMMIT.txt
-      - name: Preserve exact source patch and bounded reports
-        if: always()
-        run: |
-          git diff --cached > /tmp/atlas-context-receipt/staged-source.patch
+      - name: Preserve source patch on verification failure
+        if: failure()
+        run: git diff --cached > /tmp/atlas-context-receipt/staged-source.patch
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
