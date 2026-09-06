@@ -52,7 +52,11 @@
       "pmid": "27469583",
       "doi": "10.1016/S2213-2600(16)30152-7",
       "title": "Mycophenolate mofetil versus oral cyclophosphamide in scleroderma-related interstitial lung disease (SLS II): a randomised controlled, double-blind, parallel group trial.",
-      "url": "https://pubmed.ncbi.nlm.nih.gov/27469583/"
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27469583/",
+      "authors": "Tashkin et al.",
+      "year": 2016,
+      "journal": "The Lancet Respiratory Medicine",
+      "type": "Randomized trial"
     }
   ],
   "claims": [
@@ -266,7 +270,20 @@
       "humanApproved": false,
       "clinicallyValidated": false,
       "automaticGraphPromotion": false,
-      "caveat": "A correction is not a retraction or proof of a negative result. This holds the source-review disposition; it does not change existing clinical-effect scores or give treatment advice. Correction contents have not been reconciled."
+      "caveat": "A correction is not a retraction or proof of a negative result. This holds the source-review disposition; it does not change existing clinical-effect scores or give treatment advice. Correction contents have not been reconciled.",
+      "sourceDoi": "10.1016/S0140-6736(21)00578-X",
+      "sourceTitle": "Efficacy and safety of voclosporin versus placebo for lupus nephritis (AURORA 1): a double-blind, randomised, multicentre, placebo-controlled, phase 3 trial.",
+      "correctionNotices": [
+        {
+          "pmid": "34062140",
+          "doi": "10.1016/S0140-6736(21)01160-0",
+          "title": "Department of Error.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/34062140/",
+          "reviewStatus": "METADATA_ONLY_NOT_RECONCILED",
+          "summary": "Indexed notice identity and relationship checked; publisher correction content remains unreconciled.",
+          "reviewedAt": "2026-09-05"
+        }
+      ]
     },
     {
       "id": "publication-hold-32866440",
@@ -288,7 +305,32 @@
       "humanApproved": false,
       "clinicallyValidated": false,
       "automaticGraphPromotion": false,
-      "caveat": "A correction is not a retraction or proof of a negative result. This holds the source-review disposition; it does not change existing clinical-effect scores or give treatment advice. Correction contents have not been reconciled."
+      "caveat": "A correction is not a retraction or proof of a negative result. The March 2021 table-cell notice has been examined; the October 2020 notice remains unreconciled. The trial therefore remains on source-review hold. Existing effect scores are unchanged; no treatment advice or clinical approval is implied.",
+      "sourceDoi": "10.1016/S2213-2600(20)30318-0",
+      "sourceTitle": "Tocilizumab in systemic sclerosis: a randomised, double-blind, placebo-controlled, phase 3 trial.",
+      "correctionNotices": [
+        {
+          "pmid": "33007286",
+          "doi": "10.1016/S2213-2600(20)30423-9",
+          "title": "Correction to Lancet Respir Med 2020; 8: 963-74.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33007286/",
+          "reviewStatus": "METADATA_ONLY_NOT_RECONCILED",
+          "summary": "Indexed notice identity and relationship checked; publisher correction content remains unreconciled.",
+          "reviewedAt": "2026-09-05"
+        },
+        {
+          "pmid": "33667402",
+          "doi": "10.1016/S2213-2600(21)00107-7",
+          "title": "Correction to Lancet Respir Med 2020; 8: 963-74.",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/33667402/",
+          "reviewStatus": "NOTICE_CONTENT_EXAMINED",
+          "summary": "The March 2021 notice corrects table 3: the least-squares mean change from baseline in percent-predicted FVC for the tocilizumab SSc-ILD subgroup is 0.1. This subgroup value is not the all-participant between-group treatment difference and does not establish a positive primary skin endpoint.",
+          "reviewedAt": "2026-09-05",
+          "quote": "change from baseline in participants with SSc-ILD in the tocilizumab group should have been 0·1.",
+          "locator": "Publisher correction notice, table 3; corrected March 2, 2021",
+          "sourceUrl": "https://www.thelancet.com/journals/lanres/article/PIIS2213-2600(21)00107-7/fulltext"
+        }
+      ]
     }
   ]
 };
@@ -316,7 +358,10 @@
       if (!existing) additions.push(ref);
     }
     for (const hold of packet.publicationHolds) {
-      if (!hold.refs.every(id => data.references.some(r => r.id === id))) throw new Error('Unresolved publication hold');
+      const reference = data.references.find(r => r.id === hold.refs[0]);
+      if (!reference || reference.pmid !== hold.sourcePmid || typeof reference.doi !== 'string' || reference.doi.toLowerCase() !== hold.sourceDoi.toLowerCase()) {
+        throw new Error('Unresolved or conflicting publication hold identity: ' + hold.id);
+      }
     }
     if (data.scopedClaims.some(c => packet.claims.some(n => n.id === c.id))) throw new Error('Duplicate primary-claim installation');
     data.references.push(...additions);

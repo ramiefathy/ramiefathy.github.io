@@ -72,4 +72,22 @@ describe('Primary connective-tissue trial scope', () => {
     expect(Object.isFrozen(api.packet.claims[0])).toBe(true);
     expect(Object.isFrozen(api.packet.publicationHolds[0].correctionPmids)).toBe(true);
   });
+  it.each(['pmid','doi'])('rejects a reassigned held-publication %s without partial installation', key => {
+    const {data,api} = fixture(); data.references.find(r=>r.id==='R08')[key] = 'different';
+    const before=JSON.stringify(data);
+    expect(()=>api.install(data)).toThrow('publication hold identity');
+    expect(JSON.stringify(data)).toBe(before);
+  });
+  it('records one examined correction without releasing either trial hold', () => {
+    const {data,api} = fixture(); api.install(data);
+    const notices=data.publicationReviewHolds.flatMap(h=>h.correctionNotices);
+    expect(notices).toHaveLength(3);
+    expect(notices.filter(n=>n.reviewStatus==='NOTICE_CONTENT_EXAMINED')).toHaveLength(1);
+    const notice=notices.find(n=>n.pmid==='33667402');
+    expect(notice.summary).toContain('0.1'); expect(notice.summary).toContain('not the all-participant');
+    expect(notice.quote.split(/\s+/).length).toBeLessThanOrEqual(25);
+    expect(data.publicationReviewHolds.every(h=>h.disposition==='NOT_ADJUDICATED' && !h.clinicallyValidated)).toBe(true);
+    expect(data.scopedClaims.some(c=>['AURORA 1','focuSSced'].includes(c.trial))).toBe(false);
+  });
+
 });

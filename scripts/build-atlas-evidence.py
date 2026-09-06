@@ -19,7 +19,7 @@ EVIDENCE = APP / 'data/source-evidence'
 
 def load(folder: str, item: str) -> dict:
     """Verify both captured payload hashes before returning any source data."""
-    manifest = json.loads((EVIDENCE / folder / 'manifest.json').read_text())
+    manifest = json.loads((EVIDENCE / folder / 'manifest.json').read_text(encoding='utf-8'))
     records = [r for r in manifest if r['id'] == item]
     if len(records) != 1:
         raise ValueError(f'Ambiguous receipt: {folder}/{item}')
@@ -30,7 +30,7 @@ def load(folder: str, item: str) -> dict:
         raw = (EVIDENCE / folder / f'{item}-{kind}.json').read_bytes()
         if hashlib.sha256(raw).hexdigest() != record[f'{kind}_sha256']:
             raise ValueError(f'Source hash mismatch: {folder}/{item}/{kind}')
-    result = json.loads((EVIDENCE / folder / f'{item}-response.json').read_text())
+    result = json.loads((EVIDENCE / folder / f'{item}-response.json').read_text(encoding='utf-8'))
     if result.get('errors') or result.get('error'):
         raise ValueError(f'Source error: {folder}/{item}')
     return result
@@ -38,7 +38,7 @@ def load(folder: str, item: str) -> dict:
 
 def build() -> dict:
     targets_path = APP / 'data/targets.json'
-    targets = json.loads(targets_path.read_text())
+    targets = json.loads(targets_path.read_text(encoding='utf-8'))
     if len(targets) != 600 or len({(t['disease_key'], t['gene']) for t in targets}) != 600:
         raise ValueError('Historical pair denominator has changed; review the snapshot scope.')
     genes = load('identity', 'ensembl-symbols')
@@ -56,7 +56,7 @@ def build() -> dict:
         synonyms = [term.casefold() for group in d['synonyms'] for term in group['terms']]
         if d['name'].casefold() != expected_name and expected_name not in synonyms:
             raise ValueError(f'Disease label is not a confirmed synonym: {key}')
-        request = json.loads((EVIDENCE / folder / f'{item}-request.json').read_text())['query']
+        request = json.loads((EVIDENCE / folder / f'{item}-request.json').read_text(encoding='utf-8'))['query']
         if 'enableIndirect:false' not in request or d['id'] not in request:
             raise ValueError('Indirect or mismatched disease request.')
         match = re.search(r'Bs:(\[[^\]]*\])', request)
@@ -78,7 +78,7 @@ def build() -> dict:
         by_id = {x['target']['id']: x for x in hits}
         if len(by_id) != len(hits) or not set(by_id).issubset(queried):
             raise ValueError(f'Duplicate or unrequested association: {key}')
-        receipt = next(r for r in json.loads((EVIDENCE / folder / 'manifest.json').read_text()) if r['id'] == item)
+        receipt = next(r for r in json.loads((EVIDENCE / folder / 'manifest.json').read_text(encoding='utf-8')) if r['id'] == item)
         dates.append(receipt['retrieved_at'])
         for t in rows:
             g = genes.get(t['gene']) or {}
@@ -128,8 +128,8 @@ if __name__ == '__main__':
     raw = json.dumps(result, ensure_ascii=False, indent=2) + '\n'
     destination = APP / 'data/association-review.json'
     if args.check:
-        if destination.read_text() != raw:
+        if destination.read_text(encoding='utf-8') != raw:
             raise SystemExit('Association snapshot is stale or mismatched.')
     else:
-        destination.write_text(raw)
+        destination.write_text(raw, encoding='utf-8', newline='\n')
     print(json.dumps(result['counts'], sort_keys=True))

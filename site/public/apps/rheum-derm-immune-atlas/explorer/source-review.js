@@ -39,6 +39,9 @@
   }
   function render() {
     const q = search.value.trim().toLowerCase();
+    // Only two held publications: expose full correction context, not a nested clipped panel.
+    results.style.maxHeight = state.value === 'PUBLICATION_HOLDS' ? 'none' : '';
+    results.style.overflow = state.value === 'PUBLICATION_HOLDS' ? 'visible' : '';
     selected = all.filter(row => row.category === state.value && (!q || JSON.stringify({ ...row,
       medicationName: DATA.medications.find(m => m.id === row.med)?.name,
       conditionName: DATA.conditions.find(c => c.id === row.condition)?.name
@@ -68,8 +71,14 @@
       const holds = (DATA.publicationReviewHolds || []).filter(hold => hold.refs.some(id => (row.refs || []).includes(id)));
       for (const hold of holds) {
         detail.append(node('p', 'Publication correction review pending. The existing synthesis is not newly source-validated.', { class: 'disclaimer' }));
-        for (const pmid of hold.correctionPmids) {
-          const p = node('p'); p.append(node('a', `Indexed correction: PMID ${pmid}`, { href: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`, target: '_blank', rel: 'noopener' })); detail.append(p);
+        for (const notice of hold.correctionNotices) {
+          const p = node('p'); p.append(node('a', `Indexed correction: PMID ${notice.pmid}`, { href: notice.url, target: '_blank', rel: 'noopener' })); detail.append(p);
+          detail.append(node('p', `Notice review: ${notice.reviewStatus}. ${notice.summary}`));
+          if (notice.reviewStatus === 'NOTICE_CONTENT_EXAMINED') {
+            detail.append(node('blockquote', notice.quote));
+            const source = node('p'); source.append(node('a', notice.locator, { href: notice.sourceUrl, target: '_blank', rel: 'noopener' })); detail.append(source);
+            detail.append(node('p', 'Examining this notice does not resolve other notices or release the trial from source-review hold.', { class: 'disclaimer' }));
+          }
         }
       }
       for (const key of ['summary', 'caveat', 'basis', 'rationale']) if (row[key]) detail.append(node('p', `${key}: ${row[key]}`));

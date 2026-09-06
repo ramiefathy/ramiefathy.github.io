@@ -264,3 +264,8 @@ Added five explicitly bounded vasculitis mechanism assertions and PubMed identit
 excerpt checks. See `docs/audits/2026-09-05-atlas-scientific-integration.md` for
 inputs, accounting and remaining clinical-validation limits. Final browser and
 CI receipts are recorded against the reviewed PR head, not assumed here.
+
+
+## 2026-09-05: Publication-hold surveillance and desktop portability
+
+Expanded primary-source checks to include held trials and their correction notices, with exact identity and reciprocal-link checks that cannot clear clinical holds. Examined the March 2021 focuSSced table-cell correction without accepting either held trial. The source workbench and filtered exports now preserve notice-specific review status. Added Python, unit and browser regressions, LF checkout boundaries and explicit UTF-8 artifact generation. See `audits/2026-09-05-publication-hold-surveillance.md`; exact-head CI receipts are recorded on PR #186. No master merge or production release.
