@@ -36,3 +36,15 @@
   /* Keep table semantics and all columns; scrolling stays inside its existing wrapper. */
   .source-workbench table.data { min-width: 680px; }
 }
+
+/* Native keyboard controls for the existing sortable reference tables. */
+table.data .table-sort-button {
+  appearance: none; background: none; border: 0; color: inherit;
+  cursor: pointer; font: inherit; text-align: inherit; min-height: 44px;
+  padding: 4px 0; width: 100%;
+}
+table.data .table-sort-button:focus-visible,
+table.data a.gene:focus-visible, button.back-link:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 3px;
+}
+button.back-link { background: none; border: 0; font: inherit; padding: 0; min-height: 44px; cursor: pointer; }

@@ -7,7 +7,7 @@ test('primary study claims disclose scope and never claim human clinical approva
   const runtime = watchRuntime(page);
   await page.goto(app + '#sources', { waitUntil: 'networkidle' });
   await page.getByLabel('Atlas source record category', { exact: true }).selectOption('SCOPED_CLAIMS');
-  await expect(page.locator('.review-records > details')).toHaveCount(10);
+  await expect(page.locator('.review-records > details')).toHaveCount(17);
   await page.getByLabel('Search Atlas source records', { exact: true }).fill('proteomic');
   await expect(page.locator('.review-records > details')).toHaveCount(1);
   await page.locator('.review-records summary').click();
@@ -117,4 +117,32 @@ test('trial source inspection and export preserve comparator and noninferiority 
   expect(exported).toContain('MANDARA'); expect(exported).toContain('−25 percentage points');
   expect(exported).toContain('automaticGraphPromotion'); expect(exported).toContain('false');
   expect(exported).not.toContain('MIRRA');
+});
+
+test('connective-tissue trials retain primary-endpoint failures and indexed correction holds', async ({ page }, info) => {
+  const runtime = watchRuntime(page);
+  await page.goto(app + '#sources', { waitUntil: 'networkidle' });
+  const category = page.getByLabel('Atlas source record category', { exact: true });
+  const search = page.getByLabel('Search Atlas source records', { exact: true });
+  await category.selectOption('SCOPED_CLAIMS'); await search.fill('ctd-rim');
+  await expect(page.locator('.review-records > details')).toHaveCount(1);
+  await page.locator('.review-records summary').click();
+  await expect(page.locator('.review-records')).toContainText('NOT_MET');
+  await expect(page.locator('.review-records')).toContainText('not a randomized treatment-effect estimate');
+  await expect(page.locator('.review-records')).toContainText('abstract');
+  await search.fill(''); await category.selectOption('PUBLICATION_HOLDS');
+  await expect(page.locator('.review-records > details')).toHaveCount(2);
+  await page.locator('.review-records summary').last().click();
+  await expect(page.locator('.review-records')).toContainText('not a retraction');
+  await expect(page.locator('.review-records a[href="https://pubmed.ncbi.nlm.nih.gov/33667402/"]')).toBeVisible();
+  const promise=page.waitForEvent('download');
+  await page.getByRole('button', {name:'Export filtered evidence (CSV)',exact:true}).click();
+  const download=await promise;
+  const stream=await download.createReadStream(); const chunks: Buffer[]=[];
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+  const text=Buffer.concat(chunks).toString('utf8');
+  expect(text).toContain('PUBLICATION_CORRECTION_REVIEW_PENDING');
+  expect(text).toContain('34062140'); expect(text).toContain('33667402');
+  await info.attach('connective-trial-review-holds', {body:await page.screenshot(),contentType:'image/png'});
+  runtime.assertClean();
 });

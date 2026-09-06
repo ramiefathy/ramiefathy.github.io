@@ -1,5 +1,15 @@
 # Devlog — ramiefathy.github.io
 
+## [2026-09-05] Preserve Atlas indication context and review primary-trial scope
+
+Fixed disease-ranked target links that silently opened another indication. Added
+native gene links, keyboard sorting with aria-sort/focus retention, and explicit
+unknown-disease errors. Added seven bounded connective-tissue primary-abstract
+records, preserving negative primary comparisons and organ/endpoint limits.
+Two indexed publication-correction holds remain unresolved and visible in the
+workbench and exports. No historical scores or human-approval flags are promoted.
+See `audits/2026-09-05-atlas-context-and-trial-review.md` for exact scope and receipts.
+
 ## [2026-09-05] Atlas integration: reachable controls and trial-scoped evidence
 
 Reconciled integrated Atlas browser failures: moved camera buttons out of the help

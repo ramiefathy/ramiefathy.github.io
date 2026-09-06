@@ -109,7 +109,7 @@ describe('Combined clinical quarantine, P0 and P1/P2 runtime contracts', () => {
     expect(w.document.querySelector('#networkSelectionStatus').textContent).toContain('rotate left');
   }));
   it('records only scoped primary findings and preserves the historical source workbench denominator', async () => usingAtlas(({ data, w }) => {
-    expect(data.scopedClaims).toHaveLength(10);
+    expect(data.scopedClaims).toHaveLength(17);
     expect(data.scopedClaims.every(r => r.humanApproved === false && r.clinicallyValidated === false && r.automaticGraphPromotion === false && r.quote.split(/\s+/).length <= 25)).toBe(true);
     const igav = data.scopedClaims.find(r => r.id === 'vasculitis-v05'); expect(igav.limitations).toContain('no renal involvement');
     const select = w.document.querySelector('[aria-label="Atlas source record category"]'); select.value = 'DERIVED'; select.dispatchEvent(new w.Event('change'));

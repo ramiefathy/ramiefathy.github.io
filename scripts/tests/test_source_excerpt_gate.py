@@ -108,5 +108,31 @@ class SourceGateTest(unittest.TestCase):
         self.assertEqual(len([c for c in p['claims'] if c.get('trial')]), 5)
 
 
+class ConnectiveTissueGateTest(unittest.TestCase):
+    def test_second_packet_is_nonempty_and_keeps_holds_separate(self):
+        p = gate.parse_packet(gate.PACKETS['connective-tissue'].read_text())
+        self.assertEqual(len(p['claims']), 7)
+        self.assertEqual(len(p['publicationHolds']), 2)
+        self.assertTrue(all(c['evidenceAccess'] == 'abstract' for c in p['claims']))
+
+    def test_hold_cannot_silently_become_clinical_approval(self):
+        for key, value in [('clinicallyValidated', True), ('automaticGraphPromotion', True),
+                           ('humanApproved', True), ('disposition', 'SUPPORTED')]:
+            p = gate.parse_packet(gate.PACKETS['connective-tissue'].read_text())
+            p['publicationHolds'][0][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError): gate.validate_packet(p)
+
+    def test_held_and_accepted_identities_cannot_overlap(self):
+        p = gate.parse_packet(gate.PACKETS['connective-tissue'].read_text())
+        p['publicationHolds'][0]['sourcePmid'] = p['references'][0]['pmid']
+        with self.assertRaises(ValueError): gate.validate_packet(p)
+
+    def test_pending_corrections_require_exact_nonempty_distinct_identifiers(self):
+        for bad in [[], ['broken'], ['123', '123'], [123], ['33971155']]:
+            p = gate.parse_packet(gate.PACKETS['connective-tissue'].read_text())
+            p['publicationHolds'][0]['correctionPmids'] = bad
+            with self.subTest(bad=bad), self.assertRaises(ValueError): gate.validate_packet(p)
+
+
 if __name__ == '__main__':
     unittest.main()

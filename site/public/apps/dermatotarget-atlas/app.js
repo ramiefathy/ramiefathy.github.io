@@ -188,14 +188,24 @@ function dataTable(rows, columns, { onRowClick = null, initialSort = null } = {}
     thead.innerHTML = "";
     const tr = el("tr");
     columns.forEach((c) => {
-      const th = el("th", { class: (c.num ? "num " : "") + (c.sort !== false ? "sortable" : "") },
-        c.label,
-        sortKey === c.key ? el("span", { class: "arrow" }, sortDir < 0 ? " ▼" : " ▲") : "");
-      if (c.sort !== false) th.addEventListener("click", () => {
-        if (sortKey === c.key) sortDir = -sortDir; else { sortKey = c.key; sortDir = c.num ? -1 : 1; }
-        renderBody();
-        renderHead();
+      const sortable = c.sort !== false;
+      const th = el("th", {
+        scope: "col", class: (c.num ? "num " : "") + (sortable ? "sortable" : ""),
+        "aria-sort": sortable ? (sortKey === c.key ? (sortDir < 0 ? "descending" : "ascending") : "none") : null,
       });
+      if (sortable) {
+        const button = el("button", { type: "button", class: "table-sort-button", "aria-label": `Sort by ${c.label}` },
+          c.label, sortKey === c.key ? el("span", { class: "arrow", "aria-hidden": "true" }, sortDir < 0 ? " ▼" : " ▲") : "");
+        button.addEventListener("click", () => {
+          const restoreFocus = document.activeElement === button;
+          if (sortKey === c.key) sortDir = -sortDir; else { sortKey = c.key; sortDir = c.num ? -1 : 1; }
+          renderBody();
+          renderHead();
+          // The old header button was replaced. Keep keyboard navigation at this column.
+          if (restoreFocus) thead.querySelectorAll("th")[columns.indexOf(c)].querySelector("button").focus({ preventScroll: true });
+        });
+        th.append(button);
+      } else th.append(document.createTextNode(c.label));
       tr.append(th);
     });
     thead.append(tr);
@@ -205,13 +215,17 @@ function dataTable(rows, columns, { onRowClick = null, initialSort = null } = {}
     if (sortKey) {
       data.sort((a, b) => {
         const va = a[sortKey], vb = b[sortKey];
+        if (va == null && vb == null) return 0;
         if (va == null) return 1; if (vb == null) return -1;
         return (va > vb ? 1 : va < vb ? -1 : 0) * sortDir;
       });
     }
     tbody.innerHTML = "";
     data.forEach((r) => {
-      const tr = el("tr", onRowClick ? { class: "clickable", onclick: () => onRowClick(r) } : {});
+      const tr = el("tr", onRowClick ? { class: "clickable", onclick: (event) => {
+        // Preserve native links, including modifier-click/new-tab behavior.
+        if (!event.target.closest("a, button, input, select, summary")) onRowClick(r);
+      } } : {});
       columns.forEach((c) => tr.append(el("td", { class: c.num ? "num" : "" }, c.render ? c.render(r) : r[c.key] ?? "—")));
       tbody.append(tr);
     });
@@ -290,7 +304,8 @@ views.overview = () => {
 };
 
 views.disease = (key) => {
-  const summary = DB.diseases.summaries.find((d) => d.disease_key === key) || DB.diseases.summaries[0];
+  const summary = key ? DB.diseases.summaries.find((d) => d.disease_key === key) : DB.diseases.summaries[0];
+  if (!summary) return el("div", { class: "callout", role: "alert" }, "Unknown disease context. Choose a recorded disease from the disease explorer.");
   key = summary.disease_key;
   const ts = targetsForDisease(key);
   const v = el("div");
@@ -333,14 +348,14 @@ views.disease = (key) => {
   // top targets table
   v.append(el("div", { class: "section" },
     el("h2", { class: "title" }, "Ranked targets"),
-    dataTable(ts, targetColumns(), { onRowClick: (r) => go(`#/target/${encodeURIComponent(r.gene)}`), initialSort: { key: "composite", dir: -1 } })));
+    dataTable(ts, targetColumns(), { onRowClick: (r) => go(targetHref(r)), initialSort: { key: "composite", dir: -1 } })));
   return v;
 };
 
 function targetColumns() {
   return [
     { key: "rank", label: "#", num: true, render: (r) => r.rank },
-    { key: "gene", label: "Gene", render: (r) => el("span", { class: "gene" }, r.gene, r.is_anchor ? el("span", { class: "anchor-flag", title: "Known anchor" }, " ✦") : "") },
+    { key: "gene", label: "Gene", render: (r) => el("a", { class: "gene", href: targetHref(r) }, r.gene, r.is_anchor ? el("span", { class: "anchor-flag", title: "Known anchor" }, " ✦") : "") },
     { key: "target_name", label: "Target", render: (r) => el("span", { title: r.target_name }, r.target_name.length > 38 ? r.target_name.slice(0, 37) + "…" : r.target_name) },
     { key: "composite", label: "Composite", num: true, render: (r) => miniScore(r.composite) },
     { key: "opportunity", label: "Class", render: (r) => oppBadge(r.opportunity) },
@@ -377,7 +392,7 @@ views.targets = () => {
     count.textContent = `${rows.length} pairs`;
     tableHost.innerHTML = "";
     tableHost.append(dataTable(rows, [
-      { key: "gene", label: "Gene", render: (r) => el("span", { class: "gene" }, r.gene, r.is_anchor ? el("span", { class: "anchor-flag" }, " ✦") : "") },
+      { key: "gene", label: "Gene", render: (r) => el("a", { class: "gene", href: targetHref(r) }, r.gene, r.is_anchor ? el("span", { class: "anchor-flag" }, " ✦") : "") },
       { key: "disease_name", label: "Disease" },
       { key: "rank", label: "Rank", num: true },
       { key: "composite", label: "Composite", num: true, render: (r) => miniScore(r.composite) },
@@ -398,13 +413,13 @@ views.target = (gene, query) => {
   // The router has already decoded this path component once.
   const pairs = targetsForGene(gene);
   const v = el("div");
-  v.append(el("a", { class: "back-link", onclick: () => history.back() }, "← back"));
+  v.append(el("button", { class: "back-link", type: "button", onclick: () => history.back() }, "← back"));
   if (!pairs.length) { v.append(el("div", { class: "callout" }, `No scored pairs for ${esc(gene)}.`)); return v; }
 
   const preferredDisease = query?.get("d");
   let active = preferredDisease ? pairs.find((p) => p.disease_key === preferredDisease) : pairs[0];
   if (!active) { v.append(el("div", { class: "callout", role: "alert" }, "This gene has no recorded pair for the requested disease. Select a valid disease from the target explorer.")); return v; }
-  const t0 = pairs[0];
+  const t0 = active;
 
   v.append(el("div", { class: "page-head" },
     el("h1", {}, el("span", { class: "gene", style: "font-family:var(--mono)" }, gene), t0.is_anchor ? el("span", { class: "anchor-flag" }, " ✦ anchor") : ""),

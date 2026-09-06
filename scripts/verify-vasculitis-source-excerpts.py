@@ -20,6 +20,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'site/public/apps/rheum-derm-immune-atlas/explorer/vasculitis-evidence.js'
+PACKETS = {'vasculitis': SOURCE, 'connective-tissue': SOURCE.with_name('connective-tissue-evidence.js')}
 LIMIT = ('Publication identity and literal abstract excerpts only, not automated claim entailment. '
          'No human approval or graph promotion. Absence of a returned warning is not exhaustive retraction surveillance.')
 WARNINGS = {'RetractionIn', 'RetractionOf', 'ExpressionOfConcernIn', 'ExpressionOfConcernFor', 'ErratumIn'}
@@ -69,6 +70,23 @@ def validate_packet(packet: object) -> dict:
             raise ValueError('Trial assertions must preserve population, comparison, endpoint and result')
     if used != set(refs):
         raise ValueError('Unused references cannot inflate the source denominator')
+    holds = packet.get('publicationHolds', [])
+    if not isinstance(holds, list):
+        raise ValueError('Publication holds must be an explicit list')
+    held_pmids = set()
+    for hold in holds:
+        if not isinstance(hold, dict) or not all(nonempty(hold.get(k)) for k in ('id', 'sourcePmid', 'condition', 'trial', 'caveat')):
+            raise ValueError('Incomplete publication-review hold')
+        if not re.fullmatch(r'[1-9][0-9]*', hold['sourcePmid']) or hold['sourcePmid'] in held_pmids or hold['sourcePmid'] in pmids:
+            raise ValueError('Ambiguous held publication identity')
+        held_pmids.add(hold['sourcePmid'])
+        corrections = hold.get('correctionPmids')
+        if not isinstance(corrections, list) or not corrections or any(not isinstance(p, str) or not re.fullmatch(r'[1-9][0-9]*', p) or p == hold['sourcePmid'] for p in corrections) or len(set(corrections)) != len(corrections):
+            raise ValueError('Invalid publication-correction identities')
+        if hold.get('reviewStatus') != 'PUBLICATION_CORRECTION_REVIEW_PENDING' or hold.get('disposition') != 'NOT_ADJUDICATED':
+            raise ValueError('A pending publication hold cannot claim adjudication')
+        if any(hold.get(k) is not False for k in ('humanApproved', 'clinicallyValidated', 'automaticGraphPromotion')):
+            raise ValueError('Publication holds cannot confer approval or graph promotion')
     return refs
 
 
@@ -118,14 +136,17 @@ def verify_response(packet: dict, raw: bytes) -> list[dict]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', type=Path, required=True)
+    parser.add_argument('--packet', choices=tuple(PACKETS), default='vasculitis')
     parser.add_argument('--input-xml', type=Path, help='Replay only; never a current-status check')
     args = parser.parse_args()
     receipt = {'schemaVersion': 2, 'mode': 'offline-replay' if args.input_xml else 'live-pubmed',
                'checkedAt': datetime.now(timezone.utc).isoformat(), 'clinicalValidation': False,
                'checks': [], 'passed': False, 'limit': LIMIT}
     try:
-        source = SOURCE.read_bytes(); packet = parse_packet(source.decode('utf-8'))
+        source = PACKETS[args.packet].read_bytes(); packet = parse_packet(source.decode('utf-8'))
         receipt['sourceFileSha256'] = hashlib.sha256(source).hexdigest()
+        receipt['packet'] = args.packet
+        receipt['publicationHolds'] = packet.get('publicationHolds', [])
         receipt['expectedClaims'] = len(packet['claims'])
         if args.input_xml:
             raw = args.input_xml.read_bytes()
