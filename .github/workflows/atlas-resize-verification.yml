@@ -1,0 +1,79 @@
+name: Verify Atlas resize synchronization
+on:
+  push:
+    branches: [audit/atlas-publish-staging-20260905]
+    paths: [.github/workflows/atlas-resize-verification.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/audit/atlas-publish-staging-20260905'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: bd2946d9aab8f92b3e930d350a48e615ebe72226
+          lfs: true
+          persist-credentials: false
+      - name: Apply exact redraw synchronization test correction
+        run: |
+          mkdir -p /tmp/atlas-resize-receipt
+          python - <<'PY'
+          import hashlib,pathlib
+          path=pathlib.Path('site/tests/rheum-derm-atlas-contrast-graph.spec.ts')
+          raw=path.read_bytes();assert hashlib.sha256(raw).hexdigest()=='70bae7681a54a497d2c20942c98c2056bfc50f51e59f29110ad4a8464b47ae04'
+          old='''    await page.setViewportSize({ width: 1200, height: 900 })
+              const transformed = await connectedLabelState(page)'''
+          new='''    await page.setViewportSize({ width: 1200, height: 900 })
+              // setViewportSize changes CSS layout before the resize handler necessarily
+              // updates the canvas and its DOM labels. Wait for that real redraw, not for
+              // the containment assertions themselves to become true.
+              await expect.poll(() => canvas.evaluate((element: HTMLCanvasElement) => {
+                const rect = element.getBoundingClientRect()
+                const scale = Math.min(window.devicePixelRatio || 1, 2)
+                return element.width === Math.max(1, Math.floor(rect.width * scale)) &&
+                  element.height === Math.max(1, Math.floor(rect.height * scale))
+              }), { message: 'canvas backing store must match the resized CSS viewport' }).toBe(true)
+              const transformed = await connectedLabelState(page)'''
+          text=raw.decode();assert text.count(old)==1
+          path.write_text(text.replace(old,new))
+          assert hashlib.sha256(path.read_bytes()).hexdigest()=='2751e54a95f7d8693df1efcd1ea5535b076511fe2aad62b011200c07ef4e7aa1'
+          PY
+          git diff --check
+          git add site/tests/rheum-derm-atlas-contrast-graph.spec.ts
+          git diff --cached > /tmp/atlas-resize-receipt/source.patch
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+      - name: Install locked runtime and Chromium
+        run: |
+          npm --prefix site ci
+          cd site
+          npx playwright install --with-deps chromium
+      - name: Repeat the exact formerly flaky case without retries
+        working-directory: site
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: /tmp/atlas-resize-receipt/repeat-results.json
+        run: npx playwright test tests/rheum-derm-atlas-contrast-graph.spec.ts --grep 'unified high-degree hub preserves' --repeat-each=10 --retries=0 --workers=1 --reporter=line,json
+      - name: Publish only the verified test synchronization
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(git rev-parse HEAD)" = bd2946d9aab8f92b3e930d350a48e615ebe72226
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'agent(codex): await the actual canvas resize before measuring graph labels'
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/clinical-atlas-review-20260905
+          git rev-parse HEAD > /tmp/atlas-resize-receipt/COMMIT.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: atlas-resize-verification
+          path: |
+            /tmp/atlas-resize-receipt
+            site/test-results
+          if-no-files-found: error
+          retention-days: 7
