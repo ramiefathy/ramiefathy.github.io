@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  // Astro preserves JSX for its React integration; standalone Vite 8 tests must transform it.
+  oxc: { jsx: { runtime: 'automatic' } },
   test: {
     include: [
       'src/**/*.test.{js,ts,jsx,tsx}',

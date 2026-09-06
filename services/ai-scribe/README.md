@@ -6,7 +6,7 @@ This service powers the live transcription, note generation, and analysis featur
 
 ```bash
 cd services/ai-scribe
-cp .env.example .env   # then populate with your Gemini API key, session secret, and allowed origins
+cp .env.example .env   # then populate with your Gemini API key, validated model ID, session secret, and allowed origins
 pip install -r requirements.txt
 python app.py
 ```
@@ -30,16 +30,22 @@ By default the server listens on `ws://0.0.0.0:8765`.
 | Variable               | Description                                               |
 |------------------------|-----------------------------------------------------------|
 | `GEMINI_API_KEY`       | Google Gemini API key                                     |
-| `GEMINI_DEFAULT_MODEL` | Model used for transcript-to-note generation              |
-| `GEMINI_VISION_MODEL`  | Model used for multimodal image analysis                  |
-| `GEMINI_SUGGESTION_MODEL` | Model used for real-time suggestion prompts           |
+| `GEMINI_DEFAULT_MODEL` | Required: explicitly selected and validated model ID              |
+| `GEMINI_VISION_MODEL`  | Image-capable model; blank inherits the default                  |
+| `GEMINI_SUGGESTION_MODEL` | Suggestion model; blank inherits the default           |
 | `SESSION_SECRET`       | Shared secret required for websocket authentication       |
 | `JWT_SIGNING_SECRET`   | Secret used to sign/verify JWTs (HS256)                   |
 | `ALLOWED_ORIGINS`      | Comma-separated list of allowed `Origin` headers          |
 
 ## Deployment Notes
 
-- The server is stateless; scale out with any process manager.
+- Active encounters and transcripts are held in process memory. The service is not stateless; multi-worker deployments need session affinity or an explicitly designed session store. Restarting a worker loses its active sessions.
 - Enable HTTPS termination at the proxy layer and forward traffic to the websocket port.
 - Rotate `SESSION_SECRET` periodically and update the client configuration through the UI.
 - Logging is written to stdout and can be captured by your hosting provider.
+
+## Model and SDK lifecycle
+
+The provider adapter uses the maintained `google-genai` SDK, pinned to 2.22.0, rather than the deprecated `google-generativeai` package. The old Gemini 2.0 experimental default has been removed. `GEMINI_DEFAULT_MODEL` must be set to a currently available model that has been evaluated for the intended workflow and authorized account; the service deliberately does not choose a newer model silently. Blank vision/suggestion overrides inherit that explicit selection. Known-retired Gemini 2.0 model names are rejected before any provider request.
+
+Check [Google's model lifecycle](https://ai.google.dev/gemini-api/docs/deprecations), [SDK support](https://ai.google.dev/gemini-api/docs/libraries), and [SDK request/stream documentation](https://googleapis.github.io/python-genai/) when deploying. A passing mocked-provider suite establishes failure-handling and transport contracts, not clinical quality, account availability, or permission to transmit patient information. Before production use, validate text generation, streaming cancellation, image input, and authentication against the chosen deployment using synthetic encounters only.

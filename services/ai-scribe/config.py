@@ -14,12 +14,13 @@ if os.path.exists(dotenv_path):
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Default model for text generation, can be overridden by client
-GEMINI_DEFAULT_MODEL = os.getenv("GEMINI_DEFAULT_MODEL", "models/gemini-2.0-flash-exp") 
-# Specific model for image analysis, should be vision-capable
-GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "models/gemini-2.0-flash-exp") 
-# Potentially a faster model for real-time suggestions
-GEMINI_SUGGESTION_MODEL = os.getenv("GEMINI_SUGGESTION_MODEL", "models/gemini-2.0-flash-exp")
+# Select a currently available model explicitly after validating it for this deployment.
+# Do not silently change a clinical workflow's model or fall back to a retired experiment.
+GEMINI_DEFAULT_MODEL = os.getenv("GEMINI_DEFAULT_MODEL", "").strip()
+GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "").strip() or GEMINI_DEFAULT_MODEL
+GEMINI_SUGGESTION_MODEL = os.getenv("GEMINI_SUGGESTION_MODEL", "").strip() or GEMINI_DEFAULT_MODEL
+if not GEMINI_DEFAULT_MODEL:
+    print("WARNING: GEMINI_DEFAULT_MODEL is unset. Configure a deployment-validated model before generating notes.")
 
 SESSION_SECRET = os.getenv("SESSION_SECRET")
 JWT_SIGNING_SECRET = os.getenv("JWT_SIGNING_SECRET")

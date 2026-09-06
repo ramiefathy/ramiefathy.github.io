@@ -7,52 +7,138 @@
   "data": {
     "stages": [
       {
-        "id": "history", "name": "History",
+        "id": "history",
+        "name": "History",
         "items": [
-          { "id": "h1", "label": "Onset, duration, rate of loss", "detail": "<p>Sudden vs gradual; days/weeks/months; fluctuations.</p>" },
-          { "id": "h2", "label": "Pattern: focal / patterned / diffuse" },
-          { "id": "h3", "label": "Family history of alopecia (ages, severity, sites)" },
-          { "id": "h4", "label": "Recent illness, surgery, pregnancy, weight loss (TE triggers)", "detail": "<p>3-month lag is classic for telogen effluvium.</p>" },
-          { "id": "h5", "label": "Medications including new starts in last 3-6 months" },
-          { "id": "h6", "label": "Hair care practices: tension, heat, chemical processing", "branchIf": "African descent or chemically-treated hair" },
-          { "id": "h7", "label": "Symptoms: itch, burn, tenderness", "detail": "<p>Symptomatic hair loss favors inflammatory cicatricial alopecia.</p>" },
-          { "id": "h8", "label": "Systemic symptoms: thyroid, autoimmune, weight, energy" }
+          {
+            "id": "h1",
+            "label": "Onset, duration, rate of loss",
+            "detail": "<p>Sudden vs gradual; days/weeks/months; fluctuations.</p>"
+          },
+          {
+            "id": "h2",
+            "label": "Pattern: focal / patterned / diffuse"
+          },
+          {
+            "id": "h3",
+            "label": "Family history of alopecia (ages, severity, sites)"
+          },
+          {
+            "id": "h4",
+            "label": "Recent illness, surgery, pregnancy, weight loss (TE triggers)",
+            "detail": "<p>3-month lag is classic for telogen effluvium.</p>"
+          },
+          {
+            "id": "h5",
+            "label": "Medications including new starts in last 3-6 months"
+          },
+          {
+            "id": "h6",
+            "label": "Hair care practices: tension, heat, chemical processing"
+          },
+          {
+            "id": "h7",
+            "label": "Symptoms: itch, burn, tenderness",
+            "detail": "<p>Symptomatic hair loss favors inflammatory cicatricial alopecia.</p>"
+          },
+          {
+            "id": "h8",
+            "label": "Systemic symptoms: thyroid, autoimmune, weight, energy"
+          }
         ]
       },
       {
-        "id": "exam", "name": "Examination",
+        "id": "exam",
+        "name": "Examination",
         "items": [
-          { "id": "e1", "label": "Pattern recognition: Norwood / Ludwig / Olsen" },
-          { "id": "e2", "label": "Hair pull test (50 hairs proximal-to-distal pull)", "detail": "<p>Positive: ≥6 hairs (>10%) shed → active shedding.</p>" },
-          { "id": "e3", "label": "Scalp inspection: erythema, scale, pustules, scarring, tufting" },
-          { "id": "e4", "label": "Trichoscopy (dermatoscope on scalp)", "detail": "<p>Yellow dots (AGA), exclamation hairs (AA), peripilar casts (LPP), pinpoint white dots (FFA).</p>" },
-          { "id": "e5", "label": "Eyebrows + body hair survey" },
-          { "id": "e6", "label": "Nail exam (pitting → AA, trachyonychia)" }
+          {
+            "id": "e1",
+            "label": "Pattern recognition: Norwood / Ludwig / Olsen"
+          },
+          {
+            "id": "e2",
+            "label": "Hair pull test (50 hairs proximal-to-distal pull)",
+            "detail": "Record number and scalp site. A healthy-volunteer study found ≤2 hairs in 97.2%; the historical >10% threshold is not a universal diagnostic cutoff."
+          },
+          {
+            "id": "e3",
+            "label": "Scalp inspection: erythema, scale, pustules, scarring, tufting"
+          },
+          {
+            "id": "e4",
+            "label": "Trichoscopy (dermatoscope on scalp)",
+            "detail": "<p>Yellow dots (AGA), exclamation hairs (AA), peripilar casts (LPP), pinpoint white dots (FFA).</p>"
+          },
+          {
+            "id": "e5",
+            "label": "Eyebrows + body hair survey"
+          },
+          {
+            "id": "e6",
+            "label": "Nail exam (pitting → AA, trachyonychia)"
+          }
         ]
       },
       {
-        "id": "labs", "name": "Targeted Labs",
+        "id": "labs",
+        "name": "Targeted Labs",
         "items": [
-          { "id": "l1", "label": "TSH, ferritin, vitamin D 25-OH" },
-          { "id": "l2", "label": "CBC, CMP if systemic symptoms" },
-          { "id": "l3", "label": "Free testosterone + DHEA-S in F with patterned loss + virilization" },
-          { "id": "l4", "label": "ANA + RPR if scarring or photodistributed" },
-          { "id": "l5", "label": "KOH + culture for tinea capitis if pediatric or scaly" }
+          {
+            "id": "l1",
+            "label": "Select thyroid or iron studies when clinical assessment indicates; not a universal panel"
+          },
+          {
+            "id": "l2",
+            "label": "CBC, CMP if systemic symptoms"
+          },
+          {
+            "id": "l3",
+            "label": "Free testosterone + DHEA-S in F with patterned loss + virilization"
+          },
+          {
+            "id": "l4",
+            "label": "ANA or syphilis testing only when the clinical differential warrants it"
+          },
+          {
+            "id": "l5",
+            "label": "KOH + culture for tinea capitis if pediatric or scaly"
+          }
         ]
       },
       {
-        "id": "biopsy", "name": "Biopsy (when indicated)",
+        "id": "biopsy",
+        "name": "Biopsy (when indicated)",
         "items": [
-          { "id": "b1", "label": "4mm punch from active edge", "detail": "<p>Avoid completely scarred areas — they lack diagnostic features.</p>" },
-          { "id": "b2", "label": "Submit for BOTH vertical + horizontal sections" },
-          { "id": "b3", "label": "DIF if LE suspected (separate punch in saline)" },
-          { "id": "b4", "label": "Indications: scarring, atypical pattern, refractory, dx uncertain" }
+          {
+            "id": "b1",
+            "label": "4mm punch from active edge",
+            "detail": "<p>Avoid completely scarred areas — they lack diagnostic features.</p>"
+          },
+          {
+            "id": "b2",
+            "label": "Submit for BOTH vertical + horizontal sections"
+          },
+          {
+            "id": "b3",
+            "label": "Separate DIF biopsy when indicated; agree site and transport medium with the receiving laboratory",
+            "detail": "Do not assume saline is acceptable for routine transport. Local laboratory timing and handling requirements apply."
+          },
+          {
+            "id": "b4",
+            "label": "Indications: scarring, atypical pattern, refractory, dx uncertain"
+          }
         ]
       }
     ]
   },
   "citations": [
-    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK538178/", "quote": "StatPearls Alopecia review summarizes clinical assessment, laboratory evaluation, and biopsy principles for alopecia." },
-    { "pmid": "23695609", "quote": "Filbrandt R et al. Primary cicatricial alopecia: diagnosis and treatment. CMAJ. 2013;185(18):1579-1585." }
+    {
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK538178/",
+      "quote": "StatPearls Alopecia review summarizes clinical assessment, laboratory evaluation, and biopsy principles for alopecia."
+    },
+    {
+      "pmid": "23695609",
+      "quote": "Filbrandt R et al. Primary cicatricial alopecia: diagnosis and treatment. CMAJ. 2013;185(18):1579-1585."
+    }
   ]
 }

@@ -1,3 +1,5 @@
+import { ASSOCIATION_STATES, validateAssociationSnapshot, validateDrugCandidates, uniqueDrugRowIds, reconstructDrug, sameIndication, csvText } from './evidence-contract.js';
+
 // DermatoTarget Atlas — research workbench frontend.
 // Dependency-free ES module. Consumes static JSON bundles shipped with this
 // app. All language is hypothesis-generating.
@@ -27,7 +29,7 @@ const pct = (x) => (x == null ? "—" : `${(x * 100).toFixed(0)}%`);
 const num = (x) => (x == null ? "—" : x.toLocaleString());
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const titleCase = (s) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-const oppLabel = (s) => titleCase(s);
+const oppLabel = (s) => s === 'validated_or_late_stage' ? 'Reported clinical precedent (not independently validated)' : titleCase(s);
 
 const OPP_COLORS = {
   validated_or_late_stage: "#5ec98a",
@@ -56,7 +58,7 @@ async function load(name) {
     cache[name] = fetch(`data/${name}.json`).then((r) => {
       if (!r.ok) throw new Error(`Failed to load ${name}: ${r.status}`);
       return r.json();
-    });
+    }).then(data => name === "drug_candidates" ? validateDrugCandidates(data) : data).catch(error => { delete cache[name]; throw error; });
   }
   return cache[name];
 }
@@ -186,14 +188,24 @@ function dataTable(rows, columns, { onRowClick = null, initialSort = null } = {}
     thead.innerHTML = "";
     const tr = el("tr");
     columns.forEach((c) => {
-      const th = el("th", { class: (c.num ? "num " : "") + (c.sort !== false ? "sortable" : "") },
-        c.label,
-        sortKey === c.key ? el("span", { class: "arrow" }, sortDir < 0 ? " ▼" : " ▲") : "");
-      if (c.sort !== false) th.addEventListener("click", () => {
-        if (sortKey === c.key) sortDir = -sortDir; else { sortKey = c.key; sortDir = c.num ? -1 : 1; }
-        renderBody();
-        renderHead();
+      const sortable = c.sort !== false;
+      const th = el("th", {
+        scope: "col", class: (c.num ? "num " : "") + (sortable ? "sortable" : ""),
+        "aria-sort": sortable ? (sortKey === c.key ? (sortDir < 0 ? "descending" : "ascending") : "none") : null,
       });
+      if (sortable) {
+        const button = el("button", { type: "button", class: "table-sort-button", "aria-label": `Sort by ${c.label}` },
+          c.label, sortKey === c.key ? el("span", { class: "arrow", "aria-hidden": "true" }, sortDir < 0 ? " ▼" : " ▲") : "");
+        button.addEventListener("click", () => {
+          const restoreFocus = document.activeElement === button;
+          if (sortKey === c.key) sortDir = -sortDir; else { sortKey = c.key; sortDir = c.num ? -1 : 1; }
+          renderBody();
+          renderHead();
+          // The old header button was replaced. Keep keyboard navigation at this column.
+          if (restoreFocus) thead.querySelectorAll("th")[columns.indexOf(c)].querySelector("button").focus({ preventScroll: true });
+        });
+        th.append(button);
+      } else th.append(document.createTextNode(c.label));
       tr.append(th);
     });
     thead.append(tr);
@@ -203,13 +215,17 @@ function dataTable(rows, columns, { onRowClick = null, initialSort = null } = {}
     if (sortKey) {
       data.sort((a, b) => {
         const va = a[sortKey], vb = b[sortKey];
+        if (va == null && vb == null) return 0;
         if (va == null) return 1; if (vb == null) return -1;
         return (va > vb ? 1 : va < vb ? -1 : 0) * sortDir;
       });
     }
     tbody.innerHTML = "";
     data.forEach((r) => {
-      const tr = el("tr", onRowClick ? { class: "clickable", onclick: () => onRowClick(r) } : {});
+      const tr = el("tr", onRowClick ? { class: "clickable", onclick: (event) => {
+        // Preserve native links, including modifier-click/new-tab behavior.
+        if (!event.target.closest("a, button, input, select, summary")) onRowClick(r);
+      } } : {});
       columns.forEach((c) => tr.append(el("td", { class: c.num ? "num" : "" }, c.render ? c.render(r) : r[c.key] ?? "—")));
       tbody.append(tr);
     });
@@ -255,7 +271,7 @@ views.overview = () => {
   const oppData = Object.keys(OPP_COLORS).filter((k) => oc[k]).map((k) => ({ label: oppLabel(k), value: oc[k], color: OPP_COLORS[k] }));
   const left = el("div", { class: "panel" }, el("h2", {}, "Opportunity-class distribution"),
     barChart(oppData, { max: Math.max(...oppData.map((d) => d.value)), fmtVal: (x) => num(x), w: 480 }),
-    el("p", { class: "muted", style: "margin:10px 0 0;font-size:12px" }, "Classes separate validated/late-stage targets from near-field repurposing and underexplored white-space."));
+    el("p", { class: "muted", style: "margin:10px 0 0;font-size:12px" }, "Classes are historical pipeline categories, not verified treatment options. Clinical precedent may concern another disease; direction of modulation and the original evidence must be checked."));
 
   const val = DB.validation;
   const meanRecall = val.anchors.reduce((s, a) => s + a.recall_top25, 0) / val.anchors.length;
@@ -281,14 +297,15 @@ views.overview = () => {
       { key: "top_score", label: "Top score", num: true, render: (r) => miniScore(r.top_score) },
       { key: "white_space", label: "White-space", num: true },
       { key: "near_field", label: "Near-field", num: true },
-      { key: "validated_late_stage", label: "Validated/late", num: true },
+      { key: "validated_late_stage", label: "Reported precedent", num: true },
       { key: "anchors_top25", label: "Anchors top-25", num: true, render: (r) => `${r.anchors_top25}/${r.anchors_configured}` },
     ], { initialSort: { key: "top_score", dir: -1 } })));
   return v;
 };
 
 views.disease = (key) => {
-  const summary = DB.diseases.summaries.find((d) => d.disease_key === key) || DB.diseases.summaries[0];
+  const summary = key ? DB.diseases.summaries.find((d) => d.disease_key === key) : DB.diseases.summaries[0];
+  if (!summary) return el("div", { class: "callout", role: "alert" }, "Unknown disease context. Choose a recorded disease from the disease explorer.");
   key = summary.disease_key;
   const ts = targetsForDisease(key);
   const v = el("div");
@@ -301,7 +318,7 @@ views.disease = (key) => {
     el("h1", {}, summary.disease_name),
     el("p", {}, `${summary.scored} scored targets · top signal `,
       el("strong", {}, summary.top_gene), ` (${fmt(summary.top_score)}). `,
-      `${summary.white_space} white-space · ${summary.near_field} near-field · ${summary.validated_late_stage} validated/late-stage.`)),
+      `${summary.white_space} white-space · ${summary.near_field} near-field · ${summary.validated_late_stage} reported-precedent rows.`)),
     selector);
 
   // modules for this disease + anchor recovery
@@ -331,14 +348,14 @@ views.disease = (key) => {
   // top targets table
   v.append(el("div", { class: "section" },
     el("h2", { class: "title" }, "Ranked targets"),
-    dataTable(ts, targetColumns(), { onRowClick: (r) => go(`#/target/${encodeURIComponent(r.gene)}`), initialSort: { key: "composite", dir: -1 } })));
+    dataTable(ts, targetColumns(), { onRowClick: (r) => go(targetHref(r)), initialSort: { key: "composite", dir: -1 } })));
   return v;
 };
 
 function targetColumns() {
   return [
     { key: "rank", label: "#", num: true, render: (r) => r.rank },
-    { key: "gene", label: "Gene", render: (r) => el("span", { class: "gene" }, r.gene, r.is_anchor ? el("span", { class: "anchor-flag", title: "Known anchor" }, " ✦") : "") },
+    { key: "gene", label: "Gene", render: (r) => el("a", { class: "gene", href: targetHref(r) }, r.gene, r.is_anchor ? el("span", { class: "anchor-flag", title: "Known anchor" }, " ✦") : "") },
     { key: "target_name", label: "Target", render: (r) => el("span", { title: r.target_name }, r.target_name.length > 38 ? r.target_name.slice(0, 37) + "…" : r.target_name) },
     { key: "composite", label: "Composite", num: true, render: (r) => miniScore(r.composite) },
     { key: "opportunity", label: "Class", render: (r) => oppBadge(r.opportunity) },
@@ -375,7 +392,7 @@ views.targets = () => {
     count.textContent = `${rows.length} pairs`;
     tableHost.innerHTML = "";
     tableHost.append(dataTable(rows, [
-      { key: "gene", label: "Gene", render: (r) => el("span", { class: "gene" }, r.gene, r.is_anchor ? el("span", { class: "anchor-flag" }, " ✦") : "") },
+      { key: "gene", label: "Gene", render: (r) => el("a", { class: "gene", href: targetHref(r) }, r.gene, r.is_anchor ? el("span", { class: "anchor-flag" }, " ✦") : "") },
       { key: "disease_name", label: "Disease" },
       { key: "rank", label: "Rank", num: true },
       { key: "composite", label: "Composite", num: true, render: (r) => miniScore(r.composite) },
@@ -393,16 +410,16 @@ views.targets = () => {
 };
 
 views.target = (gene, query) => {
-  gene = decodeURIComponent(gene);
+  // The router has already decoded this path component once.
   const pairs = targetsForGene(gene);
   const v = el("div");
-  v.append(el("a", { class: "back-link", onclick: () => history.back() }, "← back"));
+  v.append(el("button", { class: "back-link", type: "button", onclick: () => history.back() }, "← back"));
   if (!pairs.length) { v.append(el("div", { class: "callout" }, `No scored pairs for ${esc(gene)}.`)); return v; }
 
   const preferredDisease = query?.get("d");
   let active = preferredDisease ? pairs.find((p) => p.disease_key === preferredDisease) : pairs[0];
-  if (!active) active = pairs[0];
-  const t0 = pairs[0];
+  if (!active) { v.append(el("div", { class: "callout", role: "alert" }, "This gene has no recorded pair for the requested disease. Select a valid disease from the target explorer.")); return v; }
+  const t0 = active;
 
   v.append(el("div", { class: "page-head" },
     el("h1", {}, el("span", { class: "gene", style: "font-family:var(--mono)" }, gene), t0.is_anchor ? el("span", { class: "anchor-flag" }, " ✦ anchor") : ""),
@@ -410,7 +427,7 @@ views.target = (gene, query) => {
 
   // disease selector for this gene
   v.append(el("div", { class: "chips section" }, pairs.map((p) =>
-    el("button", { class: "chip btn" + (p === active ? " active" : ""), onclick: () => { active = p; rerender(); } },
+    el("button", { class: "chip btn" + (p === active ? " active" : ""), onclick: () => { go(targetHref(p)); } },
       `${p.disease_name} · #${p.rank} · ${fmt(p.composite, 2)}`))));
 
   const body = el("div");
@@ -440,7 +457,7 @@ function renderTargetDetail(t) {
   // readiness + evidence
   const r = t.readiness;
   const ev = el("div", { class: "panel" },
-    el("h2", {}, "Submission-readiness & evidence"),
+    el("h2", {}, "Internal score sensitivity & evidence gaps"),
     el("p", {}, tierBadge(r), " ",
       el("span", { class: "muted", style: "font-size:12.5px" }, ` empirical p(upper) = ${t.empirical_p_upper == null ? "n/a" : fmt(t.empirical_p_upper, 3)}`)),
     el("ul", { style: "margin:8px 0 14px;padding-left:18px;color:var(--text-dim);font-size:13px" },
@@ -450,12 +467,19 @@ function renderTargetDetail(t) {
       el("dt", {}, "PubMed pair records"), el("dd", {}, String(t.pubmed_pairs)),
       el("dt", {}, "Disease trial reports"), el("dd", {}, String(t.trial_reports)),
       el("dt", {}, "Max clinical stage"), el("dd", {}, t.max_clinical_stage ? t.max_clinical_stage.replace(/_/g, " ") : "—"),
-      el("dt", {}, "Approved drug"), el("dd", {}, t.approved_drug ? "yes" : "no"),
+      el("dt", {}, "Approved drug in source (not necessarily this disease)"), el("dd", {}, t.approved_drug ? "yes" : "no"),
       el("dt", {}, "Tractability"), el("dd", {}, t.tractability.length ? t.tractability.join(", ") : "—"),
       el("dt", {}, "Drug candidates"), el("dd", {}, String(t.candidate_count)),
       el("dt", {}, "HPA skin / immune"), el("dd", {}, `${t.hpa_skin ? "skin" : "—"} / ${t.hpa_immune ? "immune" : "—"}`)));
   head.append(ev);
   wrap.append(head);
+  const reviewed = DB.associations.pairs.find(r => r.gene === t.gene && r.disease_key === t.disease_key);
+  wrap.append(el("section", { class: "panel section", "aria-label": "Independent association cross-check" },
+    el("h2", {}, "Independent association cross-check"),
+    el("p", {}, ASSOCIATION_STATES[reviewed.status]),
+    el("p", { class: "muted" }, reviewed.note),
+    el("p", {}, `Open Targets ${DB.associations.source_version}; direct ontology query only. Therapeutic direction and clinical validity are not established.`),
+    el("a", { href: `#/evidence?d=${encodeURIComponent(t.disease_key)}&q=${encodeURIComponent(t.gene)}` }, "Inspect exact identity, source response, and limitations →")));
 
   // cross-disease scores for this gene
   const cross = targetsForGene(t.gene);
@@ -515,42 +539,42 @@ async function renderTargetExtras(t, host) {
   // drug candidates for this gene (from lazy columnar)
   const drugHost = el("div");
   host.append(drugHost);
-  const col = await load("drug_candidates");
-  const gi = col.dims.genes.indexOf(t.gene);
-  if (gi < 0) { drugHost.append(el("p", { class: "muted" }, "No drug candidates recorded for this target.")); return; }
-  const rows = [];
-  for (let i = 0; i < col.n; i++) if (col.cols.genes[i] === gi) rows.push(reconstructDrug(col, i));
-  // dedupe by drug + stage, keep max report count
-  const byDrug = new Map();
-  rows.forEach((d) => {
-    const k = d.drug_name + "|" + d.candidate_max_stage;
-    const cur = byDrug.get(k);
-    if (!cur || d.clinical_report_count > cur.clinical_report_count) byDrug.set(k, d);
-  });
-  const uniq = [...byDrug.values()].sort((a, b) => b.clinical_report_count - a.clinical_report_count).slice(0, 60);
-  drugHost.append(el("h2", { class: "title" }, `Drug candidates (${byDrug.size} unique, top 60 shown)`),
-    dataTable(uniq, [
-      { key: "drug_name", label: "Drug", render: (d) => el("span", { class: "gene" }, d.drug_name) },
-      { key: "drug_type", label: "Type" },
-      { key: "candidate_max_stage", label: "Max stage", render: (d) => (d.candidate_max_stage || "—").replace(/_/g, " ") },
-      { key: "clinical_report_count", label: "Reports", num: true },
-    ], { initialSort: { key: "clinical_report_count", dir: -1 } }));
+  try {
+    const col = await load("drug_candidates");
+    const rows = uniqueDrugRowIds(col).map(i => reconstructDrug(col, i)).filter(r => r.gene_symbol === t.gene);
+    const check = DB.associations.pairs.find(r => r.gene === t.gene && r.disease_key === t.disease_key);
+    // A verified ontology synonym may match; no parent-disease or substring propagation.
+    const isSame = r => sameIndication(r.disease_name, t.disease_name) ||
+      sameIndication(r.disease_name, check.resolved_disease_name);
+    const same = rows.filter(isSame), other = rows.filter(r => !isSame(r));
+    const toggle = el("input", { type: "checkbox", "aria-label": "Include candidates recorded for other indications" });
+    const tableHost = el("div", { class: "candidate-detail", "data-disease": t.disease_key });
+    drugHost.append(el("h2", { class: "title" }, `Drug candidates — ${t.disease_name}`),
+      el("p", { class: "muted" }, `${same.length} distinct records match this indication; ${other.length} concern other recorded indications. Exact duplicate rows are collapsed without adding report counts. Historical drug and candidate stages are not current approval determinations.`),
+      el("label", { class: "candidate-toggle" }, toggle, " Include other indications (not evidence for this disease)"), tableHost);
+    const render = () => {
+      const selected = (toggle.checked ? rows : same).slice().sort((a, b) => b.clinical_report_count - a.clinical_report_count);
+      tableHost.replaceChildren(el("p", { role: "status" }, `${selected.length} records; ${Math.min(60, selected.length)} shown.`));
+      if (!selected.length) { tableHost.append(el("p", {}, "No exact-indication candidate record is available. This is not evidence of no association or no therapeutic effect.")); return; }
+      tableHost.append(dataTable(selected.slice(0, 60), [
+        { key: "drug_name", label: "Drug" }, { key: "target_name", label: "Target" },
+        { key: "disease_name", label: "Recorded indication" },
+        { key: "candidate_max_stage", label: "Candidate stage (recorded)" },
+        { key: "drug_maximum_clinical_stage", label: "Drug-wide stage (not this indication)" },
+        { key: "clinical_report_count", label: "Reports (not pooled)", num: true },
+      ], { initialSort: { key: "clinical_report_count", dir: -1 } }));
+    };
+    toggle.addEventListener("change", render); render();
+  } catch (error) {
+    drugHost.append(el("p", { class: "callout", role: "alert" }, "Candidate data could not be validated or loaded. No candidate evidence is displayed."));
+  }
 }
-
-function reconstructDrug(col, i) {
-  const o = {};
-  const map = { genes: "gene_symbol", targets: "target_name", drugs: "drug_name", drug_types: "drug_type", stages: "drug_maximum_clinical_stage", cand_stages: "candidate_max_stage", diseases: "disease_name" };
-  for (const [dim, field] of Object.entries(map)) o[field] = col.dims[dim][col.cols[dim][i]];
-  o.clinical_report_count = col.report_count[i];
-  return o;
-}
-
 views.shortlists = () => {
   const v = el("div");
   v.append(el("div", { class: "page-head" }, el("h1", {}, "Candidate shortlists"),
-    el("p", {}, "Curated opportunity classes. White-space = biologically supported but underdeveloped; near-field = repurposing from adjacent indications; validated/late-stage = clinically mature anchors.")));
+    el("p", {}, "Historical heuristic opportunity classes. Neither a high rank nor an existing drug establishes that modulating the target in a particular direction is beneficial or safe for this disease.")));
   const which = (query.get("c") || "white_space");
-  const tabs = el("div", { class: "chips section" }, [["white_space", "White-space"], ["near_field", "Near-field repurposing"], ["validated_late_stage", "Validated / late-stage"]].map(([k, lbl]) =>
+  const tabs = el("div", { class: "chips section" }, [["white_space", "White-space"], ["near_field", "Near-field repurposing"], ["validated_late_stage", "Reported clinical precedent"]].map(([k, lbl]) =>
     el("a", { class: "chip btn" + (k === which ? " active" : ""), href: `#/shortlists?c=${k}` }, lbl)));
   v.append(tabs);
   const rows = DB.shortlists[which] || [];
@@ -576,7 +600,7 @@ views.validation = () => {
   const val = DB.validation;
   const v = el("div");
   v.append(el("div", { class: "page-head" }, el("h1", {}, "Validation & robustness"),
-    el("p", {}, "Does a high rank survive scrutiny? Anchor recovery, empirical null calibration, evidence-leakage sensitivity, and negative-control behavior together define how submission-ready a candidate is.")));
+    el("p", {}, "These are internal pipeline diagnostics, not independent biological or clinical validation. Original request-level evidence and reproducible source code are required to validate mappings and null calibration.")));
 
   // anchor recovery bar
   const anchorData = val.anchors.map((a) => ({ label: a.disease_name, value: a.recall_top25, color: "#5ad1b4" }));
@@ -692,24 +716,27 @@ function drugExplorer(col) {
   const state = { gene: "", drug: "", type: "", stage: "", q: "" };
   // build a filtered index of row ids
   let ids = [];
+  const uniqueIds = uniqueDrugRowIds(col);
 
   const toolbar = el("div", { class: "toolbar" });
-  const geneSel = el("select", {}, el("option", { value: "" }, "All genes"),
+  const geneSel = el("select", { "aria-label": "Candidate gene" }, el("option", { value: "" }, "All genes"),
     col.dims.genes.map((g, i) => ({ g, i })).sort((a, b) => a.g.localeCompare(b.g)).map((x) => el("option", { value: x.i }, x.g)));
-  const typeSel = el("select", {}, el("option", { value: "" }, "All types"),
+  const typeSel = el("select", { "aria-label": "Candidate type" }, el("option", { value: "" }, "All types"),
     col.dims.drug_types.map((t, i) => el("option", { value: i }, t || "—")));
-  const stageSel = el("select", {}, el("option", { value: "" }, "All stages"),
+  const stageSel = el("select", { "aria-label": "Candidate stage" }, el("option", { value: "" }, "All stages"),
     col.dims.cand_stages.map((s, i) => el("option", { value: i }, (s || "—").replace(/_/g, " "))));
-  const search = el("input", { type: "search", placeholder: "Filter drug or indication…" });
+  const diseaseSel = el("select", { "aria-label": "Exact candidate indication" }, el("option", { value: "" }, "All recorded indications"),
+    col.dims.diseases.map((name, i) => ({ name, i })).sort((a, b) => a.name.localeCompare(b.name)).map(x => el("option", { value: x.i }, x.name || "Not specified")));
+  const search = el("input", { type: "search", "aria-label": "Search candidate drug or indication", placeholder: "Filter drug or indication…" });
   const count = el("span", { class: "count" });
-  toolbar.append(geneSel, typeSel, stageSel, search, el("span", { class: "spacer" }), count);
-  wrap.append(toolbar);
+  toolbar.append(geneSel, typeSel, stageSel, diseaseSel, search, el("span", { class: "spacer" }), count);
+  wrap.append(toolbar, el("p", { class: "muted" }, `${col.n.toLocaleString()} raw rows; ${uniqueIds.length.toLocaleString()} distinct full records. Exact duplicates only are collapsed; indication, stages, target identity and report count are preserved.`));
 
   // virtualized table
   const ROW_H = 38, BUF = 6;
   const head = el("div", { class: "vhead" },
     el("div", {}, "Gene"), el("div", {}, "Drug"), el("div", {}, "Target"), el("div", {}, "Type"), el("div", {}, "Max stage"), el("div", {}, "Indication"), el("div", { class: "num" }, "Reports"));
-  const body = el("div", { class: "vbody" });
+  const body = el("div", { class: "vbody", tabindex: "0", "aria-label": "Scrollable candidate records" });
   const spacer = el("div", { class: "vspacer" });
   body.append(spacer);
   const vt = el("div", { class: "vtable" }, head, body);
@@ -719,9 +746,11 @@ function drugExplorer(col) {
     const gi = geneSel.value === "" ? -1 : +geneSel.value;
     const ti = typeSel.value === "" ? -1 : +typeSel.value;
     const si = stageSel.value === "" ? -1 : +stageSel.value;
+    const di = diseaseSel.value === "" ? -1 : +diseaseSel.value;
     const q = state.q.toLowerCase();
     ids = [];
-    for (let i = 0; i < col.n; i++) {
+    for (const i of uniqueIds) {
+      if (di >= 0 && col.cols.diseases[i] !== di) continue;
       if (gi >= 0 && col.cols.genes[i] !== gi) continue;
       if (ti >= 0 && col.cols.drug_types[i] !== ti) continue;
       if (si >= 0 && col.cols.cand_stages[i] !== si) continue;
@@ -732,7 +761,7 @@ function drugExplorer(col) {
       }
       ids.push(i);
     }
-    count.textContent = `${ids.length.toLocaleString()} rows`;
+    count.textContent = `${ids.length.toLocaleString()} distinct records`;
     spacer.style.height = ids.length * ROW_H + "px";
     body.scrollTop = 0;
     renderWindow();
@@ -757,16 +786,60 @@ function drugExplorer(col) {
     }
   }
   body.addEventListener("scroll", () => requestAnimationFrame(renderWindow));
-  [geneSel, typeSel, stageSel].forEach((s) => s.addEventListener("change", recompute));
+  [geneSel, typeSel, stageSel, diseaseSel].forEach((s) => s.addEventListener("change", recompute));
   search.addEventListener("input", () => { state.q = search.value; recompute(); });
   recompute();
   return wrap;
 }
 
+/** Browse the independently captured sources separately from historical rankings. */
+views.evidence = () => {
+  const snapshot = DB.associations;
+  const v = el("div", { class: "source-workbench" });
+  v.append(el("div", { class: "page-head" }, el("h1", {}, "Independent source cross-check"),
+    el("p", {}, `${snapshot.pairs.length} historical target–disease pairs; Open Targets ${snapshot.source_version}; retrieved ${snapshot.retrieved_at.slice(0, 10)}. Ontology propagation is disabled.`)),
+    el("div", { class: "callout" }, "Direct association returned ≠ causal target assignment ≠ therapeutic direction ≠ clinical approval. Not returned by this exact query ≠ no association. Identity conflicts are held rather than silently relabeled. Original scores remain unchanged."));
+  const search = el("input", { type: "search", "aria-label": "Search source cross-check", placeholder: "Gene, disease, or identity…", value: query.get("q") || "" });
+  const disease = el("select", { "aria-label": "Cross-check disease" }, el("option", { value: "" }, "All diseases"),
+    DB.diseases.summaries.map(d => el("option", { value: d.disease_key }, d.disease_name)));
+  disease.value = query.get("d") || "";
+  const status = el("select", { "aria-label": "Cross-check status" }, el("option", { value: "" }, "All source states"),
+    Object.entries(ASSOCIATION_STATES).map(([key, label]) => el("option", { value: key }, label)));
+  const counts = Object.entries(ASSOCIATION_STATES).map(([key, label]) => `${snapshot.pairs.filter(r => r.status === key).length} ${label.toLowerCase()}`).join(" · ");
+  v.append(el("p", { class: "source-counts" }, counts));
+  const count = el("p", { role: "status", "aria-live": "polite" });
+  const host = el("div", { class: "evidence-results" }); let selected = [];
+  const exportButton = el("button", { class: "btn", onclick: () => exportCsv(selected.map(r => ({ ...r, source_version: snapshot.source_version, retrieved_at: snapshot.retrieved_at })), "atlas_source_crosscheck.csv") }, "Export filtered source records");
+  v.append(el("div", { class: "toolbar" }, search, disease, status, exportButton), count, host,
+    el("p", {}, el("a", { href: "data/association-review.json", download: "association-review.json" }, "Download full cross-check JSON")));
+  function render() {
+    const q = search.value.trim().toLowerCase();
+    selected = snapshot.pairs.filter(r => (!disease.value || r.disease_key === disease.value) && (!status.value || r.status === status.value) &&
+      (!q || [r.gene, r.disease_name, r.historical_target_id, r.target_id, r.disease_id].join(" ").toLowerCase().includes(q)));
+    count.textContent = `${selected.length} of ${snapshot.pairs.length} source records.`;
+    exportButton.disabled = !selected.length;
+    host.replaceChildren();
+    if (!selected.length) { host.append(el("p", {}, "No records match these filters. Clear the filters to restore the full denominator.")); return; }
+    host.append(dataTable(selected, [
+      { key: "gene", label: "Gene", render: r => el("a", { href: targetHref(r), class: "gene" }, r.gene) },
+      { key: "disease_name", label: "Disease" },
+      { key: "status", label: "Source state", render: r => ASSOCIATION_STATES[r.status] },
+      { key: "score", label: "Current association score", num: true, render: r => r.score === null ? "Not established" : fmt(r.score) },
+      { key: "sources", label: "Identity / evidence", render: r => el("details", {}, el("summary", {}, `Inspect ${r.gene} / ${r.disease_name}`),
+        el("p", {}, r.note), el("p", {}, `Historical: ${r.historical_target_id || "missing gene ID"} / ${r.historical_disease_id}. Resolved: ${r.target_id || "unresolved"} / ${r.disease_id}.`),
+        el("p", {}, `Identity candidate (not an accepted join when held): ${r.identity_candidate?.symbol || "not returned"} / ${r.identity_candidate?.id || "not returned"}.`),
+        el("p", {}, "Source breadth: ", r.datasource_scores.map(x => `${x.id} ${fmt(x.score)}`).join("; ") || "Not established"),
+        el("p", {}, "Clinical validity: not established. Therapeutic direction: not established."),
+        r.sources.map(path => el("p", {}, el("a", { href: `data/${path}`, target: "_blank", rel: "noopener" }, path.split("/").at(-1))))) }
+    ], { initialSort: { key: "gene", dir: 1 } }));
+  }
+  search.addEventListener("input", render); disease.addEventListener("change", render); status.addEventListener("change", render); render(); return v;
+};
+
 views.methods = () => {
   const m = DB.meta, v = el("div");
   v.append(el("div", { class: "page-head" }, el("h1", {}, "Methods & provenance"),
-    el("p", {}, "Scoring formula, weights, data sources, run metadata, and reproducibility notes. The full request-level provenance is cached in the study's source manifest.")));
+    el("p", {}, "Scoring formula, weights, data sources, run metadata, and reproducibility notes. The original request-level provenance is not present in this bundle; the independent 2026 association cross-check has separate downloadable request/response receipts.")));
 
   const w = m.scoring.weights;
   const wData = Object.keys(w).map((k) => ({ label: m.component_labels[k] || k, value: w[k], color: COMP_COLORS[k] }));
@@ -796,7 +869,8 @@ views.methods = () => {
       [el("dt", {}, titleCase(k)), el("dd", {}, String(val))]).flat())));
 
   v.append(el("div", { class: "callout" }, el("strong", {}, "Reproducibility. "),
-    "API responses are content-addressed and cached by method, URL, params, and body. No API keys are used. ",
+    "Original scores and candidate rows are historical, unreproduced research outputs. The independent cross-check preserves source requests and responses but does not reproduce the historical scores or establish therapeutic direction. ",
+    el("a", { href: "#/evidence" }, "Inspect current source cross-check → "),
     el("a", { href: "#/media" }, "Manuscript & data dictionary →")));
   return v;
 };
@@ -830,13 +904,7 @@ views.media = () => {
 // ---------------------------------------------------------------------------
 function exportCsv(rows, filename) {
   if (!rows.length) return;
-  const keys = Object.keys(rows[0]);
-  const lines = [keys.join(",")];
-  rows.forEach((r) => lines.push(keys.map((k) => {
-    const v = r[k] ?? "";
-    return /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v;
-  }).join(",")));
-  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const blob = new Blob([csvText(rows)], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = el("a", { href: url, download: filename });
   document.body.append(a); a.click();
@@ -864,7 +932,8 @@ const NAV = [
   { id: "targets", label: "Target explorer", ico: "⌕", route: "#/targets" },
   { id: "shortlists", label: "Candidate shortlists", ico: "☑", route: "#/shortlists" },
   { group: "Evidence" },
-  { id: "validation", label: "Validation", ico: "✓", route: "#/validation" },
+  { id: "evidence", label: "Source cross-check", ico: "≡", route: "#/evidence" },
+  { id: "validation", label: "Internal score checks", ico: "✓", route: "#/validation" },
   { id: "modules", label: "Module map", ico: "⬡", route: "#/modules" },
   { id: "literature", label: "Literature", ico: "❡", route: "#/literature" },
   { id: "drugs", label: "Drug candidates", ico: "⚕", route: "#/drugs" },
@@ -896,20 +965,20 @@ function renderNav(active) {
 }
 
 function route() {
-  const { view, arg } = parseHash();
   const host = $("#view");
-  renderNav(view);
-  $("#topbar-title").textContent = TITLES[view] || titleCase(view);
+  host.replaceChildren();
   $("#app").classList.remove("nav-open");
   $("#menu-toggle").setAttribute("aria-expanded", "false");
   $("#app").setAttribute("aria-busy", "false");
-  host.innerHTML = "";
   try {
-    const fn = views[view] || views.overview;
+    const { view, arg } = parseHash();
+    renderNav(view);
+    $("#topbar-title").textContent = TITLES[view] || titleCase(view);
+    const fn = views[view];
+    if (!fn) throw new Error("Unknown application route.");
     host.append(fn(arg, query));
   } catch (e) {
-    console.error(e);
-    host.append(el("div", { class: "callout" }, "Render error: ", String(e.message)));
+    host.append(el("div", { class: "callout", role: "alert" }, "This route could not be displayed. ", el("a", { href: "#/overview" }, "Return to overview")));
   }
   $("#main").scrollTo?.(0, 0);
   window.scrollTo(0, 0);
@@ -970,13 +1039,18 @@ async function boot() {
     ]);
     Object.assign(DB, { meta, targets, diseases, validation, modules, shortlists });
     DB.literature = await load("literature");
+    DB.associations = validateAssociationSnapshot(await load("association-review"), targets);
+    const boundary = el("aside", { class: "callout atlas-evidence-boundary", "aria-label": "Research evidence boundary" },
+      el("strong", {}, "Research evidence boundary. "), "Historical scores and drug candidates are not independently validated clinical recommendations. Current database cross-checks do not establish causality, therapeutic direction, or approval. ",
+      el("a", { href: "#/evidence" }, "Inspect source status"));
+    $("#view").before(boundary);
     $("#run-stamp").textContent = "run " + (meta.run_completed_at || "").slice(0, 10);
     initSearch();
     window.addEventListener("hashchange", route);
     route();
   } catch (e) {
     console.error(e);
-    $("#view").innerHTML = `<div class="callout">Failed to load dashboard data from the bundled JSON assets. (${esc(e.message)})</div>`;
+    $("#view").innerHTML = `<div class="callout" role="alert">Failed to load dashboard data from the bundled JSON assets. (${esc(e.message)})</div>`;
     $("#app").setAttribute("aria-busy", "false");
   }
 }

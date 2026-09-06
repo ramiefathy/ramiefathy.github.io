@@ -2,166 +2,224 @@
   "id": "ctcl-staging-dt",
   "topic": "ctcl",
   "title": "CTCL / MF-SS Staging Algorithm (TNMB)",
-  "subtitle": "ISCL/EORTC consensus staging — T, N, M, B classification to final stage",
+  "subtitle": "MF/Sézary TNMB stage grouping; complete T, N, M and B assessment is required",
   "type": "decision-tree",
   "data": {
-    "start": "skin-lesion-type",
+    "start": "complete",
     "steps": [
       {
-        "id": "skin-lesion-type",
+        "id": "complete",
         "type": "decision",
-        "prompt": "What is the predominant skin lesion morphology?",
-        "detail": "<p>Examine the full body surface. Distinguish patch (non-infiltrated, flat), plaque (indurated, elevated), and tumor (solid nodule &gt;1 cm depth) lesions.</p>",
+        "prompt": "Are T, N, M and B categories adequately established?",
         "branches": [
-          { "label": "Patch and/or plaque only (no tumors)", "nextStepId": "bsa-extent" },
-          { "label": "At least one tumor ≥1 cm depth", "nextStepId": "tumor-stage" }
+          {
+            "label": "Yes",
+            "nextStepId": "viscera"
+          },
+          {
+            "label": "No / NX or unresolved compartment",
+            "nextStepId": "incomplete"
+          }
+        ],
+        "detail": "Use the applicable ISCL/EORTC definitions and clinical evaluation. This teaching tree is not a diagnostic test for lymphoma."
+      },
+      {
+        "id": "incomplete",
+        "type": "terminal",
+        "prompt": "Stage cannot yet be assigned",
+        "detail": "Complete the missing compartment assessment. Do not substitute normal blood, nodes or viscera for unavailable information."
+      },
+      {
+        "id": "viscera",
+        "type": "decision",
+        "prompt": "Is visceral involvement confirmed (M1)?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "stage-ivb"
+          },
+          {
+            "label": "No (M0)",
+            "nextStepId": "nodes"
+          }
         ]
       },
       {
-        "id": "bsa-extent",
+        "id": "nodes",
         "type": "decision",
-        "prompt": "What percentage of body surface area (BSA) is involved by patches/plaques?",
-        "detail": "<p>Use the rule-of-nines or palmar method (patient palm = ~1% BSA). Map and document all lesions. Assess at each visit for disease progression.</p>",
+        "prompt": "Is there N3 nodal disease?",
         "branches": [
-          { "label": "Less than 10% BSA", "nextStepId": "t1-node-check" },
-          { "label": "10% or more BSA", "nextStepId": "t2-node-check" }
+          {
+            "label": "Yes",
+            "nextStepId": "stage-iva2"
+          },
+          {
+            "label": "No (N0–N2)",
+            "nextStepId": "blood"
+          }
+        ],
+        "detail": "N3 denotes frank nodal involvement with partial or complete architectural effacement (Dutch grade 3–4 / NCI LN4). There is no TNMB N4 category."
+      },
+      {
+        "id": "blood",
+        "type": "decision",
+        "prompt": "Is there high blood tumor burden (B2)?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "stage-iva1"
+          },
+          {
+            "label": "No (B0–B1)",
+            "nextStepId": "erythroderma"
+          }
+        ],
+        "detail": "Modern flow-based assessment uses absolute abnormal T-cell counts with clonal assessment, not a CD4:CD8 ratio alone. B2 does not independently establish the clinical diagnosis of Sézary syndrome."
+      },
+      {
+        "id": "erythroderma",
+        "type": "decision",
+        "prompt": "T4: confluent erythema involving at least 80% BSA?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "t4-blood"
+          },
+          {
+            "label": "No (T1–T3)",
+            "nextStepId": "tumor"
+          }
         ]
       },
       {
-        "id": "t1-node-check",
+        "id": "t4-blood",
         "type": "decision",
-        "prompt": "T1 disease. Is there clinically abnormal lymphadenopathy?",
-        "detail": "<p>T1: patch/plaque &lt;10% BSA. Palpate all nodal basins. Lymph node &gt;1.5 cm or palpably firm/fixed is abnormal.</p>",
+        "prompt": "In T4 N0–N2 M0 disease, is blood B0 or B1?",
         "branches": [
-          { "label": "No palpable adenopathy (N0)", "nextStepId": "t1-blood-check" },
-          { "label": "Palpable nodes present — biopsy", "nextStepId": "node-biopsy" }
+          {
+            "label": "B0",
+            "nextStepId": "stage-iiia"
+          },
+          {
+            "label": "B1",
+            "nextStepId": "stage-iiib"
+          }
         ]
       },
       {
-        "id": "t2-node-check",
+        "id": "tumor",
         "type": "decision",
-        "prompt": "T2 disease. Is there clinically abnormal lymphadenopathy?",
-        "detail": "<p>T2: patch/plaque ≥10% BSA. Lymph node assessment is mandatory. If nodes are suspicious on palpation or imaging, biopsy the most abnormal node.</p>",
+        "prompt": "T3: one or more tumors at least 1 cm in diameter?",
         "branches": [
-          { "label": "No palpable adenopathy (N0)", "nextStepId": "t2-blood-check" },
-          { "label": "Palpable nodes present — biopsy", "nextStepId": "node-biopsy" }
+          {
+            "label": "Yes",
+            "nextStepId": "stage-iib"
+          },
+          {
+            "label": "No (T1–T2)",
+            "nextStepId": "early-nodes"
+          }
+        ],
+        "detail": "The 1 cm criterion is diameter, not depth; a tumor is a solid/nodular lesion with evidence of vertical growth."
+      },
+      {
+        "id": "early-nodes",
+        "type": "decision",
+        "prompt": "In T1–T2 M0 B0–B1 disease, are nodes N1 or N2?",
+        "branches": [
+          {
+            "label": "N1/N2",
+            "nextStepId": "stage-iia"
+          },
+          {
+            "label": "N0",
+            "nextStepId": "extent"
+          }
         ]
       },
       {
-        "id": "tumor-stage",
+        "id": "extent",
         "type": "decision",
-        "prompt": "T3 disease confirmed. Is there visceral involvement on imaging?",
-        "detail": "<p>T3: one or more skin tumors ≥1 cm. Obtain CT of chest, abdomen, and pelvis (or PET-CT). Visceral involvement = M1.</p>",
+        "prompt": "Patches/plaques involve less than 10% or at least 10% BSA?",
         "branches": [
-          { "label": "No visceral involvement (M0)", "nextStepId": "tumor-node-check" },
-          { "label": "Visceral involvement confirmed (M1)", "nextStepId": "stage-ivb" }
-        ]
-      },
-      {
-        "id": "tumor-node-check",
-        "type": "decision",
-        "prompt": "T3 M0. Are there abnormal lymph nodes on exam or imaging?",
-        "branches": [
-          { "label": "No abnormal nodes (N0)", "nextStepId": "stage-iib" },
-          { "label": "Abnormal nodes — biopsy", "nextStepId": "node-biopsy" }
-        ]
-      },
-      {
-        "id": "node-biopsy",
-        "type": "decision",
-        "prompt": "Lymph node biopsy result (Dutch grade / NCI LN system)?",
-        "detail": "<p>N1: dermatopathic changes, no lymphoma (Dutch grade 1). N2: early involvement, rare Reed-Sternberg-like cells (Dutch grade 2). N3: partial/complete effacement (Dutch grade 3-4). N4: frank lymphoma involvement (Dutch grade 4).</p>",
-        "branches": [
-          { "label": "Dermatopathic only — no lymphoma (N1/N2)", "nextStepId": "node-n1n2-route" },
-          { "label": "Partial or complete effacement (N3)", "nextStepId": "node-n3-blood" }
-        ]
-      },
-      {
-        "id": "node-n1n2-route",
-        "type": "decision",
-        "prompt": "N1/N2 lymph nodes. What is the T stage?",
-        "branches": [
-          { "label": "T1 (patch/plaque <10%)", "nextStepId": "t1-blood-check" },
-          { "label": "T2 (patch/plaque ≥10%)", "nextStepId": "t2-blood-check" },
-          { "label": "T3 (tumors)", "nextStepId": "stage-iib" }
-        ]
-      },
-      {
-        "id": "node-n3-blood",
-        "type": "decision",
-        "prompt": "N3 disease. Check blood (Sézary count, flow cytometry, TCR clone)?",
-        "detail": "<p>Peripheral blood staging: B0 = &lt;5% atypical lymphocytes or &lt;250 Sézary cells/mcL. B1 = 5-19% or 250-999 Sézary cells/mcL without significant clone. B2 = &gt;1000 Sézary cells/mcL OR positive T-cell clone in blood with CD4:CD8 ratio &gt;10, or CD4+CD7- &gt;40%, CD4+CD26- &gt;30%.</p>",
-        "branches": [
-          { "label": "B0-B1 (low blood burden)", "nextStepId": "stage-iva1" },
-          { "label": "B2 (high blood burden — Sézary syndrome criteria)", "nextStepId": "stage-iva2" }
-        ]
-      },
-      {
-        "id": "t1-blood-check",
-        "type": "decision",
-        "prompt": "T1 N0. Assess peripheral blood for atypical cells or Sézary clone.",
-        "detail": "<p>In early-stage disease, blood involvement is uncommon but should be checked if there are suggestive clinical features (exfoliative erythroderma, pruritus). B0 = essentially no blood involvement.</p>",
-        "branches": [
-          { "label": "B0 — no significant blood involvement", "nextStepId": "stage-ia" },
-          { "label": "B1/B2 — blood involvement detected", "nextStepId": "stage-iva2" }
-        ]
-      },
-      {
-        "id": "t2-blood-check",
-        "type": "decision",
-        "prompt": "T2 patch/plaque. Assess peripheral blood for Sézary cells / clone.",
-        "branches": [
-          { "label": "B0 N0 — no blood or node involvement", "nextStepId": "stage-ib" },
-          { "label": "N1/N2 nodes, B0-B1", "nextStepId": "stage-iia" },
-          { "label": "B2 — high blood burden", "nextStepId": "stage-iva2" }
+          {
+            "label": "T1: less than 10%",
+            "nextStepId": "stage-ia"
+          },
+          {
+            "label": "T2: at least 10%",
+            "nextStepId": "stage-ib"
+          }
         ]
       },
       {
         "id": "stage-ia",
         "type": "terminal",
-        "prompt": "Stage IA (T1 N0 M0 B0)",
-        "detail": "<p><strong>Stage IA:</strong> Patches or plaques on &lt;10% BSA, no adenopathy, no visceral involvement, minimal or no blood involvement. Prognosis excellent; disease-specific survival near normal. Skin-directed therapy is standard first-line.</p>"
+        "prompt": "Stage IA (T1 N0 M0 B0–B1)",
+        "detail": "Early skin-limited stage group; blood B1 does not automatically mean stage IV."
       },
       {
         "id": "stage-ib",
         "type": "terminal",
-        "prompt": "Stage IB (T2 N0 M0 B0-B1)",
-        "detail": "<p><strong>Stage IB:</strong> Patches or plaques on ≥10% BSA. Skin-directed therapy (NB-UVB, PUVA, topical steroids, mechlorethamine) with monitoring for progression. Median overall survival approximately 12 years.</p>"
+        "prompt": "Stage IB (T2 N0 M0 B0–B1)",
+        "detail": "Patches/plaques involving at least 10% BSA with N0, M0 and B0/B1."
       },
       {
         "id": "stage-iia",
         "type": "terminal",
-        "prompt": "Stage IIA (T1-T2 N1-N2 M0 B0-B1)",
-        "detail": "<p><strong>Stage IIA:</strong> Patch/plaque (any BSA) with dermatopathic or early-involved lymph nodes. Combined skin-directed therapy; systemic agents (bexarotene, methotrexate) may be added for resistant disease.</p>"
+        "prompt": "Stage IIA (T1–T2 N1–N2 M0 B0–B1)",
+        "detail": "N1/N2 changes can yield IIA even when skin involvement is below 10% BSA."
       },
       {
         "id": "stage-iib",
         "type": "terminal",
-        "prompt": "Stage IIB (T3 N0-N2 M0 B0-B1)",
-        "detail": "<p><strong>Stage IIB:</strong> One or more skin tumors. Skin-directed therapy plus systemic agents. Brentuximab vedotin preferred if CD30 expression ≥10%. Mogamulizumab, bexarotene, IFN-alpha are options. Prognosis more guarded; median OS approximately 5 years.</p>"
+        "prompt": "Stage IIB (T3 N0–N2 M0 B0–B1)",
+        "detail": "Tumor-stage skin disease without N3, M1 or B2."
+      },
+      {
+        "id": "stage-iiia",
+        "type": "terminal",
+        "prompt": "Stage IIIA (T4 N0–N2 M0 B0)",
+        "detail": "Erythrodermic MF stage group with B0."
+      },
+      {
+        "id": "stage-iiib",
+        "type": "terminal",
+        "prompt": "Stage IIIB (T4 N0–N2 M0 B1)",
+        "detail": "Erythrodermic MF stage group with B1."
       },
       {
         "id": "stage-iva1",
         "type": "terminal",
-        "prompt": "Stage IVA1 (T1-T3 N3 M0 B0-B1)",
-        "detail": "<p><strong>Stage IVA1:</strong> Lymph node effacement (N3) without high blood burden. Aggressive systemic therapy warranted. Allogeneic HSCT may be considered in eligible patients with refractory disease.</p>"
+        "prompt": "Stage IVA1 (T1–T4 N0–N2 M0 B2)",
+        "detail": "High blood burden defines this stage group when N3 and M1 are absent."
       },
       {
         "id": "stage-iva2",
         "type": "terminal",
-        "prompt": "Stage IVA2 / Sézary Syndrome (T1-T4 N0-N3 M0 B2)",
-        "detail": "<p><strong>Stage IVA2:</strong> High blood burden (B2), fulfilling Sézary syndrome criteria when combined with erythroderma (T4). Extracorporeal photopheresis (ECP) is first-line for erythrodermic/Sézary disease. Mogamulizumab has demonstrated superior PFS vs vorinostat in this population. Allogeneic HSCT for fit patients.</p>"
+        "prompt": "Stage IVA2 (T1–T4 N3 M0 B0–B2)",
+        "detail": "N3 nodal disease defines IVA2 irrespective of blood category."
       },
       {
         "id": "stage-ivb",
         "type": "terminal",
         "prompt": "Stage IVB (any T, any N, M1, any B)",
-        "detail": "<p><strong>Stage IVB:</strong> Visceral (non-lymph node) involvement. Lung, liver, spleen most common. Systemic chemotherapy (gemcitabine, liposomal doxorubicin, CHOP-based regimens) or clinical trial preferred. Median survival &lt;2 years; allogeneic SCT considered in eligible patients.</p>"
+        "detail": "Confirmed visceral involvement defines IVB. Treatment requires compartment-specific specialist assessment, not an automatic chemotherapy selection."
       }
     ]
   },
   "citations": [
-    { "pmid": "17540844", "quote": "Olsen EA et al. Revisions to the staging and classification of mycosis fungoides and Sezary syndrome: a proposal of the International Society for Cutaneous Lymphomas (ISCL) and the cutaneous lymphoma task force of the European Organisation for Research and Treatment of Cancer (EORTC). Blood. 2007;110(6):1713-1722." },
-    { "pmid": "9923777", "quote": "Kim YH et al. Clinical characteristics and long-term outcome of patients with generalized patch and/or plaque (T2) mycosis fungoides. Arch Dermatol. 1999;135(1):26-32." }
+    {
+      "pmid": "17540844",
+      "quote": "ISCL/EORTC 2007 TNMB stage-group definitions (bibliographic reference, not a verbatim quotation)."
+    },
+    {
+      "pmid": "34758074",
+      "quote": "ISCL/USCLC/EORTC 2022 staging and blood assessment update (source summary)."
+    },
+    {
+      "url": "https://www.cancer.gov/types/lymphoma/hp/mycosis-fungoides-treatment-pdq",
+      "quote": "NCI PDQ tables of MF/Sézary TNMB stage groups (source summary)."
+    }
   ]
 }

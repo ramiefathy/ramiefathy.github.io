@@ -1,5 +1,27 @@
 # Devlog — ramiefathy.github.io
 
+## [2026-09-05] Preserve Atlas indication context and review primary-trial scope
+
+Fixed disease-ranked target links that silently opened another indication. Added
+native gene links, keyboard sorting with aria-sort/focus retention, and explicit
+unknown-disease errors. Added seven bounded connective-tissue primary-abstract
+records, preserving negative primary comparisons and organ/endpoint limits.
+Two indexed publication-correction holds remain unresolved and visible in the
+workbench and exports. No historical scores or human-approval flags are promoted.
+See `audits/2026-09-05-atlas-context-and-trial-review.md` for exact scope and receipts.
+
+## [2026-09-05] Atlas integration: reachable controls and trial-scoped evidence
+
+Reconciled integrated Atlas browser failures: moved camera buttons out of the help
+overlay, preserved responsive camera presets, retained captured touch gestures,
+and restored visible programmatic focus. Added five bounded vasculitis RCT
+assertions with explicit population, comparison, endpoint and uncertainty;
+these remain separate from synthesis scores and human approval. Hardened the
+PubMed identity/excerpt gate with 18 offline failure-injection tests in CI.
+Exact-head browser and live-source receipts are tracked in PR #186; no production
+merge or clinical certification is implied. See the scientific integration audit.
+
+
 ## [2026-05-04] Production browser smoke: dermatopathology PDF export fix
 
 **What changed.** Direct production browser testing found that Dermatopathology Differentials could select findings and export XLSX files, but PDF export failed at runtime because the static app loaded vendored ESM builds with bare package specifiers. Switched the PDF export path to browser-safe UMD assets for jsPDF and jsPDF-AutoTable, loaded through a small script loader, and added a Playwright regression that selects a finding and asserts a PDF download. The same production sweep also found `/apps/` mobile horizontal overflow from the closed off-canvas navigation drawer and apps toolbar search row; the drawer is now removed from layout until open, and the apps toolbar/search row has mobile width constraints.
@@ -231,3 +253,19 @@
 - Final Codex adversarial review pending.
 
 ---
+
+## 2026-09-05 — Atlas integration and scoped primary-source review
+
+Integrated the PR #175 scientific/governance layers with PR #186's clinical-effect
+quarantine and source workbench. Fixed initialization, scope normalization,
+false curator/consensus promotion, cross-endotype steroid copying, exact record
+selection, filtered exports, clipboard failure handling and non-drag controls.
+Added five explicitly bounded vasculitis mechanism assertions and PubMed identity/
+excerpt checks. See `docs/audits/2026-09-05-atlas-scientific-integration.md` for
+inputs, accounting and remaining clinical-validation limits. Final browser and
+CI receipts are recorded against the reviewed PR head, not assumed here.
+
+
+## 2026-09-05: Publication-hold surveillance and desktop portability
+
+Expanded primary-source checks to include held trials and their correction notices, with exact identity and reciprocal-link checks that cannot clear clinical holds. Examined the March 2021 focuSSced table-cell correction without accepting either held trial. The source workbench and filtered exports now preserve notice-specific review status. Added Python, unit and browser regressions, LF checkout boundaries and explicit UTF-8 artifact generation. See `audits/2026-09-05-publication-hold-surveillance.md`; exact-head CI receipts are recorded on PR #186. No master merge or production release.
