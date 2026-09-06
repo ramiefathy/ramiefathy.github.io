@@ -322,6 +322,15 @@ test.describe('Atlas contrast and graph interaction contracts', () => {
     await canvas.hover()
     await page.mouse.wheel(0, -180)
     await page.setViewportSize({ width: 1200, height: 900 })
+    // setViewportSize changes CSS layout before the resize handler necessarily
+    // updates the canvas and its DOM labels. Wait for that real redraw, not for
+    // the containment assertions themselves to become true.
+    await expect.poll(() => canvas.evaluate((element: HTMLCanvasElement) => {
+      const rect = element.getBoundingClientRect()
+      const scale = Math.min(window.devicePixelRatio || 1, 2)
+      return element.width === Math.max(1, Math.floor(rect.width * scale)) &&
+        element.height === Math.max(1, Math.floor(rect.height * scale))
+    }), { message: 'canvas backing store must match the resized CSS viewport' }).toBe(true)
     const transformed = await connectedLabelState(page)
     expect(transformed.map(item => item.id).sort()).toEqual(beforeMembership)
     expect(transformed.map(item => `${item.nodeX}|${item.nodeY}`)).not.toEqual(after.map(item => `${item.nodeX}|${item.nodeY}`))
