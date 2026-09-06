@@ -1,0 +1,41 @@
+name: Atlas session source receipt
+on:
+  push:
+    branches: [audit/atlas-publish-staging-20260905]
+    paths: [.github/workflows/atlas-session-source.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 23f64f6fc54ada0c9487437ea4a79756f1a3bf3f
+          lfs: true
+          persist-credentials: false
+      - name: Capture tracked source and exact commit
+        run: |
+          mkdir -p /tmp/atlas-session-source
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess,tarfile
+          root=pathlib.Path.cwd(); dest=pathlib.Path('/tmp/atlas-session-source')
+          head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          assert head=='23f64f6fc54ada0c9487437ea4a79756f1a3bf3f'
+          names=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')[:-1]
+          rows=[]
+          with tarfile.open(dest/'source.tar.gz','w:gz') as archive:
+              for name in names:
+                  p=root/name
+                  if p.is_symlink(): raise ValueError('Unexpected symlink: '+name)
+                  b=p.read_bytes(); rows.append({'path':name,'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()})
+                  archive.add(p,arcname=name,recursive=False)
+          (dest/'manifest.json').write_text(json.dumps({'head':head,'files':rows},indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: atlas-session-source
+          path: /tmp/atlas-session-source
+          if-no-files-found: error
+          retention-days: 3
