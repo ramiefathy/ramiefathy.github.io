@@ -167,7 +167,7 @@
     {
       "id": "ctd-senscis",
       "condition": "ssc",
-      "med": "nintedanib",
+      "med": "ninted",
       "trial": "SENSCIS",
       "refs": [
         "R15"
@@ -272,7 +272,7 @@
       "id": "publication-hold-32866440",
       "sourcePmid": "32866440",
       "condition": "ssc",
-      "med": "toci",
+      "med": "tociliz",
       "trial": "focuSSced",
       "refs": [
         "R16"
@@ -301,6 +301,13 @@
   function install(data) {
     // Validate the whole join before mutating the application's reference index.
     const additions = [];
+    const conditions = new Set(data.conditions.map(record => record.id));
+    const medications = new Set(data.medications.map(record => record.id));
+    for (const record of [...packet.claims, ...packet.publicationHolds]) {
+      if (!conditions.has(record.condition) || !medications.has(record.med)) {
+        throw new Error('Unresolved primary-study condition or medication: ' + record.id);
+      }
+    }
     for (const ref of packet.references) {
       const existing = data.references.find(r => r.id === ref.id);
       if (existing && (existing.pmid !== ref.pmid || existing.doi.toLowerCase() !== ref.doi.toLowerCase())) {

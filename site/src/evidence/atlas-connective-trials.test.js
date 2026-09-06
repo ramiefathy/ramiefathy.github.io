@@ -52,6 +52,20 @@ describe('Primary connective-tissue trial scope', () => {
     const fresh=fixture(); fresh.api.install(fresh.data); const installed=JSON.stringify(fresh.data);
     expect(()=>fresh.api.install(fresh.data)).toThrow('Duplicate'); expect(JSON.stringify(fresh.data)).toBe(installed);
   });
+  it('resolves every study and hold to an existing condition and medication', () => {
+    const {data,api} = fixture(); api.install(data);
+    for (const record of [...data.scopedClaims, ...data.publicationReviewHolds]) {
+      expect(data.conditions.some(c => c.id === record.condition)).toBe(true);
+      expect(data.medications.some(m => m.id === record.med)).toBe(true);
+    }
+    expect(api.packet.claims.find(c => c.id === 'ctd-senscis').med).toBe('ninted');
+    expect(api.packet.publicationHolds.find(h => h.trial === 'focuSSced').med).toBe('tociliz');
+  });
+  it.each(['conditions', 'medications'])('rejects an unresolved %s join before any mutation', key => {
+    const {data,api} = fixture(); data[key] = []; const before = JSON.stringify(data);
+    expect(() => api.install(data)).toThrow('Unresolved primary-study');
+    expect(JSON.stringify(data)).toBe(before);
+  });
   it('freezes the evidence packet and nested records', () => {
     const {api} = fixture();
     expect(Object.isFrozen(api.packet)).toBe(true);

@@ -130,8 +130,15 @@ test('connective-tissue trials retain primary-endpoint failures and indexed corr
   await expect(page.locator('.review-records')).toContainText('NOT_MET');
   await expect(page.locator('.review-records')).toContainText('not a randomized treatment-effect estimate');
   await expect(page.locator('.review-records')).toContainText('abstract');
+  await info.attach('rim-primary-endpoint-scope', {body:await page.screenshot(),contentType:'image/png'});
+  await search.fill('ctd-senscis');
+  await expect(page.locator('.review-records > details')).toHaveCount(1);
+  await expect(page.locator('.review-records')).toContainText('Nintedanib');
+  await page.locator('.review-records summary').click();
+  await expect(page.locator('.review-records')).toContainText('P=0.06 to 0.10');
   await search.fill(''); await category.selectOption('PUBLICATION_HOLDS');
   await expect(page.locator('.review-records > details')).toHaveCount(2);
+  await expect(page.locator('.review-records')).toContainText('Tocilizumab');
   await page.locator('.review-records summary').last().click();
   await expect(page.locator('.review-records')).toContainText('not a retraction');
   await expect(page.locator('.review-records a[href="https://pubmed.ncbi.nlm.nih.gov/33667402/"]')).toBeVisible();
