@@ -1,0 +1,76 @@
+name: Verify Atlas study entity joins
+on:
+  push:
+    branches: [audit/atlas-publish-staging-20260905]
+    paths: [.github/workflows/atlas-study-identity-fix.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/audit/atlas-publish-staging-20260905'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: b3ca36715682c86a5f88c2d40782ff63eb30c12a
+          lfs: true
+          persist-credentials: false
+      - name: Apply exact three-file identity correction
+        run: |
+          mkdir -p /tmp/atlas-identity-receipt
+          test "$(git rev-parse HEAD)" = b3ca36715682c86a5f88c2d40782ff63eb30c12a
+          python - <<'PY'
+          import pathlib,hashlib,json,subprocess
+          items=[
+            {'path':'site/public/apps/rheum-derm-immune-atlas/explorer/connective-tissue-evidence.js','before':'557113c89766d33695e94b1dbac866ca37a49eddc3a83b794b27f16883530c31','after':'69127232c885e39adf0f3326a08191bbf6ec37f9e8bfc42e39776194605e1e95','ops':[
+              [8972,8999,'      "med": "ninted",\n'],
+              [14701,14722,'      "med": "tociliz",\n'],
+              [15814,15814,"    const conditions = new Set(data.conditions.map(record => record.id));\n    const medications = new Set(data.medications.map(record => record.id));\n    for (const record of [...packet.claims, ...packet.publicationHolds]) {\n      if (!conditions.has(record.condition) || !medications.has(record.med)) {\n        throw new Error('Unresolved primary-study condition or medication: ' + record.id);\n      }\n    }\n"]]},
+            {'path':'site/src/evidence/atlas-connective-trials.test.js','before':'daa6f9ebf6b7059aeb8d13422f1f71e6e21d7a5cf12d24809424506a9f893cdc','after':'f95628239684f19afbe780e14f629b85638cc859c74dc33858c5253c942102fa','ops':[[3586,3586,"  it('resolves every study and hold to an existing condition and medication', () => {\n    const {data,api} = fixture(); api.install(data);\n    for (const record of [...data.scopedClaims, ...data.publicationReviewHolds]) {\n      expect(data.conditions.some(c => c.id === record.condition)).toBe(true);\n      expect(data.medications.some(m => m.id === record.med)).toBe(true);\n    }\n    expect(api.packet.claims.find(c => c.id === 'ctd-senscis').med).toBe('ninted');\n    expect(api.packet.publicationHolds.find(h => h.trial === 'focuSSced').med).toBe('tociliz');\n  });\n  it.each(['conditions', 'medications'])('rejects an unresolved %s join before any mutation', key => {\n    const {data,api} = fixture(); data[key] = []; const before = JSON.stringify(data);\n    expect(() => api.install(data)).toThrow('Unresolved primary-study');\n    expect(JSON.stringify(data)).toBe(before);\n  });\n"]]},
+            {'path':'site/tests/atlas-integrated-evidence.spec.ts','before':'6a6ec3e4319ca84a921b1071bb39a856f7fa3ecd363eb3ad82486f1c99fe72b4','after':'01f7b429146385489ddf15fa00fad41b894e231082a0ee850654b017b2d3c189','ops':[
+              [8523,8523,"  await info.attach('rim-primary-endpoint-scope', {body:await page.screenshot(),contentType:'image/png'});\n  await search.fill('ctd-senscis');\n  await expect(page.locator('.review-records > details')).toHaveCount(1);\n  await expect(page.locator('.review-records')).toContainText('Nintedanib');\n  await page.locator('.review-records summary').click();\n  await expect(page.locator('.review-records')).toContainText('P=0.06 to 0.10');\n"],
+              [8672,8672,"  await expect(page.locator('.review-records')).toContainText('Tocilizumab');\n"]]}
+          ]
+          prepared=[]
+          for item in items:
+              path=pathlib.Path(item['path']);old=path.read_bytes()
+              assert hashlib.sha256(old).hexdigest()==item['before'],path
+              text=old.decode('utf-8');end=0
+              for a,b,new in item['ops']:assert end<=a<=b<=len(text);end=b
+              for a,b,new in reversed(item['ops']):text=text[:a]+new+text[b:]
+              content=text.encode();assert hashlib.sha256(content).hexdigest()==item['after'],path
+              prepared.append((path,content))
+          for path,content in prepared:path.write_bytes(content)
+          subprocess.run(['git','add','--',*[str(path) for path,content in prepared]],check=True)
+          pathlib.Path('/tmp/atlas-identity-receipt/source-manifest.json').write_text(json.dumps(items,indent=2)+'\n')
+          PY
+          git diff --cached --check
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+      - name: Verify full unit suite and fresh source identities
+        run: |
+          npm --prefix site ci
+          npm --prefix site test -- --reporter=json --outputFile=/tmp/atlas-identity-receipt/unit-results.json
+          python scripts/verify-vasculitis-source-excerpts.py --packet connective-tissue --receipt /tmp/atlas-identity-receipt/connective-tissue-live.json
+          git diff --cached --check
+      - name: Publish only the verified three-file fix
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git diff --cached > /tmp/atlas-identity-receipt/source.patch
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'agent(codex): reject unresolved primary-study identities before rendering source cards'
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:refs/heads/audit/clinical-atlas-review-20260905
+          git rev-parse HEAD > /tmp/atlas-identity-receipt/COMMIT.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: atlas-study-identity-receipt
+          path: /tmp/atlas-identity-receipt
+          if-no-files-found: error
+          retention-days: 7
