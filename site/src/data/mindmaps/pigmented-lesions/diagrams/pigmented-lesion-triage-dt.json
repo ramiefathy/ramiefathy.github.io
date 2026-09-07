@@ -18,7 +18,7 @@
           },
           {
             "label": "No",
-            "nextStepId": "risk"
+            "nextStepId": "benign"
           }
         ]
       },
@@ -28,6 +28,10 @@
         "prompt": "Low concern after clinical/dermoscopic and contextual assessment",
         "detail": "An asymptomatic or apparently unchanged lesion is not automatically benign. Biopsy when diagnostic uncertainty or suspicious features remain.",
         "branches": [
+          {
+            "label": "Uncertain or any suspicious feature on examination",
+            "nextStepId": "risk"
+          },
           {
             "label": "Monitoring appropriate",
             "nextStepId": "monitor"

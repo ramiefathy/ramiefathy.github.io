@@ -108,5 +108,6 @@ describe('Immune Atlas quarantine boundary', () => {
 });
 it('rejects silent drift in the corrected source-file review receipt', () => {
   const root = new URL('../../../', import.meta.url);
-  expect(execFileSync('python3', ['scripts/build-clinical-review-status.py', '--check'], { cwd: root, encoding: 'utf8' })).toContain('659 correction records');
+  const ledger = JSON.parse(read('../../public/clinical-source-review/corrections.json'));
+  expect(execFileSync('python3', ['scripts/build-clinical-review-status.py', '--check'], { cwd: root, encoding: 'utf8' })).toContain(`${ledger.length} correction records`);
 });

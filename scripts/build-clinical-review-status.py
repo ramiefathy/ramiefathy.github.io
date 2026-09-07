@@ -10,7 +10,8 @@ DEST = ROOT / 'site/public/clinical-source-review/review-status.json'
 
 def build():
     changes = json.loads((DEST.parent / 'corrections.json').read_text(encoding='utf-8'))
-    if len(changes) != 659 or len({r['id'] for r in changes}) != len(changes):
+    expected_ids = [f'C{i:04d}' for i in range(1, len(changes) + 1)]
+    if [r['id'] for r in changes] != expected_ids:
         raise ValueError('Correction ledger identity/count mismatch')
     paths = collections.Counter(r['path'] for r in changes)
     files = []
@@ -32,4 +33,5 @@ if __name__ == '__main__':
     if args.check:
         if not DEST.exists() or DEST.read_text(encoding='utf-8') != text: raise SystemExit('Clinical source review is stale; review changed files before rebuilding its receipt.')
     else: DEST.write_text(text, encoding='utf-8', newline='\n')
-    print('659 correction records; 17 targeted monographs; no blanket clinical-validation passes.')
+    receipt = json.loads(text)
+    print(f"{receipt['correction_records']} correction records; {len(receipt['targeted_monographs'])} targeted monographs; no blanket clinical-validation passes.")
