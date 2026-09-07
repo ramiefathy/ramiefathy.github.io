@@ -14,6 +14,24 @@ class GenerationError(RuntimeError):
     """Safe public error; never includes prompts, model responses, or provider bodies."""
 
 
+def resolve_model_override(requested, fallback=None):
+    """Return an allowlisted client model name, else the server fallback.
+
+    The rejected value is never logged or echoed: only its rejection class is recorded.
+    """
+    fallback = fallback or config.GEMINI_DEFAULT_MODEL
+    if requested is None:
+        return fallback
+    if not isinstance(requested, str):
+        logger.warning("Rejected client model override (%s)", "non_string")
+        return fallback
+    name = requested.strip().removeprefix("models/")
+    if name in config.GEMINI_ALLOWED_MODELS:
+        return name
+    logger.warning("Rejected client model override (%s)", "not_allowlisted")
+    return fallback
+
+
 def _candidate_text(response, *, streaming=False):
     candidates = getattr(response, "candidates", None)
     if not candidates:

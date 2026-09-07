@@ -11,8 +11,16 @@ Install the pinned dependencies from `requirements.txt`. Configure
 `JWT_SIGNING_SECRET`, and `ALLOWED_ORIGINS` using deployment-managed secrets.
 The two signing/session secrets should differ. Select a currently available model
 that has been evaluated for the intended workflow; the application no longer
-silently defaults to a retired Gemini 2.0 experimental model. Blank vision and
-suggestion overrides inherit the explicit default.
+silently defaults to a retired Gemini 2.0 experimental model, and it refuses to
+start when `GEMINI_DEFAULT_MODEL` is blank. Blank vision and suggestion overrides
+inherit the explicit default.
+
+Decide whether browsers may choose among several validated models. If so, list
+every permitted model ID in `GEMINI_ALLOWED_MODELS` (comma-separated); the default
+model is always included. Leave it blank to accept only the default model. Any
+unlisted client `modelName` is replaced by the server-configured model and logged
+by rejection class only, so review logs for `Rejected client model override`
+entries after deployment to catch misconfigured clients.
 
 ## Synthetic-only live integration checks
 
