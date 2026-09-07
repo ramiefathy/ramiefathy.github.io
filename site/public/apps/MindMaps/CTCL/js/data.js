@@ -2,12 +2,12 @@
 
 // --- Reusable Tooltip Objects ---
 const classic_mf_tooltip = { title: 'Mycosis Fungoides (Classic)', content: '<ul><li><strong>Epidemiology:</strong> Most common CTCL (50-70% of cases). Incidence: 6-9 per million/year. Male:female 1.6-2:1. Peak age 55-60. Higher incidence in Black populations.</li><li><strong>Manifestations:</strong> Indolent course. Progresses from <strong>patches</strong> to <strong>plaques</strong> to <strong>tumors</strong>. Pruritus in >80%. Large cell transformation (>25% large cells) = poor prognosis.</li><li><strong>Histopathology:</strong> Atypical cerebriform lymphocytes. <strong>Epidermotropism</strong> without spongiosis. Pautrier microabscesses (pathognomonic but only in 10-20%).</li><li><strong>Molecular:</strong> TP53 mutations (10-15%), CDKN2A deletions (30-40% in transformed), JAK/STAT pathway (60-70% advanced).</li><li><strong>Prognosis by Stage:</strong> IA: 5yr DSS >95%. IB: 5yr DSS 85-95%. IIA: 5yr DSS 80-85%. IIB: 5yr DSS 60-75%. III-IV: 5yr DSS 15-55%.</li></ul>' };
-const ss_tooltip = { title: 'Sézary Syndrome', content: '<ul><li><strong>Epidemiology:</strong> Rare CTCL (2-3% of cases). Incidence: 0.1-0.3 per million/year.</li><li><strong>Manifestations:</strong> Triad: <strong>erythroderma</strong> (>80% BSA), <strong>lymphadenopathy</strong>, <strong>Sézary cells</strong>. Severe pruritus >90%. Keratoderma, alopecia, ectropion common.</li><li><strong>B2 Criteria (need ONE):</strong> ≥1000/μL Sézary cells; CD4:CD8 ≥10 + clone; CD4+CD7- ≥40% or CD4+CD26- ≥30% + clone; Chromosomal abnormality. KIR3DL2/CD158k: 85% sensitive, 95% specific.</li><li><strong>Molecular:</strong> PLCG1 mutations ~10%, JAK/STAT pathway 60-70%, DNMT3A = poor prognosis.</li><li><strong>Prognosis:</strong> Median survival 2-4 years. 5-year DSS ~36%. First-line: ECP, mogamulizumab (FDA-approved first-line), retinoids±IFN.</li></ul>' };
+const ss_tooltip = { title: 'Sézary Syndrome', content: '<ul><li><strong>Epidemiology:</strong> Rare CTCL (2-3% of cases). Incidence: 0.1-0.3 per million/year.</li><li><strong>Manifestations:</strong> Triad: <strong>erythroderma</strong> (>80% BSA), <strong>lymphadenopathy</strong>, <strong>Sézary cells</strong>. Severe pruritus >90%. Keratoderma, alopecia, ectropion common.</li><li><strong>B2 Criteria (need ONE):</strong> ≥1000/μL Sézary cells; CD4:CD8 ≥10 + clone; CD4+CD7- ≥40% or CD4+CD26- ≥30% + clone; Chromosomal abnormality. KIR3DL2/CD158k: 85% sensitive, 95% specific.</li><li><strong>Molecular:</strong> PLCG1 mutations ~10%, JAK/STAT pathway 60-70%, DNMT3A = poor prognosis.</li><li><strong>Prognosis:</strong> Median survival 2-4 years. 5-year DSS ~36%. First-line: ECP-based therapy (± IFN-alpha or bexarotene). Mogamulizumab is FDA-approved for relapsed or refractory MF/SS after at least one prior systemic therapy.</li></ul>' };
 const fmf_tooltip = { title: 'Folliculotropic MF (FMF)', content: '<ul><li><strong>Manifestations:</strong> A variant of MF characterized by infiltration of hair follicles. Presents as follicular-based patches, plaques, acneiform lesions, or tumors, often on the head and neck. Can cause alopecia, especially of the eyebrows.</li><li><strong>Histopathology:</strong> Characterized by perifollicular and follicular infiltrates of atypical T cells, often with associated follicular mucinosis (mucin deposition in the hair follicle). Epidermotropism is often sparse or absent.</li><li><strong>Prognosis:</strong> Traditionally considered more aggressive than classic MF due to deeper infiltration, making it less responsive to skin-directed therapies. However, recent studies suggest prognosis is stage-dependent, with early-stage FMF having a more favorable outcome than advanced-stage FMF.</li></ul>' };
 const pagetoid_tooltip = { title: 'Pagetoid Reticulosis (Woringer-Kolopp)', content: '<ul><li><strong>Manifestations:</strong> Rare variant of MF presenting as a solitary, slowly growing, well-demarcated, psoriasiform or hyperkeratotic patch or plaque, typically on a distal extremity (hand or foot).</li><li><strong>Histopathology:</strong> Marked pagetoid (intraepidermal) proliferation of large atypical T-cells, which occupy the entire thickness of the epidermis.</li><li><strong>Prognosis:</strong> Excellent and indolent. It is not associated with systemic spread, and local treatment (excision or radiotherapy) is often curative. 5-year disease-specific survival is 100%.</li></ul>' };
 const gss_tooltip = { title: 'Granulomatous Slack Skin', content: '<ul><li><strong>Manifestations:</strong> Extremely rare variant of MF. Characterized by the slow development of bulky, pendulous folds of lax, atrophic skin, classically in intertriginous areas like the axillae and groin.</li><li><strong>Histopathology:</strong> A granulomatous infiltrate with multinucleated giant cells that engulf elastic fibers (elastophagocytosis), leading to loss of skin elasticity.</li><li><strong>Prognosis:</strong> Very indolent clinical course. However, it is associated with an increased risk of developing a secondary lymphoid malignancy, most commonly Hodgkin lymphoma.</li></ul>' };
 const pcalcl_tooltip = { title: 'Primary Cutaneous Anaplastic Large Cell Lymphoma (pcALCL)', content: '<ul><li><strong>Epidemiology:</strong> Part of CD30+ LPD spectrum (~25% of CTCLs with LyP). Median age 60 years. M:F ratio 2-3:1.</li><li><strong>Manifestations:</strong> Solitary/localized (80%), rapidly growing nodules/tumors. Ulceration in 40%. Spontaneous regression 20-25%. Leg involvement = poor prognosis.</li><li><strong>Histopathology:</strong> Large anaplastic cells, >75% CD30+. ALK-negative. May express cytotoxic markers (TIA-1, granzyme B, perforin).</li><li><strong>Treatment:</strong> Solitary: excision or RT (CR >95%). Multifocal: low-dose MTX, brentuximab vedotin (ORR 86%, CR 57%, median DoR 16.8 months).</li><li><strong>Prognosis:</strong> 5-year DSS >90% (non-leg), ~50% (leg). Cutaneous relapses 40%. Extracutaneous spread <10%.</li></ul>' };
-const lyp_tooltip = { title: 'Lymphomatoid Papulosis (LyP)', content: '<ul><li><strong>Epidemiology:</strong> Incidence 1.2-1.9 per million/year. Median age 45. M:F 1.5:1. Can occur at any age (including children).</li><li><strong>Manifestations:</strong> Recurrent crops of 3-100 papulonodules that necrotize centrally, resolve in 3-12 weeks leaving scars. Continuous eruption of new lesions.</li><li><strong>Histologic Types:</strong> A (most common): CD30+ cells with neutrophils/eosinophils. B: MF-like. C: ALCL-like. D: CD8+ epidermotropic. E: angioinvasive (worse prognosis). F: folliculotropic.</li><li><strong>Associated Lymphomas:</strong> 10-20% lifetime risk (highest in first 10 years). MF (most common), pcALCL, Hodgkin. Type E = higher risk.</li><li><strong>Management:</strong> Often none needed. Options: topical steroids, phototherapy, low-dose MTX (10-25mg/week, best for suppression). Avoid aggressive therapy.</li><li><strong>Prognosis:</strong> 5-year survival >99%. Does not affect life expectancy unless secondary lymphoma develops.</li></ul>' };
+const lyp_tooltip = { title: "Lymphomatoid Papulosis (LyP)", content: "<ul>\n<li><strong>Epidemiology:</strong> Incidence 1.2-1.9 per million/year. Median age 45. M:F 1.5:1. Can occur at any age (including children).</li>\n<li><strong>Manifestations:</strong> Recurrent crops of 3-100 papulonodules that necrotize centrally, resolve in 3-12 weeks leaving scars. Continuous eruption of new lesions.</li>\n<li><strong>Histologic Types:</strong> A (most common): CD30+ cells with neutrophils/eosinophils. B: MF-like. C: ALCL-like. D: CD8+ epidermotropic. E: angioinvasive (histology alone does not establish aggressive behavior). F: folliculotropic.</li>\n<li><strong>Associated Lymphomas:</strong> 10-20% lifetime risk (highest in first 10 years). MF (most common), pcALCL, Hodgkin. Type E is not established as a higher-risk subtype; maintain follow-up for associated lymphomas across LyP.</li>\n<li><strong>Management:</strong> Often none needed. Options: topical steroids, phototherapy, low-dose MTX (10-25mg/week, best for suppression). Avoid aggressive therapy.</li>\n<li><strong>Prognosis:</strong> 5-year survival &gt;99%. Does not affect life expectancy unless secondary lymphoma develops.</li>\n</ul>\n" };
 const sptcl_tooltip = { title: 'Subcutaneous Panniculitis-like T-cell Lymphoma (SPTCL)', content: '<ul><li><strong>Epidemiology:</strong> Very rare (<1% of CTCLs). Median age 35 years. F>M (2:1). Associated with autoimmune disorders (20-30%), especially lupus.</li><li><strong>Manifestations:</strong> Subcutaneous nodules/plaques on legs, arms, trunk. Resembles panniculitis. B-symptoms common (fever, weight loss). αβ T-cell phenotype.</li><li><strong>Histopathology:</strong> CD8+ cytotoxic T-cells in subcutis. Characteristic "rimming" of adipocytes. No epidermis/dermis involvement. Express TIA-1, granzyme B, perforin.</li><li><strong>Complications:</strong> HLH in 15-20% (poor prognosis). Screen with ferritin, sIL-2R, triglycerides.</li><li><strong>Treatment:</strong> First-line: systemic steroids, cyclosporine. Refractory: combination chemotherapy. Consider HSCT for HLH.</li><li><strong>Prognosis:</strong> 5-year OS ~80-90% without HLH, <50% with HLH. Better prognosis than PCGD-TCL.</li></ul>' };
 const pcgd_tooltip = { title: 'Primary Cutaneous Gamma-Delta T-cell Lymphoma (PCGD-TCL)', content: '<ul><li><strong>Manifestations:</strong> A rare and very aggressive CTCL composed of gamma-delta (γδ) T-cells. Presents with rapidly progressing, deeply ulcerated plaques, nodules, or tumors, often on the extremities.</li><li><strong>Histopathology:</strong> Infiltrate of atypical γδ T-cells in the dermis and/or subcutis, often with angiodestruction and necrosis.</li><li><strong>Prognosis:</strong> Very poor, with a median survival of approximately 15 months. Resistant to multi-agent chemotherapy.</li></ul>' };
 const aectcl_tooltip = { title: 'Aggressive Epidermotropic CD8+ Cytotoxic T-cell Lymphoma', content: '<ul><li><strong>Manifestations:</strong> A rare and very aggressive CTCL characterized by widespread, eruptive papules, nodules, and tumors that show central ulceration and necrosis. It disseminates rapidly to visceral sites but often spares lymph nodes.</li><li><strong>Histopathology:</strong> A dense, band-like infiltrate of atypical epidermotropic CD8+ cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Aggressive clinical course with a median survival of less than 32 months (2.7 years).</li></ul>' };
@@ -15,12 +15,13 @@ const atll_tooltip = { title: 'Adult T-cell Leukemia/Lymphoma (ATLL)', content: 
 const pcsm_tooltip = { title: 'PC CD4+ Small/Medium TCLPD', content: '<ul><li><strong>Epidemiology:</strong> An indolent subtype, accounts for ~6% of CTCL.</li><li><strong>Manifestations:</strong> Typically presents as a solitary plaque or tumor on the face, neck, or upper trunk.</li><li><strong>Histopathology:</strong> A dense, nodular-to-diffuse dermal infiltrate of small to medium-sized pleomorphic CD4+ T-cells, with a significant admixture of reactive B-cells, eosinophils, and histiocytes.</li><li><strong>Prognosis:</strong> Excellent, with a 5-year survival rate of 100%. Due to its benign course, it is classified as a "lymphoproliferative disorder" (TCLPD) rather than a true lymphoma.</li></ul>' };
 const acral_cd8_tooltip = { title: 'PC Acral CD8+ TCLPD', content: '<ul><li><strong>Manifestations:</strong> Presents as a solitary, slow-growing papule or nodule on an acral site, most commonly the ear.</li><li><strong>Histopathology:</strong> A dense, diffuse dermal infiltrate of monomorphous, medium-sized CD8+ cytotoxic T-cells, but with a very low proliferation rate.</li><li><strong>Prognosis:</strong> Excellent, with a 5-year survival of 100%. Despite an aggressive histologic appearance, the clinical behavior is indolent. Now classified as a "lymphoproliferative disorder" (TCLPD).</li></ul>' };
 const enktcl_tooltip = { title: 'Extranodal NK/T-cell Lymphoma, Nasal Type', content: '<ul><li><strong>Manifestations:</strong> A highly aggressive lymphoma, nearly always EBV-positive. The skin is the second most common site after the nasal cavity. Presents as ulcerated plaques and tumors.</li><li><strong>Histopathology:</strong> An angiocentric and angiodestructive infiltrate of atypical NK-cells or cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Very aggressive with a poor prognosis. 5-year disease-specific survival is only 16%.</li></ul>' };
+const mf_variants_tooltip = { title: 'Mycosis Fungoides Variants', content: 'These are distinct clinicopathologic variants of MF included in the WHO-EORTC classification.' };
 
 // MF Variants object for reuse
 const mf_variants_object = {
     id: 'mf_variants',
     name: 'MF Variants',
-    tooltip: { title: 'Mycosis Fungoides Variants', content: 'These are distinct clinicopathologic variants of MF included in the WHO-EORTC classification.' },
+    tooltip: mf_variants_tooltip,
     children: [
         { id: 'fmf', name: 'Folliculotropic MF', tooltip: fmf_tooltip },
         { id: 'pagetoid', name: 'Pagetoid Reticulosis', tooltip: pagetoid_tooltip },
@@ -503,50 +504,32 @@ const mindMapData = {
           {
             "id": "classic_mf",
             "name": "Classic MF",
-            "tooltip": {
-              "title": "Mycosis Fungoides (Classic)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Most common CTCL (50-70% of cases). Incidence: 6-9 per million/year. Male:female 1.6-2:1. Peak age 55-60. Higher incidence in Black populations.</li><li><strong>Manifestations:</strong> Indolent course. Progresses from <strong>patches</strong> to <strong>plaques</strong> to <strong>tumors</strong>. Pruritus in >80%. Large cell transformation (>25% large cells) = poor prognosis.</li><li><strong>Histopathology:</strong> Atypical cerebriform lymphocytes. <strong>Epidermotropism</strong> without spongiosis. Pautrier microabscesses (pathognomonic but only in 10-20%).</li><li><strong>Molecular:</strong> TP53 mutations (10-15%), CDKN2A deletions (30-40% in transformed), JAK/STAT pathway (60-70% advanced).</li><li><strong>Prognosis by Stage:</strong> IA: 5yr DSS >95%. IB: 5yr DSS 85-95%. IIA: 5yr DSS 80-85%. IIB: 5yr DSS 60-75%. III-IV: 5yr DSS 15-55%.</li></ul>"
-            }
+            "tooltip": classic_mf_tooltip
           },
           {
             "id": "ss",
             "name": "Sézary Syndrome",
-            "tooltip": {
-              "title": "Sézary Syndrome",
-              "content": "<ul><li><strong>Epidemiology:</strong> Rare CTCL (2-3% of cases). Incidence: 0.1-0.3 per million/year.</li><li><strong>Manifestations:</strong> Triad: <strong>erythroderma</strong> (>80% BSA), <strong>lymphadenopathy</strong>, <strong>Sézary cells</strong>. Severe pruritus >90%. Keratoderma, alopecia, ectropion common.</li><li><strong>B2 Criteria (need ONE):</strong> ≥1000/μL Sézary cells; CD4:CD8 ≥10 + clone; CD4+CD7- ≥40% or CD4+CD26- ≥30% + clone; Chromosomal abnormality. KIR3DL2/CD158k: 85% sensitive, 95% specific.</li><li><strong>Molecular:</strong> PLCG1 mutations ~10%, JAK/STAT pathway 60-70%, DNMT3A = poor prognosis.</li><li><strong>Prognosis:</strong> Median survival 2-4 years. 5-year DSS ~36%. First-line: ECP, mogamulizumab (FDA-approved first-line), retinoids±IFN.</li></ul>"
-            }
+            "tooltip": ss_tooltip
           },
           {
             "id": "mf_variants",
             "name": "MF Variants",
-            "tooltip": {
-              "title": "Mycosis Fungoides Variants",
-              "content": "These are distinct clinicopathologic variants of MF included in the WHO-EORTC classification."
-            },
+            "tooltip": mf_variants_tooltip,
             "children": [
               {
                 "id": "fmf",
                 "name": "Folliculotropic MF",
-                "tooltip": {
-                  "title": "Folliculotropic MF (FMF)",
-                  "content": "<ul><li><strong>Manifestations:</strong> A variant of MF characterized by infiltration of hair follicles. Presents as follicular-based patches, plaques, acneiform lesions, or tumors, often on the head and neck. Can cause alopecia, especially of the eyebrows.</li><li><strong>Histopathology:</strong> Characterized by perifollicular and follicular infiltrates of atypical T cells, often with associated follicular mucinosis (mucin deposition in the hair follicle). Epidermotropism is often sparse or absent.</li><li><strong>Prognosis:</strong> Traditionally considered more aggressive than classic MF due to deeper infiltration, making it less responsive to skin-directed therapies. However, recent studies suggest prognosis is stage-dependent, with early-stage FMF having a more favorable outcome than advanced-stage FMF.</li></ul>"
-                }
+                "tooltip": fmf_tooltip
               },
               {
                 "id": "pagetoid",
                 "name": "Pagetoid Reticulosis",
-                "tooltip": {
-                  "title": "Pagetoid Reticulosis (Woringer-Kolopp)",
-                  "content": "<ul><li><strong>Manifestations:</strong> Rare variant of MF presenting as a solitary, slowly growing, well-demarcated, psoriasiform or hyperkeratotic patch or plaque, typically on a distal extremity (hand or foot).</li><li><strong>Histopathology:</strong> Marked pagetoid (intraepidermal) proliferation of large atypical T-cells, which occupy the entire thickness of the epidermis.</li><li><strong>Prognosis:</strong> Excellent and indolent. It is not associated with systemic spread, and local treatment (excision or radiotherapy) is often curative. 5-year disease-specific survival is 100%.</li></ul>"
-                }
+                "tooltip": pagetoid_tooltip
               },
               {
                 "id": "gss",
                 "name": "Granulomatous Slack Skin",
-                "tooltip": {
-                  "title": "Granulomatous Slack Skin",
-                  "content": "<ul><li><strong>Manifestations:</strong> Extremely rare variant of MF. Characterized by the slow development of bulky, pendulous folds of lax, atrophic skin, classically in intertriginous areas like the axillae and groin.</li><li><strong>Histopathology:</strong> A granulomatous infiltrate with multinucleated giant cells that engulf elastic fibers (elastophagocytosis), leading to loss of skin elasticity.</li><li><strong>Prognosis:</strong> Very indolent clinical course. However, it is associated with an increased risk of developing a secondary lymphoid malignancy, most commonly Hodgkin lymphoma.</li></ul>"
-                }
+                "tooltip": gss_tooltip
               }
             ]
           }
@@ -563,18 +546,12 @@ const mindMapData = {
           {
             "id": "pcalcl",
             "name": "PC-ALCL",
-            "tooltip": {
-              "title": "Primary Cutaneous Anaplastic Large Cell Lymphoma (pcALCL)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Part of CD30+ LPD spectrum (~25% of CTCLs with LyP). Median age 60 years. M:F ratio 2-3:1.</li><li><strong>Manifestations:</strong> Solitary/localized (80%), rapidly growing nodules/tumors. Ulceration in 40%. Spontaneous regression 20-25%. Leg involvement = poor prognosis.</li><li><strong>Histopathology:</strong> Large anaplastic cells, >75% CD30+. ALK-negative. May express cytotoxic markers (TIA-1, granzyme B, perforin).</li><li><strong>Treatment:</strong> Solitary: excision or RT (CR >95%). Multifocal: low-dose MTX, brentuximab vedotin (ORR 86%, CR 57%, median DoR 16.8 months).</li><li><strong>Prognosis:</strong> 5-year DSS >90% (non-leg), ~50% (leg). Cutaneous relapses 40%. Extracutaneous spread <10%.</li></ul>"
-            }
+            "tooltip": pcalcl_tooltip
           },
           {
             "id": "lyp",
             "name": "LyP",
-            "tooltip": {
-              "title": "Lymphomatoid Papulosis (LyP)",
-              "content": "<ul>\n<li><strong>Epidemiology:</strong> Incidence 1.2-1.9 per million/year. Median age 45. M:F 1.5:1. Can occur at any age (including children).</li>\n<li><strong>Manifestations:</strong> Recurrent crops of 3-100 papulonodules that necrotize centrally, resolve in 3-12 weeks leaving scars. Continuous eruption of new lesions.</li>\n<li><strong>Histologic Types:</strong> A (most common): CD30+ cells with neutrophils/eosinophils. B: MF-like. C: ALCL-like. D: CD8+ epidermotropic. E: angioinvasive (histology alone does not establish aggressive behavior). F: folliculotropic.</li>\n<li><strong>Associated Lymphomas:</strong> 10-20% lifetime risk (highest in first 10 years). MF (most common), pcALCL, Hodgkin. Type E is not established as a higher-risk subtype; maintain follow-up for associated lymphomas across LyP.</li>\n<li><strong>Management:</strong> Often none needed. Options: topical steroids, phototherapy, low-dose MTX (10-25mg/week, best for suppression). Avoid aggressive therapy.</li>\n<li><strong>Prognosis:</strong> 5-year survival &gt;99%. Does not affect life expectancy unless secondary lymphoma develops.</li>\n</ul>\n"
-            }
+            "tooltip": lyp_tooltip
           }
         ]
       },
@@ -589,58 +566,37 @@ const mindMapData = {
           {
             "id": "sptcl",
             "name": "SPTCL",
-            "tooltip": {
-              "title": "Subcutaneous Panniculitis-like T-cell Lymphoma (SPTCL)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Very rare (<1% of CTCLs). Median age 35 years. F>M (2:1). Associated with autoimmune disorders (20-30%), especially lupus.</li><li><strong>Manifestations:</strong> Subcutaneous nodules/plaques on legs, arms, trunk. Resembles panniculitis. B-symptoms common (fever, weight loss). αβ T-cell phenotype.</li><li><strong>Histopathology:</strong> CD8+ cytotoxic T-cells in subcutis. Characteristic \"rimming\" of adipocytes. No epidermis/dermis involvement. Express TIA-1, granzyme B, perforin.</li><li><strong>Complications:</strong> HLH in 15-20% (poor prognosis). Screen with ferritin, sIL-2R, triglycerides.</li><li><strong>Treatment:</strong> First-line: systemic steroids, cyclosporine. Refractory: combination chemotherapy. Consider HSCT for HLH.</li><li><strong>Prognosis:</strong> 5-year OS ~80-90% without HLH, <50% with HLH. Better prognosis than PCGD-TCL.</li></ul>"
-            }
+            "tooltip": sptcl_tooltip
           },
           {
             "id": "pcgd",
             "name": "PCGD-TCL",
-            "tooltip": {
-              "title": "Primary Cutaneous Gamma-Delta T-cell Lymphoma (PCGD-TCL)",
-              "content": "<ul><li><strong>Manifestations:</strong> A rare and very aggressive CTCL composed of gamma-delta (γδ) T-cells. Presents with rapidly progressing, deeply ulcerated plaques, nodules, or tumors, often on the extremities.</li><li><strong>Histopathology:</strong> Infiltrate of atypical γδ T-cells in the dermis and/or subcutis, often with angiodestruction and necrosis.</li><li><strong>Prognosis:</strong> Very poor, with a median survival of approximately 15 months. Resistant to multi-agent chemotherapy.</li></ul>"
-            }
+            "tooltip": pcgd_tooltip
           },
           {
             "id": "aectcl",
             "name": "CD8+ AECTCL",
-            "tooltip": {
-              "title": "Aggressive Epidermotropic CD8+ Cytotoxic T-cell Lymphoma",
-              "content": "<ul><li><strong>Manifestations:</strong> A rare and very aggressive CTCL characterized by widespread, eruptive papules, nodules, and tumors that show central ulceration and necrosis. It disseminates rapidly to visceral sites but often spares lymph nodes.</li><li><strong>Histopathology:</strong> A dense, band-like infiltrate of atypical epidermotropic CD8+ cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Aggressive clinical course with a median survival of less than 32 months (2.7 years).</li></ul>"
-            }
+            "tooltip": aectcl_tooltip
           },
           {
             "id": "atll",
             "name": "ATLL",
-            "tooltip": {
-              "title": "Adult T-cell Leukemia/Lymphoma (ATLL)",
-              "content": "<ul><li><strong>Epidemiology:</strong> A peripheral T-cell neoplasm caused by the human T-cell leukemia virus 1 (HTLV-1). Endemic in areas like Japan, the Caribbean, and parts of South and Central America.</li><li><strong>Manifestations:</strong> ~25% of patients present with skin lesions that can mimic MF or Sézary syndrome. Acute ATLL is aggressive, featuring leukemia, lymphadenopathy, and hypercalcemia.</li><li><strong>Diagnosis:</strong> Presence of HTLV-1 antibodies is key. Blood smear shows characteristic \"flower cells\" (polylobated nuclei).</li><li><strong>Prognosis:</strong> Poor for acute and lymphomatous types, with a median survival of less than one year.</li></ul>"
-            }
+            "tooltip": atll_tooltip
           },
           {
             "id": "pcsm",
             "name": "PC CD4+ S/M TCLPD",
-            "tooltip": {
-              "title": "PC CD4+ Small/Medium TCLPD",
-              "content": "<ul><li><strong>Epidemiology:</strong> An indolent subtype, accounts for ~6% of CTCL.</li><li><strong>Manifestations:</strong> Typically presents as a solitary plaque or tumor on the face, neck, or upper trunk.</li><li><strong>Histopathology:</strong> A dense, nodular-to-diffuse dermal infiltrate of small to medium-sized pleomorphic CD4+ T-cells, with a significant admixture of reactive B-cells, eosinophils, and histiocytes.</li><li><strong>Prognosis:</strong> Excellent, with a 5-year survival rate of 100%. Due to its benign course, it is classified as a \"lymphoproliferative disorder\" (TCLPD) rather than a true lymphoma.</li></ul>"
-            }
+            "tooltip": pcsm_tooltip
           },
           {
             "id": "acral_cd8_overall",
             "name": "PC Acral CD8+ TCLPD",
-            "tooltip": {
-              "title": "PC Acral CD8+ TCLPD",
-              "content": "<ul><li><strong>Manifestations:</strong> Presents as a solitary, slow-growing papule or nodule on an acral site, most commonly the ear.</li><li><strong>Histopathology:</strong> A dense, diffuse dermal infiltrate of monomorphous, medium-sized CD8+ cytotoxic T-cells, but with a very low proliferation rate.</li><li><strong>Prognosis:</strong> Excellent, with a 5-year survival of 100%. Despite an aggressive histologic appearance, the clinical behavior is indolent. Now classified as a \"lymphoproliferative disorder\" (TCLPD).</li></ul>"
-            }
+            "tooltip": acral_cd8_tooltip
           },
           {
             "id": "enktcl_overall",
             "name": "ENKTCL",
-            "tooltip": {
-              "title": "Extranodal NK/T-cell Lymphoma, Nasal Type",
-              "content": "<ul><li><strong>Manifestations:</strong> A highly aggressive lymphoma, nearly always EBV-positive. The skin is the second most common site after the nasal cavity. Presents as ulcerated plaques and tumors.</li><li><strong>Histopathology:</strong> An angiocentric and angiodestructive infiltrate of atypical NK-cells or cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Very aggressive with a poor prognosis. 5-year disease-specific survival is only 16%.</li></ul>"
-            }
+            "tooltip": enktcl_tooltip
           }
         ]
       }
@@ -665,26 +621,17 @@ const mindMapData = {
           {
             "id": "mf_ss_cd4",
             "name": "MF / Sézary Syndrome",
-            "tooltip": {
-              "title": "Sézary Syndrome",
-              "content": "<ul><li><strong>Epidemiology:</strong> Rare CTCL (2-3% of cases). Incidence: 0.1-0.3 per million/year.</li><li><strong>Manifestations:</strong> Triad: <strong>erythroderma</strong> (>80% BSA), <strong>lymphadenopathy</strong>, <strong>Sézary cells</strong>. Severe pruritus >90%. Keratoderma, alopecia, ectropion common.</li><li><strong>B2 Criteria (need ONE):</strong> ≥1000/μL Sézary cells; CD4:CD8 ≥10 + clone; CD4+CD7- ≥40% or CD4+CD26- ≥30% + clone; Chromosomal abnormality. KIR3DL2/CD158k: 85% sensitive, 95% specific.</li><li><strong>Molecular:</strong> PLCG1 mutations ~10%, JAK/STAT pathway 60-70%, DNMT3A = poor prognosis.</li><li><strong>Prognosis:</strong> Median survival 2-4 years. 5-year DSS ~36%. First-line: ECP, mogamulizumab (FDA-approved first-line), retinoids±IFN.</li></ul>"
-            }
+            "tooltip": ss_tooltip
           },
           {
             "id": "atll_cd4",
             "name": "ATLL",
-            "tooltip": {
-              "title": "Adult T-cell Leukemia/Lymphoma (ATLL)",
-              "content": "<ul><li><strong>Epidemiology:</strong> A peripheral T-cell neoplasm caused by the human T-cell leukemia virus 1 (HTLV-1). Endemic in areas like Japan, the Caribbean, and parts of South and Central America.</li><li><strong>Manifestations:</strong> ~25% of patients present with skin lesions that can mimic MF or Sézary syndrome. Acute ATLL is aggressive, featuring leukemia, lymphadenopathy, and hypercalcemia.</li><li><strong>Diagnosis:</strong> Presence of HTLV-1 antibodies is key. Blood smear shows characteristic \"flower cells\" (polylobated nuclei).</li><li><strong>Prognosis:</strong> Poor for acute and lymphomatous types, with a median survival of less than one year.</li></ul>"
-            }
+            "tooltip": atll_tooltip
           },
           {
             "id": "pcsm_cd4",
             "name": "PC CD4+ S/M TCLPD",
-            "tooltip": {
-              "title": "PC CD4+ Small/Medium TCLPD",
-              "content": "<ul><li><strong>Epidemiology:</strong> An indolent subtype, accounts for ~6% of CTCL.</li><li><strong>Manifestations:</strong> Typically presents as a solitary plaque or tumor on the face, neck, or upper trunk.</li><li><strong>Histopathology:</strong> A dense, nodular-to-diffuse dermal infiltrate of small to medium-sized pleomorphic CD4+ T-cells, with a significant admixture of reactive B-cells, eosinophils, and histiocytes.</li><li><strong>Prognosis:</strong> Excellent, with a 5-year survival rate of 100%. Due to its benign course, it is classified as a \"lymphoproliferative disorder\" (TCLPD) rather than a true lymphoma.</li></ul>"
-            }
+            "tooltip": pcsm_tooltip
           }
         ]
       },
@@ -699,26 +646,17 @@ const mindMapData = {
           {
             "id": "sptcl_cd8",
             "name": "SPTCL",
-            "tooltip": {
-              "title": "Subcutaneous Panniculitis-like T-cell Lymphoma (SPTCL)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Very rare (<1% of CTCLs). Median age 35 years. F>M (2:1). Associated with autoimmune disorders (20-30%), especially lupus.</li><li><strong>Manifestations:</strong> Subcutaneous nodules/plaques on legs, arms, trunk. Resembles panniculitis. B-symptoms common (fever, weight loss). αβ T-cell phenotype.</li><li><strong>Histopathology:</strong> CD8+ cytotoxic T-cells in subcutis. Characteristic \"rimming\" of adipocytes. No epidermis/dermis involvement. Express TIA-1, granzyme B, perforin.</li><li><strong>Complications:</strong> HLH in 15-20% (poor prognosis). Screen with ferritin, sIL-2R, triglycerides.</li><li><strong>Treatment:</strong> First-line: systemic steroids, cyclosporine. Refractory: combination chemotherapy. Consider HSCT for HLH.</li><li><strong>Prognosis:</strong> 5-year OS ~80-90% without HLH, <50% with HLH. Better prognosis than PCGD-TCL.</li></ul>"
-            }
+            "tooltip": sptcl_tooltip
           },
           {
             "id": "aectcl_cd8",
             "name": "CD8+ AECTCL",
-            "tooltip": {
-              "title": "Aggressive Epidermotropic CD8+ Cytotoxic T-cell Lymphoma",
-              "content": "<ul><li><strong>Manifestations:</strong> A rare and very aggressive CTCL characterized by widespread, eruptive papules, nodules, and tumors that show central ulceration and necrosis. It disseminates rapidly to visceral sites but often spares lymph nodes.</li><li><strong>Histopathology:</strong> A dense, band-like infiltrate of atypical epidermotropic CD8+ cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Aggressive clinical course with a median survival of less than 32 months (2.7 years).</li></ul>"
-            }
+            "tooltip": aectcl_tooltip
           },
           {
             "id": "acral_cd8",
             "name": "PC Acral CD8+ TCLPD",
-            "tooltip": {
-              "title": "PC Acral CD8+ TCLPD",
-              "content": "<ul><li><strong>Manifestations:</strong> Presents as a solitary, slow-growing papule or nodule on an acral site, most commonly the ear.</li><li><strong>Histopathology:</strong> A dense, diffuse dermal infiltrate of monomorphous, medium-sized CD8+ cytotoxic T-cells, but with a very low proliferation rate.</li><li><strong>Prognosis:</strong> Excellent, with a 5-year survival of 100%. Despite an aggressive histologic appearance, the clinical behavior is indolent. Now classified as a \"lymphoproliferative disorder\" (TCLPD).</li></ul>"
-            }
+            "tooltip": acral_cd8_tooltip
           },
           {
             "id": "hypo_mf",
@@ -741,18 +679,12 @@ const mindMapData = {
           {
             "id": "pcalcl_cd30",
             "name": "PC-ALCL",
-            "tooltip": {
-              "title": "Primary Cutaneous Anaplastic Large Cell Lymphoma (pcALCL)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Part of CD30+ LPD spectrum (~25% of CTCLs with LyP). Median age 60 years. M:F ratio 2-3:1.</li><li><strong>Manifestations:</strong> Solitary/localized (80%), rapidly growing nodules/tumors. Ulceration in 40%. Spontaneous regression 20-25%. Leg involvement = poor prognosis.</li><li><strong>Histopathology:</strong> Large anaplastic cells, >75% CD30+. ALK-negative. May express cytotoxic markers (TIA-1, granzyme B, perforin).</li><li><strong>Treatment:</strong> Solitary: excision or RT (CR >95%). Multifocal: low-dose MTX, brentuximab vedotin (ORR 86%, CR 57%, median DoR 16.8 months).</li><li><strong>Prognosis:</strong> 5-year DSS >90% (non-leg), ~50% (leg). Cutaneous relapses 40%. Extracutaneous spread <10%.</li></ul>"
-            }
+            "tooltip": pcalcl_tooltip
           },
           {
             "id": "lyp_cd30",
             "name": "LyP",
-            "tooltip": {
-              "title": "Lymphomatoid Papulosis (LyP)",
-              "content": "<ul>\n<li><strong>Epidemiology:</strong> Incidence 1.2-1.9 per million/year. Median age 45. M:F 1.5:1. Can occur at any age (including children).</li>\n<li><strong>Manifestations:</strong> Recurrent crops of 3-100 papulonodules that necrotize centrally, resolve in 3-12 weeks leaving scars. Continuous eruption of new lesions.</li>\n<li><strong>Histologic Types:</strong> A (most common): CD30+ cells with neutrophils/eosinophils. B: MF-like. C: ALCL-like. D: CD8+ epidermotropic. E: angioinvasive (histology alone does not establish aggressive behavior). F: folliculotropic.</li>\n<li><strong>Associated Lymphomas:</strong> 10-20% lifetime risk (highest in first 10 years). MF (most common), pcALCL, Hodgkin. Type E is not established as a higher-risk subtype; maintain follow-up for associated lymphomas across LyP.</li>\n<li><strong>Management:</strong> Often none needed. Options: topical steroids, phototherapy, low-dose MTX (10-25mg/week, best for suppression). Avoid aggressive therapy.</li>\n<li><strong>Prognosis:</strong> 5-year survival &gt;99%. Does not affect life expectancy unless secondary lymphoma develops.</li>\n</ul>\n"
-            }
+            "tooltip": lyp_tooltip
           },
           {
             "id": "mf_lct_cd30",
@@ -775,10 +707,7 @@ const mindMapData = {
           {
             "id": "pcgd_gd",
             "name": "PCGD-TCL",
-            "tooltip": {
-              "title": "Primary Cutaneous Gamma-Delta T-cell Lymphoma (PCGD-TCL)",
-              "content": "<ul><li><strong>Manifestations:</strong> A rare and very aggressive CTCL composed of gamma-delta (γδ) T-cells. Presents with rapidly progressing, deeply ulcerated plaques, nodules, or tumors, often on the extremities.</li><li><strong>Histopathology:</strong> Infiltrate of atypical γδ T-cells in the dermis and/or subcutis, often with angiodestruction and necrosis.</li><li><strong>Prognosis:</strong> Very poor, with a median survival of approximately 15 months. Resistant to multi-agent chemotherapy.</li></ul>"
-            }
+            "tooltip": pcgd_tooltip
           }
         ]
       },
@@ -793,10 +722,7 @@ const mindMapData = {
           {
             "id": "enktcl_nk",
             "name": "ENKTCL, Nasal Type",
-            "tooltip": {
-              "title": "Extranodal NK/T-cell Lymphoma, Nasal Type",
-              "content": "<ul><li><strong>Manifestations:</strong> A highly aggressive lymphoma, nearly always EBV-positive. The skin is the second most common site after the nasal cavity. Presents as ulcerated plaques and tumors.</li><li><strong>Histopathology:</strong> An angiocentric and angiodestructive infiltrate of atypical NK-cells or cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Very aggressive with a poor prognosis. 5-year disease-specific survival is only 16%.</li></ul>"
-            }
+            "tooltip": enktcl_tooltip
           }
         ]
       }
@@ -821,34 +747,22 @@ const mindMapData = {
           {
             "id": "mf_patch_epi",
             "name": "MF (Patch/Plaque)",
-            "tooltip": {
-              "title": "Mycosis Fungoides (Classic)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Most common CTCL (50-70% of cases). Incidence: 6-9 per million/year. Male:female 1.6-2:1. Peak age 55-60. Higher incidence in Black populations.</li><li><strong>Manifestations:</strong> Indolent course. Progresses from <strong>patches</strong> to <strong>plaques</strong> to <strong>tumors</strong>. Pruritus in >80%. Large cell transformation (>25% large cells) = poor prognosis.</li><li><strong>Histopathology:</strong> Atypical cerebriform lymphocytes. <strong>Epidermotropism</strong> without spongiosis. Pautrier microabscesses (pathognomonic but only in 10-20%).</li><li><strong>Molecular:</strong> TP53 mutations (10-15%), CDKN2A deletions (30-40% in transformed), JAK/STAT pathway (60-70% advanced).</li><li><strong>Prognosis by Stage:</strong> IA: 5yr DSS >95%. IB: 5yr DSS 85-95%. IIA: 5yr DSS 80-85%. IIB: 5yr DSS 60-75%. III-IV: 5yr DSS 15-55%.</li></ul>"
-            }
+            "tooltip": classic_mf_tooltip
           },
           {
             "id": "aectcl_epi",
             "name": "CD8+ AECTCL",
-            "tooltip": {
-              "title": "Aggressive Epidermotropic CD8+ Cytotoxic T-cell Lymphoma",
-              "content": "<ul><li><strong>Manifestations:</strong> A rare and very aggressive CTCL characterized by widespread, eruptive papules, nodules, and tumors that show central ulceration and necrosis. It disseminates rapidly to visceral sites but often spares lymph nodes.</li><li><strong>Histopathology:</strong> A dense, band-like infiltrate of atypical epidermotropic CD8+ cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Aggressive clinical course with a median survival of less than 32 months (2.7 years).</li></ul>"
-            }
+            "tooltip": aectcl_tooltip
           },
           {
             "id": "lyp_epi",
             "name": "LyP (Type B & D)",
-            "tooltip": {
-              "title": "Lymphomatoid Papulosis (LyP)",
-              "content": "<ul>\n<li><strong>Epidemiology:</strong> Incidence 1.2-1.9 per million/year. Median age 45. M:F 1.5:1. Can occur at any age (including children).</li>\n<li><strong>Manifestations:</strong> Recurrent crops of 3-100 papulonodules that necrotize centrally, resolve in 3-12 weeks leaving scars. Continuous eruption of new lesions.</li>\n<li><strong>Histologic Types:</strong> A (most common): CD30+ cells with neutrophils/eosinophils. B: MF-like. C: ALCL-like. D: CD8+ epidermotropic. E: angioinvasive (histology alone does not establish aggressive behavior). F: folliculotropic.</li>\n<li><strong>Associated Lymphomas:</strong> 10-20% lifetime risk (highest in first 10 years). MF (most common), pcALCL, Hodgkin. Type E is not established as a higher-risk subtype; maintain follow-up for associated lymphomas across LyP.</li>\n<li><strong>Management:</strong> Often none needed. Options: topical steroids, phototherapy, low-dose MTX (10-25mg/week, best for suppression). Avoid aggressive therapy.</li>\n<li><strong>Prognosis:</strong> 5-year survival &gt;99%. Does not affect life expectancy unless secondary lymphoma develops.</li>\n</ul>\n"
-            }
+            "tooltip": lyp_tooltip
           },
           {
             "id": "pagetoid_epi",
             "name": "Pagetoid Reticulosis",
-            "tooltip": {
-              "title": "Pagetoid Reticulosis (Woringer-Kolopp)",
-              "content": "<ul><li><strong>Manifestations:</strong> Rare variant of MF presenting as a solitary, slowly growing, well-demarcated, psoriasiform or hyperkeratotic patch or plaque, typically on a distal extremity (hand or foot).</li><li><strong>Histopathology:</strong> Marked pagetoid (intraepidermal) proliferation of large atypical T-cells, which occupy the entire thickness of the epidermis.</li><li><strong>Prognosis:</strong> Excellent and indolent. It is not associated with systemic spread, and local treatment (excision or radiotherapy) is often curative. 5-year disease-specific survival is 100%.</li></ul>"
-            }
+            "tooltip": pagetoid_tooltip
           }
         ]
       },
@@ -863,42 +777,27 @@ const mindMapData = {
           {
             "id": "mf_tumor_dermal",
             "name": "MF (Tumor Stage)",
-            "tooltip": {
-              "title": "Mycosis Fungoides (Classic)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Most common CTCL (50-70% of cases). Incidence: 6-9 per million/year. Male:female 1.6-2:1. Peak age 55-60. Higher incidence in Black populations.</li><li><strong>Manifestations:</strong> Indolent course. Progresses from <strong>patches</strong> to <strong>plaques</strong> to <strong>tumors</strong>. Pruritus in >80%. Large cell transformation (>25% large cells) = poor prognosis.</li><li><strong>Histopathology:</strong> Atypical cerebriform lymphocytes. <strong>Epidermotropism</strong> without spongiosis. Pautrier microabscesses (pathognomonic but only in 10-20%).</li><li><strong>Molecular:</strong> TP53 mutations (10-15%), CDKN2A deletions (30-40% in transformed), JAK/STAT pathway (60-70% advanced).</li><li><strong>Prognosis by Stage:</strong> IA: 5yr DSS >95%. IB: 5yr DSS 85-95%. IIA: 5yr DSS 80-85%. IIB: 5yr DSS 60-75%. III-IV: 5yr DSS 15-55%.</li></ul>"
-            }
+            "tooltip": classic_mf_tooltip
           },
           {
             "id": "pcsm_dermal",
             "name": "PC CD4+ S/M TCLPD",
-            "tooltip": {
-              "title": "PC CD4+ Small/Medium TCLPD",
-              "content": "<ul><li><strong>Epidemiology:</strong> An indolent subtype, accounts for ~6% of CTCL.</li><li><strong>Manifestations:</strong> Typically presents as a solitary plaque or tumor on the face, neck, or upper trunk.</li><li><strong>Histopathology:</strong> A dense, nodular-to-diffuse dermal infiltrate of small to medium-sized pleomorphic CD4+ T-cells, with a significant admixture of reactive B-cells, eosinophils, and histiocytes.</li><li><strong>Prognosis:</strong> Excellent, with a 5-year survival rate of 100%. Due to its benign course, it is classified as a \"lymphoproliferative disorder\" (TCLPD) rather than a true lymphoma.</li></ul>"
-            }
+            "tooltip": pcsm_tooltip
           },
           {
             "id": "pcalcl_dermal",
             "name": "PC-ALCL",
-            "tooltip": {
-              "title": "Primary Cutaneous Anaplastic Large Cell Lymphoma (pcALCL)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Part of CD30+ LPD spectrum (~25% of CTCLs with LyP). Median age 60 years. M:F ratio 2-3:1.</li><li><strong>Manifestations:</strong> Solitary/localized (80%), rapidly growing nodules/tumors. Ulceration in 40%. Spontaneous regression 20-25%. Leg involvement = poor prognosis.</li><li><strong>Histopathology:</strong> Large anaplastic cells, >75% CD30+. ALK-negative. May express cytotoxic markers (TIA-1, granzyme B, perforin).</li><li><strong>Treatment:</strong> Solitary: excision or RT (CR >95%). Multifocal: low-dose MTX, brentuximab vedotin (ORR 86%, CR 57%, median DoR 16.8 months).</li><li><strong>Prognosis:</strong> 5-year DSS >90% (non-leg), ~50% (leg). Cutaneous relapses 40%. Extracutaneous spread <10%.</li></ul>"
-            }
+            "tooltip": pcalcl_tooltip
           },
           {
             "id": "lyp_dermal",
             "name": "LyP (Type A, C, E)",
-            "tooltip": {
-              "title": "Lymphomatoid Papulosis (LyP)",
-              "content": "<ul>\n<li><strong>Epidemiology:</strong> Incidence 1.2-1.9 per million/year. Median age 45. M:F 1.5:1. Can occur at any age (including children).</li>\n<li><strong>Manifestations:</strong> Recurrent crops of 3-100 papulonodules that necrotize centrally, resolve in 3-12 weeks leaving scars. Continuous eruption of new lesions.</li>\n<li><strong>Histologic Types:</strong> A (most common): CD30+ cells with neutrophils/eosinophils. B: MF-like. C: ALCL-like. D: CD8+ epidermotropic. E: angioinvasive (histology alone does not establish aggressive behavior). F: folliculotropic.</li>\n<li><strong>Associated Lymphomas:</strong> 10-20% lifetime risk (highest in first 10 years). MF (most common), pcALCL, Hodgkin. Type E is not established as a higher-risk subtype; maintain follow-up for associated lymphomas across LyP.</li>\n<li><strong>Management:</strong> Often none needed. Options: topical steroids, phototherapy, low-dose MTX (10-25mg/week, best for suppression). Avoid aggressive therapy.</li>\n<li><strong>Prognosis:</strong> 5-year survival &gt;99%. Does not affect life expectancy unless secondary lymphoma develops.</li>\n</ul>\n"
-            }
+            "tooltip": lyp_tooltip
           },
           {
             "id": "acral_cd8_dermal",
             "name": "PC Acral CD8+ TCLPD",
-            "tooltip": {
-              "title": "PC Acral CD8+ TCLPD",
-              "content": "<ul><li><strong>Manifestations:</strong> Presents as a solitary, slow-growing papule or nodule on an acral site, most commonly the ear.</li><li><strong>Histopathology:</strong> A dense, diffuse dermal infiltrate of monomorphous, medium-sized CD8+ cytotoxic T-cells, but with a very low proliferation rate.</li><li><strong>Prognosis:</strong> Excellent, with a 5-year survival of 100%. Despite an aggressive histologic appearance, the clinical behavior is indolent. Now classified as a \"lymphoproliferative disorder\" (TCLPD).</li></ul>"
-            }
+            "tooltip": acral_cd8_tooltip
           }
         ]
       },
@@ -913,26 +812,17 @@ const mindMapData = {
           {
             "id": "sptcl_sub",
             "name": "SPTCL",
-            "tooltip": {
-              "title": "Subcutaneous Panniculitis-like T-cell Lymphoma (SPTCL)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Very rare (<1% of CTCLs). Median age 35 years. F>M (2:1). Associated with autoimmune disorders (20-30%), especially lupus.</li><li><strong>Manifestations:</strong> Subcutaneous nodules/plaques on legs, arms, trunk. Resembles panniculitis. B-symptoms common (fever, weight loss). αβ T-cell phenotype.</li><li><strong>Histopathology:</strong> CD8+ cytotoxic T-cells in subcutis. Characteristic \"rimming\" of adipocytes. No epidermis/dermis involvement. Express TIA-1, granzyme B, perforin.</li><li><strong>Complications:</strong> HLH in 15-20% (poor prognosis). Screen with ferritin, sIL-2R, triglycerides.</li><li><strong>Treatment:</strong> First-line: systemic steroids, cyclosporine. Refractory: combination chemotherapy. Consider HSCT for HLH.</li><li><strong>Prognosis:</strong> 5-year OS ~80-90% without HLH, <50% with HLH. Better prognosis than PCGD-TCL.</li></ul>"
-            }
+            "tooltip": sptcl_tooltip
           },
           {
             "id": "pcgd_sub",
             "name": "PCGD-TCL",
-            "tooltip": {
-              "title": "Primary Cutaneous Gamma-Delta T-cell Lymphoma (PCGD-TCL)",
-              "content": "<ul><li><strong>Manifestations:</strong> A rare and very aggressive CTCL composed of gamma-delta (γδ) T-cells. Presents with rapidly progressing, deeply ulcerated plaques, nodules, or tumors, often on the extremities.</li><li><strong>Histopathology:</strong> Infiltrate of atypical γδ T-cells in the dermis and/or subcutis, often with angiodestruction and necrosis.</li><li><strong>Prognosis:</strong> Very poor, with a median survival of approximately 15 months. Resistant to multi-agent chemotherapy.</li></ul>"
-            }
+            "tooltip": pcgd_tooltip
           },
           {
             "id": "enktcl_sub",
             "name": "ENKTCL",
-            "tooltip": {
-              "title": "Extranodal NK/T-cell Lymphoma, Nasal Type",
-              "content": "<ul><li><strong>Manifestations:</strong> A highly aggressive lymphoma, nearly always EBV-positive. The skin is the second most common site after the nasal cavity. Presents as ulcerated plaques and tumors.</li><li><strong>Histopathology:</strong> An angiocentric and angiodestructive infiltrate of atypical NK-cells or cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Very aggressive with a poor prognosis. 5-year disease-specific survival is only 16%.</li></ul>"
-            }
+            "tooltip": enktcl_tooltip
           }
         ]
       }
@@ -957,10 +847,7 @@ const mindMapData = {
           {
             "id": "enktcl_ebv",
             "name": "ENKTCL, Nasal Type",
-            "tooltip": {
-              "title": "Extranodal NK/T-cell Lymphoma, Nasal Type",
-              "content": "<ul><li><strong>Manifestations:</strong> A highly aggressive lymphoma, nearly always EBV-positive. The skin is the second most common site after the nasal cavity. Presents as ulcerated plaques and tumors.</li><li><strong>Histopathology:</strong> An angiocentric and angiodestructive infiltrate of atypical NK-cells or cytotoxic T-cells.</li><li><strong>Prognosis:</strong> Very aggressive with a poor prognosis. 5-year disease-specific survival is only 16%.</li></ul>"
-            }
+            "tooltip": enktcl_tooltip
           },
           {
             "id": "caebv",
@@ -991,26 +878,17 @@ const mindMapData = {
           {
             "id": "mf_ss_ebv",
             "name": "MF / Sézary Syndrome",
-            "tooltip": {
-              "title": "Mycosis Fungoides (Classic)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Most common CTCL (50-70% of cases). Incidence: 6-9 per million/year. Male:female 1.6-2:1. Peak age 55-60. Higher incidence in Black populations.</li><li><strong>Manifestations:</strong> Indolent course. Progresses from <strong>patches</strong> to <strong>plaques</strong> to <strong>tumors</strong>. Pruritus in >80%. Large cell transformation (>25% large cells) = poor prognosis.</li><li><strong>Histopathology:</strong> Atypical cerebriform lymphocytes. <strong>Epidermotropism</strong> without spongiosis. Pautrier microabscesses (pathognomonic but only in 10-20%).</li><li><strong>Molecular:</strong> TP53 mutations (10-15%), CDKN2A deletions (30-40% in transformed), JAK/STAT pathway (60-70% advanced).</li><li><strong>Prognosis by Stage:</strong> IA: 5yr DSS >95%. IB: 5yr DSS 85-95%. IIA: 5yr DSS 80-85%. IIB: 5yr DSS 60-75%. III-IV: 5yr DSS 15-55%.</li></ul>"
-            }
+            "tooltip": classic_mf_tooltip
           },
           {
             "id": "cd30_lpd_ebv",
             "name": "CD30+ LPDs",
-            "tooltip": {
-              "title": "Primary Cutaneous Anaplastic Large Cell Lymphoma (pcALCL)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Part of CD30+ LPD spectrum (~25% of CTCLs with LyP). Median age 60 years. M:F ratio 2-3:1.</li><li><strong>Manifestations:</strong> Solitary/localized (80%), rapidly growing nodules/tumors. Ulceration in 40%. Spontaneous regression 20-25%. Leg involvement = poor prognosis.</li><li><strong>Histopathology:</strong> Large anaplastic cells, >75% CD30+. ALK-negative. May express cytotoxic markers (TIA-1, granzyme B, perforin).</li><li><strong>Treatment:</strong> Solitary: excision or RT (CR >95%). Multifocal: low-dose MTX, brentuximab vedotin (ORR 86%, CR 57%, median DoR 16.8 months).</li><li><strong>Prognosis:</strong> 5-year DSS >90% (non-leg), ~50% (leg). Cutaneous relapses 40%. Extracutaneous spread <10%.</li></ul>"
-            }
+            "tooltip": pcalcl_tooltip
           },
           {
             "id": "sptcl_ebv",
             "name": "SPTCL",
-            "tooltip": {
-              "title": "Subcutaneous Panniculitis-like T-cell Lymphoma (SPTCL)",
-              "content": "<ul><li><strong>Epidemiology:</strong> Very rare (<1% of CTCLs). Median age 35 years. F>M (2:1). Associated with autoimmune disorders (20-30%), especially lupus.</li><li><strong>Manifestations:</strong> Subcutaneous nodules/plaques on legs, arms, trunk. Resembles panniculitis. B-symptoms common (fever, weight loss). αβ T-cell phenotype.</li><li><strong>Histopathology:</strong> CD8+ cytotoxic T-cells in subcutis. Characteristic \"rimming\" of adipocytes. No epidermis/dermis involvement. Express TIA-1, granzyme B, perforin.</li><li><strong>Complications:</strong> HLH in 15-20% (poor prognosis). Screen with ferritin, sIL-2R, triglycerides.</li><li><strong>Treatment:</strong> First-line: systemic steroids, cyclosporine. Refractory: combination chemotherapy. Consider HSCT for HLH.</li><li><strong>Prognosis:</strong> 5-year OS ~80-90% without HLH, <50% with HLH. Better prognosis than PCGD-TCL.</li></ul>"
-            }
+            "tooltip": sptcl_tooltip
           }
         ]
       }

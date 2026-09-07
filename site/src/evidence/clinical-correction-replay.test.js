@@ -40,8 +40,8 @@ describe('CTCL stage-group source correction', () => {
 //   node -e "const c=require('crypto');const f=require('fs');process.stdout.write(c.createHash('sha256').update(f.readFileSync('site/public/clinical-source-review/corrections.json')).digest('hex'))"
 // (run from the repository root) and set LEDGER_RECORDS to the array length printed by
 //   python3 scripts/build-clinical-review-status.py --check
-const LEDGER_RECORDS = 687;
-const LEDGER_SHA256 = '84f6ff087db8b83b70c18f40a3883083e43a35e64b98b1e7b428b42828be83ed';
+const LEDGER_RECORDS = 714;
+const LEDGER_SHA256 = '19db33dbd337ee6490af785dbc0b8f91b6b123b16b50f4989a13353698d4230c';
 const ledgerPath = new URL('../../public/clinical-source-review/corrections.json', import.meta.url);
 const ledgerBytes = readFileSync(ledgerPath);
 const changes = JSON.parse(ledgerBytes.toString('utf8'));

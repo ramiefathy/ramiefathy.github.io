@@ -406,7 +406,7 @@ const mindMapData = {
             "name": "For Diffuse Shedding (TE)",
             "tooltip": {
               "title": "Labs for Diffuse Hair Loss",
-              "content": "<p>Investigations are selected from the history and examination, for example CBC and ferritin when iron deficiency is plausible and TSH when thyroid disease is suspected. Correct documented deficiencies. A ferritin target of 40–70 ng/mL for hair regrowth and routine vitamin-D testing for every patient are not established by the sources supplied here.</p>\n"
+              "content": "<p>Investigations are selected from the history and examination, for example CBC and ferritin when iron deficiency is plausible and TSH when thyroid disease is suspected. Correct documented deficiencies. A specific ferritin target for hair regrowth and routine vitamin-D testing for every patient are not evidence-based recommendations.</p>\n"
             }
           },
           {
