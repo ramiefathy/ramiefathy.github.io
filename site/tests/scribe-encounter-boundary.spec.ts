@@ -28,6 +28,7 @@ test.beforeEach(async ({ page }) => {
     }
     (window as any).WebSocket = SyntheticSocket;
   });
+  await page.clock.install();
   await page.goto(route, { waitUntil: 'networkidle' });
   await page.click('#startTranscriptionModeCard');
   await expect.poll(() => page.evaluate(() => (window as any).__sockets.length)).toBeGreaterThan(0);
@@ -121,4 +122,88 @@ test('superseded sockets cannot supply clinical output or change current connect
   await expect(page.locator('#soapNoteOutput')).toContainText('FRESH_SOCKET_NOTE');
   await expect(page.locator('body')).not.toContainText('STALE_OLD_SOCKET');
   await expect(page.locator('#sessionMode')).not.toContainText('Disconnected');
+});
+
+test('a server error during the reset fence is surfaced and releases the fence instead of hanging the encounter', async ({ page }) => {
+  await page.evaluate(() => {
+    const w = window as any;
+    w.beginNewTranscriptionSession();
+    const socket = w.__sockets.at(-1);
+    socket.emit({ type: 'stream_chunk', streamType: 'note', text: 'PROVISIONAL_DURING_FENCE' });
+    socket.emit({ type: 'error', message: 'Rate limit exceeded. Please slow down and retry.', retryAfter: 5 });
+  });
+  const failure = page.locator('.notification-error', { hasText: /new session request failed/i });
+  await expect(failure).toBeVisible();
+  await expect(failure).toContainText(/start a new session again/i);
+  await expect(page.locator('.notification-error', { hasText: /rate limit exceeded/i })).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('PROVISIONAL_DURING_FENCE');
+  await page.evaluate(() => {
+    (window as any).__sockets.at(-1).emit({ type: 'note_updated', draftNote: 'AFTER_FAILED_RESET' });
+  });
+  await expect(page.locator('#soapNoteOutput')).toContainText('AFTER_FAILED_RESET');
+});
+
+test('an unacknowledged reset times out, discards provisional output, and notifies the user', async ({ page }) => {
+  await page.evaluate(() => {
+    const w = window as any;
+    w.beginNewTranscriptionSession();
+    const socket = w.__sockets.at(-1);
+    socket.emit({ type: 'note_updated', draftNote: 'FENCED_BEFORE_TIMEOUT' });
+  });
+  await expect(page.locator('body')).not.toContainText('FENCED_BEFORE_TIMEOUT');
+  await page.clock.runFor(9_000);
+  await page.evaluate(() => (window as any).__sockets.at(-1).emit({ type: 'note_updated', draftNote: 'STILL_FENCED' }));
+  await expect(page.locator('body')).not.toContainText('STILL_FENCED');
+  await page.clock.runFor(1_500);
+  await expect(page.locator('.notification-error', { hasText: /did not confirm the new session/i })).toBeVisible();
+  await page.evaluate(() => (window as any).__sockets.at(-1).emit({ type: 'note_updated', draftNote: 'AFTER_TIMEOUT' }));
+  await expect(page.locator('#soapNoteOutput')).toContainText('AFTER_TIMEOUT');
+});
+
+test('an acknowledged reset cancels the timeout so no spurious failure notice appears later', async ({ page }) => {
+  await page.evaluate(() => {
+    const w = window as any;
+    w.beginNewTranscriptionSession();
+    const resetId = w.__sent.filter((message: any) => message.type === 'start_new_session').at(-1).data.resetId;
+    w.__sockets.at(-1).emit({ type: 'status', event: 'session_reset', resetId });
+  });
+  await page.clock.runFor(12_000);
+  await expect(page.locator('.notification-error')).toHaveCount(0);
+});
+
+test('a reset request that could not be sent does not arm the fence', async ({ page }) => {
+  await page.evaluate(() => {
+    const w = window as any;
+    w.__sockets.at(-1).readyState = 3; // no open transport
+    w.beginNewTranscriptionSession();
+  });
+  const sentResets = await page.evaluate(() => (window as any).__sent.filter((m: any) => m.type === 'start_new_session').length);
+  expect(sentResets).toBe(1);
+  await page.evaluate(() => {
+    const w = window as any;
+    w.__sockets.at(-1).emit({ type: 'connection_ack', sessionId: 'synthetic-reconnect' });
+    w.__sockets.at(-1).emit({ type: 'note_updated', draftNote: 'AFTER_RECONNECT' });
+  });
+  await expect(page.locator('#soapNoteOutput')).toContainText('AFTER_RECONNECT');
+  await page.clock.runFor(12_000);
+  await expect(page.locator('.notification-error')).toHaveCount(0);
+});
+
+test('connectWebSocket closes a superseded CONNECTING socket instead of orphaning it', async ({ page }) => {
+  const states = await page.evaluate(() => {
+    const w = window as any;
+    w.__sockets.at(-1).readyState = 3;
+    w.connectWebSocket();
+    const connecting = w.__sockets.at(-1);
+    connecting.readyState = 0; // still CONNECTING
+    w.connectWebSocket();
+    return { connectingState: connecting.readyState, count: w.__sockets.length };
+  });
+  expect(states.connectingState).toBe(3);
+  await page.evaluate(() => {
+    const w = window as any;
+    w.__sockets.at(-1).emit({ type: 'connection_ack', sessionId: 'synthetic-after-replace' });
+    w.__sockets.at(-1).emit({ type: 'note_updated', draftNote: 'REPLACEMENT_SOCKET' });
+  });
+  await expect(page.locator('#soapNoteOutput')).toContainText('REPLACEMENT_SOCKET');
 });

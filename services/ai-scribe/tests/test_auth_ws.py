@@ -120,7 +120,7 @@ async def test_rate_limit_emits_retry_after(ws_server):
 
         error_seen = False
         for _ in range(65):
-            await ws.send(json.dumps({"type": "start_new_session"}))
+            await ws.send(json.dumps({"type": "request_session_data_for_save", "data": {}}))
             resp = json.loads(await ws.recv())
             if resp.get("type") == "error" and "retryAfter" in resp:
                 error_seen = True
@@ -128,6 +128,39 @@ async def test_rate_limit_emits_retry_after(ws_server):
                 break
 
         assert error_seen, "Expected rate limit error with retryAfter"
+
+
+@pytest.mark.asyncio
+async def test_start_new_session_is_acknowledged_even_when_rate_limited(ws_server):
+    """The client fences clinical output until this exact reset is acknowledged, so the
+    cheap local reset must never be swallowed by the per-connection rate limiter."""
+    token = app.issue_jwt("reset-exempt-tester")
+    async with websockets.connect(
+        ws_server,
+        additional_headers={"Authorization": f"Bearer {token}", "Origin": "http://localhost:8765"},
+    ) as ws:
+        await ws.recv()
+        limited = False
+        for _ in range(65):
+            await ws.send(json.dumps({"type": "request_session_data_for_save", "data": {}}))
+            resp = json.loads(await ws.recv())
+            if resp.get("type") == "error" and "retryAfter" in resp:
+                limited = True
+                break
+        assert limited, "Rate limiter should have engaged before testing the exemption"
+
+        for attempt in range(3):
+            reset_id = f"synthetic-reset-{attempt}"
+            await ws.send(json.dumps({"type": "start_new_session", "data": {"resetId": reset_id}}))
+            resp = json.loads(await ws.recv())
+            assert resp["type"] == "status", resp
+            assert resp["event"] == "session_reset"
+            assert resp["resetId"] == reset_id
+
+        # Other traffic remains limited afterwards.
+        await ws.send(json.dumps({"type": "request_session_data_for_save", "data": {}}))
+        resp = json.loads(await ws.recv())
+        assert resp["type"] == "error" and "retryAfter" in resp
 
 
 def base64url_encode(text: str) -> str:

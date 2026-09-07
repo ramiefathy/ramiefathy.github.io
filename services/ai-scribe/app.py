@@ -70,6 +70,8 @@ class RateLimiter:
 session_manager = SessionManager()
 gemini_service = None
 rate_limiter = RateLimiter(max_requests=60, window_seconds=60)  # 60 messages/minute per client
+# Message types that perform no provider work and must always receive their acknowledgment.
+RATE_LIMIT_EXEMPT_TYPES = frozenset({"start_new_session"})
 RATE_LIMIT_ALERT_THRESHOLD = int(os.getenv("RATE_LIMIT_ALERT_THRESHOLD", "20"))
 JWT_TTL_MINUTES = 15
 LEGACY_SUBJECT = "legacy-client"
@@ -278,15 +280,8 @@ async def handler(websocket):
         async for message_str in websocket:
             message_start = time.perf_counter()
             message_type = "unknown"
-            allowed, retry_after = rate_limiter.allow(client_key)
-            if not allowed:
-                await websocket.send(json.dumps({
-                    "type": "error",
-                    "message": "Rate limit exceeded. Please slow down and retry.",
-                    "retryAfter": retry_after
-                }))
-                log_event("rate_limited", client=client_key, session_id=session_id, retry_after=retry_after)
-                continue
+            message = None
+            data = None
             try:
                 message = json.loads(message_str)
                 if not isinstance(message, dict) or not isinstance(message.get("type"), str):
@@ -295,6 +290,21 @@ async def handler(websocket):
                 if not isinstance(data, dict):
                     raise ValueError()
             except (ValueError, TypeError):
+                message = None
+            # The client fences all clinical output until its reset is acknowledged, so the
+            # cheap, local session reset must always be answered rather than rate-limited.
+            rate_limit_exempt = message is not None and message["type"] in RATE_LIMIT_EXEMPT_TYPES
+            if not rate_limit_exempt:
+                allowed, retry_after = rate_limiter.allow(client_key)
+                if not allowed:
+                    await websocket.send(json.dumps({
+                        "type": "error",
+                        "message": "Rate limit exceeded. Please slow down and retry.",
+                        "retryAfter": retry_after
+                    }))
+                    log_event("rate_limited", client=client_key, session_id=session_id, retry_after=retry_after)
+                    continue
+            if message is None:
                 await websocket.send(json.dumps({"type": "error", "message": "Invalid message format."}))
                 continue
             message_type = message["type"]

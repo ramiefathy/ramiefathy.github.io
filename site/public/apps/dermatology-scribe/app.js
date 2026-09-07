@@ -72,6 +72,9 @@
         let resetSequence = 0;
         let pendingResetId = null;
         let pendingResetSocket = null;
+        let pendingResetTimer = null;
+        // Bound how long clinical output stays fenced when the server never acknowledges a reset.
+        const RESET_ACK_TIMEOUT_MS = 10000;
 	        let wsReconnectAttempts = 0;
 	        const MAX_RECONNECT_ATTEMPTS = 5;
 	        let pendingRequests = new Map();
@@ -136,6 +139,16 @@
 		        // ========== WebSocket Connection Manager ==========
 		        function connectWebSocket() {
 		            if (websocket && websocket.readyState === WebSocket.OPEN) return;
+		            if (websocket && websocket.readyState === WebSocket.CONNECTING) {
+		                // Do not orphan a half-open socket: its handlers would otherwise be ignored forever
+		                // while the transport itself stays alive.
+		                try {
+		                    websocket.close();
+		                } catch (e) {
+		                    // ignore
+		                }
+		                websocket = null;
+		            }
 
 		            const activeToken = (sessionJwtToken || sessionToken || '').trim();
 		            if (!activeToken) {
@@ -237,22 +250,62 @@
             }
         }
 
+        function clearResetFenceTimer() {
+            if (pendingResetTimer !== null) {
+                clearTimeout(pendingResetTimer);
+                pendingResetTimer = null;
+            }
+        }
+
+        function releaseResetFence() {
+            clearResetFenceTimer();
+            pendingResetId = null;
+            pendingResetSocket = null;
+        }
+
+        // Reject all queued clinical replies until this exact reset is acknowledged, but never
+        // leave the encounter fenced forever if the acknowledgment is lost.
+        function armResetFence(resetId, socket) {
+            clearResetFenceTimer();
+            pendingResetId = resetId;
+            pendingResetSocket = socket;
+            pendingResetTimer = setTimeout(() => {
+                pendingResetTimer = null;
+                if (pendingResetId !== resetId) return;
+                releaseResetFence();
+                discardProvisionalOutput();
+                showNotification(
+                    `The server did not confirm the new session within ${Math.round(RESET_ACK_TIMEOUT_MS / 1000)} seconds. ` +
+                    'Provisional output was discarded; start a new session again before recording.',
+                    'error'
+                );
+            }, RESET_ACK_TIMEOUT_MS);
+        }
+
         function sendToServer(type, data = {}) {
-            if (type === 'start_new_session') {
-                // Reject all queued clinical replies until this exact reset is acknowledged.
-                pendingResetId = String(++resetSequence);
-                pendingResetSocket = websocket && websocket.readyState === WebSocket.OPEN ? websocket : null;
-                data = { ...data, resetId: pendingResetId };
+            const isReset = type === 'start_new_session';
+            if (isReset) {
                 streamBuffers = { note: '', chat: '', analysis: '' };
                 isStreaming = false;
             }
             if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                // Nothing was sent, so no acknowledgment can be expected: do not arm the fence.
                 showNotification('Not connected to server. Attempting to reconnect...', 'warning');
                 connectWebSocket();
                 return false;
             }
+            const resetId = isReset ? String(++resetSequence) : null;
+            if (isReset) data = { ...data, resetId };
             const message = { type, data: { ...data, sessionId: currentSessionId } };
-            websocket.send(JSON.stringify(message));
+            try {
+                websocket.send(JSON.stringify(message));
+            } catch (e) {
+                showNotification(isReset
+                    ? 'The new session request could not be sent. Start a new session again before recording.'
+                    : 'The request could not be sent. Please retry.', 'error');
+                return false;
+            }
+            if (isReset) armResetFence(resetId, websocket);
             return true;
         }
 
@@ -307,9 +360,17 @@
                 const resetAcknowledged = message.type === 'status' && message.event === 'session_reset' &&
                     message.resetId === pendingResetId;
                 const freshConnection = message.type === 'connection_ack' && pendingResetSocket !== websocket;
+                // Errors scoped to an asynchronous generation (`area`) belong to the previous encounter's
+                // in-flight work, not to the reset request, so they stay fenced like its other output.
+                const resetFailure = message.type === 'error' && !message.area;
                 if (resetAcknowledged || freshConnection) {
-                    pendingResetId = null;
-                    pendingResetSocket = null;
+                    releaseResetFence();
+                } else if (resetFailure) {
+                    // The server answered the reset with an error (e.g. rate limited): the encounter was not
+                    // reset, so surface it and let the user retry instead of silently dropping every reply.
+                    releaseResetFence();
+                    discardProvisionalOutput();
+                    showNotification('The new session request failed and the server did not reset the encounter. Start a new session again before recording; details follow.', 'error');
                 } else if (message.type !== 'connection_ack') {
                     return; // Includes completed notes, provisional chunks, suggestions, and old reset acknowledgments.
                 }
