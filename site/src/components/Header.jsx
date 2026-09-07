@@ -25,9 +25,9 @@ const CLOCK_FORMATTER = new Intl.DateTimeFormat('en-US', {
   hour12: false
 });
 
-/** Baltimore wall-clock for the status bar — always America/New_York,
+/** Boston wall-clock for the status bar — always America/New_York,
  *  regardless of the visitor's own timezone, since the label reads
- *  "· Baltimore". Rendered empty on the server so SSR markup and the first
+ *  "· Boston". Rendered empty on the server so SSR markup and the first
  *  client paint agree. */
 const useClock = () => {
   const [stamp, setStamp] = useState('');
@@ -100,11 +100,11 @@ const Header = () => {
         <span className="status-bar__who">
           <span className="status-bar__dot" aria-hidden="true"></span>
           <span className="status-bar__name">Ramie Fathy, MD</span>
-          <span className="status-bar__where">· Johns Hopkins Dermatology</span>
+          <span className="status-bar__where">· Mass General Brigham</span>
         </span>
         <span className="status-bar__right">
           <span className="status-clock">
-            {clock ? `${clock} · Baltimore` : 'Baltimore'}
+            {clock ? `${clock} · Boston` : 'Boston'}
           </span>
           <button
             type="button"
