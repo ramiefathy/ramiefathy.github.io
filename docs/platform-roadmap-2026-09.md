@@ -1,22 +1,22 @@
 # Platform Roadmap: knowledge graph, publishing layer, and six new apps
 
-**Author:** claude-code (planning session, 2026-09-05)
-**Status:** Proposal for review. Nothing in this document is built yet.
+**Author:** claude-code (planning session, 2026-09-05; revised 2026-09-07)
+**Status:** Proposal for review, revised 2026-09-07 to correct the fellowship assumption, add owner-hours per workstream, defer Workstreams 7 and 8 beyond v1, and reconcile with PR #186. Nothing in this document is built yet.
 **Companion docs:** `docs/site-test-inventory.md` (surface contract), `docs/frontend-design-system-contract.md` (design contract), `docs/devlog.md` (change log), `CLAUDE.md` / `AGENTS.md` (agent conventions).
 
-This plan covers eight workstreams the owner asked for, in the order they should be built:
+This plan covers the eight workstreams the owner asked for, in the order they should be built. Since the 2026-09-07 revision, v1 is Workstreams 0 through 6; Workstreams 7 and 8 keep their sections for reference but are deferred beyond v1 and no longer occupy calendar weeks.
 
-| # | Workstream | Why this order |
-|---|---|---|
-| 0 | Foundations (repo hygiene, licensing, storage, CI gates) | Everything below depends on a license decision and a place to put large files. |
-| 1 | Knowledge-graph unification | Every clinical app below reads from it. |
-| 2 | Publishing layer (MDX blog, RSS, sitemap, JSON-LD, OG images, talks, changelog) | Every result below needs a place to be announced and cited. |
-| 3 | Open Data API + Zenodo DOIs | Makes the graph and benchmark citable; cheap once 1 and 2 exist. |
-| 4 | Open Dermatology VLM Benchmark | The citable research output; must ship before fellowship. |
-| 5 | Citation-verified MCQ engine + unified spaced repetition | Depends on the graph's reference table and the publishing layer. |
-| 6 | Immunosuppression timeline planner | Depends on the graph's drug entities and the source-audit workflow. |
-| 7 | Dermatopathology virtual slide viewer + morphology trainer | Depends on unified SRS and external tile storage. |
-| 8 | Consumer derm-AI app scorecard | Independent; scheduled last because it is the least coupled. |
+| # | Workstream | v1 / deferred | Why this order |
+|---|---|---|---|
+| 0 | Foundations (repo hygiene, licensing, storage, CI gates) | v1 | Everything below depends on a license decision and a place to put large files. |
+| 1 | Knowledge-graph unification | v1 | Every clinical app below reads from it. |
+| 2 | Publishing layer (MDX blog, RSS, sitemap, JSON-LD, OG images, talks, changelog) | v1 | Every result below needs a place to be announced and cited. |
+| 3 | Open Data API + Zenodo DOIs | v1 | Makes the graph and benchmark citable; cheap once 1 and 2 exist. |
+| 4 | Open Dermatology VLM Benchmark | v1 | The citable research output and the longest pole in the calendar. |
+| 5 | Citation-verified MCQ engine + unified spaced repetition | v1 | Depends on the graph's reference table and the publishing layer. |
+| 6 | Immunosuppression timeline planner | v1 | Depends on the graph's drug entities and the source-audit workflow. |
+| 7 | Dermatopathology virtual slide viewer + morphology trainer | deferred | Depends on unified SRS and external tile storage; slide supply is scarce. |
+| 8 | Consumer derm-AI app scorecard | deferred | No in-repo foundation and the highest legal exposure of any surface here. |
 
 Every section below has the same shape: **what exists today (verified in-repo)**, **design**, **deliverables**, **acceptance criteria**, **risks and open decisions**. Verified facts cite `file:line`. Anything marked *assumption* or *unverified* is exactly that.
 
@@ -24,7 +24,7 @@ Every section below has the same shape: **what exists today (verified in-repo)**
 
 ## Working assumptions (please confirm or correct)
 
-1. **Fellowship start is July 2027.** The profile lists PGY-4 at Johns Hopkins with an incoming MGB fellowship (`site/src/data/profile.json:19-20`). That gives roughly 42 weeks from this plan's date. Every "before fellowship" milestone below assumes that date.
+1. **The owner is already in fellowship.** As of this revision the owner is a PGY-5 rheumatology–dermatology fellow at Mass General Brigham (Rodman lab), having completed dermatology residency at Johns Hopkins in 2026; `site/src/data/profile.json` and `timeline.json` were corrected in the same PR as this revision. The earlier draft assumed a July 2027 fellowship start and treated it as a deadline. There is no such deadline. The calendar below is anchored instead to the plan's revision date, **2026-09-07**, and week numbers count from that date; every milestone that used to read "before fellowship" now reads as a week count from the revision date. What changes in practice is not the ordering but the scarcity of owner hours, which is why each workstream now carries an owner-time estimate.
 2. **One primary human plus coding agents.** Effort estimates are in agent-assisted weeks, not team-weeks. Parallel tracks are marked; most weeks assume two tracks at once, not more.
 3. **GitHub Pages stays the deploy target for `ramiefathy.com`,** with Cloudflare in front (per `CLAUDE.md`). GitHub Pages ignores `site/public/_headers`, so any header-dependent behaviour (CORS, cache-control) must be set at Cloudflare or avoided.
 4. **No PHI anywhere, ever.** All six apps are teaching or research surfaces. No app stores patient identifiers, and the two decision-adjacent ones (planner, MCQ) take only synthetic or date-only inputs.
@@ -37,24 +37,28 @@ Every section below has the same shape: **what exists today (verified in-repo)**
 ### What exists today
 
 - Root `package.json` declares MIT but there is **no `LICENSE` file, no `CITATION.cff`, no `.zenodo.json`** anywhere in the repo.
-- `site/public/sw.js` on `master` applies stale-while-revalidate to every same-origin GET with a single cache name `rf-site-static-v1` and no path exclusions. Any new JSON or RSS endpoint would be served stale until the cache name changes, and clinical HTML under `/apps/**` (the Field Guide and Immune Atlas embed their clinical records in HTML) can stay stale after a correction. **Unmerged PR #184 already rewrites this worker**: explicit public-shell allowlist, network-first behaviour, bypass of clinical app, research, and data requests, no deletion of other apps' caches, and real-worker regression tests that seed stale clinical data and assert it is never served. This roadmap treats #184 as a prerequisite and does not propose a parallel worker.
-- Two other unmerged PRs shape this plan and are treated as prerequisites rather than re-implemented: **#175** (Immune Atlas fails closed to source-explicit or curator-confirmed pathway-phenotype relationships, quarantines lexical and treatment-response inference behind opt-in exploratory layers, and prevents treatment response from generating causal edges) and the rest of **#184** (nine corrected monitoring records with structural validation, dermoscopy denominator corrected to 100 unique images / 10,200 repeated evaluations with pooled binomial intervals withheld, retired Gemini 2.0 experimental default removed, locked `npm ci` and a failing audit gate in CI).
+- `site/public/sw.js` on `master` applies stale-while-revalidate to every same-origin GET with a single cache name `rf-site-static-v1` and no path exclusions. Any new JSON or RSS endpoint would be served stale until the cache name changes, and clinical HTML under `/apps/**` (the Field Guide and Immune Atlas embed their clinical records in HTML) can stay stale after a correction. **Unmerged PR #184 already rewrites this worker**: explicit public-shell allowlist, network-first behaviour, bypass of clinical app, research, and data requests, no deletion of other apps' caches, and real-worker regression tests that seed stale clinical data and assert it is never served. This roadmap treats that rewrite, now carried in full by #186, as a prerequisite and does not propose a parallel worker.
+- One further unmerged PR shapes this plan and is treated as the prerequisite integration PR rather than re-implemented: **#186** (draft), which is a superset of #184 and of the earlier #175. From #175 it carries the Immune Atlas fail-closed posture (source-explicit or curator-confirmed pathway-phenotype relationships only, lexical and treatment-response inference quarantined behind opt-in exploratory layers, treatment response never generating causal edges). From #184 it carries the nine corrected monitoring records with structural validation, the dermoscopy denominator corrected to 100 unique images / 10,200 repeated evaluations with pooled binomial intervals withheld, the retired experimental model default removed, and locked `npm ci` with a failing audit gate in CI. On top of both, #186 already ships infrastructure this roadmap had planned to build: a **659-entry hash-bound clinical correction ledger** at `site/public/clinical-source-review/corrections.json`, with a `review-status.json` generated by `scripts/build-clinical-review-status.py`; a **live PubMed source-excerpt gate**, `scripts/verify-vasculitis-source-excerpts.py`, whose schema-3 receipts separate accepted-excerpt checks from publication-hold checks; a **`NOT_ADJUDICATED` publication-hold mechanism**, currently holding focuSSced and AURORA 1; and, for DermatoTarget, an **identity-preserving Open Targets cross-check** (581 confirmed / 14 flagged / 5 unresolved) with captured request/response pairs and an offline builder, `scripts/build-atlas-evidence.py`. Workstreams 1 and 5 below are re-based on these rather than on new tooling.
 - CI (`.github/workflows/ci.yml`) runs Vitest, the Astro build, a D&D asset contract check, the scribe simulation guard, Playwright, and the Python compile/pytest step. There is **no scheduled workflow** and no Lighthouse or axe gate.
 - Two concrete defects found during the survey that should be fixed before building on these apps:
   - `site/public/apps/rheum-derm-clinical-trials/index.html` (the committed stub) fetches `dashboard.0.b64` through `dashboard.6.b64`, which do not exist. The real shards are `dashboard.00.b64` through `dashboard.10.b64` plus `08a`/`08b` (`site/scripts/assemble-rheum-derm-dashboard.mjs:20-33`). The stub only works because `npm run build` overwrites it.
-  - The psoriasis mind map carries 21 numeric citation markers such as `\[2, 7\]` across `subtypes.json`, `comorbid.json`, `patho.json`, `psa.json` with **no bibliography anywhere in the repo**. They render to users as dead bracketed numbers.
+  - The psoriasis mind map carries 21 numeric citation markers such as `\[2, 7\]` across `subtypes.json`, `comorbid.json`, `patho.json`, `psa.json` with **no bibliography anywhere in the repo**. They render to users as dead bracketed numbers. As of this revision they are being stripped in #186's follow-up, so this is no longer an open Workstream 0 task; the acceptance criterion below stays so the follow-up is checked against it.
 - `site/public/apps/biologic-monitoring-dashboard/data.js:1-27` has self-colliding condition slugs (`hidradenitis-suppurativa` and `hidradenitis`; `lupus`, `cutaneous-lupus`, `systemic-lupus-erythematosus`; `autoimmune-blistering-disease`, `immunobullous`, `pemphigus`).
 - `dermatotarget-atlas` has a Playwright spec and an inventory entry but is absent from `site/src/data/apps.json`. Unclear whether that is intentional.
 
 ### Deliverables
 
 1. `LICENSE` (MIT, code) and `LICENSE-DATA` (CC BY 4.0, applying only to owner-authored content as scoped by the rights manifest) at repo root, plus `CITATION.cff` and `.zenodo.json` skeletons. A **rights manifest** (`site/src/data/rights.json`, zod-validated) records, per source or asset class: scope, license and version, whether redistribution is permitted, required attribution, and explicit third-party exclusions. Every dataset export (Workstream 3) and every Zenodo release is gated on the manifest clearing the bytes actually exported; uncleared material is excluded or replaced by a citation pointer. Owner approval licenses the owner's contributions only and cannot grant rights in another party's material. Zenodo's GitHub integration deposits on **GitHub Releases**, so a release tagging convention is needed: `data-v<semver>` for dataset releases, `bench-v<semver>` for benchmark releases.
-2. Service worker: land **#184** first and keep its regression tests. On top of it, the only additions this plan needs are allowlist decisions, each with a test: `/api/`, `/data/`, `/rss.xml`, `/sitemap*.xml`, `/blog/**`, `/graph/**`, and all clinical HTML under `/apps/**` stay outside the public-shell allowlist (bypassed, never cached). The API uses one route shape (defined in Workstream 3): immutable dataset objects live at `/api/v1/<dataset>/v<semver>/<file>.json` and never change once published; mutable pointers live at `/api/v1/index.json`, `/api/v1/<dataset>/latest.json`, and `/api/v1/<dataset>/status.json`. Only the immutable objects are ever eligible for the service-worker allowlist; the pointers, status files, and every clinical HTML page are never cached by the worker. A regression test asserts that an immutable object may be served from cache and that a pointer or status response is always fetched from the network. Freshness of "what is current" is a different property from caching "what is immutable", and the tests assert both.
+2. Service worker: land **#186** (which carries #184's worker rewrite) first and keep its regression tests. On top of it, the only additions this plan needs are allowlist decisions, each with a test: `/api/`, `/data/`, `/rss.xml`, `/sitemap*.xml`, `/blog/**`, `/graph/**`, and all clinical HTML under `/apps/**` stay outside the public-shell allowlist (bypassed, never cached). The API uses one route shape (defined in Workstream 3): immutable dataset objects live at `/api/v1/<dataset>/v<semver>/<file>.json` and never change once published; mutable pointers live at `/api/v1/index.json`, `/api/v1/<dataset>/latest.json`, and `/api/v1/<dataset>/status.json`. Only the immutable objects are ever eligible for the service-worker allowlist; the pointers, status files, and every clinical HTML page are never cached by the worker. A regression test asserts that an immutable object may be served from cache and that a pointer or status response is always fetched from the network. Freshness of "what is current" is a different property from caching "what is immutable", and the tests assert both.
 3. Fix the trials `index.html` stub so the committed file matches the shard names (or commit the assembled artifact and stop overwriting it; either is fine, but the repo should not contain a loader that cannot load).
-4. Resolve or strip the 21 dangling psoriasis markers. Preferred: recover the source bibliography if it exists off-repo and add it as a `references` block resolved by the tooltip renderer; fallback: strip markers and add structured `DiagramCitation`-style refs to the tooltips that make specific claims.
+4. Confirm the 21 dangling psoriasis markers are gone once #186's follow-up lands (it strips them). If the off-repo bibliography ever surfaces, a later pass can add it as a `references` block resolved by the tooltip renderer and attach structured `DiagramCitation`-style refs to the tooltips that make specific claims; that is an enhancement, not a blocker.
 5. Large-file storage decision: **Cloudflare R2** bucket (S3-compatible, free egress) for WSI tiles, benchmark prediction dumps, and any dataset over a few MB. GitHub Pages has a 1 GB site limit and 100 MB per-file limit; the 13 MB `study/mcq-benchmark-dashboard/dashboard.json` is already the wrong shape for this host.
 6. CI additions: Lighthouse CI budget on `/`, `/apps`, `/research` (performance ≥ 90 on desktop, accessibility 100); axe-core assertions inside `site/tests/inventory-surface.spec.ts` for every `astroRoutes` entry; a weekly scheduled workflow slot (used by Workstream 2's publication refresh and Workstream 4's leaderboard rebuild).
 7. `docs/INDEX.md` refresh (last updated Sept 2025) and a `docs/devlog.md` entry per shipped phase, per `CLAUDE.md`.
+
+### Owner time
+
+Roughly **2–4 hours**. Almost all of it is deciding rather than doing: the data license, whether to open a Cloudflare R2 account and at what ceiling, and a short read of the rights-manifest schema so the categories match how the owner actually thinks about the sources. The stub fix, the service-worker allowlist tests, and the CI gates are agent work that needs only a merge review.
 
 ### Acceptance
 
@@ -84,6 +88,8 @@ Five surfaces carry overlapping rheum-derm content with no shared identifiers an
 | Biologic Monitoring | ES module `site/public/apps/biologic-monitoring-dashboard/data.js` | 26 class-level entries | ids `tnf-inhibitors`, `methotrexate`, `ivig`; 24 condition slugs with collisions | `riskLevel` only, no grade; `references[{label,url}]` | ESM import |
 | Mind maps | 16 topic dirs under `site/src/data/mindmaps/` (120 files) | 592 nodes, 47 diagrams, 7 comparisons; 11 of 16 topics are 2-node stubs | node ids local to a tab, not globally unique | diagrams require `{pmid or doi or url, quote}` (`site/src/apps/mindmaps/schema.ts:166-184`); tooltips have no structured refs | Vite `import.meta.glob`, validated at build |
 | DermatoTarget Atlas (unlisted) | 8 JSON files under `site/public/apps/dermatotarget-atlas/data/` | 600 target rows, 6 diseases | **EFO disease ids, Ensembl target ids, NCT, PMID** | `literature.grade`, `readiness.tier` | runtime fetch |
+
+Since #186, two more artifacts exist that the graph should treat as inputs rather than rebuild: the 659-entry correction ledger at `site/public/clinical-source-review/corrections.json`, whose entries are hash-bound to the records they correct and carry the reference identities (PMID, DOI, NCT) each correction was checked against, and the DermatoTarget atlas evidence packets produced by `scripts/build-atlas-evidence.py`, which pair each Open Targets assertion with the captured request/response that supports it.
 
 Concrete collisions: methotrexate is `mtx` (atlas, field guide) and `methotrexate` (monitoring). Adalimumab is `tnfi_ada` (atlas, class-level), `adalimumab` (field guide, molecule-level), and folded into `tnf-inhibitors` (monitoring). Dermatomyositis appears as nine distinct free-text condition strings in the trials data and has no mind map topic. The only alias table in the repo is the 9-entry search-synonym map at `site/src/apps/mindmaps/synonyms.ts`.
 
@@ -125,16 +131,16 @@ site/src/data/graph/
 |---|---|---|
 | `sourceGrade`, `sourceGradeSystem` | the source's own explicit evidence label, verbatim, with the system named; **null when the surface has no grade** (Biologic Monitoring exposes `riskLevel` only, which maps to `safetySeverity`/`monitoringBurden` and never to `sourceGrade`) | atlas (A–D), trials (A1–N), field guide only where a source label exists |
 | `studyDesign`, `designQuality` | RCT, cohort, case series, guideline, label, review; quality notes | trials, atlas refs |
-| `claimDirectness` | direct (the source states the edge), derived (curator inference), exploratory (lexical or treatment-response inference, per #175) | atlas, curator |
+| `claimDirectness` | direct (the source states the edge), derived (curator inference), exploratory (lexical or treatment-response inference, per the atlas posture #186 carries from #175) | atlas, curator |
 | `treatmentRole` | anchor, alternative, refractory, adjunct, emerging | field guide |
 | `safetySeverity`, `monitoringBurden` | hazard and monitoring load | monitoring |
 | `regulatory` | jurisdiction, indication, labeled vs off-label | field guide, labels |
-| `adjudicationState` | accepted, rejected, retracted, under review | trials `evidenceState`, #175 quarantine |
+| `adjudicationState` | accepted, rejected, retracted, under review | trials `evidenceState`, #186 quarantine (from #175) |
 | `evidenceCertainty` | **`UNASSESSED` by default**; set only when the individual claim has been appraised by a named reviewer with a documented method | curator only |
 
-Filtering and sorting operate on one field at a time and the UI names it. A Vitest regression asserts that changing `safetySeverity`, `treatmentRole`, or any `sourceGrade` cannot change `evidenceCertainty`, and that `evidenceCertainty` is `UNASSESSED` for every edge that has no `appraisal` record. Treatment-effect edges never generate mechanism edges; that rule is inherited from #175 and enforced by the validator.
+Filtering and sorting operate on one field at a time and the UI names it. A Vitest regression asserts that changing `safetySeverity`, `treatmentRole`, or any `sourceGrade` cannot change `evidenceCertainty`, and that `evidenceCertainty` is `UNASSESSED` for every edge that has no `appraisal` record. Treatment-effect edges never generate mechanism edges; that rule is inherited from the atlas posture in #186 (originally #175) and enforced by the validator.
 
-**References.** One table. The atlas's 62 `R##` references and the trials' 214 denormalized citations are the seed. Mind map `DiagramCitation` objects (`pmid`/`doi`/`url` + `quote`) are already the right shape; promote that type to the graph-wide reference-with-quote type. Every edge must carry at least one reference id or an explicit `unsourced: true` flag, which the UI renders as such.
+**References.** One table. It is seeded from the reference identities already verified in #186's correction ledger and from the DermatoTarget atlas evidence packets, because those identities have been checked against live sources and carry hashes; the atlas's 62 `R##` references and the trials' 214 denormalized citations are folded in after, mapped onto the ledger's identities where they overlap rather than re-entered. Mind map `DiagramCitation` objects (`pmid`/`doi`/`url` + `quote`) are already the right shape; promote that type to the graph-wide reference-with-quote type. Every edge must carry at least one reference id or an explicit `unsourced: true` flag, which the UI renders as such.
 
 **Tooling.**
 - `site/scripts/graph/extract-*.mjs`: one extractor per surface that reads that surface's current data and emits candidate entities + a crosswalk draft with unresolved rows flagged. The trials free-text conditions (103 strings) get a rules-first normalizer with a human-reviewed override file.
@@ -155,6 +161,10 @@ Filtering and sorting operate on one field at a time and the UI names it. A Vite
 - Week 4–6: six extractors + crosswalks; target ≥ 95% of drugs and ≥ 90% of conditions mapped across all surfaces; unresolved rows listed in a checked-in report.
 - Week 6–8: `/graph` route + entity pages; command palette re-index; inventory (`/graph` as a literal, entity pages via `generatedRoutes`) + design-contract compliance.
 - Week 8–10: mind map canonical ids + cross-topic links; deep links from the four legacy apps.
+
+### Owner time
+
+Roughly **15–25 hours**, nearly all of it clinical curation that no extractor can do: reading the 103 distinct trial condition strings and confirming or overriding the normalizer's proposed canonical condition for each, then working through the intervention arm override file study by study, confirming which agent sits in which arm and which arm is the comparator. Reviewing the crosswalk residue reports (the unresolved rows the extractors flag) is the remainder. The schemas, extractors, validator, and `/graph` route are agent work.
 
 ### Acceptance
 
@@ -199,6 +209,10 @@ Filtering and sorting operate on one field at a time and the UI names it. A Vite
 - Week 4–5: JSON-LD component + CI validation; OG image pipeline.
 - Week 6–8: `/talks`, `/changelog`, publication refresh workflow, palette index.
 
+### Owner time
+
+Roughly **10–15 hours**. Three posts is the bulk of it (the pre-registration post, a graph launch post, and one migrated or new piece), and writing is not delegable. The rest is reviewing the `Person` and `ScholarlyArticle` JSON-LD for accuracy, since it states facts about the owner to search engines, and deciding what goes on `/talks` and how each talk is described.
+
 ### Acceptance
 
 - Google Rich Results test passes for `/`, `/about`, one post, `/research` (manual check, recorded in the devlog).
@@ -230,6 +244,10 @@ Filtering and sorting operate on one field at a time and the UI names it. A Vite
 - **Cache and CORS.** Two Cloudflare rules, matching the two route classes: `/api/v1/*/v*/*` (immutable objects) gets `Cache-Control: public, max-age=31536000, immutable`; `/api/v1/index.json`, `/api/v1/*/latest.json`, and `/api/v1/*/status.json` get `Cache-Control: no-store` (or `no-cache` with ETag revalidation if `no-store` proves too costly). Both get `Access-Control-Allow-Origin: *`. No stale-while-revalidate anywhere on pointers or status files. *Unverified:* whether GitHub Pages already emits a permissive CORS header; test with `curl -I` before relying on Cloudflare.
 - **Zenodo.** `.zenodo.json` with creators (ORCID), license, keywords, related identifiers (the site URL, the benchmark repo). Each `data-v*` GitHub Release triggers a Zenodo deposit and a concept DOI plus version DOI. The `Dataset` JSON-LD (Workstream 2) and `index.json` carry the DOI back onto the site.
 - **Docs page** `/data`: human-readable catalogue with schema links, DOI badges, changelog per dataset, and a "how to cite" block generated from `CITATION.cff`.
+
+### Owner time
+
+Roughly **8–12 hours**. The rights-manifest pass is the substance: for each source class the owner has to say, on the record, whether the bytes actually exported are the owner's own synthesis or someone else's, and the license decision from Workstream 0 has to be re-read against the specific datasets in v1. The Zenodo and API plumbing is agent work.
 
 ### Acceptance
 
@@ -295,7 +313,7 @@ derm-vlm-bench/
 **Budget.** The JAAD run cost USD 169 for 10,200 trials (about USD 0.017 per trial, `overallStats.totalCost`). A v1 with roughly 1,000 images per track, 10 models, 3 arms, 1 seed is 60,000 trials; at 2–5x the historical per-trial cost for current frontier models, expect USD 2,000–5,000. Open-weight models on a rented GPU add USD 200–500. *These are estimates from one data point.* Gate the budget by running a 100-image pilot per track first.
 
 **Governance and ethics.**
-- Public de-identified datasets are typically exempt from IRB review, but Hopkins and MGB policies differ; get a written determination before publishing results.
+- Public de-identified datasets are typically exempt from IRB review, but institutional policies differ and the owner is now at MGB, so MGB's process governs; get a written determination before publishing results.
 - Provider terms of service generally permit benchmarking; confirm for each provider at run time and record in the manifest.
 - Publish the pre-registration (endpoints, models, arms, analysis plan) on the site before running the full study. This is cheap, and it is the difference between a leaderboard and a paper.
 
@@ -305,7 +323,11 @@ derm-vlm-bench/
 - Week 9–10: pre-registration post on the site (Workstream 2), budget approval, dataset terms recorded.
 - Week 11–16: full v1 run; metrics module with the statistics above; manifest verification CI.
 - Week 17–20: dashboard generalization (tracks, strata, leaderboard tab); `/research/vlm-benchmark` route; `/api/v1/vlm-bench/`.
-- Week 20–24: `bench-v1.0.0` release, Zenodo DOIs (software + results), manuscript draft. This lands well before a July 2027 fellowship start and leaves slack for a second seed or a model refresh.
+- Week 20–24: `bench-v1.0.0` release, Zenodo DOIs (software + results), manuscript draft. Counting from the 2026-09-07 revision date this lands around the end of February 2027, and the reflowed calendar leaves weeks 30–32 as slack for a second seed or a model refresh.
+
+### Owner time
+
+Roughly **40–60 hours**, the largest figure in the plan and the one least able to compress. It covers writing the pre-registration (endpoints, models, arms, analysis unit, and the duplicate-audit plan), completing the dataset agreements (the DDI application in particular), reviewing the pilot output per track before the budget is committed, checking the metrics module's outputs against the pre-registration, and drafting the manuscript. The harness, adapters, runner, and dashboard generalization are agent work, but every statistical choice needs the owner's sign-off because the owner's name goes on the result.
 
 ### Acceptance
 
@@ -332,6 +354,7 @@ derm-vlm-bench/
 - The dermpath navigator (`site/public/apps/dermatopathology-modern/index-fixed.html`) is described in `apps.json:51` as having an "AI study assistant, spaced repetition"; in the shipped file neither exists. The Gemini call site was stripped for security reasons (`site/src/security/legacy-apps-remediation.test.ts`), the "AI recommendations" are three hardcoded strings, and `studyStats` is never persisted.
 - The **only working SRS** is `site/public/apps/spacedRepetition.js` (SM-2, Anki-style, storage key `dermpath_srs_data`), consumed by `site/public/apps/dermatopathology-differentials.html` (grade buttons Again=1 / Hard=3 / Good=4 / Easy=5). Favorites and notes live in a separate key `dermatopathologyDifferentialsState`. Mind maps persist UI state only (`mindmap:<id>:state:v1`).
 - Mind map diagrams already enforce `{pmid or doi or url, quote}` citations (`site/src/apps/mindmaps/schema.ts:166-184`); that validator is the seed for citation verification.
+- Since #186, a working source-excerpt gate exists: `scripts/verify-vasculitis-source-excerpts.py` checks excerpts against live PubMed and writes schema-3 receipts that separate accepted-excerpt checks from publication-hold checks, and its `NOT_ADJUDICATED` hold is what currently keeps focuSSced and AURORA 1 out of publication. This is the quote-matching step the MCQ pipeline needs; it is reused, not rebuilt.
 
 ### Design
 
@@ -339,7 +362,7 @@ derm-vlm-bench/
 
 **Generation pipeline** (separate repo or `services/mcq-forge/`, Python):
 1. **Grounded generation.** The generator is given a bounded source packet: graph entities and their referenced quotes, mind map tooltips and diagram citations, and PubMed abstracts fetched by PMID. It may not cite anything outside the packet. Board-style but synthetic; no reproduction of any board item. The packet is a **private working set**, not a published artifact: including an abstract or guideline text in the packet for verification does not make it redistributable. Published items contain owner-authored stems, options, and explanations plus citation identifiers and locators; a verbatim quote is shown to learners only when the rights manifest clears that source for quotation, otherwise the UI shows the citation and a link.
-2. **Independent verification.** A different model family from the generator (per the repo's rigor guidance on correlated errors) receives each claim in the stem, key, and explanation and must return, for each, the source id and an exact quote span from the packet that entails it, or `unsupported`. Quote spans are checked by string match against the packet, not trusted. Any `unsupported` claim in the stem or key rejects the item; `unsupported` in a distractor explanation flags it.
+2. **Independent verification.** A different model family from the generator (per the repo's rigor guidance on correlated errors) receives each claim in the stem, key, and explanation and must return, for each, the source id and an exact quote span from the packet that entails it, or `unsupported`. Quote spans are checked against the packet, not trusted, and the check runs through #186's source-excerpt gate (`scripts/verify-vasculitis-source-excerpts.py`, generalized beyond the vasculitis records it was written for) so that each item's verification packet is a schema-3 receipt of the same shape the clinical-review ledger already uses, with accepted excerpts and publication holds kept apart. An item whose packet carries a publication hold is `NOT_ADJUDICATED` and cannot be served, exactly as focuSSced and AURORA 1 are held today. Any `unsupported` claim in the stem or key rejects the item; `unsupported` in a distractor explanation flags it.
 3. **Rubric scoring.** Reuse the 10-criterion rubric from the existing artifacts so new items are comparable to the 3,400 already judged.
 4. **Human adjudication queue, local-first.** The site is `output: 'static'` on GitHub Pages, so a hosted page has no write path back to the item bank; approvals made in a browser would be lost or stay browser-local. The adjudication UI therefore ships **inside the pipeline repo** as a small local web app (`mcq-forge adjudicate`, served on localhost) that reads the candidate items and writes decisions directly to the bank files (`items/<id>.json` gets `verification.status`, `adjudicator`, `verifiedAt`; an append-only `decisions.jsonl` records every action). The build-time export reads only from those files. If remote adjudication is ever needed, the fallback is the same UI exporting a `decisions.jsonl` that is committed via PR and applied by the pipeline, never a browser-side write. Target: a bank of 300 human-verified items before public launch, seeded by re-verifying the best-scoring items from the existing 3,400.
 
@@ -349,7 +372,7 @@ derm-vlm-bench/
 - Scheduler: port SM-2 from `spacedRepetition.js` for continuity, behind an interface, with FSRS-4.5 as a second implementation selectable per user (FSRS is materially better calibrated; SM-2 first avoids breaking existing decks).
 - Card model: `{id, kind: "dermpath-ddx"|"mindmap-node"|"mcq"|"wsi-region", ref, graphRefs[], scheduling…}`. Scheduling state and learner annotations are separate records: an `annotations` store keyed by the same `ref` holds `{favorite: boolean, note: string, updatedAt}` so favorites and notes survive independently of card resets or scheduler changes.
 - Storage: IndexedDB under one database `rf-study` with schema versioning and three stores (`cards`, `annotations`, `meta`). First-load migration reads both legacy keys: `dermpath_srs_data` (SM-2 cards, including `reviewHistory` and `lapses`) into `cards`, and `dermatopathologyDifferentialsState` (`favorites` map and `notes` map, plus `analytics`) into `annotations` and `meta`. The legacy keys are left in place until the migration is verified, then marked migrated, never deleted silently. JSON export/import covers all three stores and preserves the existing `exportData`/`importData` shape for cards.
-- Consumers: `dermatopathology-differentials.html` (swap the import), mind maps (add "study this node" in the side drawer), MCQ player, WSI viewer (Workstream 7).
+- Consumers: `dermatopathology-differentials.html` (swap the import), mind maps (add "study this node" in the side drawer), MCQ player, and the WSI viewer if Workstream 7 is ever scheduled.
 - Optional later: sync via the existing Firebase functions backend, off by default.
 
 ### Deliverables and milestones
@@ -358,6 +381,10 @@ derm-vlm-bench/
 - Week 16–20: mcq-forge pipeline; re-verify top existing items; local adjudication tool.
 - Week 20–24: `/study` player; `/api/v1/mcq/`; mind map study hooks.
 - Week 24–28: 300 verified items; public launch post; `apps.json` copy for the dermpath navigator corrected to match reality.
+
+### Owner time
+
+Roughly **12–20 hours**. Adjudicating 300 items at about two minutes each is ten hours on its own, and the seed set (the best-scoring items from the existing 3,400 corpus) needs re-verification against the source-excerpt gate before it can anchor the bank, which is where the remainder goes. The pipeline, the local adjudication tool, the scheduler port, and the `/study` player are agent work.
 
 ### Acceptance
 
@@ -369,7 +396,7 @@ derm-vlm-bench/
 
 - **Verification is only as good as the packet.** If the source packet is thin, the generator produces trivially verifiable but shallow items. Track item difficulty distribution against the existing corpus.
 - **Copyright.** Textbook text cannot go in packets. Abstracts, open guidelines, and the site's own content can.
-- **Owner adjudication time** is the real bottleneck; 300 items at roughly two minutes each is ten hours.
+- **Owner adjudication time** is the real bottleneck; the 12–20 hour figure above is a floor, and the launch date moves with it.
 
 ---
 
@@ -415,6 +442,10 @@ Candidate source classes (to be confirmed at build time, not asserted here): ACR
 - Week 25–28: vaccine and pregnancy contexts; UI; PDF export.
 - Week 29–32: full 60-molecule coverage where sources exist; launch post; `apps.json` + inventory.
 
+### Owner time
+
+Roughly **30–50 hours, plus a second reviewer's time** that this plan cannot estimate on their behalf. Every timing rule is authored from source text by hand (the predicates, the hold and resume wording, the quotes with locators and retrieval dates), and the two-sign-off gate means each of the rules for 60 molecules across up to seven contexts is read twice by two people. The schema, the gate tests, the UI, and the PDF export are agent work; the intended-use assessment is a separate professional review outside these hours.
+
 ### Acceptance
 
 - Every rendered band traces to at least one quote with a retrieval date; the build fails otherwise.
@@ -430,7 +461,9 @@ Candidate source classes (to be confirmed at build time, not asserted here): ACR
 
 ---
 
-## Workstream 7: Dermatopathology virtual slide viewer and morphology trainer (weeks 26–38)
+## Workstream 7 (deferred beyond v1): Dermatopathology virtual slide viewer and morphology trainer
+
+**Why it is deferred.** This section is kept because the design is sound and nothing in it conflicts with the rest of the plan, but it no longer holds calendar weeks. The gating factor is one the document already names below: public dermatopathology whole-slide images are scarce, the one reliable open source is melanoma-only, and own slides would need institutional approval that is out of scope. A viewer built around twenty slides that might not materialize is a poor use of the twelve weeks it was allotted, and those weeks are better spent as slack for the benchmark's second seed and the graph's second pass. It also depends on the unified SRS and on R2, both of which v1 delivers, so it starts from a better position whenever it is scheduled.
 
 ### What exists today (verified)
 
@@ -448,9 +481,11 @@ Candidate source classes (to be confirmed at build time, not asserted here): ACR
 
 ### Deliverables
 
-- Week 26–28: sourcing + licensing record; tiling tool; 20 slides on R2.
-- Week 29–33: viewer route `/apps/dermpath-slides`; annotation layer; expert annotations for the 20 slides authored in a local annotation mode that exports GeoJSON committed to the repo (owner time). Same constraint as the MCQ adjudicator: the static site has no write path, so authoring is local and the export is the artifact.
-- Week 34–38: trainer scoring, SRS cards, launch.
+Indicative phases, not calendar weeks, since this workstream is not scheduled in v1:
+
+- Phase 1: sourcing + licensing record; tiling tool; 20 slides on R2.
+- Phase 2: viewer route `/apps/dermpath-slides`; annotation layer; expert annotations for the 20 slides authored in a local annotation mode that exports GeoJSON committed to the repo (owner time). Same constraint as the MCQ adjudicator: the static site has no write path, so authoring is local and the export is the artifact.
+- Phase 3: trainer scoring, SRS cards, launch.
 
 ### Acceptance
 
@@ -464,11 +499,13 @@ Candidate source classes (to be confirmed at build time, not asserted here): ACR
 
 ---
 
-## Workstream 8: Consumer derm-AI app scorecard (weeks 32–38)
+## Workstream 8 (deferred beyond v1): Consumer derm-AI app scorecard
+
+**Why it is deferred.** There is no in-repo foundation for this at all, so unlike every other workstream it inherits nothing from the graph, the publishing layer, or the review tooling, and it carries the highest legal exposure of any surface in the plan the moment it names an app. The self-evaluation mode is defensible, but it is also the least connected to the owner's research output, and the six weeks it held are worth more as slack in v1. It stays documented so the rubric design is not lost.
 
 ### What exists today
 
-Nothing in-repo. This is greenfield and intentionally last.
+Nothing in-repo. This is greenfield.
 
 ### Design
 
@@ -480,8 +517,10 @@ Nothing in-repo. This is greenfield and intentionally last.
 
 ### Deliverables
 
-- Week 32–34: rubric with cited framework mapping; owner review.
-- Week 35–38: UI, PDF, launch post.
+Indicative phases, not calendar weeks, since this workstream is not scheduled in v1:
+
+- Phase 1: rubric with cited framework mapping; owner review.
+- Phase 2: UI, PDF, launch post.
 
 ### Acceptance
 
@@ -501,7 +540,26 @@ Nothing in-repo. This is greenfield and intentionally last.
 7. **Devlog per phase**, commit format `agent(claude-code): <summary>` for shipped work (the Codex-flavoured equivalent uses its own prefix per `AGENTS.md`), vault update when the vault is present (per `CLAUDE.md`).
 8. **Large files go to R2**, never to `site/public`.
 
+## Owner time by workstream
+
+The agent-assisted week estimates above describe elapsed time; this table describes the hours the owner personally has to spend, which is the scarcer resource now that fellowship is under way rather than ahead.
+
+| # | Workstream | Owner hours | Spent on |
+|---|---|---|---|
+| 0 | Foundations | 2–4 | License and R2 decisions |
+| 1 | Knowledge-graph unification | 15–25 | Curating 103 trial condition strings and the intervention arm override file |
+| 2 | Publishing layer | 10–15 | Writing three posts; reviewing JSON-LD and talks copy |
+| 3 | Open Data API + Zenodo | 8–12 | Rights-manifest pass and license decision against the v1 datasets |
+| 4 | VLM benchmark | 40–60 | Pre-registration, dataset agreements, pilot review, manuscript |
+| 5 | MCQ engine + SRS | 12–20 | Adjudicating 300 items at about two minutes each; re-verifying the seed set |
+| 6 | Immunosuppression planner | 30–50 (+ second reviewer) | Authoring and double-signing timing rules for 60 molecules |
+| | **Total, v1** | **117–186 hours** | plus a second reviewer's time on Workstream 6 |
+
+Spread over the 32-week v1 calendar that is roughly four to six owner hours a week, front-loaded on the benchmark and the planner. One lesson from this month shapes how those hours should be treated. The 2026-09 clinical-content review of PRs #184 and #186 found over-correction where agent edits outran owner review: stage-specific content had been flattened into boilerplate in the name of safety, and the flattening was only caught because the owner read the records. Owner review hours are therefore a gating input to every clinical workstream here, not overhead to be minimized; where they are not available, the correct response is to let the calendar slip, not to let the agent proceed unreviewed.
+
 ## Sequenced calendar (assumes two parallel tracks)
+
+Weeks count from the 2026-09-07 revision date. v1 is Workstreams 0 through 6 and ends around week 32 (roughly mid-April 2027); the weeks that Workstreams 7 and 8 previously occupied are reassigned as slack for the benchmark's second seed and the graph's second pass.
 
 | Weeks | Track A | Track B |
 |---|---|---|
@@ -512,26 +570,25 @@ Nothing in-repo. This is greenfield and intentionally last.
 | 14–20 | Unified SRS module, dermpath migration | VLM dashboard generalization, leaderboard |
 | 20–24 | MCQ pipeline, adjudication route | `bench-v1.0.0`, DOIs, manuscript draft |
 | 22–28 | MCQ player, bank to 300, launch | Planner schema, rules, two-reviewer gate |
-| 26–32 | WSI sourcing, tiling, viewer | Planner UI, launch |
-| 32–38 | WSI trainer, SRS cards, launch | Scorecard rubric, UI, launch |
-| 38–42 | Slack: second benchmark seed, second graph pass | Retrospective devlog, vault capture |
+| 26–30 | Slack: second graph pass (crosswalk residue, condition external ids) | Planner UI, launch |
+| 30–32 | Slack: second benchmark seed or model refresh | Retrospective devlog, vault capture |
 
 ## Decisions needed from the owner before week 2
 
 1. Data license (recommend CC BY 4.0).
 2. Cloudflare R2 (recommend yes) and a monthly ceiling.
 3. VLM benchmark budget ceiling for v1 (plan assumes USD 2,000–5,000 in API spend plus GPU rental; pilot first).
-4. Fellowship start date, to anchor the calendar.
+4. ~~Fellowship start date, to anchor the calendar.~~ **Resolved 2026-09-07:** the owner is already in fellowship; the calendar is anchored to the revision date (Working Assumption 1).
 5. Whether the two existing lectures may be listed on `/talks`.
 6. Whether `dermatotarget-atlas` should be listed in the catalogue.
 7. Whether the off-repo psoriasis bibliography and the JAAD per-trial CSV still exist (they change the cost of Workstream 0 item 4 and the framing of the benchmark page respectively).
-8. IRB determination path at Hopkins for the benchmark.
-9. Merge order for the two open prerequisite PRs (#184 clinical hardening and service worker, #175 Atlas mapping integrity). This roadmap assumes both land before Workstream 0 closes and builds on their controls rather than re-implementing them.
+8. IRB determination path at MGB for the benchmark.
+9. Landing **#186** (draft), the prerequisite integration PR, which supersedes #175 and carries #184 in full: the service worker rewrite, the clinical hardening, the correction ledger, the source-excerpt gate, the publication holds, and the DermatoTarget cross-check. This roadmap assumes it lands before Workstream 0 closes and builds on its controls rather than re-implementing them.
 
 ## What this plan does not verify
 
 - Current license terms of ISIC, HAM10000, DDI, and Fitzpatrick17k (must be read at build time).
 - Whether GitHub Pages sends permissive CORS headers by default.
 - Current API pricing for the frontier models in scope (the budget uses one historical data point).
-- Availability and quality of public dermatopathology WSIs beyond TCGA-SKCM.
+- Availability and quality of public dermatopathology WSIs beyond TCGA-SKCM (moot for v1 now that Workstream 7 is deferred, but still the question that decides whether it can ever be scheduled).
 - The exact regulatory framing of the planner; a professional review is recommended before launch.

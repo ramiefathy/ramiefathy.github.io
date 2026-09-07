@@ -20,7 +20,7 @@ Current procedures and runbooks for production systems.
 
 | Document | Scope | Date |
 |----------|-------|------|
-| [Platform Roadmap 2026-09](platform-roadmap-2026-09.md) | Knowledge-graph unification, publishing layer, open data API, VLM benchmark, MCQ engine, planner, slide viewer, scorecard | Sept 2026 |
+| [Platform Roadmap 2026-09](platform-roadmap-2026-09.md) | v1: knowledge-graph unification, publishing layer, open data API, VLM benchmark, MCQ engine, planner, with owner-hours per workstream; slide viewer and scorecard deferred beyond v1; reconciled with PR #186 (revised 2026-09-07) | Sept 2026 |
 | [UI/UX Improvement Roadmap](ui-ux-improvement-roadmap.md) | Site-wide design audit (predates the Field Console contract) | Apr 2026 |
 
 ## 📊 Implementation Status
