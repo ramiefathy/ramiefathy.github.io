@@ -261,6 +261,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "file": "site/public/apps/dermie-vc-prep-rf-20260514-x7q9m2/index.html",
       "category": "internal-unlisted",
       "requiresDownloads": false
+    },
+    {
+      "label": "Countcraft blackjack academy (unlisted)",
+      "route": "/apps/countcraft-blackjack-academy/",
+      "file": "site/public/apps/countcraft-blackjack-academy/index.html",
+      "category": "internal-unlisted",
+      "requiresDownloads": false
     }
   ],
   "unlistedAstroRoutes": [
