@@ -30,6 +30,18 @@ def _candidate_text(response, *, streaming=False):
     return text, reason == "STOP"
 
 
+def _is_trailing_metadata_chunk(chunk):
+    """True only for a chunk with no candidates and no text (e.g. final usage metadata).
+
+    Such chunks are tolerated only after a normal STOP; before STOP a candidate-less
+    chunk still means the stream ended without a usable result.
+    """
+    if getattr(chunk, "candidates", None):
+        return False
+    convenience_text = getattr(chunk, "text", None)
+    return not (isinstance(convenience_text, str) and convenience_text)
+
+
 class GeminiService:
     def __init__(self, api_key):
         if not api_key:
@@ -94,6 +106,8 @@ class GeminiService:
                 async with owner.aio as client:
                     response = await client.models.generate_content_stream(model=model, contents=contents)
                     async for chunk in response:
+                        if stopped and _is_trailing_metadata_chunk(chunk):
+                            continue  # Usage-metadata / keep-alive chunks may follow a normal STOP.
                         text, is_stop = _candidate_text(chunk, streaming=True)
                         if stopped and (text or not is_stop):
                             raise GenerationError("Unexpected content after generation completed.")

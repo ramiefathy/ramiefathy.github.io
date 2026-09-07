@@ -112,6 +112,59 @@ async def test_successful_stream_has_one_terminal_signal(monkeypatch, service):
     ]
 
 
+@pytest.mark.asyncio
+async def test_trailing_candidateless_chunk_after_stop_is_tolerated(monkeypatch, service):
+    """Usage-metadata / keep-alive chunks carry no candidates and no text; they follow STOP."""
+    async def chunks():
+        yield response("first ", None)
+        yield response("second", "STOP")
+        yield NS(candidates=[], usage_metadata=NS(total_token_count=12))
+        yield NS(candidates=None)
+    async def generate(*args, **kwargs):
+        return chunks()
+    fake_model(monkeypatch, generate)
+    assert [item async for item in service.stream_gemini_api("synthetic")] == [
+        ("first ", False), ("second", False), ("", True)
+    ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("trailing", [
+    response("late text", "STOP"),
+    response("late text", None),
+    response("", "MAX_TOKENS"),
+    NS(candidates=[], text="late convenience text"),
+])
+async def test_post_stop_chunk_with_text_or_non_stop_reason_fails(monkeypatch, service, trailing):
+    async def chunks():
+        yield response("complete", "STOP")
+        yield trailing
+    async def generate(*args, **kwargs):
+        return chunks()
+    fake_model(monkeypatch, generate)
+    seen = []
+    with pytest.raises(GenerationError):
+        async for value in service.stream_gemini_api("synthetic"):
+            seen.append(value)
+    assert all(not done for _, done in seen)
+
+
+@pytest.mark.asyncio
+async def test_candidateless_chunk_before_stop_still_fails(monkeypatch, service):
+    async def chunks():
+        yield response("provisional", None)
+        yield NS(candidates=[])
+        yield response("rest", "STOP")
+    async def generate(*args, **kwargs):
+        return chunks()
+    fake_model(monkeypatch, generate)
+    seen = []
+    with pytest.raises(GenerationError):
+        async for value in service.stream_gemini_api("synthetic"):
+            seen.append(value)
+    assert all(not done for _, done in seen)
+
+
 @pytest.mark.parametrize("missing", ["exp", "iat", "sub"])
 def test_jwt_requires_lifetime_and_identity(missing):
     payload = app.verify_jwt(app.issue_jwt("tester"))
