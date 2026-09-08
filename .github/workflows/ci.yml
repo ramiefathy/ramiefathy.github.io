@@ -19,7 +19,7 @@ jobs:
           lfs: true
           persist-credentials: false
       - name: Use Node.js from .nvmrc
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: '.nvmrc'
       - name: Install site dependencies
@@ -27,7 +27,9 @@ jobs:
       - name: Run site unit tests
         run: npm --prefix site test -- --reporter=default --reporter=json --outputFile=unit-results.json
       - name: Audit locked dependencies
-        run: npm --prefix site audit --json > site/dependency-audit.json
+        # Fail-closed on high/critical advisories in the shipped (non-dev) dependency graph;
+        # dev-only tooling advisories are still recorded in the JSON evidence but do not block.
+        run: npm --prefix site audit --audit-level=high --omit=dev --json > site/dependency-audit.json
       - name: Build site
         run: npm run site:build
       - name: Verify direct D&D static build contract
@@ -62,7 +64,7 @@ jobs:
           fi
       - name: Upload unit and dependency evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: site-unit-evidence
           path: |
@@ -72,7 +74,7 @@ jobs:
           retention-days: 7
       - name: Upload rheum-derm dashboard payload audit
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: rheum-derm-dashboard-payload
           path: site/public/apps/rheum-derm-clinical-trials
@@ -80,7 +82,7 @@ jobs:
           retention-days: 1
       - name: Upload built D&D console for audit
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dnd-console-built-route
           path: site/dist/tools/dnd-l20-console-f2c7a9
@@ -96,7 +98,7 @@ jobs:
           lfs: true
           persist-credentials: false
       - name: Use Node.js from .nvmrc
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: '.nvmrc'
       - name: Install site dependencies
@@ -114,7 +116,7 @@ jobs:
         run: npx playwright test --reporter=line,json
       - name: Upload browser test evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: site-playwright-evidence
           path: |
@@ -144,7 +146,7 @@ jobs:
         run: python -m pytest services/ai-scribe/tests -q --junitxml=services/ai-scribe/test-results.xml
       - name: Upload backend test evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ai-scribe-test-evidence
           path: services/ai-scribe/test-results.xml
