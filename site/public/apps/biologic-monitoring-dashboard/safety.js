@@ -20,6 +20,11 @@ function requireValue(condition, message) {
 const text = (value) => typeof value === 'string' && value.trim().length > 0;
 const validDate = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) &&
   Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+// A review can only have happened on or before today (UTC calendar date).
+const notFuture = (value) => value <= new Date().toISOString().slice(0, 10);
+// Follow-up timings are expressed in weeks; ten years is the longest schedule this reference describes.
+const MAX_RELATIVE_WEEKS = 520;
+const plainObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 
 export function validateMonitoringData(data) {
   requireValue(validDate(data.dataVersion) && validDate(data.safetyRevision), 'version dates');
@@ -39,6 +44,12 @@ export function validateMonitoringData(data) {
       requireValue(Array.isArray(entry[field]) && new Set(entry[field]).size === entry[field].length &&
         entry[field].every((value) => Object.hasOwn(data[dictionary], value)), `${entry.id}.${field}`);
     }
+    requireValue(entry.conditions.length > 0, `${entry.id}.conditions`);
+    if (entry.warningFlagNotes !== undefined) {
+      // Optional per-record badge wording (e.g. a class card whose boxed warning applies to one agent only).
+      requireValue(plainObject(entry.warningFlagNotes) && Object.entries(entry.warningFlagNotes).every(([flag, note]) =>
+        entry.warningFlags.includes(flag) && text(note)), `${entry.id}.warningFlagNotes`);
+    }
     requireValue(Array.isArray(entry.holdCriteria) && entry.holdCriteria.every(text), `${entry.id}.holdCriteria`);
     requireValue(Array.isArray(entry.references) && entry.references.length > 0, `${entry.id}.references`);
     for (const reference of entry.references) {
@@ -56,15 +67,25 @@ export function validateMonitoringData(data) {
           requireValue(text(item.label) && typeof item.critical === 'boolean' && typeof item.notes === 'string', `${entry.id}.task`);
         } else {
           requireValue(text(item.timing) && text(item.description) && ['standard', 'high', 'critical'].includes(item.priority), `${entry.id}.schedule`);
-          requireValue(item.relativeWeeks == null || (Number.isFinite(item.relativeWeeks) && item.relativeWeeks >= 0), `${entry.id}.relativeWeeks`);
+          requireValue(item.relativeWeeks == null || (Number.isFinite(item.relativeWeeks) && item.relativeWeeks >= 0 &&
+            item.relativeWeeks <= MAX_RELATIVE_WEEKS), `${entry.id}.relativeWeeks`);
         }
       }
     }
-    if (entry.safetyReview) {
-      requireValue(validDate(entry.safetyReview.date) && text(entry.safetyReview.scope) && text(entry.safetyReview.status), `${entry.id}.safetyReview`);
+    if (entry.safetyReview !== undefined) {
+      requireValue(plainObject(entry.safetyReview) && validDate(entry.safetyReview.date) && notFuture(entry.safetyReview.date) &&
+        text(entry.safetyReview.scope) && text(entry.safetyReview.status), `${entry.id}.safetyReview`);
     }
   }
   return true;
+}
+
+/** Build a reference chip from a validated reference; unsafe or unparsable URLs render nothing. */
+export function referenceLink(reference) {
+  let url;
+  try { url = new URL(reference?.url); } catch { return ''; }
+  if (url.protocol !== 'https:' || url.username || url.password) return '';
+  return `<a class="reference-chip" role="listitem" href="${escapeHtml(url.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(reference.label)}</a>`;
 }
 
 export function reviewSummary(entry, dataVersion) {
