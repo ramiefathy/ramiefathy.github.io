@@ -252,7 +252,7 @@ views.overview = () => {
   const v = el("div");
   v.append(el("div", { class: "page-head" },
     el("h1", {}, "DermatoTarget Atlas"),
-    el("p", {}, "A reproducible, public-data prioritization atlas across six immune-mediated skin diseases. " +
+    el("p", {}, "A historical, public-data prioritization atlas across six immune-mediated skin diseases. " +
       "Every score is a prioritization hypothesis derived from public evidence — not a causal estimate, efficacy claim, or clinical recommendation.")));
 
   const stats = [
@@ -414,7 +414,7 @@ views.target = (gene, query) => {
   const pairs = targetsForGene(gene);
   const v = el("div");
   v.append(el("button", { class: "back-link", type: "button", onclick: () => history.back() }, "← back"));
-  if (!pairs.length) { v.append(el("div", { class: "callout" }, `No scored pairs for ${esc(gene)}.`)); return v; }
+  if (!pairs.length) { v.append(el("div", { class: "callout" }, `No scored pairs for ${gene}.`)); return v; }
 
   const preferredDisease = query?.get("d");
   let active = preferredDisease ? pairs.find((p) => p.disease_key === preferredDisease) : pairs[0];
@@ -551,7 +551,7 @@ async function renderTargetExtras(t, host) {
     const tableHost = el("div", { class: "candidate-detail", "data-disease": t.disease_key });
     drugHost.append(el("h2", { class: "title" }, `Drug candidates — ${t.disease_name}`),
       el("p", { class: "muted" }, `${same.length} distinct records match this indication; ${other.length} concern other recorded indications. Exact duplicate rows are collapsed without adding report counts. Historical drug and candidate stages are not current approval determinations.`),
-      el("label", { class: "candidate-toggle" }, toggle, " Include other indications (not evidence for this disease)"), tableHost);
+      el("label", { class: "candidate-toggle" }, toggle, " Include other indications (not exact indication-label matches; not counted for this disease)"), tableHost);
     const render = () => {
       const selected = (toggle.checked ? rows : same).slice().sort((a, b) => b.clinical_report_count - a.clinical_report_count);
       tableHost.replaceChildren(el("p", { role: "status" }, `${selected.length} records; ${Math.min(60, selected.length)} shown.`));
@@ -667,7 +667,7 @@ views.modules = () => {
 views.literature = () => {
   const v = el("div");
   v.append(el("div", { class: "page-head" }, el("h1", {}, "Literature evidence"),
-    el("p", {}, "Systematic PubMed/Entrez shortlist grades (A–D) for selected white-space, near-field, and validated candidates. Title/abstract screening — not a substitute for full-text review.")));
+    el("p", {}, "Systematic PubMed/Entrez shortlist grades (A–D) for selected white-space, near-field, and late-stage candidate targets. Title/abstract screening — not a substitute for full-text review.")));
   const rows = DB.literature.slice();
   const state = { grade: "", disease: "" };
   const toolbar = el("div", { class: "toolbar" });
@@ -795,6 +795,10 @@ function drugExplorer(col) {
 /** Browse the independently captured sources separately from historical rankings. */
 views.evidence = () => {
   const snapshot = DB.associations;
+  const requestedDisease = query.get("d") || "";
+  if (requestedDisease && !DB.diseases.summaries.some(d => d.disease_key === requestedDisease)) {
+    return el("div", { class: "callout", role: "alert" }, "Unknown disease context. Choose a recorded disease from the disease explorer.");
+  }
   const v = el("div", { class: "source-workbench" });
   v.append(el("div", { class: "page-head" }, el("h1", {}, "Independent source cross-check"),
     el("p", {}, `${snapshot.pairs.length} historical target–disease pairs; Open Targets ${snapshot.source_version}; retrieved ${snapshot.retrieved_at.slice(0, 10)}. Ontology propagation is disabled.`)),
@@ -802,7 +806,7 @@ views.evidence = () => {
   const search = el("input", { type: "search", "aria-label": "Search source cross-check", placeholder: "Gene, disease, or identity…", value: query.get("q") || "" });
   const disease = el("select", { "aria-label": "Cross-check disease" }, el("option", { value: "" }, "All diseases"),
     DB.diseases.summaries.map(d => el("option", { value: d.disease_key }, d.disease_name)));
-  disease.value = query.get("d") || "";
+  disease.value = requestedDisease;
   const status = el("select", { "aria-label": "Cross-check status" }, el("option", { value: "" }, "All source states"),
     Object.entries(ASSOCIATION_STATES).map(([key, label]) => el("option", { value: key }, label)));
   const counts = Object.entries(ASSOCIATION_STATES).map(([key, label]) => `${snapshot.pairs.filter(r => r.status === key).length} ${label.toLowerCase()}`).join(" · ");
@@ -825,7 +829,7 @@ views.evidence = () => {
       { key: "disease_name", label: "Disease" },
       { key: "status", label: "Source state", render: r => ASSOCIATION_STATES[r.status] },
       { key: "score", label: "Current association score", num: true, render: r => r.score === null ? "Not established" : fmt(r.score) },
-      { key: "sources", label: "Identity / evidence", render: r => el("details", {}, el("summary", {}, `Inspect ${r.gene} / ${r.disease_name}`),
+      { key: "sources", label: "Identity / evidence", sort: false, render: r => el("details", {}, el("summary", {}, `Inspect ${r.gene} / ${r.disease_name}`),
         el("p", {}, r.note), el("p", {}, `Historical: ${r.historical_target_id || "missing gene ID"} / ${r.historical_disease_id}. Resolved: ${r.target_id || "unresolved"} / ${r.disease_id}.`),
         el("p", {}, `Identity candidate (not an accepted join when held): ${r.identity_candidate?.symbol || "not returned"} / ${r.identity_candidate?.id || "not returned"}.`),
         el("p", {}, "Source breadth: ", r.datasource_scores.map(x => `${x.id} ${fmt(x.score)}`).join("; ") || "Not established"),

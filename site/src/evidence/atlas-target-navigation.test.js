@@ -34,6 +34,31 @@ describe('Target explorer indication and keyboard contracts', () => {
     expect(w.document.querySelector('[role=alert]')).toBeNull();
     expect(w.document.querySelector('h1').textContent).toBe('Alopecia areata');
   }));
+  it('refuses an unknown disease on the evidence view with the same alert pattern as the other views', async () => withApp('#/evidence?d=not-in-source', w => {
+    expect(w.document.querySelector('[role=alert]').textContent).toContain('Unknown disease context');
+    expect(w.document.querySelectorAll('table').length).toBe(0);
+  }));
+  it('filters the evidence view by a recorded disease and leaves the identity column unsorted', async () => withApp('#/evidence?d=psoriasis', w => {
+    expect(w.document.querySelector('[role=alert]')).toBeNull();
+    expect(w.document.querySelector('[aria-label="Cross-check disease"]').value).toBe('psoriasis');
+    const header = [...w.document.querySelectorAll('thead th')].find(th => th.textContent.includes('Identity / evidence'));
+    expect(header.querySelector('button')).toBeNull();
+    expect(w.document.querySelector('button[aria-label="Sort by Gene"]')).not.toBeNull();
+  }));
+  it('does not double-escape a gene name it renders as text', async () => withApp('#/target/A%26B', w => {
+    const text = [...w.document.querySelectorAll('#view .callout')].map(n => n.textContent).find(t => t.includes('No scored pairs'));
+    expect(text).toContain('No scored pairs for A&B.');
+    expect(text).not.toContain('&amp;');
+  }));
+  it('describes other-indication candidates and the atlas as historical rather than validated', async () => {
+    const source = read('app.js');
+    expect(source).toContain('Include other indications (not exact indication-label matches; not counted for this disease)');
+    expect(source).not.toContain('not evidence for this disease');
+    expect(source).toContain('A historical, public-data prioritization atlas');
+    expect(source).not.toContain('A reproducible, public-data prioritization atlas');
+    expect(source).not.toContain('and validated candidates');
+    expect(source).not.toContain('No scored pairs for ${esc(gene)}');
+  });
   it('sorts with semantic buttons and preserves focus after header replacement', async () => withApp('#/disease/psoriasis', w => {
     const find = () => w.document.querySelector('button[aria-label="Sort by Composite"]');
     expect(find().parentElement.getAttribute('aria-sort')).toBe('descending');
