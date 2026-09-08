@@ -960,8 +960,7 @@
   function defaultRepresentation() {
     const params = new URLSearchParams(location.search)
     if (params.has('rep') || params.has('task')) return
-    const mobile = matchMedia('(max-width: 760px)').matches || navigator.maxTouchPoints > 0
-    activateTask(mobile ? 'explain' : 'explain', false)
+    activateTask('explain', false)
   }
 
   function refreshRelationPicker() {

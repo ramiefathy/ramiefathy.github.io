@@ -108,6 +108,45 @@ describe('Combined clinical quarantine, P0 and P1/P2 runtime contracts', () => {
     w.document.querySelector('[data-p2-control="rotate-left"]').click();
     expect(w.document.querySelector('#networkSelectionStatus').textContent).toContain('rotate left');
   }));
+  it('resolves every curated editorial decision key to an existing source link', async () => usingAtlas(({ w }) => {
+    const api = w.__ATLAS_P0__;
+    expect(api.curatedDecisionKeys.length).toBeGreaterThan(0);
+    const unresolved = api.curatedDecisionKeys.filter(key => !api.sourceLinkKeys.includes(key));
+    expect(unresolved).toEqual([]);
+    expect(api.exploratoryLinks.filter(r => r.relationOrigin === 'editorial-hypothesis').every(r => r.editorialRationale && !r.curatorDecision)).toBe(true);
+  }));
+  it('records the endotype-specific rejection reason instead of the generic scope failure', async () => usingAtlas(({ data }) => {
+    const reasons = Object.fromEntries(data.rejectedManifestationLinks.map(r => [`${r.condition}|${r.manifestation}`, r.rejectionReason]));
+    expect(reasons['aav|Livedo']).toContain('crossed incompatible endotypes');
+    expect(reasons['egpa|Cranial ischemia']).toContain('EGPA IL-5 evidence cannot be propagated');
+    expect(Object.values(reasons).filter(r => r.includes('outside the declared condition/endotype scope'))).toEqual([]);
+    expect(data.defaultManifestationLinks.length + data.exploratoryManifestationLinks.length + data.rejectedManifestationLinks.length).toBe(239);
+  }));
+  it('carries the immune-complex endotype label for the umbrella "Ulcers" link and grades the row by its remaining sources', async () => usingAtlas(({ data }) => {
+    const row = data.pathways.find(p => p.condition === 'immune_complex_vasculitis');
+    expect(row.refs).toEqual(['R53', 'V05']);
+    expect([row.grade, row.importance, row.originalGrade, row.originalImportance]).toEqual(['C', 3, 'B', 5]);
+    const ulcers = data.allSanitizedManifestationLinks.find(r => r.condition === 'immune_complex_vasculitis' && r.manifestation === 'Skin ulcers');
+    expect(ulcers?.originalManifestation).toBe('Ulcers');
+    expect(data.rejectedManifestationLinks.some(r => r.manifestation === 'Ulcers')).toBe(false);
+  }));
+  it('agrees with P1 provenance on which phenotype links are direct in the alternative views', async () => usingAtlas(({ w, data }) => {
+    const direct = new Set(data.defaultManifestationLinks.filter(r => r.relationOrigin === 'source-explicit').map(r => r.condition));
+    expect(direct.size).toBeGreaterThan(0);
+    const cid = [...direct][0];
+    const chains = w.parallelFeatureChains(cid, 'D');
+    expect(chains.length).toBeGreaterThan(0);
+    expect(chains.some(chain => chain.right.state === 'direct')).toBe(true);
+    expect(w.linkIsSourceExplicit({ relationOrigin: 'source-explicit', relationship: 'Lexical hypothesis' })).toBe(true);
+    expect(w.linkIsSourceExplicit({ relationOrigin: 'lexical-inferred', relationship: 'Directly named' })).toBe(false);
+    expect(w.linkIsSourceExplicit({ relationship: 'Directly named' })).toBe(true);
+  }));
+  it('derives source-review counts from the runtime denominators instead of literals', async () => usingAtlas(({ w, data }) => {
+    expect(w.document.querySelector('[data-source-review-quarantined]').textContent).toBe(`${data.quarantinedEffects.length} of ${data.effects.length + data.quarantinedEffects.length}`);
+    const link = w.document.querySelector('a[download="clinical-corrections.json"]');
+    expect(link.getAttribute('href')).toBe(data.sourceReview.sourceFile);
+    expect(link.textContent).not.toMatch(/659/);
+  }));
   it('records only scoped primary findings and preserves the historical source workbench denominator', async () => usingAtlas(({ data, w }) => {
     expect(data.scopedClaims).toHaveLength(17);
     expect(data.scopedClaims.every(r => r.humanApproved === false && r.clinicallyValidated === false && r.automaticGraphPromotion === false && r.quote.split(/\s+/).length <= 25)).toBe(true);

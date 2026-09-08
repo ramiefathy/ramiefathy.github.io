@@ -17,11 +17,13 @@ describe('Rheum–Derm Atlas P0 scientific-integrity source contract', () => {
     expect(index).toContain('window.__ATLAS_P0__?.refreshUi()')
   })
 
-  it('requires source-explicit or curator-confirmed default links', () => {
+  it('requires source-explicit default links and keeps editorial rules as opt-in hypotheses', () => {
     expect(remediation).toContain("const DEFAULT_ORIGINS = new Set(['source-explicit'])")
     expect(remediation).toContain("link.relationOrigin = 'source-explicit'")
     expect(remediation).toContain("link.relationOrigin = 'editorial-hypothesis'")
     expect(remediation).toContain('Source-explicit link lacks source span')
+    expect(remediation).not.toContain("relationOrigin === 'curator-confirmed'")
+    expect(remediation).toContain('curatedDecisionKeys')
     expect(remediation).toContain('Treatment triangulation leaked into default links')
   })
 
@@ -69,6 +71,20 @@ describe('Rheum–Derm Atlas P0 scientific-integrity source contract', () => {
     expect(workflow).toMatch(/actions\/checkout@[0-9a-f]{40}/)
     expect(workflow).toMatch(/actions\/setup-node@[0-9a-f]{40}/)
     expect(workflow).toMatch(/actions\/upload-artifact@[0-9a-f]{40}/)
+  })
+
+  it('does not carry dead representation or provenance branches', () => {
+    const governance = read('public/apps/rheum-derm-immune-atlas/explorer/p1-p2-governance.js')
+    expect(governance).not.toContain("mobile ? 'explain' : 'explain'")
+    expect(governance).toContain("activateTask('explain', false)")
+    const explorer = read('public/apps/rheum-derm-immune-atlas/explorer/systems-explorer.js')
+    const views = read('public/apps/rheum-derm-immune-atlas/explorer/alternative-views.js')
+    expect(explorer).toContain('function linkIsSourceExplicit(l)')
+    // The legacy label is consulted only inside the helper, as a fallback when no provenance exists yet.
+    expect(explorer.split("l.relationship==='Directly named'")).toHaveLength(2)
+    expect(explorer).toContain('if(linkIsSourceExplicit(l))a.directCount++')
+    expect(views).not.toContain("link.relationship==='Directly named'")
+    expect(views).toContain('linkIsSourceExplicit(link)')
   })
 
   it('splits the vasculitis umbrella and codifies the P0 rejection registry', () => {

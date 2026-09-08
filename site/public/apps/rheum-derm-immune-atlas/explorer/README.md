@@ -40,7 +40,7 @@ The implementation and consultation roadmap lives in `docs/rheum-derm-atlas-expl
 
 ## P0 scientific-integrity layer
 
-`p0-scientific-remediation.js` executes after the explorer renderers and before atlas initialization. It splits vasculitis endotypes, repairs phenotype classification, enforces exact-span/curator-confirmed default links, quarantines generated hypotheses, and adds explicit opt-in controls for exploratory mappings and canonical-background rules. See `docs/rheum-derm-atlas-p0-remediation.md`.
+`p0-scientific-remediation.js` executes after the explorer renderers and before atlas initialization. It splits vasculitis endotypes, repairs phenotype classification, restricts default links to exact synthesis spans (synthesis-explicit, not independently validated), keeps hard-coded editorial rules as opt-in hypotheses rather than reviewer attestations, quarantines generated hypotheses, and adds explicit opt-in controls for exploratory mappings and canonical-background rules. See `docs/rheum-derm-atlas-p0-remediation.md`.
 
 
 ## P1/P2 governed relationship and interface layer

@@ -141,6 +141,14 @@
         pathway.axis = 'IgA / cryoglobulin / other immune complexes; immune-reactant-dependent complement pathways'
         pathway.role = 'Complement findings differ by endotype. IgA vasculitis proteomic evidence implicates lectin and alternative pathways; it is not proof of uniform classical-pathway activation or a treatment effect.'
         pathway.refs = unique([...pathway.refs.filter(id => id !== 'R28'), 'V05'])
+        // R28 (AAV guideline) no longer supports this row. What remains is a mechanistic review (R53)
+        // plus one small observational proteomic study (V05): meta.rubric grade C ("retrospective
+        // studies, case series, indirect extrapolation") and importance 3 ("meaningful contributor"),
+        // not the guideline-level B/5 inherited from the umbrella row.
+        pathway.originalGrade = pathway.grade
+        pathway.originalImportance = pathway.importance
+        pathway.grade = 'C'
+        pathway.importance = 3
       }
     })
 
@@ -182,6 +190,13 @@
       const pathway = DATA.pathways[link.pathIndex]
       link.condition = pathway?.condition || 'aav'
       link.endotypeScope = link.condition
+      // The umbrella row used the bare label "Ulcers"; the immune-complex endotype declares the same
+      // cutaneous phenotype as "Skin ulcers". Carry the declared label so the link is adjudicated on
+      // its evidence instead of being dropped as a label mismatch.
+      if (link.condition === 'immune_complex_vasculitis' && link.manifestation === 'Ulcers') {
+        link.originalManifestation = link.manifestation
+        link.manifestation = 'Skin ulcers'
+      }
     })
 
     DATA.meta.vasculitisEndotypeContract = {
@@ -323,15 +338,18 @@
   }
 
   const CURATED_DECISIONS = {
-      'aav|neutrophil|Palpable purpura': 'ANCA-activated neutrophil small-vessel injury is curator-confirmed for cutaneous purpura in AAV; no claim is made for every livedoid or ischemic phenotype.',
-      'aav|neutrophil|Glomerulonephritis': 'ANCA-neutrophil capillaritis is curator-confirmed for pauci-immune glomerulonephritis.',
-      'aav|neutrophil|Pulmonary hemorrhage': 'ANCA-neutrophil capillaritis is curator-confirmed for diffuse alveolar hemorrhage.',
-      'aav|complement|Glomerulonephritis': 'Alternative-complement/C5a amplification is curator-confirmed as a contributor to AAV organ injury; magnitude is not inferred from avacopan response alone.',
-      'egpa|eosinophil|Asthma/eosinophilia': 'IL-5–dependent eosinophil biology is curator-confirmed for the eosinophilic/asthma domain of EGPA, distinct from ANCA-mediated vasculitis.',
-      'gca|il6|Large-vessel inflammation': 'IL-6, arterial dendritic-cell and Th1/Th17 biology is curator-confirmed for GCA/LVV; treatment response is supporting context rather than sole causal proof.',
-      'immune_complex_vasculitis|autoantibody|Palpable purpura': 'Immune-complex deposition with Fc-receptor and classical-complement recruitment is curator-confirmed for palpable purpura.',
-      'immune_complex_vasculitis|autoantibody|Glomerulonephritis': 'Immune-complex deposition is curator-confirmed for glomerular injury in the relevant endotypes.',
-      'aps|complement|Pregnancy morbidity': 'Complement-mediated placental and microvascular injury is curator-confirmed as one contributor to obstetric APS; coagulation is not treated as the sole mechanism.',
+      // Keys are `${pathway.condition}|${primaryPathwayKey(pathway)}|${link.manifestation}`. The AAV
+      // "ANCA / neutrophil" row resolves to the `autoantibody` key and the RA "Granulomatous" row to
+      // `ifng`; every key below is checked against the source links at runtime (curatedDecisionKeys).
+      // Two former entries had no link to fire on and were deleted: the AAV complement row and the
+      // GCA IL-6 row carry no pathway–manifestation links in the embedded synthesis.
+      'aav|autoantibody|Palpable purpura': 'ANCA-activated neutrophil small-vessel injury is an editorial hypothesis for cutaneous purpura in AAV; no claim is made for every livedoid or ischemic phenotype.',
+      'aav|autoantibody|Glomerulonephritis': 'ANCA-neutrophil capillaritis is an editorial hypothesis for pauci-immune glomerulonephritis.',
+      'aav|autoantibody|Pulmonary hemorrhage': 'ANCA-neutrophil capillaritis is an editorial hypothesis for diffuse alveolar hemorrhage.',
+      'egpa|eosinophil|Asthma/eosinophilia': 'IL-5–dependent eosinophil biology is an editorial hypothesis for the eosinophilic/asthma domain of EGPA, distinct from ANCA-mediated vasculitis.',
+      'immune_complex_vasculitis|autoantibody|Palpable purpura': 'Immune-complex deposition with Fc-receptor and complement recruitment is an editorial hypothesis for palpable purpura.',
+      'immune_complex_vasculitis|autoantibody|Glomerulonephritis': 'Immune-complex deposition is an editorial hypothesis for glomerular injury in the relevant endotypes.',
+      'aps|complement|Pregnancy morbidity': 'Complement-mediated placental and microvascular injury is an editorial hypothesis for one contributor to obstetric APS; coagulation is not treated as the sole mechanism.',
       'caps|inflammasome|Urticaria-like rash': 'Monogenic NLRP3 causality supports the syndrome-level rash phenotype.',
       'caps|inflammasome|Fever': 'Monogenic NLRP3 causality supports the syndrome-level fever phenotype.',
       'caps|inflammasome|Arthralgia': 'Monogenic NLRP3 causality supports the syndrome-level articular phenotype.',
@@ -343,7 +361,7 @@
       'caps|il1|Urticaria-like rash': 'Mechanism-matched IL-1 biology and longitudinal response support this phenotype without assigning a quantitative causal effect.',
       'caps|il1|Fever': 'Mechanism-matched IL-1 biology and longitudinal response support this phenotype without assigning a quantitative causal effect.',
       'caps|il1|Arthralgia': 'Mechanism-matched IL-1 biology and longitudinal response support this phenotype without assigning a quantitative causal effect.',
-      'ra_skin|granuloma|Rheumatoid nodules': 'Palisading granulomatous histopathology is curator-confirmed as the defining reaction pattern for rheumatoid nodules.'
+      'ra_skin|ifng|Rheumatoid nodules': 'Palisading granulomatous histopathology is the defining reaction pattern for rheumatoid nodules; this editorial mapping is not a reviewer attestation.'
   }
 
   function curatedDecisionFor(link, pathway) {
@@ -383,6 +401,10 @@
       if (!pathway) { rejected.push({ ...link, rejectionReason: 'Missing parent pathway row.' }); continue }
       link.condition = pathway.condition
       link.endotypeScope = pathway.endotypeScope || pathway.condition
+      // Scientific rejection reasons are evaluated before the generic scope check so the audit
+      // reason recorded for an endotype-crossing mapping is the specific one.
+      const rejection = rejectionReason(link, pathway)
+      if (rejection) { rejected.push({ ...link, rejectionReason: rejection, curationStatus: 'rejected' }); continue }
       const condition = COND[link.condition]
       if (!condition || !condition.manifestations.includes(link.manifestation)) {
         rejected.push({ ...link, rejectionReason: 'Manifestation is outside the declared condition/endotype scope.' })
@@ -392,8 +414,6 @@
       link.domain = domainForManifestation(link.manifestation)
       link.domainLabel = MANIFEST_BY_KEY[link.domain]?.label || MANIFEST_BY_KEY.other.label
       link.domainTags = unique(manifestDomains(link.manifestation))
-      const rejection = rejectionReason(link, pathway)
-      if (rejection) { rejected.push({ ...link, rejectionReason: rejection, curationStatus: 'rejected' }); continue }
 
       const sourceSpan = sourceSpanFor(link, pathway)
       const curatorDecision = curatedDecisionFor(link, pathway)
@@ -417,7 +437,6 @@
       if (curatorDecision) {
         link.relationship = 'Editorial hypothesis'
         link.relationOrigin = 'editorial-hypothesis'
-        link.relationMeaning = 'contributory'
         link.mappingConfidence = 'unassessed'
         link.curationStatus = 'unreviewed'
         link.sourceAssertion = pathway.manifestations
@@ -618,7 +637,6 @@
     for (const link of active) {
       if (!DEFAULT_ORIGINS.has(link.relationOrigin)) errors.push(`Non-reviewed default origin: ${link.id} ${link.relationOrigin}`)
       if (link.relationOrigin === 'source-explicit' && !link.sourceSpan) errors.push(`Source-explicit link lacks source span: ${link.id}`)
-      if (link.relationOrigin === 'curator-confirmed' && !link.curatorDecision) errors.push(`Curator-confirmed link lacks decision: ${link.id}`)
       if (link.curationStatus === 'reviewed' || link.clinicallyValidated === true) errors.push(`Synthesis match promoted to clinical review: ${link.id}`)
       if (link.supportingMedication) errors.push(`Treatment triangulation leaked into default links: ${link.id}`)
     }
@@ -682,6 +700,13 @@
     get rejectedLinks() { return DATA.rejectedManifestationLinks },
     get rejectedEffects() { return DATA.rejectedEffects || [] },
     get activeLinks() { return DATA.manifestationLinks },
+    get curatedDecisionKeys() { return Object.keys(CURATED_DECISIONS) },
+    get sourceLinkKeys() {
+      return unique((DATA.sourceManifestationLinks || []).map(link => {
+        const pathway = DATA.pathways[link.pathIndex]
+        return pathway ? `${pathway.condition}|${primaryPathwayKey(pathway)}|${link.manifestation}` : ''
+      }))
+    },
     validate: validateP0Contract,
     refreshUi: refreshP0Ui,
     setExploratoryMappings: async enabled => { const input = $('#networkExploratoryMappings'); if (input) input.checked = Boolean(enabled); await applyLayerState() },

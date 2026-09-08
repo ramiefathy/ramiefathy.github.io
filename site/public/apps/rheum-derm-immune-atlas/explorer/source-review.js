@@ -87,7 +87,16 @@
     });
   }
   controls.append(search, state, exportButton); section.append(title, boundary, denominator, controls, count, results);
-  const ledger = node('p'); ledger.append(node('a', 'Download the complete 659-edit clinical correction ledger (JSON)', { href: '/clinical-source-review/corrections.json', download: 'clinical-corrections.json' })); section.append(ledger);
+  const ledgerLink = node('a', 'Download the complete clinical correction ledger (JSON)', { href: stats.sourceFile, download: 'clinical-corrections.json' });
+  const ledger = node('p'); ledger.append(ledgerLink); section.append(ledger);
+  // The record count comes from the generated receipt, never from a literal that can go stale.
+  if (typeof fetch === 'function') {
+    fetch('/clinical-source-review/review-status.json').then(r => r.ok ? r.json() : null).then(receipt => {
+      if (Number.isInteger(receipt?.correction_records)) ledgerLink.textContent = `Download the complete ${receipt.correction_records}-record clinical correction ledger (JSON)`;
+    }).catch(() => {});
+  }
+  const boundaryCount = document.querySelector('[data-source-review-quarantined]');
+  if (boundaryCount) boundaryCount.textContent = `${stats.quarantinedEffectCount} of ${stats.originalEffectCount}`;
   search.addEventListener('input', render); state.addEventListener('change', render);
   exportButton.addEventListener('click', () => {
     const content = AtlasSourceReview.csv(selected.map(row => ({ ...row, publication_review_holds: (DATA.publicationReviewHolds || []).filter(h => h.refs.some(id => (row.refs || []).includes(id))), review_date: row.reviewedAt || stats.reviewedAt, clinically_validated: false })));
