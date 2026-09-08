@@ -1,8 +1,10 @@
 """Synthetic identity and short-excerpt failure injection; never external calls."""
 import copy
 import importlib.util
+import os
 from pathlib import Path
 import unittest
+from unittest import mock
 
 spec = importlib.util.spec_from_file_location('gate', Path(__file__).resolve().parents[1] / 'verify-vasculitis-source-excerpts.py')
 gate = importlib.util.module_from_spec(spec)
@@ -56,6 +58,37 @@ class SourceGateTest(unittest.TestCase):
 
     def test_retracted_publication_type_blocks_pass(self):
         self.assertFalse(gate.verify_response(packet(), xml(pubtype='Retracted Publication'))[0]['passed'])
+
+    def test_republication_update_and_partial_retraction_links_are_warnings(self):
+        expected = {'RetractedandRepublishedIn', 'RetractedandRepublishedFrom', 'CorrectedandRepublishedIn',
+                    'CorrectedandRepublishedFrom', 'UpdateIn', 'UpdateOf', 'PartialRetractionIn', 'PartialRetractionOf',
+                    'RetractionIn', 'RetractionOf', 'ExpressionOfConcernIn', 'ExpressionOfConcernFor', 'ErratumIn'}
+        self.assertEqual(gate.WARNINGS, expected)
+        for kind in sorted(expected):
+            with self.subTest(kind=kind):
+                row = gate.verify_response(packet(), xml(warning=f'<CommentsCorrections RefType="{kind}"/>'))[0]
+                self.assertFalse(row['passed']); self.assertEqual(row['publicationWarnings'], [kind])
+
+    def test_severe_publication_types_block_pass(self):
+        for pubtype in ('Corrected and Republished Article', 'Retracted Publication', 'Retraction of Publication', 'Expression of Concern'):
+            with self.subTest(pubtype=pubtype):
+                self.assertIn(pubtype.casefold(), gate.SEVERE_PUBLICATION_TYPES)
+                self.assertFalse(gate.verify_response(packet(), xml(pubtype=pubtype))[0]['passed'])
+        self.assertTrue(gate.verify_response(packet(), xml(pubtype='Published Erratum'))[0]['passed'])
+
+    def test_eutils_request_carries_optional_ncbi_identity(self):
+        with mock.patch.dict(os.environ, {'NCBI_EMAIL': '', 'NCBI_API_KEY': ''}, clear=False):
+            url = gate.efetch_url(['123', '456'])
+        self.assertTrue(url.startswith('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?'))
+        self.assertIn('id=123%2C456', url); self.assertNotIn('email=', url); self.assertNotIn('api_key=', url)
+        with mock.patch.dict(os.environ, {'NCBI_EMAIL': 'curator@example.org', 'NCBI_API_KEY': 'k-1'}, clear=False):
+            url = gate.efetch_url(['123'])
+        self.assertIn('email=curator%40example.org', url); self.assertIn('api_key=k-1', url)
+
+    def test_receipt_verification_reports_hold_rows_once_with_flags(self):
+        result = gate.verify_packet_response(packet(), xml())
+        self.assertEqual(sorted(result), ['checks', 'publicationHoldChecks'])
+        self.assertEqual(len(result['checks']), 1); self.assertEqual(result['publicationHoldChecks'], [])
 
     def test_non_warning_comment_does_not_erase_valid_evidence(self):
         self.assertTrue(gate.verify_response(packet(), xml(warning='<CommentsCorrections RefType="CommentIn"/>'))[0]['passed'])
@@ -156,6 +189,17 @@ class PublicationHoldSurveillanceTest(unittest.TestCase):
         self.assertEqual(len(checks), 1); self.assertTrue(checks[0]['passed'])
         self.assertFalse(checks[0]['clinicalValidation'])
         self.assertEqual(checks[0]['reviewStatus'], 'PUBLICATION_CORRECTION_REVIEW_PENDING')
+        result = gate.verify_packet_response(p, raw)
+        self.assertEqual(result['publicationHoldChecks'], checks)
+        self.assertEqual(sorted(result['publicationHoldChecks'][0]['checks']), ['correctionNoticesMatch', 'exactCorrectionSet', 'noNewSevereWarning', 'sourceIdentityMatches'])
+        self.assertEqual(sorted(result['publicationHoldChecks'][0]['notices'][0]['checks']), ['correctsExpectedPublication', 'identityMatches', 'isPublishedErratum', 'noNewPublicationWarning'])
+
+    def test_republication_of_a_held_parent_or_notice_requires_review(self):
+        for kind in ('CorrectedandRepublishedIn', 'RetractedandRepublishedIn', 'UpdateIn', 'PartialRetractionIn'):
+            warning = f'<CommentsCorrections RefType="{kind}"><PMID>999</PMID></CommentsCorrections>'
+            for target in ('parent_warning', 'notice_warning'):
+                with self.subTest(kind=kind, target=target), self.assertRaises(ValueError): gate.verify_packet_response(self.held_packet(), self.held_xml(**{target: warning}))
+        with self.assertRaises(ValueError): gate.verify_packet_response(self.held_packet(), self.held_xml(notice_type='Corrected and Republished Article'))
 
     def test_request_denominator_contains_every_held_source_and_notice(self):
         self.assertEqual(gate.request_pmids(self.held_packet()), ['123', '456', '789'])

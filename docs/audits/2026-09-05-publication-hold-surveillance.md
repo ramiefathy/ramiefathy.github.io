@@ -15,7 +15,17 @@ The connective-tissue request now contains 12 distinct PMIDs: seven accepted
 abstracts, two held publications and three notices. The gate verifies exact titles
 and DOIs, the complete recorded ErratumIn set, reciprocal ErratumFor links, notice
 publication type, and newly returned warning states. Missing, duplicate, extra,
-reassigned or warning-marked records fail. Receipt schema 3 counts accepted claims,
+reassigned or warning-marked records fail. Warning states cover every indexed
+correction link in either direction: retraction, expression of concern, erratum,
+retracted-and-republished, corrected-and-republished, update and partial
+retraction (`RetractionIn/Of`, `ExpressionOfConcernIn/For`, `ErratumIn`,
+`RetractedandRepublishedIn/From`, `CorrectedandRepublishedIn/From`,
+`UpdateIn/Of`, `PartialRetractionIn/Of`), and the publication types
+"Retracted Publication", "Retraction of Publication", "Expression of Concern"
+and "Corrected and Republished Article". Live retrieval sends the optional
+`NCBI_EMAIL` and `NCBI_API_KEY` environment values with the E-utilities request
+(the key is not written into the receipt); one hold-link pass produces the
+per-flag rows stored under `publicationHoldChecks`. Receipt schema 3 counts accepted claims,
 held publications and correction notices separately. Passing a link check does
 not adjudicate a held trial, validate notice paraphrases, or give clinical approval.
 The unchanged vasculitis packet retains its ten-publication denominator.
@@ -48,7 +58,7 @@ Primary locators:
 Nine new Python test methods exercise missing held records, exact request counts,
 wrong titles/DOIs, broken reciprocal links, new warnings, malformed metadata,
 unsupported review states, missing examined-notice locators and duplicate ids.
-The 31-test Python suite passes locally. The complete local unit suite passes
+The Python suite (36 test methods after the 2026-09-07 follow-up) passes locally. The complete local unit suite passes
 492 tests with no failures or pending cases. All 19 focused Chromium cases pass locally, including the three new desktop,
 mobile and filtered-export cases. The production build passes. Hosted exact-head
 receipts are recorded in the PR. Local browser testing used the same built preview

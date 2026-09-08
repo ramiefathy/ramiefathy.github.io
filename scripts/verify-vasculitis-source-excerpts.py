@@ -13,6 +13,7 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import time
@@ -25,7 +26,15 @@ SOURCE = ROOT / 'site/public/apps/rheum-derm-immune-atlas/explorer/vasculitis-ev
 PACKETS = {'vasculitis': SOURCE, 'connective-tissue': SOURCE.with_name('connective-tissue-evidence.js')}
 LIMIT = ('Publication identity and literal abstract excerpts only, not automated claim entailment. '
          'No human approval or graph promotion. Absence of a returned warning is not exhaustive retraction surveillance.')
-WARNINGS = {'RetractionIn', 'RetractionOf', 'ExpressionOfConcernIn', 'ExpressionOfConcernFor', 'ErratumIn'}
+# Any CommentsCorrections link of these types blocks an automatic pass: retraction, expression of
+# concern, erratum, retracted/corrected republication, update and partial retraction, in either direction.
+WARNINGS = {'RetractionIn', 'RetractionOf', 'ExpressionOfConcernIn', 'ExpressionOfConcernFor', 'ErratumIn',
+            'RetractedandRepublishedIn', 'RetractedandRepublishedFrom', 'CorrectedandRepublishedIn',
+            'CorrectedandRepublishedFrom', 'UpdateIn', 'UpdateOf', 'PartialRetractionIn', 'PartialRetractionOf'}
+# Publication types (casefolded) that mark a record itself as withdrawn, replaced or under concern.
+SEVERE_PUBLICATION_TYPES = {'retracted publication', 'retraction of publication', 'expression of concern',
+                            'corrected and republished article'}
+EUTILS = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?'
 
 
 def canonical(text: str) -> str:
@@ -105,10 +114,19 @@ def parse_packet(source: str) -> dict:
     return packet
 
 
+def verify_packet_response(packet: dict, raw: bytes) -> dict:
+    """One pass over a response: held-publication link checks first (fail closed), then excerpts."""
+    hold_checks = verify_hold_links(packet, raw)
+    return {'checks': verify_claim_excerpts(packet, raw), 'publicationHoldChecks': hold_checks}
+
+
 def verify_response(packet: dict, raw: bytes) -> list[dict]:
+    return verify_packet_response(packet, raw)['checks']
+
+
+def verify_claim_excerpts(packet: dict, raw: bytes) -> list[dict]:
     refs = validate_packet(packet)
     articles = response_articles(packet, raw)
-    verify_hold_links(packet, raw)
     checks = []
     for claim in packet['claims']:
         ref = refs[claim['refs'][0]]; article = articles[ref['pmid']]
@@ -122,7 +140,7 @@ def verify_response(packet: dict, raw: bytes) -> list[dict]:
             'titleMatches': bool(title) and canonical(title).rstrip('.').casefold() == canonical(ref['title']).rstrip('.').casefold(),
             'doiMatches': ref['doi'].casefold() in dois,
             'excerptMatches': bool(abstract) and canonical(claim['quote']) in canonical(abstract),
-            'noPublicationWarningReturned': not warnings and not {'retracted publication', 'retraction of publication', 'expression of concern'}.intersection(types),
+            'noPublicationWarningReturned': not warnings and not SEVERE_PUBLICATION_TYPES.intersection(types),
         }
         checks.append({'claimId': claim['id'], 'pmid': ref['pmid'], 'doi': ref['doi'], 'title': title,
                        'quote': claim['quote'], 'publicationWarnings': warnings, 'checks': flags,
@@ -199,7 +217,7 @@ def verify_hold_links(packet: dict, raw: bytes) -> list[dict]:
     def types(article):
         return {canonical(''.join(p.itertext())).casefold() for p in article.findall('./MedlineCitation/Article/PublicationTypeList/PublicationType')}
     checks = []
-    severe_types = {'retracted publication', 'retraction of publication', 'expression of concern'}
+    severe_types = SEVERE_PUBLICATION_TYPES
     for hold in packet.get('publicationHolds', []):
         parent = articles[hold['sourcePmid']]
         expected = hold['correctionPmids']; observed = links(parent, 'ErratumIn')
@@ -226,6 +244,17 @@ def verify_hold_links(packet: dict, raw: bytes) -> list[dict]:
     return checks
 
 
+def efetch_url(pmids: list[str]) -> str:
+    """Batched EFetch URL. NCBI_EMAIL / NCBI_API_KEY identify the caller when set; both are optional."""
+    params = {'db': 'pubmed', 'id': ','.join(pmids), 'retmode': 'xml', 'tool': 'AtlasSourceReview'}
+    email, api_key = os.environ.get('NCBI_EMAIL', '').strip(), os.environ.get('NCBI_API_KEY', '').strip()
+    if email:
+        params['email'] = email
+    if api_key:
+        params['api_key'] = api_key
+    return EUTILS + urllib.parse.urlencode(params)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', type=Path, required=True)
@@ -247,9 +276,9 @@ def main() -> int:
         if args.input_xml:
             raw = args.input_xml.read_bytes()
         else:
-            url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?' + urllib.parse.urlencode({
-                'db': 'pubmed', 'id': ','.join(receipt['requestedPmids']), 'retmode': 'xml', 'tool': 'AtlasSourceReview'})
-            receipt['requestUrl'] = url
+            url = efetch_url(receipt['requestedPmids'])
+            # The receipt records the request without the caller's key.
+            receipt['requestUrl'] = re.sub(r'&api_key=[^&]*', '', url)
             request = urllib.request.Request(url, headers={'User-Agent': 'AtlasSourceReview/1.1'})
             for attempt in range(3):
                 try:
@@ -261,8 +290,9 @@ def main() -> int:
                     if attempt == 2: raise
                     time.sleep(2 ** attempt)
         receipt['responseSha256'] = hashlib.sha256(raw).hexdigest()
-        receipt['checks'] = verify_response(packet, raw)
-        receipt['publicationHoldChecks'] = verify_hold_links(packet, raw)
+        verified = verify_packet_response(packet, raw)
+        receipt['checks'] = verified['checks']
+        receipt['publicationHoldChecks'] = verified['publicationHoldChecks']
         receipt['passed'] = len(receipt['checks']) == receipt['expectedClaims'] and len(receipt['publicationHoldChecks']) == receipt['expectedHeldPublications'] and all(row['passed'] for row in [*receipt['checks'], *receipt['publicationHoldChecks']])
     except Exception as error:
         receipt.update(passed=False, error=f'{type(error).__name__}: {error}')
