@@ -14,7 +14,7 @@ import jwt
 import config 
 from urllib.parse import urlparse, parse_qs
 from session_manager import SessionManager
-from gemini_service import GeminiService
+from gemini_service import GeminiService, resolve_model_override
 from prompts import (
     INITIAL_GENERATION_PROMPT_TEMPLATE,
     NOTE_REFINEMENT_PROMPT_TEMPLATE,
@@ -70,6 +70,8 @@ class RateLimiter:
 session_manager = SessionManager()
 gemini_service = None
 rate_limiter = RateLimiter(max_requests=60, window_seconds=60)  # 60 messages/minute per client
+# Message types that perform no provider work and must always receive their acknowledgment.
+RATE_LIMIT_EXEMPT_TYPES = frozenset({"start_new_session"})
 RATE_LIMIT_ALERT_THRESHOLD = int(os.getenv("RATE_LIMIT_ALERT_THRESHOLD", "20"))
 JWT_TTL_MINUTES = 15
 LEGACY_SUBJECT = "legacy-client"
@@ -278,15 +280,8 @@ async def handler(websocket):
         async for message_str in websocket:
             message_start = time.perf_counter()
             message_type = "unknown"
-            allowed, retry_after = rate_limiter.allow(client_key)
-            if not allowed:
-                await websocket.send(json.dumps({
-                    "type": "error",
-                    "message": "Rate limit exceeded. Please slow down and retry.",
-                    "retryAfter": retry_after
-                }))
-                log_event("rate_limited", client=client_key, session_id=session_id, retry_after=retry_after)
-                continue
+            message = None
+            data = None
             try:
                 message = json.loads(message_str)
                 if not isinstance(message, dict) or not isinstance(message.get("type"), str):
@@ -295,6 +290,21 @@ async def handler(websocket):
                 if not isinstance(data, dict):
                     raise ValueError()
             except (ValueError, TypeError):
+                message = None
+            # The client fences all clinical output until its reset is acknowledged, so the
+            # cheap, local session reset must always be answered rather than rate-limited.
+            rate_limit_exempt = message is not None and message["type"] in RATE_LIMIT_EXEMPT_TYPES
+            if not rate_limit_exempt:
+                allowed, retry_after = rate_limiter.allow(client_key)
+                if not allowed:
+                    await websocket.send(json.dumps({
+                        "type": "error",
+                        "message": "Rate limit exceeded. Please slow down and retry.",
+                        "retryAfter": retry_after
+                    }))
+                    log_event("rate_limited", client=client_key, session_id=session_id, retry_after=retry_after)
+                    continue
+            if message is None:
                 await websocket.send(json.dumps({"type": "error", "message": "Invalid message format."}))
                 continue
             message_type = message["type"]
@@ -367,7 +377,7 @@ async def handler(websocket):
 
                 prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
                 try:
-                    response_text = await service.call_gemini_api(prompt, model_name=data.get("modelName", config.GEMINI_DEFAULT_MODEL))
+                    response_text = await service.call_gemini_api(prompt, model_name=resolve_model_override(data.get("modelName")))
                     note_text, analysis_text = service.parse_initial_generation(response_text)
                     session.update_draft_note(note_text)
                     session.update_ai_analysis(analysis_text)
@@ -387,7 +397,7 @@ async def handler(websocket):
                 # - chat: streams a conversational response (server updates discussion history)
                 logger.info(f"Streaming generation for session {current_session_id_to_use}")
                 stream_type = data.get("streamType", "note")
-                model_name_pref = data.get("modelName", config.GEMINI_DEFAULT_MODEL)
+                model_name_pref = resolve_model_override(data.get("modelName"))
 
                 transcript_override = data.get("transcript")
                 if isinstance(transcript_override, str) and transcript_override.strip():
@@ -456,7 +466,7 @@ async def handler(websocket):
             elif message_type == "analyze_image":
                 image_base64 = data.get("imageBase64")
                 image_mime_type = data.get("imageMimeType")
-                model_name = data.get("modelName", config.GEMINI_VISION_MODEL) 
+                model_name = resolve_model_override(data.get("modelName"), config.GEMINI_VISION_MODEL)
                 
                 if not image_base64 or not image_mime_type:
                     await websocket.send(json.dumps({"type": "error", "message": "Image data missing for analysis."}))
@@ -490,7 +500,7 @@ async def handler(websocket):
 
                     prompt = INITIAL_GENERATION_PROMPT_TEMPLATE(session.full_transcript)
                     try:
-                        response_text = await service.call_gemini_api(prompt, model_name=data.get("modelName", config.GEMINI_DEFAULT_MODEL))
+                        response_text = await service.call_gemini_api(prompt, model_name=resolve_model_override(data.get("modelName")))
                         note_text, analysis_text = service.parse_initial_generation(response_text)
                         session.update_draft_note(note_text)
                         session.update_ai_analysis(analysis_text)
@@ -506,7 +516,7 @@ async def handler(websocket):
 
             elif message_type == "discussion_input":
                 physician_input = data.get("text", "")
-                model_name_pref = data.get("modelName", config.GEMINI_DEFAULT_MODEL)
+                model_name_pref = resolve_model_override(data.get("modelName"))
                 transcript_override = data.get("transcript")
                 intent = data.get("intent")
 
@@ -687,7 +697,7 @@ async def trigger_realtime_suggestions(websocket, session_id, client_model_pref=
     
     prompt = REALTIME_SUGGESTION_PROMPT_TEMPLATE(transcript_segment, list(session.shown_suggestion_texts))
     try:
-        suggestion_model = client_model_pref if client_model_pref else config.GEMINI_SUGGESTION_MODEL
+        suggestion_model = resolve_model_override(client_model_pref, config.GEMINI_SUGGESTION_MODEL)
         suggestions_text = await service.call_gemini_api(prompt, model_name=suggestion_model)
         if session_manager.get_session(session_id) is not session or session.generation != generation:
             return

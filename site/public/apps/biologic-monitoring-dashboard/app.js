@@ -1,4 +1,4 @@
-import { CLINICAL_SCOPE, CHECKLIST_SCOPE, escapeHtml, highlightSafe, clinicalExport, reviewSummary, csvCell } from './safety.js';
+import { CLINICAL_SCOPE, CHECKLIST_SCOPE, escapeHtml, highlightSafe, clinicalExport, referenceLink, reviewSummary, csvCell } from './safety.js';
 import {
   monitoringEntries,
   CONDITION_LABELS,
@@ -35,6 +35,8 @@ const riskBadgeConfig = {
   'age-65-plus': { icon: '65+', className: 'cl-badge-caution' },
   pediatric: { icon: 'Peds', className: 'cl-badge-caution' },
   infection: { icon: 'Inf', className: 'cl-badge-danger' },
+  thrombosis: { icon: 'Clot', className: 'cl-badge-danger' },
+  renal: { icon: 'Renal', className: 'cl-badge-danger' },
   psychiatric: { icon: 'Mood', className: 'cl-badge-caution' },
   'pregnancy-monitoring': { icon: 'Preg', className: 'cl-badge-caution' },
   ophthalmologic: { icon: 'Eye', className: 'cl-badge-caution' }
@@ -53,6 +55,10 @@ const riskBadgeDescriptions = {
     'Pediatric-specific considerations – dosing, safety, or monitoring differs in children and adolescents.',
   infection:
     'Elevated serious infection risk – ensure screening, vaccination, and patient counseling on early symptom reporting.',
+  thrombosis:
+    'Thrombosis risk – assess thrombotic risk factors, hydration and infusion rate per the product label before each course.',
+  renal:
+    'Renal dysfunction / acute renal failure risk – check renal function, ensure hydration and use the minimum practicable infusion rate.',
   psychiatric:
     'Mood or suicidality precaution – review the specific agent warning and assess new or worsening psychiatric symptoms.',
   'pregnancy-monitoring':
@@ -343,7 +349,8 @@ function buildRiskIndicators(entry) {
     .map((flag) => {
       const config = riskBadgeConfig[flag] || { icon: 'Alert', className: 'cl-badge-info' };
       const label = RISK_BADGE_LABELS[flag] || toTitleCase(flag);
-      const description = riskBadgeDescriptions[flag] || 'Review prescribing information for additional safety guidance.';
+      // A record may narrow a class-level badge to the agent it actually applies to.
+      const description = entry.warningFlagNotes?.[flag] || riskBadgeDescriptions[flag] || 'Review prescribing information for additional safety guidance.';
       return `<span class="risk-badge ${config.className}" tabindex="0" data-tooltip="${escapeAttribute(
         description
       )}" aria-label="${escapeAttribute(`${label}. ${description}`)}">${config.icon} <span class="risk-badge__text">${label}</span></span>`;
@@ -402,9 +409,7 @@ function buildHoldCriteria(entry, query) {
 
 function buildReferences(entry) {
   if (!entry.references || !entry.references.length) return '';
-  return `<div class="references-row" role="list">${entry.references
-    .map((ref) => `<a class="reference-chip" role="listitem" href="${ref.url}" target="_blank" rel="noopener noreferrer">${ref.label}</a>`)
-    .join('')}</div>`;
+  return `<div class="references-row" role="list">${entry.references.map(referenceLink).join('')}</div>`;
 }
 
 function buildTimeline() {

@@ -15,6 +15,25 @@ test.describe('Clinical reference safety regressions', () => {
     await info.attach('monitoring-desktop', { body: await page.screenshot({ fullPage: false }), contentType: 'image/png' });
     runtime.assertClean();
   });
+  test('IL-17 class card scopes its boxed-warning and REMS badges to brodalumab', async ({ page }) => {
+    await page.goto(route, { waitUntil: 'networkidle' });
+    await page.fill('#search-input', 'IL-17');
+    const card = page.locator(cards, { hasText: 'IL-17 inhibitors' });
+    await expect(card).toHaveCount(1);
+    const boxed = card.locator('.risk-badge', { hasText: 'Boxed warning' });
+    await expect(boxed).toHaveAttribute('data-tooltip', /Brodalumab only/);
+    await expect(boxed).toHaveAttribute('aria-label', /Boxed warning\. Brodalumab only/);
+    await expect(card.locator('.risk-badge', { hasText: 'REMS program' })).toHaveAttribute('data-tooltip', /Brodalumab only/);
+  });
+  test('reference chips escape labels and only link https sources', async ({ page }) => {
+    await page.goto(route, { waitUntil: 'networkidle' });
+    await page.fill('#search-input', 'cyclosporine');
+    await page.locator(cards).first().locator('[data-action=toggle-details]').click();
+    const chips = page.locator(cards).first().locator('a.reference-chip');
+    await expect(chips.first()).toBeVisible();
+    for (const href of await chips.evaluateAll((links) => links.map((link) => link.getAttribute('href')))) expect(href).toMatch(/^https:\/\//);
+    await expect(chips.filter({ hasText: 'AAD–NPF 2020 guideline' })).toHaveAttribute('href', 'https://doi.org/10.1016/j.jaad.2020.02.044');
+  });
   test('legacy and new checklist marks cannot silently carry across page reloads', async ({ page }) => {
     await page.goto(route, { waitUntil: 'networkidle' });
     await page.evaluate(() => {

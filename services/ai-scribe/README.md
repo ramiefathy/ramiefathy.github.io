@@ -33,6 +33,7 @@ By default the server listens on `ws://0.0.0.0:8765`.
 | `GEMINI_DEFAULT_MODEL` | Required: explicitly selected and validated model ID              |
 | `GEMINI_VISION_MODEL`  | Image-capable model; blank inherits the default                  |
 | `GEMINI_SUGGESTION_MODEL` | Suggestion model; blank inherits the default           |
+| `GEMINI_ALLOWED_MODELS` | Comma-separated model IDs a client may request via `modelName`; the default model is always allowed and is the whole allowlist when blank |
 | `SESSION_SECRET`       | Shared secret required for websocket authentication       |
 | `JWT_SIGNING_SECRET`   | Secret used to sign/verify JWTs (HS256)                   |
 | `ALLOWED_ORIGINS`      | Comma-separated list of allowed `Origin` headers          |
@@ -46,6 +47,8 @@ By default the server listens on `ws://0.0.0.0:8765`.
 
 ## Model and SDK lifecycle
 
-The provider adapter uses the maintained `google-genai` SDK, pinned to 2.22.0, rather than the deprecated `google-generativeai` package. The old Gemini 2.0 experimental default has been removed. `GEMINI_DEFAULT_MODEL` must be set to a currently available model that has been evaluated for the intended workflow and authorized account; the service deliberately does not choose a newer model silently. Blank vision/suggestion overrides inherit that explicit selection. Known-retired Gemini 2.0 model names are rejected before any provider request.
+The provider adapter uses the maintained `google-genai` SDK, pinned to 2.22.0, rather than the deprecated `google-generativeai` package. The old Gemini 2.0 experimental default has been removed. `GEMINI_DEFAULT_MODEL` must be set to a currently available model that has been evaluated for the intended workflow and authorized account; the service deliberately does not choose a newer model silently. Blank vision/suggestion overrides inherit that explicit selection. Known-retired Gemini 2.0 model names are rejected before any provider request. A blank `GEMINI_DEFAULT_MODEL` is a startup error, not a warning.
+
+Clients may send a `modelName` with generation requests, but the server only honors it when the value is listed in `GEMINI_ALLOWED_MODELS` (which always includes `GEMINI_DEFAULT_MODEL`). Any other value, including malformed or non-string values, is replaced by the server-configured model for that operation, and the rejection is logged by class (`not_allowlisted`, `non_string`) without echoing the submitted string.
 
 Check [Google's model lifecycle](https://ai.google.dev/gemini-api/docs/deprecations), [SDK support](https://ai.google.dev/gemini-api/docs/libraries), and [SDK request/stream documentation](https://googleapis.github.io/python-genai/) when deploying. A passing mocked-provider suite establishes failure-handling and transport contracts, not clinical quality, account availability, or permission to transmit patient information. Before production use, validate text generation, streaming cancellation, image input, and authentication against the chosen deployment using synthetic encounters only.

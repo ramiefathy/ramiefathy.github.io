@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 const script = readFileSync(new URL('../../public/apps/shared/legacy-shell.js', import.meta.url), 'utf8');
 const openWindows: JSDOM[] = [];
@@ -38,5 +40,17 @@ describe('shared shell truthful state and keyboard behavior', () => {
     help.click(); close.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(d.activeElement).toBe(help);
     expect(d.querySelector('#legacy-shell-help')?.getAttribute('aria-hidden')).toBe('true');
+  });
+});
+
+describe('legacy app help text matches the shell it describes', () => {
+  const root = fileURLToPath(new URL('../../public/apps/', import.meta.url));
+  const htmlFiles = (dir: string): string[] => readdirSync(dir).flatMap((name) => {
+    const path = join(dir, name);
+    return statSync(path).isDirectory() ? htmlFiles(path) : name.endsWith('.html') ? [path] : [];
+  });
+  it('never promises a Theme control or a Reset that clears local state', () => {
+    const offenders = htmlFiles(root).filter((path) => /Reset to clear|Use Theme/.test(readFileSync(path, 'utf8')));
+    expect(offenders.map((path) => path.slice(root.length))).toEqual([]);
   });
 });

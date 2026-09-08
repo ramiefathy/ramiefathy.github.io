@@ -58,7 +58,8 @@ export const REQUIREMENT_LABELS = {
 export const MONITORING_FREQUENCY_LABELS = {
   minimal: 'Minimal (clinical surveillance)',
   moderate: 'Moderate (periodic labs)',
-  frequent: 'Frequent (intensive labs)'
+  frequent: 'Frequent (intensive labs)',
+  individualized: 'Individualized (agent- and risk-based)'
 };
 
 export const RISK_BADGE_LABELS = {
@@ -70,7 +71,9 @@ export const RISK_BADGE_LABELS = {
   'rems': 'REMS program',
   'age-65-plus': '≥65 age concern',
   'pediatric': 'Pediatric use',
-  'infection': 'Serious infection risk'
+  'infection': 'Serious infection risk',
+  'thrombosis': 'Thrombosis risk',
+  'renal': 'Renal failure risk'
 };
 
 function task(id, label, critical = false, notes = '') {
@@ -101,7 +104,7 @@ export const monitoringEntries = [
       "behcets-disease",
       "uveitis-associated"
     ],
-    "monitoringFrequency": "frequent",
+    "monitoringFrequency": "individualized",
     "riskLevel": "high",
     "warningFlags": [
       "boxed-warning",
@@ -218,8 +221,8 @@ export const monitoringEntries = [
       }
     ],
     "safetyReview": {
-      "date": "2026-09-04",
-      "scope": "HBV triple panel, correct historical reference date, agent-specific heart-failure precautions and removal of unsupported class-wide numeric rules",
+      "date": "2026-09-07",
+      "scope": "2026-09-04: HBV triple panel, correct historical reference date, agent-specific heart-failure precautions and removal of unsupported class-wide numeric rules; 2026-09-07: monitoring-frequency category changed from 'frequent' to 'individualized' to match the corrected text",
       "status": "Targeted source check; not a complete monograph validation"
     }
   },
@@ -247,6 +250,10 @@ export const monitoringEntries = [
       "boxed-warning",
       "rems"
     ],
+    "warningFlagNotes": {
+      "boxed-warning": "Brodalumab only: boxed warning for suicidal ideation and behavior (SILIQ). Secukinumab, ixekizumab and bimekizumab carry no boxed warning.",
+      "rems": "Brodalumab only: SILIQ REMS enrollment is required. No REMS applies to secukinumab, ixekizumab or bimekizumab."
+    },
     "tags": [
       "tb-screening",
       "vaccination-review",
@@ -346,8 +353,8 @@ export const monitoringEntries = [
       }
     ],
     "safetyReview": {
-      "date": "2026-09-04",
-      "scope": "IBD treatment-filter exclusion, brodalumab contraindication/boxed warning, and bimekizumab liver and mood precautions",
+      "date": "2026-09-07",
+      "scope": "2026-09-04: IBD treatment-filter exclusion, brodalumab contraindication/boxed warning, and bimekizumab liver and mood precautions; 2026-09-07: boxed-warning and REMS badges annotated as brodalumab-only",
       "status": "Targeted source check; not a complete monograph validation"
     }
   },
@@ -472,40 +479,43 @@ export const monitoringEntries = [
     name: 'IL-12/23 inhibitor: Ustekinumab',
     category: 'Biologics',
     agents: ['Ustekinumab'],
-    summary: 'Ustekinumab requires baseline CBC/CMP and periodic labs q3–6 months to detect rare cytopenia or hepatotoxicity, plus TB and hepatitis screening.',
+    summary: 'Ustekinumab requires tuberculosis evaluation before initiation and clinical monitoring for infection and hypersensitivity. The US label specifies no routine laboratory monitoring schedule; any laboratory testing is a clinical or guideline-based decision, not a label requirement.',
     conditions: ['plaque-psoriasis', 'psoriatic-arthritis', 'crohns-disease', 'ulcerative-colitis'],
-    monitoringFrequency: 'moderate',
+    monitoringFrequency: 'minimal',
     riskLevel: 'moderate',
     warningFlags: ['infection'],
-    tags: ['tb-screening', 'hepatitis-screening', 'cbc-lft', 'dermatologic'],
-    baseline: 'Obtain CBC, comprehensive metabolic panel (including bilirubin), hepatitis B/C serologies, and TB screening prior to initiation; review cancer history and update vaccines.',
-    monitoring: 'Repeat CBC and CMP every 3–6 months; perform annual TB and hepatitis screening in high-risk patients and arrange yearly skin exams for non-melanoma skin cancer risk.',
-    cautions: 'Monitor for infection and malignancy; avoid live vaccines during therapy.',
+    tags: ['tb-screening', 'hepatitis-screening', 'vaccination-review', 'infection-counseling'],
+    baseline: 'Evaluate for tuberculosis before initiation and do not start during active TB; consider anti-TB therapy for latent TB before starting. Review vaccination status (complete age-appropriate immunizations; avoid live vaccines during therapy). Hepatitis B/C screening before biologic therapy is a guideline-level consideration rather than a Stelara label requirement; baseline laboratory tests are otherwise at clinical discretion.',
+    monitoring: 'Monitor clinically for infection (including TB reactivation) and for hypersensitivity reactions (anaphylaxis, angioedema). Be alert to the label warnings for reversible posterior leukoencephalopathy syndrome (RPLS) and noninfectious pneumonia (interstitial pneumonia, eosinophilic pneumonia, cryptogenic organizing pneumonia). No routine laboratory monitoring schedule is specified in the US label; individualize any laboratory follow-up to comorbidity and concomitant therapy.',
+    cautions: 'Serious infections, TB reactivation, malignancy surveillance, hypersensitivity, RPLS and noninfectious pneumonia are label warnings; avoid live vaccines during therapy and do not give BCG vaccine within one year before, during, or one year after treatment.',
     baselineTasks: [
-      task('cbc', 'CBC with differential', true),
-      task('cmp', 'Comprehensive metabolic panel with bilirubin', true),
-      task('hbv', 'Hepatitis B serologies', true),
-      task('hcv', 'Hepatitis C antibody', true),
-      task('tb', 'TB screening', true),
-      task('vaccines', 'Update vaccinations; avoid live vaccines after starting', true)
+      task('tb', 'Tuberculosis evaluation before initiation (do not start during active TB; treat latent TB first)', true),
+      task('vaccines', 'Vaccination review; avoid live vaccines during therapy', true),
+      task('hepatitis', 'Hepatitis B/C screening (guideline-level consideration, not a label requirement)', false),
+      task('hypersensitivity', 'Document prior hypersensitivity to ustekinumab or its components', true)
     ],
     monitoringSchedule: [
-      schedule('baseline', 'Baseline', 'CBC/CMP, hepatitis panel, TB screen', 'critical', 0),
-      schedule('q3months', 'Every 3–6 months', 'CBC and CMP; assess infection and malignancy risk', 'high', 24),
-      schedule('annual', 'Annually (risk-based)', 'Repeat TB/hepatitis screening if high risk; dermatologic skin exam', 'standard', 52)
+      schedule('baseline', 'Before treatment', 'Tuberculosis evaluation, vaccination review and hypersensitivity history', 'critical', 0),
+      schedule('clinical', 'Each visit; frequency individualized', 'Assess for infection, hypersensitivity, neurologic symptoms suggesting RPLS and new respiratory symptoms suggesting noninfectious pneumonia', 'high', null),
+      schedule('labs', 'Only if clinically indicated', 'No routine laboratory schedule is specified in the US label; test according to comorbidity, concomitant therapy and local protocol', 'standard', null)
     ],
     holdCriteria: [
-      'Persistent leukopenia or thrombocytopenia',
-      'ALT/AST >3 × ULN or bilirubin elevation',
-      'Serious infection'
+      'Clinically important active infection: do not initiate; interrupt therapy until the infection resolves, per label.',
+      'Suspected RPLS or a clinically significant hypersensitivity reaction: discontinue and institute appropriate treatment.',
+      'New respiratory symptoms suggesting noninfectious pneumonia: evaluate and discontinue if confirmed.'
     ],
-    contraindications: 'Clinically significant active infection.',
-    interactions: 'Avoid live vaccines.',
+    contraindications: 'Clinically significant hypersensitivity to ustekinumab or any excipient. Do not initiate during active tuberculosis or another clinically important active infection.',
+    interactions: 'Avoid live vaccines (including BCG within one year before, during, or one year after treatment). Ustekinumab may affect CYP450-metabolized drugs indirectly through cytokine normalization; monitor narrow-therapeutic-index drugs.',
     dosing: 'Weight-based SC dosing for psoriasis; IV induction for Crohn’s/UC followed by SC maintenance.',
     references: [
       { label: 'Stelara (ustekinumab) Prescribing Information', url: 'https://www.janssenlabels.com/package-insert/product-monograph/prescribing-information/STELARA-pi.pdf' },
       { label: 'AAD Psoriasis Guidelines', url: 'https://www.aad.org/member/clinical-quality/guidelines/psoriasis' }
-    ]
+    ],
+    safetyReview: {
+      date: '2026-09-07',
+      scope: 'removal of invented laboratory-schedule, annual-screening and liver-enzyme hold rules; label-consistent TB, hypersensitivity, RPLS and noninfectious pneumonia guidance',
+      status: 'Targeted source check; not a complete monograph validation'
+    }
   },
   {
     id: 'il4-13-blockers',
@@ -513,7 +523,7 @@ export const monitoringEntries = [
     category: 'Biologics',
     agents: ['Dupilumab', 'Tralokinumab', 'Lebrikizumab'],
     summary: 'Dupilumab family biologics require no routine labs but now include 2024–2025 indications for CSU, bullous pemphigoid, and pediatric atopic dermatitis.',
-    conditions: ['atopic-dermatitis', 'chronic-spontaneous-urticaria', 'bullous-pemphigoid', 'chronic-obstructive-pulmonary-disease'],
+    conditions: ['atopic-dermatitis', 'prurigo-nodularis', 'chronic-spontaneous-urticaria', 'bullous-pemphigoid', 'chronic-obstructive-pulmonary-disease'],
     monitoringFrequency: 'minimal',
     riskLevel: 'low',
     warningFlags: ['pediatric'],
@@ -542,8 +552,13 @@ export const monitoringEntries = [
       { label: 'Dupixent (dupilumab) Prescribing Information', url: 'https://www.regeneron.com/downloads/dupixent_fpi.pdf' },
       { label: 'Adbry (tralokinumab-ldrm) Prescribing Information', url: 'https://www.adbryhcp.com/sites/default/files/2023-10/adbry-uspi.pdf' },
       { label: 'Ebglyss (lebrikizumab-lylb) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/761325s000lbl.pdf' },
-      { label: 'AAD 2024 Atopic Dermatitis Guidelines', url: 'https://www.ajmc.com/view/monoclonal-antibodies-and-jak-inhibitors-in-atopic-dermatitis-management-2024-guidelines-and-managed-care-considerations' }
-    ]
+      { label: 'AAD 2024 guideline: management of atopic dermatitis in adults with systemic therapies (Davis et al., JAAD 2024)', url: 'https://doi.org/10.1016/j.jaad.2023.08.102' }
+    ],
+    safetyReview: {
+      date: '2026-09-07',
+      scope: 'AAD 2024 atopic dermatitis guideline citation corrected to the JAAD publication; prurigo nodularis (dupilumab, FDA-approved 2022) added to conditions',
+      status: 'Targeted source check; not a complete monograph validation'
+    }
   },
   {
     id: 'il31-antagonist',
@@ -824,14 +839,14 @@ export const monitoringEntries = [
     category: 'Targeted',
     agents: ['Baricitinib'],
     summary: 'Baricitinib shares boxed warnings with class, requires baseline labs, thresholds for initiation, and 12-week lipid checks.',
-    conditions: ['alopecia-areata', 'atopic-dermatitis', 'rheumatoid-arthritis'],
+    conditions: ['alopecia-areata', 'rheumatoid-arthritis'],
     monitoringFrequency: 'frequent',
     riskLevel: 'high',
     warningFlags: ['boxed-warning', 'age-65-plus', 'infection'],
     tags: ['cbc-lft', 'lipid-panel', 'tb-screening', 'hepatitis-screening', 'smoking-assessment'],
     baseline: 'CBC with differential, liver enzymes, fasting lipids, TB and hepatitis B/C screening; avoid initiation if ANC <1000/mm³, ALC <500/mm³, or hemoglobin <8 g/dL.',
     monitoring: 'Repeat CBC/LFTs at 8–12 weeks and quarterly thereafter; lipid panel at 12 weeks; monitor for thrombosis, MACE, and malignancy, with intensified surveillance ≥65 years.',
-    cautions: 'Boxed warnings for infection, MACE, malignancy, thrombosis; risk increases in older adults and smokers.',
+    cautions: 'Boxed warnings for infection, MACE, malignancy, thrombosis; risk increases in older adults and smokers. Indication note: atopic dermatitis is not FDA-approved for baricitinib (it is approved for this use in the EU and Japan); US-labeled indications are rheumatoid arthritis, alopecia areata and COVID-19 in hospitalized adults. Atopic dermatitis use in the US is off-label.',
     baselineTasks: [
       task('cbc', 'CBC with differential (ANC ≥1000, ALC ≥500, Hb ≥8 g/dL required)', true),
       task('lfts', 'AST/ALT and bilirubin', true),
@@ -853,7 +868,12 @@ export const monitoringEntries = [
     dosing: '2 mg PO daily for alopecia areata; reduce or avoid higher doses in adults ≥65 years with risk factors.',
     references: [
       { label: 'Olumiant (baricitinib) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2022/207924s006lbl.pdf' }
-    ]
+    ],
+    safetyReview: {
+      date: '2026-09-07',
+      scope: 'atopic dermatitis removed from listed indications and annotated as not FDA-approved (EU/Japan approval only)',
+      status: 'Targeted source check; not a complete monograph validation'
+    }
   },
   {
     id: 'ritlecitinib',
@@ -1025,17 +1045,23 @@ export const monitoringEntries = [
       schedule('maintenance', 'Every 2–3 months', 'CBC, LFTs, creatinine/albumin; assess alcohol intake and liver risk', 'high', 12)
     ],
     holdCriteria: [
+      'Dosing-frequency error: methotrexate for psoriasis and other dermatologic indications is taken ONCE WEEKLY; daily dosing has caused fatal toxicity. Confirm dosing frequency at every prescription, dispensing and follow-up, and counsel the patient.',
       'AST or ALT >2 × normal for ≥1 month',
       'WBC <3.0 × 10^3/µL or platelets <100 × 10^3/µL',
       'Creatinine clearance <50 mL/min'
     ],
     contraindications: 'Pregnancy, chronic liver disease, significant renal impairment, alcoholism.',
     interactions: 'Avoid concomitant trimethoprim-sulfamethoxazole, NSAIDs at high doses, and other hepatotoxic drugs.',
-    dosing: 'Weekly dosing with folate supplementation; consider subcutaneous route for GI intolerance.',
+    dosing: 'ONCE WEEKLY dosing; daily dosing has caused fatal toxicity — confirm dosing frequency at every prescription and counsel the patient (the label boxed warning covers inadvertent daily use). Give folate supplementation; consider the subcutaneous route for GI intolerance.',
     references: [
       { label: 'Trexall (methotrexate) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/020004s031lbl.pdf' },
       { label: 'SPS Methotrexate Monitoring', url: 'https://www.sps.nhs.uk/monitorings/methotrexate-monitoring/' }
-    ]
+    ],
+    safetyReview: {
+      date: '2026-09-07',
+      scope: 'explicit once-weekly dosing statement and fatal daily-dosing error warning added to dosing and hold text',
+      status: 'Targeted source check; not a complete monograph validation'
+    }
   },
   {
     id: 'cyclosporine',
@@ -1066,29 +1092,39 @@ export const monitoringEntries = [
       schedule('month1', 'Month 1', 'Fasting lipids', 'high', 4),
       schedule('maintenance', 'Every 1–3 months', 'Blood pressure, creatinine/eGFR, albumin, AST/ALT, CBC, glucose, magnesium/potassium', 'high', 12)
     ],
-    holdCriteria: ['Creatinine increase >30% from baseline', 'Uncontrolled hypertension (>160/90 mmHg)', 'Serious infection'],
+    holdCriteria: [
+      'Creatinine increase >30% from baseline',
+      'Hypertension: blood pressure above 140/90 mmHg on two occasions warrants a 25–50% dose reduction or antihypertensive therapy (AAD 2020 psoriasis guideline); discontinue if hypertension remains uncontrolled.',
+      'Serious infection'
+    ],
     contraindications: 'Uncontrolled hypertension, renal impairment, malignancy, concomitant nephrotoxic drugs.',
     interactions: 'CYP3A4 interactions (avoid grapefruit, certain antifungals); note nephrotoxic synergy with NSAIDs.',
-    dosing: '2.5–5 mg/kg/day divided BID with taper to avoid rebound.',
+    dosing: '2.5–5 mg/kg/day divided BID with taper to avoid rebound. The US label limits continuous cyclosporine treatment for psoriasis to 1 year; longer courses require explicit reassessment and are outside the labeled regimen.',
     references: [
       { label: 'Neoral (cyclosporine) Prescribing Information', url: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/050715s073lbl.pdf' },
-      { label: 'SPS Ciclosporin Monitoring', url: 'https://www.sps.nhs.uk/monitorings/ciclosporin-monitoring/' }
-    ]
+      { label: 'SPS Ciclosporin Monitoring', url: 'https://www.sps.nhs.uk/monitorings/ciclosporin-monitoring/' },
+      { label: 'AAD–NPF 2020 guideline: systemic nonbiologic therapies for psoriasis (Menter et al., JAAD 2020)', url: 'https://doi.org/10.1016/j.jaad.2020.02.044' }
+    ],
+    safetyReview: {
+      date: '2026-09-07',
+      scope: 'unsourced blood-pressure hold threshold replaced with AAD 2020 framing; US label 1-year continuous-use limit for psoriasis added',
+      status: 'Targeted source check; not a complete monograph validation'
+    }
   },
   {
     id: 'mycophenolate',
     name: 'Mycophenolate mofetil',
     category: 'Conventional',
     agents: ['Mycophenolate mofetil'],
-    summary: 'Teratogenic antimetabolite requiring dual pregnancy testing and 2-week lab cadence for first 6 weeks.',
+    summary: 'Teratogenic antimetabolite with a boxed warning (embryofetal toxicity, malignancies, serious infections) and a REMS program; requires pregnancy testing before and during treatment and a 2-week lab cadence for the first 6 weeks.',
     conditions: ['autoimmune-blistering-disease', 'lupus'],
     monitoringFrequency: 'frequent',
     riskLevel: 'high',
-    warningFlags: ['teratogenic', 'pregnancy-monitoring'],
+    warningFlags: ['boxed-warning', 'teratogenic', 'rems', 'pregnancy-monitoring'],
     tags: ['pregnancy-monitoring', 'cbc-lft', 'albumin', 'renal-function', 'blood-pressure', 'vaccination-review'],
     baseline: 'Obtain two negative pregnancy tests (8–10 days apart), CBC, CMP (ALT/AST, creatinine/eGFR), albumin, blood pressure, vaccination status, height, and weight.',
     monitoring: 'Monitor albumin, ALT/AST, CBC, and creatinine/eGFR every 2 weeks for at least 6 weeks until dose stable, then every 12 weeks.',
-    cautions: 'Teratogenic—requires contraception during treatment and 6 weeks after; males use contraception during treatment and 90 days after; risk of cytopenias and infections.',
+    cautions: 'Boxed warning (CellCept/Myfortic): embryofetal toxicity (pregnancy loss and congenital malformations), increased risk of malignancies (lymphoma, skin cancer) and serious infections. Mycophenolate REMS: prescribers should complete REMS counseling and give patients the REMS education materials. Females of reproductive potential need a pregnancy test immediately before starting (with a second test 8–10 days later per the label) and periodically during treatment, and must use two acceptable forms of contraception together (or an IUD, sterilization or abstinence) during treatment and for 6 weeks after stopping; males use contraception during treatment and for 90 days after. Risk of cytopenias and infections.',
     baselineTasks: [
       task('pregnancy', 'Two negative pregnancy tests (8–10 days apart)', true),
       task('cbc', 'CBC with differential', true),
@@ -1097,9 +1133,10 @@ export const monitoringEntries = [
       task('bp', 'Blood pressure', true),
       task('vaccines', 'Vaccination status review', true),
       task('anthropometrics', 'Height and weight'),
-      task('counseling', 'Contraception counseling (dual method)', true)
+      task('counseling', 'REMS counseling and contraception counseling (two acceptable forms of contraception, or IUD/sterilization/abstinence)', true)
     ],
     monitoringSchedule: [
+      schedule('pregnancy-followup', 'Periodically during treatment (females of reproductive potential)', 'Repeat pregnancy testing per the label and REMS; reinforce contraception', 'critical', null),
       schedule('weeks0-6', 'Every 2 weeks (first ≥6 weeks)', 'Albumin, ALT/AST, CBC, creatinine/eGFR', 'critical', 2),
       schedule('quarterly', 'Every 12 weeks once stable', 'Albumin, ALT/AST, CBC, creatinine/eGFR', 'high', 12)
     ],
@@ -1110,7 +1147,12 @@ export const monitoringEntries = [
     references: [
       { label: 'CellCept (mycophenolate mofetil) Prescribing Information', url: 'https://www.gene.com/download/pdf/cellcept_prescribing.pdf' },
       { label: 'SPS Mycophenolate Monitoring', url: 'https://www.sps.nhs.uk/monitorings/mycophenolate-mofetil-monitoring/' }
-    ]
+    ],
+    safetyReview: {
+      date: '2026-09-07',
+      scope: 'boxed-warning and REMS flags added with label contraception, pregnancy-testing and REMS counseling requirements',
+      status: 'Targeted source check; not a complete monograph validation'
+    }
   },
   {
     "id": "azathioprine",
@@ -1274,6 +1316,7 @@ export const monitoringEntries = [
     ],
     "summary": "Retinal screening should include a baseline fundus exam, OCT and FAF soon after initiation. Dose should not exceed 5 mg/kg/day actual body weight; screening frequency is risk-dependent.",
     "conditions": [
+      "systemic-lupus-erythematosus",
       "cutaneous-lupus",
       "rheumatoid-arthritis",
       "dermatomyositis"
@@ -1340,7 +1383,7 @@ export const monitoringEntries = [
     ],
     "contraindications": "Verify the current product label for hypersensitivity and other restrictions. Pre-existing retinal disease requires individualized assessment and may limit screening reliability; it is not a universal contraindication.",
     "interactions": "Caution with QT-prolonging medications.",
-    "dosing": "Retinal-safety recommendation: ≤5 mg/kg/day actual body weight. Consider renal function and other risk factors with the prescribing clinician; use the product label for indication-specific dosing.",
+    "dosing": "Retinal-safety recommendation (AAO 2025 revision): keep the daily dose ≤5 mg/kg real body weight and under 400 mg/day in severely obese patients. Consider renal function and other risk factors with the prescribing clinician; use the product label for indication-specific dosing.",
     "references": [
       {
         "label": "AAO Special Report: Hydroxychloroquine Retinopathy Screening (2025 Revision; published 2026)",
@@ -1352,8 +1395,8 @@ export const monitoringEntries = [
       }
     ],
     "safetyReview": {
-      "date": "2026-09-04",
-      "scope": "AAO 2025 revision: retinal screening modalities, timing, major risk factors and nonautomatic discontinuation",
+      "date": "2026-09-07",
+      "scope": "2026-09-04: AAO 2025 revision: retinal screening modalities, timing, major risk factors and nonautomatic discontinuation; 2026-09-07: systemic lupus erythematosus (FDA-approved) added to conditions and the AAO 2025 real-weight/severe-obesity dosing ceiling added",
       "status": "Targeted source check; not a complete monograph validation"
     }
   },
@@ -1402,7 +1445,7 @@ export const monitoringEntries = [
     "agents": [
       "Isotretinoin"
     ],
-    "summary": "Teratogenic retinoid requiring iPLEDGE safeguards. As of September 4, 2026, implementation of the newly approved REMS modifications is delayed until November 15, 2026; do not treat proposed or approved future rules as already implemented.",
+    "summary": "Teratogenic retinoid requiring iPLEDGE safeguards. FDA announced on June 16, 2026 that implementation of the iPLEDGE REMS modifications approved in February 2026 (home pregnancy testing, removal of the 19-day lockout) was delayed to November 15, 2026. Confirm the currently enforced requirements in the iPLEDGE program before relying on either set of rules.",
     "conditions": [
       "nodulocystic-acne"
     ],
@@ -1419,7 +1462,7 @@ export const monitoringEntries = [
     ],
     "baseline": "For patients who can get pregnant, complete the required pre-treatment pregnancy tests in a medical setting—not just the first test—and satisfy current iPLEDGE enrollment, pregnancy-prevention and authorization requirements. Obtain baseline fasting lipids and liver tests; other testing is individualized.",
     "monitoring": "Pregnancy testing during and after treatment follows current iPLEDGE requirements. Under FDA enforcement discretion, the prescriber may permit home tests during/after treatment with interpretation, documentation and safeguards against falsification; not for pre-treatment tests. Repeat lipids/liver tests until the response is established, then individualize frequency and reassess symptoms at follow-up.",
-    "cautions": "Embryo-fetal toxicity: follow the current iPLEDGE pregnancy-prevention pathway. The February 2026 REMS modifications (including removal of the 19-day lockout) are not presented here as implemented: FDA announced a November 15, 2026 implementation date on June 16, 2026. Check the live program before each authorization. Also assess psychiatric symptoms, pancreatitis, intracranial hypertension and serious skin reactions.",
+    "cautions": "Embryo-fetal toxicity: follow the iPLEDGE pregnancy-prevention pathway that the program is currently enforcing. Dated history: FDA approved REMS modifications in February 2026 (home pregnancy testing, removal of the 19-day lockout) and announced on June 16, 2026 that their implementation was delayed to November 15, 2026. This reference does not state which rule set is in force on any later date; check the live program before each authorization. Also assess psychiatric symptoms, pancreatitis, intracranial hypertension and serious skin reactions.",
     "baselineTasks": [
       {
         "id": "pregnancy",
@@ -1449,7 +1492,7 @@ export const monitoringEntries = [
         "id": "counseling",
         "label": "Current iPLEDGE enrollment and pregnancy-prevention counseling",
         "critical": true,
-        "notes": "Use current program requirements; planned 2026 changes must not be assumed active."
+        "notes": "Use the requirements the iPLEDGE program is currently enforcing; the February 2026 modifications (implementation delayed to November 15, 2026 per FDA's June 16, 2026 announcement) must not be assumed active."
       }
     ],
     "monitoringSchedule": [
@@ -1491,8 +1534,8 @@ export const monitoringEntries = [
       }
     ],
     "safetyReview": {
-      "date": "2026-09-04",
-      "scope": "iPLEDGE implementation date, pre-treatment testing, contraindication/precaution distinction and removal of unsupported universal stop thresholds",
+      "date": "2026-09-07",
+      "scope": "2026-09-04: iPLEDGE implementation date, pre-treatment testing, contraindication/precaution distinction and removal of unsupported universal stop thresholds; 2026-09-07: program status restated as dated, attributed history rather than a present-tense status",
       "status": "Targeted source check; not a complete monograph validation"
     }
   },
@@ -1547,7 +1590,8 @@ export const monitoringEntries = [
     "riskLevel": "high",
     "warningFlags": [
       "boxed-warning",
-      "infection"
+      "thrombosis",
+      "renal"
     ],
     "tags": [
       "renal-function",
@@ -1555,8 +1599,8 @@ export const monitoringEntries = [
       "blood-pressure"
     ],
     "baseline": "Review prior immunoglobulin reactions and relevant IgA/anti-IgA history, check renal function, assess thrombosis and hemolysis risk, and ensure appropriate hydration. Product excipients and contraindications differ; sucrose-free products still carry renal risk.",
-    "monitoring": "Monitor vital signs and urine output during infusion, repeat BUN/creatinine in high-risk patients, watch for thrombosis and hemolysis with repeat dosing.",
-    "cautions": "Risk of renal failure and thrombosis—use lowest practicable infusion rate and ensure hydration.",
+    "monitoring": "Monitor vital signs and urine output during infusion and repeat BUN/creatinine in high-risk patients. Watch for aseptic meningitis syndrome (typically within hours to 2 days after infusion: severe headache, neck stiffness/meningismus, fever, photophobia, nausea/vomiting; more common with high-dose 2 g/kg regimens and rapid infusion), transfusion-related acute lung injury (TRALI: noncardiogenic pulmonary edema with hypoxemia within about 6 hours), hemolysis (especially non-O blood groups at high dose; monitor for anemia, dark urine and delayed hemolysis with repeat dosing), and thrombosis. Hyperproteinemia, increased serum viscosity and pseudohyponatremia can follow infusion and should not be treated as true hyponatremia.",
+    "cautions": "Boxed warnings for thrombosis and for renal dysfunction/acute renal failure—use the lowest practicable infusion rate and ensure hydration. Label warnings also cover aseptic meningitis syndrome, hemolysis, TRALI, hyperproteinemia/hyperviscosity and pseudohyponatremia, hypersensitivity, and transmissible infectious agents from human plasma.",
     "baselineTasks": [
       {
         "id": "iga",
@@ -1601,7 +1645,9 @@ export const monitoringEntries = [
     ],
     "holdCriteria": [
       "Rising creatinine or decreased urine output",
-      "Symptoms of thrombosis or hemolysis"
+      "Symptoms of thrombosis or hemolysis",
+      "Severe headache with meningismus, fever or photophobia within hours to 2 days of infusion: evaluate for aseptic meningitis syndrome and exclude infectious causes",
+      "Acute respiratory distress or hypoxemia during or shortly after infusion: evaluate for TRALI"
     ],
     "contraindications": "Check the selected product. Privigen contraindications include previous severe systemic/hypersensitivity reactions to human immunoglobulin, IgA deficiency with anti-IgA antibodies AND a history of hypersensitivity, and hyperprolinemia. Low IgA alone is not this labeled contraindication.",
     "interactions": "Antibody-containing products can reduce responses to measles- or varicella-containing vaccines. Use the dose-/product-specific CDC spacing table, not a universal 3-month interval (examples: IVIG 300–400 mg/kg, 8 months; 1 g/kg for ITP, 10 months; 2 g/kg for Kawasaki disease, 11 months). Other vaccines have different rules.",
@@ -1625,8 +1671,8 @@ export const monitoringEntries = [
       }
     ],
     "safetyReview": {
-      "date": "2026-09-04",
-      "scope": "boxed risks, IgA/product-specific contraindications and dose-dependent vaccine spacing",
+      "date": "2026-09-07",
+      "scope": "2026-09-04: boxed risks, IgA/product-specific contraindications and dose-dependent vaccine spacing; 2026-09-07: aseptic meningitis syndrome, TRALI, hemolysis and hyperproteinemia/pseudohyponatremia warnings added; infection badge replaced with thrombosis and renal badges",
       "status": "Targeted source check; not a complete monograph validation"
     }
   }
@@ -1635,4 +1681,4 @@ export const monitoringEntries = [
 export const dataVersion = '2025-09-23';
 
 // A targeted safety revision is not a certification of every legacy statement.
-export const safetyRevision = '2026-09-04';
+export const safetyRevision = '2026-09-07';

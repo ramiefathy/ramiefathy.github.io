@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import * as data from '../../public/apps/biologic-monitoring-dashboard/data.js';
-import { CHECKLIST_SCOPE, CLINICAL_SCOPE, clinicalExport, csvCell, highlightSafe, reviewSummary, validateMonitoringData } from '../../public/apps/biologic-monitoring-dashboard/safety.js';
+import { CHECKLIST_SCOPE, CLINICAL_SCOPE, clinicalExport, csvCell, highlightSafe, referenceLink, reviewSummary, validateMonitoringData } from '../../public/apps/biologic-monitoring-dashboard/safety.js';
 import * as XLSX from '../../public/apps/vendor/xlsx.mjs';
 const entry = (id) => data.monitoringEntries.find((item) => item.id === id);
 const textOf = (id) => JSON.stringify(entry(id));
@@ -13,7 +13,7 @@ describe('clinical reference contract (not clinical validation)', () => {
     expect(validateMonitoringData(data)).toBe(true);
     expect(data.monitoringEntries).toHaveLength(23);
     expect(data.dataVersion).toBe('2025-09-23');
-    expect(data.safetyRevision).toBe('2026-09-04');
+    expect(data.safetyRevision).toBe('2026-09-07');
   });
   it.each([
     ['duplicate entries', (d) => d.monitoringEntries.push(d.monitoringEntries[0])],
@@ -27,6 +27,13 @@ describe('clinical reference contract (not clinical validation)', () => {
     ['credential source', (d) => { d.monitoringEntries[0].references[0].url = 'https://user:pass@example.com/'; }],
     ['negative timing', (d) => { d.monitoringEntries[0].monitoringSchedule[0].relativeWeeks = -1; }],
     ['malformed review', (d) => { d.monitoringEntries[0].safetyReview.date = 'yesterday'; }],
+    ['null review', (d) => { d.monitoringEntries[0].safetyReview = null; }],
+    ['future review date', (d) => { d.monitoringEntries[0].safetyReview.date = '2999-01-01'; }],
+    ['empty conditions', (d) => { d.monitoringEntries[0].conditions = []; }],
+    ['timing beyond ten years', (d) => { d.monitoringEntries[0].monitoringSchedule[0].relativeWeeks = 521; }],
+    ['fractional timing overflow', (d) => { d.monitoringEntries[0].monitoringSchedule[0].relativeWeeks = Infinity; }],
+    ['unknown badge note', (d) => { d.monitoringEntries[0].warningFlagNotes = { 'made-up': 'text' }; }],
+    ['empty badge note', (d) => { d.monitoringEntries[0].warningFlagNotes = { [d.monitoringEntries[0].warningFlags[0]]: '' }; }],
   ])('rejects %s', (_, mutate) => { const changed = copy(); mutate(changed); expect(() => validateMonitoringData(changed)).toThrow(); });
   it.each(data.monitoringEntries)('keeps risk context and sources in $id exports', (item) => {
     const output = clinicalExport(item, data.dataVersion, {});
@@ -36,8 +43,15 @@ describe('clinical reference contract (not clinical validation)', () => {
     expect(output).toContain('Original dataset: 2025-09-23');
   });
   it('does not invent a complete review for unchanged entries', () => {
-    expect(reviewSummary(entry('methotrexate'), data.dataVersion)).toContain('has not received a complete current-label validation');
+    expect(entry('acitretin').safetyReview).toBeUndefined();
+    expect(reviewSummary(entry('acitretin'), data.dataVersion)).toContain('has not received a complete current-label validation');
     expect(reviewSummary(entry('il17-inhibitors'), data.dataVersion)).toContain('not a complete monograph validation');
+  });
+  it('accepts review dates up to today and keeps the ten-year timing ceiling inclusive', () => {
+    const changed = copy();
+    changed.monitoringEntries[0].safetyReview.date = new Date().toISOString().slice(0, 10);
+    changed.monitoringEntries[0].monitoringSchedule[0].relativeWeeks = 520;
+    expect(validateMonitoringData(changed)).toBe(true);
   });
   it('retains checked/unchecked marks only with an explicit unverified-record warning', () => {
     const item = data.monitoringEntries[0];
@@ -76,6 +90,12 @@ describe('clinical reference contract (not clinical validation)', () => {
   it('does not confuse future iPLEDGE implementation with current requirements', () => {
     const iso = textOf('isotretinoin');
     expect(iso).toContain('November 15, 2026');
+    // Program status is stated only as dated, attributed history—never as a present-tense status that expires.
+    expect(iso).toMatch(/FDA announced on June 16, 2026 that implementation of the iPLEDGE REMS modifications approved in February 2026/);
+    expect(iso).toContain('was delayed to November 15, 2026');
+    expect(iso).toMatch(/Confirm the currently enforced requirements in the iPLEDGE program/);
+    expect(iso).not.toMatch(/as of/i);
+    expect(iso).not.toMatch(/is delayed/i);
     expect(entry('isotretinoin').references.some((ref) => ref.label.includes('June 16, 2026'))).toBe(true);
     expect(iso).toContain('pre-treatment pregnancy tests in a medical setting');
     expect(iso).not.toContain('one in-office');
@@ -94,7 +114,103 @@ describe('clinical reference contract (not clinical validation)', () => {
   });
 });
 
+describe('2026-09-07 targeted clinical corrections', () => {
+  const reviewed = ['ustekinumab', 'ivig', 'mycophenolate', 'methotrexate', 'baricitinib', 'hydroxychloroquine', 'cyclosporine', 'il4-13-blockers', 'tnf-inhibitors', 'il17-inhibitors'];
+  it.each(reviewed)('%s carries the dated targeted-correction summary', (id) => {
+    expect(entry(id).safetyReview.date).toBe('2026-09-07');
+    expect(reviewSummary(entry(id), data.dataVersion)).toMatch(/^Targeted safety correction 2026-09-07: /);
+    expect(reviewSummary(entry(id), data.dataVersion)).toContain('Original dataset: 2025-09-23');
+  });
+  it('replaces invented ustekinumab laboratory schedules with label-consistent guidance', () => {
+    const text = textOf('ustekinumab');
+    expect(text).not.toMatch(/3 ?× ?ULN/);
+    expect(text).not.toMatch(/every 3–6 months/i);
+    expect(text).not.toMatch(/annual TB and hepatitis/i);
+    expect(text).toMatch(/no routine laboratory monitoring schedule/i);
+    expect(text).toMatch(/active TB/i);
+    expect(text).toMatch(/latent TB/i);
+    expect(text).toMatch(/reversible posterior leukoencephalopathy/i);
+    expect(text).toMatch(/noninfectious pneumonia/i);
+    expect(entry('ustekinumab').references.some((ref) => ref.url.includes('STELARA-pi.pdf'))).toBe(true);
+  });
+  it('adds the IVIG aseptic meningitis, TRALI, hemolysis and hyperproteinemia warnings with an appropriate badge', () => {
+    const text = textOf('ivig');
+    expect(text).toMatch(/aseptic meningitis/i);
+    expect(text).toMatch(/2 g\/kg/);
+    expect(text).toMatch(/TRALI/);
+    expect(text).toMatch(/non-O blood group/i);
+    expect(text).toMatch(/pseudohyponatremia/i);
+    expect(entry('ivig').warningFlags).not.toContain('infection');
+    expect(entry('ivig').warningFlags).toContain('boxed-warning');
+    expect(entry('ivig').warningFlags).toContain('thrombosis');
+    expect(entry('ivig').warningFlags).toContain('renal');
+    expect(data.RISK_BADGE_LABELS.thrombosis).toBeTruthy();
+    expect(data.RISK_BADGE_LABELS.renal).toBeTruthy();
+  });
+  it('flags the mycophenolate boxed warning and REMS with contraception and testing requirements', () => {
+    expect(entry('mycophenolate').warningFlags).toContain('boxed-warning');
+    expect(entry('mycophenolate').warningFlags).toContain('rems');
+    const text = textOf('mycophenolate');
+    expect(text).toMatch(/embryofetal toxicity/i);
+    expect(text).toMatch(/two (acceptable|reliable) (forms|methods) of contraception/i);
+    expect(text).toMatch(/REMS/);
+  });
+  it('states once-weekly methotrexate dosing and the fatal daily-dosing error', () => {
+    const text = textOf('methotrexate');
+    expect(text).toContain('ONCE WEEKLY');
+    expect(text).toMatch(/daily dosing has caused fatal toxicity/i);
+    expect(text).toMatch(/confirm dosing frequency at every prescription/i);
+  });
+  it('does not list atopic dermatitis as an FDA-approved baricitinib indication', () => {
+    expect(entry('baricitinib').conditions).not.toContain('atopic-dermatitis');
+    const text = textOf('baricitinib');
+    expect(text).toMatch(/not FDA-approved/i);
+    expect(text).toMatch(/EU/);
+    expect(text).toMatch(/Japan/);
+    expect(text).toMatch(/COVID-19/);
+  });
+  it('adds SLE to hydroxychloroquine and the AAO 2025 obesity dosing ceiling', () => {
+    expect(entry('hydroxychloroquine').conditions).toContain('systemic-lupus-erythematosus');
+    const text = textOf('hydroxychloroquine');
+    expect(text).toMatch(/real body weight/i);
+    expect(text).toMatch(/under 400 mg\/day/i);
+    expect(text).toMatch(/severely obese/i);
+  });
+  it('replaces the unsourced cyclosporine blood-pressure rule with AAD framing and the 1-year psoriasis limit', () => {
+    const text = textOf('cyclosporine');
+    expect(text).not.toContain('160/90');
+    expect(text).toMatch(/140\/90/);
+    expect(text).toMatch(/two occasions/i);
+    expect(text).toMatch(/25–50%/);
+    expect(text).toMatch(/1 year/i);
+    expect(entry('cyclosporine').references.some((ref) => ref.url.includes('10.1016/j.jaad.2020.02.044'))).toBe(true);
+  });
+  it('cites the actual AAD 2024 atopic dermatitis guideline and adds prurigo nodularis for dupilumab', () => {
+    const refs = entry('il4-13-blockers').references;
+    expect(refs.some((ref) => ref.url.includes('ajmc.com'))).toBe(false);
+    expect(refs.some((ref) => ref.url.includes('10.1016/j.jaad.2023.08.102'))).toBe(true);
+    expect(entry('il4-13-blockers').conditions).toContain('prurigo-nodularis');
+  });
+  it('uses an individualized monitoring frequency for TNF inhibitors and labels it', () => {
+    expect(entry('tnf-inhibitors').monitoringFrequency).toBe('individualized');
+    expect(data.MONITORING_FREQUENCY_LABELS.individualized).toMatch(/individualized/i);
+  });
+  it('scopes IL-17 boxed-warning and REMS badges to brodalumab in the badge notes', () => {
+    const notes = entry('il17-inhibitors').warningFlagNotes;
+    expect(notes['boxed-warning']).toMatch(/brodalumab only/i);
+    expect(notes.rems).toMatch(/brodalumab only/i);
+  });
+});
+
 describe('safe rendering and export primitives', () => {
+  it('escapes reference labels and rejects unsafe reference URLs when building chips', () => {
+    const chip = referenceLink({ label: '<img src=x onerror=alert(1)> "quoted"', url: 'https://example.org/path?a=1&b="2"' });
+    expect(chip).toContain('&lt;img src=x onerror=alert(1)&gt;');
+    expect(chip).toContain('href="https://example.org/path?a=1&amp;b=%222%22"');
+    expect(chip).not.toContain('onerror=alert(1)>');
+    expect(referenceLink({ label: 'bad', url: 'javascript:alert(1)' })).toBe('');
+    expect(referenceLink({ label: 'bad', url: 'not a url' })).toBe('');
+  });
   it.each(['=WEBSERVICE("https://evil")', '+1+1', '-1+1', '@SUM(1,2)', '\t=1', '  =1'])('neutralizes spreadsheet formula prefix %s', (value) => {
     expect(csvCell(value)).toMatch(/^"'/);
   });

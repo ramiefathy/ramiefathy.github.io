@@ -130,3 +130,81 @@ together. An older backend cannot release the new client's safety fence, so the
 client deliberately does not silently accept potentially cross-encounter output.
 New browser tests exercise this boundary with a synthetic WebSocket transport;
 this does not claim live model or production networking validation.
+
+
+## 2026-09-07 follow-up
+
+A second adversarial pass over PR #184 produced the following changes. Each
+behavioral fix was written test-first; clinical text changes are attributed to
+the sources already cited in the record or to a newly added guideline DOI.
+
+- **Scribe reset fence liveness (high).** The client fence that drops queued
+  clinical replies until a reset is acknowledged also dropped `error` replies,
+  including the rate limiter's answer to `start_new_session`, so a rate-limited
+  reset silently fenced the encounter forever. The fence is now armed only after
+  the reset was actually sent; a non-area `error` during the fence releases it,
+  discards provisional output and tells the user to start a new session again; a
+  10-second acknowledgment timeout does the same; the timer is cancelled on
+  acknowledgment or a fresh connection; and `connectWebSocket` closes a
+  superseded CONNECTING socket instead of orphaning it. Server-side,
+  `start_new_session` is exempt from the per-connection rate limiter because it
+  performs no provider work. Browser regressions cover error release, timeout
+  release, timer cancellation, unsent resets and socket replacement; a backend
+  test proves the exemption after the limiter has engaged.
+- **iPLEDGE time bomb (high).** The isotretinoin record asserted a present-tense
+  "as of September 4, 2026" implementation status that would silently become
+  wrong. It now makes only dated statements attributed to FDA (February 2026
+  approval; June 16, 2026 announcement of the November 15, 2026 delay) and tells
+  the reader to confirm the currently enforced program rules. The regression
+  asserts the dated form and the absence of "as of" wording.
+- **Print CSS (medium).** `.hero p { display:none }` also hid the clinical
+  safety notice's paragraphs in print; an explicit print rule restores them and a
+  stylesheet test parses the print blocks.
+- **Stream validator (medium).** Trailing candidate-less, text-less chunks
+  (usage metadata / keep-alive) are tolerated only after a normal STOP; post-STOP
+  text or a non-STOP finish reason still fails, as does a candidate-less chunk
+  before STOP.
+- **Model override (medium).** A client `modelName` is forwarded only when it is
+  in `GEMINI_ALLOWED_MODELS` (default: the default model alone); otherwise the
+  server-configured model for that operation is used and the rejection is logged
+  by class, never by value. A blank `GEMINI_DEFAULT_MODEL` is now a startup
+  `RuntimeError`, mirroring `SESSION_SECRET`.
+- **Dermoscopy evidence contract (medium).** `modelSummary` and `armSummary`
+  rows must equal the sums of the reconciled per-pair aggregates, and arm
+  identifiers accept only integers or exact canonical decimal strings (no
+  booleans, arrays or padded strings).
+- **Clinical record corrections (medium).** Ten records were corrected and each
+  carries `safetyReview` dated 2026-09-07: ustekinumab (invented laboratory
+  schedule and liver-enzyme hold removed; label TB, hypersensitivity, RPLS and
+  noninfectious pneumonia guidance), IVIG (aseptic meningitis syndrome, TRALI,
+  hemolysis, hyperproteinemia/pseudohyponatremia; infection badge replaced by
+  thrombosis and renal badges), mycophenolate (boxed warning and REMS flags with
+  contraception/testing text), methotrexate (explicit once-weekly dosing and the
+  fatal daily-dosing error), baricitinib (atopic dermatitis annotated as not
+  FDA-approved), hydroxychloroquine (SLE indication; AAO 2025 real-weight and
+  under-400 mg/day severe-obesity ceiling, PMID 41232611), cyclosporine (AAD 2020
+  blood-pressure framing replaces an unsourced 160/90 rule; US label 1-year
+  psoriasis limit; guideline DOI added), dupilumab family (AAD 2024 guideline DOI
+  replaces a trade-press URL; prurigo nodularis added), TNF inhibitors
+  (`monitoringFrequency` is now `individualized`, a new labeled category) and the
+  IL-17 class card (boxed-warning and REMS badge tooltips scoped to brodalumab via
+  per-record `warningFlagNotes`). The dataset `safetyRevision` is 2026-09-07; the
+  original dataset date is unchanged.
+- **Validator tightening (low).** The dataset validator rejects a null
+  `safetyReview`, empty `conditions`, review dates in the future and
+  `relativeWeeks` outside 0..520; reference chips are built by a DOM-free helper
+  that escapes labels and uses the validated URL's `href`.
+- **Stale help text (low).** Legacy app help steps described Theme and Reset
+  controls the shell does not have; they now describe Help and Reload (a page
+  reload that deletes nothing), and a policy test greps every legacy HTML app for
+  the retired wording.
+- **CI (low).** The dependency audit gate is now
+  `npm audit --audit-level=high --omit=dev`: still fail-closed for high/critical
+  advisories in the shipped dependency graph, but dev-only tooling advisories no
+  longer block merges (they remain in the recorded JSON evidence). Pinned action
+  SHAs carry their resolved version tags as comments (`setup-node` v4.4.0,
+  `upload-artifact` v4.6.2); `setup-python@v5` is unchanged.
+
+Browser and backend suites were run locally against a synthetic transport and
+mocked provider; this follow-up does not add live-model, production
+authentication or patient-data validation.
