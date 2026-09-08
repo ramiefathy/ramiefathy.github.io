@@ -1,5 +1,27 @@
 # Devlog — ramiefathy.github.io
 
+## [2026-09-07] Clinical-atlas review follow-up: restored content, replayable ledger, provenance alignment
+
+Restored real clinical content where the 2026-09-05 review had flattened nodes
+into identical placeholders (CTCL treatment-by-stage IIB/III/IV/SS, psoriasis
+biologic-class onset/efficacy/TB/pregnancy cells, pigmented-lesion triage start
+decision, Hurley I–III treatment, pruritus by cause) and corrected mogamulizumab
+to its labeled relapsed/refractory indication in every CTCL surface. Stated the
+2022 absolute B2 criteria, removed audit-process language and orphaned `\[n\]`
+markers from user-facing mind maps, and de-duplicated the legacy CTCL tooltips.
+The correction ledger grew from 659 to 714 hash-bound records; the replay test
+now resolves every JSON pointer (with supersession) against the current files
+and pins the ledger by sequential ids, count and SHA-256. Immune atlas: the
+immune-complex row is graded by its remaining sources (C/3), all curated
+editorial keys resolve, endotype-specific rejection reasons are recorded,
+and "direct"/"derived" agree across the alternative views and P1 provenance.
+DermatoTarget wording/guards tightened; the PubMed gate covers republication,
+update and partial-retraction states with optional NCBI identity. Docs and CI
+updated. No Chromium is available in the remote sandbox, so the Playwright
+suites were not executed there; the volume-lens counts were recomputed in the
+JSDOM harness and are unchanged. See the 2026-09-07 follow-up in
+`audits/2026-09-05-atlas-scientific-integration.md`.
+
 ## [2026-09-05] Preserve Atlas indication context and review primary-trial scope
 
 Fixed disease-ranked target links that silently opened another indication. Added
@@ -17,7 +39,8 @@ overlay, preserved responsive camera presets, retained captured touch gestures,
 and restored visible programmatic focus. Added five bounded vasculitis RCT
 assertions with explicit population, comparison, endpoint and uncertainty;
 these remain separate from synthesis scores and human approval. Hardened the
-PubMed identity/excerpt gate with 18 offline failure-injection tests in CI.
+PubMed identity/excerpt gate with offline failure-injection tests in CI (36 test
+methods / 125 subtests after the 2026-09-07 follow-up).
 Exact-head browser and live-source receipts are tracked in PR #186; no production
 merge or clinical certification is implied. See the scientific integration audit.
 

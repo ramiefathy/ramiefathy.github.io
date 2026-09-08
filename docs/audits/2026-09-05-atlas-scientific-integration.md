@@ -118,8 +118,97 @@ New tests use normal pointer clicks with an occlusion assertion, not forced clic
 The source-excerpt gate now rejects empty packets, duplicate identities, missing
 or unexpected returned articles, ambiguous or dangling references, incomplete trial
 context, overlong/empty quotes and unauthorized approval flags. Missing abstracts,
-wrong titles/DOIs and publication-warning markers block a pass. Eighteen synthetic
-Python tests exercise these cases in permanent CI. Offline replay is labeled
+wrong titles/DOIs and publication-warning markers block a pass. The synthetic
+Python suite exercises these cases in permanent CI (36 test methods after the
+2026-09-07 follow-up). Offline replay is labeled
 separately from live retrieval. A passing gate verifies identity and excerpt
 presence, never automatically verifies the full paraphrased claim. New hosted
 results must be inspected before replacing the prior-head receipts in PR #186.
+
+## 2026-09-07 follow-up
+
+Review of PR #186 found placeholder content, one patient-safety-relevant
+indication error and several provenance inconsistencies. All were fixed on the
+branch with a failing test written first for each item.
+
+Clinical content (mind maps; every edit is a hash-bound ledger record, C0660–C0714):
+
+1. Mogamulizumab was described as "FDA-approved first-line" in the Sézary
+   tooltips (`subtypes-overall`, `subtypes-immuno`, legacy `CTCL/js/data.js`) and
+   listed beside first-line ECP in the treatment-by-stage swimlane. All now state
+   the labeled indication: relapsed or refractory MF/SS after at least one prior
+   systemic therapy; ECP-based therapy remains the preferred first line for SS.
+   The legacy file's tooltip constants are used again, so each tooltip text exists
+   once (the rendered object is unchanged apart from the correction).
+2. `ctcl/treatment-stage.json` IIB/III/IV/SS first-line nodes carried one shared
+   sentence. Distinct NCCN/EORTC-consistent content was restored (skin-directed
+   plus systemic therapy, local RT/TSEBT, ECP-based multimodality, single-agent
+   chemotherapy, HDAC inhibitors, allogeneic HSCT, low-dose alemtuzumab), keeping
+   mogamulizumab and brentuximab vedotin at their labeled later-line positions.
+3. Psoriasis biologic comparison: onset, efficacy, latent-TB and pregnancy cells
+   were identical across TNF/IL-17/IL-23; each class now has its own accurate cell
+   (certolizumab appears only in the TNF cell).
+4. Pigmented-lesion triage: the start node routed both answers to `risk`; the
+   "No" branch now reaches the low-concern assessment, which still escalates
+   uncertain or suspicious findings.
+5. HS staging: Hurley I/II/III terminals restored with stage-appropriate
+   treatment (topical clindamycin/tetracyclines/intralesional steroid; clindamycin
+   plus rifampin, adalimumab ≥12 y, secukinumab, bimekizumab, deroofing; wide
+   excision with ertapenem bridging for severe flares); Hurley stays a static
+   structural descriptor with IHS4/activity guiding escalation.
+6. Pruritus by cause: eczema, cholestatic, uremic and neuropathic cells restored
+   with labeled age limits, drug spacing, renal dosing and monitoring.
+7. MF vs SS vs CD30+: `blood.ss` states the 2022 ISCL/USCLC/EORTC absolute B2
+   criteria and names the superseded 2007 thresholds.
+8. Audit-process phrases ("not established by the sources supplied here",
+   "has been removed", "(source summary)", …) were rewritten as clinical prose or
+   clean bibliographic citations; a policy test in `site/src/security/` bans them.
+9. Twenty-one `\[n\]` markers in the psoriasis mind maps pointed at a bibliography
+   that is not shipped; they were stripped and a policy test asserts zero markers.
+
+Ledger mechanics: `scripts/build-clinical-review-status.py` derives the record
+count from the sequential ids; `clinical-correction-replay.test.js` replays every
+record into the current file (pointer resolution with supersession by identical,
+ancestor or descendant pointers, `/additions` appends, `after: null` deletions,
+embedded `DATA`/`JAK_ROUTES` JSON in the atlas, leaf-string presence for other
+script targets) and pins the ledger by count and SHA-256.
+
+Immune atlas explorer:
+
+10. After `splitVasculitisEndotypes` moves the immune-complex row to R53 + V05,
+    the row is graded C / importance 3 per `meta.rubric` (mechanistic review plus
+    one small observational study), not the inherited guideline-level B / 5.
+11. `alternative-views.js` and `systems-explorer.js` decide "direct" from the P0
+    `relationOrigin` (`linkIsSourceExplicit`) rather than the pre-P0 label
+    "Directly named", so parallel-set chain origins and domain direct counts
+    agree with the P1 `provenance.directness`. The volume-lens counts asserted in
+    `atlas-quarantine-accounting.spec.ts` were recomputed in the JSDOM harness and
+    are unchanged.
+12. `CURATED_DECISIONS`: six keys never matched (the AAV "ANCA / neutrophil" row
+    resolves to `autoantibody`, the RA granulomatous row to `ifng`; the AAV
+    complement and GCA IL-6 rows have no links and were deleted). A runtime test
+    proves every remaining key resolves. Endotype-specific rejection reasons are
+    evaluated before the generic scope check; the umbrella "Ulcers" link is carried
+    into the immune-complex endotype under its declared "Skin ulcers" label. The
+    239 mappings now partition into 80 default / 144 exploratory / 15 rejected.
+    Dead branches removed; README and test titles no longer describe
+    "curator-confirmed" links, which never existed as reviewer attestations.
+16. The source workbench computes the quarantined-record and ledger-record counts
+    from `DATA.sourceReview` and the generated receipt instead of literals.
+
+Tooling and other surfaces:
+
+13. The PubMed gate treats retracted/corrected republication, update and partial
+    retraction links and the "Corrected and Republished Article" type as review
+    states, sends optional `NCBI_EMAIL`/`NCBI_API_KEY`, and produces the hold rows
+    in one pass (36 test methods).
+15. DermatoTarget: other-indication toggle wording, evidence-view unknown-disease
+    alert, "historical"/"candidate" wording, no double escaping, unsortable
+    identity column, recorded atopic-dermatitis resolution (MONDO_0004980 via the
+    `atopic/` capture), and `build-atlas-evidence.py --check` in CI. `sort_keys`
+    was not added because it changes the committed snapshot bytes.
+
+Verification boundary: the remote sandbox cannot download a Playwright browser,
+so the Chromium suites were not executed there; Vitest, the Python suite and both
+`--check` builders pass. Hosted CI remains the acceptance record.
+
