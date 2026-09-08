@@ -69,6 +69,12 @@
         let websocket = null;
         let currentSessionId = null;
         let wsConnected = false;
+        let resetSequence = 0;
+        let pendingResetId = null;
+        let pendingResetSocket = null;
+        let pendingResetTimer = null;
+        // Bound how long clinical output stays fenced when the server never acknowledges a reset.
+        const RESET_ACK_TIMEOUT_MS = 10000;
 	        let wsReconnectAttempts = 0;
 	        const MAX_RECONNECT_ATTEMPTS = 5;
 	        let pendingRequests = new Map();
@@ -133,6 +139,16 @@
 		        // ========== WebSocket Connection Manager ==========
 		        function connectWebSocket() {
 		            if (websocket && websocket.readyState === WebSocket.OPEN) return;
+		            if (websocket && websocket.readyState === WebSocket.CONNECTING) {
+		                // Do not orphan a half-open socket: its handlers would otherwise be ignored forever
+		                // while the transport itself stays alive.
+		                try {
+		                    websocket.close();
+		                } catch (e) {
+		                    // ignore
+		                }
+		                websocket = null;
+		            }
 
 		            const activeToken = (sessionJwtToken || sessionToken || '').trim();
 		            if (!activeToken) {
@@ -150,8 +166,10 @@
 		            }
 		
 		            websocket = new WebSocket(wsUrl.toString(), buildAuthProtocols(activeToken));
+                    const activeSocket = websocket;
 
             websocket.onopen = () => {
+                if (websocket !== activeSocket) return;
                 console.log('WebSocket connection established');
                 wsConnected = true;
                 wsReconnectAttempts = 0;
@@ -159,17 +177,27 @@
             };
 
             websocket.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                handleWebSocketMessage(message);
+                if (websocket !== activeSocket) return;
+                try {
+                    const message = JSON.parse(event.data);
+                    if (!message || typeof message !== 'object' || typeof message.type !== 'string') throw new Error('Invalid message');
+                    handleWebSocketMessage(message);
+                } catch {
+                    discardProvisionalOutput();
+                    showNotification('Invalid server response; previous output retained.', 'error');
+                }
             };
 
             websocket.onerror = (error) => {
+                if (websocket !== activeSocket) return;
                 console.error('WebSocket error:', error);
                 updateConnectionStatus(false);
             };
 
 		            websocket.onclose = (event) => {
+                        if (websocket !== activeSocket) return;
 		                console.log('WebSocket connection closed');
+                        discardProvisionalOutput();
 		                wsConnected = false;
 		                updateConnectionStatus(false);
 
@@ -222,14 +250,62 @@
             }
         }
 
+        function clearResetFenceTimer() {
+            if (pendingResetTimer !== null) {
+                clearTimeout(pendingResetTimer);
+                pendingResetTimer = null;
+            }
+        }
+
+        function releaseResetFence() {
+            clearResetFenceTimer();
+            pendingResetId = null;
+            pendingResetSocket = null;
+        }
+
+        // Reject all queued clinical replies until this exact reset is acknowledged, but never
+        // leave the encounter fenced forever if the acknowledgment is lost.
+        function armResetFence(resetId, socket) {
+            clearResetFenceTimer();
+            pendingResetId = resetId;
+            pendingResetSocket = socket;
+            pendingResetTimer = setTimeout(() => {
+                pendingResetTimer = null;
+                if (pendingResetId !== resetId) return;
+                releaseResetFence();
+                discardProvisionalOutput();
+                showNotification(
+                    `The server did not confirm the new session within ${Math.round(RESET_ACK_TIMEOUT_MS / 1000)} seconds. ` +
+                    'Provisional output was discarded; start a new session again before recording.',
+                    'error'
+                );
+            }, RESET_ACK_TIMEOUT_MS);
+        }
+
         function sendToServer(type, data = {}) {
+            const isReset = type === 'start_new_session';
+            if (isReset) {
+                streamBuffers = { note: '', chat: '', analysis: '' };
+                isStreaming = false;
+            }
             if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                // Nothing was sent, so no acknowledgment can be expected: do not arm the fence.
                 showNotification('Not connected to server. Attempting to reconnect...', 'warning');
                 connectWebSocket();
                 return false;
             }
+            const resetId = isReset ? String(++resetSequence) : null;
+            if (isReset) data = { ...data, resetId };
             const message = { type, data: { ...data, sessionId: currentSessionId } };
-            websocket.send(JSON.stringify(message));
+            try {
+                websocket.send(JSON.stringify(message));
+            } catch (e) {
+                showNotification(isReset
+                    ? 'The new session request could not be sent. Start a new session again before recording.'
+                    : 'The request could not be sent. Please retry.', 'error');
+                return false;
+            }
+            if (isReset) armResetFence(resetId, websocket);
             return true;
         }
 
@@ -280,6 +356,25 @@
 		        }
 
         function handleWebSocketMessage(message) {
+            if (pendingResetId !== null) {
+                const resetAcknowledged = message.type === 'status' && message.event === 'session_reset' &&
+                    message.resetId === pendingResetId;
+                const freshConnection = message.type === 'connection_ack' && pendingResetSocket !== websocket;
+                // Errors scoped to an asynchronous generation (`area`) belong to the previous encounter's
+                // in-flight work, not to the reset request, so they stay fenced like its other output.
+                const resetFailure = message.type === 'error' && !message.area;
+                if (resetAcknowledged || freshConnection) {
+                    releaseResetFence();
+                } else if (resetFailure) {
+                    // The server answered the reset with an error (e.g. rate limited): the encounter was not
+                    // reset, so surface it and let the user retry instead of silently dropping every reply.
+                    releaseResetFence();
+                    discardProvisionalOutput();
+                    showNotification('The new session request failed and the server did not reset the encounter. Start a new session again before recording; details follow.', 'error');
+                } else if (message.type !== 'connection_ack') {
+                    return; // Includes completed notes, provisional chunks, suggestions, and old reset acknowledgments.
+                }
+            }
             console.log('Server message:', message.type);
 
 	            switch (message.type) {
@@ -324,6 +419,7 @@
                     // Handle streaming text chunks
                     isStreaming = true;
                     const streamType = message.streamType || 'note';
+                    if (!Object.prototype.hasOwnProperty.call(streamBuffers, streamType) || typeof message.text !== 'string') break;
                     streamBuffers[streamType] += message.text;
 
                     if (streamType === 'note') {
@@ -341,10 +437,12 @@
 	                    const completeType = message.streamType || 'note';
 
 		                    if (completeType === 'note') {
-	                        if (typeof message.noteText === 'string') {
+	                        if (typeof message.noteText === 'string' && message.noteText.trim()) {
 	                            currentDraftNote = message.noteText;
 	                        } else {
-	                            currentDraftNote = streamBuffers.note;
+                                discardProvisionalOutput();
+                                showNotification('Incomplete note response; previous output retained.', 'error');
+                                break;
 	                        }
 		                        if (typeof message.analysisText === 'string') {
 		                            currentAiAnalysis = message.analysisText;
@@ -353,7 +451,8 @@
 		                        displaySOAPNote(currentDraftNote);
 		                        markAutosaveDirty();
 		                    } else if (completeType === 'chat') {
-		                        addChatMessage(streamBuffers.chat, 'ai');
+		                        document.getElementById('streamingChatMessage')?.remove();
+	                        addChatMessage(streamBuffers.chat, 'ai');
 		                    } else if (completeType === 'analysis') {
 		                        currentAiAnalysis = streamBuffers.analysis;
 		                        displayDifferentialDiagnosis(currentAiAnalysis);
@@ -422,7 +521,7 @@
                     break;
 
                 case 'error':
-                    isStreaming = false;
+                    if (message.area !== 'suggestions') discardProvisionalOutput();
                     showNotification(message.message || 'An error occurred', 'error');
                     break;
 
@@ -431,13 +530,25 @@
             }
         }
 
+        // Provisional text must never remain looking like a completed clinical result.
+        function discardProvisionalOutput() {
+            isStreaming = false;
+            streamBuffers.note = '';
+            streamBuffers.chat = '';
+            streamBuffers.analysis = '';
+            document.getElementById('streamingChatMessage')?.remove();
+            hideTypingIndicator();
+            displaySOAPNote(currentDraftNote);
+            displayDifferentialDiagnosis(currentAiAnalysis);
+        }
+
         // Streaming display functions
         function displayStreamingNote(text) {
             const output = document.getElementById('soapNoteOutput');
             if (!output) return;
 
             output.innerHTML = `
-                <h4 class="text-accent mb-3">Clinical Note: <span class="streaming-indicator">●</span></h4>
+                <h4 class="text-accent mb-3">Provisional note — not saved: <span class="streaming-indicator">●</span></h4>
                 <div class="ai-content streaming">
                     ${formatAiOutputRaw(text)}
                 </div>
@@ -478,7 +589,7 @@
             if (!output) return;
 
             output.innerHTML = `
-                <h4 class="text-accent mb-3">AI Analysis: <span class="streaming-indicator">●</span></h4>
+                <h4 class="text-accent mb-3">Provisional analysis — not saved: <span class="streaming-indicator">●</span></h4>
                 <div class="ai-content streaming">
                     ${formatAiOutputRaw(text)}
                 </div>
@@ -868,7 +979,7 @@ Atopic dermatitis, [mild/moderate/severe]
 		            resetChatUI();
 		            resetTranscriptionOutputsUI();
 		            sendToServer('start_new_session', {});
-		            showNotification('New chat session started', 'success');
+		            showNotification('New local chat session started; server reset confirmation pending.', 'info');
 		        }
 		
 		        function beginNewTranscriptionSession() {
@@ -879,7 +990,7 @@ Atopic dermatitis, [mild/moderate/severe]
 		            resetTranscriptionOutputsUI();
 		            // Also reset server-side session state
 		            sendToServer('start_new_session', {});
-		            showNotification('New transcription session started', 'success');
+		            showNotification('New local transcription session started; server reset confirmation pending.', 'info');
 		        }
 		
 	        // Mode Selection

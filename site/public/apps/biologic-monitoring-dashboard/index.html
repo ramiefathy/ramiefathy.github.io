@@ -23,9 +23,13 @@
           <h1>Biologic Monitoring Dashboard</h1>
           <p class="cl-page-subtitle">
             Searchable, filterable monitoring guidance for dermatology biologics and systemic immunomodulators. Built from
-            FDA prescribing information and consensus guidelines updated September&nbsp;23,&nbsp;2025. Use it to double-check baseline labs,
-            follow-up cadence, and safety counseling before initiating or refilling therapy.
+            prescribing information and reference literature. Original dataset: September 23, 2025; targeted safety corrections: September 4, 2026. This is not a complete current-label validation.
           </p>
+          <aside id="clinical-safety-notice" class="clinical-safety-notice" aria-label="Clinical reference limitations">
+            <p><strong>Educational reference—not patient-specific prescribing or clearance to start/refill treatment.</strong>
+            Verify the current agent-, indication-, age- and jurisdiction-specific label and local protocol. Condition tags may include off-label uses and do not imply approval for every class member. Risk/intensity badges are descriptive, not validated comparative safety scores.</p>
+            <p>Checklist marks are temporary and unverified, not a patient record or proof that testing was performed. They clear on reload; clear them between encounters. Exports retain safety context and sources. Do not enter patient identifiers.</p>
+          </aside>
           <nav class="jump-nav" aria-label="Jump to section">
             <a href="#controls">Filters</a>
             <a href="#comparison-view">Comparison</a>
@@ -98,6 +102,7 @@
           <div class="action-buttons">
             <button class="primary-btn" type="button" id="view-toggle">Switch to table view</button>
             <button class="secondary-btn" type="button" id="reset-filters">Reset filters</button>
+            <button class="secondary-btn" type="button" id="clear-checklists">Clear temporary checklists</button>
             <button class="secondary-btn" type="button" id="export-csv">Export CSV</button>
           </div>
           <small>Switch views or clear filters to return to the full dataset.</small>
@@ -153,6 +158,6 @@
         sections.forEach(({ target }) => observer.observe(target))
       })
     </script>
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="./bootstrap.js"></script>
   </body>
 </html>

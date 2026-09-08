@@ -1,40 +1,56 @@
-const CACHE_NAME = 'rf-site-static-v1';
-const OFFLINE_ASSETS = [
-  '/',
-  '/style.css',
-  '/favicon.ico',
-  '/favicon.svg'
-];
+// Cache only explicitly public shell assets. Clinical/app/data requests must reach
+// the network, never an old cached monograph, authenticated response, or error page.
+const CACHE_PREFIX = 'rf-site-static-';
+const CACHE_NAME = `${CACHE_PREFIX}v2`;
+const OFFLINE_ASSETS = ['/', '/style.css', '/favicon.ico', '/favicon.svg'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(OFFLINE_ASSETS)).then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.addAll(OFFLINE_ASSETS);
+    } catch (_) { /* Still retire the old worker when offline caching is unavailable. */ }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+      .map((key) => caches.delete(key)));
+    // Other apps own their own caches. Never clear them as a side effect.
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  if (request.method !== 'GET' || !request.url.startsWith(self.location.origin)) return;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.search ||
+      request.headers.has('authorization') || !OFFLINE_ASSETS.includes(url.pathname)) return;
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetchPromise = fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          return response;
-        })
-        .catch(() => cached);
-      return cached || fetchPromise;
-    })
-  );
+  // Network first: a successful visit must not silently show last month's shell.
+  event.respondWith((async () => {
+    try {
+      const response = await fetch(request);
+      if (response.ok && response.type === 'basic' && !response.redirected &&
+          !/\b(?:no-store|private)\b/i.test(response.headers.get('cache-control') || '')) {
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
+        } catch (_) { /* Cache denial/quota must not break a valid network response. */ }
+      }
+      return response;
+    } catch (_) {
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(request);
+        if (cached) return cached;
+      } catch (_) { /* Return an explicit offline error even when storage is denied. */ }
+      return new Response('Offline. Reconnect to load this page.', {
+        status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+      });
+    }
+  })());
 });

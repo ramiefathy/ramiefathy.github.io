@@ -14,12 +14,26 @@ if os.path.exists(dotenv_path):
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Default model for text generation, can be overridden by client
-GEMINI_DEFAULT_MODEL = os.getenv("GEMINI_DEFAULT_MODEL", "models/gemini-2.0-flash-exp") 
-# Specific model for image analysis, should be vision-capable
-GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "models/gemini-2.0-flash-exp") 
-# Potentially a faster model for real-time suggestions
-GEMINI_SUGGESTION_MODEL = os.getenv("GEMINI_SUGGESTION_MODEL", "models/gemini-2.0-flash-exp")
+# Select a currently available model explicitly after validating it for this deployment.
+# Do not silently change a clinical workflow's model or fall back to a retired experiment.
+def _model_id(value: str) -> str:
+    return value.strip().removeprefix("models/")
+
+
+GEMINI_DEFAULT_MODEL = _model_id(os.getenv("GEMINI_DEFAULT_MODEL", ""))
+if not GEMINI_DEFAULT_MODEL:
+    raise RuntimeError(
+        "GEMINI_DEFAULT_MODEL must be set to a deployment-validated model before starting the AI Scribe service."
+    )
+GEMINI_VISION_MODEL = _model_id(os.getenv("GEMINI_VISION_MODEL", "")) or GEMINI_DEFAULT_MODEL
+GEMINI_SUGGESTION_MODEL = _model_id(os.getenv("GEMINI_SUGGESTION_MODEL", "")) or GEMINI_DEFAULT_MODEL
+
+# Client-supplied `modelName` overrides are honored only when listed here; anything else falls
+# back to the server-configured model. The default allowlist is the default model alone.
+GEMINI_ALLOWED_MODELS = frozenset(
+    {GEMINI_DEFAULT_MODEL}
+    | {_model_id(name) for name in os.getenv("GEMINI_ALLOWED_MODELS", "").split(",") if _model_id(name)}
+)
 
 SESSION_SECRET = os.getenv("SESSION_SECRET")
 JWT_SIGNING_SECRET = os.getenv("JWT_SIGNING_SECRET")

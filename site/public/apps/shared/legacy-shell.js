@@ -88,7 +88,7 @@
     wrapper.innerHTML = `
       <div class="legacy-shell__group" role="toolbar" aria-label="Page tools">
         <div class="legacy-shell__title" aria-label="Current tool">
-          <span class="legacy-shell__kicker">Legacy</span>
+          <span class="legacy-shell__kicker">Tool</span>
           <span class="legacy-shell__name"></span>
         </div>
         <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="back" aria-label="Go back">
@@ -97,19 +97,19 @@
         <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="help" aria-label="Open help">
           ${ICONS.help}<span>Help</span>
         </button>
-        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="reset" aria-label="Reset local data for this tool">
-          ${ICONS.reset}<span>Reset</span>
+        <button type="button" class="legacy-shell__action legacy-focus-ring" data-action="reset" aria-label="Reload this tool without deleting saved data">
+          ${ICONS.reset}<span>Reload</span>
         </button>
       </div>
       <div class="legacy-shell__status" aria-live="polite">
-        <span class="legacy-chip" data-chip="saved" data-state="saved">Saved</span>
+        <span class="legacy-chip" data-chip="saved" data-state="ready">Ready</span>
         <span class="legacy-chip" data-chip="network" data-state="saved">Online</span>
-        <span class="legacy-chip" data-chip="time">Updated ${formatTime()}</span>
+        <span class="legacy-chip" data-chip="time">No save confirmed</span>
       </div>
       <div class="legacy-shell__help" aria-hidden="true" id="legacy-shell-help" role="dialog" aria-modal="true" aria-label="In-page help">
         <div class="legacy-shell__help-card">
           <h2>Help</h2>
-          <p>Keyboard: Tab moves between controls, Enter activates. Reset clears local browser state for this tool (useful if something looks stuck).</p>
+          <p>Keyboard: Tab moves between controls; Enter activates. Reload restarts this page and may discard unsaved work. It does not delete saved browser data. Use the tool’s own deletion controls to remove saved records. Online indicates network connectivity, not backend availability or a successful save.</p>
           <div class="legacy-shell__help-actions">
             <button type="button" class="legacy-btn legacy-btn--primary legacy-focus-ring" data-action="close-help">Close</button>
           </div>
@@ -150,11 +150,6 @@
       helpCard.insertBefore(stepsRoot, helpActions)
     }
 
-    const getScopedStorageKeys = () => {
-      const slug = (location.pathname || 'legacy-app').replace(/[^a-z0-9]+/gi, '.').toLowerCase()
-      return Object.keys(localStorage).filter((key) => key.includes(slug) || key.startsWith('legacy-guidance-v1'))
-    }
-
     wrapper.querySelector('[data-action="back"]').addEventListener('click', () => history.back())
     const openHelp = () => {
       helpDialog.setAttribute('aria-hidden', 'false')
@@ -163,17 +158,20 @@
     }
     const closeHelp = () => {
       helpDialog.setAttribute('aria-hidden', 'true')
+      wrapper.querySelector('[data-action="help"]').focus()
     }
 
     wrapper.querySelector('[data-action="help"]').addEventListener('click', openHelp)
     wrapper.querySelector('[data-action="close-help"]').addEventListener('click', closeHelp)
     wrapper.querySelector('[data-action="reset"]').addEventListener('click', () => {
-      const keys = getScopedStorageKeys()
-      keys.forEach((key) => localStorage.removeItem(key))
       window.location.reload()
     })
 
     wrapper.addEventListener('keydown', (event) => {
+      if (event.key === 'Tab' && helpDialog.getAttribute('aria-hidden') === 'false') {
+        event.preventDefault()
+        wrapper.querySelector('[data-action="close-help"]').focus()
+      }
       if (event.key === 'Escape' && helpDialog.getAttribute('aria-hidden') === 'false') {
         event.preventDefault()
         closeHelp()
@@ -193,9 +191,8 @@
     global.LegacyShell = {
       setSaved: statusApi.setSaved
     }
-    document.addEventListener('input', () => statusApi.setSaved(false), { passive: true })
-    document.addEventListener('change', () => statusApi.setSaved(false), { passive: true })
-    statusApi.setSaved(true)
+    // Only the owning application can confirm a save. Search/filter changes
+    // are not persistence events and must not manufacture a saved/unsaved state.
   }
 
   if (document.readyState === 'loading') {

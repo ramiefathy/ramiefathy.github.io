@@ -13,6 +13,7 @@ class Session:
 
     def reset_session_data(self):
         """Resets the data for a new recording/encounter within the same WebSocket session."""
+        self.generation = getattr(self, "generation", 0) + 1
         self.full_transcript = ""
         self.current_draft_note = ""
         self.current_ai_analysis = ""
@@ -24,11 +25,11 @@ class Session:
         logger.info(f"Session data reset for {self.session_id}")
 
     def start_timer(self):
-        self.start_time = time.time()
+        self.start_time = time.monotonic()
 
     def stop_timer(self):
-        if self.start_time:
-            elapsed_seconds = int(time.time() - self.start_time)
+        if self.start_time is not None:
+            elapsed_seconds = max(0, int(time.monotonic() - self.start_time))
             hours = elapsed_seconds // 3600
             minutes = (elapsed_seconds % 3600) // 60
             seconds = elapsed_seconds % 60
@@ -83,7 +84,7 @@ class SessionManager:
     def remove_session(self, session_id):
         if session_id in self.sessions:
             session = self.sessions[session_id]
-            if session.start_time: # Ensure timer is stopped if session is removed abruptly
+            if session.start_time is not None: # Ensure timer is stopped if session is removed abruptly
                 session.stop_timer()
             del self.sessions[session_id]
             logger.info(f"Session removed: {session_id}")
