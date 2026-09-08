@@ -92,7 +92,10 @@ test('command palette closes on Escape', async ({ page }) => {
   await page.goto('/')
   await waitForHeaderHydration(page)
   await page.getByRole('button', { name: /navigate/i }).click()
-  await expect(page.getByRole('dialog', { name: /navigate this site/i })).toBeVisible()
+  const dialog = page.getByRole('dialog', { name: /navigate this site/i })
+  await expect(dialog).toBeVisible()
+  // Escape is handled by the dialog, so wait for its scheduled input focus.
+  await expect(dialog.getByRole('combobox')).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog', { name: /navigate this site/i })).toHaveCount(0)
 })
@@ -119,6 +122,9 @@ test('command palette closes on Escape after Tab moves focus to a result', async
   await page.getByRole('button', { name: /navigate/i }).click()
   const dialog = page.getByRole('dialog', { name: /navigate this site/i })
   await expect(dialog).toBeVisible()
+  // Opening focuses the input on the next animation frame; visibility alone
+  // does not mean Tab will start there. Assert readiness without forcing focus.
+  await expect(dialog.getByRole('combobox')).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(dialog.getByRole('option').first()).toBeFocused()
   await page.keyboard.press('Escape')
