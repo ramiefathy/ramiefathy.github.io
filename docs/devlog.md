@@ -1,5 +1,22 @@
 # Devlog — ramiefathy.github.io
 
+## [2026-09-07] PR #184 follow-up: scribe reset-fence liveness, clinical record corrections, model allowlist
+
+**What changed.** Second adversarial pass over the clinical-reference safety branch. The dermatology scribe's reset fence now releases on a server error or a 10 s acknowledgment timeout (discarding provisional output and telling the user to retry), is armed only after the reset was actually sent, and no longer orphans CONNECTING sockets; the backend exempts `start_new_session` from the rate limiter. The AI scribe honors a client `modelName` only when it is in `GEMINI_ALLOWED_MODELS`, fails to start without `GEMINI_DEFAULT_MODEL`, and tolerates trailing candidate-less stream chunks only after STOP. The biologic monitoring dashboard received ten targeted record corrections (ustekinumab, IVIG, mycophenolate, methotrexate, baricitinib, hydroxychloroquine, cyclosporine, dupilumab family, TNF inhibitors, IL-17 class), the isotretinoin iPLEDGE status was rewritten as dated FDA history, the validator was tightened, reference chips are escaped, and the safety notice prints. The dermoscopy evidence contract reconciles model/arm summaries against per-pair aggregates and rejects non-canonical arm encodings. Legacy app help text now describes the shell's real Help/Reload controls. CI audits with `--audit-level=high --omit=dev` and annotates pinned action SHAs with their versions.
+
+**Why.** The fence dropped every non-acknowledgment message, so a rate-limited reset fenced the encounter forever; the iPLEDGE text carried a present-tense "as of" date that would silently go stale; several monitoring records asserted unsourced thresholds or omitted boxed warnings; a client could pick any provider model name; and `.hero p { display:none }` hid the printed safety notice.
+
+**Key decisions.**
+- Errors scoped to an asynchronous generation (`area: "suggestions"` / `"stream"`) stay fenced because they belong to the previous encounter's in-flight work, not to the reset; only un-scoped errors release the fence.
+- `start_new_session` is exempted from the rate limiter rather than answered with a synthetic acknowledgment, because it does no provider work.
+- The default model allowlist is the default model alone; rejections are logged by class, never by value.
+- The IL-17 class card keeps class-level badges (the schema has no per-agent badges) but a per-record `warningFlagNotes` field scopes the boxed-warning and REMS tooltips to brodalumab.
+- Corrected records carry `safetyReview` dated 2026-09-07; `safetyRevision` is bumped; the original dataset date is unchanged.
+
+**Verification.** Vitest 307 → 348 tests across 38 files; backend pytest 58 → 87; `python -m compileall`; Playwright `scribe-encounter-boundary.spec.ts` (9) and `clinical-reference-safety.spec.ts` (19) against the built preview with a locally available Chromium build. The three genuinely new scribe behaviors were confirmed red against the pre-fix client before the fix.
+
+---
+
 ## [2026-05-04] Production browser smoke: dermatopathology PDF export fix
 
 **What changed.** Direct production browser testing found that Dermatopathology Differentials could select findings and export XLSX files, but PDF export failed at runtime because the static app loaded vendored ESM builds with bare package specifiers. Switched the PDF export path to browser-safe UMD assets for jsPDF and jsPDF-AutoTable, loaded through a small script loader, and added a Playwright regression that selects a finding and asserts a PDF download. The same production sweep also found `/apps/` mobile horizontal overflow from the closed off-canvas navigation drawer and apps toolbar search row; the drawer is now removed from layout until open, and the apps toolbar/search row has mobile width constraints.
