@@ -1,10 +1,18 @@
+/** Arms are small positive integers; only an integer or its exact canonical decimal string is accepted. */
+function parseArm(value) {
+  if (typeof value === 'number') return Number.isSafeInteger(value) ? value : NaN;
+  if (typeof value === 'string' && /^[1-9]\d*$/.test(value)) return Number(value);
+  return NaN; // Booleans, arrays, padded or zero-padded strings, and other aliases never resolve to an arm.
+}
+const closeTo = (value, expected) => typeof value === 'number' && Number.isFinite(value) && Math.abs(value - expected) <= 0.000001;
+
 /** Validate the shipped image-level pairing contract, not generalizability to patients. */
 export function validateEvidence(payload) {
   const count = payload?.overallStats?.uniqueImages;
   if (!Number.isSafeInteger(count) || count < 1 || payload?.cases?.count !== count) throw new Error('Invalid unique-image denominator.');
   if (!Array.isArray(payload.modelSummary) || !Array.isArray(payload.armSummary) || !Array.isArray(payload.modelArmTradeoffs) || !Array.isArray(payload.cases.correctByModelArm)) throw new Error('Incomplete evaluation data.');
   const modelIds = payload.modelSummary.map((row) => row?.model);
-  const armIds = payload.armSummary.map((row) => Number(row?.arm));
+  const armIds = payload.armSummary.map((row) => parseArm(row?.arm));
   const models = new Set(modelIds);
   const arms = new Set(armIds);
   if (!models.size || !arms.size || models.size !== modelIds.length || arms.size !== armIds.length ||
@@ -14,8 +22,8 @@ export function validateEvidence(payload) {
     throw new Error('Invalid model or arm inventory.');
   }
   // Canonical keys prevent numeric/string arm aliases from concealing duplicate pairs.
-  const keyOf = (row) => JSON.stringify([row.model, Number(row.arm)]);
-  const knownPair = (row) => row && models.has(row.model) && arms.has(Number(row.arm));
+  const keyOf = (row) => JSON.stringify([row.model, parseArm(row.arm)]);
+  const knownPair = (row) => row && models.has(row.model) && arms.has(parseArm(row.arm));
   const aggregates = new Map();
   for (const aggregate of payload.modelArmTradeoffs) {
     if (!knownPair(aggregate) || aggregates.has(keyOf(aggregate))) throw new Error('Duplicate or unpaired aggregate row.');
@@ -37,5 +45,24 @@ export function validateEvidence(payload) {
   }
   if (seen.size !== models.size * arms.size || aggregates.size !== seen.size ||
       payload.overallStats.totalTrials !== count * seen.size) throw new Error('Evaluation denominator mismatch.');
+  // Per-model and per-arm summaries must be the sums of the reconciled per-pair aggregates.
+  const byModel = new Map(modelIds.map((model) => [model, { correct: 0, trials: 0 }]));
+  const byArm = new Map(armIds.map((arm) => [arm, { correct: 0, trials: 0 }]));
+  for (const aggregate of aggregates.values()) {
+    const model = byModel.get(aggregate.model);
+    const arm = byArm.get(parseArm(aggregate.arm));
+    model.correct += aggregate.correct; model.trials += aggregate.n_trials;
+    arm.correct += aggregate.correct; arm.trials += aggregate.n_trials;
+  }
+  for (const row of payload.modelSummary) {
+    const sums = byModel.get(row.model);
+    if (row.n_trials !== sums.trials || row.correct !== sums.correct || !closeTo(row.accuracy, sums.correct / sums.trials) ||
+        (row.total !== undefined && row.total !== sums.trials)) throw new Error('Model summary disagrees with per-arm counts.');
+  }
+  for (const row of payload.armSummary) {
+    const sums = byArm.get(parseArm(row.arm));
+    if (row.n_trials !== sums.trials || !closeTo(row.accuracy, sums.correct / sums.trials) ||
+        (row.correct !== undefined && row.correct !== sums.correct)) throw new Error('Arm summary disagrees with per-model counts.');
+  }
   return true;
 }
