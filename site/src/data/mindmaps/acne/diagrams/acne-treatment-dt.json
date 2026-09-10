@@ -5,33 +5,105 @@
   "subtitle": "Comedonal, inflammatory, nodulocystic, and special populations",
   "type": "decision-tree",
   "data": {
-    "start": "start",
+    "start": "pregnancy",
     "steps": [
-      { "id": "start", "type": "decision", "prompt": "Are nodules, cysts, scarring, severe truncal acne, or major psychosocial distress present?", "branches": [
-        { "label": "Yes", "nextStepId": "isotretinoin" },
-        { "label": "No", "nextStepId": "pregnancy" }
-      ] },
-      { "id": "isotretinoin", "type": "terminal", "prompt": "Isotretinoin/referral pathway" },
-      { "id": "pregnancy", "type": "decision", "prompt": "Pregnant, trying pregnancy, or avoiding teratogenic agents?", "branches": [
-        { "label": "Yes", "nextStepId": "preg-safe" },
-        { "label": "No", "nextStepId": "morphology" }
-      ] },
-      { "id": "preg-safe", "type": "terminal", "prompt": "Pregnancy-compatible topical/antibiotic pathway" },
-      { "id": "morphology", "type": "decision", "prompt": "Predominantly comedonal or inflammatory papules/pustules?", "branches": [
-        { "label": "Comedonal", "nextStepId": "comedonal" },
-        { "label": "Inflammatory", "nextStepId": "inflammatory" }
-      ] },
-      { "id": "comedonal", "type": "terminal", "prompt": "Topical retinoid + benzoyl peroxide as tolerated" },
-      { "id": "inflammatory", "type": "decision", "prompt": "Moderate/widespread inflammatory disease or truncal involvement?", "branches": [
-        { "label": "Yes", "nextStepId": "oral" },
-        { "label": "No", "nextStepId": "combo" }
-      ] },
-      { "id": "combo", "type": "terminal", "prompt": "Topical retinoid + benzoyl peroxide ± topical antibiotic" },
-      { "id": "oral", "type": "terminal", "prompt": "Add limited-duration oral antibiotic or hormonal therapy when appropriate" }
+      {
+        "id": "start",
+        "type": "decision",
+        "prompt": "Are nodules, cysts, scarring, severe truncal acne, or major psychosocial distress present?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "isotretinoin"
+          },
+          {
+            "label": "No",
+            "nextStepId": "morphology"
+          }
+        ]
+      },
+      {
+        "id": "isotretinoin",
+        "type": "terminal",
+        "prompt": "Isotretinoin/referral pathway",
+        "detail": "Assess eligibility, contraindications, current pregnancy-prevention requirements and monitoring before prescribing. Severe disease in pregnancy requires specialist alternatives, not isotretinoin."
+      },
+      {
+        "id": "pregnancy",
+        "type": "decision",
+        "prompt": "Pregnant, trying pregnancy, or avoiding teratogenic agents?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "preg-safe"
+          },
+          {
+            "label": "No",
+            "nextStepId": "start"
+          }
+        ]
+      },
+      {
+        "id": "preg-safe",
+        "type": "terminal",
+        "prompt": "Pregnancy-compatible topical/antibiotic pathway",
+        "detail": "Do not use isotretinoin during pregnancy. Choose treatment with pregnancy-specific review; tetracyclines, topical retinoids and antiandrogens are not interchangeable with pregnancy-compatible options."
+      },
+      {
+        "id": "morphology",
+        "type": "decision",
+        "prompt": "Predominantly comedonal or inflammatory papules/pustules?",
+        "branches": [
+          {
+            "label": "Comedonal",
+            "nextStepId": "comedonal"
+          },
+          {
+            "label": "Inflammatory",
+            "nextStepId": "inflammatory"
+          }
+        ]
+      },
+      {
+        "id": "comedonal",
+        "type": "terminal",
+        "prompt": "Topical retinoid + benzoyl peroxide as tolerated"
+      },
+      {
+        "id": "inflammatory",
+        "type": "decision",
+        "prompt": "Moderate/widespread inflammatory disease or truncal involvement?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "oral"
+          },
+          {
+            "label": "No",
+            "nextStepId": "combo"
+          }
+        ]
+      },
+      {
+        "id": "combo",
+        "type": "terminal",
+        "prompt": "Topical retinoid + benzoyl peroxide ± topical antibiotic"
+      },
+      {
+        "id": "oral",
+        "type": "terminal",
+        "prompt": "Add limited-duration oral antibiotic or hormonal therapy when appropriate"
+      }
     ]
   },
   "citations": [
-    { "pmid": "38300170", "quote": "AAD acne guideline: strong recommendations for benzoyl peroxide, topical retinoids, topical antibiotics, oral doxycycline, and oral isotretinoin for severe acne." },
-    { "url": "https://www.aad.org/member/clinical-quality/guidelines/acne", "quote": "AAD acne guideline hub provides the current management guideline and implementation resources for acne vulgaris." }
+    {
+      "pmid": "38300170",
+      "quote": "AAD acne guideline: strong recommendations for benzoyl peroxide, topical retinoids, topical antibiotics, oral doxycycline, and oral isotretinoin for severe acne."
+    },
+    {
+      "url": "https://www.aad.org/member/clinical-quality/guidelines/acne",
+      "quote": "AAD acne guideline hub provides the current management guideline and implementation resources for acne vulgaris."
+    }
   ]
 }

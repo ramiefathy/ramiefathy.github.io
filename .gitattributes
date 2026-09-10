@@ -1,3 +1,9 @@
+# Source parsers and content hashes require identical text checkouts across platforms.
+* text=auto eol=lf
 *.pdf filter=lfs diff=lfs merge=lfs -text
 *.mp3 filter=lfs diff=lfs merge=lfs -text
 *.mp4 filter=lfs diff=lfs merge=lfs -text
+
+# Captured responses and vendored releases preserve upstream bytes, including mixed EOL.
+site/public/apps/vendor/** -text
+site/public/apps/dermatotarget-atlas/data/source-evidence/** -text

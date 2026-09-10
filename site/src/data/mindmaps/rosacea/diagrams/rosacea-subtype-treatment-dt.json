@@ -7,26 +7,85 @@
   "data": {
     "start": "start",
     "steps": [
-      { "id": "start", "type": "decision", "prompt": "Are ocular symptoms present: gritty eyes, blepharitis, conjunctivitis, keratitis symptoms?", "branches": [
-        { "label": "Yes", "nextStepId": "ocular" },
-        { "label": "No", "nextStepId": "phyma" }
-      ] },
-      { "id": "ocular", "type": "terminal", "prompt": "Ocular rosacea: lid hygiene, topical/systemic therapy, ophthalmology if keratitis risk" },
-      { "id": "phyma", "type": "decision", "prompt": "Is phymatous thickening or rhinophyma present?", "branches": [
-        { "label": "Yes", "nextStepId": "phymatous" },
-        { "label": "No", "nextStepId": "papules" }
-      ] },
-      { "id": "phymatous", "type": "terminal", "prompt": "Phymatous rosacea: medical control plus procedural/surgical discussion" },
-      { "id": "papules", "type": "decision", "prompt": "Are inflammatory papules or pustules present?", "branches": [
-        { "label": "Yes", "nextStepId": "papulopustular" },
-        { "label": "No", "nextStepId": "erythema" }
-      ] },
-      { "id": "papulopustular", "type": "terminal", "prompt": "Papulopustular rosacea: topical ivermectin/metronidazole/azelaic acid ± oral doxycycline" },
-      { "id": "erythema", "type": "terminal", "prompt": "Erythematotelangiectatic rosacea: trigger control, vasoconstrictor, laser/light discussion" }
+      {
+        "id": "start",
+        "type": "decision",
+        "prompt": "Are ocular symptoms present: gritty eyes, blepharitis, conjunctivitis, keratitis symptoms?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "ocular"
+          },
+          {
+            "label": "No",
+            "nextStepId": "phyma"
+          }
+        ]
+      },
+      {
+        "id": "ocular",
+        "type": "terminal",
+        "prompt": "Ocular rosacea: lid hygiene, topical/systemic therapy, ophthalmology if keratitis risk",
+        "detail": "Pain, photophobia, corneal symptoms or reduced vision warrant urgent ophthalmic assessment. Rosacea phenotypes can coexist. Evaluate and treat other present ocular and cutaneous features rather than treating this branch as mutually exclusive."
+      },
+      {
+        "id": "phyma",
+        "type": "decision",
+        "prompt": "Is phymatous thickening or rhinophyma present?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "phymatous"
+          },
+          {
+            "label": "No",
+            "nextStepId": "papules"
+          }
+        ]
+      },
+      {
+        "id": "phymatous",
+        "type": "terminal",
+        "prompt": "Phymatous rosacea: medical control plus procedural/surgical discussion",
+        "detail": "Rosacea phenotypes can coexist. Evaluate and treat other present ocular and cutaneous features rather than treating this branch as mutually exclusive."
+      },
+      {
+        "id": "papules",
+        "type": "decision",
+        "prompt": "Are inflammatory papules or pustules present?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "papulopustular"
+          },
+          {
+            "label": "No",
+            "nextStepId": "erythema"
+          }
+        ]
+      },
+      {
+        "id": "papulopustular",
+        "type": "terminal",
+        "prompt": "Papulopustular rosacea: topical ivermectin/metronidazole/azelaic acid ± oral doxycycline",
+        "detail": "Rosacea phenotypes can coexist. Evaluate and treat other present ocular and cutaneous features rather than treating this branch as mutually exclusive."
+      },
+      {
+        "id": "erythema",
+        "type": "terminal",
+        "prompt": "Erythematotelangiectatic rosacea: trigger control, vasoconstrictor, laser/light discussion",
+        "detail": "Rosacea phenotypes can coexist. Evaluate and treat other present ocular and cutaneous features rather than treating this branch as mutually exclusive."
+      }
     ]
   },
   "citations": [
-    { "pmid": "31392722", "quote": "ROSCO 2019 recommends a phenotype approach for rosacea diagnosis, classification, and management." },
-    { "pmid": "30585305", "quote": "Rosacea systematic review supports phenotype-led interventions including topical ivermectin/azelaic acid/metronidazole, doxycycline, laser/light, and ocular therapy." }
+    {
+      "pmid": "31392722",
+      "quote": "ROSCO 2019 recommends a phenotype approach for rosacea diagnosis, classification, and management."
+    },
+    {
+      "pmid": "30585305",
+      "quote": "Rosacea systematic review supports phenotype-led interventions including topical ivermectin/azelaic acid/metronidazole, doxycycline, laser/light, and ocular therapy."
+    }
   ]
 }

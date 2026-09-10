@@ -7,31 +7,102 @@
   "data": {
     "start": "start",
     "steps": [
-      { "id": "start", "type": "decision", "prompt": "Are follicular ostia absent with white scar-like areas?", "branches": [
-        { "label": "Yes", "nextStepId": "scarring" },
-        { "label": "No", "nextStepId": "yellow" }
-      ] },
-      { "id": "scarring", "type": "terminal", "prompt": "Cicatricial alopecia: subtype by perifollicular scale, erythema, pustules" },
-      { "id": "yellow", "type": "decision", "prompt": "Are yellow dots, black dots, exclamation hairs, or tapered hairs present?", "branches": [
-        { "label": "Yes", "nextStepId": "aa" },
-        { "label": "No", "nextStepId": "variation" }
-      ] },
-      { "id": "aa", "type": "terminal", "prompt": "Alopecia areata pattern" },
-      { "id": "variation", "type": "decision", "prompt": "Is hair shaft diameter diversity/miniaturization prominent?", "branches": [
-        { "label": "Yes", "nextStepId": "aga" },
-        { "label": "No", "nextStepId": "scale" }
-      ] },
-      { "id": "aga", "type": "terminal", "prompt": "Pattern hair loss pattern" },
-      { "id": "scale", "type": "decision", "prompt": "Is there comma/corkscrew hair, broken hairs, or diffuse scale?", "branches": [
-        { "label": "Yes", "nextStepId": "tinea" },
-        { "label": "No", "nextStepId": "te" }
-      ] },
-      { "id": "tinea", "type": "terminal", "prompt": "Tinea capitis / hair shaft infection workup" },
-      { "id": "te", "type": "terminal", "prompt": "TE or nonspecific shedding pattern" }
+      {
+        "id": "start",
+        "type": "decision",
+        "prompt": "Are follicular ostia absent with white scar-like areas?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "scarring"
+          },
+          {
+            "label": "No",
+            "nextStepId": "yellow"
+          }
+        ]
+      },
+      {
+        "id": "scarring",
+        "type": "terminal",
+        "prompt": "Cicatricial alopecia: subtype by perifollicular scale, erythema, pustules"
+      },
+      {
+        "id": "yellow",
+        "type": "decision",
+        "prompt": "Does the combined clinical and trichoscopic pattern favor alopecia areata?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "aa"
+          },
+          {
+            "label": "No",
+            "nextStepId": "variation"
+          }
+        ],
+        "detail": "Yellow or black dots alone are nonspecific. Exclamation/tapered hairs support AA but must be interpreted alongside scale, broken shafts, distribution, and other diagnoses."
+      },
+      {
+        "id": "aa",
+        "type": "terminal",
+        "prompt": "Alopecia areata pattern"
+      },
+      {
+        "id": "variation",
+        "type": "decision",
+        "prompt": "Is hair shaft diameter diversity/miniaturization prominent?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "aga"
+          },
+          {
+            "label": "No",
+            "nextStepId": "scale"
+          }
+        ]
+      },
+      {
+        "id": "aga",
+        "type": "terminal",
+        "prompt": "Pattern hair loss pattern"
+      },
+      {
+        "id": "scale",
+        "type": "decision",
+        "prompt": "Is there comma/corkscrew hair, broken hairs, or diffuse scale?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "tinea"
+          },
+          {
+            "label": "No",
+            "nextStepId": "te"
+          }
+        ]
+      },
+      {
+        "id": "tinea",
+        "type": "terminal",
+        "prompt": "Tinea capitis / hair shaft infection workup"
+      },
+      {
+        "id": "te",
+        "type": "terminal",
+        "prompt": "Nonspecific pattern: reassess differential; TE is not established by exclusion of these few signs"
+      }
     ]
   },
   "citations": [
-    { "pmid": "24778525", "quote": "Trichoscopy in alopecias: diagnosis simplified. Int J Trichology. 2014." },
-    { "pmid": "37357664", "quote": "Trichoscopy pattern in alopecia areata: systematic review and meta-analysis. Skin Res Technol. 2023." }
+    {
+      "pmid": "24778525",
+      "quote": "Trichoscopy in alopecias: diagnosis simplified. Int J Trichology. 2014."
+    },
+    {
+      "pmid": "37357664",
+      "quote": "Trichoscopy pattern in alopecia areata: systematic review and meta-analysis. Skin Res Technol. 2023."
+    }
   ]
 }

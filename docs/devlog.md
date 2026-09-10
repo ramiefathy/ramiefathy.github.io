@@ -1,5 +1,27 @@
 # Devlog — ramiefathy.github.io
 
+## [2026-09-07] Clinical-atlas review follow-up: restored content, replayable ledger, provenance alignment
+
+Restored real clinical content where the 2026-09-05 review had flattened nodes
+into identical placeholders (CTCL treatment-by-stage IIB/III/IV/SS, psoriasis
+biologic-class onset/efficacy/TB/pregnancy cells, pigmented-lesion triage start
+decision, Hurley I–III treatment, pruritus by cause) and corrected mogamulizumab
+to its labeled relapsed/refractory indication in every CTCL surface. Stated the
+2022 absolute B2 criteria, removed audit-process language and orphaned `\[n\]`
+markers from user-facing mind maps, and de-duplicated the legacy CTCL tooltips.
+The correction ledger grew from 659 to 714 hash-bound records; the replay test
+now resolves every JSON pointer (with supersession) against the current files
+and pins the ledger by sequential ids, count and SHA-256. Immune atlas: the
+immune-complex row is graded by its remaining sources (C/3), all curated
+editorial keys resolve, endotype-specific rejection reasons are recorded,
+and "direct"/"derived" agree across the alternative views and P1 provenance.
+DermatoTarget wording/guards tightened; the PubMed gate covers republication,
+update and partial-retraction states with optional NCBI identity. Docs and CI
+updated. No Chromium is available in the remote sandbox, so the Playwright
+suites were not executed there; the volume-lens counts were recomputed in the
+JSDOM harness and are unchanged. See the 2026-09-07 follow-up in
+`audits/2026-09-05-atlas-scientific-integration.md`.
+
 ## [2026-09-07] PR #184 follow-up: scribe reset-fence liveness, clinical record corrections, model allowlist
 
 **What changed.** Second adversarial pass over the clinical-reference safety branch. The dermatology scribe's reset fence now releases on a server error or a 10 s acknowledgment timeout (discarding provisional output and telling the user to retry), is armed only after the reset was actually sent, and no longer orphans CONNECTING sockets; the backend exempts `start_new_session` from the rate limiter. The AI scribe honors a client `modelName` only when it is in `GEMINI_ALLOWED_MODELS`, fails to start without `GEMINI_DEFAULT_MODEL`, and tolerates trailing candidate-less stream chunks only after STOP. The biologic monitoring dashboard received ten targeted record corrections (ustekinumab, IVIG, mycophenolate, methotrexate, baricitinib, hydroxychloroquine, cyclosporine, dupilumab family, TNF inhibitors, IL-17 class), the isotretinoin iPLEDGE status was rewritten as dated FDA history, the validator was tightened, reference chips are escaped, and the safety notice prints. The dermoscopy evidence contract reconciles model/arm summaries against per-pair aggregates and rejects non-canonical arm encodings. Legacy app help text now describes the shell's real Help/Reload controls. CI audits with `--audit-level=high --omit=dev` and annotates pinned action SHAs with their versions.
@@ -16,6 +38,28 @@
 **Verification.** Vitest 307 → 348 tests across 38 files; backend pytest 58 → 87; `python -m compileall`; Playwright `scribe-encounter-boundary.spec.ts` (9) and `clinical-reference-safety.spec.ts` (19) against the built preview with a locally available Chromium build. The three genuinely new scribe behaviors were confirmed red against the pre-fix client before the fix.
 
 ---
+
+## [2026-09-05] Preserve Atlas indication context and review primary-trial scope
+
+Fixed disease-ranked target links that silently opened another indication. Added
+native gene links, keyboard sorting with aria-sort/focus retention, and explicit
+unknown-disease errors. Added seven bounded connective-tissue primary-abstract
+records, preserving negative primary comparisons and organ/endpoint limits.
+Two indexed publication-correction holds remain unresolved and visible in the
+workbench and exports. No historical scores or human-approval flags are promoted.
+See `audits/2026-09-05-atlas-context-and-trial-review.md` for exact scope and receipts.
+
+## [2026-09-05] Atlas integration: reachable controls and trial-scoped evidence
+
+Reconciled integrated Atlas browser failures: moved camera buttons out of the help
+overlay, preserved responsive camera presets, retained captured touch gestures,
+and restored visible programmatic focus. Added five bounded vasculitis RCT
+assertions with explicit population, comparison, endpoint and uncertainty;
+these remain separate from synthesis scores and human approval. Hardened the
+PubMed identity/excerpt gate with offline failure-injection tests in CI (36 test
+methods / 125 subtests after the 2026-09-07 follow-up).
+Exact-head browser and live-source receipts are tracked in PR #186; no production
+merge or clinical certification is implied. See the scientific integration audit.
 
 ## [2026-05-04] Production browser smoke: dermatopathology PDF export fix
 
@@ -248,3 +292,19 @@
 - Final Codex adversarial review pending.
 
 ---
+
+## 2026-09-05 — Atlas integration and scoped primary-source review
+
+Integrated the PR #175 scientific/governance layers with PR #186's clinical-effect
+quarantine and source workbench. Fixed initialization, scope normalization,
+false curator/consensus promotion, cross-endotype steroid copying, exact record
+selection, filtered exports, clipboard failure handling and non-drag controls.
+Added five explicitly bounded vasculitis mechanism assertions and PubMed identity/
+excerpt checks. See `docs/audits/2026-09-05-atlas-scientific-integration.md` for
+inputs, accounting and remaining clinical-validation limits. Final browser and
+CI receipts are recorded against the reviewed PR head, not assumed here.
+
+
+## 2026-09-05: Publication-hold surveillance and desktop portability
+
+Expanded primary-source checks to include held trials and their correction notices, with exact identity and reciprocal-link checks that cannot clear clinical holds. Examined the March 2021 focuSSced table-cell correction without accepting either held trial. The source workbench and filtered exports now preserve notice-specific review status. Added Python, unit and browser regressions, LF checkout boundaries and explicit UTF-8 artifact generation. See `audits/2026-09-05-publication-hold-surveillance.md`; exact-head CI receipts are recorded on PR #186. No master merge or production release.
