@@ -268,6 +268,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "file": "site/public/apps/countcraft-blackjack-academy/index.html",
       "category": "internal-unlisted",
       "requiresDownloads": false
+    },
+    {
+      "label": "Research field notes (unlisted, noindex)",
+      "route": "/research/field-notes-7c9f2e4a/",
+      "file": "site/public/research/field-notes-7c9f2e4a/index.html",
+      "category": "research-unlisted",
+      "requiresDownloads": false
     }
   ],
   "unlistedAstroRoutes": [

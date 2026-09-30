@@ -152,4 +152,31 @@ describe('Unlisted surfaces remain unlinked', () => {
 
     expect(offenders, `Unlisted Astro route policy failures:\n${offenders.join('\n')}`).toEqual([])
   })
+
+  it('keeps the research field notes noindex and unlinked', () => {
+    const SITE_ROOT = path.resolve(process.cwd())
+    const REPO_ROOT = path.resolve(SITE_ROOT, '..')
+    const route = '/research/field-notes-7c9f2e4a/'
+    const page = path.resolve(SITE_ROOT, 'public/research/field-notes-7c9f2e4a/index.html')
+    const inventory = path.resolve(REPO_ROOT, 'docs/site-test-inventory.md')
+    const html = fs.readFileSync(page, 'utf-8')
+
+    expect(html).toContain('name="robots" content="noindex, nofollow, noarchive"')
+
+    const offenders: string[] = []
+    const allowedFiles = new Set([page, inventory])
+    const routePattern = /(?:href|action)\s*=\s*["'][^"']*\/research\/field-notes-7c9f2e4a\//i
+    for (const root of [path.join(SITE_ROOT, 'src'), path.join(SITE_ROOT, 'public')]) {
+      for (const file of walkFiles(root)) {
+        if (allowedFiles.has(path.resolve(file))) continue
+        const ext = path.extname(file).toLowerCase()
+        if (!['.html', '.htm', '.js', '.ts', '.tsx', '.jsx', '.md', '.astro', '.json'].includes(ext)) continue
+        if (routePattern.test(fs.readFileSync(file, 'utf-8'))) {
+          offenders.push(path.relative(REPO_ROOT, file))
+        }
+      }
+    }
+
+    expect(offenders, `Found links to ${route} (must be unlinked):\n${offenders.join('\n')}`).toEqual([])
+  })
 })
