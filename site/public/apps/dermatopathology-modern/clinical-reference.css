@@ -548,7 +548,7 @@ body[data-legacy-shell='true'] .dpn-stage__title h2 {
 }
 
 
-.dpn-network svg {
+.dpn-network > svg {
   display: block;
   width: 100%;
   /* One finger scrolls the page; the browser leaves pinch to d3, which pans/zooms only on two-finger touches. */
@@ -697,6 +697,111 @@ body[data-legacy-shell='true'] .dpn-stage__title h2 {
   width: 18px;
   height: 18px;
   overflow: visible;
+}
+
+/* Readout: the full name of the highlighted/selected diagnosis, sized in page pixels so it never
+   scales down with a dense graph. */
+.dpn-readout {
+  display: grid;
+  gap: 0.15rem;
+  min-height: 4.6rem;
+  margin-bottom: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--dpn-rule);
+  border-left: 3px solid var(--dpn-ink);
+  background: var(--dpn-plate);
+  align-content: center;
+}
+
+.dpn-readout__name {
+  font: 600 1.125rem/1.25 var(--font-heading);
+  letter-spacing: -0.01em;
+  color: var(--dpn-ink);
+  overflow-wrap: anywhere;
+}
+
+.dpn-readout__meta {
+  font: 400 0.8125rem/1.4 var(--font-mono);
+  color: var(--dpn-muted);
+}
+
+.dpn-readout__hint {
+  font: italic 400 1rem/1.4 var(--font-body);
+  color: var(--dpn-muted);
+}
+
+/* Phone: full-name diagnosis list and details directly under the network. */
+.dpn-stage__details {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.dpn-stage__details .dpn-panel + .dpn-panel {
+  margin-top: 0;
+}
+
+.dpn-strip .dpn-kicker {
+  margin-bottom: 0.4rem;
+}
+
+.dpn-strip ul {
+  max-height: 15rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--dpn-rule);
+  background: var(--dpn-plate);
+  scrollbar-width: thin;
+}
+
+.dpn-strip li + li {
+  border-top: 1px solid var(--dpn-rule);
+}
+
+.dpn-strip button {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.75rem;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--dpn-ink-2);
+  font: 400 1rem/1.3 var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dpn-strip button[aria-pressed='true'] {
+  border-left-color: var(--dpn-accent);
+  background: var(--dpn-accent-wash);
+  color: var(--dpn-ink);
+  font-weight: 600;
+}
+
+.dpn-strip__n {
+  flex: 0 0 auto;
+  font: 400 0.75rem/1 var(--font-mono);
+  color: var(--dpn-muted);
+}
+
+/* Expanded network: the pattern browser and secondary panels step aside; details stay in a slim drawer. */
+.dpn-layout.is-expanded {
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 18rem);
+}
+
+.dpn-layout.is-expanded .dpn-inspector {
+  position: sticky;
+  top: 5.5rem;
+  display: block;
+  grid-column: auto;
+  max-height: calc(100vh - 6.5rem);
+  overflow-y: auto;
 }
 
 /* ---- List view ----------------------------------------------------------- */

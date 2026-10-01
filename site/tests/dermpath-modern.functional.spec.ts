@@ -330,6 +330,133 @@ test.describe('Dermatopathology Navigator (modern legacy HTML) (functional)', ()
     })
   }
 
+  const VESICLES = '#f=' + encodeURIComponent('Vesicles/Bullae (Comprehensive DDx)')
+  const LONG_DX = 'Subcorneal pustular dermatosis (Sneddon-Wilkinson)'
+
+  test('the network readout shows the complete name of the focused, hovered or selected diagnosis', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page, VESICLES)
+    const readout = page.getByTestId('network-readout')
+    await expect(readout).toContainText(/select a diagnosis/i)
+
+    const node = page.locator(`[data-testid="dx-network"] [data-node="dx"][data-name="${LONG_DX}"]`)
+    // The ring label is abbreviated; the readout must not be.
+    await expect(node.locator('.dpn-node__label')).toHaveText(/…$/)
+
+    await node.focus()
+    await expect(readout).toContainText(LONG_DX)
+    await expect(readout).toContainText(/also listed in \d+ other patterns?|only listed here in this reference/i)
+
+    await page.locator('[data-testid="dx-network"] [data-node="dx"][data-name="Bullous pemphigoid"] circle.dpn-node__dot').click()
+    await page.mouse.move(2, 2)
+    await page.locator('h1').click()
+    await expect(readout).toContainText('Bullous pemphigoid')
+    await expect(readout).toContainText(/selected/i)
+
+    runtime.assertClean()
+  })
+
+  test('readout text stays at a readable size when the dense graph is scaled down on a narrow phone', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.setViewportSize({ width: 320, height: 800 })
+    await openNavigator(page, VESICLES)
+    const name = page.getByTestId('network-readout').locator('[data-readout-name]')
+    const size = await name.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))
+    expect(size).toBeGreaterThanOrEqual(16)
+    runtime.assertClean()
+  })
+
+  test('expanded network mode hides side panels, keeps details in a drawer and exits with Escape', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page, VESICLES)
+    const svg = page.getByTestId('dx-network')
+    const before = (await svg.boundingBox())?.width ?? 0
+    const truncatedBefore = await page.locator('.dpn-node__label', { hasText: '…' }).count()
+
+    const toggle = page.getByRole('button', { name: /expand network/i })
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    // Toolbar icons must not stretch and push the label outside its button.
+    expect(await toggle.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1)
+    await toggle.click()
+    await expect(page.getByRole('button', { name: /exit expanded network/i })).toHaveAttribute('aria-pressed', 'true')
+
+    await expect(page.getByTestId('finding-browser')).toBeHidden()
+    await expect(page.getByTestId('correlations')).toBeHidden()
+    await expect.poll(async () => (await svg.boundingBox())?.width ?? 0).toBeGreaterThan(before + 150)
+    expect(await page.locator('.dpn-node__label', { hasText: '…' }).count()).toBeLessThan(truncatedBefore)
+
+    await page.locator(`[data-testid="dx-network"] [data-node="dx"][data-name="${LONG_DX}"] circle.dpn-node__dot`).click()
+    await expect(page.getByTestId('dx-detail').locator('h3')).toHaveText(LONG_DX)
+    await expect(page.getByTestId('dx-detail')).toBeInViewport()
+
+    await page.keyboard.press('Escape')
+    await expect(page.getByTestId('finding-browser')).toBeVisible()
+    await expect(page.getByTestId('correlations')).toBeVisible()
+    await expect(page.getByRole('button', { name: /expand network/i })).toHaveAttribute('aria-pressed', 'false')
+
+    runtime.assertClean()
+  })
+
+  test('on phones a full-name diagnosis list and the details sit directly under the network, synced both ways', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await openNavigator(page, VESICLES)
+
+    const strip = page.getByTestId('dx-strip')
+    await expect(strip).toBeVisible()
+    await expect(strip.getByRole('button')).toHaveCount(31)
+    await expect(strip.getByRole('button', { name: LONG_DX, exact: true })).toBeVisible()
+
+    // List -> graph
+    await strip.getByRole('button', { name: 'Pemphigus vulgaris', exact: true }).click()
+    await expect(page.locator('[data-testid="dx-network"] [data-node="dx"][data-name="Pemphigus vulgaris"]')).toHaveAttribute('aria-pressed', 'true')
+    const detail = page.getByTestId('dx-detail')
+    await expect(detail.locator('h3')).toHaveText('Pemphigus vulgaris')
+    // Details live inside the network stage, not at the bottom of the page.
+    expect(await page.locator('.dpn-stage [data-testid="dx-detail"]').count()).toBe(1)
+    await expect(page.getByRole('button', { name: /expand network/i })).toHaveCount(0)
+
+    // Graph -> list
+    await page.locator('[data-testid="dx-network"] [data-node="dx"][data-name="Bullous pemphigoid"] circle.dpn-node__dot').click()
+    await expect(strip.getByRole('button', { name: 'Bullous pemphigoid', exact: true })).toHaveAttribute('aria-pressed', 'true')
+    await expect(detail.locator('h3')).toHaveText('Bullous pemphigoid')
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow).toBeLessThanOrEqual(1)
+    runtime.assertClean()
+  })
+
+  for (const width of [390, 1280]) {
+    test(`tap targets on the dense 31-diagnosis ring never overlap a neighbour at ${width}px`, async ({ page }) => {
+      const runtime = watchRuntime(page)
+      await page.setViewportSize({ width, height: 900 })
+      await openNavigator(page, VESICLES)
+      const overlaps = await page.evaluate(() => {
+        const nodes = Array.from(document.querySelectorAll('[data-testid="dx-network"] [data-node="dx"]')).map((g) => {
+          const m = (g.getAttribute('transform') || '').match(/translate\(([-\d.]+),([-\d.]+)\)/)
+          const hit = Math.max(...Array.from(g.querySelectorAll('circle')).filter((c) => !c.classList.contains('dpn-node__ring')).map((c) => Number(c.getAttribute('r'))))
+          return { name: g.getAttribute('data-name'), x: Number(m?.[1]), y: Number(m?.[2]), hit }
+        })
+        const bad: string[] = []
+        nodes.forEach((a, i) => {
+          const b = nodes[(i + 1) % nodes.length]
+          if (Math.hypot(a.x - b.x, a.y - b.y) < a.hit + b.hit - 0.01) bad.push(`${a.name} / ${b.name}`)
+        })
+        return bad
+      })
+      expect(overlaps).toEqual([])
+      runtime.assertClean()
+    })
+  }
+
+  test('desktop keeps details in the inspector and shows no phone diagnosis list', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page, VESICLES)
+    await expect(page.getByTestId('dx-strip')).toHaveCount(0)
+    expect(await page.locator('.dpn-inspector [data-testid="dx-detail-empty"]').count()).toBe(1)
+    runtime.assertClean()
+  })
+
   test('dedup visualization renders stats and chart container', async ({ page }) => {
     const runtime = watchRuntime(page)
     await page.goto('/apps/dermatopathology-modern/deduplication-visualization.html', { waitUntil: 'networkidle' })
