@@ -234,10 +234,10 @@ describe('legacy apps remediation backlog', () => {
       expect(html).not.toContain('https://cdn.jsdelivr.net/npm/')
     }
 
-    expect(modernDermpath).toContain('../vendor/framer-motion.min.js')
+    expect(modernDermpath).toContain('../vendor/react.production.min.js')
     expect(modernDermpath).toContain('../vendor/fuse.min.js')
     expect(modernDermpath).toContain('../vendor/d3.min.js')
-    expect(modernDermpathFixed).toContain('../vendor/framer-motion.min.js')
+    expect(modernDermpathFixed).toContain('../vendor/react-dom.production.min.js')
     expect(modernDermpathFixed).toContain('../vendor/fuse.min.js')
     expect(modernDermpathFixed).toContain('../vendor/d3.min.js')
     expect(dedupVisualization).toContain('../vendor/chart.umd.min.js')

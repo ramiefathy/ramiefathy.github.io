@@ -435,7 +435,7 @@ describe('Frontend Design System Contract (legacy apps)', () => {
     expect(remValue).toBeGreaterThanOrEqual(0.875)
   })
 
-  it('modern dermpath stabilized view removes legacy SaaS subtitle and hides gamification signals', () => {
+  it('modern dermpath stabilized view removes legacy SaaS subtitle, gamification and simulated content', () => {
     const fixedPath = path.join(APPS_ROOT, 'dermatopathology-modern', 'index-fixed.html')
     const fixedHtml = fs.readFileSync(fixedPath, 'utf-8')
     const clinicalCss = fs.readFileSync(path.join(APPS_ROOT, 'dermatopathology-modern', 'clinical-reference.css'), 'utf-8')
@@ -446,8 +446,19 @@ describe('Frontend Design System Contract (legacy apps)', () => {
     expect(fixedHtml).toContain('Clinical Correlations')
     expect(fixedHtml).not.toContain('Icon name="sparkles"')
     expect(fixedHtml).not.toContain('bg-cyan-700 text-white')
-    expect(clinicalCss).toMatch(/\.achievement-badge[^{]*\{[^}]*display:\s*none/i)
-    expect(clinicalCss).toMatch(/\.streak-badge[^{]*\{[^}]*display:\s*none/i)
-    expect(clinicalCss).toMatch(/\.glass[^\{]*\{[\s\S]*background:\s*var\(--cl-surface\)/i)
+    // No gamification or fabricated study metrics.
+    expect(fixedHtml).not.toMatch(/streak-badge|achievement-badge/)
+    expect(fixedHtml).not.toMatch(/Math\.random/)
+    expect(fixedHtml).not.toMatch(/width:\s*'65%'/)
+    expect(fixedHtml).not.toContain('Generate Study Plan')
+    // Network is the default view.
+    expect(fixedHtml).toMatch(/DEFAULT_VIEW\s*=\s*'network'/)
+    // Runtime Tailwind is gone; the app is styled by its own token-driven stylesheet.
+    expect(fixedHtml).not.toContain('tailwindcss.browser.js')
+    expect(clinicalCss).toMatch(/var\(--cl-surface\)/)
+    expect(clinicalCss).toMatch(/var\(--cl-terracotta\)/)
+    expect(clinicalCss).not.toMatch(/#0b1120|slate-950|#020617/i)
+    // The palette input drops its outline, so its field must carry a visible keyboard-focus cue.
+    expect(clinicalCss).toMatch(/\.dpn-palette__field:focus-within\s*\{[^}]*box-shadow/)
   })
 })
