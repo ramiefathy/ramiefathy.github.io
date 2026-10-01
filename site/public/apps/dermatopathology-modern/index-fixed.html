@@ -286,6 +286,7 @@
                 if (r >= minR || chars <= 10) break;
                 chars -= 2;
             }
+            // Node spacing wins over label room; any overflow this causes is absorbed by the fit-to-content viewBox.
             r = Math.max(r, minR);
             const cx = width / 2;
             const cy = height / 2;
@@ -314,6 +315,8 @@
             const wrapRef = useRef(null);
             const svgRef = useRef(null);
             const viewRef = useRef(null);
+            const graphRef = useRef(null);
+            const [fit, setFit] = useState(1);
             const zoomRef = useRef(null);
             const [width, setWidth] = useState(0);
             const [hover, setHover] = useState(null);
@@ -338,6 +341,26 @@
             })), [finding, model]);
 
             const layout = useMemo(() => (width > 0 ? computeLayout(nodes, width) : null), [nodes, width]);
+
+            // Zoom the initial view out just enough that every label is inside the frame. Measured from the
+            // rendered geometry (real font metrics), re-measured once web fonts finish loading.
+            useLayoutEffect(() => {
+                if (!layout) return undefined;
+                let cancelled = false;
+                const measure = () => {
+                    const g = graphRef.current;
+                    if (cancelled || !g) return;
+                    const box = g.getBBox();
+                    const pad = 18; // headroom for the bold label of a hovered or selected node
+                    const halfW = Math.max(layout.cx - (box.x - pad), box.x + box.width + pad - layout.cx);
+                    const halfH = Math.max(layout.cy - (box.y - pad), box.y + box.height + pad - layout.cy);
+                    const next = Math.max(1, (2 * halfW) / layout.width, (2 * halfH) / layout.height);
+                    setFit((prev) => (Math.abs(prev - next) > 0.005 ? next : prev));
+                };
+                measure();
+                if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+                return () => { cancelled = true; };
+            }, [layout]);
 
             useEffect(() => {
                 if (!svgRef.current || !viewRef.current || !window.d3) return undefined;
@@ -371,13 +394,13 @@
                             <svg
                                 ref={svgRef}
                                 data-testid="dx-network"
-                                viewBox={`0 0 ${layout.width} ${layout.height}`}
+                                viewBox={`${layout.cx - (layout.width * fit) / 2} ${layout.cy - (layout.height * fit) / 2} ${layout.width * fit} ${layout.height * fit}`}
                                 height={layout.height}
                                 role="group"
                                 aria-label={`${finding.label}: ${nodes.length} diagnoses. Use Tab to move between diagnoses and Enter to open one.`}
                             >
                                 <g ref={viewRef}>
-                                    <g className={'dpn-graph' + (hover ? ' has-hover' : '')}>
+                                    <g ref={graphRef} className={'dpn-graph' + (hover ? ' has-hover' : '')}>
                                         <circle className="dpn-orbit" cx={layout.cx} cy={layout.cy} r={layout.r} />
                                         {layout.nodes.map((node) => (
                                             <line
@@ -470,14 +493,19 @@
                         const starred = favorites.has(key);
                         return (
                             <li key={key}>
-                                <article
-                                    className="dpn-dx"
-                                    aria-current={key === selectedKey ? 'true' : undefined}
-                                    onClick={(e) => { if (!e.target.closest('button')) onSelectDx(dx.name); }}
-                                >
+                                <article className="dpn-dx" aria-current={key === selectedKey ? 'true' : undefined}>
                                     <span className="dpn-dx__index">{String(i + 1).padStart(2, '0')}</span>
                                     <div>
-                                        <h3>{dx.name}</h3>
+                                        <h3>
+                                            <button
+                                                type="button"
+                                                className="dpn-dx__select"
+                                                aria-pressed={key === selectedKey ? 'true' : 'false'}
+                                                onClick={() => onSelectDx(dx.name)}
+                                            >
+                                                {dx.name}
+                                            </button>
+                                        </h3>
                                         <p>{dx.keyFeatures || 'No key features recorded for this entry.'}</p>
                                         {notes[key] && <div className="dpn-note-inline"><strong>Note:</strong> {notes[key]}</div>}
                                         {others.length > 0 && (

@@ -551,7 +551,8 @@ body[data-legacy-shell='true'] .dpn-stage__title h2 {
 .dpn-network svg {
   display: block;
   width: 100%;
-  touch-action: none;
+  /* One finger scrolls the page; the browser leaves pinch to d3, which pans/zooms only on two-finger touches. */
+  touch-action: pan-x pan-y;
   user-select: none;
 }
 
@@ -714,7 +715,6 @@ body[data-legacy-shell='true'] .dpn-stage__title h2 {
   gap: 0.25rem 0.75rem;
   padding: 1rem 0.25rem;
   border-bottom: 1px solid var(--dpn-rule);
-  cursor: pointer;
 }
 
 .dpn-dx:first-child {
@@ -728,6 +728,24 @@ body[data-legacy-shell='true'] .dpn-stage__title h2 {
 .dpn-dx[aria-current='true'] {
   background: linear-gradient(90deg, var(--dpn-accent-wash), transparent 70%);
   box-shadow: inset 2px 0 0 var(--dpn-accent);
+}
+
+.dpn-dx__select {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dpn-dx__select:hover,
+.dpn-dx__select[aria-pressed='true'] {
+  text-decoration: underline;
+  text-decoration-color: var(--dpn-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .dpn-dx__index {

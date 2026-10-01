@@ -258,6 +258,78 @@ test.describe('Dermatopathology Navigator (modern legacy HTML) (functional)', ()
     runtime.assertClean()
   })
 
+  test('a single-finger vertical swipe over the network scrolls the page on touch devices', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+    const page = await context.newPage()
+    await blockExternalRequests(page)
+    const runtime = watchRuntime(page)
+    await openNavigator(page, '#f=' + encodeURIComponent('Vesicles/Bullae (Comprehensive DDx)'))
+
+    const svg = page.getByTestId('dx-network')
+    await svg.scrollIntoViewIfNeeded()
+    const box = await svg.boundingBox()
+    if (!box) throw new Error('network svg has no bounding box')
+    const before = await page.evaluate(() => window.scrollY)
+
+    const cdp = await context.newCDPSession(page)
+    const x = Math.round(box.x + box.width / 2)
+    const startY = Math.round(box.y + box.height * 0.8)
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: startY }] })
+    for (let step = 1; step <= 10; step++) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: startY - step * 30 }] })
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+    await page.waitForTimeout(300)
+
+    const after = await page.evaluate(() => window.scrollY)
+    expect(after - before).toBeGreaterThan(100)
+    runtime.assertClean()
+    await context.close()
+  })
+
+  test('list view lets keyboard users select a diagnosis and open its note editor', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page)
+    await page.locator('[data-view="list"]').click()
+
+    const select = page.getByTestId('dx-list').getByRole('button', { name: 'Bowen disease', exact: true })
+    await select.focus()
+    await expect(select).toBeFocused()
+    await page.keyboard.press('Enter')
+
+    const detail = page.getByTestId('dx-detail')
+    await expect(detail.locator('h3')).toHaveText('Bowen disease')
+    await expect(select).toHaveAttribute('aria-pressed', 'true')
+    await detail.getByRole('button', { name: 'Add note' }).focus()
+    await page.keyboard.press('Enter')
+    await expect(detail.getByRole('textbox', { name: /note for bowen disease/i })).toBeFocused()
+
+    runtime.assertClean()
+  })
+
+  for (const width of [320, 390, 1280]) {
+    test(`every network label of a 31-diagnosis differential stays inside the graph at ${width}px`, async ({ page }) => {
+      const runtime = watchRuntime(page)
+      await page.setViewportSize({ width, height: 900 })
+      await openNavigator(page, '#f=' + encodeURIComponent('Vesicles/Bullae (Comprehensive DDx)'))
+      await expect(page.locator('[data-testid="dx-network"] [data-node="dx"]')).toHaveCount(31)
+
+      const clipped = await page.evaluate(() => {
+        const svg = document.querySelector('[data-testid="dx-network"]')
+        if (!svg) return ['missing svg']
+        const frame = svg.getBoundingClientRect()
+        return Array.from(svg.querySelectorAll('.dpn-node__label'))
+          .filter((label) => {
+            const r = label.getBoundingClientRect()
+            return r.left < frame.left - 1 || r.right > frame.right + 1 || r.top < frame.top - 1 || r.bottom > frame.bottom + 1
+          })
+          .map((label) => label.textContent)
+      })
+      expect(clipped).toEqual([])
+      runtime.assertClean()
+    })
+  }
+
   test('dedup visualization renders stats and chart container', async ({ page }) => {
     const runtime = watchRuntime(page)
     await page.goto('/apps/dermatopathology-modern/deduplication-visualization.html', { waitUntil: 'networkidle' })
