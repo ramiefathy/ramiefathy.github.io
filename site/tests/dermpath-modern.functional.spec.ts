@@ -113,39 +113,147 @@ test.describe('Dermatopathology Navigator (modern legacy HTML) (functional)', ()
     runtime.assertClean()
   })
 
-  test('stabilized page has clinical subtitle and favorites update', async ({ page }) => {
+  async function openNavigator(page: Page, hash = ''): Promise<void> {
+    await page.goto(`/apps/dermatopathology-modern/index-fixed.html${hash}`, { waitUntil: 'networkidle' })
+    await expect(page.getByTestId('dx-network')).toBeVisible()
+  }
+
+  test('stabilized page opens on the network view with one node per diagnosis plus the pattern hub', async ({ page }) => {
     const runtime = watchRuntime(page)
-    await page.goto('/apps/dermatopathology-modern/index-fixed.html', { waitUntil: 'networkidle' })
+    await openNavigator(page)
 
     await expect(page.locator('h1')).toContainText('Dermatopathology Navigator')
     await expect(page.locator('.cl-page-subtitle')).toContainText('Clinical Dermatopathology Reference')
     await expect(page.getByText('Modern Learning Experience')).toHaveCount(0)
-    await expect(page.locator('.streak-badge:visible')).toHaveCount(0)
+    await expect(page.locator('.streak-badge')).toHaveCount(0)
 
-    const progressPanel = page.locator('aside:has-text("Progress Overview")')
-    await expect(progressPanel).toBeVisible()
+    await expect(page.locator('[data-view="network"]')).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('[data-view="list"]')).toHaveAttribute('aria-pressed', 'false')
 
-    const favoritesValue = await page.evaluate(() => {
-      const label = Array.from(document.querySelectorAll('aside span')).find((el) => el.textContent?.trim() === 'Favorites')
-      const row = label?.closest('div.flex')
-      const value = row?.querySelector('span.font-medium')?.textContent?.trim() || null
-      return value
-    })
-    expect(favoritesValue).toBe('0')
+    // First pattern in the reference is "Regular acanthosis (Ko)" with three diagnoses.
+    await expect(page.getByTestId('finding-title')).toHaveText('Regular acanthosis')
+    await expect(page.locator('[data-testid="dx-network"] [data-node="dx"]')).toHaveCount(3)
+    await expect(page.locator('[data-testid="dx-network"] [data-node="hub"]')).toHaveCount(1)
 
-    const firstDxCard = page.locator('section.cl-panel-layout__main h3').first()
-    await expect(firstDxCard).toBeVisible()
-    const cardContainer = firstDxCard.locator('..').locator('..')
-    await cardContainer.locator('button').first().click()
+    runtime.assertClean()
+  })
 
-    await page.waitForTimeout(150)
-    const favoritesValueAfter = await page.evaluate(() => {
-      const label = Array.from(document.querySelectorAll('aside span')).find((el) => el.textContent?.trim() === 'Favorites')
-      const row = label?.closest('div.flex')
-      const value = row?.querySelector('span.font-medium')?.textContent?.trim() || null
-      return value
-    })
-    expect(favoritesValueAfter).toBe('1')
+  test('selecting a network node shows its detail and starring updates the review tally', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page)
+
+    await expect(page.getByTestId('review-starred')).toHaveText('0')
+    const bowen = page.locator('[data-testid="dx-network"] [data-node="dx"][data-name="Bowen disease"]')
+    await bowen.locator('circle.dpn-node__dot').click()
+
+    const detail = page.getByTestId('dx-detail')
+    await expect(detail.locator('h3')).toHaveText('Bowen disease')
+    await expect(detail).toContainText("'eyeliner' sign")
+    await expect(bowen).toHaveAttribute('aria-pressed', 'true')
+
+    await detail.getByRole('button', { name: /star/i }).click()
+    await expect(page.getByTestId('review-starred')).toHaveText('1')
+
+    // Keyboard selection works on graph nodes too.
+    const psoriasis = page.locator('[data-testid="dx-network"] [data-node="dx"][data-name="Psoriasis"]')
+    await psoriasis.focus()
+    await page.keyboard.press('Enter')
+    await expect(detail.locator('h3')).toHaveText('Psoriasis')
+
+    runtime.assertClean()
+  })
+
+  test('diagnoses listed under other patterns link across the reference', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page)
+
+    const correlations = page.getByTestId('correlations')
+    await expect(correlations).toContainText('Clinical Correlations')
+    await correlations.getByRole('button', { name: /Psoriasis/ }).click()
+
+    const detail = page.getByTestId('dx-detail')
+    await expect(detail.locator('h3')).toHaveText('Psoriasis')
+    const linked = detail.getByTestId('dx-also-in').getByRole('button')
+    expect(await linked.count()).toBeGreaterThan(0)
+
+    const target = (await linked.first().getAttribute('data-finding')) || ''
+    await linked.first().click()
+    await expect(page.getByTestId('finding-title')).not.toHaveText('Regular acanthosis')
+    // The diagnosis stays selected after jumping to the linked pattern.
+    await expect(detail.locator('h3')).toHaveText(/psoriasis/i)
+    expect(decodeURIComponent(new URL(page.url()).hash)).toContain(target)
+
+    runtime.assertClean()
+  })
+
+  test('pattern browser filters findings and switches the active pattern', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page)
+
+    const browser = page.getByTestId('finding-browser')
+    await browser.getByRole('searchbox').fill('spongiosis')
+    const options = browser.locator('[data-finding]')
+    expect(await options.count()).toBeGreaterThan(0)
+    for (const text of await options.allTextContents()) {
+      expect(text.toLowerCase()).toContain('spongiosis')
+    }
+
+    await options.first().click()
+    await expect(page.getByTestId('finding-title')).toContainText(/spongiosis/i)
+    await expect(options.first()).toHaveAttribute('aria-current', 'true')
+
+    runtime.assertClean()
+  })
+
+  test('command palette finds a diagnosis and opens it in its pattern', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page)
+
+    await page.keyboard.press('Control+k')
+    const dialog = page.getByRole('dialog', { name: /search/i })
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole('combobox').fill('Trichilemmoma')
+    await expect(dialog.getByRole('option').first()).toContainText('Trichilemmoma')
+    await page.keyboard.press('Enter')
+
+    await expect(dialog).toHaveCount(0)
+    await expect(page.getByTestId('dx-detail').locator('h3')).toHaveText(/Trichilemmoma/i)
+
+    await page.keyboard.press('Control+k')
+    await expect(page.getByRole('dialog', { name: /search/i })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog', { name: /search/i })).toHaveCount(0)
+
+    runtime.assertClean()
+  })
+
+  test('list and flashcard views render the same diagnoses', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page)
+
+    await page.locator('[data-view="list"]').click()
+    await expect(page.locator('[data-testid="dx-list"] article')).toHaveCount(3)
+
+    await page.locator('[data-view="flashcards"]').click()
+    const deck = page.getByTestId('flashcards')
+    await expect(deck).toContainText('1 / 3')
+    await deck.getByRole('button', { name: /reveal/i }).click()
+    await expect(page.getByTestId('review-revealed')).toHaveText('1 / 3')
+    await deck.getByRole('button', { name: /next/i }).click()
+    await expect(deck).toContainText('2 / 3')
+
+    runtime.assertClean()
+  })
+
+  test('deep link restores pattern and diagnosis; mobile layout has no horizontal overflow', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await openNavigator(page, '#f=' + encodeURIComponent('Lobular proliferation (Ko)') + '&dx=' + encodeURIComponent('Poroma'))
+
+    await expect(page.getByTestId('finding-title')).toHaveText('Lobular proliferation')
+    await expect(page.getByTestId('dx-detail').locator('h3')).toHaveText('Poroma')
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow).toBeLessThanOrEqual(1)
 
     runtime.assertClean()
   })
