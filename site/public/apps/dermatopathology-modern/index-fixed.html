@@ -18,7 +18,7 @@
     <script src="../shared/legacy-shell.js" defer></script>
     <script src="../shared/legacy-guidance.js" defer></script>
 </head>
-<body class="clinical-reference legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Pick a pattern from the left-hand browser, or press Ctrl/⌘ K to search patterns, diagnoses and key features.","The network opens by default: the hub is the pattern, each node is a diagnosis in its differential. Larger, shaded nodes are listed under other patterns too; the number inside is how many.","Point at, tab to or select a node: its full name shows in the bar above the graph. Selecting it opens key features, a star, a note and links to other patterns that list it.","Expand (top right of the graph) gives the network the full width and keeps details in a side drawer; Esc returns. On phones, a full-name list and the details sit directly under the graph.","Switch to List for a reading view or Flashcards for self-testing (arrow keys move, Space reveals).","Stars and notes are kept in this browser only. Reload reloads the page without deleting them."]'>
+<body class="clinical-reference legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Pick a pattern from the left-hand browser, or press Ctrl/⌘ K to search patterns, diagnoses and key features.","The network opens by default: the hub is the pattern, each node is a diagnosis in its differential. Larger, shaded nodes are listed under other patterns too; the number inside is how many.","Point at, tab to or select a node: its full name shows in the bar above the graph. Selecting it opens key features, a star, a note and links to other patterns that list it.","Drag a node to move it (or nudge a focused node with the arrow keys); drag the background to pan. The reset button restores the ring.","Expand (top right of the graph) gives the network the full width and keeps details in a side drawer; Esc returns. On phones, a full-name list and the details sit directly under the graph.","Switch to List for a reading view or Flashcards for self-testing (arrow keys move, Space reveals).","Stars and notes are kept in this browser only. Reload reloads the page without deleting them."]'>
     <div id="root"><p class="dpn-loading">Loading reference…</p></div>
 
     <script type="module" src="./data-loader.js"></script>
@@ -284,6 +284,19 @@
 
         // ------------------------------------------------------------- network
 
+        /** Label placement for a node at direction (cos, sin) from the hub: along the ray, or beside the node. */
+        function labelFor(cos, sin, size, radial) {
+            if (radial) {
+                const deg = (Math.atan2(sin, cos) * 180) / Math.PI;
+                const flip = cos < -1e-6;
+                return { x: flip ? -(size + 7) : size + 7, y: 0, anchor: flip ? 'end' : 'start', rotate: flip ? deg + 180 : deg };
+            }
+            const anchor = cos > 0.25 ? 'start' : cos < -0.25 ? 'end' : 'middle';
+            const dx = anchor === 'start' ? size + 8 : anchor === 'end' ? -(size + 8) : 0;
+            const dy = anchor === 'middle' ? (sin < 0 ? -(size + 12) : size + 14) : 0;
+            return { x: dx, y: dy, anchor, rotate: 0 };
+        }
+
         /** Deterministic radial layout: hub in the centre, one ray per diagnosis. */
         function computeLayout(nodes, width, tall = false) {
             const narrow = width < 560;
@@ -320,21 +333,11 @@
                 const sin = Math.sin(angle);
                 // Dots never exceed half the gap to their neighbour, so neither dots nor tap targets collide.
                 const size = Math.min(node.shared > 0 ? 8.5 + 1.1 * Math.min(node.shared - 1, 4) : 5.5, halfGap);
-                const deg = (angle * 180) / Math.PI;
-                const flip = cos < -1e-6;
-                let label;
-                if (radial) {
-                    label = { x: flip ? -(size + 7) : size + 7, y: 0, anchor: flip ? 'end' : 'start', rotate: flip ? deg + 180 : deg };
-                } else {
-                    const anchor = cos > 0.25 ? 'start' : cos < -0.25 ? 'end' : 'middle';
-                    const dx = anchor === 'start' ? size + 8 : anchor === 'end' ? -(size + 8) : 0;
-                    const dy = anchor === 'middle' ? (sin < 0 ? -(size + 12) : size + 14) : 0;
-                    label = { x: dx, y: dy, anchor, rotate: 0 };
-                }
+                const label = labelFor(cos, sin, size, radial);
                 const hit = Math.max(size, Math.min(size + 8, halfGap));
                 return { ...node, x: cx + r * cos, y: cy + r * sin, size, hit, label, text: truncate(node.name, chars) };
             });
-            return { width, height, cx, cy, r, nodes: placed, hubR: narrow ? 22 : 30 };
+            return { width, height, cx, cy, r, radial, nodes: placed, hubR: narrow ? 22 : 30 };
         }
 
         const NetworkGraph = ({ finding, model, selectedDx, favorites, onSelectDx, expanded = false, onToggleExpanded = null }) => {
@@ -346,6 +349,13 @@
             const zoomRef = useRef(null);
             const [width, setWidth] = useState(0);
             const [hover, setHover] = useState(null);
+            // Nodes the user has moved, as offsets from their ring position. Cleared per pattern and on reset.
+            const [offsets, setOffsets] = useState({});
+            const baseRef = useRef({});
+            const boundsRef = useRef(null);
+            useEffect(() => { setOffsets({}); }, [finding.id]);
+            const offsetsRef = useRef(offsets);
+            offsetsRef.current = offsets;
 
             useLayoutEffect(() => {
                 const el = wrapRef.current;
@@ -408,8 +418,74 @@
                 return () => svg.on('.zoom', null);
             }, [finding.id, layout !== null]);
 
+            /** Move a node by (dx, dy) in graph units, keeping its centre inside the visible frame. */
+            const moveTo = useCallback((key, x, y) => {
+                const base = baseRef.current[key];
+                const b = boundsRef.current;
+                if (!base || !b) return;
+                let nx = x;
+                let ny = y;
+                // Keep a dropped node clear of the hub so it never hides the diagnosis count.
+                const d = Math.hypot(nx - b.hubX, ny - b.hubY);
+                const minD = b.hubR + base.size + 6;
+                if (d < minD) {
+                    const ux = d > 0.001 ? (nx - b.hubX) / d : (base.x - b.hubX) / (Math.hypot(base.x - b.hubX, base.y - b.hubY) || 1);
+                    const uy = d > 0.001 ? (ny - b.hubY) / d : (base.y - b.hubY) / (Math.hypot(base.x - b.hubX, base.y - b.hubY) || 1);
+                    nx = b.hubX + ux * minD;
+                    ny = b.hubY + uy * minD;
+                }
+                nx = Math.min(b.x1, Math.max(b.x0, nx));
+                ny = Math.min(b.y1, Math.max(b.y0, ny));
+                setOffsets((prev) => ({ ...prev, [key]: { x: nx - base.x, y: ny - base.y } }));
+            }, []);
+
+            // Mouse/pen drag on diagnosis nodes. Touch is left to the page (one-finger scroll) and to taps.
+            // d3-drag stops the mousedown reaching d3-zoom, so dragging a node never pans the graph,
+            // and a drag longer than clickDistance does not count as a click (no accidental selection).
+            useEffect(() => {
+                const g = graphRef.current;
+                if (!g || !window.d3 || !layout) return undefined;
+                const nodesSel = d3.select(g).selectAll('.dpn-node');
+                const drag = d3.drag()
+                    .filter((event) => event.type === 'mousedown' && !event.button && !event.ctrlKey)
+                    .clickDistance(4)
+                    .container(() => g)
+                    .subject(function () {
+                        const key = this.getAttribute('data-key');
+                        const base = baseRef.current[key];
+                        if (!base) return null;
+                        const off = offsetsRef.current[key] || { x: 0, y: 0 };
+                        return { x: base.x + off.x, y: base.y + off.y };
+                    })
+                    .on('start', function () { this.classList.add('is-dragging'); })
+                    .on('drag', function (event) { moveTo(this.getAttribute('data-key'), event.x, event.y); })
+                    .on('end', function () { this.classList.remove('is-dragging'); });
+                nodesSel.call(drag);
+                return () => nodesSel.on('.drag', null);
+            }, [layout, moveTo]);
+
             const zoomBy = (k) => zoomRef.current && d3.select(svgRef.current).transition().duration(180).call(zoomRef.current.scaleBy, k);
             const zoomReset = () => zoomRef.current && d3.select(svgRef.current).transition().duration(180).call(zoomRef.current.transform, d3.zoomIdentity);
+
+            if (layout) {
+                const halfW = (layout.width * fit) / 2;
+                const halfH = (layout.height * fit) / 2;
+                boundsRef.current = {
+                    x0: layout.cx - halfW + 12, x1: layout.cx + halfW - 12, y0: layout.cy - halfH + 12, y1: layout.cy + halfH - 12,
+                    hubX: layout.cx, hubY: layout.cy, hubR: layout.hubR,
+                };
+                baseRef.current = Object.fromEntries(layout.nodes.map((n) => [n.key, { x: n.x, y: n.y, size: n.size }]));
+            }
+            /** Current position (ring position plus any user offset) and a label aimed away from the hub. */
+            const placeOf = (node) => {
+                const off = offsets[node.key];
+                if (!off) return { x: node.x, y: node.y, label: node.label };
+                const x = node.x + off.x;
+                const y = node.y + off.y;
+                const d = Math.hypot(x - layout.cx, y - layout.cy) || 1;
+                return { x, y, label: labelFor((x - layout.cx) / d, (y - layout.cy) / d, node.size, layout.radial) };
+            };
+            const nudgeKeys = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 
             const selectedKey = selectedDx ? normDx(selectedDx) : null;
             const readKey = hover || selectedKey;
@@ -446,16 +522,20 @@
                                 <g ref={viewRef}>
                                     <g ref={graphRef} className={'dpn-graph' + (hover ? ' has-hover' : '')}>
                                         <circle className="dpn-orbit" cx={layout.cx} cy={layout.cy} r={layout.r} />
-                                        {layout.nodes.map((node) => (
-                                            <line
-                                                key={'e-' + node.key}
-                                                className={'dpn-edge' + (node.key === selectedKey ? ' is-selected' : '') + (node.key === hover ? ' is-hover' : '')}
-                                                x1={layout.cx}
-                                                y1={layout.cy}
-                                                x2={node.x}
-                                                y2={node.y}
-                                            />
-                                        ))}
+                                        {layout.nodes.map((node) => {
+                                            const at = placeOf(node);
+                                            return (
+                                                <line
+                                                    key={'e-' + node.key}
+                                                    data-key={node.key}
+                                                    className={'dpn-edge' + (node.key === selectedKey ? ' is-selected' : '') + (node.key === hover ? ' is-hover' : '')}
+                                                    x1={layout.cx}
+                                                    y1={layout.cy}
+                                                    x2={at.x}
+                                                    y2={at.y}
+                                                />
+                                            );
+                                        })}
                                         <g className="dpn-hub" data-node="hub" transform={`translate(${layout.cx},${layout.cy})`}>
                                             <title>{finding.label}</title>
                                             <circle r={layout.hubR} />
@@ -465,6 +545,7 @@
                                         {layout.nodes.map((node) => {
                                             const selected = node.key === selectedKey;
                                             const starred = favorites.has(node.key);
+                                            const at = placeOf(node);
                                             const describe = node.shared > 0 ? `, also listed under ${node.shared} other pattern${node.shared === 1 ? '' : 's'}` : '';
                                             return (
                                                 <g
@@ -472,15 +553,23 @@
                                                     className={'dpn-node' + (node.key === hover ? ' is-hover' : '')}
                                                     data-node="dx"
                                                     data-name={node.name}
+                                                    data-key={node.key}
                                                     data-shared={node.shared > 0 ? 'true' : 'false'}
-                                                    transform={`translate(${node.x},${node.y})`}
+                                                    transform={`translate(${at.x},${at.y})`}
                                                     tabIndex={0}
                                                     role="button"
                                                     aria-pressed={selected ? 'true' : 'false'}
                                                     aria-label={`${node.name}${describe}${starred ? ', starred' : ''}`}
                                                     onClick={() => onSelectDx(node.name)}
                                                     onKeyDown={(e) => {
-                                                        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectDx(node.name); }
+                                                        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectDx(node.name); return; }
+                                                        const dir = nudgeKeys[e.key];
+                                                        if (dir && !e.altKey && !e.metaKey && !e.ctrlKey) {
+                                                            // Keyboard equivalent of dragging: arrows nudge, Shift+arrows move further.
+                                                            e.preventDefault();
+                                                            const step = e.shiftKey ? 24 : 8;
+                                                            moveTo(node.key, at.x + dir[0] * step, at.y + dir[1] * step);
+                                                        }
                                                     }}
                                                     onMouseEnter={() => setHover(node.key)}
                                                     onMouseLeave={() => setHover(null)}
@@ -495,10 +584,10 @@
                                                     {starred && <circle className="dpn-node__star" cx={node.size * 0.75} cy={-node.size * 0.75} r={3.5} />}
                                                     <text
                                                         className="dpn-node__label"
-                                                        x={node.label.x}
-                                                        y={node.label.y}
-                                                        textAnchor={node.label.anchor}
-                                                        transform={node.label.rotate ? `rotate(${node.label.rotate})` : undefined}
+                                                        x={at.label.x}
+                                                        y={at.label.y}
+                                                        textAnchor={at.label.anchor}
+                                                        transform={at.label.rotate ? `rotate(${at.label.rotate})` : undefined}
                                                     >
                                                         {node.text}
                                                     </text>
@@ -512,7 +601,15 @@
                         <div className="dpn-network__tools">
                             <button type="button" className="dpn-btn" onClick={() => zoomBy(1.3)} aria-label="Zoom in"><Icon name="plus" /></button>
                             <button type="button" className="dpn-btn" onClick={() => zoomBy(1 / 1.3)} aria-label="Zoom out"><Icon name="minus" /></button>
-                            <button type="button" className="dpn-btn" onClick={zoomReset} aria-label="Reset view"><Icon name="fit" /></button>
+                            <button
+                                type="button"
+                                className="dpn-btn"
+                                onClick={() => { zoomReset(); setOffsets({}); }}
+                                aria-label="Reset view and node positions"
+                                title="Reset view and node positions"
+                            >
+                                <Icon name="fit" />
+                            </button>
                             {onToggleExpanded && (
                                 <button
                                     type="button"
@@ -531,7 +628,7 @@
                         <li><svg viewBox="-9 -9 18 18"><circle r="5.5" fill="var(--cl-surface)" stroke="var(--cl-ink)" strokeWidth="1.25" /></svg>Unique to this pattern</li>
                         <li><svg viewBox="-9 -9 18 18"><circle r="8.5" fill="var(--cl-surface-alt)" stroke="var(--cl-ink)" strokeWidth="1.25" /><text fontSize="9" textAnchor="middle" dominantBaseline="central" fontFamily="var(--font-mono)" fontWeight="700">3</text></svg>Listed under n other patterns</li>
                         <li><svg viewBox="-9 -9 18 18"><circle r="3.5" fill="var(--cl-terracotta)" /></svg>Starred</li>
-                        <li>Drag to pan · Ctrl/⌘ + scroll to zoom</li>
+                        <li>Drag a node to move it (arrow keys when focused) · drag the background to pan · Ctrl/⌘ + scroll to zoom</li>
                     </ul>
                 </div>
             );

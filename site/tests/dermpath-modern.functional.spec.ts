@@ -343,8 +343,11 @@ test.describe('Dermatopathology Navigator (modern legacy HTML) (functional)', ()
     // The ring label is abbreviated; the readout must not be.
     await expect(node.locator('.dpn-node__label')).toHaveText(/…$/)
 
+    const graphTop = (await page.getByTestId('dx-network').boundingBox())?.y
     await node.focus()
     await expect(readout).toContainText(LONG_DX)
+    // Highlighting must not shift the graph (a moving target makes dragging and tapping unreliable).
+    expect((await page.getByTestId('dx-network').boundingBox())?.y).toBe(graphTop)
     await expect(readout).toContainText(/also listed in \d+ other patterns?|only listed here in this reference/i)
 
     await page.locator('[data-testid="dx-network"] [data-node="dx"][data-name="Bullous pemphigoid"] circle.dpn-node__dot').click()
@@ -454,6 +457,100 @@ test.describe('Dermatopathology Navigator (modern legacy HTML) (functional)', ()
     await openNavigator(page, VESICLES)
     await expect(page.getByTestId('dx-strip')).toHaveCount(0)
     expect(await page.locator('.dpn-inspector [data-testid="dx-detail-empty"]').count()).toBe(1)
+    runtime.assertClean()
+  })
+
+  async function nodeCenter(page: Page, name: string): Promise<{ x: number; y: number }> {
+    const box = await page.locator(`[data-testid="dx-network"] [data-node="dx"][data-name="${name}"] circle.dpn-node__dot`).boundingBox()
+    if (!box) throw new Error(`no box for ${name}`)
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+  }
+
+  async function nodeTranslate(page: Page, name: string): Promise<string | null> {
+    return page.locator(`[data-testid="dx-network"] [data-node="dx"][data-name="${name}"]`).getAttribute('transform')
+  }
+
+  test('nodes can be dragged with the mouse; edge and label follow, and a drag does not select', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page, VESICLES)
+    const name = 'Pemphigus vulgaris'
+    const node = page.locator(`[data-testid="dx-network"] [data-node="dx"][data-name="${name}"]`)
+    const start = await nodeCenter(page, name)
+    const ringTransform = await nodeTranslate(page, name)
+
+    await page.mouse.move(start.x, start.y)
+    await page.mouse.down()
+    for (let i = 1; i <= 8; i++) await page.mouse.move(start.x + i * 10, start.y - i * 6)
+    await page.mouse.up()
+
+    const end = await nodeCenter(page, name)
+    expect(end.x - start.x).toBeGreaterThan(50)
+    expect(start.y - end.y).toBeGreaterThan(30)
+    await expect(node).toHaveAttribute('aria-pressed', 'false')
+
+    // The edge to the hub ends on the moved node.
+    const gap = await page.evaluate((n) => {
+      const g = document.querySelector(`[data-testid="dx-network"] [data-node="dx"][data-name="${n}"]`)
+      const key = g?.getAttribute('data-key')
+      const line = document.querySelector(`[data-testid="dx-network"] line[data-key="${key}"]`)
+      const m = (g?.getAttribute('transform') || '').match(/translate\(([-\d.]+),([-\d.]+)\)/)
+      return Math.hypot(Number(line?.getAttribute('x2')) - Number(m?.[1]), Number(line?.getAttribute('y2')) - Number(m?.[2]))
+    }, name)
+    expect(gap).toBeLessThan(0.5)
+
+    // A plain click still selects.
+    await node.locator('circle.dpn-node__dot').click()
+    await expect(node).toHaveAttribute('aria-pressed', 'true')
+
+    // Reset restores the computed ring position.
+    // Graph coordinates, not screen ones: selecting can scroll the page.
+    await page.getByRole('button', { name: /reset view and node positions/i }).click()
+    await expect.poll(() => nodeTranslate(page, name)).toBe(ringTransform)
+
+    runtime.assertClean()
+  })
+
+  test('a node dragged onto the hub is kept clear of it', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page)
+    const name = 'Psoriasis'
+    const start = await nodeCenter(page, name)
+    const hubBox = await page.locator('[data-testid="dx-network"] [data-node="hub"] circle').boundingBox()
+    if (!hubBox) throw new Error('no hub')
+    const hub = { x: hubBox.x + hubBox.width / 2, y: hubBox.y + hubBox.height / 2 }
+    await page.mouse.move(start.x, start.y)
+    await page.mouse.down()
+    for (let i = 1; i <= 10; i++) await page.mouse.move(start.x + ((hub.x - start.x) * i) / 10, start.y + ((hub.y - start.y) * i) / 10)
+    await page.mouse.up()
+
+    const dot = await page.locator(`[data-testid="dx-network"] [data-node="dx"][data-name="${name}"] circle.dpn-node__dot`).boundingBox()
+    if (!dot) throw new Error('no dot')
+    const gap = Math.hypot(dot.x + dot.width / 2 - hub.x, dot.y + dot.height / 2 - hub.y) - hubBox.width / 2 - dot.width / 2
+    expect(gap).toBeGreaterThanOrEqual(2)
+    runtime.assertClean()
+  })
+
+  test('arrow keys nudge a focused node, and moved positions reset when the pattern changes', async ({ page }) => {
+    const runtime = watchRuntime(page)
+    await openNavigator(page, VESICLES)
+    const name = 'Bullous pemphigoid'
+    const start = await nodeCenter(page, name)
+    const ringTransform = await nodeTranslate(page, name)
+    await page.locator(`[data-testid="dx-network"] [data-node="dx"][data-name="${name}"]`).focus()
+    const scrollBefore = await page.evaluate(() => window.scrollY)
+    await page.keyboard.press('Shift+ArrowRight')
+    await page.keyboard.press('Shift+ArrowRight')
+    await page.keyboard.press('ArrowUp')
+    const moved = await nodeCenter(page, name)
+    expect(moved.x - start.x).toBeGreaterThan(20)
+    expect(start.y - moved.y).toBeGreaterThan(2)
+    // Arrow keys move the node, not the page.
+    expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore)
+
+    await page.getByTestId('finding-browser').locator('[data-finding="Regular acanthosis (Ko)"]').click()
+    await page.getByTestId('finding-browser').locator('[data-finding="Vesicles/Bullae (Comprehensive DDx)"]').click()
+    await expect.poll(() => nodeTranslate(page, name)).toBe(ringTransform)
+
     runtime.assertClean()
   })
 
