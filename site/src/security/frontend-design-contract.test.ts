@@ -458,5 +458,7 @@ describe('Frontend Design System Contract (legacy apps)', () => {
     expect(clinicalCss).toMatch(/var\(--cl-surface\)/)
     expect(clinicalCss).toMatch(/var\(--cl-terracotta\)/)
     expect(clinicalCss).not.toMatch(/#0b1120|slate-950|#020617/i)
+    // The palette input drops its outline, so its field must carry a visible keyboard-focus cue.
+    expect(clinicalCss).toMatch(/\.dpn-palette__field:focus-within\s*\{[^}]*box-shadow/)
   })
 })
