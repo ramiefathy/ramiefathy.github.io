@@ -1,0 +1,563 @@
+/* Rheum–Derm Atlas P2 interface layer: task orientation, provenance-first defaults,
+ * compact visual grammar, epistemic disclosure, and non-drag/touch alternatives. */
+
+.atlas-task-navigation,
+.relationship-model-guide,
+.network-epistemic-denominator,
+.network-label-disclosure,
+.network-provenance-inspector {
+  border: 1px solid var(--line, #33453a);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--panel, #111a14) 94%, transparent);
+}
+
+.atlas-task-navigation {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  margin: 12px 0;
+}
+
+.atlas-task-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, .75fr);
+  gap: 18px;
+  align-items: end;
+}
+
+.atlas-task-heading h4,
+.network-provenance-inspector h4 {
+  margin: 2px 0 0;
+}
+
+.atlas-task-heading p,
+.relationship-model-note,
+.network-epistemic-denominator > p {
+  margin: 0;
+  color: var(--muted, #a9b7ad);
+  line-height: 1.5;
+}
+
+.atlas-task-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  gap: 9px;
+}
+
+.atlas-task-card {
+  min-height: 84px;
+  padding: 12px;
+  border: 1px solid var(--line, #33453a);
+  border-radius: 11px;
+  color: var(--text, #edf4ee);
+  background: color-mix(in srgb, var(--surface, #17221a) 96%, transparent);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+
+.atlas-task-card:hover,
+.atlas-task-card:focus-visible {
+  border-color: var(--accent, #7cc79a);
+  transform: translateY(-1px);
+}
+
+.atlas-task-card.active {
+  border-color: var(--accent, #7cc79a);
+  background: color-mix(in srgb, var(--accent, #7cc79a) 14%, var(--surface, #17221a));
+  box-shadow: inset 3px 0 0 var(--accent, #7cc79a);
+}
+
+.atlas-task-card strong,
+.atlas-task-card span {
+  display: block;
+}
+
+.atlas-task-card span {
+  margin-top: 5px;
+  color: var(--muted, #a9b7ad);
+  font-size: .82rem;
+  line-height: 1.35;
+}
+
+.atlas-task-status {
+  min-height: 1.2em;
+  color: var(--muted, #a9b7ad);
+  font-size: .84rem;
+}
+
+.relationship-model-guide {
+  margin: 12px 0;
+  overflow: clip;
+}
+
+.relationship-model-guide > summary {
+  padding: 12px 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.relationship-model-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(170px, 1fr));
+  gap: 9px;
+  padding: 0 15px 13px;
+}
+
+.relationship-model-grid > div {
+  display: grid;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--line, #33453a) 78%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--surface, #17221a) 85%, transparent);
+}
+
+.relationship-model-grid b {
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .045em;
+}
+
+.relationship-model-grid span {
+  color: var(--muted, #a9b7ad);
+  font-size: .8rem;
+  line-height: 1.35;
+}
+
+.relationship-model-note {
+  padding: 0 15px 14px;
+}
+
+.network-share-controls {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+#networkExportStatus {
+  max-width: 260px;
+  color: var(--muted, #a9b7ad);
+  font-size: .78rem;
+}
+
+.network-epistemic-denominator {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  margin: 10px 0;
+}
+
+.network-denominator-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(100px, 1fr));
+  gap: 7px;
+}
+
+.network-denominator-grid > div {
+  display: grid;
+  gap: 2px;
+  padding: 9px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--surface, #17221a) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line, #33453a) 72%, transparent);
+}
+
+.network-denominator-grid span {
+  color: var(--muted, #a9b7ad);
+  font-size: .7rem;
+  line-height: 1.25;
+}
+
+.network-denominator-grid strong {
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.network-label-disclosure {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 11px 12px;
+  margin: 10px 0;
+}
+
+.network-label-disclosure > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+#networkLabelDisclosureCount {
+  font-size: .82rem;
+}
+
+.network-label-disclosure label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .8rem;
+}
+
+.network-visible-entities {
+  grid-column: 1 / -1;
+  max-height: 210px;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--line, #33453a);
+  border-radius: 9px;
+  background: var(--surface, #17221a);
+}
+
+.network-visible-entities ul {
+  columns: 3 180px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+#networkFocusLabels.labels-suppressed > *:not(.selected) {
+  display: none !important;
+}
+
+.network-search-results {
+  position: absolute;
+  z-index: 70;
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(460px, 70vh);
+  overflow: auto;
+  margin-top: 44px;
+  border: 1px solid var(--line, #33453a);
+  border-radius: 11px;
+  background: var(--panel, #111a14);
+  box-shadow: 0 18px 48px rgb(0 0 0 / .32);
+}
+
+.network-search-results section {
+  display: grid;
+}
+
+.network-search-group {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px 10px 5px;
+  color: var(--muted, #a9b7ad);
+  background: var(--panel, #111a14);
+  font-size: .67rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.network-search-results [role="option"] {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--line, #33453a) 52%, transparent);
+  color: var(--text, #edf4ee);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.network-search-results [role="option"]:hover,
+.network-search-results [role="option"][aria-selected="true"] {
+  background: color-mix(in srgb, var(--accent, #7cc79a) 13%, transparent);
+}
+
+.network-search-results small,
+.network-search-empty {
+  color: var(--muted, #a9b7ad);
+}
+
+.network-search-empty {
+  padding: 14px;
+}
+
+.network-provenance-inspector {
+  display: grid;
+  gap: 12px;
+  padding: 13px;
+  margin-top: 12px;
+}
+
+.network-inspector-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.state-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 8px;
+  border: 1px solid var(--line, #33453a);
+  border-radius: 999px;
+  color: var(--muted, #a9b7ad);
+  font-size: .68rem;
+  white-space: nowrap;
+}
+
+.network-provenance-dimensions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.network-provenance-dimensions > div {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface, #17221a) 86%, transparent);
+}
+
+.network-provenance-dimensions dt {
+  color: var(--muted, #a9b7ad);
+  font-size: .65rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.network-provenance-dimensions dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+  font-size: .78rem;
+  line-height: 1.35;
+}
+
+.network-provenance-sources {
+  display: grid;
+  gap: 7px;
+}
+
+.network-provenance-sources h5,
+.network-provenance-sources p {
+  margin: 0;
+}
+
+.network-provenance-sources p,
+.network-provenance-sources blockquote {
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
+.network-provenance-sources blockquote {
+  margin: 0;
+  padding: 9px 10px;
+  border-left: 3px solid var(--accent, #7cc79a);
+  background: color-mix(in srgb, var(--surface, #17221a) 80%, transparent);
+}
+
+.network-inspector-actions,
+.network-nondrag-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.network-inspector-empty {
+  margin: 0;
+  color: var(--muted, #a9b7ad);
+  font-size: .78rem;
+}
+
+.network-provenance-inspector.has-relation .network-inspector-empty {
+  display: none;
+}
+
+.network-nondrag-controls {
+  position: static;
+  max-width: 100%;
+  justify-content: flex-start;
+  padding: 8px 0;
+  margin-bottom: 8px;
+}
+
+.network-nondrag-controls .btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 8px;
+}
+
+.atlas-simple-grammar {
+  display: grid;
+  gap: 3px;
+  padding: 9px;
+  margin-bottom: 8px;
+  border: 1px solid var(--line, #33453a);
+  border-radius: 8px;
+}
+
+.atlas-simple-grammar span {
+  color: var(--muted, #a9b7ad);
+  font-size: .74rem;
+  line-height: 1.4;
+}
+
+html[data-atlas-visual-grammar="simple"] .network-advanced-controls:not([open]) + * {
+  margin-left: 0;
+}
+
+html[data-atlas-visual-grammar="simple"] .network-shell {
+  box-shadow: none;
+}
+
+html[data-atlas-visual-grammar="simple"] .network-help {
+  max-width: 74ch;
+}
+
+@media (max-width: 1100px) {
+  .atlas-task-grid {
+    grid-template-columns: repeat(3, minmax(150px, 1fr));
+  }
+
+  .relationship-model-grid,
+  .network-denominator-grid {
+    grid-template-columns: repeat(3, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .atlas-task-navigation {
+    padding: 12px;
+    margin: 8px 0;
+  }
+
+  .atlas-task-heading {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .atlas-task-grid {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding-bottom: 4px;
+  }
+
+  .atlas-task-card {
+    flex: 0 0 min(78vw, 270px);
+    min-height: 92px;
+    scroll-snap-align: start;
+  }
+
+  .relationship-model-grid,
+  .network-denominator-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .network-label-disclosure {
+    grid-template-columns: 1fr;
+  }
+
+  .network-label-disclosure > * {
+    min-width: 0;
+  }
+
+  .network-visible-entities {
+    grid-column: 1;
+  }
+
+  .network-visible-entities ul {
+    columns: 1;
+  }
+
+  .network-provenance-dimensions {
+    grid-template-columns: 1fr;
+  }
+
+  .network-share-controls {
+    width: 100%;
+  }
+
+  .network-share-controls .btn,
+  .network-label-disclosure .btn,
+  .atlas-task-card,
+  .network-inspector-actions .btn,
+  .network-nondrag-controls .btn {
+    min-height: 44px;
+  }
+
+  .network-search-results {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    top: 88px;
+    width: auto;
+    max-height: calc(100dvh - 112px);
+    margin: 0;
+  }
+
+  .network-nondrag-controls {
+    position: static;
+    max-width: none;
+    padding: 8px 0 0;
+    justify-content: flex-start;
+  }
+
+  html[data-atlas-mobile-provenance-default="true"] #freeSpacePanel[hidden] {
+    display: none !important;
+  }
+
+  #network3d {
+    /* Preserve the graph's existing captured pan/pinch gesture contract. */
+    touch-action: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .relationship-model-grid,
+  .network-denominator-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .network-inspector-heading {
+    display: grid;
+  }
+
+  .state-pill {
+    justify-self: start;
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-task-card {
+    transition: none;
+  }
+}
+
+@media print {
+  .atlas-task-grid,
+  .network-share-controls,
+  .network-nondrag-controls,
+  .network-inspector-actions {
+    display: none !important;
+  }
+
+  .relationship-model-guide,
+  .network-epistemic-denominator,
+  .network-provenance-inspector {
+    break-inside: avoid;
+  }
+}
+
+/* The exact-relation inspector is shared by 2D/3D views and must not widen mobile. */
+#networkGovernedRelation { display: block; width: 100%; max-width: 100%; min-width: 0; }
+#networkProvenanceInspector { min-width: 0; overflow-wrap: anywhere; }
+#networkProvenanceInspector select { max-width: 100%; }
+
+/* Canvas programmatic and keyboard focus both remain visible after pointer use. */
+#network3d:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 4px var(--graph-focus-ring, var(--accent));
+}

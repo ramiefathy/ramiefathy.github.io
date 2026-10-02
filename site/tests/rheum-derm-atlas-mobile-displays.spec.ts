@@ -103,6 +103,10 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
     const runtime = watchRuntime(page)
     await openMobileExplorer(page)
 
+    // The integrated explorer intentionally opens in the provenance-first 2D view.
+    // Enter free space explicitly before testing its camera and entity controls.
+    await expect(page.locator('#triptychPanel')).toBeVisible()
+    await page.locator('#freeSpaceTab').click()
     await expect(page.locator('#networkAdvancedControls')).not.toHaveAttribute('open', '')
     await expect(page.locator('#networkMobileNavigator')).toBeVisible()
     const entityOptions = page.locator('#networkMobileEntity option')
@@ -309,15 +313,15 @@ test.describe('Rheum–Derm Atlas mobile display system', () => {
     await expect(construct).toBeVisible()
     await expect(construct.locator('option')).toHaveCount(3)
     await expect(page.locator('#evidenceConstructLabel')).toHaveText('Pathway rows')
+    const expectedCounts = await page.evaluate(`(() => ({ benefits: DATA.effects.length, mechanisms: DATA.medications.length }))()`) as { benefits: number; mechanisms: number }
     await construct.selectOption('benefits')
     await expect(page.locator('#evidenceConstructLabel')).toHaveText('Condition–benefit rows')
-    await expect(page.locator('#evidenceN')).toHaveText('143')
+    await expect(page.locator('#evidenceN')).toHaveText(String(expectedCounts.benefits))
     await expect(page.locator('#evidenceLegend')).toContainText('Grade A')
     await construct.selectOption('mechanisms')
     await expect(page.locator('#evidenceConstructLabel')).toHaveText('Medication-mechanism rows')
-    await expect(page.locator('#evidenceN')).toHaveText('49')
+    await expect(page.locator('#evidenceN')).toHaveText(String(expectedCounts.mechanisms))
   })
-
   test('keeps the shared tooltip readable and inside the viewport in light theme', async ({ page }) => {
     await setDeterministicUi(page, { width: 320, height: 720 })
     await blockExternalRequests(page)
