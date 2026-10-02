@@ -3,20 +3,12 @@ import MainLayout from '../layouts/MainLayout.astro';
 import Header from '../components/Header.jsx';
 import profile from '../data/profile.json';
 import skills from '../data/skills.json';
+import timeline from '../data/timeline.json';
+import { getProfileCity, getTimelineRows } from '../lib/profilePresentation';
 
-const clinicalTraining = [
-  { y: '2026—', what: 'Mass General Brigham', role: 'Rheumatology-Dermatology Fellow, PGY-5', tag: 'Active' },
-  { y: '2022—2026', what: 'Johns Hopkins University', role: 'Dermatology Resident Physician', tag: 'Completed' },
-  { y: '2017—2021', what: 'Perelman School of Medicine', role: 'MD, Alpha Omega Alpha', tag: 'Conferred' },
-  { y: '2013—2017', what: 'Princeton University', role: 'AB Molecular Biology · Summa Cum Laude · Phi Beta Kappa', tag: 'Conferred' }
-];
-
-const leadership = [
-  { y: '2025—2027', what: 'AAD Council on Science & Research', role: 'Elected member', tag: 'Elected' },
-  { y: '2024—2026', what: 'Johns Hopkins House Staff Council', role: 'Vice President, Resident Affairs', tag: 'Completed' },
-  { y: '2020—2021', what: 'POHPS · Penn Medicine', role: 'Founder & Director · COVID-19 response', tag: 'Founder' },
-  { y: '2017', what: 'Penn Medicine, Class of 2017', role: 'Curriculum Representative', tag: 'Service' }
-];
+const clinicalTraining = getTimelineRows(timeline.milestones, ['education', 'training', 'fellowship']);
+const leadership = getTimelineRows(timeline.milestones, ['leadership']);
+const city = getProfileCity(profile.location);
 
 const domains = [
   { key: 'clinical', label: 'Clinical', cls: 'clinical', items: skills.clinical?.skills ?? [] },
@@ -47,7 +39,7 @@ const domains = [
         <div class="text">
           <p class="lede" style="font-size:22px">{profile.about.intro}</p>
           <p class="body-copy">My work spans inflammatory dermatoses, cutaneous oncology, teledermatology, and clinical AI. I build decision-support tools, study technology in clinical settings, and write for trainees, clinicians, and patients.</p>
-          <p class="body-copy">Outside the clinic I mentor medical students, work on audio storytelling projects, and explore Boston.</p>
+          <p class="body-copy">Outside the clinic I mentor medical students, work on audio storytelling projects, and explore {city}.</p>
           <div style="display:flex;gap:24px;align-items:center;margin-top:auto">
             <a class="button button--primary" href="/contact">Get in touch →</a>
             <a class="button button--secondary" href="/apps">Browse the apps →</a>
@@ -61,11 +53,11 @@ const domains = [
           <div class="cv-section-label">
             <span class="kicker">Section A</span>
             <h4>Clinical <em>Training</em></h4>
-            <p>Active and incoming positions, in reverse chronological.</p>
+            <p>Training and degrees, in reverse chronological order.</p>
           </div>
           <div class="cv-rows">
             {clinicalTraining.map((row) => (
-              <div class="r">
+              <div class="r" data-milestone-id={row.id}>
                 <span class="y">{row.y}</span>
                 <span><b>{row.what}</b><span class="role">{row.role}</span></span>
                 <span class="tag">{row.tag}</span>
@@ -81,7 +73,7 @@ const domains = [
           </div>
           <div class="cv-rows">
             {leadership.map((row) => (
-              <div class="r">
+              <div class="r" data-milestone-id={row.id}>
                 <span class="y">{row.y}</span>
                 <span><b>{row.what}</b><span class="role">{row.role}</span></span>
                 <span class="tag">{row.tag}</span>
