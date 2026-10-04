@@ -1,0 +1,2184 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Diloti Table Guide</title><meta name="description" content="Interactive guide to Diloti, the Greek fishing card game, with a playable client-side game.">
+<style>
+/* Layout: one reading column; each rule section ends in a felt "table" panel you can play with */
+:root{
+  --bg:#EDF0EB; --surface:#F8FAF6; --ink:#1B2420; --muted:#56655F; --line:#C9D2CB;
+  --felt:#1E5A4E; --felt-2:#174A40; --felt-ink:#E6EFE8; --felt-muted:#A8C2B8;
+  --ochre:#A97A1F; --ochre-soft:#F2E6CC; --you:#2F6FB0; --opp:#A8402F;
+  --card:#FBFAF6; --card-edge:#D8D4C8; --card-red:#B0362A; --card-black:#1C1F1E; --card-back:#7A2E24;
+  --good:#2E7D4F; --bad:#B0362A;
+  --f-display:"GFS Didot","Didot","Bodoni 72",Georgia,serif;
+  --f-body:"Commissioner",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --cw:46px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111715; --surface:#18211E; --ink:#E3EAE5; --muted:#94A49D; --line:#2B3833;
+  --felt:#174A40; --felt-2:#123C34; --felt-ink:#E6EFE8; --felt-muted:#9DB8AE;
+  --ochre:#D6A746; --ochre-soft:#3A2F17; --you:#6FA6E0; --opp:#E07A66;
+  --good:#5BC285; --bad:#E77A6A; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#111715; --surface:#18211E; --ink:#E3EAE5; --muted:#94A49D; --line:#2B3833;
+  --felt:#174A40; --felt-2:#123C34; --felt-ink:#E6EFE8; --felt-muted:#9DB8AE;
+  --ochre:#D6A746; --ochre-soft:#3A2F17; --you:#6FA6E0; --opp:#E07A66;
+  --good:#5BC285; --bad:#E77A6A; color-scheme:dark;}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16.5px;line-height:1.6;padding-inline:16px;padding-block:0 64px}
+.wrap{max-width:860px;margin:0 auto}
+.prose{max-width:66ch}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;text-wrap:balance;line-height:1.1;margin:0}
+h1{font-size:clamp(2.6rem,7vw,4.2rem)}
+h2{font-size:clamp(1.8rem,4.4vw,2.4rem);margin-bottom:.4em}
+h3{font-size:1.35rem;margin-bottom:.3em}
+p{margin:0 0 .9em}
+a{color:var(--you)}
+.eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ochre)}
+.greek{font-family:var(--f-display);color:var(--muted);font-size:1.4rem}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--ochre);outline-offset:2px}
+
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);border-bottom:1px solid var(--line);margin-inline:-16px;padding:8px 16px}
+.topbar .wrap{display:flex;gap:10px;align-items:center}
+.nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.nav::-webkit-scrollbar{display:none}
+.nav a{flex:none;text-decoration:none;color:var(--ink);font-size:.85rem;padding:5px 11px;border-radius:999px;border:1px solid var(--line)}
+.nav a:hover{border-color:var(--ochre)}
+.sound{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 11px;font-size:.85rem}
+
+/* hero */
+header.hero{padding-block:40px 20px;display:grid;gap:18px}
+.hero .lede{font-size:1.15rem;max-width:58ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:.9rem;color:var(--muted)}
+.facts b{color:var(--ink);font-weight:600}
+
+/* felt panel */
+.felt{background:radial-gradient(120% 90% at 50% 40%,var(--felt) 0%,var(--felt-2) 100%);color:var(--felt-ink);border-radius:18px;padding:18px;position:relative;overflow:hidden}
+.felt .lbl{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--felt-muted)}
+.felt .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:calc(var(--cw)*1.4)}
+.felt-btn{background:transparent;color:var(--felt-ink);border:1px solid color-mix(in srgb,var(--felt-ink) 40%,transparent);border-radius:8px;padding:6px 12px;font-size:.88rem}
+.felt-btn:hover{background:color-mix(in srgb,var(--felt-ink) 12%,transparent)}
+.felt-btn[aria-pressed="true"]{background:var(--felt-ink);color:var(--felt-2)}
+
+/* cards */
+.card{--w:var(--cw);width:var(--w);height:calc(var(--w)*1.4);border-radius:calc(var(--w)*.12);background:var(--card);border:1px solid var(--card-edge);color:var(--card-black);position:relative;display:inline-block;flex:none;box-shadow:0 1px 0 rgba(0,0,0,.18),0 3px 8px rgba(0,0,0,.18);font-family:var(--f-body);user-select:none;transition:transform .25s ease,box-shadow .25s ease,opacity .25s}
+.card.red{color:var(--card-red)}
+.card .cr{position:absolute;top:3px;left:4px;font-weight:700;font-size:calc(var(--w)*.28);line-height:1;letter-spacing:-.04em}
+.card .cs2{position:absolute;top:calc(var(--w)*.31);left:4px;font-size:calc(var(--w)*.22);line-height:1}
+.card .cc{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--w)*.5);padding-top:calc(var(--w)*.2)}
+.card.face .cc{font-family:var(--f-display);font-size:calc(var(--w)*.55)}
+.card.back{background:repeating-linear-gradient(45deg,var(--card-back) 0 4px,color-mix(in srgb,var(--card-back) 80%,#fff) 4px 8px);border:3px solid var(--card)}
+.card.back>*{display:none}
+.card.sm{--w:34px}
+.card.taken{transform:translateY(-8px);box-shadow:0 0 0 3px var(--ochre),0 8px 14px rgba(0,0,0,.3)}
+.card.dim{opacity:.45}
+.card.new{animation:pop .35s ease}
+@keyframes pop{from{transform:scale(.6) translateY(14px);opacity:.2}to{transform:none;opacity:1}}
+
+.hand{display:flex}
+.hand .card+.card{margin-left:calc(var(--cw)*-.42)}
+
+/* hero table */
+.deal-table{display:grid;grid-template-columns:1fr auto;gap:14px 18px;align-items:center}
+.deal-table .seat{grid-column:1/-1;display:flex;flex-direction:column;gap:6px;align-items:center}
+.deal-table .centre{grid-column:1/2;display:flex;flex-direction:column;align-items:center;gap:6px}
+.deck{grid-column:2/3;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.deck .stack{position:relative;width:var(--cw);height:calc(var(--cw)*1.4)}
+.deck .stack .card{position:absolute;inset:0}
+.dealt{animation:deal .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*55ms)}
+@keyframes deal{from{transform:translate(var(--dx,120px),var(--dy,0)) rotate(12deg);opacity:.3}to{transform:none;opacity:1}}
+.deal-foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:14px;font-size:.88rem;color:var(--felt-muted)}
+
+section{padding-top:56px;scroll-margin-top:60px}
+.callout{border-left:3px solid var(--ochre);background:var(--ochre-soft);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;max-width:66ch}
+.callout p:last-child{margin:0}
+
+/* action tiles */
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:16px}
+.act{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.act h3{font-size:1.15rem;font-family:var(--f-body);font-weight:600}
+.act p{margin:0;font-size:.93rem;color:var(--muted)}
+.mini{display:flex;align-items:center;gap:6px;flex-wrap:wrap;--cw:32px}
+.mini .op{font-family:var(--f-mono);color:var(--muted);font-size:.85rem}
+.act .tag{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ochre)}
+
+/* lab */
+.lab{display:grid;gap:14px;margin-top:18px}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.ranks{display:flex;flex-wrap:wrap;gap:5px}
+.rank-btn{width:38px;height:38px;border-radius:8px;border:1px solid color-mix(in srgb,var(--felt-ink) 35%,transparent);background:transparent;color:var(--felt-ink);font-weight:600}
+.rank-btn[aria-pressed="true"]{background:var(--ochre);border-color:var(--ochre);color:#1b1407}
+.table-row .card{cursor:pointer}
+.result{background:var(--surface);color:var(--ink);border-radius:12px;padding:14px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.opt{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink)}
+.opt[aria-pressed="true"]{border-color:var(--ochre);box-shadow:inset 0 0 0 1px var(--ochre)}
+.opt .n{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.chip{font-family:var(--f-mono);font-size:.82rem;padding:2px 8px;border-radius:6px;background:var(--ochre-soft);color:var(--ink)}
+.xeri-badge{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;background:var(--ochre);color:#1b1407;padding:2px 8px;border-radius:6px}
+.hint{font-size:.85rem;color:var(--felt-muted)}
+
+/* walkthrough */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:16px;margin-bottom:12px}
+.tab{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px;border-radius:999px;font-size:.9rem}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.walk .zone{display:flex;flex-direction:column;gap:6px}
+.walk .board{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;min-height:120px;padding:10px 0}
+.pile{border:1.5px dashed color-mix(in srgb,var(--felt-ink) 45%,transparent);border-radius:12px;padding:8px 10px 10px;display:flex;flex-direction:column;gap:6px}
+.pile.you{border-color:var(--you);border-style:solid}
+.pile.opp{border-color:var(--opp);border-style:solid}
+.pile .pl{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
+.pile.you .pl{color:color-mix(in srgb,var(--you) 60%,#fff)}
+.pile.opp .pl{color:color-mix(in srgb,var(--opp) 60%,#fff)}
+.comps{display:flex;flex-wrap:wrap;gap:10px;--cw:34px}
+.comp{display:flex}
+.comp .card+.card{margin-left:-14px}
+.caption{background:var(--surface);color:var(--ink);border-radius:12px;padding:14px 16px;margin-top:12px;min-height:5.5em}
+.caption .who{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.who.you{color:var(--you)} .who.opp{color:var(--opp)} .who.deal{color:var(--ochre)}
+.stepper{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.dots{display:flex;gap:5px;flex:1;min-width:120px}
+.dots span{height:4px;flex:1;border-radius:2px;background:color-mix(in srgb,var(--felt-ink) 25%,transparent)}
+.dots span.on{background:var(--ochre)}
+.seat-line{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.seat-line .lbl{min-width:6.5em}
+
+/* quiz */
+.quiz{display:grid;gap:16px;margin-top:16px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.q .felt{border-radius:0;padding:14px}
+.q .body{padding:14px 16px}
+.q .choices{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.q .choice{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:9px 12px;border-radius:9px}
+.q .choice.right{border-color:var(--good);box-shadow:inset 0 0 0 1px var(--good)}
+.q .choice.wrong{border-color:var(--bad);box-shadow:inset 0 0 0 1px var(--bad)}
+.q .fb{margin-top:10px;font-size:.95rem}
+.q .fb b.ok{color:var(--good)} .q .fb b.no{color:var(--bad)}
+
+/* scoring */
+.tbl-wrap{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono);white-space:nowrap}
+.calc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:14px;margin-top:16px}
+.calc .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.field>.fl{font-size:.85rem;font-weight:600}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;color:var(--ink);padding:7px 4px;font-size:.88rem;font-variant-numeric:tabular-nums}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+input[type=range]{width:100%;accent-color:var(--ochre)}
+.cardsplit{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+.step2{display:flex;align-items:center;gap:8px}
+.step2 button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.step2 output{font-family:var(--f-mono);min-width:1.5em;text-align:center}
+.totals{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tot{border-radius:12px;padding:12px 14px;border:1px solid var(--line)}
+.tot .who{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase}
+.tot.you .who{color:var(--you)} .tot.opp .who{color:var(--opp)}
+.tot .big{font-family:var(--f-display);font-size:2.6rem;line-height:1;font-variant-numeric:tabular-nums}
+.tot .brk{font-size:.82rem;color:var(--muted)}
+.race{display:grid;gap:8px}
+.bar{height:10px;border-radius:5px;background:var(--line);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:5px;transition:width .4s}
+.race .r{display:grid;grid-template-columns:5.5em 1fr 3em;gap:10px;align-items:center;font-size:.88rem;font-variant-numeric:tabular-nums}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:9px;font-size:.9rem}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.winner{font-weight:600;color:var(--ochre)}
+
+footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);font-size:.88rem;color:var(--muted)}
+
+/* ================= Diloti phone-style game =================
+   Layout: a full-screen portrait "app" (opponent top, felt centre, fanned hand bottom),
+   centred in a phone-width column on larger screens. Single deliberate dark-felt look. */
+.cta{display:inline-flex;align-items:center;gap:8px;align-self:start;background:var(--felt);color:var(--felt-ink);border:0;text-decoration:none;font-weight:600;padding:11px 20px;border-radius:999px;font-size:1rem}
+.cta:hover{background:var(--felt-2)}
+
+/* launcher on the guide page */
+.zlaunch{display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px;align-items:center;margin-top:16px;padding:22px;border-radius:22px;color:var(--felt-ink);background:radial-gradient(120% 120% at 20% 30%,var(--felt) 0%,var(--felt-2) 100%)}
+.zlaunch-art{position:relative;width:118px;height:110px;--cw:56px}
+.zlaunch-art .card{position:absolute;left:30px;top:16px;transform-origin:50% 110%}
+.zlaunch-art .card:nth-child(1){transform:rotate(-16deg) translateX(-14px)}
+.zlaunch-art .card:nth-child(2){transform:rotate(2deg);z-index:1}
+.zlaunch-art .card:nth-child(3){transform:rotate(18deg) translateX(16px)}
+.zlaunch-body p{margin:0 0 14px;max-width:56ch}
+.zlaunch-row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.zlaunch-btn{width:auto;padding:0 28px}
+.zlaunch-info{font-size:.88rem;color:var(--felt-muted)}
+@media (max-width:560px){.zlaunch{grid-template-columns:1fr;justify-items:center;text-align:center}.zlaunch-row{justify-content:center}}
+
+/* chunky game buttons (used in the app and the launcher) */
+.zbig{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:54px;border-radius:16px;border:0;background:#E2B24C;color:#1B1407;font:700 1.08rem/1.15 -apple-system,BlinkMacSystemFont,"Commissioner",system-ui,sans-serif;box-shadow:0 5px 0 #9C6E16,0 10px 22px rgba(0,0,0,.3);transition:transform .08s,box-shadow .08s;cursor:pointer}
+.zbig small{font-weight:500;font-size:.78rem;opacity:.8;margin-top:2px}
+.zbig:active{transform:translateY(4px);box-shadow:0 1px 0 #9C6E16,0 4px 10px rgba(0,0,0,.3)}
+.zbig.alt{background:rgba(255,255,255,.13);color:#F1F5EF;box-shadow:0 5px 0 rgba(0,0,0,.28),0 10px 22px rgba(0,0,0,.2)}
+.zbig.alt:active{box-shadow:0 1px 0 rgba(0,0,0,.28)}
+
+/* the app shell */
+.zapp{position:fixed;inset:0;z-index:1000;color:#F1F5EF;color-scheme:dark;background:radial-gradient(140% 90% at 50% 38%,#226757 0%,#103F36 52%,#082621 100%);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Commissioner",system-ui,sans-serif;font-size:16px;line-height:1.3;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;overscroll-behavior:contain;-webkit-tap-highlight-color:transparent;overflow:hidden}
+.zapp::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-radial-gradient(circle at 30% 20%,rgba(255,255,255,.018) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
+.zapp button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.zapp :focus-visible{outline:3px solid #E2B24C;outline-offset:2px}
+.zstage{position:relative;height:100%;max-width:540px;margin:0 auto;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px calc(env(safe-area-inset-bottom,0px) + 6px)}
+.zscr{flex:1;min-height:0;display:flex;flex-direction:column}
+.zib{flex:none;width:44px;height:44px;border-radius:50%;border:0;display:grid;place-items:center;color:#F1F5EF;background:rgba(255,255,255,.12)}
+.zib:active{transform:scale(.92)}
+.zib:disabled{opacity:.35;cursor:default}
+
+/* home */
+.zhome{justify-content:center;align-items:stretch;gap:16px;padding:8px 4px 10px;overflow:auto;position:relative}
+.zclose{position:absolute;top:0;left:0}
+.zlogo{position:relative;height:132px;--cw:70px;margin:8px auto 0;width:200px}
+.zlogo .card{position:absolute;left:65px;top:10px;transform-origin:50% 115%;box-shadow:0 10px 24px rgba(0,0,0,.35);animation:zfloat 5s ease-in-out infinite}
+.zlogo .card:nth-child(1){transform:rotate(-18deg) translateX(-26px)}
+.zlogo .card:nth-child(2){z-index:1;animation-delay:-1.6s}
+.zlogo .card:nth-child(3){transform:rotate(18deg) translateX(26px);animation-delay:-3.2s}
+@keyframes zfloat{0%,100%{translate:0 0}50%{translate:0 -5px}}
+.ztitle{font-family:var(--f-display);font-weight:400;font-size:clamp(3rem,15vw,4.4rem);line-height:.95;text-align:center;margin:0;letter-spacing:.01em}
+.zsubt{text-align:center;color:#A9C4B9;margin:-6px 0 4px;font-size:.95rem}
+.zlvls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.zlvl{border:2px solid transparent;border-radius:16px;background:rgba(255,255,255,.08);color:inherit;padding:12px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;min-width:0}
+.zlvl[aria-checked="true"]{border-color:#E2B24C;background:rgba(226,178,76,.15)}
+.zlvl b{font-size:1rem}
+.zlvl small{font-size:.72rem;color:#C2D6CD;line-height:1.25}
+.zlvl em{font-style:normal;font-size:.68rem;color:#A9C4B9;font-variant-numeric:tabular-nums}
+.zpips{display:flex;gap:4px}
+.zpips i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.22)}
+.zpips i.on{background:#E2B24C}
+.zhbtns{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.zlinks{display:flex;justify-content:center;gap:18px}
+.zlinks button{background:none;border:0;color:#C2D6CD;font-size:.95rem;padding:10px;text-decoration:underline;text-underline-offset:3px}
+
+/* HUD */
+.zhud{flex:none;display:flex;align-items:center;gap:8px;height:52px}
+.zcapw{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.zcap{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.3);border-radius:999px;padding:4px 6px;font-variant-numeric:tabular-nums}
+.zcap .s{display:flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px}
+.zcap .s b{font-size:1.25rem;font-weight:800;min-width:1.4em;text-align:center}
+.zcap .s small{font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.85}
+.zcap .y{background:rgba(127,182,240,.2)} .zcap .y b{color:#9CC8F5}
+.zcap .c{background:rgba(240,138,116,.2)} .zcap .c b{color:#F7A391}
+.zcap .t{font-size:.7rem;color:#A9C4B9;white-space:nowrap}
+.zsub{font-size:.7rem;color:#A9C4B9;letter-spacing:.02em}
+.zbump{animation:zbump .5s ease}
+@keyframes zbump{30%{transform:scale(1.25)}}
+
+/* opponent */
+.zopp{flex:none;position:relative;display:flex;align-items:center;gap:10px;padding:6px 2px 4px;min-height:calc(var(--ow,30px)*1.4 + 10px)}
+.zav{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#F08A74,#B4503D);box-shadow:0 0 0 2px rgba(255,255,255,.18);font-weight:800;font-size:.72rem;letter-spacing:.04em}
+.zav.think{animation:zthink 1.2s ease-in-out infinite}
+@keyframes zthink{50%{box-shadow:0 0 0 5px rgba(240,138,116,.35)}}
+.zoinfo{min-width:0;display:flex;flex-direction:column;gap:2px}
+.zoname{font-weight:700;font-size:.95rem;white-space:nowrap}
+.zoname .lv{font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.14);padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:2px}
+.zpilestat{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:#C2D6CD;font-variant-numeric:tabular-nums}
+.zostat{display:flex}
+.zpico{display:inline-block;width:12px;height:16px;border-radius:2.5px;background:repeating-linear-gradient(45deg,#7A2E24 0 3px,#95473B 3px 6px);border:1.5px solid #FBFAF6;box-shadow:2px -2px 0 -1px #FBFAF6}
+.zxc{background:#E2B24C;color:#1B1407;font-weight:800;font-size:.66rem;border-radius:5px;padding:1px 5px}
+.zohand{margin-left:auto;display:flex;--cw:var(--ow,30px);padding-right:4px}
+.zohand .card{box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.zohand .card+.card{margin-left:calc(var(--cw)*-.55)}
+.zohand.rev{--cw:calc(var(--ow,30px)*1.15)}
+.zohand.rev .card+.card{margin-left:calc(var(--cw)*-.35)}
+.zbub{position:absolute;left:54px;top:calc(100% - 2px);z-index:6;max-width:min(78%,360px);background:#ECF0EC;color:#14201C;border-radius:18px;padding:7px 13px;font-size:.88rem;font-weight:500;box-shadow:0 6px 16px rgba(0,0,0,.35);animation:zpop .22s ease}
+.zbub::before{content:"";position:absolute;left:12px;top:-6px;width:14px;height:14px;background:#ECF0EC;border-radius:2px;transform:rotate(45deg)}
+.zbub b{font-weight:800}
+.zbub .r{color:#B0362A}
+.ztyping{display:inline-flex;gap:4px;padding:3px 2px}
+.ztyping i{width:7px;height:7px;border-radius:50%;background:#7C8984;animation:ztype 1.1s infinite}
+.ztyping i:nth-child(2){animation-delay:.15s}.ztyping i:nth-child(3){animation-delay:.3s}
+@keyframes ztype{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+@keyframes zpop{from{transform:scale(.85);opacity:0}}
+
+/* felt and table */
+.zfelt{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;margin:6px 0 4px;border-radius:24px;background:radial-gradient(ellipse at 50% 45%,rgba(255,255,255,.07),rgba(0,0,0,.16) 75%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 12px 30px rgba(0,0,0,.25);transition:box-shadow .2s}
+.zfelt.over{box-shadow:inset 0 0 0 2px rgba(226,178,76,.7),inset 0 12px 30px rgba(0,0,0,.25)}
+.zdeck{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:6px;font-size:.75rem;color:#C2D6CD;font-variant-numeric:tabular-nums;z-index:1}
+.zdstk{width:22px;height:30px;border-radius:4px;background:repeating-linear-gradient(45deg,#7A2E24 0 3px,#95473B 3px 6px);border:2px solid #FBFAF6;box-shadow:2px 2px 0 -1px #FBFAF6,4px 4px 0 -2px #FBFAF6}
+.zboard{--cw:var(--tw,54px);display:flex;flex-wrap:wrap;gap:12px 10px;justify-content:center;align-content:center;align-items:center;padding:34px 12px 14px;max-height:100%;width:100%;overflow:auto;scrollbar-width:none}
+.zboard.dense{--cw:calc(var(--tw,54px)*.82);gap:9px 8px}
+.zboard.vdense{--cw:calc(var(--tw,54px)*.68);gap:8px 6px}
+.zempty{color:#A9C4B9;font-size:.92rem}
+.zti{position:relative;background:none;border:0;padding:0;color:inherit;border-radius:calc(var(--cw)*.14);transition:transform .18s ease,opacity .18s}
+.zti .card{box-shadow:0 2px 0 rgba(0,0,0,.2),0 6px 14px rgba(0,0,0,.28);transition:box-shadow .18s}
+.zti.tg .card,.zti.zp.tg{box-shadow:0 0 0 2.5px #E2B24C,0 0 16px rgba(226,178,76,.65)}
+.zti.tg{animation:zglow 1.4s ease-in-out infinite}
+@keyframes zglow{50%{transform:translateY(-3px)}}
+.zti.pk{transform:translateY(-8px)}
+.zti.pk .card,.zti.zp.pk{box-shadow:0 0 0 3px #FFFFFF,0 0 0 6px #E2B24C,0 10px 18px rgba(0,0,0,.4)}
+.zti.dim{opacity:.58}
+.zti.aim .card,.zti.zp.aim{box-shadow:0 0 0 3px #F08A74,0 0 18px rgba(240,138,116,.75)}
+.zti.over{transform:scale(1.08)}
+.zti.over .card,.zti.zp.over{box-shadow:0 0 0 3px #FFFFFF,0 0 22px rgba(255,255,255,.6)}
+.zti:disabled{cursor:default}
+.zp{display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 9px 6px;border-radius:14px;background:rgba(0,0,0,.24);border:2px solid}
+.zp.o0{border-color:#7FB6F0} .zp.o1{border-color:#F08A74}
+.zstk{display:flex;--cw:calc(var(--tw,54px)*.74)}
+.zboard.dense .zstk,.zboard.vdense .zstk{--cw:calc(var(--tw,54px)*.6)}
+.zstk .card{box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.zstk .card+.card{margin-left:calc(var(--cw)*-.72)}
+.zstk .gap{width:calc(var(--cw)*.18)}
+.zbadge{position:absolute;top:-10px;right:-10px;min-width:28px;height:28px;padding:0 7px;border-radius:14px;display:grid;place-items:center;background:#E2B24C;color:#1B1407;font-weight:800;font-size:.95rem;box-shadow:0 3px 8px rgba(0,0,0,.35)}
+.zplab{font-size:.66rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.zp.o0 .zplab{color:#B5D5F7} .zp.o1 .zplab{color:#F7B5A7}
+.zin{position:absolute;top:8px;left:50%;transform:translateX(-50%);--cw:calc(var(--tw,54px)*1.05);z-index:3;pointer-events:none}
+.zin .card{box-shadow:0 0 0 3px #F08A74,0 14px 26px rgba(0,0,0,.5)}
+
+/* status pill and move tray */
+.zstatus{flex:none;height:88px;display:flex;align-items:center;justify-content:center;min-width:0}
+.zpill{max-width:100%;background:rgba(0,0,0,.32);padding:9px 16px;border-radius:999px;font-size:.92rem;font-weight:600;text-align:center;line-height:1.25}
+.zpill.gold{background:#E2B24C;color:#1B1407}
+.zpill.warn{background:rgba(226,178,76,.18);box-shadow:inset 0 0 0 1.5px rgba(226,178,76,.6)}
+.ztray{width:100%;display:flex;flex-direction:column;gap:5px;animation:zrise .2s ease}
+@keyframes zrise{from{transform:translateY(8px);opacity:0}}
+.ztrh{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.78rem;color:#C2D6CD;padding:0 2px;white-space:nowrap;overflow:hidden}
+.ztrh span{overflow:hidden;text-overflow:ellipsis}
+.ztx{background:none;border:0;color:#E2B24C;font-weight:700;font-size:.85rem;padding:4px 2px}
+.zmvs{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.zmvs::-webkit-scrollbar{display:none}
+.zmv{flex:none;scroll-snap-align:start;display:flex;align-items:center;gap:8px;min-height:46px;padding:6px 14px;border-radius:14px;border:0;background:#F3F6F2;color:#14201C;font-weight:700;font-size:.9rem;box-shadow:0 4px 0 rgba(0,0,0,.25);white-space:nowrap}
+.zmv:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.zmv.sug{background:#E2B24C}
+.zmv em{font-style:normal;font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;background:#1B1407;color:#E2B24C;border-radius:5px;padding:2px 5px;margin-right:2px}
+.zmvc{display:flex;align-items:center;gap:3px}
+.zch{font-weight:800;font-size:.84rem;padding:2px 5px;border-radius:6px;background:rgba(20,32,28,.08);color:#1C1F1E}
+.zch.r{color:#B0362A}
+.zch.p{background:#14201C;color:#F3F6F2;font-size:.74rem}
+.zmvc i{font-style:normal;color:#7C8984;font-weight:600}
+.zxb{background:#B0362A;color:#fff;font-size:.66rem;letter-spacing:.06em;border-radius:6px;padding:3px 6px}
+
+/* your side */
+.zmeinfo{flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 6px;font-size:.82rem;color:#C2D6CD;min-height:20px}
+.zmename b{color:#F1F5EF}
+.zdl{font-size:.64rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.14);padding:2px 6px;border-radius:6px;margin-left:6px}
+.zhand{flex:none;--cw:var(--hw,70px);display:flex;justify-content:center;align-items:flex-end;height:calc(var(--hw,70px)*1.4 + 30px);padding-top:26px;padding-bottom:2px}
+.zhc{flex:none;position:relative;background:none;border:0;padding:0;border-radius:calc(var(--cw)*.12);transform:translateY(var(--ty,0px)) rotate(var(--rot,0deg));transform-origin:50% 130%;transition:transform .2s cubic-bezier(.2,.8,.2,1),opacity .15s;touch-action:none;cursor:grab}
+.zhc+.zhc{margin-left:var(--ml,6px)}
+.zhc .card{box-shadow:0 2px 0 rgba(0,0,0,.2),0 8px 18px rgba(0,0,0,.35)}
+.zhc.sel{transform:translateY(-22px) rotate(0deg) scale(1.06);z-index:3}
+.zhc.sel .card{box-shadow:0 0 0 3px #E2B24C,0 16px 26px rgba(0,0,0,.5)}
+.zhc.can .card{box-shadow:0 0 0 2.5px #E2B24C,0 0 14px rgba(226,178,76,.6)}
+.zhc.can{transform:translateY(calc(var(--ty,0px) - 8px)) rotate(var(--rot,0deg))}
+.zhc.dead .card{filter:grayscale(.7) brightness(.62)}
+.zhc.wait .card{filter:brightness(.82)}
+.zhc.out{opacity:.22}
+.zshake{animation:zshake .38s ease}
+@keyframes zshake{20%{translate:-7px 0}40%{translate:6px 0}60%{translate:-4px 0}80%{translate:2px 0}}
+.zapp.dragging .zhc{cursor:grabbing}
+
+/* overlays */
+.zfx{position:fixed;inset:0;pointer-events:none;z-index:60}
+.zghost{position:fixed;pointer-events:none;z-index:61;will-change:transform}
+.zghost .card{box-shadow:0 14px 28px rgba(0,0,0,.45)}
+.zdrag{z-index:62}
+.zconf{position:fixed;width:8px;height:12px;border-radius:2px;z-index:63}
+.ztoast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translate(-50%,-16px);opacity:0;z-index:50;max-width:calc(100% - 40px);background:rgba(16,24,21,.94);color:#F1F5EF;padding:10px 18px;border-radius:999px;font-size:.9rem;font-weight:600;text-align:center;box-shadow:0 10px 26px rgba(0,0,0,.4);transition:opacity .22s,transform .22s;pointer-events:none}
+.ztoast.show{opacity:1;transform:translate(-50%,0)}
+.zbanner{position:absolute;left:50%;top:42%;z-index:55;transform:translate(-50%,-50%);font-family:var(--f-display);font-size:clamp(3rem,16vw,5rem);line-height:1;color:#1B1407;background:#E2B24C;padding:10px 32px 12px;border-radius:20px;box-shadow:0 0 0 6px rgba(226,178,76,.3),0 24px 50px rgba(0,0,0,.5);animation:zxeri 1.8s ease both;pointer-events:none;white-space:nowrap;text-align:center}
+.zbanner small{display:block;font:700 .95rem/1.2 -apple-system,BlinkMacSystemFont,"Commissioner",system-ui,sans-serif;margin-top:4px}
+@keyframes zxeri{0%{transform:translate(-50%,-50%) scale(.3) rotate(-10deg);opacity:0}14%{transform:translate(-50%,-50%) scale(1.1) rotate(3deg);opacity:1}24%{transform:translate(-50%,-50%) scale(1) rotate(0)}82%{opacity:1}100%{transform:translate(-50%,-62%) scale(1);opacity:0}}
+
+/* sheets (iOS style) */
+.zmodal{position:absolute;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5);animation:zfade .2s ease}
+.zmodal.center{align-items:center;padding:16px}
+@keyframes zfade{from{opacity:0}}
+.zsheet{width:100%;max-width:540px;max-height:90%;overflow:auto;background:#18211E;color:#F1F5EF;border-radius:24px 24px 0 0;padding:8px 18px calc(env(safe-area-inset-bottom,0px) + 22px);box-shadow:0 -10px 40px rgba(0,0,0,.4);animation:zup .3s cubic-bezier(.2,.8,.2,1)}
+.zmodal.center .zsheet{border-radius:24px;max-width:420px;padding:22px 20px 22px;animation:zzoom .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes zup{from{transform:translateY(100%)}}
+@keyframes zzoom{from{transform:scale(.9);opacity:0}}
+.zgrab{width:38px;height:5px;border-radius:3px;background:rgba(255,255,255,.25);margin:0 auto 10px}
+.zsh{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.zsh h3{font:700 1.3rem/1.2 -apple-system,BlinkMacSystemFont,"Commissioner",system-ui,sans-serif;margin:0}
+.zlabel{font-size:.74rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#93A59D;margin:16px 4px 6px}
+.zrows{background:#232E2A;border-radius:14px;overflow:hidden;margin:10px 0}
+.zrow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:50px;padding:6px 16px;border:0;background:none;color:inherit;font-size:1rem;text-align:left;cursor:pointer}
+.zrow+.zrow{border-top:1px solid rgba(255,255,255,.08)}
+.zrow span.chev{color:#7C8984;font-size:1.3rem}
+.zrow.danger{color:#FF8E7A}
+.zrow:active{background:rgba(255,255,255,.06)}
+.zsw{-webkit-appearance:none;appearance:none;flex:none;width:51px;height:31px;border-radius:16px;background:#3B4743;position:relative;cursor:pointer;transition:background .2s;margin:0}
+.zsw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.3);transition:transform .2s}
+.zsw:checked{background:#34C759}
+.zsw:checked::after{transform:translateX(20px)}
+.zseg{display:flex;background:rgba(118,118,128,.28);border-radius:10px;padding:2px}
+.zseg button{flex:1;border:0;background:none;color:#F1F5EF;font-weight:600;font-size:.92rem;padding:8px 4px;border-radius:8px}
+.zseg button[aria-checked="true"]{background:#F1F5EF;color:#14201C;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.zfine{font-size:.82rem;color:#93A59D;margin:8px 4px 0;line-height:1.4}
+.zrules{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 14px;margin:8px 2px 14px;font-size:.92rem;line-height:1.4}
+.zrules dt{font-weight:800;color:#E2B24C}
+.zrules dd{margin:0;color:#DCE5E0}
+.zhist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:.88rem}
+.zhist li{padding-left:10px;border-left:3px solid rgba(255,255,255,.15);color:#C2D6CD}
+.zhist li.p0{border-color:#7FB6F0;color:#F1F5EF}.zhist li.p1{border-color:#F08A74;color:#F1F5EF}
+.zhist li.x{border-color:#E2B24C;font-weight:700;color:#F1F5EF}
+
+/* round summary */
+.zsum h3{font-family:var(--f-display);font-weight:400;font-size:2rem;margin:2px 0 12px;text-align:center;line-height:1.1}
+.zsum .eb{text-align:center;font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#E2B24C}
+.ztally{display:grid;gap:2px;font-variant-numeric:tabular-nums;margin-bottom:14px}
+.ztr{display:grid;grid-template-columns:minmax(0,1fr) 3.6em 3.6em;align-items:center;padding:7px 10px;border-radius:9px;animation:zrow .35s ease both}
+.ztr:nth-child(even){background:rgba(255,255,255,.04)}
+.ztr b{text-align:right;font-weight:700}
+.ztr b.y{color:#9CC8F5}.ztr b.c{color:#F7A391}
+.ztr.h{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#93A59D;animation:none}
+.ztr.tot{background:rgba(226,178,76,.14)!important;font-weight:800;font-size:1.05rem}
+@keyframes zrow{from{opacity:0;transform:translateX(-10px)}}
+.zrace{display:grid;gap:8px;margin:4px 0 18px}
+.zrr{display:grid;grid-template-columns:4.2em minmax(0,1fr) 2.4em;gap:10px;align-items:center;font-size:.85rem;font-variant-numeric:tabular-nums}
+.zbar{height:10px;border-radius:5px;background:rgba(255,255,255,.1);position:relative;overflow:hidden}
+.zbar i{position:absolute;inset:0 auto 0 0;border-radius:5px;animation:zgrow .8s .3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes zgrow{from{width:0!important}}
+.zbtns{display:flex;flex-direction:column;gap:14px}
+.zwin{font-family:var(--f-display);font-size:2.6rem;text-align:center;line-height:1;margin:6px 0 4px}
+.zfinal{text-align:center;font-size:1.5rem;font-weight:800;font-variant-numeric:tabular-nums;margin-bottom:6px}
+
+@media (max-height:600px){.zstatus{height:80px}.zhud{height:46px}.zopp{padding:2px}}
+@media (prefers-reduced-motion:reduce){.zapp *,.zapp *::before,.zapp *::after{animation:none!important;transition:none!important}}
+
+@media (max-width:560px){
+  :root{--cw:38px}
+  body{font-size:16px}
+  .deal-table{grid-template-columns:1fr}
+  .deck{grid-column:1/-1;flex-direction:row}
+  .totals{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div class="topbar"><div class="wrap">
+  <nav class="nav" aria-label="Sections">
+    <a href="#play">Play</a><a href="#deal">Deal</a><a href="#turn">Your turn</a><a href="#capture">Capturing</a><a href="#declare">Declarations</a><a href="#xeri">Xeri</a><a href="#scoring">Scoring</a><a href="#more">4 players &amp; variants</a>
+  </nav>
+  <button class="sound" id="soundBtn" aria-pressed="true" title="Card sounds">Sound on</button>
+</div></div>
+
+<div class="wrap">
+<header class="hero" id="deal">
+  <div>
+    <div class="eyebrow">A Greek fishing game</div>
+    <h1>Diloti</h1>
+    <div class="greek">Δηλωτή · from δηλώνω, “to declare”</div>
+  </div>
+  <p class="lede">Play one card each turn to fish cards off the table, either by matching a value or by summing to it. Diloti adds <em>declarations</em>: you can build a pile, announce its value, and promise to take it later. Most points come from the <em>xeri</em>, a capture that sweeps the table bare.</p>
+  <div class="facts"><span><b>2 players</b> or 2 pairs</span><span><b>52-card</b> deck</span><span><b>6 cards</b> per hand</span><span><b>First to 61</b> wins</span></div>
+  <button class="cta" data-open-game>Play against the computer</button>
+
+  <div class="felt" aria-label="A sample deal">
+    <div class="deal-table" id="dealTable"></div>
+    <div class="deal-foot">
+      <span id="dealNote">Non-dealer gets the first 6, dealer the next 6, then 4 go face up.</span>
+      <button class="felt-btn" id="redeal">Deal again</button>
+    </div>
+  </div>
+  <div class="prose">
+    <p>The non-dealer plays first, which is an advantage: they get the first shot at whatever lies on the table. The deal alternates each round. If the four table cards include three or four face cards of the same rank, those cards go back into the pack and four new ones are dealt. The remaining 36 cards wait face down. When both hands run out, each player gets six more, but nothing new goes to the table. Three more deals of six empty the pack.</p>
+  </div>
+</header>
+
+<section id="play">
+  <div class="eyebrow">Play now</div>
+  <h2>Play against the computer</h2>
+  <div class="zlaunch">
+    <div class="zlaunch-art" aria-hidden="true">
+      <span class="card"><span class="cr">A</span><span class="cs2">&#9824;</span><span class="cc">&#9824;</span></span>
+      <span class="card red"><span class="cr">10</span><span class="cs2">&#9830;</span><span class="cc">&#9830;</span></span>
+      <span class="card"><span class="cr">2</span><span class="cs2">&#9827;</span><span class="cc">&#9827;</span></span>
+    </div>
+    <div class="zlaunch-body">
+      <p>A full game to 61 against an Easy, Medium or Hard computer, with every rule on this page enforced. It opens full screen and plays like a phone card game: tap a card to see its moves, or drag it onto the table.</p>
+      <div class="zlaunch-row">
+        <button class="zbig zlaunch-btn" id="zLaunchBtn" data-open-game>Play Diloti</button>
+        <span class="zlaunch-info" id="zLaunchInfo">Three difficulty levels. Your game is saved if you leave.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="zapp" data-zapp hidden role="dialog" aria-modal="true" aria-label="Diloti game">
+  <div class="zstage" data-ref="stage">
+    <div class="zscr zhome" data-ref="home"></div>
+    <div class="zscr zgame" data-ref="game" hidden>
+      <header class="zhud">
+        <button class="zib" data-ref="bMenu" aria-label="Pause menu"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <div class="zcapw"><div class="zcap" data-ref="cap"></div><div class="zsub" data-ref="sub"></div></div>
+        <button class="zib" data-ref="bUndo" aria-label="Undo your last move"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></svg></button>
+        <button class="zib" data-ref="bHint" aria-label="Suggest a move"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></button>
+      </header>
+      <div class="zopp">
+        <div class="zav" data-ref="oppAv"></div>
+        <div class="zoinfo"><div class="zoname" data-ref="oppName"></div><div class="zostat" data-ref="oppStat"></div></div>
+        <div class="zohand" data-ref="oppHand"></div>
+        <div class="zbub" data-ref="bub" hidden></div>
+      </div>
+      <div class="zfelt" data-ref="felt">
+        <div class="zdeck" data-ref="deck" aria-hidden="true"><span class="zdstk"></span><span class="zdn" data-ref="deckN"></span></div>
+        <div class="zboard" data-ref="board" role="group" aria-label="Table"></div>
+        <div class="zin" data-ref="incoming"></div>
+      </div>
+      <div class="zstatus" data-ref="status" aria-live="polite"></div>
+      <div class="zmeinfo"><span class="zmename" data-ref="meName"></span><span class="zpilestat" data-ref="myPile"></span></div>
+      <div class="zhand" data-ref="hand" role="group" aria-label="Your hand"></div>
+    </div>
+  </div>
+  <div class="zmodal" data-ref="modal" hidden></div>
+  <div class="ztoast" data-ref="toast" role="status" aria-live="polite"></div>
+  <div class="zbanner" data-ref="banner" hidden></div>
+  <div class="zfx" data-ref="fx" aria-hidden="true"></div>
+</div>
+
+<section id="turn">
+  <div class="eyebrow">On every turn</div>
+  <h2>Play exactly one card</h2>
+  <div class="prose"><p>Aces count 1 and number cards their face value. Kings, Queens and Jacks have no number. They can only take another face card of the same rank, one at a time, and they can never join a sum or a declaration. Your one card does one of these things.</p></div>
+  <div class="actions" id="actions"></div>
+  <div class="callout"><p><b>Face card rule.</b> If a King, Queen or Jack you play matches one already on the table, you <em>must</em> capture exactly one of them. You can’t lay it beside its twin, and you can’t take two.</p></div>
+  <div class="prose"><p>Captured cards, plus the card that took them, go face down into your capture pile. You can’t look through it again until the round ends.</p></div>
+</section>
+
+<section id="capture">
+  <div class="eyebrow">Interactive · capture lab</div>
+  <h2>What can this card take?</h2>
+  <div class="prose"><p>A number card captures any loose card of equal value and any set of loose cards that adds up to it. If several separate sets each reach the value, one card takes all of them at once. Sets can’t share cards, though, so when combinations overlap you pick one and the rest stay. Choose a scenario or build your own table, then pick the card you play.</p></div>
+  <div class="felt lab">
+    <div class="presets" id="presets" role="group" aria-label="Scenarios"></div>
+    <div><div class="lbl">Table · tap a card to remove it</div><div class="row table-row" id="labTable"></div></div>
+    <div><div class="lbl">Add a card to the table</div><div class="ranks" id="addRanks"></div></div>
+    <div><div class="lbl">Card you play</div><div class="ranks" id="playRanks"></div></div>
+    <div class="result" id="labResult" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="declare">
+  <div class="eyebrow">Interactive · step through</div>
+  <h2>Declarations</h2>
+  <div class="prose">
+    <p>A declaration is a face-up pile you build from the card you play plus loose number cards. You announce its value, and from then on the pile can only be captured as a whole, by a card of that value. To declare, raise, or add to a declaration you <em>must already hold</em> a card of its value.</p>
+    <p>A <b>plain declaration</b> is a sum, such as a 3 laid on a 5 and called “eight.” Your opponent may <b>raise</b> it by adding a card from hand, which makes a new sum they must hold. You can’t raise your own, but you can re-raise after theirs, up to 10. A <b>group</b> (or family) declaration stacks two or more units that each equal the value, such as an 8 together with 5+3. Groups can’t be raised and fall only to a card of the same value. If a pile could be read either way, two 4s for example, say whether it is “eight” or “two fours.”</p>
+  </div>
+  <div class="tabs" role="tablist" id="walkTabs"></div>
+  <div class="felt walk">
+    <div class="zone"><div class="seat-line"><span class="lbl">Opponent</span><div class="hand" id="wOpp"></div></div></div>
+    <div class="board" id="wBoard"></div>
+    <div class="zone"><div class="seat-line"><span class="lbl">You</span><div class="hand" id="wYou"></div></div></div>
+    <div class="caption" id="wCap" aria-live="polite"></div>
+    <div class="stepper">
+      <button class="felt-btn" id="wPrev">Back</button>
+      <div class="dots" id="wDots"></div>
+      <button class="felt-btn" id="wNext">Next</button>
+    </div>
+  </div>
+  <div class="callout"><p><b>The declarer’s promise.</b> Until your declaration is captured, raised, or taken over by someone else, you may only capture loose cards, capture your own declaration, or add to it to make a group of the same value. You can’t lay a card or start another declaration, and the card you’re holding for it is reserved for that capture.</p></div>
+</section>
+
+<section id="xeri">
+  <div class="eyebrow">Interactive · three puzzles</div>
+  <h2>The xeri</h2>
+  <div class="prose"><p>Capture <em>every</em> card on the table in one play and you score a <b>xeri</b> (ξερή, “dry”), worth 10 points, almost as much as everything else in the round combined. Tuck one captured card face up and sideways under your pile to keep count. The very first card of a round never counts as a xeri, even if it takes all four. The real skill is avoiding leaving a table your opponent can clear. Try these.</p></div>
+  <div class="quiz" id="quiz"></div>
+</section>
+
+<section id="scoring">
+  <div class="eyebrow">End of round</div>
+  <h2>Scoring</h2>
+  <div class="prose"><p>When the pack and both hands are empty, whatever is left on the table goes to the last player who captured anything. That final sweep is not a xeri. The dealer’s last card can still score one if it validly captures everything by itself. Then count up the 11 card points plus 10 for each xeri.</p></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>What</th><th>Points</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>The cards (most captured)</td><td class="num">4</td><td>At 26–26 the cards are split and nobody scores them</td></tr>
+      <tr><td>Each Ace</td><td class="num">1 × 4</td><td>One point per Ace you captured</td></tr>
+      <tr><td>The good 10 (10&#9830;)</td><td class="num">2</td><td></td></tr>
+      <tr><td>The good 2 (2&#9827;)</td><td class="num">1</td><td></td></tr>
+      <tr><td>Each xeri</td><td class="num">10</td><td>No limit on how many</td></tr>
+    </tbody>
+  </table></div>
+  <div class="calc" id="calc">
+    <h3>Round calculator</h3>
+    <div class="grid">
+      <div class="field"><label for="cardsYou">Cards you captured</label>
+        <input type="range" id="cardsYou" min="0" max="52" value="29">
+        <div class="cardsplit"><span id="cyOut">You 29</span><span id="coOut">Opponent 23</span></div></div>
+      <div class="field"><span class="fl" id="acesLbl">Aces you captured</span><div class="seg" id="aces" role="group" aria-labelledby="acesLbl"></div></div>
+      <div class="field"><span class="fl" id="tenLbl">Who took the 10&#9830;</span><div class="seg" id="ten" role="group" aria-labelledby="tenLbl"></div></div>
+      <div class="field"><span class="fl" id="twoLbl">Who took the 2&#9827;</span><div class="seg" id="two" role="group" aria-labelledby="twoLbl"></div></div>
+      <div class="field"><span class="fl">Your xeri</span><div class="step2"><button id="xyM" aria-label="Fewer">−</button><output id="xy">1</output><button id="xyP" aria-label="More">+</button></div></div>
+      <div class="field"><span class="fl">Opponent’s xeri</span><div class="step2"><button id="xoM" aria-label="Fewer">−</button><output id="xo">0</output><button id="xoP" aria-label="More">+</button></div></div>
+    </div>
+    <div class="totals">
+      <div class="tot you"><div class="who">You · this round</div><div class="big" id="tY">0</div><div class="brk" id="bY"></div></div>
+      <div class="tot opp"><div class="who">Opponent · this round</div><div class="big" id="tO">0</div><div class="brk" id="bO"></div></div>
+    </div>
+    <div class="race">
+      <div class="r"><span>You</span><div class="bar"><i id="gY" style="background:var(--you);width:0"></i></div><span id="gYn">0</span></div>
+      <div class="r"><span>Opponent</span><div class="bar"><i id="gO" style="background:var(--opp);width:0"></i></div><span id="gOn">0</span></div>
+      <div class="btnrow"><button class="btn" id="addRound">Add round to game</button><button class="btn ghost" id="resetGame">New game</button><span id="raceMsg" class="hint" style="color:var(--muted)">Game to 61. Rounds added: 0</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="more">
+  <div class="eyebrow">Beyond two players</div>
+  <h2>Four players and house rules</h2>
+  <div class="prose">
+    <p>Four play as two fixed partnerships, partners facing each other. Deal and play go anticlockwise and the deal passes to the right. Each player gets six cards (dealer’s right first, dealer last), four go to the table, and a second round of six empties the pack. A declaration binds only the player who made it. Only opponents may raise a plain declaration, but anyone may add to it to form a group of the same value, and whoever adds takes on the duty of capturing it. Partners pool their captures for scoring.</p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Variant</th><th>What changes</th></tr></thead>
+    <tbody>
+      <tr><td>Peek at the bottom</td><td>Dealer may look at the bottom card, so they know one card of their final hand.</td></tr>
+      <tr><td>Face-card redeal</td><td>A player dealt 5 or 6 face cards (first deal, or any deal) may demand a reshuffle by the same dealer.</td></tr>
+      <tr><td>Three of a kind on the table</td><td>Exactly three equal face cards aren’t redealt; whoever plays the fourth takes all three.</td></tr>
+      <tr><td>Forced capture</td><td>If your card can capture, you must, and you can’t leave behind any card or set it could have taken. You still choose between overlapping options.</td></tr>
+      <tr><td>Liberal declarations</td><td>Plain declarations act like single cards when forming groups, raising, or capturing (a declared 5 plus a loose Ace falls to one 6).</td></tr>
+      <tr><td>Soy</td><td>Some call any group a “soy”; one source reserves it for a pair of equal cards that can’t be added to.</td></tr>
+      <tr><td>Xeri timing</td><td>Some ban a xeri on the dealer’s very last card; others allow one even on the round’s first card.</td></tr>
+      <tr><td>Longer game</td><td>Play to 121, or any agreed target.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>
+  Rules adapted from <a href="https://www.pagat.com/fishing/diloti.html">Diloti at pagat.com</a> (John McLeod, from information by Alexandros Kouridakis, Michael Mihelakakis and Thanos Tsakonas). Related games: <a href="https://www.pagat.com/fishing/xeri.html">Xeri</a>, <a href="https://www.pagat.com/fishing/kontsina.html">Kontsina</a>, <a href="https://www.pagat.com/fishing/casino.html">Casino</a>.
+</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const SUIT={S:"\u2660",H:"\u2665",D:"\u2666",C:"\u2663"};
+const RANKS=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+const FACES=["J","Q","K"];
+const val=r=>r==="A"?1:(FACES.includes(r)?null:+r);
+const C=(r,s)=>({r,s});
+const parse=t=>{const s=t.slice(-1);return C(t.slice(0,-1),s);};
+function cardHTML(c,o){o=o||{};
+  if(o.back) return '<span class="card back '+(o.cls||"")+'" aria-hidden="true"><span></span></span>';
+  const red=c.s==="H"||c.s==="D", face=FACES.includes(c.r);
+  return '<span class="card'+(red?" red":"")+(face?" face":"")+" "+(o.cls||"")+'"'+(o.attr||"")+' role="img" aria-label="'+c.r+' of '+({S:"spades",H:"hearts",D:"diamonds",C:"clubs"}[c.s])+'"'+(o.style?' style="'+o.style+'"':"")+'><span class="cr">'+c.r+'</span><span class="cs2">'+SUIT[c.s]+'</span><span class="cc">'+(face?c.r:SUIT[c.s])+'</span></span>';
+}
+const $=id=>document.getElementById(id);
+
+/* ---------- sound ---------- */
+let soundOn=true, actx=null;
+try{ if(localStorage.getItem("diloti-sound")==="off") soundOn=false; }catch(e){}
+const sBtn=$("soundBtn");
+function syncSound(){sBtn.setAttribute("aria-pressed",String(soundOn));sBtn.textContent=soundOn?"Sound on":"Sound off";}
+syncSound();
+window.dilotiSnap=snap;
+window.dilotiSound={get:function(){return soundOn;},set:function(v){soundOn=!!v;syncSound();try{localStorage.setItem("diloti-sound",soundOn?"on":"off");}catch(e){}}};
+sBtn.addEventListener("click",()=>{soundOn=!soundOn;syncSound();try{localStorage.setItem("diloti-sound",soundOn?"on":"off");}catch(e){} if(soundOn) snap();});
+function snap(kind){
+  if(!soundOn) return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const t=actx.currentTime, dur=kind==="sweep"?0.35:0.07;
+    const buf=actx.createBuffer(1,Math.floor(actx.sampleRate*dur),actx.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++){d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,kind==="sweep"?1.5:4);}
+    const src=actx.createBufferSource(); src.buffer=buf;
+    const f=actx.createBiquadFilter(); f.type="bandpass"; f.frequency.value=kind==="sweep"?2200:3200; f.Q.value=kind==="sweep"?0.7:1.2;
+    const g=actx.createGain(); g.gain.setValueAtTime(kind==="sweep"?0.35:0.5,t);
+    src.connect(f).connect(g).connect(actx.destination); src.start(t);
+    if(kind==="chime"||kind==="sweep"){
+      [660,880,1320].forEach((fr,k)=>{const o=actx.createOscillator(),gg=actx.createGain();o.type="triangle";o.frequency.value=fr;gg.gain.setValueAtTime(0,t+k*.07);gg.gain.linearRampToValueAtTime(.08,t+k*.07+.01);gg.gain.exponentialRampToValueAtTime(.0001,t+k*.07+.5);o.connect(gg).connect(actx.destination);o.start(t+k*.07);o.stop(t+k*.07+.55);});
+    }
+    if(kind==="buzz"){const o=actx.createOscillator(),gg=actx.createGain();o.type="sawtooth";o.frequency.value=140;gg.gain.setValueAtTime(.06,t);gg.gain.exponentialRampToValueAtTime(.0001,t+.25);o.connect(gg).connect(actx.destination);o.start(t);o.stop(t+.26);}
+  }catch(e){}
+}
+
+/* ---------- hero deal ---------- */
+function newDeck(){const d=[];for(const s of "SHDC")for(const r of RANKS)d.push(C(r,s));for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
+function badTable(t){const n={};t.forEach(c=>{if(FACES.includes(c.r))n[c.r]=(n[c.r]||0)+1;});return Object.values(n).some(v=>v>=3);}
+function deal(animate){
+  let deck=newDeck(), redeals=0;
+  const opp=deck.slice(0,6), you=deck.slice(6,12); let rest=deck.slice(12);
+  let table=rest.slice(0,4); rest=rest.slice(4);
+  while(badTable(table)){redeals++; rest=rest.concat(table); for(let i=rest.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[rest[i],rest[j]]=[rest[j],rest[i]];} table=rest.slice(0,4); rest=rest.slice(4);}
+  let i=0; const cls=()=>animate?"dealt":"";
+  const st=(dy)=>'--i:'+(i++)+';--dy:'+dy+'px';
+  const oppH=opp.map(c=>cardHTML(c,{back:true})).join("");
+  // build with indexes in deal order: opponent(non-dealer) first, then you (dealer)
+  const oppHTML=opp.map(()=>cardHTML(null,{back:true,cls:cls()}).replace('class="card','style="'+st(80)+'" class="card')).join("");
+  const youHTML=you.map(c=>cardHTML(c,{cls:cls(),style:st(-80)})).join("");
+  const tabHTML=table.map(c=>cardHTML(c,{cls:cls(),style:st(0)})).join("");
+  $("dealTable").innerHTML=
+    '<div class="seat"><span class="lbl">Non-dealer · plays first</span><div class="hand">'+oppHTML+'</div></div>'+
+    '<div class="centre"><span class="lbl">Table · 4 face up</span><div class="row" style="justify-content:center">'+tabHTML+'</div></div>'+
+    '<div class="deck"><div class="stack">'+cardHTML(null,{back:true,style:"transform:translate(3px,-3px)"})+cardHTML(null,{back:true})+'</div><span class="lbl">36 left</span></div>'+
+    '<div class="seat"><div class="hand">'+youHTML+'</div><span class="lbl">Dealer (you, this round)</span></div>';
+  $("dealNote").textContent=redeals?("Three face cards of one rank landed on the table, so the table was redealt"+(redeals>1?" "+redeals+" times":"")+"."):"Non-dealer gets the first 6, dealer the next 6, then 4 go face up.";
+  if(animate){for(let k=0;k<16;k++) setTimeout(()=>snap(),k*55);}
+}
+deal(true);
+$("redeal").addEventListener("click",()=>deal(true));
+
+/* ---------- action tiles ---------- */
+const m=t=>t.split(" ").map(x=>x==="⋯"?'<span class="op">left on table</span>':(x==="+"||x==="→"||x==="="?'<span class="op">'+x+'</span>':cardHTML(parse(x)))).join("");
+const ACTS=[
+ ["Capture by matching","Take a loose card of the same value. A number card takes every loose card of its value at once.",m("7H → 7S 7D")],
+ ["Capture by summing","Take loose cards that add up to your card. Several separate sets can go in one play.",m("9C → AH + 8S")],
+ ["Declare or raise","Build a pile, call its value, and keep a card that matches it. Raising an opponent’s pile makes it yours.",m("3S + 5H = 8")],
+ ["Capture a declaration","A card of the pile’s value takes the whole pile, along with matching loose cards and sets.",m("8D → 5H 3S")],
+ ["Lay the card","Can’t or won’t do anything else? Leave it face up on the table. You can’t lay a face card next to its twin.",m("KH → ⋯")]
+];
+$("actions").innerHTML=ACTS.map((a,i)=>'<div class="act"><span class="tag">Option '+(i+1)+'</span><h3>'+a[0]+'</h3><div class="mini">'+a[2]+'</div><p>'+a[1]+'</p></div>').join("");
+
+/* ---------- capture lab ---------- */
+function captureOptions(table,rank){
+  const v=val(rank);
+  if(v===null){
+    const idx=table.map((c,i)=>c.r===rank?i:-1).filter(i=>i>=0);
+    return {face:true,options:idx.map(i=>({groups:[[i]],count:1}))};
+  }
+  const nums=table.map((c,i)=>({i,v:val(c.r)})).filter(x=>x.v!==null);
+  const n=nums.length, subs=[];
+  for(let mask=1;mask<(1<<n);mask++){let s=0;const ids=[];for(let k=0;k<n;k++)if(mask>>k&1){s+=nums[k].v;ids.push(nums[k].i);} if(s===v)subs.push({mask,ids});}
+  const out=[], seen=new Set();
+  (function rec(start,used,chosen){
+    let any=false;
+    for(let j=start;j<subs.length;j++) if((subs[j].mask&used)===0){any=true;rec(j+1,used|subs[j].mask,chosen.concat([subs[j]]));}
+    if(!any&&chosen.length&&!subs.some(s=>(s.mask&used)===0)){
+      const groups=chosen.map(c=>c.ids.slice()).sort((a,b)=>b.length-a.length||a[0]-b[0]);
+      const key=groups.map(g=>g.join(",")).join("|");
+      if(!seen.has(key)){seen.add(key);out.push({groups,count:groups.reduce((s,g)=>s+g.length,0)});}
+    }
+  })(0,0,[]);
+  out.sort((a,b)=>b.count-a.count);
+  return {face:false,options:out};
+}
+window.__captureOptions=captureOptions;
+
+const PRESETS=[
+ ["3, 5 · play 8",["3C","5D"],"8"],
+ ["A, 4, 5 · play 10",["AS","4H","5C"],"10"],
+ ["2, 4, 6 · play 6",["2D","4S","6H"],"6"],
+ ["A, 4, 5, 8 · play 9",["AH","4C","5S","8D"],"9"],
+ ["A, 2, 3, 6, 7 · play 10",["AC","2H","3S","6D","7C"],"10"],
+ ["Two Kings · play K",["KS","KD","4C"],"K"],
+ ["Pick up a xeri",["2S","7H","9C"],"9"]
+];
+let labTable=[], labPlay="8", labPick=0, suitCycle=0, activePreset=0;
+const presetsEl=$("presets");
+presetsEl.innerHTML=PRESETS.map((p,i)=>'<button class="felt-btn" data-p="'+i+'" aria-pressed="'+(i===0)+'">'+p[0]+'</button>').join("");
+presetsEl.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;loadPreset(+b.dataset.p);snap();});
+function loadPreset(i){activePreset=i;const p=PRESETS[i];labTable=p[1].map(parse);labPlay=p[2];labPick=0;
+  presetsEl.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.p===i)));renderLab(true);}
+$("addRanks").innerHTML=RANKS.map(r=>'<button class="rank-btn" data-r="'+r+'" aria-label="Add '+r+' to table">'+r+'</button>').join("");
+$("playRanks").innerHTML=RANKS.map(r=>'<button class="rank-btn" data-r="'+r+'" aria-label="Play '+r+'">'+r+'</button>').join("");
+$("addRanks").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(labTable.length>=8){$("labResult").innerHTML='<b>Table is full.</b> Eight cards is plenty for this lab; tap one to remove it.';return;}
+  const r=b.dataset.r; const suits="CDHS"; let s; for(let k=0;k<4;k++){s=suits[(suitCycle+k)%4]; if(!labTable.some(c=>c.r===r&&c.s===s))break;} suitCycle++;
+  if(labTable.filter(c=>c.r===r).length>=4){$("labResult").innerHTML='All four '+r+'s are already on the table.';return;}
+  labTable.push(C(r,s));clearPreset();labPick=0;snap();renderLab(true,labTable.length-1);});
+$("playRanks").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;labPlay=b.dataset.r;labPick=0;snap();renderLab();});
+$("labTable").addEventListener("click",e=>{const c=e.target.closest(".card");if(!c)return;labTable.splice(+c.dataset.i,1);clearPreset();labPick=0;snap();renderLab();});
+function clearPreset(){presetsEl.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed","false"));}
+function renderLab(fresh,newIdx){
+  $("playRanks").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.r===labPlay)));
+  const res=captureOptions(labTable,labPlay);
+  const opt=res.options[labPick];
+  const takenIdx=new Set(opt?opt.groups.flat():[]);
+  $("labTable").innerHTML=labTable.length?labTable.map((c,i)=>cardHTML(c,{cls:(takenIdx.has(i)?"taken":(opt?"dim":""))+(fresh&&(newIdx===undefined||newIdx===i)?" new":""),attr:' data-i="'+i+'" tabindex="0"'})).join(""):'<span class="hint">Empty table. Add some cards below.</span>';
+  const name=r=>r==="A"?"Ace":r;
+  let h="";
+  if(res.face){
+    const twins=labTable.filter(c=>c.r===labPlay).length;
+    if(!twins) h='<b>No '+name(labPlay)+' on the table.</b> A face card has no number, so it can’t make a sum. You lay it on the table.';
+    else h='<b>You must capture exactly one '+labPlay+'.</b> '+(twins>1?'Even with '+twins+' on the table, a face card takes only one, and you can’t lay it instead.':'You aren’t allowed to lay it next to its twin.')+(labTable.length===1?' <span class="xeri-badge">Xeri</span> That clears the table.':'');
+  } else if(!res.options.length){
+    h='<b>Nothing to capture with a '+name(labPlay)+'.</b> No loose card or set adds up to '+val(labPlay)+'. You can lay it, or use it to start a declaration if you hold the card to back it up.';
+  } else {
+    const nOpt=res.options.length;
+    h='<b>'+(nOpt===1?"One way to capture":nOpt+" ways to capture, choose one")+'.</b> '+(nOpt>1?"These sets overlap, so you can’t take them all.":"")+'<div class="opts">'+
+      res.options.map((o,k)=>{
+        const left=labTable.filter((_,i)=>!o.groups.flat().includes(i));
+        const xeri=left.length===0;
+        return '<button class="opt" data-k="'+k+'" aria-pressed="'+(k===labPick)+'">'+o.groups.map(g=>'<span class="chip">'+g.map(i=>labTable[i].r).join(" + ")+'</span>').join("")+
+          '<span class="n">takes '+(o.count+1)+' cards incl. yours · '+(xeri?'':'leaves '+left.map(c=>c.r).join(", "))+'</span>'+(xeri?'<span class="xeri-badge">Xeri</span>':'')+'</button>';
+      }).join("")+'</div>';
+    if(opt&&labTable.every((_,i)=>takenIdx.has(i))) h+='<p class="hint" style="color:var(--muted);margin:.6em 0 0">Clearing the table scores a xeri, unless this is the first card played in the round.</p>';
+  }
+  $("labResult").innerHTML=h;
+}
+$("labResult").addEventListener("click",e=>{const b=e.target.closest(".opt");if(!b)return;labPick=+b.dataset.k;const o=captureOptions(labTable,labPlay).options[labPick];snap(o&&o.count===labTable.length?"sweep":undefined);renderLab();});
+loadPreset(0);
+
+/* ---------- declaration walkthroughs ---------- */
+const P=s=>s.split(" ").map(parse);
+const WALKS={
+ group:{name:"Building a group of 8s",steps:[
+  {who:"deal",t:"The table shows 2, 3, 4 and 8. You hold an Ace, a 2, a 7, two 8s and a King. Two 8s in hand means you can safely build 8s.",loose:"2S 3H 4C 8H",piles:[],you:"AH 2D 7C 8S 8D KC",opp:6},
+  {who:"you",t:"You play the Ace and gather A+3+4 (which makes 8) with the loose 8. Two units of 8 form a group of 8s. You hold an 8, so this is allowed. The group can never be raised.",loose:"2S",piles:[{type:"group",v:8,o:"you",c:["AH 3H 4C","8H"]}],you:"2D 7C 8S 8D KC",opp:6,hl:"AH"},
+  {who:"opp",t:"Your opponent plays a 4 onto the loose 2 and declares a plain 6. They must hold a 6.",loose:"",piles:[{type:"group",v:8,o:"you",c:["AH 3H 4C","8H"]},{type:"plain",v:6,o:"opp",c:["2S 4D"]}],you:"2D 7C 8S 8D KC",opp:5,hl:"4D"},
+  {who:"you",t:"You raise their 6 with your 2, making it 8, and fold it straight into your group. It’s now a group of three 8s, and their 6 is gone.",loose:"",piles:[{type:"group",v:8,o:"you",c:["AH 3H 4C","8H","2S 4D 2D"]}],you:"7C 8S 8D KC",opp:5,hl:"2D"},
+  {who:"opp",t:"With nothing better, your opponent lays an Ace on the table.",loose:"AC",piles:[{type:"group",v:8,o:"you",c:["AH 3H 4C","8H","2S 4D 2D"]}],you:"7C 8S 8D KC",opp:4,hl:"AC"},
+  {who:"you",t:"You play your 7 on that Ace (7+1 = 8) and add both cards to the group: four 8s.",loose:"",piles:[{type:"group",v:8,o:"you",c:["AH 3H 4C","8H","2S 4D 2D","AC 7C"]}],you:"8S 8D KC",opp:3,hl:"7C"},
+  {who:"you",t:"Next turn you add an 8 straight from your hand: five 8s. You still keep one 8 back for the capture.",loose:"",piles:[{type:"group",v:8,o:"you",c:["AH 3H 4C","8H","2S 4D 2D","AC 7C","8S"]}],you:"8D KC",opp:2,hl:"8S"},
+  {who:"you",t:"Finally your last 8 captures the whole group: ten cards from the table plus your 8. With the table now bare, that capture also counts as a xeri.",loose:"",piles:[],you:"KC",opp:1,taken:"AH 3H 4C 8H 2S 4D 2D AC 7C 8S 8D",sweep:true}
+ ]},
+ plain:{name:"Raising a plain declaration",steps:[
+  {who:"deal",t:"The table holds a 5 and a Jack. You hold a 3, an 8, a 10 and a 4.",loose:"5C JD",piles:[],you:"3S 8H 10S 4D",opp:4},
+  {who:"you",t:"You lay the 3 on the 5 and call “eight.” That’s a plain declaration, and it’s legal because you hold an 8. Until it’s captured or raised, you can’t lay cards or declare anything else.",loose:"JD",piles:[{type:"plain",v:8,o:"you",c:["5C 3S"]}],you:"8H 10S 4D",opp:4,hl:"3S"},
+  {who:"opp",t:"Your opponent raises with a 2 and calls “ten.” The pile is now theirs and they must hold a 10. Your 8 is free to use again.",loose:"JD",piles:[{type:"plain",v:10,o:"opp",c:["5C 3S 2H"]}],you:"8H 10S 4D",opp:3,hl:"2H"},
+  {who:"you",t:"It can’t go past 10, but anyone holding a 10 may capture it. You do, and take the pile with your 10.",loose:"JD",piles:[],you:"8H 4D",opp:3,taken:"5C 3S 2H 10S"},
+  {who:"opp",t:"Now look at what you left: a lone Jack. If your opponent holds a Jack, they take it as a xeri worth 10 points. Always check what your capture leaves behind.",loose:"",piles:[],you:"8H 4D",opp:2,taken:"JD JH",sweep:true,oppTook:true}
+ ]}
+};
+let walkKey="group", step=0;
+$("walkTabs").innerHTML=Object.keys(WALKS).map(k=>'<button class="tab" role="tab" data-k="'+k+'" aria-selected="'+(k===walkKey)+'">'+WALKS[k].name+'</button>').join("");
+$("walkTabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;walkKey=b.dataset.k;step=0;$("walkTabs").querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",String(t.dataset.k===walkKey)));snap();renderWalk();});
+function renderWalk(){
+  const W=WALKS[walkKey], s=W.steps[step], hl=s.hl||"";
+  const ch=(c)=>cardHTML(c,{cls:(c.r+c.s)===hl?"new":""});
+  $("wOpp").innerHTML=Array.from({length:s.opp},()=>cardHTML(null,{back:true})).join("")||'<span class="hint">no cards</span>';
+  $("wYou").innerHTML=s.you?P(s.you).map(c=>cardHTML(c)).join(""):"";
+  let b=(s.loose?P(s.loose).map(ch).join(""):"");
+  b+=s.piles.map(p=>'<div class="pile '+p.o+'"><span class="pl">'+(p.type==="group"?"Group of "+p.v+"s":"Plain "+p.v)+' · '+(p.o==="you"?"yours":"opponent’s")+'</span><div class="comps">'+p.c.map(u=>'<div class="comp">'+P(u).map(ch).join("")+'</div>').join("")+'</div></div>').join("");
+  if(s.taken) b+='<div class="pile '+(s.oppTook?"opp":"you")+'"><span class="pl">Captured'+(s.sweep?" · xeri":"")+'</span><div class="comps"><div class="comp">'+P(s.taken).map(c=>cardHTML(c,{cls:"new"})).join("")+'</div></div></div>';
+  $("wBoard").innerHTML=b||'<span class="hint">Table empty</span>';
+  $("wCap").innerHTML='<div class="who '+s.who+'">'+(s.who==="you"?"You":s.who==="opp"?"Opponent":"Setup")+' · step '+(step+1)+' of '+W.steps.length+'</div>'+s.t;
+  $("wDots").innerHTML=W.steps.map((_,i)=>'<span class="'+(i<=step?"on":"")+'"></span>').join("");
+  $("wPrev").disabled=step===0; $("wNext").textContent=step===W.steps.length-1?"Replay":"Next";
+}
+$("wPrev").addEventListener("click",()=>{if(step>0){step--;snap();renderWalk();}});
+$("wNext").addEventListener("click",()=>{const W=WALKS[walkKey];if(step<W.steps.length-1){step++;snap(W.steps[step].sweep?"sweep":undefined);}else{step=0;snap();}renderWalk();});
+renderWalk();
+
+/* ---------- quiz ---------- */
+const QUIZ=[
+ {table:"3S 5H 7D",hand:"3C 5S 7H",title:"Which card do you take?",ask:"You can capture any one of these by matching. Which choice is safe from a xeri?",
+  choices:[["Take the 3",true,"Right. The 5 and 7 left behind add to 12, and no card is worth 12, so nothing can clear the table."],["Take the 5",false,"That leaves 3 + 7 = 10. Any 10 sweeps the table for a xeri."],["Take the 7",false,"That leaves 3 + 5 = 8. Any 8 sweeps the table for a xeri."]]},
+ {table:"10C JH",hand:"JS",title:"Last cards of the round",ask:"Each player has one card left and it’s your turn. You hold a Jack. Can you lay it so the table keeps three cards?",
+  choices:[["Yes, lay the Jack beside the 10",false,"Not allowed. A face card can’t be laid next to one of the same rank. You must capture the Jack."],["No, I must capture the Jack",true,"Correct, and it hurts. The 10 is left alone, so an opponent holding a 10 scores a xeri with the last card."]]},
+ {table:"9C JD",pile:{v:8,c:"5H 3S"},hand:"8C 4D 6H",title:"Your declaration is pending",ask:"Earlier you made a plain 8 (3 on 5). Your opponent then took a 9. You hold 8, 4, 6, with no Jack and no second 8. What can you do?",
+  choices:[["Lay the 4 and wait",false,"A declarer can’t lay a card until their declaration is resolved."],["Start a new declaration of 10 with the 4 and 6",false,"A declarer can’t make another declaration while one is pending, and the 6 isn’t on the table anyway."],["Capture your 8 with the 8",true,"Correct, it’s your only legal play. And it leaves the Jack alone, so an opponent with a Jack scores a xeri."]]}
+];
+$("quiz").innerHTML=QUIZ.map((q,i)=>'<div class="q" data-q="'+i+'"><div class="felt"><div class="lbl">Table</div><div class="row">'+P(q.table).map(c=>cardHTML(c)).join("")+(q.pile?'<div class="pile you" style="--cw:34px"><span class="pl">Plain '+q.pile.v+' · yours</span><div class="comp" style="display:flex">'+P(q.pile.c).map(c=>cardHTML(c)).join("")+'</div></div>':"")+'</div><div class="lbl" style="margin-top:8px">Your hand</div><div class="row">'+P(q.hand).map(c=>cardHTML(c)).join("")+'</div></div><div class="body"><h3>'+q.title+'</h3><p style="margin:0">'+q.ask+'</p><div class="choices">'+q.choices.map((c,k)=>'<button class="choice" data-k="'+k+'">'+c[0]+'</button>').join("")+'</div><div class="fb" aria-live="polite"></div></div></div>').join("");
+$("quiz").addEventListener("click",e=>{const b=e.target.closest(".choice");if(!b)return;const qe=b.closest(".q"),q=QUIZ[+qe.dataset.q],c=q.choices[+b.dataset.k];
+  qe.querySelectorAll(".choice").forEach(x=>x.classList.remove("right","wrong"));b.classList.add(c[1]?"right":"wrong");
+  qe.querySelector(".fb").innerHTML=(c[1]?'<b class="ok">Yes.</b> ':'<b class="no">Not quite.</b> ')+c[2];snap(c[1]?"chime":"buzz");});
+
+/* ---------- scoring ---------- */
+const S={cards:29,aces:2,ten:"you",two:"opp",xy:1,xo:0};
+function seg(id,opts,key){const el=$(id);el.innerHTML=opts.map(o=>'<button data-v="'+o[0]+'" aria-pressed="'+(String(S[key])===String(o[0]))+'">'+o[1]+'</button>').join("");
+  el.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S[key]=isNaN(+b.dataset.v)?b.dataset.v:+b.dataset.v;el.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));snap();calc();});}
+seg("aces",[[0,"0"],[1,"1"],[2,"2"],[3,"3"],[4,"4"]],"aces");
+seg("ten",[["you","You"],["opp","Opponent"]],"ten");
+seg("two",[["you","You"],["opp","Opponent"]],"two");
+$("cardsYou").addEventListener("input",e=>{S.cards=+e.target.value;calc();});
+[["xyM","xy",-1],["xyP","xy",1],["xoM","xo",-1],["xoP","xo",1]].forEach(([b,k,d])=>$(b).addEventListener("click",()=>{S[k]=Math.max(0,Math.min(12,S[k]+d));snap(d>0?"chime":undefined);calc();}));
+function roundScore(st){
+  const co=52-st.cards;
+  const cY=st.cards>co?4:0, cO=co>st.cards?4:0;
+  const y={cards:cY,aces:st.aces,ten:st.ten==="you"?2:0,two:st.two==="you"?1:0,xeri:st.xy*10};
+  const o={cards:cO,aces:4-st.aces,ten:st.ten==="opp"?2:0,two:st.two==="opp"?1:0,xeri:st.xo*10};
+  const sum=x=>x.cards+x.aces+x.ten+x.two+x.xeri;
+  return {y,o,ty:sum(y),to:sum(o),split:st.cards===26};
+}
+window.__roundScore=roundScore;
+  const brk=x=>["cards "+x.cards,"aces "+x.aces,"10\u2666 "+x.ten,"2\u2663 "+x.two,"xeri "+x.xeri].join(" · ");
+let game={y:0,o:0,n:0};
+try{const g=JSON.parse(localStorage.getItem("diloti-game")||"null");if(g&&typeof g.y==="number")game=g;}catch(e){}
+function calc(){
+  $("cyOut").textContent="You "+S.cards; $("coOut").textContent="Opponent "+(52-S.cards)+(S.cards===26?" · split":"");
+  $("xy").textContent=S.xy;$("xo").textContent=S.xo;
+  const r=roundScore(S);$("tY").textContent=r.ty;$("tO").textContent=r.to;$("bY").textContent=brk(r.y);$("bO").textContent=brk(r.o);
+  drawGame();
+}
+function drawGame(){
+  const pct=v=>Math.min(100,v/61*100)+"%";
+  $("gY").style.width=pct(game.y);$("gO").style.width=pct(game.o);$("gYn").textContent=game.y;$("gOn").textContent=game.o;
+  let msg="Game to 61. Rounds added: "+game.n;
+  if(game.y>=61||game.o>=61){msg=game.y===game.o?"Tied at "+game.y+". Play another round.":'<span class="winner">'+(game.y>game.o?"You win":"Opponent wins")+" "+Math.max(game.y,game.o)+"–"+Math.min(game.y,game.o)+".</span>";}
+  $("raceMsg").innerHTML=msg;
+  try{localStorage.setItem("diloti-game",JSON.stringify(game));}catch(e){}
+}
+$("addRound").addEventListener("click",()=>{if(game.y>=61||game.o>=61){if(game.y!==game.o)return;}const r=roundScore(S);game.y+=r.ty;game.o+=r.to;game.n++;snap("chime");drawGame();});
+$("resetGame").addEventListener("click",()=>{game={y:0,o:0,n:0};snap();drawGame();});
+calc();
+})();
+</script>
+<script>
+/* Diloti rules engine + AI. Pure functions over a plain-object state; no DOM.
+   Rules follow pagat.com/fishing/diloti.html (two-player game, standard rules). */
+(function (root) {
+  "use strict";
+
+  const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+  const SUITS = ["S", "H", "D", "C"];
+  const FACES = ["J", "Q", "K"];
+
+  /** @param {string} r rank @returns {number|null} numeric value, null for face cards */
+  function value(r) {
+    if (r === "A") return 1;
+    if (FACES.includes(r)) return null;
+    const n = Number(r);
+    if (!Number.isInteger(n) || n < 2 || n > 10) throw new Error("Unknown rank: " + r);
+    return n;
+  }
+  const isFace = (r) => FACES.includes(r);
+
+  /** Seedable PRNG (mulberry32) so games and tests are reproducible. */
+  function rng(seed) {
+    let a = (seed >>> 0) || 1;
+    return function () {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function shuffle(a, r) {
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  function makeDeck() {
+    const d = [];
+    for (const s of SUITS) for (const r of RANKS) d.push({ r, s, id: r + s });
+    return d;
+  }
+
+  function emptyState(dealer) {
+    return { deck: [], hands: [[], []], table: [], captures: [[], []], xeri: [0, 0], lastCapturer: null,
+      dealer, turn: 1 - dealer, firstPlay: true, nextId: 1, roundOver: false, dealNo: 0, redeals: 0, leftover: [], history: [] };
+  }
+  const clone = (st) => JSON.parse(JSON.stringify(st));
+
+  function tableHasTripleFace(cards) {
+    const n = {};
+    for (const c of cards) if (isFace(c.r)) { n[c.r] = (n[c.r] || 0) + 1; if (n[c.r] >= 3) return true; }
+    return false;
+  }
+  function dealHands(st) {
+    if (st.deck.length < 12) throw new Error("Not enough cards to deal");
+    st.hands[1 - st.dealer] = st.deck.splice(0, 6);
+    st.hands[st.dealer] = st.deck.splice(0, 6);
+    st.dealNo++;
+    st.turn = 1 - st.dealer;
+  }
+  /** Start a round: 6 to non-dealer, 6 to dealer, 4 face up (redealt while 3+ equal face cards show). */
+  function newRound(dealer, r) {
+    if (dealer !== 0 && dealer !== 1) throw new Error("dealer must be 0 or 1");
+    const st = emptyState(dealer);
+    st.deck = shuffle(makeDeck(), r);
+    dealHands(st);
+    let t = st.deck.splice(0, 4);
+    while (tableHasTripleFace(t)) { st.deck.push(...t); shuffle(st.deck, r); t = st.deck.splice(0, 4); st.redeals++; }
+    t.forEach((c) => st.table.push({ id: st.nextId++, kind: "card", card: c }));
+    return st;
+  }
+
+  const itemCards = (it) => (it.kind === "card" ? [it.card] : it.comps.flat());
+  const looseNums = (st, ex) => st.table.filter((it) => it.kind === "card" && !isFace(it.card.r) && !(ex && ex.has(it.id)));
+
+  /** All subsets (as id arrays) of loose number items whose values sum to target. */
+  function subsetsSum(items, target) {
+    const out = [];
+    if (target < 1) return out;
+    const vals = items.map((it) => value(it.card.r));
+    (function rec(i, sum, acc) {
+      if (sum === target) { out.push(acc.slice()); return; }
+      for (let j = i; j < items.length; j++) {
+        if (sum + vals[j] <= target) { acc.push(items[j].id); rec(j + 1, sum + vals[j], acc); acc.pop(); }
+      }
+    })(0, 0, []);
+    return out;
+  }
+  /** Capturable/combinable units worth V: loose sets summing to V, and declarations of value V. */
+  function unitsFor(st, V, ex) {
+    const units = subsetsSum(looseNums(st, ex), V);
+    st.table.forEach((it) => { if (it.kind === "decl" && it.value === V && !(ex && ex.has(it.id))) units.push([it.id]); });
+    return units;
+  }
+  /** Every non-empty combination of pairwise-disjoint units. Returns arrays of units. */
+  function disjointCombos(units, cap) {
+    cap = cap || 3000;
+    const out = [];
+    (function rec(i, used, acc) {
+      for (let j = i; j < units.length && out.length < cap; j++) {
+        const u = units[j];
+        if (u.some((id) => used.has(id))) continue;
+        const nu = new Set(used); u.forEach((id) => nu.add(id));
+        acc.push(u); out.push(acc.slice()); rec(j + 1, nu, acc); acc.pop();
+      }
+    })(0, new Set(), []);
+    return out;
+  }
+
+  /**
+   * Generate all legal moves for player p.
+   * Move: {p, hi, card, type: capture|lay|plain|raise|group, ids, units?, value?, raiseId?, seedIds?, key}
+   */
+  function generateMoves(st, p) {
+    if (st.roundOver) return [];
+    const hand = st.hands[p];
+    const moves = [];
+    const seen = new Set();
+    const owned = st.table.filter((it) => it.kind === "decl" && it.owner === p);
+    const ownsAny = owned.length > 0;
+
+    hand.forEach((c, hi) => {
+      const restHas = (V) => hand.some((h, k) => k !== hi && value(h.r) === V);
+      const add = (m) => {
+        m.p = p; m.hi = hi; m.card = c;
+        const sortedIds = m.ids.slice().sort((a, b) => a - b);
+        m.key = [c.id, m.type, m.value || "", m.raiseId || "", sortedIds.join(",")].join("|");
+        if (seen.has(m.key)) return;
+        // Declarer's promise: every declaration still owned after this move must remain backed by a card in hand.
+        const newDecl = m.type === "plain" || m.type === "raise" || m.type === "group";
+        for (const d of owned) {
+          if (m.ids.includes(d.id)) continue;
+          if (!restHas(d.value)) return;
+        }
+        if (newDecl && !restHas(m.value)) return;
+        seen.add(m.key); moves.push(m);
+      };
+
+      if (isFace(c.r)) {
+        const matches = st.table.filter((it) => it.kind === "card" && it.card.r === c.r);
+        if (matches.length) matches.forEach((mt) => add({ type: "capture", ids: [mt.id], units: [[mt.id]] }));
+        else if (!ownsAny) add({ type: "lay", ids: [] });
+        return;
+      }
+      const v = value(c.r);
+
+      disjointCombos(unitsFor(st, v, null)).forEach((us) => add({ type: "capture", ids: us.flat(), units: us }));
+
+      if (!ownsAny) {
+        add({ type: "lay", ids: [] });
+        for (let V = v + 1; V <= 10; V++) {
+          if (!restHas(V)) continue;
+          subsetsSum(looseNums(st), V - v).forEach((S) => add({ type: "plain", ids: S, value: V }));
+        }
+        st.table.forEach((d) => {
+          if (d.kind === "decl" && d.type === "plain" && d.owner !== p && d.value + v <= 10 && restHas(d.value + v))
+            add({ type: "raise", ids: [d.id], raiseId: d.id, value: d.value + v });
+        });
+      }
+
+      for (let V = 1; V <= 10; V++) {
+        if (!restHas(V)) continue;
+        if (ownsAny && owned.some((d) => d.value !== V)) continue;
+        const seeds = [];
+        if (v === V) seeds.push({ ids: [] });
+        if (V > v) subsetsSum(looseNums(st), V - v).forEach((S) => seeds.push({ ids: S }));
+        st.table.forEach((d) => {
+          if (d.kind === "decl" && d.type === "plain" && d.owner !== p && d.value + v === V) seeds.push({ ids: [d.id], raiseId: d.id });
+        });
+        seeds.forEach((sd) => {
+          disjointCombos(unitsFor(st, V, new Set(sd.ids))).forEach((us) => {
+            const all = sd.ids.concat(us.flat());
+            if (ownsAny && !owned.every((d) => all.includes(d.id))) return;
+            add({ type: "group", ids: all, units: us, seedIds: sd.ids, raiseId: sd.raiseId, value: V });
+          });
+        });
+      }
+    });
+    return moves;
+  }
+
+  function takeItems(st, ids) {
+    return ids.map((id) => {
+      const k = st.table.findIndex((it) => it.id === id);
+      if (k < 0) throw new Error("Table item " + id + " not found");
+      return st.table.splice(k, 1)[0];
+    });
+  }
+
+  /** Apply a legal move in place. Returns a record describing what happened. */
+  function applyMove(st, m) {
+    if (st.roundOver) throw new Error("Round is over");
+    if (m.p !== st.turn) throw new Error("Not player " + m.p + "'s turn");
+    const hand = st.hands[m.p];
+    const hi = hand.findIndex((c) => c.id === m.card.id);
+    if (hi < 0) throw new Error("Card " + m.card.id + " not in hand");
+    const card = hand.splice(hi, 1)[0];
+    const rec = { p: m.p, type: m.type, card, value: m.value, xeri: false, cards: [], prevOwner: null, wasFirst: st.firstPlay };
+
+    if (m.type === "capture") {
+      const items = takeItems(st, m.ids);
+      rec.cards = items.flatMap(itemCards).concat([card]);
+      rec.tookDecl = items.some((it) => it.kind === "decl");
+      st.captures[m.p].push(...rec.cards);
+      st.lastCapturer = m.p;
+      if (st.table.length === 0 && !st.firstPlay) { st.xeri[m.p]++; rec.xeri = true; }
+    } else if (m.type === "lay") {
+      st.table.push({ id: st.nextId++, kind: "card", card });
+    } else if (m.type === "plain") {
+      const items = takeItems(st, m.ids);
+      rec.cards = items.flatMap(itemCards);
+      st.table.push({ id: st.nextId++, kind: "decl", type: "plain", value: m.value, owner: m.p, comps: [rec.cards.concat([card])] });
+    } else if (m.type === "raise") {
+      const d = st.table.find((it) => it.id === m.raiseId);
+      if (!d || d.kind !== "decl" || d.type !== "plain") throw new Error("Bad raise target");
+      rec.prevOwner = d.owner; rec.from = d.value;
+      d.comps[0].push(card); d.value = m.value; d.owner = m.p;
+    } else if (m.type === "group") {
+      const byId = new Map(st.table.map((it) => [it.id, it]));
+      const seedItems = m.seedIds.map((id) => byId.get(id));
+      const comps = [seedItems.flatMap(itemCards).concat([card])];
+      m.units.forEach((u) => {
+        const its = u.map((id) => byId.get(id));
+        if (its.length === 1 && its[0].kind === "decl") comps.push(...its[0].comps.map((x) => x.slice()));
+        else comps.push(its.flatMap(itemCards));
+      });
+      const ex = m.ids.map((id) => byId.get(id)).find((it) => it.kind === "decl" && it.type === "group");
+      takeItems(st, m.ids);
+      rec.extended = !!ex;
+      st.table.push({ id: st.nextId++, kind: "decl", type: "group", value: m.value, owner: m.p, comps });
+    } else throw new Error("Unknown move type " + m.type);
+
+    st.firstPlay = false;
+    st.history.push(rec);
+    if (st.hands[0].length === 0 && st.hands[1].length === 0) {
+      if (st.deck.length >= 12) { dealHands(st); rec.newDeal = true; }
+      else endRound(st);
+    } else st.turn = 1 - st.turn;
+    return rec;
+  }
+
+  function endRound(st) {
+    const to = st.lastCapturer === null ? 1 - st.dealer : st.lastCapturer;
+    st.leftover = st.table.flatMap(itemCards);
+    st.leftoverTo = to;
+    st.captures[to].push(...st.leftover);
+    st.table = [];
+    st.roundOver = true;
+  }
+
+  /** Points for a finished (or in-progress) round from capture piles and xeri counts. */
+  function scoreRound(st) {
+    const rows = [0, 1].map((p) => {
+      const cs = st.captures[p];
+      return { cards: cs.length, aces: cs.filter((c) => c.r === "A").length,
+        tenD: cs.some((c) => c.id === "10D") ? 2 : 0, twoC: cs.some((c) => c.id === "2C") ? 1 : 0, xeri: st.xeri[p] * 10 };
+    });
+    const most = rows[0].cards === rows[1].cards ? -1 : rows[0].cards > rows[1].cards ? 0 : 1;
+    rows.forEach((r, p) => { r.cardPts = most === p ? 4 : 0; r.total = r.cardPts + r.aces + r.tenD + r.twoC + r.xeri; });
+    return { rows, points: [rows[0].total, rows[1].total], split: most === -1 };
+  }
+
+  /* ---------------- describing moves (for the log and the move picker) ---------------- */
+  const rn = (c) => c.r + ({ S: "\u2660", H: "\u2665", D: "\u2666", C: "\u2663" })[c.s];
+  function describeMove(st, m) {
+    const byId = new Map(st.table.map((it) => [it.id, it]));
+    const unitTxt = (u) => {
+      const its = u.map((id) => byId.get(id));
+      if (its.length === 1 && its[0].kind === "decl") return (its[0].type === "group" ? "group of " + its[0].value + "s" : "declared " + its[0].value);
+      return its.map((it) => rn(it.card)).join("+");
+    };
+    switch (m.type) {
+      case "capture": return "Capture " + m.units.map(unitTxt).join(", ") + (st.table.length === m.ids.length && !st.firstPlay ? " (xeri!)" : "");
+      case "lay": return "Lay it on the table";
+      case "plain": return "Declare " + m.value + " with " + m.ids.map((id) => rn(byId.get(id).card)).join("+");
+      case "raise": return "Raise their " + byId.get(m.raiseId).value + " to " + m.value;
+      case "group": {
+        const parts = [];
+        if (m.raiseId) parts.push("raise their " + byId.get(m.raiseId).value);
+        else if (m.seedIds.length) parts.push("with " + m.seedIds.map((id) => rn(byId.get(id).card)).join("+"));
+        return "Group of " + m.value + "s" + (parts.length ? " (" + parts.join("") + ")" : "") + " + " + m.units.map(unitTxt).join(", ");
+      }
+    }
+    return m.type;
+  }
+
+  /* ---------------- AI ---------------- */
+  const HARD = { oppModel: "medium", follow: 0.9, samples: 24, cand: 14 };
+  const W_CARD = 0.15;
+  const cardWeight = (c) => W_CARD + (c.r === "A" ? 1 : 0) + (c.id === "10D" ? 2 : 0) + (c.id === "2C" ? 1 : 0);
+  const sumW = (cs) => cs.reduce((s, c) => s + cardWeight(c), 0);
+
+  /** Can a single card of rank r capture everything on this table? */
+  function canSweep(table, r) {
+    if (!table.length) return false;
+    if (isFace(r)) return table.length === 1 && table[0].kind === "card" && table[0].card.r === r;
+    const V = value(r);
+    const vals = [];
+    for (const it of table) {
+      if (it.kind === "decl") { if (it.value !== V) return false; continue; }
+      if (isFace(it.card.r)) return false;
+      vals.push(value(it.card.r));
+    }
+    if (!vals.length) return true;
+    const total = vals.reduce((a, b) => a + b, 0);
+    if (total % V) return false;
+    vals.sort((a, b) => b - a);
+    const bins = new Array(total / V).fill(0);
+    return (function fill(i) {
+      if (i === vals.length) return true;
+      const tried = new Set();
+      for (let b = 0; b < bins.length; b++) {
+        if (tried.has(bins[b]) || bins[b] + vals[i] > V) continue;
+        tried.add(bins[b]); bins[b] += vals[i];
+        if (fill(i + 1)) return true;
+        bins[b] -= vals[i];
+      }
+      return false;
+    })(0);
+  }
+
+  /** Cards player p cannot see: everything not in p's hand, on the table, or already captured. */
+  function unseenFor(st, p) {
+    const seen = new Set();
+    st.hands[p].forEach((c) => seen.add(c.id));
+    st.table.forEach((it) => itemCards(it).forEach((c) => seen.add(c.id)));
+    st.captures.forEach((pile) => pile.forEach((c) => seen.add(c.id)));
+    return makeDeck().filter((c) => !seen.has(c.id));
+  }
+  /** P(a random h-card hand from a pool of U holds at least one of k target cards). */
+  function pAny(U, k, h) {
+    if (k <= 0 || h <= 0) return 0;
+    if (U - k < h) return 1;
+    let miss = 1;
+    for (let i = 0; i < h; i++) miss *= (U - k - i) / (U - i);
+    return 1 - miss;
+  }
+  /** Immediate value of a move for its player; declaration value is discounted by declFactor. */
+  function gainOf(st, m, declFactor) {
+    const byId = new Map(st.table.map((it) => [it.id, it]));
+    const cardsOf = (ids) => ids.flatMap((id) => itemCards(byId.get(id)));
+    if (m.type === "capture") {
+      let g = sumW(cardsOf(m.ids)) + cardWeight(m.card);
+      if (st.table.length === m.ids.length && !st.firstPlay) g += 10;
+      return g;
+    }
+    if (m.type === "lay") return -0.35 * cardWeight(m.card) - (isFace(m.card.r) ? 0.05 : 0);
+    // plain / raise / group: the pile plus the card we will capture it with
+    const pile = cardsOf(m.ids).concat([m.card]);
+    const stolen = m.type === "raise" || (m.raiseId != null) ? 0.3 * sumW(cardsOf([m.raiseId])) : 0;
+    return declFactor * (sumW(pile) + W_CARD) + stolen;
+  }
+  function sweepRisk(st2, pool, opp) {
+    if (st2.roundOver || !st2.table.length) return 0;
+    const h = st2.hands[opp].length || 6;
+    const ranks = RANKS.filter((r) => canSweep(st2.table, r));
+    if (!ranks.length) return 0;
+    const k = pool.filter((c) => ranks.includes(c.r)).length;
+    return pAny(pool.length, k, h);
+  }
+
+  function scoreMedium(st, m, pool) {
+    const p = m.p, opp = 1 - p;
+    const st2 = clone(st); applyMove(st2, m);
+    let s = gainOf(st, m, 1);
+    if (m.type === "plain" || m.type === "raise" || m.type === "group") {
+      const k = pool.filter((c) => value(c.r) === m.value).length;
+      const pv = pAny(pool.length, k, st.hands[opp].length);
+      s = (1 - pv) * s - pv * (sumW(st2.table.filter((it) => it.kind === "decl" && it.owner === p).flatMap(itemCards)) - cardWeight(m.card));
+    }
+    if (st2.turn === opp || st2.roundOver) s -= 10 * sweepRisk(st2, pool, opp);
+    return { s, st2 };
+  }
+
+  function sampleHand(pool, h, r) {
+    const a = pool.slice(); const out = [];
+    for (let i = 0; i < h && a.length; i++) out.push(a.splice(Math.floor(r() * a.length), 1)[0]);
+    return out;
+  }
+
+  /**
+   * Choose a move for player p. Levels:
+   *  easy   – noisy greedy on immediate captures, no defensive awareness
+   *  medium – greedy plus xeri-risk and declaration-risk estimates from unseen cards
+   *  hard   – card counting with Monte Carlo look-ahead over the opponent's possible replies
+   */
+  function chooseMove(st, p, level, r) {
+    r = r || Math.random;
+    const moves = generateMoves(st, p);
+    if (!moves.length) throw new Error("No legal moves for player " + p);
+    if (moves.length === 1) return moves[0];
+    const pick = (scored) => { scored.sort((a, b) => b.s - a.s); return scored[0].m; };
+
+    if (level === "easy") {
+      return pick(moves.map((m) => ({ m, s: gainOf(st, m, 0.4) + r() * 2.5 })));
+    }
+    const pool = unseenFor(st, p);
+    const med = moves.map((m) => Object.assign({ m }, scoreMedium(st, m, pool)));
+    if (level === "medium") return pick(med.map((x) => ({ m: x.m, s: x.s + r() * 0.05 })));
+
+    // hard
+    med.sort((a, b) => b.s - a.s);
+    const cand = med.slice(0, HARD.cand);
+    const opp = 1 - p;
+    const SAMPLES = HARD.samples;
+    const scored = cand.map(({ m, st2 }) => {
+      let s = gainOf(st, m, 0);
+      if (st2.roundOver) {
+        const lo = sumW(st2.leftover);
+        return { m, s: s + (st2.leftoverTo === p ? lo : -lo) };
+      }
+      const declId = (m.type === "plain" || m.type === "group") ? st2.nextId - 1 : (m.type === "raise" ? m.raiseId : null);
+      const declPile = declId != null ? st2.table.find((it) => it.id === declId) : null;
+      const h = st2.turn === opp ? st2.hands[opp].length : 0;
+      if (!h) return { m, s: s + (declPile ? 0.9 * (sumW(itemCards(declPile)) + W_CARD) : 0) };
+      // Unknown to us: the opponent's hand. Sample it from cards we haven't seen.
+      const myPool = pool.filter((c) => c.id !== m.card.id);
+      let total = 0;
+      for (let k = 0; k < SAMPLES; k++) {
+        const sim = clone(st2);
+        sim.hands[opp] = sampleHand(myPool, h, r);
+        // Opponent reply: greedy on immediate value, aware of what it hands back to us.
+        const oms = generateMoves(sim, opp);
+        let best = -Infinity, bestM = null;
+        if (HARD.oppModel === "medium" && oms.length > 1) {
+          const oppPool = unseenFor(sim, opp);
+          for (const om of oms) {
+            const g = scoreMedium(sim, om, oppPool).s;
+            if (g > best) { best = g; bestM = om; }
+          }
+          best = gainOf(sim, bestM, 0.6);
+        } else {
+          for (const om of oms) {
+            const g = gainOf(sim, om, 0.6);
+            if (g > best) { best = g; bestM = om; }
+          }
+        }
+        let v = -best;
+        const tookDecl = declPile && bestM && bestM.ids.includes(declId);
+        if (declPile && !tookDecl) v += 0.9 * (sumW(itemCards(declPile)) + W_CARD);
+        // Our follow-up: we know our own remaining hand.
+        if (bestM) {
+          applyMove(sim, bestM);
+          if (sim.roundOver) {
+            const lo = sumW(sim.leftover); v += sim.leftoverTo === p ? lo : -lo;
+          } else if (sim.turn === p && !(bestM && bestM.p === opp && sim.history[sim.history.length - 1].newDeal)) {
+            let mine = 0;
+            for (const mm of generateMoves(sim, p)) {
+              if (mm.type !== "capture") continue;
+              const g = gainOf(sim, mm, 0);
+              // a follow-up that would duplicate our pending declaration's credit is not counted twice
+              if (declPile && mm.ids.includes(declId)) continue;
+              if (g > mine) mine = g;
+            }
+            v += HARD.follow * mine;
+          }
+        }
+        total += v;
+      }
+      s += total / SAMPLES;
+      return { m, s: s + r() * 0.01 };
+    });
+    return pick(scored);
+  }
+
+  const api = { RANKS, SUITS, FACES, value, isFace, rng, shuffle, makeDeck, emptyState, clone, newRound, dealHands,
+    HARD, itemCards, generateMoves, applyMove, scoreRound, describeMove, chooseMove, canSweep, unseenFor, gainOf };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.Diloti = api;
+})(typeof window !== "undefined" ? window : this);
+
+</script>
+<script>
+/* Diloti — phone-style game client. Human = player 0, computer = player 1. Requires window.Diloti (engine). */
+(function () {
+  "use strict";
+  const D = window.Diloti;
+  const app = document.querySelector("[data-zapp]");
+  if (!D || !app) return;
+  const R = {};
+  app.querySelectorAll("[data-ref]").forEach((el) => { R[el.dataset.ref] = el; });
+
+  /* ---------------- constants & helpers ---------------- */
+  const SUIT = { S: "\u2660", H: "\u2665", D: "\u2666", C: "\u2663" };
+  const SUITNAME = { S: "spades", H: "hearts", D: "diamonds", C: "clubs" };
+  const RANKNAME = { A: "Ace", J: "Jack", Q: "Queen", K: "King" };
+  const TARGET = 61;
+  const LV = {
+    easy: { name: "Easy", pips: 1, blurb: "Takes what it sees. Good for learning." },
+    medium: { name: "Medium", pips: 2, blurb: "Counts cards and guards against your xeri." },
+    hard: { name: "Hard", pips: 3, blurb: "Plays out your likely replies first." }
+  };
+  const ICON_CLOSE = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  const short = (c) => c.r + SUIT[c.s];
+  const longName = (c) => (RANKNAME[c.r] || c.r) + " of " + SUITNAME[c.s];
+  const isRed = (c) => c.s === "H" || c.s === "D";
+  const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+  const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const T = (ms) => (reduced ? Math.min(ms, 160) : ms);
+  const canAnim = () => !reduced && typeof Element !== "undefined" && typeof Element.prototype.animate === "function";
+
+  /** JSON localStorage wrapper; every access may throw in private modes. */
+  function store(key, val) {
+    try {
+      if (val === undefined) return JSON.parse(localStorage.getItem(key) || "null");
+      localStorage.setItem(key, JSON.stringify(val));
+    } catch (e) { /* storage unavailable: the game still works, it just isn't remembered */ }
+    return null;
+  }
+  const snap = (k) => { try { if (window.dilotiSnap) window.dilotiSnap(k); } catch (e) { /* sound optional */ } };
+  const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* haptics optional */ } };
+  const soundOn = () => { try { return window.dilotiSound ? window.dilotiSound.get() : true; } catch (e) { return true; } };
+
+  function cardHTML(c, cls) {
+    const face = D.isFace(c.r);
+    return '<span class="card' + (isRed(c) ? " red" : "") + (face ? " face" : "") + (cls ? " " + cls : "") + '" data-cid="' + c.id + '" role="img" aria-label="' + longName(c) + '"><span class="cr">' + c.r + '</span><span class="cs2">' + SUIT[c.s] + '</span><span class="cc">' + (face ? c.r : SUIT[c.s]) + "</span></span>";
+  }
+  const backHTML = () => '<span class="card back" aria-hidden="true"><span></span></span>';
+
+  /* ---------------- state ---------------- */
+  let G = null;            // the saved game
+  let isOpen = false;
+  let screen = "home";
+  let token = 0;           // bumps to cancel pending timers
+  let level = LV[store("diloti-level")] ? store("diloti-level") : "medium";
+  let reveal = false;
+  const ui = { sel: null, picks: [], hint: null, preview: null, thinking: false, busy: false, modal: null, sig: {}, legal: [], layoutKey: "" };
+  const later = (fn, ms) => { const my = token; setTimeout(() => { if (my === token) fn(); }, ms); };
+
+  function resetSel() { ui.sel = null; ui.picks = []; ui.hint = null; }
+  function resetUI() { resetSel(); ui.preview = null; ui.thinking = false; ui.busy = false; ui.sig = {}; }
+  const isMyTurn = () => !!(G && !G.over && G.st && !G.st.roundOver && G.st.turn === 0 && !ui.busy);
+  const legalNow = () => (isMyTurn() ? D.generateMoves(G.st, 0) : []);
+  function filtered(legal) {
+    return (legal || ui.legal).filter((m) => (!ui.sel || m.card.id === ui.sel) && ui.picks.every((id) => m.ids.includes(id)));
+  }
+  function addLog(who, text) { G.log.unshift({ who, text, r: G.round }); if (G.log.length > 150) G.log.length = 150; }
+  function save() { if (G) store("diloti-save", G); renderLauncher(); }
+  function load() {
+    const s = store("diloti-save");
+    return s && s.v === 1 && s.st && Array.isArray(s.scores) && Array.isArray(s.st.hands) ? s : null;
+  }
+
+  /* ---------------- describing moves ---------------- */
+  const chip = (c) => ({ t: short(c), red: isRed(c) });
+  function parts(st, m) {
+    const byId = new Map(st.table.map((it) => [it.id, it]));
+    const unit = (u) => {
+      const its = u.map((id) => byId.get(id));
+      if (its.length === 1 && its[0].kind === "decl") return [{ t: (its[0].type === "group" ? its[0].value + "s" : its[0].value) + " pile", pile: true }];
+      return its.map((it) => chip(it.card));
+    };
+    switch (m.type) {
+      case "capture": return { verb: "Take", units: m.units.map(unit), xeri: m.ids.length === st.table.length && !st.firstPlay };
+      case "lay": return { verb: "Lay on table", units: [] };
+      case "plain": return { verb: "Declare " + m.value, units: [m.ids.map((id) => chip(byId.get(id).card))] };
+      case "raise": return { verb: "Raise " + byId.get(m.raiseId).value + " to " + m.value, units: [] };
+      case "group": {
+        const seed = m.raiseId ? [[{ t: "raise " + byId.get(m.raiseId).value, pile: true }]] : (m.seedIds.length ? [m.seedIds.map((id) => chip(byId.get(id).card))] : []);
+        return { verb: "Group of " + m.value + "s", units: seed.concat(m.units.map(unit)) };
+      }
+    }
+    return { verb: m.type, units: [] };
+  }
+  const chipsHTML = (units) => units.map((u) => u.map((c) => '<span class="zch' + (c.red ? " r" : "") + (c.pile ? " p" : "") + '">' + esc(c.t) + "</span>").join("<i>+</i>")).join('<i>·</i>');
+  const chipsText = (units) => units.map((u) => u.map((c) => c.t).join(" + ")).join(", ");
+  function aiSay(st, m) {
+    const p = parts(st, m);
+    const byId = new Map(st.table.map((it) => [it.id, it]));
+    switch (m.type) {
+      case "capture": return "takes " + chipsText(p.units) + (p.xeri ? ". Xeri!" : "");
+      case "lay": return "lays it on the table";
+      case "plain": return "declares " + m.value;
+      case "raise": return "raises your " + byId.get(m.raiseId).value + " to " + m.value;
+      case "group": return "builds a group of " + m.value + "s";
+    }
+    return m.type;
+  }
+  const RANKTYPE = { capture: 0, group: 1, plain: 2, raise: 3, lay: 4 };
+  function orderMoves(st, ms) {
+    const hk = ui.hint ? ui.hint.key : null;
+    return ms.slice().sort((a, b) => {
+      if (a.key === hk) return -1; if (b.key === hk) return 1;
+      const xa = a.type === "capture" && a.ids.length === st.table.length ? 0 : 1, xb = b.type === "capture" && b.ids.length === st.table.length ? 0 : 1;
+      return xa - xb || RANKTYPE[a.type] - RANKTYPE[b.type] || b.ids.length - a.ids.length;
+    });
+  }
+
+  /* ---------------- layout ---------------- */
+  function layout() {
+    const W = Math.max(280, R.stage.clientWidth - 24), H = Math.max(480, R.stage.clientHeight);
+    const hw = Math.max(46, Math.min(84, W / 4.6, H * 0.12));
+    const tw = Math.max(36, Math.min(66, W / 6.4, H * 0.095));
+    const ow = Math.max(22, Math.min(34, H * 0.045));
+    R.stage.style.setProperty("--hw", hw.toFixed(1) + "px");
+    R.stage.style.setProperty("--tw", tw.toFixed(1) + "px");
+    R.stage.style.setProperty("--ow", ow.toFixed(1) + "px");
+    ui.W = W; ui.hw = hw;
+    const key = [W, hw, tw, ow].map(Math.round).join(",");
+    if (key !== ui.layoutKey) { ui.layoutKey = key; ui.sig = {}; }
+  }
+
+  /* ---------------- rendering ---------------- */
+  function render() {
+    if (!G || !G.st || screen !== "game") return;
+    const st = G.st;
+    ui.legal = legalNow();
+    renderHud(st); renderOpp(st); renderBoard(st); renderHand(st); renderStatus(st); renderMine(st);
+  }
+
+  function renderHud(st) {
+    const k = G.scores.join(",");
+    if (ui.sig.hud !== k) {
+      const bumped = ui.sig.hud !== undefined;
+      R.cap.innerHTML = '<span class="s y"><small>You</small><b>' + G.scores[0] + '</b></span><span class="t">to ' + TARGET + '</span><span class="s c"><b>' + G.scores[1] + "</b><small>CPU</small></span>";
+      if (bumped) { R.cap.classList.remove("zbump"); void R.cap.offsetWidth; R.cap.classList.add("zbump"); }
+      ui.sig.hud = k;
+    }
+    R.sub.textContent = "Round " + G.round + " · Deal " + st.dealNo + " of 4";
+    R.bUndo.disabled = !(G.undo && isMyTurn());
+    R.bHint.disabled = !isMyTurn();
+  }
+
+  function pileStat(n, x, label) {
+    return '<span class="zpico" aria-hidden="true"></span><span>' + n + " " + label + "</span>" + (x ? '<span class="zxc" aria-label="' + x + ' xeri">Ξ ' + x + "</span>" : "");
+  }
+  function renderOpp(st) {
+    R.oppAv.innerHTML = '<span class="zpips" aria-hidden="true">' + [1, 2, 3].map((i) => '<i class="' + (i <= LV[G.level].pips ? "on" : "") + '"></i>').join("") + "</span>";
+    R.oppAv.classList.toggle("think", ui.thinking);
+    R.oppName.innerHTML = "Computer<span class=\"lv\">" + LV[G.level].name + "</span>" + (st.dealer === 1 ? '<span class="lv">Dealer</span>' : "");
+    R.oppStat.innerHTML = pileStat(st.captures[1].length, st.xeri[1], "taken");
+    R.oppStat.setAttribute("aria-label", "Computer has taken " + st.captures[1].length + " cards");
+    const pid = ui.preview ? ui.preview.m.card.id : null;
+    const cards = st.hands[1].filter((c) => c.id !== pid);
+    const sig = cards.map((c) => c.id).join(",") + "|" + reveal + "|" + ui.layoutKey;
+    if (ui.sig.opp !== sig) {
+      R.oppHand.innerHTML = cards.map((c) => (reveal ? cardHTML(c) : backHTML())).join("");
+      R.oppHand.classList.toggle("rev", reveal);
+      ui.sig.opp = sig;
+    }
+    const isig = pid || "";
+    if (ui.sig.inc !== isig) { R.incoming.innerHTML = ui.preview ? cardHTML(ui.preview.m.card) : ""; ui.sig.inc = isig; }
+    // speech bubble
+    if (ui.thinking) { R.bub.hidden = false; R.bub.innerHTML = '<span class="ztyping" aria-label="Computer is thinking"><i></i><i></i><i></i></span>'; }
+    else if (ui.preview) { const c = ui.preview.m.card; R.bub.hidden = false; R.bub.innerHTML = "<b class=\"" + (isRed(c) ? "r" : "") + "\">" + short(c) + "</b> " + esc(ui.preview.say); }
+    else R.bub.hidden = true;
+  }
+
+  function boardSig(st) {
+    return st.table.map((it) => it.id + ":" + (it.kind === "card" ? it.card.id : it.type + it.value + "o" + it.owner + "=" + it.comps.map((c) => c.map((x) => x.id).join(".")).join("/"))).join("|") + "|" + ui.layoutKey;
+  }
+  function renderBoard(st) {
+    const sig = boardSig(st);
+    if (ui.sig.board !== sig) {
+      const n = st.table.reduce((s, it) => s + (it.kind === "card" ? 1 : 1.6 + D.itemCards(it).length * 0.2), 0);
+      R.board.classList.toggle("dense", n > 8 && n <= 12);
+      R.board.classList.toggle("vdense", n > 12);
+      R.board.innerHTML = st.table.length ? st.table.map((it) => {
+        if (it.kind === "card") return '<button class="zti" data-id="' + it.id + '" aria-label="' + longName(it.card) + '">' + cardHTML(it.card) + "</button>";
+        const mine = it.owner === 0;
+        const label = it.type === "group" ? (mine ? "Your " : "CPU ") + it.value + "s ×" + it.comps.length : (mine ? "Your " : "CPU ") + "pile";
+        const stack = it.comps.map((cp) => cp.map((c) => cardHTML(c)).join("")).join('<span class="gap"></span>');
+        return '<button class="zti zp o' + it.owner + '" data-id="' + it.id + '" aria-label="' + (it.type === "group" ? "Group of " + it.value + "s" : "Declared " + it.value) + ", " + (mine ? "yours" : "the computer's") + '"><span class="zstk">' + stack + '</span><span class="zplab">' + label + '</span><span class="zbadge">' + it.value + "</span></button>";
+      }).join("") : '<span class="zempty">The table is empty</span>';
+      ui.sig.board = sig;
+    }
+    // state classes
+    const my = isMyTurn();
+    const relevant = ui.sel || ui.picks.length ? filtered() : [];
+    const targets = new Set(relevant.flatMap((m) => m.ids));
+    const hintIds = new Set(ui.hint ? ui.hint.ids : []);
+    const aim = new Set(ui.preview ? ui.preview.m.ids : []);
+    R.board.querySelectorAll(".zti").forEach((el) => {
+      const id = +el.dataset.id, pk = ui.picks.includes(id);
+      el.classList.toggle("pk", pk);
+      el.classList.toggle("tg", my && !pk && (targets.has(id) || hintIds.has(id)));
+      el.classList.toggle("dim", my && !!ui.sel && !pk && !targets.has(id));
+      el.classList.toggle("aim", aim.has(id));
+      el.disabled = !my;
+      el.setAttribute("aria-pressed", String(pk));
+    });
+    R.deckN.textContent = st.deck.length;
+    R.deck.style.visibility = st.deck.length ? "visible" : "hidden";
+  }
+
+  function renderHand(st) {
+    const hand = st.hands[0];
+    const sig = hand.map((c) => c.id).join(",") + "|" + ui.layoutKey;
+    if (ui.sig.hand !== sig) {
+      const n = hand.length, hw = ui.hw || 70, W = ui.W || 340;
+      const avail = W - 14 - hw * 0.4; // leave room for the fan's rotation and the lifted card
+      const ml = n > 1 ? Math.min(8, (avail - n * hw) / (n - 1)) : 0;
+      R.hand.innerHTML = hand.map((c, i) => {
+        const off = i - (n - 1) / 2;
+        return '<button class="zhc" data-cid="' + c.id + '" style="--rot:' + (off * 3.2).toFixed(1) + "deg;--ty:" + (off * off * 2.2).toFixed(1) + "px;--ml:" + ml.toFixed(1) + 'px" aria-label="' + longName(c) + '">' + cardHTML(c) + "</button>";
+      }).join("");
+      ui.sig.hand = sig;
+    }
+    const my = isMyTurn();
+    const playable = new Set(ui.legal.map((m) => m.card.id));
+    const canUse = !ui.sel && ui.picks.length ? new Set(filtered().map((m) => m.card.id)) : new Set();
+    R.hand.querySelectorAll(".zhc").forEach((el) => {
+      const cid = el.dataset.cid;
+      el.classList.toggle("sel", ui.sel === cid);
+      el.classList.toggle("dead", my && !playable.has(cid));
+      el.classList.toggle("wait", !my);
+      el.classList.toggle("can", canUse.has(cid));
+      el.setAttribute("aria-pressed", String(ui.sel === cid));
+    });
+  }
+
+  function renderMine(st) {
+    R.meName.innerHTML = "<b>You</b>" + (st.dealer === 0 ? '<span class="zdl">Dealer</span>' : "");
+    R.myPile.innerHTML = pileStat(st.captures[0].length, st.xeri[0], "taken");
+  }
+
+  function statusPill(st) {
+    if (st.roundOver) return ["Round over", ""];
+    if (ui.preview) return ["Computer’s move", ""];
+    if (st.turn === 1 || ui.busy) return ["Computer is thinking…", ""];
+    const own = st.table.find((it) => it.kind === "decl" && it.owner === 0);
+    if (own) return ["Keep a " + own.value + " for your " + (own.type === "group" ? "group" : "declared pile") + ". Capture or add to it.", "warn"];
+    if (G.firstGame) return ["Tap a card to see its moves, or drag it onto the table", "gold"];
+    const xeri = !st.firstPlay && ui.legal.some((m) => m.type === "capture" && m.ids.length === st.table.length);
+    if (xeri) return ["One of your cards can clear the table", "gold"];
+    return ["Your turn", ""];
+  }
+  function renderStatus(st) {
+    const my = isMyTurn();
+    if (my && (ui.sel || ui.picks.length)) {
+      const ms = orderMoves(st, filtered());
+      const sel = ui.sel ? st.hands[0].find((c) => c.id === ui.sel) : null;
+      const sig = "tray|" + ms.map((m) => m.key).join(";") + "|" + (ui.hint ? ui.hint.key : "");
+      if (ui.sig.status === sig) return;
+      ui.sig.status = sig;
+      const head = sel ? "Play " + short(sel) + (ms.length > 1 ? " · tap glowing cards to narrow" : "") : "Moves using the cards you picked";
+      R.status.innerHTML = '<div class="ztray"><div class="ztrh"><span>' + esc(head) + '</span><button class="ztx" data-act="cancel">Cancel</button></div><div class="zmvs">' +
+        ms.map((m) => {
+          const p = parts(st, m), sug = ui.hint && ui.hint.key === m.key;
+          const withCard = sel ? "" : '<span class="zch' + (isRed(m.card) ? " r" : "") + '">' + short(m.card) + "</span><i>→</i>";
+          return '<button class="zmv' + (sug ? " sug" : "") + '" data-key="' + esc(m.key) + '" aria-label="' + esc(short(m.card) + ": " + D.describeMove(st, m)) + '">' + (sug ? "<em>Best</em>" : "") + withCard + "<span>" + esc(p.verb) + '</span><span class="zmvc">' + chipsHTML(p.units) + "</span>" + (p.xeri ? '<span class="zxb">XERI</span>' : "") + "</button>";
+        }).join("") + "</div></div>";
+      return;
+    }
+    const [text, cls] = statusPill(st);
+    const sig = "pill|" + text + cls;
+    if (ui.sig.status === sig) return;
+    ui.sig.status = sig;
+    R.status.innerHTML = '<div class="zpill ' + cls + '">' + esc(text) + "</div>";
+  }
+
+  /* ---------------- animation (FLIP + flying captures) ---------------- */
+  const rectOf = (el) => (el ? el.getBoundingClientRect() : null);
+  function animate(mutate, opts) {
+    opts = opts || {};
+    const before = new Map();
+    if (!opts.fresh && isOpen && canAnim()) {
+      R.game.querySelectorAll("[data-cid]").forEach((el) => { const r = el.getBoundingClientRect(); if (r.width) before.set(el.dataset.cid, { r, html: el.outerHTML }); });
+      if (opts.override) Object.keys(opts.override).forEach((k) => { const b = before.get(k); if (b) b.r = opts.override[k]; });
+    }
+    const res = mutate();
+    if (opts.fresh) ui.sig = {};
+    render();
+    if (!isOpen || !canAnim()) return res;
+    const from = typeof opts.from === "function" ? opts.from() : opts.from;
+    let k = 0, gi = 0;
+    R.game.querySelectorAll("[data-cid]").forEach((el) => {
+      const b = before.get(el.dataset.cid), r = el.getBoundingClientRect();
+      if (!r.width) return;
+      const f = b ? b.r : from;
+      if (!f || !f.width) return;
+      const dx = f.left - r.left, dy = f.top - r.top, s = f.width / r.width;
+      if (b && Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(s - 1) < 0.02) return;
+      el.animate([{ transform: "translate(" + dx + "px," + dy + "px) scale(" + s + ")", transformOrigin: "0 0", opacity: b ? 1 : 0.5 },
+        { transform: "translate(0,0) scale(1)", transformOrigin: "0 0", opacity: 1 }],
+        { duration: b ? 380 : 460, delay: !b && opts.stagger ? (k++) * 65 : 0, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards" });
+    });
+    const owner = (cid) => (G.st.captures[0].some((c) => c.id === cid) ? R.myPile : G.st.captures[1].some((c) => c.id === cid) ? R.oppStat : null);
+    const landed = new Set();
+    before.forEach((b, cid) => {
+      if (R.game.querySelector('[data-cid="' + cid + '"]')) return;
+      const dest = owner(cid);
+      if (!dest) return;
+      landed.add(dest);
+      const d = dest.getBoundingClientRect();
+      const g = document.createElement("div");
+      g.className = "zghost";
+      g.innerHTML = b.html;
+      g.style.cssText = "left:" + b.r.left + "px;top:" + b.r.top + "px;--cw:" + b.r.width + "px";
+      R.fx.appendChild(g);
+      const tx = d.left + d.width / 2 - b.r.left - b.r.width / 2, ty = d.top + d.height / 2 - b.r.top - b.r.height / 2;
+      const a = g.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 },
+        { transform: "translate(" + tx * 0.12 + "px," + (ty * 0.12 - 18) + "px) scale(1.06)", opacity: 1, offset: 0.25 },
+        { transform: "translate(" + tx + "px," + ty + "px) scale(.3)", opacity: 0.15 }],
+        { duration: 640, delay: 140 + (gi++) * 45, easing: "cubic-bezier(.55,0,.3,1)", fill: "both" });
+      a.onfinish = () => g.remove();
+      setTimeout(() => g.remove(), 2500);
+    });
+    if (landed.size) setTimeout(() => landed.forEach((el) => { el.classList.remove("zbump"); void el.offsetWidth; el.classList.add("zbump"); }), 760 + gi * 45);
+    return res;
+  }
+  function shake(el) { if (!el) return; el.classList.remove("zshake"); void el.offsetWidth; el.classList.add("zshake"); setTimeout(() => el.classList.remove("zshake"), 420); }
+  let toastT = 0;
+  function toast(msg) {
+    R.toast.textContent = msg;
+    R.toast.classList.add("show");
+    clearTimeout(toastT);
+    toastT = setTimeout(() => R.toast.classList.remove("show"), 2100);
+  }
+  function banner(big, small) {
+    R.banner.innerHTML = esc(big) + "<small>" + esc(small) + "</small>";
+    R.banner.hidden = false;
+    R.banner.style.animation = "none"; void R.banner.offsetWidth; R.banner.style.animation = "";
+    setTimeout(() => { R.banner.hidden = true; }, reduced ? 1400 : 1850);
+  }
+  function confetti(n) {
+    if (!canAnim()) return;
+    const cols = ["#E2B24C", "#F3F6F2", "#F08A74", "#7FB6F0", "#9BD3A8"];
+    const W = window.innerWidth, H = window.innerHeight;
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement("i");
+      s.className = "zconf";
+      s.style.cssText = "left:" + (Math.random() * W) + "px;top:-14px;background:" + cols[i % cols.length];
+      R.fx.appendChild(s);
+      const a = s.animate([{ transform: "translate(0,0) rotate(0deg)" }, { transform: "translate(" + ((Math.random() - 0.5) * 180) + "px," + (H + 40) + "px) rotate(" + (Math.random() * 900) + "deg)" }],
+        { duration: 1500 + Math.random() * 1400, delay: Math.random() * 400, easing: "cubic-bezier(.3,.6,.4,1)", fill: "both" });
+      a.onfinish = () => s.remove();
+    }
+  }
+
+  /* ---------------- game flow ---------------- */
+  function newGame(lv) {
+    token++;
+    G = { v: 1, level: lv, scores: [0, 0], round: 0, dealer: Math.random() < 0.5 ? 0 : 1, st: null, log: [], over: false, history: [], undo: null, last: null, pendingSummary: false, firstGame: !store("diloti-tipped") };
+    closeModal();
+    startRound();
+  }
+  function startRound() {
+    G.round++;
+    G.st = D.newRound(G.dealer, Math.random);
+    G.undo = null; G.pendingSummary = false;
+    resetUI();
+    addLog(-1, "Round " + G.round + ". " + (G.dealer === 0 ? "You deal, so the computer plays first." : "The computer deals, so you play first."));
+    showScreen("game", true);
+    animate(() => {}, { fresh: true, stagger: true, from: () => rectOf(R.deck) });
+    toast("Round " + G.round + " · " + (G.dealer === 0 ? "You deal. Computer starts" : "Computer deals. You start"));
+    if (G.st.redeals) addLog(-1, "Three matching face cards showed, so the table was redealt.");
+    save(); snap();
+    scheduleAI();
+  }
+
+  function playMove(m, who, opts) {
+    const st = G.st;
+    const p = parts(st, m);
+    const text = (who === 0 ? "You" : "Computer") + ": " + short(m.card) + ". " + p.verb + (p.units.length ? " " + chipsText(p.units) : "");
+    let rec;
+    animate(() => { rec = D.applyMove(st, m); }, { stagger: true, from: () => rectOf(R.deck), override: opts && opts.override });
+    addLog(who, text);
+    if (rec.xeri) {
+      addLog(who, (who === 0 ? "Your" : "The computer’s") + " xeri: +10");
+      later(() => {
+        banner("Ξερή!", (who === 0 ? "Your xeri" : "Computer’s xeri") + " · +10");
+        snap("sweep"); buzz([20, 40, 90]);
+        if (who === 0) confetti(60);
+      }, T(350));
+    } else {
+      snap(rec.type === "capture" ? "chime" : undefined);
+      if (rec.type === "capture") buzz(12);
+    }
+    if (rec.newDeal) {
+      addLog(-1, st.deck.length ? "New deal: six more cards each." : "Last deal: the pack is empty.");
+      later(() => toast(st.deck.length ? "New deal · " + st.deck.length + " cards left" : "Last deal · the pack is empty"), T(500));
+    }
+    return rec;
+  }
+
+  function humanPlay(m, opts) {
+    if (!isMyTurn()) return;
+    G.undo = JSON.stringify(G.st);
+    if (G.firstGame) { G.firstGame = false; store("diloti-tipped", true); }
+    const couldTake = m.type === "lay" && ui.legal.some((x) => x.card.id === m.card.id && x.type === "capture");
+    resetSel();
+    playMove(m, 0, opts);
+    if (couldTake && !G.st.roundOver) toast("Laid " + short(m.card) + ". Tap undo if you meant to capture");
+    afterMove();
+  }
+
+  function afterMove() {
+    const st = G.st;
+    if (st.roundOver) {
+      finishRound();
+      save(); render();
+      if (st.leftover.length) later(() => toast("Last " + st.leftover.length + " table card" + (st.leftover.length > 1 ? "s go" : " goes") + " to " + (st.leftoverTo === 0 ? "you" : "the computer")), T(400));
+      later(() => openModal("summary"), T(1400));
+      return;
+    }
+    save(); render();
+    scheduleAI();
+  }
+
+  function finishRound() {
+    const st = G.st, sc = D.scoreRound(st);
+    G.scores[0] += sc.points[0]; G.scores[1] += sc.points[1];
+    G.history.push({ round: G.round, pts: sc.points.slice() });
+    G.last = { rows: sc.rows, split: sc.split, pts: sc.points.slice(), leftover: st.leftover.length, leftoverTo: st.leftoverTo };
+    G.pendingSummary = true; G.undo = null;
+    if (st.leftover.length) addLog(-1, "The last " + st.leftover.length + " table card" + (st.leftover.length > 1 ? "s go" : " goes") + " to " + (st.leftoverTo === 0 ? "you" : "the computer") + ".");
+    addLog(-1, "Round " + G.round + " scored: you " + sc.points[0] + ", computer " + sc.points[1] + ".");
+    const hi = Math.max(G.scores[0], G.scores[1]);
+    if (hi >= TARGET && G.scores[0] !== G.scores[1]) {
+      G.over = true;
+      const rec = store("diloti-record") || {};
+      const r = rec[G.level] || { w: 0, l: 0 };
+      if (G.scores[0] > G.scores[1]) r.w++; else r.l++;
+      rec[G.level] = r; store("diloti-record", rec);
+    }
+  }
+
+  function scheduleAI() {
+    const st = G && G.st;
+    if (!st || st.roundOver || st.turn !== 1 || G.over || !isOpen) return;
+    ui.busy = true; ui.thinking = true; resetSel(); render();
+    later(() => {
+      let m;
+      try { m = D.chooseMove(st, 1, G.level, Math.random); }
+      catch (e) { m = D.generateMoves(st, 1)[0]; }
+      ui.thinking = false;
+      ui.preview = { m, say: aiSay(st, m) };
+      animate(() => {}, { from: () => rectOf(R.oppHand) });
+      snap();
+      later(() => {
+        ui.preview = null; ui.busy = false;
+        playMove(m, 1);
+        afterMove();
+      }, T(reduced ? 500 : 1150));
+    }, T(reduced ? 300 : 700));
+  }
+
+  /* ---------------- player input ---------------- */
+  function deadReason(st) {
+    const own = st.table.find((it) => it.kind === "decl" && it.owner === 0);
+    return own ? "You declared " + own.value + ". Until it is taken you can only capture or add to it" : "That card has no legal move right now";
+  }
+  function onHandTap(cid) {
+    if (!G || G.over) return;
+    const st = G.st;
+    if (!isMyTurn()) { if (!st.roundOver) toast(ui.busy ? "Wait for the computer" : "Not your turn"); return; }
+    const mine = ui.legal.filter((m) => m.card.id === cid);
+    const btn = R.hand.querySelector('.zhc[data-cid="' + cid + '"]');
+    if (!mine.length) { shake(btn); buzz(25); toast(deadReason(st)); return; }
+    if (ui.sel === cid) { resetSel(); render(); return; }
+    ui.sel = cid;
+    if (ui.hint && ui.hint.card.id !== cid) ui.hint = null;
+    if (ui.picks.length) {
+      const f = filtered();
+      if (!f.length) ui.picks = [];
+      else if (f.length === 1 && f[0].type === "capture") { humanPlay(f[0]); return; }
+    }
+    snap(); render();
+  }
+  function onItemTap(id) {
+    if (!isMyTurn()) return;
+    const had = ui.picks.includes(id);
+    ui.picks = had ? ui.picks.filter((x) => x !== id) : ui.picks.concat([id]);
+    const f = filtered();
+    if (!had && !f.length) {
+      ui.picks = ui.picks.filter((x) => x !== id);
+      shake(R.board.querySelector('.zti[data-id="' + id + '"]')); buzz(25);
+      const sel = ui.sel && G.st.hands[0].find((c) => c.id === ui.sel);
+      toast(sel ? short(sel) + " can’t use that card" + (ui.picks.length ? " with your other picks" : "") : "None of your cards can use that");
+      render(); return;
+    }
+    if (!had && ui.sel && f.length === 1 && f[0].type === "capture") { humanPlay(f[0]); return; }
+    ui.hint = null;
+    snap(); render();
+  }
+  function playKey(key) {
+    const m = legalNow().find((x) => x.key === key);
+    if (m) humanPlay(m);
+  }
+  function hint() {
+    if (!isMyTurn()) return;
+    const m = D.chooseMove(G.st, 0, "medium", Math.random);
+    ui.hint = m; ui.sel = m.card.id; ui.picks = [];
+    snap(); render();
+  }
+  function undo() {
+    if (!G || !G.undo || !isMyTurn()) return;
+    token++;
+    G.st = JSON.parse(G.undo); G.undo = null;
+    resetUI(); addLog(-1, "You took back your last move.");
+    render(); toast("Move undone"); snap(); save();
+  }
+
+  /* drag a hand card onto the table */
+  let drag = null, justDragged = false;
+  R.hand.addEventListener("pointerdown", (e) => {
+    const b = e.target.closest(".zhc");
+    if (!b || !isMyTurn() || (e.pointerType === "mouse" && e.button !== 0)) return;
+    drag = { cid: b.dataset.cid, btn: b, x: e.clientX, y: e.clientY, pid: e.pointerId, active: false };
+  });
+  window.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.pid) return;
+    if (!drag.active) {
+      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 9) return;
+      if (!startDrag()) { drag = null; return; }
+    }
+    if (e.cancelable) e.preventDefault();
+    moveDrag(e.clientX, e.clientY);
+  }, { passive: false });
+  window.addEventListener("pointerup", (e) => {
+    if (!drag || e.pointerId !== drag.pid) return;
+    const d = drag; drag = null;
+    if (d.active) endDrag(d, e.clientX, e.clientY);
+  });
+  window.addEventListener("pointercancel", () => { if (drag && drag.active) { drag.ghost.remove(); drag.btn.classList.remove("out"); app.classList.remove("dragging"); } drag = null; });
+  function startDrag() {
+    if (!ui.legal.some((m) => m.card.id === drag.cid)) return false;
+    ui.sel = drag.cid; ui.picks = []; ui.hint = null; render();
+    const ce = drag.btn.querySelector(".card"), r = ce.getBoundingClientRect();
+    const g = document.createElement("div");
+    g.className = "zghost zdrag";
+    g.innerHTML = ce.outerHTML;
+    g.style.cssText = "left:" + r.left + "px;top:" + r.top + "px;--cw:" + r.width + "px";
+    R.fx.appendChild(g);
+    Object.assign(drag, { ghost: g, active: true });
+    drag.btn.classList.add("out"); app.classList.add("dragging");
+    snap();
+    return true;
+  }
+  function hitTest(x, y) {
+    const t = document.elementFromPoint ? document.elementFromPoint(x, y) : null;
+    return { ti: t && t.closest ? t.closest(".zti") : null, felt: !!(t && t.closest && t.closest("[data-ref=felt]")) };
+  }
+  function moveDrag(x, y) {
+    const dx = x - drag.x, dy = y - drag.y;
+    drag.ghost.style.transform = "translate(" + dx + "px," + dy + "px) rotate(" + Math.max(-12, Math.min(12, dx * 0.05)) + "deg) scale(1.08)";
+    const h = hitTest(x, y);
+    R.board.querySelectorAll(".zti.over").forEach((el) => { if (el !== h.ti) el.classList.remove("over"); });
+    if (h.ti) h.ti.classList.add("over");
+    R.felt.classList.toggle("over", !h.ti && h.felt);
+  }
+  function endDrag(d, x, y) {
+    justDragged = true; setTimeout(() => { justDragged = false; }, 80);
+    app.classList.remove("dragging"); R.felt.classList.remove("over");
+    R.board.querySelectorAll(".zti.over").forEach((el) => el.classList.remove("over"));
+    const gr = d.ghost.getBoundingClientRect();
+    const h = hitTest(x, y);
+    d.ghost.remove(); d.btn.classList.remove("out");
+    const override = {}; override[d.cid] = gr;
+    if (h.ti) return dropOnItem(d.cid, +h.ti.dataset.id, override);
+    if (h.felt) return dropOnFelt(d.cid, override);
+    animate(() => {}, { override });
+  }
+  function dropOnItem(cid, id, override) {
+    const card = G.st.hands[0].find((c) => c.id === cid);
+    const f = ui.legal.filter((m) => m.card.id === cid && m.ids.includes(id));
+    ui.sel = cid;
+    if (!f.length) {
+      ui.picks = []; animate(() => {}, { override });
+      shake(R.board.querySelector('.zti[data-id="' + id + '"]')); buzz(25);
+      toast(short(card) + " can’t use that card"); return;
+    }
+    ui.picks = [id];
+    if (f.length === 1 && f[0].type === "capture") return humanPlay(f[0], { override });
+    animate(() => {}, { override });
+    toast("Choose how to play " + short(card)); snap();
+  }
+  function dropOnFelt(cid, override) {
+    const mine = ui.legal.filter((m) => m.card.id === cid);
+    const lay = mine.find((m) => m.type === "lay");
+    if (lay) return humanPlay(lay, { override });
+    ui.sel = cid; ui.picks = [];
+    animate(() => {}, { override });
+    toast("Choose a move below"); shake(R.status);
+  }
+
+  R.hand.addEventListener("click", (e) => { if (justDragged) return; const b = e.target.closest(".zhc"); if (b) onHandTap(b.dataset.cid); });
+  R.board.addEventListener("click", (e) => { if (justDragged) return; const b = e.target.closest(".zti"); if (b) { onItemTap(+b.dataset.id); e.stopPropagation(); } });
+  R.felt.addEventListener("click", (e) => { if (justDragged || e.target.closest(".zti")) return; if (ui.sel || ui.picks.length) { resetSel(); render(); } });
+  R.status.addEventListener("click", (e) => {
+    const t = e.target.closest("button"); if (!t) return;
+    if (t.dataset.act === "cancel") { resetSel(); render(); return; }
+    if (t.dataset.key) playKey(t.dataset.key);
+  });
+  R.bMenu.addEventListener("click", () => openModal("menu"));
+  R.bUndo.addEventListener("click", undo);
+  R.bHint.addEventListener("click", hint);
+
+  /* ---------------- screens & sheets ---------------- */
+  function showScreen(name, keepSig) {
+    screen = name;
+    R.home.hidden = name !== "home";
+    R.game.hidden = name !== "game";
+    if (name === "home") renderHome();
+    else { layout(); if (!keepSig) ui.sig = {}; render(); }
+  }
+  function levelTiles() {
+    const rec = store("diloti-record") || {};
+    return Object.keys(LV).map((k) => {
+      const r = rec[k];
+      return '<button class="zlvl" role="radio" data-lv="' + k + '" aria-checked="' + (k === level) + '"><span class="zpips" aria-hidden="true">' + [1, 2, 3].map((i) => '<i class="' + (i <= LV[k].pips ? "on" : "") + '"></i>').join("") + "</span><b>" + LV[k].name + "</b><small>" + LV[k].blurb + "</small>" + (r ? "<em>Won " + r.w + " · Lost " + r.l + "</em>" : "") + "</button>";
+    }).join("");
+  }
+  function renderHome() {
+    const resume = G && !G.over && G.st;
+    R.home.innerHTML = '<button class="zib zclose" data-act="close" aria-label="Close the game">' + ICON_CLOSE + "</button>" +
+      '<div class="zlogo" aria-hidden="true">' + cardHTML({ r: "A", s: "S", id: "hA" }) + cardHTML({ r: "10", s: "D", id: "h10" }) + cardHTML({ r: "2", s: "C", id: "h2" }) + "</div>" +
+      '<h1 class="ztitle">Diloti</h1><p class="zsubt">Δηλωτή · a Greek fishing card game</p>' +
+      '<div class="zlvls" role="radiogroup" aria-label="Difficulty">' + levelTiles() + "</div>" +
+      '<div class="zhbtns">' + (resume
+        ? '<button class="zbig" data-act="continue">Continue<small>Round ' + G.round + " · You " + G.scores[0] + " – " + G.scores[1] + " CPU</small></button>" + '<button class="zbig alt" data-act="new">New game</button>'
+        : '<button class="zbig" data-act="new">Play</button>') + "</div>" +
+      '<div class="zlinks"><button data-act="rules">How to play</button></div>';
+  }
+  R.home.addEventListener("click", (e) => {
+    const lv = e.target.closest("[data-lv]");
+    if (lv) { level = lv.dataset.lv; store("diloti-level", level); snap(); renderHome(); return; }
+    const t = e.target.closest("[data-act]"); if (!t) return;
+    const a = t.dataset.act;
+    if (a === "close") closeApp();
+    else if (a === "new") newGame(level);
+    else if (a === "continue") { G.level = level; showScreen("game"); if (G.pendingSummary) openModal("summary"); else scheduleAI(); }
+    else if (a === "rules") openModal("rules");
+  });
+
+  function openModal(name) {
+    ui.modal = name;
+    const center = name === "summary" || name === "confirm";
+    R.modal.className = "zmodal" + (center ? " center" : "");
+    R.modal.innerHTML = modalHTML(name);
+    R.modal.hidden = false;
+    const f = R.modal.querySelector("[data-focus]") || R.modal.querySelector("button");
+    if (f) try { f.focus({ preventScroll: true }); } catch (e) { /* focus is best effort */ }
+    if (name === "summary" && G.over && G.scores[0] > G.scores[1]) later(() => confetti(110), T(300));
+  }
+  function closeModal() { ui.modal = null; R.modal.hidden = true; R.modal.innerHTML = ""; }
+  function modalHTML(name) {
+    if (name === "menu") {
+      return '<div class="zsheet"><div class="zgrab"></div><div class="zsh"><h3>Paused</h3><button class="ztx" data-act="close-modal">Done</button></div>' +
+        '<div class="zrows"><button class="zrow" data-act="close-modal" data-focus>Resume game<span class="chev">›</span></button></div>' +
+        '<div class="zlabel">Computer</div><div class="zseg" role="radiogroup" aria-label="Difficulty">' + Object.keys(LV).map((k) => '<button role="radio" data-lv="' + k + '" aria-checked="' + (k === G.level) + '">' + LV[k].name + "</button>").join("") + "</div>" +
+        '<p class="zfine">' + LV[G.level].blurb + " A change applies from the computer’s next move.</p>" +
+        '<div class="zrows"><label class="zrow" for="zswReveal"><span>Show the computer’s cards</span><input type="checkbox" class="zsw" id="zswReveal" role="switch"' + (reveal ? " checked" : "") + "></label>" +
+        '<label class="zrow" for="zswSound"><span>Sound</span><input type="checkbox" class="zsw" id="zswSound" role="switch"' + (soundOn() ? " checked" : "") + "></label></div>" +
+        '<div class="zrows"><button class="zrow" data-act="rules">How to play<span class="chev">›</span></button><button class="zrow" data-act="history">Move history<span class="chev">›</span></button></div>' +
+        '<div class="zrows"><button class="zrow danger" data-act="ask-new">New game</button><button class="zrow" data-act="quit">Exit to the guide</button></div></div>';
+    }
+    if (name === "confirm") {
+      return '<div class="zsheet"><div class="zsum"><h3>Start a new game?</h3></div><p class="zfine" style="text-align:center;margin:0 0 18px">Your current game, ' + G.scores[0] + "–" + G.scores[1] + ", will be lost.</p>" +
+        '<div class="zbtns"><button class="zbig" data-act="new">Start new game</button><button class="zbig alt" data-act="menu" data-focus>Keep playing</button></div></div>';
+    }
+    if (name === "rules") {
+      return '<div class="zsheet"><div class="zgrab"></div><div class="zsh"><h3>How to play</h3><button class="ztx" data-act="back">Done</button></div><dl class="zrules">' +
+        "<dt>Goal</dt><dd>Capture cards from the table. First to 61 points wins.</dd>" +
+        "<dt>Values</dt><dd>Ace is 1 and 2–10 count their number. J, Q and K only take a matching face card, one at a time.</dd>" +
+        "<dt>Take</dt><dd>Play a card to take table cards of the same value, or cards that add up to it. Several separate sets can go at once.</dd>" +
+        "<dt>Declare</dt><dd>Build a pile with a card from your hand and call its value. You must hold that value, and until you take the pile you can only capture or add to it.</dd>" +
+        "<dt>Raise</dt><dd>Add a card to the computer’s plain pile to make a bigger total you hold. Groups (several sets of the same value) can’t be raised.</dd>" +
+        "<dt>Xeri</dt><dd>Clear the whole table with one card for 10 points. The first play of a round doesn’t count.</dd>" +
+        "<dt>Score</dt><dd>Most cards 4 · each Ace 1 · 10\u2666 2 · 2\u2663 1 · each xeri 10.</dd>" +
+        "<dt>Controls</dt><dd>Tap a card for its moves, tap glowing table cards to narrow them, or drag a card onto the table. Drop it on empty felt to lay it down.</dd></dl>" +
+        '<button class="zbig alt" data-act="guide">Read the full guide</button></div>';
+    }
+    if (name === "history") {
+      const items = G.log.slice(0, 80).map((e) => '<li class="' + (e.who === 0 ? "p0" : e.who === 1 ? "p1" : "") + (/xeri/i.test(e.text) ? " x" : "") + '">' + esc(e.text) + "</li>").join("");
+      return '<div class="zsheet"><div class="zgrab"></div><div class="zsh"><h3>Move history</h3><button class="ztx" data-act="back">Done</button></div><ol class="zhist">' + (items || "<li>No moves yet</li>") + "</ol></div>";
+    }
+    if (name === "summary") {
+      const L = G.last, r = L.rows;
+      const head = G.over ? "" : r[0].total > r[1].total ? "You take the round" : r[1].total > r[0].total ? "The computer takes the round" : "An even round";
+      const rows = [["Cards captured", r[0].cards, r[1].cards], ["Most cards" + (L.split ? " (split)" : ""), r[0].cardPts, r[1].cardPts], ["Aces", r[0].aces, r[1].aces], ["10\u2666", r[0].tenD, r[1].tenD], ["2\u2663", r[0].twoC, r[1].twoC], ["Xeri", r[0].xeri, r[1].xeri]];
+      const tally = '<div class="ztally"><div class="ztr h"><span></span><b>You</b><b>CPU</b></div>' + rows.map((x, i) => '<div class="ztr" style="animation-delay:' + (i * 90) + 'ms"><span>' + x[0] + '</span><b class="y">' + x[1] + '</b><b class="c">' + x[2] + "</b></div>").join("") +
+        '<div class="ztr tot" style="animation-delay:' + (rows.length * 90) + 'ms"><span>Round points</span><b class="y">' + r[0].total + '</b><b class="c">' + r[1].total + "</b></div></div>";
+      const bar = (who, v, col) => '<div class="zrr"><span>' + who + '</span><div class="zbar"><i style="width:' + Math.min(100, v / TARGET * 100).toFixed(1) + "%;background:" + col + '"></i></div><b>' + v + "</b></div>";
+      const race = '<div class="zrace">' + bar("You", G.scores[0], "#7FB6F0") + bar("CPU", G.scores[1], "#F08A74") + "</div>";
+      if (G.over) {
+        const win = G.scores[0] > G.scores[1];
+        const rec = (store("diloti-record") || {})[G.level];
+        return '<div class="zsheet zsum"><div class="eb">Game over · ' + LV[G.level].name + '</div><div class="zwin">' + (win ? "You win!" : "Computer wins") + '</div><div class="zfinal">' + G.scores[0] + " – " + G.scores[1] + "</div>" + (rec ? '<p class="zfine" style="text-align:center;margin:0 0 12px">Your record on ' + LV[G.level].name + ": won " + rec.w + ", lost " + rec.l + "</p>" : "") + tally + race +
+          '<div class="zbtns"><button class="zbig" data-act="again" data-focus>Play again</button><button class="zbig alt" data-act="home">Change difficulty</button></div></div>';
+      }
+      const tie = Math.max(...G.scores) >= TARGET;
+      return '<div class="zsheet zsum"><div class="eb">Round ' + G.round + " scored</div><h3>" + head + "</h3>" + tally + race + (tie ? '<p class="zfine" style="text-align:center;margin:-8px 0 14px">Tied past ' + TARGET + ". One more round decides it.</p>" : "") +
+        '<div class="zbtns"><button class="zbig" data-act="next" data-focus>Deal round ' + (G.round + 1) + "<small>" + (G.dealer === 0 ? "Computer deals" : "You deal") + "</small></button></div></div>";
+    }
+    return "";
+  }
+  R.modal.addEventListener("click", (e) => {
+    if (e.target === R.modal) { if (ui.modal !== "summary") back(); return; }
+    const lv = e.target.closest("[data-lv]");
+    if (lv && G) { G.level = level = lv.dataset.lv; store("diloti-level", level); snap(); openModal("menu"); render(); save(); return; }
+    const t = e.target.closest("[data-act]"); if (!t) return;
+    const a = t.dataset.act;
+    if (a === "close-modal") { closeModal(); render(); }
+    else if (a === "back") back();
+    else if (a === "rules" || a === "history" || a === "menu") openModal(a);
+    else if (a === "ask-new") openModal("confirm");
+    else if (a === "new") newGame(G ? G.level : level);
+    else if (a === "quit") { closeModal(); closeApp(); }
+    else if (a === "guide") { closeModal(); closeApp(); const el = document.getElementById("turn"); if (el) el.scrollIntoView({ behavior: reduced ? "auto" : "smooth" }); }
+    else if (a === "next") { closeModal(); G.dealer = 1 - G.dealer; startRound(); }
+    else if (a === "again") newGame(G.level);
+    else if (a === "home") { closeModal(); G.pendingSummary = false; save(); showScreen("home"); }
+  });
+  R.modal.addEventListener("change", (e) => {
+    if (e.target.id === "zswReveal") { reveal = e.target.checked; render(); }
+    if (e.target.id === "zswSound") { try { if (window.dilotiSound) window.dilotiSound.set(e.target.checked); } catch (err) { /* optional */ } snap(); }
+  });
+  function back() {
+    if (screen === "game" && (ui.modal === "rules" || ui.modal === "history")) openModal("menu");
+    else { closeModal(); render(); }
+  }
+
+  /* ---------------- open / close ---------------- */
+  let lastFocus = null, prevOverflow = "";
+  function openApp() {
+    if (isOpen) return;
+    isOpen = true;
+    lastFocus = document.activeElement;
+    app.hidden = false;
+    prevOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    layout();
+    showScreen("home");
+    const f = R.home.querySelector("[data-act=continue],[data-act=new]");
+    if (f) try { f.focus({ preventScroll: true }); } catch (e) { /* best effort */ }
+  }
+  function closeApp() {
+    if (!isOpen) return;
+    isOpen = false; token++;
+    ui.busy = false; ui.thinking = false; ui.preview = null;
+    closeModal();
+    app.hidden = true;
+    document.documentElement.style.overflow = prevOverflow;
+    document.body.style.overflow = "";
+    renderLauncher();
+    if (lastFocus && lastFocus.focus) try { lastFocus.focus({ preventScroll: true }); } catch (e) { /* best effort */ }
+  }
+  function renderLauncher() {
+    const info = document.getElementById("zLaunchInfo"), btn = document.getElementById("zLaunchBtn");
+    if (!info || !btn) return;
+    if (G && !G.over && G.st) { btn.textContent = "Continue game"; info.textContent = "Round " + G.round + " in progress · you " + G.scores[0] + ", computer " + G.scores[1]; }
+    else {
+      const rec = store("diloti-record") || {};
+      const bits = Object.keys(LV).filter((k) => rec[k]).map((k) => LV[k].name + " " + rec[k].w + "–" + rec[k].l);
+      btn.textContent = "Play Diloti";
+      info.textContent = bits.length ? "Your record: " + bits.join(" · ") : "Three difficulty levels. Your game is saved if you leave.";
+    }
+  }
+  document.addEventListener("click", (e) => { const t = e.target.closest && e.target.closest("[data-open-game]"); if (t) { e.preventDefault(); openApp(); } });
+  document.addEventListener("keydown", (e) => {
+    if (!isOpen || e.key !== "Escape") return;
+    if (ui.modal && ui.modal !== "summary") back();
+    else if (screen === "game" && (ui.sel || ui.picks.length)) { resetSel(); render(); }
+    else if (screen === "game" && !ui.modal) openModal("menu");
+    else if (screen === "home") closeApp();
+  });
+  let rz = 0;
+  window.addEventListener("resize", () => { if (!isOpen) return; clearTimeout(rz); rz = setTimeout(() => { layout(); render(); }, 120); });
+
+  /* ---------------- boot (survives page updates) ---------------- */
+  const hot = window.claude && window.claude.hot;
+  if (hot && typeof hot.snapshot === "function") {
+    try { hot.snapshot(() => ({ G, open: isOpen, screen, reveal })); } catch (e) { /* optional */ }
+  }
+  function start(data) {
+    G = (data && data.G && data.G.st) ? data.G : load();
+    if (data && typeof data.reveal === "boolean") reveal = data.reveal;
+    renderLauncher();
+    if (data && data.open) {
+      openApp();
+      if (data.screen === "game" && G && !G.over) { showScreen("game"); if (G.pendingSummary) openModal("summary"); else scheduleAI(); }
+    }
+  }
+  if (hot && typeof hot.ready === "function") hot.ready(start); else start((hot && hot.data) || {});
+  window.__diloti = { get: () => G, ui, R, open: openApp, close: closeApp, isMyTurn };
+})();
+
+</script>
+
+</body></html>

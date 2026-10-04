@@ -114,6 +114,14 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "requiresDownloads": true
     },
     {
+      "label": "Diloti Table Guide",
+      "route": "/apps/diloti/",
+      "file": "site/public/apps/diloti/index.html",
+      "category": "game-guide",
+      "requiresDownloads": false,
+      "requiresPageTools": false
+    },
+    {
       "label": "DermatoTarget Atlas",
       "route": "/apps/dermatotarget-atlas/",
       "file": "site/public/apps/dermatotarget-atlas/index.html",

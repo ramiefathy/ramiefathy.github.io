@@ -8,6 +8,7 @@ export type LegacyHtmlAppInventoryEntry = {
   file: string
   category: string
   requiresDownloads: boolean
+  requiresPageTools?: boolean
   redirectTo?: string
 }
 

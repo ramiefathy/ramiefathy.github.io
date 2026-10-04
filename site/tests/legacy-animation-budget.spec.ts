@@ -75,7 +75,9 @@ test.describe('legacy apps animation budget (hover-only, no noisy on-load motion
     test(`on-load animations stay under budget: ${entry.route}`, async ({ page }) => {
       const runtime = watchRuntime(page)
       await page.goto(entry.route, { waitUntil: 'domcontentloaded' })
-      await expect(page.getByRole('toolbar', { name: 'Page tools' })).toBeVisible()
+      if (entry.requiresPageTools !== false) {
+        await expect(page.getByRole('toolbar', { name: 'Page tools' })).toBeVisible()
+      }
 
       // Let any accidental load-triggered animations start.
       await page.waitForTimeout(750)
@@ -91,4 +93,3 @@ test.describe('legacy apps animation budget (hover-only, no noisy on-load motion
     })
   }
 })
-

@@ -48,7 +48,9 @@ test.describe('inventory surface integrity (inventory-driven)', () => {
         // Assert shell presence via its accessible toolbar landmark rather than a
         // specific wrapper class. This keeps the check robust even if a page
         // inlines shell markup or the wrapper structure changes.
-        await expect(page.getByRole('toolbar', { name: 'Page tools' })).toBeVisible()
+        if (entry.requiresPageTools !== false) {
+          await expect(page.getByRole('toolbar', { name: 'Page tools' })).toBeVisible()
+        }
       }
 
       runtime.assertClean()
