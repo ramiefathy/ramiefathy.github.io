@@ -272,7 +272,8 @@ test.describe('Dermatopathology Navigator (modern legacy HTML) (functional)', ()
     const before = await page.evaluate(() => window.scrollY)
 
     const cdp = await context.newCDPSession(page)
-    const x = Math.round(box.x + box.width / 2)
+    // Start on empty background (left edge of the frame): swipes that start on a node drag the node instead.
+    const x = Math.round(box.x + 14)
     const startY = Math.round(box.y + box.height * 0.8)
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: startY }] })
     for (let step = 1; step <= 10; step++) {
@@ -528,6 +529,38 @@ test.describe('Dermatopathology Navigator (modern legacy HTML) (functional)', ()
     const gap = Math.hypot(dot.x + dot.width / 2 - hub.x, dot.y + dot.height / 2 - hub.y) - hubBox.width / 2 - dot.width / 2
     expect(gap).toBeGreaterThanOrEqual(2)
     runtime.assertClean()
+  })
+
+  test('a finger can drag a node on a touch screen, and a tap still selects', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+    const page = await context.newPage()
+    await blockExternalRequests(page)
+    const runtime = watchRuntime(page)
+    await openNavigator(page)
+    const name = 'Psoriasis'
+    const node = page.locator(`[data-testid="dx-network"] [data-node="dx"][data-name="${name}"]`)
+    await node.scrollIntoViewIfNeeded()
+    const before = await nodeTranslate(page, name)
+    const scrollBefore = await page.evaluate(() => window.scrollY)
+    const start = await nodeCenter(page, name)
+
+    const cdp = await context.newCDPSession(page)
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: Math.round(start.x), y: Math.round(start.y) }] })
+    for (let i = 1; i <= 10; i++) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: Math.round(start.x + i * 6), y: Math.round(start.y - i * 6) }] })
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+
+    await expect.poll(() => nodeTranslate(page, name)).not.toBe(before)
+    // The drag moved the node, not the page, and did not select it.
+    expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore)
+    await expect(node).toHaveAttribute('aria-pressed', 'false')
+
+    await page.locator(`[data-testid="dx-network"] [data-node="dx"][data-name="Clear cell acanthoma"] circle.dpn-node__dot`).tap()
+    await expect(page.getByTestId('dx-detail').locator('h3')).toHaveText('Clear cell acanthoma')
+
+    runtime.assertClean()
+    await context.close()
   })
 
   test('arrow keys nudge a focused node, and moved positions reset when the pattern changes', async ({ page }) => {
