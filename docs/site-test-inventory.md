@@ -229,6 +229,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
   ],
   "unlistedStaticPages": [
     {
+      "label": "Craniopharyngioma Pathway Explorer (unlisted)",
+      "route": "/teaching/craniopharyngioma-7e9c4b2a/",
+      "file": "site/public/teaching/craniopharyngioma-7e9c4b2a/index.html",
+      "category": "teaching-unlisted",
+      "requiresDownloads": false
+    },
+    {
       "label": "Taskboard (unlisted)",
       "route": "/tasks",
       "file": "site/public/tasks/index.html",
