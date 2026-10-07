@@ -7,23 +7,78 @@
   "data": {
     "start": "start",
     "steps": [
-      { "id": "start", "type": "decision", "prompt": "Recurrent painful nodules/abscesses in intertriginous sites with chronicity?", "branches": [
-        { "label": "Yes", "nextStepId": "tunnels" },
-        { "label": "No", "nextStepId": "mimicker" }
-      ] },
-      { "id": "mimicker", "type": "terminal", "prompt": "Evaluate furunculosis, epidermoid cysts, Crohn disease, STI, malignancy" },
-      { "id": "tunnels", "type": "decision", "prompt": "Sinus tracts/tunnels or diffuse scarring present?", "branches": [
-        { "label": "None", "nextStepId": "hurley1" },
-        { "label": "Limited", "nextStepId": "hurley2" },
-        { "label": "Diffuse", "nextStepId": "hurley3" }
-      ] },
-      { "id": "hurley1", "type": "terminal", "prompt": "Hurley I: topical/local measures + trigger/comorbidity management" },
-      { "id": "hurley2", "type": "terminal", "prompt": "Hurley II: systemic antibiotics, biologic discussion, deroofing/local surgery" },
-      { "id": "hurley3", "type": "terminal", "prompt": "Hurley III: biologic/systemic therapy + surgical planning" }
+      {
+        "id": "start",
+        "type": "decision",
+        "prompt": "Recurrent painful nodules/abscesses in intertriginous sites with chronicity?",
+        "branches": [
+          {
+            "label": "Yes",
+            "nextStepId": "tunnels"
+          },
+          {
+            "label": "No",
+            "nextStepId": "mimicker"
+          }
+        ]
+      },
+      {
+        "id": "mimicker",
+        "type": "terminal",
+        "prompt": "Evaluate furunculosis, epidermoid cysts, Crohn disease, STI, malignancy"
+      },
+      {
+        "id": "tunnels",
+        "type": "decision",
+        "prompt": "What is the regional structural pattern of tunnels and scarring?",
+        "branches": [
+          {
+            "label": "None",
+            "nextStepId": "hurley1"
+          },
+          {
+            "label": "Limited",
+            "nextStepId": "hurley2"
+          },
+          {
+            "label": "Diffuse",
+            "nextStepId": "hurley3"
+          }
+        ],
+        "detail": "Hurley stage describes structural damage, not current inflammatory activity. Also count inflammatory lesions and draining tunnels (for example IHS4) and assess pain, function and quality of life."
+      },
+      {
+        "id": "hurley1",
+        "type": "terminal",
+        "prompt": "Hurley I: no tunnels/scars",
+        "detail": "Hurley I (no tunnels or scarring): topical clindamycin 1%, oral tetracyclines (doxycycline or minocycline) for inflammatory flares, intralesional triamcinolone for acute nodules, and weight, smoking-cessation and friction/skin-care measures. Choose anti-inflammatory intensity by current activity (for example IHS4), not Hurley stage alone; extensive inflammation can justify systemic therapy even without tunnels."
+      },
+      {
+        "id": "hurley2",
+        "type": "terminal",
+        "prompt": "Hurley II: separated recurrent lesions with tunnels/scars",
+        "detail": "Hurley II (recurrent lesions with limited tunnels/scarring): oral tetracyclines or clindamycin plus rifampin courses; adalimumab (FDA-approved for moderate–severe HS, age ≥12), secukinumab or bimekizumab when antibiotics are inadequate; deroofing or limited local excision of persistent tunnels. Treat inflammation and irreversible structural disease in parallel and reassess with activity scores."
+      },
+      {
+        "id": "hurley3",
+        "type": "terminal",
+        "prompt": "Hurley III: diffuse interconnected tunnels across the region",
+        "detail": "Hurley III (diffuse interconnected tunnels across the region): biologic therapy (adalimumab, secukinumab or bimekizumab) with medical optimization, wide surgical excision of the affected region once inflammation is controlled, and consideration of ertapenem bridging in severe refractory flares before definitive surgery. Hurley staging describes static structural damage; inflammatory activity (IHS4, pain, drainage) guides medical escalation."
+      }
     ]
   },
   "citations": [
-    { "pmid": "30872156", "doi": "10.1016/j.jaad.2019.02.067", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9131894/", "quote": "North American HS guidelines Part I address diagnosis, evaluation, comorbidity screening, and procedural management." },
-    { "pmid": "30872149", "doi": "10.1016/j.jaad.2019.02.068", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9131892/", "quote": "North American HS guidelines Part II provides a therapeutic algorithm for topical, intralesional, and systemic medical management." }
+    {
+      "pmid": "30872156",
+      "doi": "10.1016/j.jaad.2019.02.067",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9131894/",
+      "quote": "North American HS guidelines Part I address diagnosis, evaluation, comorbidity screening, and procedural management."
+    },
+    {
+      "pmid": "30872149",
+      "doi": "10.1016/j.jaad.2019.02.068",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9131892/",
+      "quote": "North American HS guidelines Part II provides a therapeutic algorithm for topical, intralesional, and systemic medical management."
+    }
   ]
 }

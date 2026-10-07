@@ -12,8 +12,14 @@
         "type": "decision",
         "prompt": "Patient presents with blistering or erosive skin disorder. Are blisters/erosions present?",
         "branches": [
-          { "label": "Yes — blisters or erosions", "nextStepId": "age-site" },
-          { "label": "No blisters — re-evaluate diagnosis", "nextStepId": "non-bullous" }
+          {
+            "label": "Yes — blisters or erosions",
+            "nextStepId": "age-site"
+          },
+          {
+            "label": "No blisters — re-evaluate diagnosis",
+            "nextStepId": "non-bullous"
+          }
         ]
       },
       {
@@ -27,9 +33,18 @@
         "type": "decision",
         "prompt": "What is the patient's age and clinical context?",
         "branches": [
-          { "label": "Adult — assess blister character and sites", "nextStepId": "blister-character" },
-          { "label": "Child — grouped vesicles, annular string-of-pearls pattern", "nextStepId": "labd-child" },
-          { "label": "Pregnant — periumbilical urticarial plaques + blisters", "nextStepId": "pg" }
+          {
+            "label": "Adult — assess blister character and sites",
+            "nextStepId": "blister-character"
+          },
+          {
+            "label": "Child — grouped vesicles, annular string-of-pearls pattern",
+            "nextStepId": "labd-child"
+          },
+          {
+            "label": "Pregnant — periumbilical urticarial plaques + blisters",
+            "nextStepId": "pg"
+          }
         ]
       },
       {
@@ -49,9 +64,18 @@
         "type": "decision",
         "prompt": "Blister character and Nikolsky sign?",
         "branches": [
-          { "label": "Flaccid, easily ruptured, Nikolsky positive (lateral pressure causes extension)", "nextStepId": "pemphigus-group" },
-          { "label": "Tense, intact on urticarial/erythematous base, Nikolsky negative", "nextStepId": "tense-group" },
-          { "label": "Trauma-induced on extensor surfaces, healing with scarring + milia", "nextStepId": "eba" }
+          {
+            "label": "Flaccid, easily ruptured, Nikolsky positive (lateral pressure causes extension)",
+            "nextStepId": "pemphigus-group"
+          },
+          {
+            "label": "Tense, intact on urticarial/erythematous base, Nikolsky negative",
+            "nextStepId": "tense-group"
+          },
+          {
+            "label": "Trauma-induced on extensor surfaces, healing with scarring + milia",
+            "nextStepId": "eba"
+          }
         ]
       },
       {
@@ -59,9 +83,18 @@
         "type": "decision",
         "prompt": "Mucosal involvement? Any paraneoplastic features?",
         "branches": [
-          { "label": "Mucosal-dominant (oral/genital) ± skin blisters", "nextStepId": "pv-mucosal" },
-          { "label": "Skin only — seborrheic areas (scalp, face, chest, back), scaling/crusting", "nextStepId": "pf" },
-          { "label": "Severe polymorphous mucosal lesions + known/suspected malignancy", "nextStepId": "pnp" }
+          {
+            "label": "Mucosal-dominant (oral/genital) ± skin blisters",
+            "nextStepId": "pv-mucosal"
+          },
+          {
+            "label": "Skin only — seborrheic areas (scalp, face, chest, back), scaling/crusting",
+            "nextStepId": "pf"
+          },
+          {
+            "label": "Severe polymorphous mucosal lesions + known/suspected malignancy",
+            "nextStepId": "pnp"
+          }
         ]
       },
       {
@@ -69,15 +102,21 @@
         "type": "decision",
         "prompt": "Is skin involvement present in addition to mucosa?",
         "branches": [
-          { "label": "Mucosal only or mucosal-dominant — minimal/no skin blisters", "nextStepId": "pv-mucosal-dominant" },
-          { "label": "Both mucosa and skin extensively involved", "nextStepId": "pv-mucocutaneous" }
+          {
+            "label": "Mucosal only or mucosal-dominant — minimal/no skin blisters",
+            "nextStepId": "pv-mucosal-dominant"
+          },
+          {
+            "label": "Both mucosa and skin extensively involved",
+            "nextStepId": "pv-mucocutaneous"
+          }
         ]
       },
       {
         "id": "pv-mucosal-dominant",
         "type": "terminal",
         "prompt": "Pemphigus Vulgaris — Mucosal-dominant variant",
-        "detail": "<p>Anti-Dsg3 IgG (without Dsg1). Oral mucosa often first and most severely affected. Flaccid erosions may appear before skin involvement. Intraepidermal suprabasilar split on histology. DIF: intercellular IgG + C3 in epidermis ('fishnet'). First-line: rituximab 1g ×2 (D0+D14) per PEMPHIX trial (PMID 28342637). PMID: 31498102.</p>"
+        "detail": "<p>Anti-Dsg3 IgG (without Dsg1). Oral mucosa often first and most severely affected. Flaccid erosions may appear before skin involvement. Intraepidermal suprabasilar split on histology. DIF: intercellular IgG + C3 in epidermis ('fishnet'). First-line: rituximab 1g ×2 (D0+D14) per Ritux 3 trial (PMID 28342637). PMID: 31498102.</p>"
       },
       {
         "id": "pv-mucocutaneous",
@@ -102,8 +141,14 @@
         "type": "decision",
         "prompt": "Older adult (>70 y)? Distribution and mucosal involvement?",
         "branches": [
-          { "label": "Older adult, lower trunk + flexures, no/rare mucosal involvement", "nextStepId": "bp" },
-          { "label": "Mucosal-only (oral, ocular, nasal, anogenital) with scarring tendency", "nextStepId": "mmp" }
+          {
+            "label": "Older adult, lower trunk + flexures, no/rare mucosal involvement",
+            "nextStepId": "bp"
+          },
+          {
+            "label": "Mucosal-only (oral, ocular, nasal, anogenital) with scarring tendency",
+            "nextStepId": "mmp"
+          }
         ]
       },
       {
@@ -117,8 +162,14 @@
         "type": "decision",
         "prompt": "Ocular involvement (conjunctival scarring/symblepharon)?",
         "branches": [
-          { "label": "Yes — ocular scarring/symblepharon present or progressing", "nextStepId": "mmp-ocular" },
-          { "label": "No — oral/nasal/anogenital mucosal scarring only", "nextStepId": "mmp-limited" }
+          {
+            "label": "Yes — ocular scarring/symblepharon present or progressing",
+            "nextStepId": "mmp-ocular"
+          },
+          {
+            "label": "No — oral/nasal/anogenital mucosal scarring only",
+            "nextStepId": "mmp-limited"
+          }
         ]
       },
       {
@@ -138,8 +189,14 @@
         "type": "decision",
         "prompt": "Is presentation consistent with dermatitis herpetiformis? (Pruritic grouped vesicles on extensors)",
         "branches": [
-          { "label": "Trauma-induced, extensor surface mechanobullous with scarring/milia", "nextStepId": "eba-classic" },
-          { "label": "Pruritic grouped vesicles on extensors, scalp, buttocks — GI symptoms", "nextStepId": "dh" }
+          {
+            "label": "Trauma-induced, extensor surface mechanobullous with scarring/milia",
+            "nextStepId": "eba-classic"
+          },
+          {
+            "label": "Pruritic grouped vesicles on extensors, scalp, buttocks — GI symptoms",
+            "nextStepId": "dh"
+          }
         ]
       },
       {
@@ -157,8 +214,17 @@
     ]
   },
   "citations": [
-    { "pmid": "35646449", "quote": "Heckler I et al. Serological biomarkers and their detection in autoimmune bullous skin diseases. Dermatol Pract Concept. 2022." },
-    { "pmid": "31498102", "quote": "Schmidt E et al. Pemphigus. Lancet. 2019;394(10201):882-894." },
-    { "pmid": "28342637", "quote": "Joly P et al. First-line rituximab combined with short-term prednisone versus prednisone alone for the treatment of pemphigus (Ritux 3). Lancet. 2017." }
+    {
+      "pmid": "35646449",
+      "quote": "Heckler I et al. Serological biomarkers and their detection in autoimmune bullous skin diseases. Dermatol Pract Concept. 2022."
+    },
+    {
+      "pmid": "31498102",
+      "quote": "Schmidt E et al. Pemphigus. Lancet. 2019;394(10201):882-894."
+    },
+    {
+      "pmid": "28342637",
+      "quote": "Joly P et al. First-line rituximab combined with short-term prednisone versus prednisone alone for the treatment of pemphigus (Ritux 3). Lancet. 2017."
+    }
   ]
 }

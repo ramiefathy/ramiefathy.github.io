@@ -7,23 +7,74 @@
   "data": {
     "start": "start",
     "steps": [
-      { "id": "start", "type": "decision", "prompt": "Is purpura palpable or retiform, or are there ulcers/necrosis?", "branches": [
-        { "label": "Palpable", "nextStepId": "vasculitis" },
-        { "label": "Retiform/necrotic", "nextStepId": "occlusive" },
-        { "label": "Flat petechiae", "nextStepId": "platelet" }
-      ] },
-      { "id": "platelet", "type": "terminal", "prompt": "Platelet/coagulation/trauma/capillaritis pathway" },
-      { "id": "occlusive", "type": "terminal", "prompt": "Occlusive vasculopathy/embolism/cryoglobulin/sepsis pathway" },
-      { "id": "vasculitis", "type": "action", "prompt": "Biopsy fresh lesion for H&E and perilesional lesion for DIF; screen systemic symptoms", "branches": [
-        { "label": "Systemic symptoms", "nextStepId": "systemic" },
-        { "label": "Skin-limited", "nextStepId": "skin" }
-      ] },
-      { "id": "systemic", "type": "terminal", "prompt": "Systemic vasculitis workup: UA, creatinine, CBC, CMP, complements, hepatitis, ANCA as indicated" },
-      { "id": "skin", "type": "terminal", "prompt": "Skin-limited leukocytoclastic vasculitis: trigger search and supportive/treatment pathway" }
+      {
+        "id": "start",
+        "type": "decision",
+        "prompt": "Is purpura palpable or retiform, or are there ulcers/necrosis?",
+        "branches": [
+          {
+            "label": "Palpable",
+            "nextStepId": "vasculitis"
+          },
+          {
+            "label": "Retiform/necrotic",
+            "nextStepId": "occlusive"
+          },
+          {
+            "label": "Flat petechiae",
+            "nextStepId": "platelet"
+          }
+        ]
+      },
+      {
+        "id": "platelet",
+        "type": "terminal",
+        "prompt": "Platelet/coagulation/trauma/capillaritis pathway"
+      },
+      {
+        "id": "occlusive",
+        "type": "terminal",
+        "prompt": "Occlusive vasculopathy/embolism/cryoglobulin/sepsis pathway"
+      },
+      {
+        "id": "vasculitis",
+        "type": "action",
+        "prompt": "Lesional biopsy plus baseline systemic screen",
+        "branches": [
+          {
+            "label": "Systemic symptoms",
+            "nextStepId": "systemic"
+          },
+          {
+            "label": "Skin-limited",
+            "nextStepId": "skin"
+          }
+        ],
+        "detail": "Obtain appropriate lesional biopsies: active purpura for H&E and a fresh early lesion for DIF, using the laboratory protocol. Assess blood pressure, urinalysis, renal function and systemic features even when symptoms appear skin-limited."
+      },
+      {
+        "id": "systemic",
+        "type": "terminal",
+        "prompt": "Systemic vasculitis workup: UA, creatinine, CBC, CMP, complements, hepatitis, ANCA as indicated"
+      },
+      {
+        "id": "skin",
+        "type": "terminal",
+        "prompt": "Skin-limited leukocytoclastic vasculitis: trigger search and supportive/treatment pathway",
+        "detail": "Only call disease skin-limited after an appropriate systemic assessment; repeat assessment if symptoms or urine/renal findings evolve. Review triggers and tailor supportive or anti-inflammatory treatment."
+      }
     ]
   },
   "citations": [
-    { "url": "https://www.ncbi.nlm.nih.gov/books/NBK482159/", "quote": "StatPearls Leukocytoclastic Vasculitis review summarizes palpable purpura evaluation, biopsy, DIF, and systemic workup." },
-    { "pmid": "36213632", "doi": "10.3389/fmed.2022.1012554", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9532537/", "quote": "Algorithmic cutaneous vasculitis review discusses biopsy timing, direct immunofluorescence, and systemic assessment." }
+    {
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK482159/",
+      "quote": "StatPearls Leukocytoclastic Vasculitis review summarizes palpable purpura evaluation, biopsy, DIF, and systemic workup."
+    },
+    {
+      "pmid": "36213632",
+      "doi": "10.3389/fmed.2022.1012554",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9532537/",
+      "quote": "Algorithmic cutaneous vasculitis review discusses biopsy timing, direct immunofluorescence, and systemic assessment."
+    }
   ]
 }
