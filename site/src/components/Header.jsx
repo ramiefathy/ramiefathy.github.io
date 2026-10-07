@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import CommandPalette from './CommandPalette.jsx';
+import profile from '../data/profile.json';
+import { getProfileCity } from '../lib/profilePresentation';
 import { lockScroll, unlockScroll } from '../lib/scrollLock.js';
 
 const NAV_LINKS = [
@@ -17,18 +19,19 @@ function isActiveLink(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+const city = getProfileCity(profile.location);
+
 const CLOCK_FORMATTER = new Intl.DateTimeFormat('en-US', {
-  timeZone: 'America/New_York',
+  timeZone: profile.timeZone,
   hour: '2-digit',
   minute: '2-digit',
   second: '2-digit',
   hour12: false
 });
 
-/** Boston wall-clock for the status bar — always America/New_York,
- *  regardless of the visitor's own timezone, since the label reads
- *  "· Boston". Rendered empty on the server so SSR markup and the first
- *  client paint agree. */
+/** Profile-local wall-clock, independent of the visitor's timezone.
+ *  City and timezone both come from profile.json. Rendered empty on the
+ *  server so SSR markup and the first client paint agree. */
 const useClock = () => {
   const [stamp, setStamp] = useState('');
   useEffect(() => {
@@ -99,12 +102,12 @@ const Header = () => {
       <div className="status-bar">
         <span className="status-bar__who">
           <span className="status-bar__dot" aria-hidden="true"></span>
-          <span className="status-bar__name">Ramie Fathy, MD</span>
-          <span className="status-bar__where">· Mass General Brigham</span>
+          <span className="status-bar__name">{profile.name}</span>
+          <span className="status-bar__where">· {profile.affiliation}</span>
         </span>
         <span className="status-bar__right">
           <span className="status-clock">
-            {clock ? `${clock} · Boston` : 'Boston'}
+            {clock ? `${clock} · ${city}` : city}
           </span>
           <button
             type="button"
