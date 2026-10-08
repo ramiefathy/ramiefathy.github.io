@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hero Background Lab</title>
+<meta name="description" content="Nine interactive background candidates for the ramiefathy.com landing hero, rendered under the real hero copy and design tokens.">
+<meta name="robots" content="noindex">
+<!-- FONTS:LOCAL -->
+<style>
+  /* Self-hosted, same files the site ships (site/public/apps/shared/fonts). */
+  @font-face { font-family: "Fraunces"; font-style: normal; font-weight: 100 900; font-display: swap;
+    src: url("../../site/public/apps/shared/fonts/Fraunces-VariableFont_opsz,wght.woff2") format("woff2"); }
+  @font-face { font-family: "Fraunces"; font-style: italic; font-weight: 100 900; font-display: swap;
+    src: url("../../site/public/apps/shared/fonts/Fraunces-Italic-VariableFont_opsz,wght.woff2") format("woff2"); }
+  @font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 200 800; font-display: swap;
+    src: url("../../site/public/apps/shared/fonts/BricolageGrotesque-Variable.woff2") format("woff2-variations"); }
+  @font-face { font-family: "Space Mono"; font-style: normal; font-weight: 400; font-display: swap;
+    src: url("../../site/public/apps/shared/fonts/SpaceMono-Regular.woff2") format("woff2"); }
+  @font-face { font-family: "Space Mono"; font-style: normal; font-weight: 700; font-display: swap;
+    src: url("../../site/public/apps/shared/fonts/SpaceMono-Bold.woff2") format("woff2"); }
+</style>
+<!-- /FONTS:LOCAL -->
+<style>
+  :root {
+    --ground: #0b0e13;
+    --surface: #151b23;
+    --surface-2: #1b222c;
+    --text: #f2f4f6;
+    --text-muted: #8a94a0;
+    --accent: #ff6b4a;
+    --accent-hover: #ff8266;
+    --hairline: #1b222c;
+    --line: #232b36;
+    --line-strong: #2e3844;
+    --radius-lg: 8px;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Bricolage Grotesque', system-ui, sans-serif;
+    --font-ui: 'Bricolage Grotesque', system-ui, sans-serif;
+    --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--ground); color: var(--text); }
+  body { font-family: var(--font-body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+  /* ---------------- lab chrome ---------------- */
+  .lab {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 12px 16px 18px;
+    background: linear-gradient(to bottom, rgba(11,14,19,.96) 0%, rgba(11,14,19,.86) 70%, rgba(11,14,19,0) 100%);
+    pointer-events: none;
+  }
+  .lab > * { pointer-events: auto; }
+  .lab__row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .lab__row--meta { gap: 10px; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted); }
+  .lab__title { font-family: var(--font-mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted); margin-right: 8px; }
+  .chip {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-muted); background: rgba(11,14,19,.85); border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 11px; cursor: pointer; line-height: 1; transition: border-color .15s, color .15s;
+  }
+  .chip:hover { color: var(--text); border-color: var(--line-strong); }
+  .chip[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+  .chip b { font-weight: 400; opacity: .6; margin-right: 6px; }
+  .chip--toggle[aria-pressed="true"] { color: var(--text); border-color: var(--text-muted); }
+  .lab__blurb { color: var(--text); max-width: 72ch; }
+  .lab__blurb strong { color: var(--accent); font-weight: 400; }
+  .lab__meta-sep { opacity: .35; }
+  .lab__fps { min-width: 7ch; }
+  .lab__keys { margin-left: auto; opacity: .7; }
+
+  /* ---------------- hero (mirrors .field-hero in global.css) ---------------- */
+  .field-hero {
+    position: relative; min-height: 100vh; overflow: hidden;
+    display: flex; flex-direction: column; border-bottom: 1px solid var(--hairline); background: var(--ground);
+    touch-action: none;
+  }
+  .field-hero__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+  .field-hero__body {
+    position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; justify-content: center;
+    padding: 120px 48px 24px; max-width: 1200px; pointer-events: none; transition: opacity .25s;
+  }
+  .field-hero__body a { pointer-events: auto; }
+  .field-hero__body::before {
+    content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: linear-gradient(to right, rgba(11,14,19,.85) 0%, rgba(11,14,19,.85) 46%, rgba(11,14,19,.5) 64%, rgba(11,14,19,0) 80%);
+    transition: opacity .25s;
+  }
+  body.no-scrim .field-hero__body::before { opacity: 0; }
+  body.hide-copy .field-hero__body, body.hide-copy .field-hero__console { opacity: 0; pointer-events: none; }
+  .field-hero__kicker { font-family: var(--font-mono); font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); margin: 0; }
+  .field-hero__name { font-family: var(--font-display); font-weight: 400; font-size: clamp(52px, 9vw, 124px); line-height: .98; letter-spacing: -.02em; margin: 16px 0 0; color: var(--text); }
+  .field-hero__name em { font-style: italic; font-weight: 300; color: var(--accent); }
+  .field-hero__degree { font-size: .4em; color: var(--text-muted); letter-spacing: 0; font-style: normal; }
+  .field-hero__sub { margin: 20px 0 0; font-size: 17px; color: var(--text-muted); max-width: 54ch; line-height: 1.65; }
+  .field-hero__sub strong { color: var(--text); font-weight: 500; }
+  .field-hero__cta { margin-top: 30px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .button {
+    display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; font-family: var(--font-ui); font-size: 14px; font-weight: 600;
+    color: var(--text); background: transparent; border: 1px solid var(--line-strong); border-radius: 6px; text-decoration: none; transition: border-color .15s, background .15s;
+  }
+  .button:hover { border-color: var(--text-muted); }
+  .button--primary { color: var(--ground); background: var(--accent); border-color: var(--accent); }
+  .button--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--ground); }
+
+  .field-hero__console {
+    position: relative; z-index: 1; padding: 0 48px 34px; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: 18px; align-items: end; transition: opacity .25s;
+  }
+  .f-console { background: rgba(17,22,29,.92); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px 22px; font-family: var(--font-mono); font-size: 13.5px; line-height: 1.85; }
+  .f-console__head { display: flex; justify-content: space-between; gap: 12px; color: var(--text-muted); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+  .f-console__live { color: var(--accent); }
+  .f-console__line { color: var(--text-muted); margin: 0; }
+  .f-console__prompt { color: var(--accent); }
+  .f-console__typed { color: var(--text); }
+  .f-console__caret { display: inline-block; width: 8px; height: 16px; background: var(--accent); vertical-align: -3px; margin-left: 2px; animation: caretBlink 1.1s steps(1) infinite; }
+  @keyframes caretBlink { 50% { opacity: 0; } }
+  .field-hero__hint { justify-self: end; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; background: rgba(11,14,19,.92); }
+
+  @media (max-width: 720px) {
+    .lab { position: static; background: var(--ground); padding-bottom: 10px; border-bottom: 1px solid var(--hairline); }
+    .field-hero { min-height: calc(100vh - 220px); }
+    .field-hero__body { padding: 56px 22px 20px; }
+    .field-hero__body::before { background: linear-gradient(to bottom, rgba(11,14,19,.8), rgba(11,14,19,.55)); }
+    .field-hero__console { grid-template-columns: 1fr; padding: 0 22px 26px; }
+    .field-hero__hint { display: none; }
+    .lab__keys { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="lab" id="lab">
+  <div class="lab__row">
+    <span class="lab__title">Hero background lab</span>
+    <div id="chips" class="lab__row" role="tablist" aria-label="Background variants"></div>
+  </div>
+  <div class="lab__row lab__row--meta">
+    <span class="lab__blurb" id="blurb"></span>
+    <span class="lab__meta-sep">·</span>
+    <span id="tech"></span>
+    <span class="lab__meta-sep">·</span>
+    <span class="lab__fps" id="fps">— fps</span>
+    <button class="chip chip--toggle" id="toggleCopy" aria-pressed="false">Hide copy</button>
+    <button class="chip chip--toggle" id="toggleScrim" aria-pressed="false">Drop text scrim</button>
+    <span class="lab__keys">keys: ← → switch · 1–9 jump · H copy · S scrim</span>
+  </div>
+</div>
+
+<section class="field-hero" id="stage" aria-labelledby="hero-title">
+  <div id="canvasHost"></div>
+
+  <div class="field-hero__body">
+    <p class="field-hero__kicker">Dermatologist · AI Researcher · Writer</p>
+    <h1 class="field-hero__name" id="hero-title">Ramie <em>Fathy</em><span class="field-hero__degree">, MD</span></h1>
+    <p class="field-hero__sub"><strong>Dermatologist and rheumatology–dermatology fellow at Mass General Brigham.</strong> I build clinical AI tools and study how they should, and should not, be used at the bedside.</p>
+    <div class="field-hero__cta">
+      <a class="button button--primary" href="#apps">Explore the apps</a>
+      <a class="button button--secondary" href="#research">Read the research</a>
+    </div>
+  </div>
+
+  <div class="field-hero__console">
+    <div class="f-console">
+      <div class="f-console__head"><span>Activity</span><span class="f-console__live">Live</span></div>
+      <p class="f-console__line"><span class="f-console__prompt">›</span> building clinical AI tools. testing whether they belong at the bedside.</p>
+      <p class="f-console__line"><span class="f-console__prompt">›</span> <span class="f-console__typed" id="typed"></span><span class="f-console__caret" aria-hidden="true"></span></p>
+    </div>
+    <span class="field-hero__hint" id="hint">The field responds to your cursor</span>
+  </div>
+</section>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ======================================================================
+     Shared palette (design contract: ground #0b0e13, text #f2f4f6, coral
+     #ff6b4a as the only accent hue; steel is a neutral, not a second hue).
+     ====================================================================== */
+  const GROUND = [11, 14, 19];
+  const CORAL = [255, 107, 74];
+  const STEEL = [214, 226, 235];
+  const GROUND_CSS = '#0b0e13';
+  const coral = (a) => `rgba(255,107,74,${a})`;
+  const steel = (a) => `rgba(214,226,235,${a})`;
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+  /* ----------------------------------------------------------- pointer */
+  const stage = document.getElementById('stage');
+  const host = document.getElementById('canvasHost');
+  const pointer = { x: -1e4, y: -1e4, vx: 0, vy: 0, active: false, speed: 0 };
+  let canvasEl = null;
+
+  stage.addEventListener('pointermove', (e) => {
+    if (!canvasEl) return;
+    const r = canvasEl.getBoundingClientRect();
+    const nx = e.clientX - r.left;
+    const ny = e.clientY - r.top;
+    if (pointer.active) { pointer.vx += nx - pointer.x; pointer.vy += ny - pointer.y; }
+    pointer.x = nx; pointer.y = ny; pointer.active = true;
+  });
+  stage.addEventListener('pointerdown', (e) => {
+    if (!canvasEl) return;
+    const r = canvasEl.getBoundingClientRect();
+    pointer.x = e.clientX - r.left; pointer.y = e.clientY - r.top; pointer.active = true; pointer.tap = true;
+  });
+  const leave = () => { pointer.active = false; pointer.x = -1e4; pointer.y = -1e4; pointer.vx = 0; pointer.vy = 0; };
+  stage.addEventListener('pointerleave', leave);
+  stage.addEventListener('pointercancel', leave);
+
+  /* ------------------------------------------------- canvas helpers */
+  function make2d(maxDpr = 2) {
+    const canvas = document.createElement('canvas');
+    canvas.className = 'field-hero__canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    const ctx = canvas.getContext('2d');
+    const size = { w: 0, h: 0, dpr: 1 };
+    const resize = () => {
+      size.dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+      const r = canvas.getBoundingClientRect();
+      size.w = r.width; size.h = r.height;
+      canvas.width = Math.max(1, Math.round(size.w * size.dpr));
+      canvas.height = Math.max(1, Math.round(size.h * size.dpr));
+      ctx.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+    };
+    return { canvas, ctx, size, resize };
+  }
+
+  function makeGl(frag, maxDpr = 1.5) {
+    const canvas = document.createElement('canvas');
+    canvas.className = 'field-hero__canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    const gl = canvas.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false });
+    if (!gl) return null;
+    const vert = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
+    const compile = (type, src) => {
+      const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.error(gl.getShaderInfoLog(s)); return null; }
+      return s;
+    };
+    const vs = compile(gl.VERTEX_SHADER, vert);
+    const fs = compile(gl.FRAGMENT_SHADER, frag);
+    if (!vs || !fs) return null;
+    const prog = gl.createProgram(); gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { console.error(gl.getProgramInfoLog(prog)); return null; }
+    gl.useProgram(prog);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, 'a'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const u = {
+      res: gl.getUniformLocation(prog, 'u_res'),
+      time: gl.getUniformLocation(prog, 'u_time'),
+      pointer: gl.getUniformLocation(prog, 'u_pointer'),
+      pstr: gl.getUniformLocation(prog, 'u_pstr'),
+      pvel: gl.getUniformLocation(prog, 'u_pvel')
+    };
+    const size = { w: 0, h: 0, dpr: 1 };
+    const resize = () => {
+      size.dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+      const r = canvas.getBoundingClientRect();
+      size.w = r.width; size.h = r.height;
+      canvas.width = Math.max(1, Math.round(size.w * size.dpr));
+      canvas.height = Math.max(1, Math.round(size.h * size.dpr));
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    };
+    let pstr = 0; let pvx = 0; let pvy = 0;
+    const draw = (t) => {
+      pstr = lerp(pstr, pointer.active ? 1 : 0, 0.08);
+      pvx = lerp(pvx, pointer.vx, 0.25); pvy = lerp(pvy, pointer.vy, 0.25);
+      gl.uniform2f(u.res, canvas.width, canvas.height);
+      gl.uniform1f(u.time, t);
+      gl.uniform2f(u.pointer, pointer.x * size.dpr, (size.h - pointer.y) * size.dpr);
+      gl.uniform1f(u.pstr, pstr);
+      gl.uniform2f(u.pvel, pvx, -pvy);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    };
+    const dispose = () => { const ext = gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); };
+    return { canvas, gl, size, resize, draw, dispose };
+  }
+
+  // Cheap 2D/3D value noise (used by the contour + a couple of 2D variants).
+  const hash3 = (x, y, z) => { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); };
+  const fade = (t) => t * t * (3 - 2 * t);
+  function noise3(x, y, z) {
+    const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z);
+    const fx = fade(x - ix), fy = fade(y - iy), fz = fade(z - iz);
+    const n000 = hash3(ix, iy, iz), n100 = hash3(ix + 1, iy, iz), n010 = hash3(ix, iy + 1, iz), n110 = hash3(ix + 1, iy + 1, iz);
+    const n001 = hash3(ix, iy, iz + 1), n101 = hash3(ix + 1, iy, iz + 1), n011 = hash3(ix, iy + 1, iz + 1), n111 = hash3(ix + 1, iy + 1, iz + 1);
+    const x00 = lerp(n000, n100, fx), x10 = lerp(n010, n110, fx), x01 = lerp(n001, n101, fx), x11 = lerp(n011, n111, fx);
+    return lerp(lerp(x00, x10, fy), lerp(x01, x11, fy), fz);
+  }
+
+  /* ======================================================================
+     VARIANTS. Each: { id, name, tech, cost, blurb, hint, create() → {canvas, resize, frame(t,dt), dispose} }
+     ====================================================================== */
+  const VARIANTS = [];
+
+  /* ---------------------------------------------------------------- 1. flow field (current) */
+  VARIANTS.push({
+    id: 'flow', name: 'Flow field', tech: 'canvas 2d · 820 particles', cost: 'low',
+    blurb: '<strong>Current production hero</strong> for reference. Sinusoidal flow field, cursor vortex, trail fade.',
+    hint: 'The field responds to your cursor',
+    create() {
+      const { canvas, ctx, size, resize: base } = make2d();
+      const N = 820, R = 170; const ps = []; let time = Math.random() * 100;
+      const seed = () => { ps.length = 0; for (let i = 0; i < N; i++) ps.push({ x: Math.random() * size.w, y: Math.random() * size.h, px: 0, py: 0, coral: Math.random() < 0.08 }); };
+      const resize = () => { base(); ctx.fillStyle = GROUND_CSS; ctx.fillRect(0, 0, size.w, size.h); seed(); };
+      const field = (x, y) => { const s = 0.0016; return Math.sin(y * s * 2.1 + time * 0.7) + Math.cos(x * s * 1.7 - time * 0.4) + Math.sin((x + y) * s * 0.8 + time * 0.23); };
+      const frame = () => {
+        time += 0.004;
+        ctx.fillStyle = 'rgba(11,14,19,0.045)'; ctx.fillRect(0, 0, size.w, size.h);
+        const mx = pointer.x, my = pointer.y, W = size.w, H = size.h;
+        ctx.lineWidth = 1.1;
+        for (const p of ps) {
+          const a = field(p.x, p.y) * Math.PI; let vx = Math.cos(a), vy = Math.sin(a);
+          const dx = mx - p.x, dy = my - p.y, d2 = dx * dx + dy * dy;
+          if (d2 < R * R) { const d = Math.sqrt(d2) || 1; const f = (1 - d / R) * 1.7; vx += (-dy / d) * f * 2 + (dx / d) * f * 0.35; vy += (dx / d) * f * 2 + (dy / d) * f * 0.35; }
+          p.px = p.x; p.py = p.y; p.x += vx * 1.55; p.y += vy * 1.55;
+          if (p.x < -6) { p.x = W + 6; p.px = p.x; } if (p.x > W + 6) { p.x = -6; p.px = p.x; }
+          if (p.y < -6) { p.y = H + 6; p.py = p.y; } if (p.y > H + 6) { p.y = -6; p.py = p.y; }
+          if (Math.abs(p.x - p.px) < 22 && Math.abs(p.y - p.py) < 22) { ctx.strokeStyle = p.coral ? coral(0.85) : steel(0.32); ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke(); }
+        }
+      };
+      return { canvas, resize, frame, dispose() {} };
+    }
+  });
+
+  /* ---------------------------------------------------------------- 2. fluid ink (stable fluids) */
+  VARIANTS.push({
+    id: 'fluid', name: 'Fluid ink', tech: 'canvas 2d · Navier–Stokes grid (Stam), ~180×100 cells', cost: 'medium',
+    blurb: 'Real incompressible fluid solver. Ambient steel currents drift; <strong>your cursor stirs coral dye into the flow</strong>, which curls and dissipates.',
+    hint: 'Drag through the field to stir it',
+    create() {
+      const { canvas, ctx, size, resize: base } = make2d(1.5);
+      let W = 0, H = 0, S = 0, u, v, u0, v0, dA, dA0, dB, dB0, p, div, off, offCtx, img;
+      const IX = (i, j) => i + (W + 2) * j;
+      const emitters = [0, 1, 2].map((k) => ({ ph: k * 2.1, a: 0.37 + k * 0.11, b: 0.29 + k * 0.07 }));
+      const alloc = () => {
+        S = (W + 2) * (H + 2);
+        u = new Float32Array(S); v = new Float32Array(S); u0 = new Float32Array(S); v0 = new Float32Array(S);
+        dA = new Float32Array(S); dA0 = new Float32Array(S); dB = new Float32Array(S); dB0 = new Float32Array(S);
+        p = new Float32Array(S); div = new Float32Array(S);
+        off = document.createElement('canvas'); off.width = W; off.height = H; offCtx = off.getContext('2d'); img = offCtx.createImageData(W, H);
+      };
+      const resize = () => { base(); W = 180; H = clamp(Math.round(180 * size.h / Math.max(1, size.w)), 40, 140); alloc(); };
+      const setBnd = (b, x) => {
+        for (let i = 1; i <= W; i++) { x[IX(i, 0)] = b === 2 ? -x[IX(i, 1)] : x[IX(i, 1)]; x[IX(i, H + 1)] = b === 2 ? -x[IX(i, H)] : x[IX(i, H)]; }
+        for (let j = 1; j <= H; j++) { x[IX(0, j)] = b === 1 ? -x[IX(1, j)] : x[IX(1, j)]; x[IX(W + 1, j)] = b === 1 ? -x[IX(W, j)] : x[IX(W, j)]; }
+        x[IX(0, 0)] = 0.5 * (x[IX(1, 0)] + x[IX(0, 1)]); x[IX(0, H + 1)] = 0.5 * (x[IX(1, H + 1)] + x[IX(0, H)]);
+        x[IX(W + 1, 0)] = 0.5 * (x[IX(W, 0)] + x[IX(W + 1, 1)]); x[IX(W + 1, H + 1)] = 0.5 * (x[IX(W, H + 1)] + x[IX(W + 1, H)]);
+      };
+      const linSolve = (b, x, x0, a, c, iter) => {
+        const inv = 1 / c, stride = W + 2;
+        for (let k = 0; k < iter; k++) {
+          for (let j = 1; j <= H; j++) { let idx = IX(1, j); for (let i = 1; i <= W; i++, idx++) x[idx] = (x0[idx] + a * (x[idx - 1] + x[idx + 1] + x[idx - stride] + x[idx + stride])) * inv; }
+          setBnd(b, x);
+        }
+      };
+      const advect = (b, d, d0, uu, vv, dt) => {
+        for (let j = 1; j <= H; j++) for (let i = 1; i <= W; i++) {
+          const idx = IX(i, j);
+          let x = i - dt * uu[idx], y = j - dt * vv[idx];
+          if (x < 0.5) x = 0.5; if (x > W + 0.5) x = W + 0.5; if (y < 0.5) y = 0.5; if (y > H + 0.5) y = H + 0.5;
+          const i0 = Math.floor(x), i1 = i0 + 1, j0 = Math.floor(y), j1 = j0 + 1;
+          const s1 = x - i0, s0 = 1 - s1, t1 = y - j0, t0 = 1 - t1;
+          d[idx] = s0 * (t0 * d0[IX(i0, j0)] + t1 * d0[IX(i0, j1)]) + s1 * (t0 * d0[IX(i1, j0)] + t1 * d0[IX(i1, j1)]);
+        }
+        setBnd(b, d);
+      };
+      const project = () => {
+        const stride = W + 2;
+        for (let j = 1; j <= H; j++) for (let i = 1; i <= W; i++) { const idx = IX(i, j); div[idx] = -0.5 * (u[idx + 1] - u[idx - 1] + v[idx + stride] - v[idx - stride]); p[idx] = 0; }
+        setBnd(0, div); setBnd(0, p); linSolve(0, p, div, 1, 4, 14);
+        for (let j = 1; j <= H; j++) for (let i = 1; i <= W; i++) { const idx = IX(i, j); u[idx] -= 0.5 * (p[idx + 1] - p[idx - 1]); v[idx] -= 0.5 * (p[idx + stride] - p[idx - stride]); }
+        setBnd(1, u); setBnd(2, v);
+      };
+      const splat = (cx, cy, r, fx, fy, da, db) => {
+        const i0 = clamp(Math.floor(cx - r), 1, W), i1 = clamp(Math.ceil(cx + r), 1, W), j0 = clamp(Math.floor(cy - r), 1, H), j1 = clamp(Math.ceil(cy + r), 1, H);
+        for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) { const dx = i - cx, dy = j - cy; const w = Math.exp(-(dx * dx + dy * dy) / (r * r * 0.5)); const idx = IX(i, j); u[idx] += fx * w; v[idx] += fy * w; dA[idx] += da * w; dB[idx] += db * w; }
+      };
+      let tick = 0;
+      const frame = (t) => {
+        tick++;
+        // ambient currents (steel), slowly wandering
+        for (const e of emitters) {
+          const ex = (0.5 + 0.42 * Math.sin(t * 0.11 * e.a + e.ph)) * W, ey = (0.5 + 0.38 * Math.cos(t * 0.13 * e.b + e.ph * 1.3)) * H;
+          const tx = Math.cos(t * 0.11 * e.a + e.ph) * 0.42 * W * 0.11 * e.a, ty = -Math.sin(t * 0.13 * e.b + e.ph * 1.3) * 0.38 * H * 0.13 * e.b;
+          const m = Math.hypot(tx, ty) || 1;
+          splat(ex, ey, 4.5, (tx / m) * 0.3, (ty / m) * 0.3, 0, 0.09);
+        }
+        // cursor → coral dye + momentum
+        if (pointer.active) {
+          const cx = pointer.x / size.w * W, cy = pointer.y / size.h * H;
+          const fx = clamp(pointer.vx / size.w * W * 0.7, -6, 6), fy = clamp(pointer.vy / size.h * H * 0.7, -6, 6);
+          const sp = Math.hypot(fx, fy);
+          splat(cx, cy, 3.6, fx, fy, 0.12 + sp * 0.22, 0);
+        }
+        // velocity step
+        u0.set(u); v0.set(v);
+        advect(1, u, u0, u0, v0, 1); advect(2, v, v0, u0, v0, 1);
+        project();
+        for (let i = 0; i < S; i++) { u[i] *= 0.992; v[i] *= 0.992; }
+        // dye step
+        dA0.set(dA); dB0.set(dB);
+        advect(0, dA, dA0, u, v, 1); advect(0, dB, dB0, u, v, 1);
+        for (let i = 0; i < S; i++) { dA[i] *= 0.988; dB[i] *= 0.99; }
+        // render
+        const d = img.data; let o = 0;
+        for (let j = 1; j <= H; j++) for (let i = 1; i <= W; i++) {
+          const idx = IX(i, j); const a = Math.min(1.2, dA[idx]), b = Math.min(1, dB[idx]);
+          d[o++] = Math.min(255, GROUND[0] + a * 244 + b * 100);
+          d[o++] = Math.min(255, GROUND[1] + a * 93 + b * 104);
+          d[o++] = Math.min(255, GROUND[2] + a * 55 + b * 108);
+          d[o++] = 255;
+        }
+        offCtx.putImageData(img, 0, 0);
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(off, 0, 0, size.w, size.h);
+      };
+      return { canvas, resize, frame, dispose() {} };
+    }
+  });
+
+  /* ---------------------------------------------------------------- 3. reaction–diffusion */
+  VARIANTS.push({
+    id: 'turing', name: 'Reaction–diffusion', tech: 'canvas 2d · Gray–Scott, ~256×150 cells × 5 steps/frame', cost: 'medium',
+    blurb: 'Gray–Scott Turing patterns grow slowly like a culture plate or pigment network. <strong>Cursor seeds new growth</strong>; fronts glow coral as they advance.',
+    hint: 'Paint to seed new growth',
+    create() {
+      const { canvas, ctx, size, resize: base } = make2d(1.5);
+      let W = 0, H = 0, A, B, A2, B2, off, offCtx, img;
+      const F = 0.0545, K = 0.062, DA = 1.0, DB = 0.5;
+      const seedPatch = (cx, cy, r) => { for (let j = Math.max(1, cy - r); j < Math.min(H - 1, cy + r); j++) for (let i = Math.max(1, cx - r); i < Math.min(W - 1, cx + r); i++) B[i + W * j] = 1; };
+      const step = () => {
+        for (let j = 1; j < H - 1; j++) {
+          for (let i = 1; i < W - 1; i++) {
+            const c = i + W * j, l = c - 1, r = c + 1, uu = c - W, dd = c + W;
+            const a = A[c], b = B[c];
+            const la = -a + 0.2 * (A[l] + A[r] + A[uu] + A[dd]) + 0.05 * (A[uu - 1] + A[uu + 1] + A[dd - 1] + A[dd + 1]);
+            const lb = -b + 0.2 * (B[l] + B[r] + B[uu] + B[dd]) + 0.05 * (B[uu - 1] + B[uu + 1] + B[dd - 1] + B[dd + 1]);
+            const abb = a * b * b;
+            let na = a + (DA * la - abb + F * (1 - a)); let nb = b + (DB * lb + abb - (K + F) * b);
+            A2[c] = na < 0 ? 0 : na > 1 ? 1 : na; B2[c] = nb < 0 ? 0 : nb > 1 ? 1 : nb;
+          }
+        }
+        // Neumann border: copy the adjacent interior cell so no frame forms at the edge.
+        for (let i = 0; i < W; i++) { A2[i] = A2[i + W]; B2[i] = B2[i + W]; A2[i + W * (H - 1)] = A2[i + W * (H - 2)]; B2[i + W * (H - 1)] = B2[i + W * (H - 2)]; }
+        for (let j = 0; j < H; j++) { A2[W * j] = A2[W * j + 1]; B2[W * j] = B2[W * j + 1]; A2[W * j + W - 1] = A2[W * j + W - 2]; B2[W * j + W - 1] = B2[W * j + W - 2]; }
+        let tmp = A; A = A2; A2 = tmp; tmp = B; B = B2; B2 = tmp;
+      };
+      const resize = () => {
+        base(); W = 256; H = clamp(Math.round(256 * size.h / Math.max(1, size.w)), 48, 190);
+        A = new Float32Array(W * H).fill(1); B = new Float32Array(W * H); A2 = new Float32Array(W * H).fill(1); B2 = new Float32Array(W * H);
+        for (let k = 0; k < 14; k++) seedPatch(2 + Math.floor(Math.random() * (W - 4)), 2 + Math.floor(Math.random() * (H - 4)), 3);
+        for (let k = 0; k < 900; k++) step();
+        off = document.createElement('canvas'); off.width = W; off.height = H; offCtx = off.getContext('2d'); img = offCtx.createImageData(W, H);
+      };
+      let lastSeed = 0;
+      const frame = (t) => {
+        if (pointer.active && (Math.abs(pointer.vx) + Math.abs(pointer.vy) > 0.5 || pointer.tap)) {
+          seedPatch(Math.round(pointer.x / size.w * W), Math.round(pointer.y / size.h * H), 2);
+        }
+        if (t - lastSeed > 4) { lastSeed = t; seedPatch(2 + Math.floor(Math.random() * (W - 4)), 2 + Math.floor(Math.random() * (H - 4)), 3); }
+        for (let k = 0; k < 5; k++) step();
+        const d = img.data;
+        for (let c = 0, o = 0; c < W * H; c++, o += 4) {
+          const b = B[c];
+          const body = smoothstep(0.08, 0.36, b);            // filled network, dim steel
+          const front = smoothstep(0.15, 0.23, b) * (1 - smoothstep(0.23, 0.31, b)); // advancing edge, coral
+          d[o] = Math.min(255, GROUND[0] + body * 34 + front * 150);
+          d[o + 1] = Math.min(255, GROUND[1] + body * 38 + front * 58);
+          d[o + 2] = Math.min(255, GROUND[2] + body * 42 + front * 32);
+          d[o + 3] = 255;
+        }
+        offCtx.putImageData(img, 0, 0);
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(off, 0, 0, size.w, size.h);
+      };
+      return { canvas, resize, frame, dispose() {} };
+    }
+  });
+
+  /* ---------------------------------------------------------------- 4. ripple dot grid */
+  VARIANTS.push({
+    id: 'ripple', name: 'Ripple lattice', tech: 'canvas 2d · wave equation on an 18px dot lattice', cost: 'low',
+    blurb: 'A quiet dot matrix carrying a 2-D wave simulation. <strong>Cursor motion drops ripples</strong> that interfere, refract the dots and flash coral at the crests.',
+    hint: 'Move to drop ripples',
+    create() {
+      const { canvas, ctx, size, resize: base } = make2d();
+      const SP = 18; let cols = 0, rows = 0, h, hp, hn, nextDrop = 0;
+      const resize = () => { base(); cols = Math.ceil(size.w / SP) + 2; rows = Math.ceil(size.h / SP) + 2; h = new Float32Array(cols * rows); hp = new Float32Array(cols * rows); hn = new Float32Array(cols * rows); };
+      const drop = (cx, cy, amp, r) => { for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) { const x = cx + i, y = cy + j; if (x < 1 || y < 1 || x >= cols - 1 || y >= rows - 1) continue; const w = Math.exp(-(i * i + j * j) / (r * 0.6 + 0.2)); h[x + cols * y] -= amp * w; } };
+      const frame = (t) => {
+        if (pointer.active) {
+          const sp = Math.hypot(pointer.vx, pointer.vy);
+          if (sp > 0.8 || pointer.tap) drop(Math.round(pointer.x / SP) + 1, Math.round(pointer.y / SP) + 1, clamp(sp * 0.035, 0.15, 0.9) + (pointer.tap ? 1.4 : 0), 2);
+        }
+        if (t > nextDrop) { nextDrop = t + 1.4 + Math.random() * 2.2; drop(2 + Math.floor(Math.random() * (cols - 4)), 2 + Math.floor(Math.random() * (rows - 4)), 1.3, 2); }
+        for (let j = 1; j < rows - 1; j++) for (let i = 1; i < cols - 1; i++) {
+          const c = i + cols * j; const lap = h[c - 1] + h[c + 1] + h[c - cols] + h[c + cols] - 4 * h[c];
+          hn[c] = (2 * h[c] - hp[c] + 0.28 * lap) * 0.99;
+        }
+        let tmp = hp; hp = h; h = hn; hn = tmp;
+        ctx.fillStyle = GROUND_CSS; ctx.fillRect(0, 0, size.w, size.h);
+        for (let j = 1; j < rows - 1; j++) for (let i = 1; i < cols - 1; i++) {
+          const c = i + cols * j; const val = h[c]; const mag = Math.abs(val);
+          const gx = (h[c + 1] - h[c - 1]) * 5, gy = (h[c + cols] - h[c - cols]) * 5;
+          const x = (i - 1) * SP + gx, y = (j - 1) * SP + gy;
+          const r = 1.1 + Math.min(3.2, mag * 2.4);
+          if (val > 0.28) ctx.fillStyle = coral(Math.min(1, 0.35 + val * 0.9)); else ctx.fillStyle = steel(0.14 + Math.min(0.7, mag * 0.8));
+          ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fill();
+        }
+      };
+      return { canvas, resize, frame, dispose() {} };
+    }
+  });
+
+  /* ---------------------------------------------------------------- 5. signal graph */
+  VARIANTS.push({
+    id: 'graph', name: 'Signal graph', tech: 'canvas 2d · 150 drifting nodes, proximity edges, routed pulses', cost: 'low',
+    blurb: 'Sparse node graph with <strong>coral pulses routing hop-by-hop</strong> along edges. The cursor becomes a node: nearby nodes lean in and your signal propagates out.',
+    hint: 'Your cursor joins the network',
+    create() {
+      const { canvas, ctx, size, resize: base } = make2d();
+      const N = 150, R = 150, RC = 190; const nodes = []; const pulses = []; let edges = []; let nextPulse = 0, nextCursorPulse = 0;
+      const resize = () => { base(); nodes.length = 0; for (let i = 0; i < N; i++) nodes.push({ x: Math.random() * size.w, y: Math.random() * size.h, vx: (Math.random() - 0.5) * 0.25, vy: (Math.random() - 0.5) * 0.25, glow: 0 }); };
+      const CURSOR = -1;
+      const pos = (k) => (k === CURSOR ? pointer : nodes[k]);
+      const neighbours = (k) => { const out = []; const a = pos(k); const rr = k === CURSOR ? RC : R; for (let i = 0; i < N; i++) { if (i === k) continue; const b = nodes[i]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (d < rr) out.push(i); } return out; };
+      const spawn = (from, hops) => { const nb = neighbours(from); if (!nb.length) return; pulses.push({ a: from, b: nb[Math.floor(Math.random() * nb.length)], t: 0, hops, speed: 0.016 + Math.random() * 0.012 }); };
+      const frame = (t) => {
+        const W = size.w, H = size.h;
+        for (const n of nodes) {
+          n.x += n.vx; n.y += n.vy;
+          if (n.x < 0 || n.x > W) n.vx *= -1; if (n.y < 0 || n.y > H) n.vy *= -1;
+          if (pointer.active) { const dx = pointer.x - n.x, dy = pointer.y - n.y, d = Math.hypot(dx, dy); if (d < RC && d > 40) { n.x += dx / d * 0.35 * (1 - d / RC); n.y += dy / d * 0.35 * (1 - d / RC); } }
+          n.glow *= 0.94;
+        }
+        edges = [];
+        for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) { const a = nodes[i], b = nodes[j]; const dx = a.x - b.x, dy = a.y - b.y; const d2 = dx * dx + dy * dy; if (d2 < R * R) edges.push(i, j, Math.sqrt(d2)); }
+        if (t > nextPulse) { nextPulse = t + 0.35; spawn(Math.floor(Math.random() * N), 4 + Math.floor(Math.random() * 5)); }
+        if (pointer.active && t > nextCursorPulse) { nextCursorPulse = t + 0.22; spawn(CURSOR, 5); }
+        ctx.fillStyle = GROUND_CSS; ctx.fillRect(0, 0, W, H);
+        ctx.lineWidth = 1;
+        for (let e = 0; e < edges.length; e += 3) { const a = nodes[edges[e]], b = nodes[edges[e + 1]]; const al = (1 - edges[e + 2] / R) * 0.32; ctx.strokeStyle = steel(al); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+        if (pointer.active) { for (const i of neighbours(CURSOR)) { const b = nodes[i]; const d = Math.hypot(pointer.x - b.x, pointer.y - b.y); ctx.strokeStyle = coral((1 - d / RC) * 0.55); ctx.beginPath(); ctx.moveTo(pointer.x, pointer.y); ctx.lineTo(b.x, b.y); ctx.stroke(); } }
+        for (let k = pulses.length - 1; k >= 0; k--) {
+          const p = pulses[k]; const a = pos(p.a), b = pos(p.b);
+          if ((p.a === CURSOR || p.b === CURSOR) && !pointer.active) { pulses.splice(k, 1); continue; }
+          p.t += p.speed;
+          const x = lerp(a.x, b.x, p.t), y = lerp(a.y, b.y, p.t);
+          ctx.strokeStyle = coral(0.7); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(lerp(a.x, b.x, Math.max(0, p.t - 0.35)), lerp(a.y, b.y, Math.max(0, p.t - 0.35))); ctx.lineTo(x, y); ctx.stroke();
+          ctx.fillStyle = coral(0.12); ctx.beginPath(); ctx.arc(x, y, 9, 0, 6.2832); ctx.fill();
+          ctx.fillStyle = coral(1); ctx.beginPath(); ctx.arc(x, y, 2.4, 0, 6.2832); ctx.fill();
+          if (p.t >= 1) { if (p.b !== CURSOR) nodes[p.b].glow = 1; const nb = neighbours(p.b).filter((i) => i !== p.a); if (p.hops > 0 && nb.length) { p.a = p.b; p.b = nb[Math.floor(Math.random() * nb.length)]; p.t = 0; p.hops--; } else pulses.splice(k, 1); }
+        }
+        for (const n of nodes) {
+          ctx.fillStyle = n.glow > 0.05 ? coral(0.4 + n.glow * 0.6) : steel(0.55); ctx.beginPath(); ctx.arc(n.x, n.y, 1.6 + n.glow * 2, 0, 6.2832); ctx.fill();
+        }
+        if (pointer.active) { ctx.strokeStyle = coral(0.8); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 5 + Math.sin(t * 4) * 1.5, 0, 6.2832); ctx.stroke(); }
+      };
+      return { canvas, resize, frame, dispose() {} };
+    }
+  });
+
+  /* ---------------------------------------------------------------- 6. murmuration (boids) */
+  VARIANTS.push({
+    id: 'boids', name: 'Murmuration', tech: 'canvas 2d · 650 boids, spatial hash', cost: 'low–medium',
+    blurb: 'A flock with separation / alignment / cohesion and a slow roaming goal. <strong>The cursor is a predator</strong>: the flock splits and streams around it, then re-forms.',
+    hint: 'The flock avoids your cursor',
+    create() {
+      const { canvas, ctx, size, resize: base } = make2d();
+      const N = 650, CELL = 48, PER = 46, SEP = 16, FLEE = 160; const bx = new Float32Array(N), by = new Float32Array(N), bvx = new Float32Array(N), bvy = new Float32Array(N); const isCoral = new Uint8Array(N);
+      let gcols = 0, grows = 0, heads, next;
+      const resize = () => { base(); gcols = Math.ceil(size.w / CELL) + 1; grows = Math.ceil(size.h / CELL) + 1; heads = new Int32Array(gcols * grows); next = new Int32Array(N); for (let i = 0; i < N; i++) { bx[i] = Math.random() * size.w; by[i] = Math.random() * size.h; const a = Math.random() * 6.28; bvx[i] = Math.cos(a) * 2; bvy[i] = Math.sin(a) * 2; isCoral[i] = Math.random() < 0.07 ? 1 : 0; } ctx.fillStyle = GROUND_CSS; ctx.fillRect(0, 0, size.w, size.h); };
+      const frame = (t) => {
+        const W = size.w, H = size.h;
+        const gx = W * (0.5 + 0.36 * Math.sin(t * 0.17)), gy = H * (0.5 + 0.3 * Math.cos(t * 0.23));
+        heads.fill(-1);
+        for (let i = 0; i < N; i++) { const c = clamp(Math.floor(bx[i] / CELL), 0, gcols - 1) + gcols * clamp(Math.floor(by[i] / CELL), 0, grows - 1); next[i] = heads[c]; heads[c] = i; }
+        for (let i = 0; i < N; i++) {
+          let ax = 0, ay = 0, cx = 0, cy = 0, sx = 0, sy = 0, n = 0;
+          const ci = clamp(Math.floor(bx[i] / CELL), 0, gcols - 1), cj = clamp(Math.floor(by[i] / CELL), 0, grows - 1);
+          for (let jj = -1; jj <= 1; jj++) for (let ii = -1; ii <= 1; ii++) {
+            const ccx = ci + ii, ccy = cj + jj; if (ccx < 0 || ccy < 0 || ccx >= gcols || ccy >= grows) continue;
+            for (let k = heads[ccx + gcols * ccy]; k !== -1; k = next[k]) {
+              if (k === i) continue; const dx = bx[k] - bx[i], dy = by[k] - by[i]; const d2 = dx * dx + dy * dy; if (d2 > PER * PER) continue;
+              ax += bvx[k]; ay += bvy[k]; cx += bx[k]; cy += by[k]; n++;
+              if (d2 < SEP * SEP) { const d = Math.sqrt(d2) + 0.01; sx -= dx / d * (SEP - d); sy -= dy / d * (SEP - d); }
+            }
+          }
+          let vx = bvx[i], vy = bvy[i];
+          if (n) { vx += (ax / n - vx) * 0.06 + (cx / n - bx[i]) * 0.004; vy += (ay / n - vy) * 0.06 + (cy / n - by[i]) * 0.004; }
+          vx += sx * 0.05; vy += sy * 0.05;
+          vx += (gx - bx[i]) * 0.00035; vy += (gy - by[i]) * 0.00035;
+          if (pointer.active) { const dx = bx[i] - pointer.x, dy = by[i] - pointer.y; const d = Math.hypot(dx, dy); if (d < FLEE) { const f = (1 - d / FLEE) * 1.4; vx += dx / d * f; vy += dy / d * f; } }
+          if (bx[i] < 60) vx += 0.08; if (bx[i] > W - 60) vx -= 0.08; if (by[i] < 60) vy += 0.08; if (by[i] > H - 60) vy -= 0.08;
+          const sp = Math.hypot(vx, vy) || 1; const target = clamp(sp, 1.4, 3.1); vx = vx / sp * target; vy = vy / sp * target;
+          bvx[i] = vx; bvy[i] = vy;
+        }
+        ctx.fillStyle = 'rgba(11,14,19,0.32)'; ctx.fillRect(0, 0, W, H);
+        ctx.lineWidth = 1.3;
+        for (let i = 0; i < N; i++) {
+          bx[i] += bvx[i]; by[i] += bvy[i];
+          ctx.strokeStyle = isCoral[i] ? coral(0.95) : steel(0.68); ctx.beginPath(); ctx.moveTo(bx[i] - bvx[i] * 2.4, by[i] - bvy[i] * 2.4); ctx.lineTo(bx[i] + bvx[i] * 1.2, by[i] + bvy[i] * 1.2); ctx.stroke();
+        }
+      };
+      return { canvas, resize, frame, dispose() {} };
+    }
+  });
+
+  /* ---------------------------------------------------------------- 7. contour lines */
+  VARIANTS.push({
+    id: 'contour', name: 'Isolines', tech: 'canvas 2d · marching squares over 3-D value noise, 12px cells', cost: 'low–medium',
+    blurb: 'Slowly morphing contour lines, like a pressure chart or elevation plot. <strong>The cursor raises a peak</strong> that bunches the lines into concentric coral rings.',
+    hint: 'Your cursor raises the terrain',
+    create() {
+      const { canvas, ctx, size, resize: base } = make2d();
+      const CELL = 12, LEVELS = 11; let cols = 0, rows = 0, f; let peak = 0;
+      const resize = () => { base(); cols = Math.ceil(size.w / CELL) + 1; rows = Math.ceil(size.h / CELL) + 1; f = new Float32Array(cols * rows); };
+      // marching squares edge table: 0=top 1=right 2=bottom 3=left
+      const T = []; T[1] = [[3, 2]]; T[2] = [[2, 1]]; T[3] = [[3, 1]]; T[4] = [[0, 1]]; T[5] = [[0, 3], [2, 1]]; T[6] = [[0, 2]]; T[7] = [[0, 3]];
+      for (let k = 8; k < 15; k++) T[k] = T[15 - k]; T[10] = [[0, 1], [3, 2]];
+      const frame = (t) => {
+        peak = lerp(peak, pointer.active ? 1 : 0, 0.06);
+        const z = t * 0.12, s = 0.0024;
+        for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+          const x = i * CELL, y = j * CELL;
+          let v = noise3(x * s, y * s, z) * 0.6 + noise3(x * s * 2.1 + 7, y * s * 2.1, z * 1.3) * 0.28 + noise3(x * s * 4.3, y * s * 4.3 + 3, z * 1.7) * 0.12;
+          if (peak > 0.01) { const dx = x - pointer.x, dy = y - pointer.y; v += peak * 0.9 * Math.exp(-(dx * dx + dy * dy) / (2 * 120 * 120)); }
+          f[i + cols * j] = v;
+        }
+        ctx.fillStyle = GROUND_CSS; ctx.fillRect(0, 0, size.w, size.h);
+        for (let L = 0; L < LEVELS; L++) {
+          const lv = 0.3 + L * 0.04; const isCoral = L === 5;
+          ctx.strokeStyle = isCoral ? coral(0.9) : steel(0.2 + (L % 5 === 0 ? 0.22 : 0));
+          ctx.lineWidth = isCoral ? 1.3 : 1;
+          ctx.beginPath();
+          for (let j = 0; j < rows - 1; j++) for (let i = 0; i < cols - 1; i++) {
+            const a = f[i + cols * j], b = f[i + 1 + cols * j], c = f[i + 1 + cols * (j + 1)], d = f[i + cols * (j + 1)];
+            const idx = (a > lv ? 8 : 0) | (b > lv ? 4 : 0) | (c > lv ? 2 : 0) | (d > lv ? 1 : 0);
+            if (idx === 0 || idx === 15) continue;
+            const x0 = i * CELL, y0 = j * CELL;
+            const pt = (e) => {
+              switch (e) {
+                case 0: return [x0 + CELL * (lv - a) / (b - a), y0];
+                case 1: return [x0 + CELL, y0 + CELL * (lv - b) / (c - b)];
+                case 2: return [x0 + CELL * (lv - d) / (c - d), y0 + CELL];
+                default: return [x0, y0 + CELL * (lv - a) / (d - a)];
+              }
+            };
+            for (const seg of T[idx]) { const p = pt(seg[0]), q = pt(seg[1]); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); }
+          }
+          ctx.stroke();
+        }
+      };
+      return { canvas, resize, frame, dispose() {} };
+    }
+  });
+
+  /* ---------------------------------------------------------------- 8. domain-warped ink (WebGL) */
+  const GL_COMMON = `
+    precision highp float;
+    uniform vec2 u_res; uniform float u_time; uniform vec2 u_pointer; uniform float u_pstr; uniform vec2 u_pvel;
+    const vec3 GROUND = vec3(11.,14.,19.)/255.; const vec3 STEEL = vec3(214.,226.,235.)/255.; const vec3 CORAL = vec3(255.,107.,74.)/255.;
+    float hash(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
+    vec2 hash2(vec2 p){ p = vec2(dot(p,vec2(127.1,311.7)), dot(p,vec2(269.5,183.3))); return fract(sin(p)*43758.5453); }
+    float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f*f*(3.-2.*f);
+      return mix(mix(hash(i), hash(i+vec2(1.,0.)), u.x), mix(hash(i+vec2(0.,1.)), hash(i+1.), u.x), u.y); }
+    float fbm(vec2 p){ float v = 0., a = .5; mat2 m = mat2(1.6,1.2,-1.2,1.6); for(int i=0;i<5;i++){ v += a*noise(p); p = m*p; a *= .5; } return v; }
+  `;
+  VARIANTS.push({
+    id: 'ink', name: 'Ink smoke', tech: 'WebGL fragment shader · domain-warped fbm (5 octaves)', cost: 'low (GPU)',
+    blurb: 'Domain-warped noise drifting like ink in water. Steel body, <strong>thin coral ridge lines</strong> where the field folds. The cursor shears the field and brightens ridges nearby.',
+    hint: 'The ink folds around your cursor',
+    create() {
+      const g = makeGl(GL_COMMON + `
+        void main(){
+          float asp = u_res.x/u_res.y;
+          vec2 uv = gl_FragCoord.xy/u_res; vec2 p = vec2(uv.x*asp, uv.y)*2.4;
+          vec2 pp = vec2(u_pointer.x/u_res.x*asp, u_pointer.y/u_res.y)*2.4;
+          vec2 d = p - pp; float r = length(d);
+          float infl = exp(-r*r*3.5)*u_pstr;
+          vec2 vel = u_pvel/u_res.y*2.4;
+          // smooth swirl (no normalize → no star at the cursor centre)
+          p += vec2(-d.y, d.x)*0.55*infl - vel*infl*0.25;
+          float t = u_time*0.07;
+          vec2 q = vec2(fbm(p+vec2(0.,t)), fbm(p+vec2(5.2,1.3)-t*0.8));
+          vec2 r2 = vec2(fbm(p+4.*q+vec2(1.7,9.2)+0.15*t), fbm(p+4.*q+vec2(8.3,2.8)+0.126*t));
+          float f = fbm(p+3.6*r2);
+          vec3 col = GROUND;
+          col = mix(col, STEEL*0.26, smoothstep(0.36, 0.80, f)*(0.5+0.5*q.x));
+          float ridge = smoothstep(0.535,0.565,f)*(1.-smoothstep(0.565,0.60,f));
+          col = mix(col, CORAL*0.9, ridge*(0.2+0.8*length(r2))*(0.45+0.7*infl));
+          col += CORAL*infl*0.035;
+          gl_FragColor = vec4(col, 1.);
+        }`);
+      if (!g) return null;
+      return { canvas: g.canvas, resize: g.resize, frame: (t) => g.draw(t), dispose: g.dispose };
+    }
+  });
+
+  /* ---------------------------------------------------------------- 9. cell lens (WebGL voronoi) */
+  VARIANTS.push({
+    id: 'cells', name: 'Cell lens', tech: 'WebGL fragment shader · animated Voronoi + magnifier', cost: 'low (GPU)',
+    blurb: 'A faint epithelial sheet of jittering Voronoi cells. <strong>The cursor is a dermoscope</strong>: a magnifying lens where cell borders light up coral and nuclei resolve.',
+    hint: 'Your cursor is the lens',
+    create() {
+      const g = makeGl(GL_COMMON + `
+        vec3 voronoi(vec2 x, float t){
+          vec2 n = floor(x), f = fract(x); vec2 mg = vec2(0.), mr = vec2(0.); float md = 8., id = 0.;
+          for(int j=-1;j<=1;j++) for(int i=-1;i<=1;i++){ vec2 g = vec2(float(i),float(j)); vec2 o = hash2(n+g); o = 0.5+0.45*sin(t+6.2831*o); vec2 r = g+o-f; float d = dot(r,r); if(d<md){ md=d; mr=r; mg=g; id=o.x; } }
+          md = 8.;
+          for(int j=-2;j<=2;j++) for(int i=-2;i<=2;i++){ vec2 g = mg+vec2(float(i),float(j)); vec2 o = hash2(n+g); o = 0.5+0.45*sin(t+6.2831*o); vec2 r = g+o-f; if(dot(mr-r,mr-r)>1e-5) md = min(md, dot(0.5*(mr+r), normalize(r-mr))); }
+          return vec3(md, length(mr), id);
+        }
+        void main(){
+          float asp = u_res.x/u_res.y;
+          vec2 uv = gl_FragCoord.xy/u_res; vec2 a = vec2(uv.x*asp, uv.y);
+          vec2 pp = vec2(u_pointer.x/u_res.x*asp, u_pointer.y/u_res.y);
+          vec2 d = a - pp; float r = length(d);
+          float lensR = 0.21*u_pstr + 0.001;
+          float inside = (1.-smoothstep(lensR-0.015, lensR, r))*u_pstr;
+          float zoom = 2.4; float scale = 13.0;
+          vec2 p = a*scale;
+          vec2 pm = pp*scale + d*scale/zoom;
+          vec2 pc = mix(p, pm, inside);
+          float t = u_time*0.35;
+          vec3 v = voronoi(pc, t);
+          // keep the border ~1.5px wide inside the lens too (coords are /zoom there)
+          float ew = mix(0.028, 0.028/zoom*1.4, inside);
+          float edge = 1.-smoothstep(0.0, ew, v.x);
+          float nuc = 1.-smoothstep(0.0, 0.07, v.y);
+          vec3 col = GROUND + STEEL*0.03*v.z;
+          col = mix(col, STEEL*0.38, edge*0.5);
+          col = mix(col, GROUND + STEEL*0.07 + STEEL*0.05*v.z, inside*(1.-edge));
+          col = mix(col, CORAL, edge*inside*0.9);
+          col = mix(col, CORAL*0.7, nuc*inside*0.75);
+          float ring = smoothstep(lensR-0.004, lensR, r)*(1.-smoothstep(lensR, lensR+0.003, r));
+          col = mix(col, CORAL, ring*0.9*u_pstr);
+          gl_FragColor = vec4(col,1.);
+        }`);
+      if (!g) return null;
+      return { canvas: g.canvas, resize: g.resize, frame: (t) => g.draw(t), dispose: g.dispose };
+    }
+  });
+
+  /* ======================================================================
+     Lab runtime: switcher, loop, fps, typewriter.
+     ====================================================================== */
+  const chips = document.getElementById('chips');
+  const blurbEl = document.getElementById('blurb');
+  const techEl = document.getElementById('tech');
+  const fpsEl = document.getElementById('fps');
+  const hintEl = document.getElementById('hint');
+  let active = null; let activeIdx = -1; let raf = 0; let t0 = 0; let last = 0;
+  let fpsAcc = 0, fpsN = 0, fpsLast = 0;
+
+  VARIANTS.forEach((v, i) => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.setAttribute('role', 'tab'); b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `<b>${i + 1}</b>${v.name}`;
+    b.addEventListener('click', () => mount(i));
+    chips.appendChild(b);
+  });
+
+  function mount(i) {
+    i = (i + VARIANTS.length) % VARIANTS.length;
+    if (active) { cancelAnimationFrame(raf); active.dispose(); active.canvas.remove(); active = null; }
+    const v = VARIANTS[i];
+    const inst = v.create();
+    activeIdx = i;
+    [...chips.children].forEach((c, k) => c.setAttribute('aria-pressed', String(k === i)));
+    blurbEl.innerHTML = v.blurb; techEl.textContent = `${v.tech} · cost ${v.cost}`; hintEl.textContent = v.hint;
+    history.replaceState(null, '', `#${v.id}`);
+    if (!inst) { blurbEl.innerHTML = `<strong>${v.name}</strong> needs WebGL, which this browser refused.`; return; }
+    active = inst; host.appendChild(inst.canvas); canvasEl = inst.canvas;
+    inst.resize();
+    t0 = performance.now(); last = t0; fpsAcc = 0; fpsN = 0; fpsLast = t0;
+    raf = requestAnimationFrame(loop);
+  }
+
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const t = (now - t0) / 1000;
+    active.frame(t, dt);
+    pointer.vx = 0; pointer.vy = 0; pointer.tap = false;
+    fpsAcc += dt; fpsN++;
+    if (now - fpsLast > 500) { fpsEl.textContent = `${Math.round(fpsN / fpsAcc)} fps`; fpsAcc = 0; fpsN = 0; fpsLast = now; }
+    raf = requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('resize', () => { if (active) active.resize(); });
+
+  const toggleCopy = document.getElementById('toggleCopy');
+  const toggleScrim = document.getElementById('toggleScrim');
+  const flip = (btn, cls) => { const on = !document.body.classList.contains(cls); document.body.classList.toggle(cls, on); btn.setAttribute('aria-pressed', String(on)); };
+  toggleCopy.addEventListener('click', () => flip(toggleCopy, 'hide-copy'));
+  toggleScrim.addEventListener('click', () => flip(toggleScrim, 'no-scrim'));
+
+  window.addEventListener('keydown', (e) => {
+    if (e.target && /input|textarea/i.test(e.target.tagName)) return;
+    if (e.key === 'ArrowRight') mount(activeIdx + 1);
+    else if (e.key === 'ArrowLeft') mount(activeIdx - 1);
+    else if (/^[1-9]$/.test(e.key) && Number(e.key) <= VARIANTS.length) mount(Number(e.key) - 1);
+    else if (e.key === 'h' || e.key === 'H') flip(toggleCopy, 'hide-copy');
+    else if (e.key === 's' || e.key === 'S') flip(toggleScrim, 'no-scrim');
+  });
+
+  // typewriter (same phrases as profile.json → activity)
+  const phrases = ['evaluating vision-language models on dermoscopic images…', 'drafting a clinic note from live audio…', 'scheduling spaced repetition across the dermpath curriculum…', 'writing about what AI gets wrong at the bedside…'];
+  const typedEl = document.getElementById('typed');
+  let pi = 0, ci = 0, del = false;
+  (function tick() {
+    const ph = phrases[pi]; typedEl.textContent = ph.slice(0, ci);
+    let wait = del ? 26 : 52;
+    if (!del && ci === ph.length) { wait = 2100; del = true; }
+    else if (del && ci === 0) { del = false; pi = (pi + 1) % phrases.length; wait = 420; }
+    else ci += del ? -1 : 1;
+    setTimeout(tick, wait);
+  })();
+
+  const start = Math.max(0, VARIANTS.findIndex((v) => `#${v.id}` === location.hash));
+  mount(start === -1 ? 0 : start);
+})();
+</script>
+</body>
+</html>
