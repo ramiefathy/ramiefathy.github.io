@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { HERO_BACKGROUNDS, readHeroOverride, resolveHeroBackground } from '../lib/heroBackgrounds.js';
 
 /**
  * Field Console hero.
  *
- * A cursor-reactive flow field (plain 2D canvas — no WebGL, no shader deps)
- * beneath the display name, with the streaming activity console docked at the
- * foot of the stage.
+ * One of eight interactive backgrounds (see `lib/heroBackgrounds.js`) is drawn
+ * beneath the display name on every visit, picked at random on the client, with
+ * the streaming activity console docked at the foot of the stage.
  *
  * Design notes:
  *  - All styling lives in `global.css` under "FIELD CONSOLE PRIMITIVES". This
@@ -14,25 +15,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
  *    place means the SSR pass already paints the hero before hydration.
  *  - The heading and copy are real SSR markup (never opacity:0), so the hero is
  *    legible with JS disabled and there is no hidden-content flash.
- *  - `prefers-reduced-motion` renders the field as a single still texture and
- *    pins the console to its first phrase.
+ *  - The variant is chosen after hydration, so the server markup is identical
+ *    for every visit (no hydration mismatch); the canvas is appended to
+ *    `.field-hero__stage` by the chosen variant and the hint pill updates to
+ *    match it.
+ *  - `prefers-reduced-motion` renders `settleFrames` frames of the variant as a
+ *    single still texture and pins the console to its first phrase.
+ *  - A variant that cannot get its canvas context (no WebGL) falls back to the
+ *    flow field, which only needs 2D.
+ *  - QA: `/?hero=<id>` or `localStorage.setItem('ff_heroVariant', '<id>')`.
  */
 
-const PARTICLE_COUNT = 820;
-const CURSOR_RADIUS = 170;
-const CORAL = 'rgba(255, 107, 74, 0.85)';
-const STEEL = 'rgba(214, 226, 235, 0.32)';
-const GROUND = '#0b0e13';
-const TRAIL_FADE = 'rgba(11, 14, 19, 0.045)';
+const DEFAULT_HINT = 'The field responds to your cursor';
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const FieldHero = ({ profile }) => {
-  const canvasRef = useRef(null);
   const stageRef = useRef(null);
-  const pointerRef = useRef({ x: -1e4, y: -1e4 });
+  const hostRef = useRef(null);
+  const pointerRef = useRef({ x: -1e4, y: -1e4, vx: 0, vy: 0, active: false, tap: false });
+  const [hint, setHint] = useState(DEFAULT_HINT);
   const [primaryCta, secondaryCta] = (profile.callToActions || []).slice(0, 2);
 
   // Memoized so the fallback branch doesn't allocate a new array (and thus
@@ -50,121 +54,56 @@ const FieldHero = ({ profile }) => {
 
   /* ---------------------------------------------------------------- canvas */
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const stage = stageRef.current;
-    if (!canvas || !stage) return undefined;
+    const host = hostRef.current;
+    if (!host) return undefined;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return undefined;
+    const pointer = pointerRef.current;
+    const override = readHeroOverride({ search: window.location.search, storage: window.localStorage });
+    let variant = resolveHeroBackground({ override });
+    let fx = variant.create(pointer);
+    if (!fx && variant.id !== 'flow') {
+      variant = HERO_BACKGROUNDS.find((v) => v.id === 'flow');
+      fx = variant.create(pointer);
+    }
+    if (!fx) return undefined;
+
+    host.appendChild(fx.canvas);
+    setHint(variant.hint);
+    fx.resize();
 
     const reduce = prefersReducedMotion();
-    let width = 0;
-    let height = 0;
     let raf = 0;
     let visible = true;
-    let time = Math.random() * 100;
+    let last = performance.now();
+    const t0 = last;
 
-    const particles = [];
-
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const rect = canvas.getBoundingClientRect();
-      width = rect.width;
-      height = rect.height;
-      canvas.width = Math.max(1, Math.round(width * dpr));
-      canvas.height = Math.max(1, Math.round(height * dpr));
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.fillStyle = GROUND;
-      ctx.fillRect(0, 0, width, height);
-    };
-
-    const seed = () => {
-      particles.length = 0;
-      for (let i = 0; i < PARTICLE_COUNT; i += 1) {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          px: 0,
-          py: 0,
-          coral: Math.random() < 0.08
-        });
-      }
-    };
-
-    resize();
-    seed();
-
-    // Three summed sinusoids: cheap, smooth, and never repeats visibly.
-    const field = (x, y) => {
-      const s = 0.0016;
-      return (
-        Math.sin(y * s * 2.1 + time * 0.7) +
-        Math.cos(x * s * 1.7 - time * 0.4) +
-        Math.sin((x + y) * s * 0.8 + time * 0.23)
-      );
-    };
-
-    const step = (draw) => {
-      time += 0.004;
-      const { x: mx, y: my } = pointerRef.current;
-
-      for (const p of particles) {
-        const angle = field(p.x, p.y) * Math.PI;
-        let vx = Math.cos(angle);
-        let vy = Math.sin(angle);
-
-        // Cursor vortex: mostly tangential swirl, a little inward pull.
-        const dx = mx - p.x;
-        const dy = my - p.y;
-        const distSq = dx * dx + dy * dy;
-        if (distSq < CURSOR_RADIUS * CURSOR_RADIUS) {
-          const dist = Math.sqrt(distSq) || 1;
-          const force = (1 - dist / CURSOR_RADIUS) * 1.7;
-          vx += (-dy / dist) * force * 2 + (dx / dist) * force * 0.35;
-          vy += (dx / dist) * force * 2 + (dy / dist) * force * 0.35;
-        }
-
-        p.px = p.x;
-        p.py = p.y;
-        p.x += vx * 1.55;
-        p.y += vy * 1.55;
-
-        // Wrap, resetting the trail origin so no streak crosses the canvas.
-        if (p.x < -6) { p.x = width + 6; p.px = p.x; }
-        if (p.x > width + 6) { p.x = -6; p.px = p.x; }
-        if (p.y < -6) { p.y = height + 6; p.py = p.y; }
-        if (p.y > height + 6) { p.y = -6; p.py = p.y; }
-
-        if (draw && Math.abs(p.x - p.px) < 22 && Math.abs(p.y - p.py) < 22) {
-          ctx.strokeStyle = p.coral ? CORAL : STEEL;
-          ctx.lineWidth = 1.1;
-          ctx.beginPath();
-          ctx.moveTo(p.px, p.py);
-          ctx.lineTo(p.x, p.y);
-          ctx.stroke();
-        }
-      }
-    };
+    const endFrame = () => { pointer.vx = 0; pointer.vy = 0; pointer.tap = false; };
 
     if (reduce) {
       // One settled still frame — same atmosphere, zero animation.
-      for (let i = 0; i < 140; i += 1) step(i > 20);
-      const onResizeStill = () => { resize(); seed(); for (let i = 0; i < 140; i += 1) step(i > 20); };
+      const settle = () => { for (let i = 0; i < variant.settleFrames; i += 1) { fx.frame(i / 60, 1 / 60); endFrame(); } };
+      settle();
+      const onResizeStill = () => { fx.resize(); settle(); };
       window.addEventListener('resize', onResizeStill);
-      return () => window.removeEventListener('resize', onResizeStill);
+      return () => {
+        window.removeEventListener('resize', onResizeStill);
+        fx.dispose();
+        fx.canvas.remove();
+      };
     }
 
-    const loop = () => {
+    const loop = (now) => {
       if (visible) {
-        ctx.fillStyle = TRAIL_FADE;
-        ctx.fillRect(0, 0, width, height);
-        step(true);
+        const dt = Math.min(0.05, (now - last) / 1000);
+        fx.frame((now - t0) / 1000, dt);
+        endFrame();
       }
+      last = now;
       raf = window.requestAnimationFrame(loop);
     };
     raf = window.requestAnimationFrame(loop);
 
-    const onResize = () => { resize(); seed(); };
+    const onResize = () => fx.resize();
     window.addEventListener('resize', onResize);
 
     // Don't burn frames once the hero scrolls away.
@@ -174,13 +113,15 @@ const FieldHero = ({ profile }) => {
         (entries) => { visible = entries[0].isIntersecting; },
         { threshold: 0.02 }
       );
-      observer.observe(canvas);
+      observer.observe(fx.canvas);
     }
 
     return () => {
       window.cancelAnimationFrame(raf);
       window.removeEventListener('resize', onResize);
       if (observer) observer.disconnect();
+      fx.dispose();
+      fx.canvas.remove();
     };
   }, []);
 
@@ -224,15 +165,31 @@ const FieldHero = ({ profile }) => {
   }, [phrases]);
 
   /* --------------------------------------------------------------- pointer */
+  const pointerAt = (event) => {
+    const host = hostRef.current;
+    if (!host) return null;
+    const rect = host.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  };
+
   const handlePointerMove = useCallback((event) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    pointerRef.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    const next = pointerAt(event);
+    if (!next) return;
+    const p = pointerRef.current;
+    if (p.active) { p.vx += next.x - p.x; p.vy += next.y - p.y; }
+    p.x = next.x; p.y = next.y; p.active = true;
+  }, []);
+
+  const handlePointerDown = useCallback((event) => {
+    const next = pointerAt(event);
+    if (!next) return;
+    const p = pointerRef.current;
+    p.x = next.x; p.y = next.y; p.active = true; p.tap = true;
   }, []);
 
   const handlePointerLeave = useCallback(() => {
-    pointerRef.current = { x: -1e4, y: -1e4 };
+    // Mutate in place: the active variant holds a reference to this object.
+    Object.assign(pointerRef.current, { x: -1e4, y: -1e4, vx: 0, vy: 0, active: false, tap: false });
   }, []);
 
   const [firstName, ...restName] = (profile.name || '').replace(/,\s*MD$/, '').split(' ');
@@ -253,9 +210,11 @@ const FieldHero = ({ profile }) => {
       aria-labelledby="hero-title"
       ref={stageRef}
       onPointerMove={handlePointerMove}
+      onPointerDown={handlePointerDown}
       onPointerLeave={handlePointerLeave}
+      onPointerCancel={handlePointerLeave}
     >
-      <canvas className="field-hero__canvas" ref={canvasRef} aria-hidden="true" />
+      <div className="field-hero__stage" ref={hostRef} aria-hidden="true" />
 
       <div className="field-hero__body">
         <p className="field-hero__kicker">{kicker}</p>
@@ -296,7 +255,7 @@ const FieldHero = ({ profile }) => {
             <span className="f-console__caret" aria-hidden="true" />
           </p>
         </div>
-        <span className="field-hero__hint">The field responds to your cursor</span>
+        <span className="field-hero__hint">{hint}</span>
       </div>
     </section>
   );

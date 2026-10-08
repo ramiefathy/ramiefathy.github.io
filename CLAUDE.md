@@ -66,6 +66,7 @@ The primary site at [ramiefathy.com](https://ramiefathy.com). Static output (`ou
 - `site/src/data/*.json` — structured content (`apps.json`, `profile.json`, `publications.js`, `timeline.json`, etc.) is the source of truth for what renders on the site. Editing these JSON files is the normal way to update content.
 - `site/src/layouts/MainLayout.astro` — shared head, fonts, footer.
 - `site/src/lib/featureFlags.js` — flag system with localStorage overrides (`localStorage.setItem('ff_<flag>', 'true')`). Off-by-default for new features; defaults shipped in code.
+- `site/src/lib/heroBackgrounds.js` — the landing hero's eight interactive canvas/WebGL backgrounds; `FieldHero.jsx` draws one at random per visit. Force one for QA with `/?hero=<id>` or `localStorage.setItem('ff_heroVariant', '<id>')` (ids: flow, fluid, ripple, graph, boids, contour, ink, cells). Reaction–diffusion was evaluated and rejected; don't re-add it. The side-by-side lab lives at `docs/mockups/hero-background-alternatives.html`.
 - `site/public/_headers` — Cloudflare-style HTTP headers (HSTS, CSP, X-Robots-Tag for unlisted pages). The `/apps/dermatology-scribe/*` route gets a relaxed CSP and microphone permission.
 - `astro.config.mjs` — pre-bundles heavy deps (`framer-motion`, `d3`, `html-to-image`, `jspdf`) into `optimizeDeps.include` because parallel Playwright workers used to hit Vite "Outdated Optimize Dep" 504s. Don't remove without re-testing E2E stability.
 
