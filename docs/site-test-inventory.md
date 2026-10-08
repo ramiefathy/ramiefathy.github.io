@@ -229,6 +229,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
   ],
   "unlistedStaticPages": [
     {
+      "label": "EURETINA 2026 Study Guide (unlisted)",
+      "route": "/study/euretina-2026-9c4e7a2b/",
+      "file": "site/public/study/euretina-2026-9c4e7a2b/index.html",
+      "category": "study-unlisted",
+      "requiresDownloads": false
+    },
+    {
       "label": "Craniopharyngioma Pathway Explorer (unlisted)",
       "route": "/teaching/craniopharyngioma-7e9c4b2a/",
       "file": "site/public/teaching/craniopharyngioma-7e9c4b2a/index.html",
