@@ -57,3 +57,8 @@ index.html       Reader and presentation application, with embedded guide data
 assets/          Four original attributed screenshot files
 README.txt       These hosting and redistribution notes
 SHA256SUMS.txt   SHA-256 checksums for index.html and the four image files
+
+PUBLICATION RECORD
+The site owner confirmed permission to publish this complete package, including
+all four attributed conference screenshots, on 7 October 2026. This copy is
+unlisted and unlinked, with noindex metadata; it is publicly accessible.
