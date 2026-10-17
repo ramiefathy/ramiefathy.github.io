@@ -129,7 +129,7 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "requiresDownloads": true
     },
     {
-      "label": "Rheum–Derm Immune Atlas",
+      "label": "Rheum\u2013Derm Immune Atlas",
       "route": "/apps/rheum-derm-immune-atlas/",
       "file": "site/public/apps/rheum-derm-immune-atlas/index.html",
       "category": "clinical-reference",
@@ -295,6 +295,20 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "label": "Research field notes (unlisted, noindex)",
       "route": "/research/field-notes-7c9f2e4a/",
       "file": "site/public/research/field-notes-7c9f2e4a/index.html",
+      "category": "research-unlisted",
+      "requiresDownloads": false
+    },
+    {
+      "label": "Chart Biopsy integrated pipeline (unlisted)",
+      "route": "/research/chart-biopsy-pipeline-51616c580f/",
+      "file": "site/public/research/chart-biopsy-pipeline-51616c580f/index.html",
+      "category": "research-unlisted",
+      "requiresDownloads": false
+    },
+    {
+      "label": "Chart Biopsy rubric criteria reference (unlisted)",
+      "route": "/research/chart-biopsy-pipeline-51616c580f/rubrics.html",
+      "file": "site/public/research/chart-biopsy-pipeline-51616c580f/rubrics.html",
       "category": "research-unlisted",
       "requiresDownloads": false
     }
