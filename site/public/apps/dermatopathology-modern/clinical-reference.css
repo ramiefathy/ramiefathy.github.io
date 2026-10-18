@@ -598,6 +598,8 @@ body[data-legacy-shell='true'] .dpn-stage__title h2 {
 .dpn-node {
   cursor: pointer;
   outline: none;
+  /* A finger that lands on a node drags it instead of scrolling the page; the background still scrolls. */
+  touch-action: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
