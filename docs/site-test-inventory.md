@@ -129,6 +129,23 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "requiresDownloads": true
     },
     {
+      "label": "Dermpath Kodachromes Board Review",
+      "route": "/apps/dermpath-kodachromes/",
+      "file": "site/public/apps/dermpath-kodachromes/index.html",
+      "category": "dermpath-kodachromes",
+      "requiresDownloads": false,
+      "requiresPageTools": false
+    },
+    {
+      "label": "Dermpath Board Review (redirect)",
+      "route": "/apps/dermpath-board-review/",
+      "file": "site/public/apps/dermpath-board-review/index.html",
+      "category": "dermpath-kodachromes",
+      "requiresDownloads": false,
+      "requiresPageTools": false,
+      "redirectTo": "/apps/dermpath-kodachromes/"
+    },
+    {
       "label": "Rheum\u2013Derm Immune Atlas",
       "route": "/apps/rheum-derm-immune-atlas/",
       "file": "site/public/apps/rheum-derm-immune-atlas/index.html",
