@@ -328,6 +328,20 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "file": "site/public/research/chart-biopsy-pipeline-51616c580f/rubrics.html",
       "category": "research-unlisted",
       "requiresDownloads": false
+    },
+    {
+      "label": "Dermpath Board Review Annotated ROI Editor (unlisted)",
+      "route": "/apps/dermpath-roi-editor/",
+      "file": "site/public/apps/dermpath-roi-editor/index.html",
+      "category": "internal-unlisted",
+      "requiresDownloads": false
+    },
+    {
+      "label": "Dermpath Board Review Before/After Report (unlisted)",
+      "route": "/apps/dermpath-before-after/",
+      "file": "site/public/apps/dermpath-before-after/index.html",
+      "category": "internal-unlisted",
+      "requiresDownloads": false
     }
   ],
   "unlistedAstroRoutes": [
