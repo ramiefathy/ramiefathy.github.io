@@ -18,7 +18,7 @@
     <script src="../shared/legacy-shell.js" defer></script>
     <script src="../shared/legacy-guidance.js" defer></script>
 </head>
-<body class="clinical-reference legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Pick a pattern from the left-hand browser, or press Ctrl/⌘ K to search patterns, diagnoses and key features.","The network opens by default: the hub is the pattern, each node is a diagnosis in its differential. Larger, shaded nodes are listed under other patterns too; the number inside is how many.","Point at, tab to or select a node: its full name shows in the bar above the graph. Selecting it opens key features, a star, a note and links to other patterns that list it.","Drag a node to move it (or nudge a focused node with the arrow keys); drag the background to pan. The reset button restores the ring.","Expand (top right of the graph) gives the network the full width and keeps details in a side drawer; Esc returns. On phones, a full-name list and the details sit directly under the graph.","Switch to List for a reading view or Flashcards for self-testing (arrow keys move, Space reveals).","Stars and notes are kept in this browser only. Reload reloads the page without deleting them."]'>
+<body class="clinical-reference legacy-focus-ring" data-legacy-shell="true" data-help-steps='["Pick a pattern from the left-hand browser, or press Ctrl/⌘ K to search patterns, diagnoses and key features.","The network opens by default: the hub is the pattern, each node is a diagnosis in its differential. Larger, shaded nodes are listed under other patterns too; the number inside is how many.","Point at, tab to or select a node: its full name shows in the bar above the graph. Selecting it opens key features, a star, a note and links to other patterns that list it.","Drag a node to move it with a mouse, pen or finger (or nudge a focused node with the arrow keys); with a mouse, drag the background to pan; on a touch screen, a swipe on the background scrolls the page and two fingers pan or zoom. The reset button restores the ring.","Expand (top right of the graph) gives the network the full width and keeps details in a side drawer; Esc returns. On phones, a full-name list and the details sit directly under the graph.","Switch to List for a reading view or Flashcards for self-testing (arrow keys move, Space reveals).","Stars and notes are kept in this browser only. Reload reloads the page without deleting them."]'>
     <div id="root"><p class="dpn-loading">Loading reference…</p></div>
 
     <script type="module" src="./data-loader.js"></script>
@@ -439,15 +439,17 @@
                 setOffsets((prev) => ({ ...prev, [key]: { x: nx - base.x, y: ny - base.y } }));
             }, []);
 
-            // Mouse/pen drag on diagnosis nodes. Touch is left to the page (one-finger scroll) and to taps.
-            // d3-drag stops the mousedown reaching d3-zoom, so dragging a node never pans the graph,
-            // and a drag longer than clickDistance does not count as a click (no accidental selection).
+            // Drag diagnosis nodes with a mouse, pen or one finger. A finger that lands on a node drags it
+            // (.dpn-node has touch-action: none); a finger on the empty background still scrolls the page.
+            // d3-drag stops the gesture reaching d3-zoom, so dragging a node never pans the graph, and a drag
+            // longer than clickDistance does not count as a click (no accidental selection). Taps still select.
             useEffect(() => {
                 const g = graphRef.current;
                 if (!g || !window.d3 || !layout) return undefined;
                 const nodesSel = d3.select(g).selectAll('.dpn-node');
                 const drag = d3.drag()
-                    .filter((event) => event.type === 'mousedown' && !event.button && !event.ctrlKey)
+                    .filter((event) => (event.type === 'mousedown' && !event.button && !event.ctrlKey)
+                        || (event.type === 'touchstart' && event.touches && event.touches.length === 1))
                     .clickDistance(4)
                     .container(() => g)
                     .subject(function () {
@@ -628,7 +630,7 @@
                         <li><svg viewBox="-9 -9 18 18"><circle r="5.5" fill="var(--cl-surface)" stroke="var(--cl-ink)" strokeWidth="1.25" /></svg>Unique to this pattern</li>
                         <li><svg viewBox="-9 -9 18 18"><circle r="8.5" fill="var(--cl-surface-alt)" stroke="var(--cl-ink)" strokeWidth="1.25" /><text fontSize="9" textAnchor="middle" dominantBaseline="central" fontFamily="var(--font-mono)" fontWeight="700">3</text></svg>Listed under n other patterns</li>
                         <li><svg viewBox="-9 -9 18 18"><circle r="3.5" fill="var(--cl-terracotta)" /></svg>Starred</li>
-                        <li>Drag a node to move it (arrow keys when focused) · drag the background to pan · Ctrl/⌘ + scroll to zoom</li>
+                        <li>Drag a node to move it (mouse, pen or finger; arrow keys when focused) · mouse: drag the background to pan, Ctrl/⌘ + scroll to zoom · touch: swipe the background to scroll, two fingers to pan or zoom</li>
                     </ul>
                 </div>
             );
