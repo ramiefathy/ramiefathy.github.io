@@ -88,6 +88,7 @@ Python `websockets` server powering live transcription and Gemini-driven note ge
 
 ### Other surfaces
 
+- `site/public/tools/rx-88b7pf8328/` — unlisted, password-protected PsO–PsA therapy compendium. `index.html` (ciphertext) and `sw.js` are committed by the private `ramiefathy/psopsa-algo` workflow; don't edit them by hand. `site/src/security/psopsa-compendium-unlisted.test.ts` guards the folder.
 - `functions-backend/` — Firebase Cloud Functions (separate `package.json` and `node_modules`); not in the main site build pipeline.
 - `legacy/` — archived HTML reports; preserved as-is.
 - `TOS/`, `privacy/`, `apps/`, `about/`, `blog/`, `research/` at the repo root — pre-Astro stubs kept for legacy URL compatibility.

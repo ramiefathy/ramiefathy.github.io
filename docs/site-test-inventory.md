@@ -343,6 +343,14 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "category": "internal-unlisted",
       "requiresDownloads": false
     }
+,
+    {
+      "label": "PsO-PsA therapy compendium (unlisted, password-protected; published by ramiefathy/psopsa-algo)",
+      "route": "/tools/rx-88b7pf8328/",
+      "file": "site/public/tools/rx-88b7pf8328/index.html",
+      "category": "clinical-unlisted",
+      "requiresDownloads": false
+    }
   ],
   "unlistedAstroRoutes": [
     {
