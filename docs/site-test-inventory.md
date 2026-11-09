@@ -146,11 +146,13 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
       "redirectTo": "/apps/dermpath-kodachromes/"
     },
     {
-      "label": "Rheum\u2013Derm Immune Atlas",
+      "label": "Rheum\u2013Derm Immune Atlas (redirect to rheumderm.ramiefathy.com)",
       "route": "/apps/rheum-derm-immune-atlas/",
       "file": "site/public/apps/rheum-derm-immune-atlas/index.html",
       "category": "clinical-reference",
-      "requiresDownloads": true
+      "requiresDownloads": false,
+      "requiresPageTools": false,
+      "redirectTo": "https://rheumderm.ramiefathy.com/"
     },
     {
       "label": "Dermatopathology Differentials (legacy)",
@@ -212,6 +214,14 @@ The JSON below is what tests parse and enforce. Treat it as the contract.
         "site/src/pages/apps/index.astro",
         "apps/index.html",
         "apps/Scheduler.html"
+      ]
+    },
+    {
+      "slug": "rheum-derm-immune-atlas",
+      "canonicalUrl": "https://rheumderm.ramiefathy.com/",
+      "surfacesToCheck": [
+        "site/src/data/apps.json",
+        "site/public/apps/rheum-derm-immune-atlas/index.html"
       ]
     },
     {

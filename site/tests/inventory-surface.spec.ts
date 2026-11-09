@@ -39,6 +39,12 @@ test.describe('inventory surface integrity (inventory-driven)', () => {
   for (const entry of legacyApps) {
     test(`Legacy app renders: ${entry.route}`, async ({ page }) => {
       const runtime = watchRuntime(page)
+      if (entry.redirectTo && /^https?:\/\//.test(entry.redirectTo)) {
+        // External redirect targets (apps moved to their own subdomain) are answered locally so the
+        // test proves the stub lands on the canonical URL without depending on the live site.
+        // Routes registered later take precedence over the external-request block.
+        await page.route(`${entry.redirectTo}**`, (route) => route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>external</title>' }))
+      }
       await page.goto(entry.route, { waitUntil: 'networkidle' })
 
       if (entry.redirectTo) {

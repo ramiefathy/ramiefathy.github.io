@@ -75,6 +75,8 @@ Pre-Astro standalone HTML apps shipped as static assets. Each app is a self-cont
 
 **Skinoculars is external** — sourced from `ramiefathy/Skinoculars` and deployed at `https://skinoculars.ramiefathy.com/`. The site only carries a catalog entry in `apps.json`; legacy in-site `/apps/Skinoculars/*` paths are redirected to the subdomain via Cloudflare. Don't add Skinoculars code here.
 
+**The Rheum–Derm Immune Atlas is external** — sourced from the private `ramiefathy/rheum-derm-atlas` repo and deployed by Cloudflare Pages (project `rheum-derm-atlas`, every push to its `main`) at `https://rheumderm.ramiefathy.com/`. The site keeps only the catalog entry in `apps.json` and a redirect stub at `site/public/apps/rheum-derm-immune-atlas/index.html` (guarded by `site/src/security/rheum-derm-atlas-external.test.ts`). Don't add atlas code here.
+
 ### 3. AI Scribe websocket backend (`services/ai-scribe/`)
 
 Python `websockets` server powering live transcription and Gemini-driven note generation for `/apps/dermatology-scribe/`.
