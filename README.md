@@ -84,6 +84,8 @@ Skinoculars is intentionally hosted as a **standalone** application and deployed
 
 The main site keeps a catalog entry in `site/src/data/apps.json` pointing to the canonical URL. Legacy in-site paths under `/apps/Skinoculars/*` are redirected to the subdomain via Cloudflare redirect rules (so the app is not duplicated in this repository).
 
+Skinoculars is also the **single listing for every 3D skin-model project** (Skin3D, the earlier Skinoculars builds, Opus-Skin, the AtlasSkin 3D DEJ Explorer). Each keeps its own repository; the Skinoculars site opens on the current model and links every earlier version from its `/versions/` page. Don't add separate catalog entries for them; `site/src/security/skin-model-single-listing.test.ts` enforces this.
+
 ## Legacy Content
 
 The `/legacy` route lists archived HTML reports and application prototypes. These files remain untouched to preserve historical context; please add disclaimers when sharing them externally.

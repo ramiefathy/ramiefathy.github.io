@@ -11,5 +11,9 @@ test.describe('Skinoculars', () => {
     await expect(skinocularsCard).toHaveCount(1);
     await expect(skinocularsCard).toHaveAttribute('href', 'https://skinoculars.ramiefathy.com/');
     await expect(skinocularsCard).toHaveAttribute('target', '_blank');
+
+    // Every skin-model version (incl. the AtlasSkin 3D DEJ Explorer) is reached through the Skinoculars
+    // portfolio's version history, so it is the only skin-model card (see skin-model-single-listing.test.ts).
+    await expect(page.locator('.app-plate', { hasText: 'AtlasSkin 3D' })).toHaveCount(0);
   });
 });

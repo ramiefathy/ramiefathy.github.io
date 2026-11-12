@@ -73,7 +73,7 @@ The primary site at [ramiefathy.com](https://ramiefathy.com). Static output (`ou
 
 Pre-Astro standalone HTML apps shipped as static assets. Each app is a self-contained directory (e.g., `dermatology-scribe/`, `biologic-monitoring-dashboard/`, `dermatopathology-modern/`, `MindMaps/`). New tools should be Astro routes; only modify these when fixing existing apps.
 
-**Skinoculars is external** — sourced from `ramiefathy/Skinoculars` and deployed at `https://skinoculars.ramiefathy.com/`. The site only carries a catalog entry in `apps.json`; legacy in-site `/apps/Skinoculars/*` paths are redirected to the subdomain via Cloudflare. Don't add Skinoculars code here.
+**Skinoculars is external** — sourced from `ramiefathy/Skinoculars` and deployed at `https://skinoculars.ramiefathy.com/`. The site only carries a catalog entry in `apps.json`; legacy in-site `/apps/Skinoculars/*` paths are redirected to the subdomain via Cloudflare. Don't add Skinoculars code here. It is also the only catalog entry for any 3D skin-model project (Skin3D, Opus-Skin, AtlasSkin 3D DEJ Explorer, …): those keep their own repos and are reached through Skinoculars' version history (`skin-model-single-listing.test.ts`).
 
 **The Rheum–Derm Immune Atlas is external** — sourced from the private `ramiefathy/rheum-derm-atlas` repo and deployed by Cloudflare Pages (project `rheum-derm-atlas`, every push to its `main`) at `https://rheumderm.ramiefathy.com/`. The site keeps only the catalog entry in `apps.json` and a redirect stub at `site/public/apps/rheum-derm-immune-atlas/index.html` (guarded by `site/src/security/rheum-derm-atlas-external.test.ts`). Don't add atlas code here.
 
